@@ -1,0 +1,270 @@
+import XCTest
+@testable import NolaggyApplication
+@testable import NolaggyDomain
+
+final class DeepCheckSessionCoordinatorTests: XCTestCase {
+    func testRequiresWiFiBeforeCreatingASession() async throws {
+        let coordinator = makeCoordinator(wifi: false)
+
+        do {
+            _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+            XCTFail("Deep Check must not start without Wi-Fi.")
+        } catch {
+            XCTAssertEqual(error as? DeepCheckSessionError, .requiresWiFi)
+        }
+
+        let activeSession = await coordinator.currentSession()
+        let state = await coordinator.sessionState()
+        XCTAssertNil(activeSession)
+        XCTAssertEqual(state, .requiresWiFi)
+    }
+
+    func testLoadFailureKeepsValidRestResultAndSignalsUnavailability() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .unavailable)
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let state = await coordinator.sessionState()
+        guard case let .completed(finished, .completed(result), availability) = state else {
+            return XCTFail("Expected completed Deep Check with valid rest result.")
+        }
+        XCTAssertEqual(finished, session)
+        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 30)
+        XCTAssertNil(result.metrics.load)
+        XCTAssertNil(result.metrics.loadImpact)
+        XCTAssertEqual(availability, .loadUnavailable)
+    }
+
+    func testKeepsRestAndLoadSeriesSeparate() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
+        )
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        guard case let .completed(_, .completed(result), availability) = await coordinator.sessionState() else {
+            return XCTFail("Expected completed Deep Check.")
+        }
+        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 30)
+        XCTAssertEqual(result.metrics.load?.p50Milliseconds, 80)
+        XCTAssertEqual(result.metrics.loadImpact?.increaseMilliseconds, 50)
+        XCTAssertEqual(availability, .measured)
+    }
+
+    func testDeepCheckDispatchesTheResolvedMobileAndCasualProfiles() async throws {
+        for profile in [QualityProfileID.mobileRealtime, .casualRealtime] {
+            let coordinator = makeCoordinator(
+                transport: ScriptedTransport(samples: [received(30, rtt: 80), received(30, rtt: 95)])
+            )
+            _ = try await coordinator.start(resolvedContext: try resolvedContext(profile: profile), plan: plan)
+            try await waitForCompletion(coordinator)
+
+            guard case let .completed(_, .completed(result), _) = await coordinator.sessionState(),
+                  case let .completed(expected) = QualityEvaluator.evaluate(samples: received(30, rtt: 80), profile: profile) else {
+                return XCTFail("Expected a Deep Check result for \(profile.rawValue).")
+            }
+            XCTAssertEqual(result.restResult, expected)
+        }
+    }
+
+    func testInsufficientLoadUDPKeepsRestResultWithoutDeclaringTheDeepCheckInconclusive() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(9, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
+        )
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        guard case let .completed(_, .completed(result), availability) = await coordinator.sessionState() else {
+            return XCTFail("A valid rest phase must remain a completed Deep Check.")
+        }
+        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 30)
+        XCTAssertNil(result.metrics.loadImpact)
+        XCTAssertEqual(availability, .measured)
+    }
+
+    func testCompletedDeepCheckPersistsOnlyItsFinalSnapshot() async throws {
+        let history = RecordingDeepHistoryRepository()
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 10 * 1024 * 1024)),
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedWiFiAvailability(available: true),
+            historyRepository: history
+        )
+
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let entries = await history.entries
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.kind, .deep)
+        XCTAssertEqual(entries.first?.result.finalScore, 100)
+        XCTAssertEqual(entries.first?.deepCheck?.metrics.loadImpact?.increaseMilliseconds, 50)
+    }
+
+    func testBackgroundCancelsAndDiscardsBothPhases() async throws {
+        let coordinator = makeCoordinator(transport: DelayedTransport())
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        await coordinator.appDidEnterBackground()
+        try await Task.sleep(for: .milliseconds(30))
+
+        let activeSession = await coordinator.currentSession()
+        let state = await coordinator.sessionState()
+        XCTAssertNil(activeSession)
+        XCTAssertEqual(state, .cancelled(session, .appEnteredBackground))
+    }
+
+    func testPathChangeCancelsAndDiscardsBothPhases() async throws {
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: DelayedTransport(),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 1)),
+            pathObserver: ImmediateChangeObserver(),
+            wifiAvailability: FixedWiFiAvailability(available: true)
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await Task.sleep(for: .milliseconds(30))
+
+        let activeSession = await coordinator.currentSession()
+        let state = await coordinator.sessionState()
+        XCTAssertNil(activeSession)
+        XCTAssertEqual(state, .cancelled(session, .networkPathChanged))
+    }
+
+    func testExposesSeparateRestSeriesDuringLoadAndClearsThemOnCancellation() async throws {
+        let coordinator = makeCoordinator(
+            transport: ProgressTransport(
+                samples: [
+                    [ProbeSample(sequence: 0, roundTripMilliseconds: 30, outcome: .received)],
+                    [ProbeSample(sequence: 1, roundTripMilliseconds: 80, outcome: .received)]
+                ]
+            )
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await Task.sleep(for: .milliseconds(30))
+
+        let progress = await coordinator.measurementProgress()
+        XCTAssertEqual(progress?.phase, .load)
+        XCTAssertEqual(progress?.receivedSamples.map(\.sequence), [1])
+        XCTAssertEqual(progress?.restSamples.map(\.sequence), [0])
+
+        await coordinator.cancel(id: session.id)
+        let progressAfterCancellation = await coordinator.measurementProgress()
+        XCTAssertNil(progressAfterCancellation)
+    }
+
+    private var resolvedContext: ResolvedMeasurementContext {
+        get throws { try PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone)) }
+    }
+
+    private func resolvedContext(profile: QualityProfileID) throws -> ResolvedMeasurementContext {
+        ResolvedMeasurementContext(
+            context: GameContext(gameID: "profile-test", market: "BR", platform: .iphone),
+            catalogVersion: "profile-test",
+            profileID: profile,
+            regionID: "sa-east-1",
+            destination: try ProbeDestination(host: "example.invalid", port: 7770),
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+    }
+
+    private var plan: DeepCheckPlan {
+        DeepCheckPlan(
+            restProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770)),
+            loadProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770)),
+            loadRequest: LoadRequest(url: URL(string: "https://example.invalid/v1/load")!)
+        )
+    }
+
+    private func makeCoordinator(
+        transport: (any MeasurementTransport)? = nil,
+        load: any LoadTransport = FixedLoadTransport(outcome: .completed(bytesTransferred: 1)),
+        wifi: Bool = true
+    ) -> DeepCheckSessionCoordinator {
+        DeepCheckSessionCoordinator(
+            transport: transport ?? ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
+            loadTransport: load,
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedWiFiAvailability(available: wifi)
+        )
+    }
+
+    private func received(_ count: Int, rtt: Double) -> [ProbeSample] {
+        (0..<count).map { ProbeSample(sequence: $0, roundTripMilliseconds: rtt, outcome: .received) }
+    }
+
+    private func waitForCompletion(_ coordinator: DeepCheckSessionCoordinator) async throws {
+        for _ in 0..<50 {
+            if case .completed = await coordinator.sessionState() { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTFail("Deep Check did not finish.")
+    }
+}
+
+private actor ScriptedTransport: MeasurementTransport {
+    private var samples: [[ProbeSample]]
+
+    init(samples: [[ProbeSample]]) { self.samples = samples }
+
+    func collect(session: MeasurementSession, plan: QuickCheckPlan, onSample: @escaping @Sendable (ProbeSample) async -> Void) async -> [ProbeSample] {
+        samples.removeFirst()
+    }
+}
+
+private struct DelayedTransport: MeasurementTransport {
+    func collect(session: MeasurementSession, plan: QuickCheckPlan, onSample: @escaping @Sendable (ProbeSample) async -> Void) async -> [ProbeSample] {
+        try? await Task.sleep(for: .seconds(1))
+        return []
+    }
+}
+
+private actor ProgressTransport: MeasurementTransport {
+    private var samples: [[ProbeSample]]
+
+    init(samples: [[ProbeSample]]) { self.samples = samples }
+
+    func collect(session: MeasurementSession, plan: QuickCheckPlan, onSample: @escaping @Sendable (ProbeSample) async -> Void) async -> [ProbeSample] {
+        let phaseSamples = samples.removeFirst()
+        for sample in phaseSamples { await onSample(sample) }
+        if phaseSamples.first?.sequence == 1 {
+            try? await Task.sleep(for: .seconds(1))
+        }
+        return phaseSamples
+    }
+}
+
+private struct FixedLoadTransport: LoadTransport {
+    let outcome: LoadTransferOutcome
+    func transfer(_: LoadRequest) async -> LoadTransferOutcome { outcome }
+}
+
+private struct FixedWiFiAvailability: WiFiAvailability {
+    let available: Bool
+    func isWiFiAvailable() async -> Bool { available }
+}
+
+private struct NoChangesObserver: NetworkPathObserver {
+    func pathChanges() -> AsyncStream<Void> { AsyncStream { $0.finish() } }
+}
+
+private struct ImmediateChangeObserver: NetworkPathObserver {
+    func pathChanges() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            continuation.yield()
+            continuation.finish()
+        }
+    }
+}
+
+private actor RecordingDeepHistoryRepository: MeasurementHistoryRepository {
+    var entries: [MeasurementHistoryEntry] = []
+    func save(_ entry: MeasurementHistoryEntry) { entries.append(entry) }
+    func loadHistory() -> [MeasurementHistoryEntry] { entries }
+    func deleteAll() { entries = [] }
+}

@@ -1,0 +1,207 @@
+import Foundation
+
+/// Estratégia que qualifica a proximidade entre o alvo de probe e o jogo.
+/// `genericRegion` não autoriza tratar o RTT como ping oficial do jogo.
+public enum MeasurementStrategy: String, Codable, CaseIterable, Hashable, Sendable {
+    case genericRegion
+}
+
+public enum MeasurementConfidence: String, Codable, CaseIterable, Hashable, Sendable {
+    case medium
+}
+
+public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable {
+    case battleRoyaleCompetitive = "BATTLE_ROYALE_COMPETITIVE"
+    case mobileRealtime = "MOBILE_REALTIME"
+    case casualRealtime = "CASUAL_REALTIME"
+}
+
+public struct ProbeDestination: Codable, Hashable, Sendable {
+    public let host: String
+    public let port: UInt16
+
+    public init(host: String, port: UInt16) throws {
+        guard Self.isValidHost(host) else {
+            throw CatalogValidationError.invalidProbeHost
+        }
+        guard port > 0 else {
+            throw CatalogValidationError.invalidProbePort
+        }
+        self.host = host
+        self.port = port
+    }
+
+    private static func isValidHost(_ host: String) -> Bool {
+        guard !host.isEmpty, host.count <= 253, host == host.lowercased() else { return false }
+        return host.split(separator: ".", omittingEmptySubsequences: false).allSatisfy { label in
+            guard !label.isEmpty, label.count <= 63,
+                  label.first != "-", label.last != "-" else { return false }
+            return label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
+        }
+    }
+}
+
+public struct CatalogRegion: Codable, Hashable, Sendable {
+    public let id: String
+    public let destination: ProbeDestination
+
+    public init(id: String, destination: ProbeDestination) throws {
+        guard Self.isValidIdentifier(id) else {
+            throw CatalogValidationError.invalidRegionID
+        }
+        self.id = id
+        self.destination = destination
+    }
+
+    private static func isValidIdentifier(_ identifier: String) -> Bool {
+        guard !identifier.isEmpty else { return false }
+        return identifier.allSatisfy { $0.isASCII && ($0.isLowercase || $0.isNumber || $0 == "-") }
+    }
+}
+
+public struct PilotCatalog: Sendable, Equatable {
+    public let version: String
+    public let regions: [CatalogRegion]
+    public let games: [CatalogGame]
+
+    public init(version: String, regions: [CatalogRegion], games: [CatalogGame]) throws {
+        guard !version.isEmpty else { throw CatalogValidationError.invalidCatalogVersion }
+        guard !regions.isEmpty else { throw CatalogValidationError.missingRegion }
+        guard Set(regions.map(\.id)).count == regions.count else { throw CatalogValidationError.duplicateRegionID }
+        guard Set(games.map(\.id)).count == games.count else { throw CatalogValidationError.duplicateGameID }
+        guard games.allSatisfy({ game in regions.contains(where: { $0.id == game.primaryRegionID }) }) else {
+            throw CatalogValidationError.unknownPrimaryRegion
+        }
+        self.version = version
+        self.regions = regions
+        self.games = games
+    }
+
+    /// O único catálogo liberado para o piloto. O endpoint é uma referência regional AWS,
+    /// não um servidor oficial do Fortnite.
+    public static let pilotBase: PilotCatalog = {
+        let destination = try! ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770)
+        let region = try! CatalogRegion(id: "sa-east-1", destination: destination)
+        let game = try! CatalogGame(
+            id: "fortnite",
+            market: "BR",
+            supportedPlatforms: [.iphone],
+            profileID: .battleRoyaleCompetitive,
+            primaryRegionID: region.id,
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+        return try! PilotCatalog(version: "pilot-2026.09.08.1", regions: [region], games: [game])
+    }()
+
+    public func resolve(_ context: GameContext) throws -> ResolvedMeasurementContext {
+        try context.validateStructure()
+        guard let game = games.first(where: { $0.id == context.gameID }) else {
+            throw CatalogValidationError.unsupportedGame
+        }
+        guard game.market == context.market else {
+            throw CatalogValidationError.unsupportedMarket
+        }
+        guard game.supportedPlatforms.contains(context.platform) else {
+            throw CatalogValidationError.unsupportedPlatform
+        }
+        guard let region = regions.first(where: { $0.id == game.primaryRegionID }) else {
+            throw CatalogValidationError.unknownPrimaryRegion
+        }
+
+        return ResolvedMeasurementContext(
+            context: context,
+            catalogVersion: version,
+            profileID: game.profileID,
+            regionID: region.id,
+            destination: region.destination,
+            strategy: game.strategy,
+            confidence: game.confidence
+        )
+    }
+}
+
+public struct CatalogGame: Codable, Hashable, Sendable {
+    public let id: String
+    public let market: String
+    public let supportedPlatforms: Set<Platform>
+    public let profileID: QualityProfileID
+    public let primaryRegionID: String
+    public let strategy: MeasurementStrategy
+    public let confidence: MeasurementConfidence
+
+    public init(
+        id: String,
+        market: String,
+        supportedPlatforms: Set<Platform>,
+        profileID: QualityProfileID,
+        primaryRegionID: String,
+        strategy: MeasurementStrategy,
+        confidence: MeasurementConfidence
+    ) throws {
+        guard !id.isEmpty, id == id.lowercased() else { throw CatalogValidationError.invalidGameID }
+        guard market.count == 2, market == market.uppercased(), market.allSatisfy(\.isLetter) else {
+            throw CatalogValidationError.invalidMarket
+        }
+        guard !supportedPlatforms.isEmpty else { throw CatalogValidationError.missingSupportedPlatform }
+        self.id = id
+        self.market = market
+        self.supportedPlatforms = supportedPlatforms
+        self.profileID = profileID
+        self.primaryRegionID = primaryRegionID
+        self.strategy = strategy
+        self.confidence = confidence
+    }
+}
+
+public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
+    public let context: GameContext
+    public let catalogVersion: String
+    public let profileID: QualityProfileID
+    public let profileRuleVersion: String
+    public let regionID: String
+    public let destination: ProbeDestination
+    public let strategy: MeasurementStrategy
+    public let confidence: MeasurementConfidence
+    public let precisionKey: String
+
+    public init(
+        context: GameContext,
+        catalogVersion: String,
+        profileID: QualityProfileID,
+        profileRuleVersion: String? = nil,
+        regionID: String,
+        destination: ProbeDestination,
+        strategy: MeasurementStrategy,
+        confidence: MeasurementConfidence,
+        precisionKey: String = "regionalReference"
+    ) {
+        self.context = context
+        self.catalogVersion = catalogVersion
+        self.profileID = profileID
+        self.profileRuleVersion = profileRuleVersion ?? catalogVersion
+        self.regionID = regionID
+        self.destination = destination
+        self.strategy = strategy
+        self.confidence = confidence
+        self.precisionKey = precisionKey
+    }
+}
+
+public enum CatalogValidationError: Error, Equatable, Sendable {
+    case invalidCatalogVersion
+    case invalidGameID
+    case invalidMarket
+    case invalidRegionID
+    case invalidProbeHost
+    case invalidProbePort
+    case missingRegion
+    case missingSupportedPlatform
+    case duplicateRegionID
+    case duplicateGameID
+    case unknownPrimaryRegion
+    case equipmentConnectionNotApplicable
+    case unsupportedGame
+    case unsupportedMarket
+    case unsupportedPlatform
+}

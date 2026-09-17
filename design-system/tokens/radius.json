@@ -1,0 +1,24 @@
+{
+  "$schema": "nolaggy/tokens/radius",
+  "description": "Raios de canto semânticos. O app usa curvas suaves e consistentes; evitar cantos vivos (0) fora de divisores/linhas.",
+  "scale": {
+    "none": { "value": 0 },
+    "xs": { "value": 6 },
+    "sm": { "value": 10 },
+    "md": { "value": 14 },
+    "lg": { "value": 18 },
+    "xl": { "value": 24 },
+    "xxl": { "value": 32 },
+    "pill": { "value": 999 }
+  },
+  "semantic": {
+    "controlSmall": { "value": "{scale.xs}", "usage": "Chips, badges, tags de plataforma." },
+    "controlMedium": { "value": "{scale.sm}", "usage": "Inputs, MetricRow container." },
+    "card": { "value": "{scale.md}", "usage": "GameTile, InsightBanner, StatusMessage." },
+    "cardLarge": { "value": "{scale.lg}", "usage": "Cartão de resultado (NolaggyScore container), sheets." },
+    "sheet": { "value": "{scale.xxl}", "usage": "Topo de bottom sheets e modais." },
+    "button": { "value": "{scale.pill}", "usage": "PrimaryButton — sempre pílula." },
+    "avatarOrGameArt": { "value": "{scale.lg}", "usage": "Capa de jogo no GameTile." },
+    "adSlot": { "value": "{scale.sm}", "usage": "Moldura do BannerAdSlot." }
+  }
+}

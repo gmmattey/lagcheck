@@ -1,0 +1,61 @@
+{
+  "$schema": "nolaggy/tokens/motion",
+  "description": "Durações e curvas de animação. Tudo aqui respeita 'Reduzir Movimento' do iOS via a chave reduceMotionAlternative de cada token.",
+  "duration": {
+    "instant": { "value": 100, "unit": "ms", "usage": "Feedback de toque (pressed state)." },
+    "fast": { "value": 150, "unit": "ms", "usage": "Troca de ícone/estado pequeno, hover de chip." },
+    "base": { "value": 200, "unit": "ms", "usage": "Transições padrão de componente: expandir MetricRow, trocar tab." },
+    "moderate": { "value": 300, "unit": "ms", "usage": "Transição de tela, aparecimento de sheet." },
+    "slow": { "value": 450, "unit": "ms", "usage": "Revelar o NolaggyScore no resultado, contagem numérica do score." },
+    "deliberate": { "value": 600, "unit": "ms", "usage": "Sequência de conclusão do Quick/Deep Check antes de revelar o resultado." }
+  },
+  "easing": {
+    "standard": { "value": "cubic-bezier(0.4, 0.0, 0.2, 1)", "swiftUI": ".easeInOut", "usage": "Padrão geral." },
+    "decelerate": { "value": "cubic-bezier(0.0, 0.0, 0.2, 1)", "swiftUI": ".easeOut", "usage": "Elementos entrando na tela (score, banners de insight)." },
+    "accelerate": { "value": "cubic-bezier(0.4, 0.0, 1, 1)", "swiftUI": ".easeIn", "usage": "Elementos saindo (dismiss de sheet, cancelamento de teste)." },
+    "spring": {
+      "swiftUI": ".spring(response: 0.45, dampingFraction: 0.82, blendDuration: 0)",
+      "usage": "Contagem do score, pulso do MeasurementPulse, feedback de seleção de PlatformSelector/GameTile."
+    }
+  },
+  "patterns": {
+    "measurementPulse": {
+      "usage": "Pulso vivo indicando medição em andamento no MeasurementPulse.",
+      "duration": "{duration.deliberate}",
+      "loop": true,
+      "easing": "{easing.standard}",
+      "reduceMotionAlternative": "Substituir o pulso em loop por um indicador estático, sem escala, deslocamento, animação ou loop."
+    },
+    "scoreReveal": {
+      "usage": "Contagem numérica de 0 até o score final + preenchimento do anel.",
+      "duration": "{duration.slow}",
+      "easing": "{easing.decelerate}",
+      "reduceMotionAlternative": "Cross-fade direto para o valor final, sem contagem, 150ms."
+    },
+    "latencyGraphLiveUpdate": {
+      "usage": "Entrada de cada novo ponto no LatencyGraph durante Quick/Deep Check.",
+      "duration": "{duration.fast}",
+      "easing": "{easing.standard}",
+      "reduceMotionAlternative": "Atualização sem interpolação de posição (o ponto aparece na posição final imediatamente)."
+    },
+    "screenTransition": {
+      "usage": "Navegação padrão entre telas.",
+      "duration": "{duration.moderate}",
+      "easing": "{easing.standard}",
+      "reduceMotionAlternative": "Cross-fade simples de 150ms, sem deslizamento/parallax."
+    },
+    "sheetPresent": {
+      "usage": "Apresentação de sheets (seleção de plataforma, Ver detalhes).",
+      "duration": "{duration.moderate}",
+      "easing": "{easing.decelerate}",
+      "reduceMotionAlternative": "Mantém o slide-up padrão do sistema (UIKit/SwiftUI já reduz automaticamente); nenhum efeito extra é adicionado."
+    },
+    "gameSelectionCard": {
+      "usage": "Troca do contexto de jogo selecionado na Home.",
+      "duration": "{duration.moderate}",
+      "easing": "{easing.standard}",
+      "reduceMotionAlternative": "Cross-fade de 150ms, sem rotação, escala ou translação."
+    }
+  },
+  "globalReduceMotionPolicy": "Quando accessibility.reduceMotion estiver ativo, nenhuma animação usa escala, translação contínua ou loop; apenas opacidade e cross-fade curtos (≤150ms) são permitidos, exceto transições nativas do sistema (push/pop de navegação, apresentação padrão de sheet)."
+}

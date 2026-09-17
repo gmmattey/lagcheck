@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "2600"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9F8C775EA2EBDCF8EDCE0D26"
+               BuildableName = "NolaggyApplicationTests.xctest"
+               BlueprintName = "NolaggyApplicationTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "370BE12F4364441FC0A9B873"
+               BuildableName = "NolaggyDomainTests.xctest"
+               BlueprintName = "NolaggyDomainTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A5B50BA102B615C964BBFA6C"
+               BuildableName = "NolaggyInfrastructureTests.xctest"
+               BlueprintName = "NolaggyInfrastructureTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BEE6F59B60445A6C5317AEDB"
+               BuildableName = "NolaggyUITests.xctest"
+               BlueprintName = "NolaggyUITests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9F8C775EA2EBDCF8EDCE0D26"
+            BuildableName = "NolaggyApplicationTests.xctest"
+            BlueprintName = "NolaggyApplicationTests"
+            ReferencedContainer = "container:Nolaggy.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "370BE12F4364441FC0A9B873"
+               BuildableName = "NolaggyDomainTests.xctest"
+               BlueprintName = "NolaggyDomainTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9F8C775EA2EBDCF8EDCE0D26"
+               BuildableName = "NolaggyApplicationTests.xctest"
+               BlueprintName = "NolaggyApplicationTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A5B50BA102B615C964BBFA6C"
+               BuildableName = "NolaggyInfrastructureTests.xctest"
+               BlueprintName = "NolaggyInfrastructureTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BEE6F59B60445A6C5317AEDB"
+               BuildableName = "NolaggyUITests.xctest"
+               BlueprintName = "NolaggyUITests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9F8C775EA2EBDCF8EDCE0D26"
+            BuildableName = "NolaggyApplicationTests.xctest"
+            BlueprintName = "NolaggyApplicationTests"
+            ReferencedContainer = "container:Nolaggy.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9F8C775EA2EBDCF8EDCE0D26"
+            BuildableName = "NolaggyApplicationTests.xctest"
+            BlueprintName = "NolaggyApplicationTests"
+            ReferencedContainer = "container:Nolaggy.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

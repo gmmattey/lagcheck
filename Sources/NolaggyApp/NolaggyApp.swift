@@ -1,0 +1,139 @@
+import SwiftUI
+import CoreText
+import NolaggyApplication
+import NolaggyDomain
+import NolaggyInfrastructure
+
+@main
+struct NolaggyApp: App {
+    private let historyRepository: any MeasurementHistoryRepository
+    private let regionalPreferenceRepository: any RegionalPreferenceRepository
+    private let catalogRepository: RemoteCatalogRepository
+    @State private var catalogState: CatalogState
+
+    init() {
+        Self.registerProductFont()
+        historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
+        regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
+        let base = DebugCatalogBase.envelopeData() ?? Data()
+        catalogRepository = RemoteCatalogRepository(
+            baseEnvelopeData: base,
+            fetcher: URLSessionRemoteCatalogFetcher(url: URL(string: "https://nolaggy-deep-check.buildealabs.workers.dev/v1/catalog.json")!),
+            cache: UserDefaultsRemoteCatalogCache()
+        )
+        if UITestFixtures.isEnabled("-ui-fixture-confirmed-region"),
+           let data = DebugCatalogBase.envelopeData(),
+           let payload = try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data) {
+            _catalogState = State(initialValue: .ready(LoadedRemoteCatalog(payload: payload, source: .bundledBase)))
+        } else {
+            _catalogState = State(initialValue: .loading)
+        }
+    }
+
+    private static func registerProductFont(bundle: Bundle = .main) {
+        guard let fontURL = bundle.url(forResource: "Oxanium-Variable", withExtension: "ttf") else { return }
+        CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            Group {
+                if let regionalPresentation = RegionalSelectionUITestFixture.presentation {
+                    RegionalSelectionFixtureHost(presentation: regionalPresentation)
+                } else if UITestFixtures.isEnabled("-ui-fixture-deep-standalone") {
+                    DeepCheckFeatureView(
+                        resolvedContext: try! PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone)),
+                        gameName: "Fortnite",
+                        historyRepository: historyRepository
+                    )
+                } else {
+                    QuickCheckFeatureView(
+                        historyRepository: historyRepository,
+                        regionalPreferenceRepository: regionalPreferenceRepository,
+                        remoteCatalog: catalogState.payload,
+                        usesCatalogFallback: catalogState.usesBundledBase
+                    )
+                }
+            }
+            .task {
+                // A fixture mantém o mesmo catálogo assinado e a mesma jornada da
+                // aplicação, mas não permite que o refresh remoto recompose a Home
+                // durante uma prova determinística de ciclo de vida em UI test.
+                guard !UITestFixtures.isEnabled("-ui-fixture-confirmed-region") else { return }
+                await loadCatalogForHome()
+                await catalogRepository.refreshIfDue()
+                await loadCatalogForHome()
+            }
+        }
+    }
+
+    @MainActor
+    private func loadCatalogForHome() async {
+        do {
+            let loaded = try await catalogRepository.loadedCatalogForLaunch()
+            catalogState = .ready(loaded)
+        } catch {
+            // Sem base válida não existe descoberta nem sessão; a Home segue
+            // navegável e a feature apresenta indisponibilidade explícita.
+            catalogState = .unavailable
+        }
+    }
+}
+
+private enum CatalogState {
+    case loading
+    case ready(LoadedRemoteCatalog)
+    case unavailable
+
+    var payload: RemoteCatalogPayload? {
+        guard case let .ready(loaded) = self else { return nil }
+        return loaded.payload
+    }
+
+    var usesBundledBase: Bool {
+        guard case let .ready(loaded) = self else { return false }
+        return loaded.source == .bundledBase
+    }
+}
+
+/// A seleção regional não tem mais telas intermediárias de sugestão/escolha
+/// manual — é sempre automática (ver `RegionalPreferenceRepository` para o
+/// override persistido em Configurações). Só restam dois estados visuais
+/// nesta jornada: carregando e "nenhum candidato viável".
+private enum RegionalSelectionUITestFixture {
+    static var presentation: RegionalSelectionPresentation? {
+        if UITestFixtures.isEnabled("-ui-fixture-regional-confirming") { return .confirming }
+        if UITestFixtures.isEnabled("-ui-fixture-regional-no-viable") { return .noViableCandidate }
+        return nil
+    }
+
+    static let catalog: RemoteCatalogPayload? = {
+        guard let data = DebugCatalogBase.envelopeData() else { return nil }
+        return try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data)
+    }()
+}
+
+private struct RegionalSelectionFixtureHost: View {
+    @State private var presentation: RegionalSelectionPresentation
+    @State private var returnedHome = false
+
+    init(presentation: RegionalSelectionPresentation) {
+        _presentation = State(initialValue: presentation)
+    }
+
+    var body: some View {
+        if returnedHome {
+            QuickCheckFeatureView(
+                remoteCatalog: RegionalSelectionUITestFixture.catalog,
+                usesCatalogFallback: true
+            )
+        } else {
+            RegionalSelectionFeatureView(
+                gameTitle: "Fortnite",
+                presentation: $presentation,
+                onRetry: { presentation = .confirming },
+                onBackOrCancel: { returnedHome = true }
+            )
+        }
+    }
+}

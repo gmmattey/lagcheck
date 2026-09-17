@@ -1,0 +1,79 @@
+import XCTest
+@testable import NolaggyDomain
+
+final class GameContextTests: XCTestCase {
+    func testContextPreservesPilotScope() {
+        let context = GameContext(gameID: "pilot-game", market: "BR", platform: .iphone)
+
+        XCTAssertEqual(context.gameID, "pilot-game")
+        XCTAssertEqual(context.market, "BR")
+        XCTAssertEqual(context.platform, .iphone)
+        XCTAssertNil(context.equipmentConnection)
+    }
+
+    func testPilotCatalogResolvesOnlyApprovedReferenceContext() throws {
+        let resolved = try PilotCatalog.pilotBase.resolve(
+            GameContext(gameID: "fortnite", market: "BR", platform: .iphone)
+        )
+
+        XCTAssertEqual(resolved.catalogVersion, "pilot-2026.09.08.1")
+        XCTAssertEqual(resolved.profileID, .battleRoyaleCompetitive)
+        XCTAssertEqual(resolved.regionID, "sa-east-1")
+        XCTAssertEqual(resolved.destination.host, "gamelift-ping.sa-east-1.api.aws")
+        XCTAssertEqual(resolved.destination.port, 7770)
+        XCTAssertEqual(resolved.strategy, .genericRegion)
+        XCTAssertEqual(resolved.confidence, .medium)
+    }
+
+    func testPilotCatalogRejectsAnyGameOutsidePilot() {
+        XCTAssertThrowsError(
+            try PilotCatalog.pilotBase.resolve(GameContext(gameID: "another-game", market: "BR", platform: .iphone))
+        ) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .unsupportedGame)
+        }
+    }
+
+    func testPilotCatalogRejectsUnsupportedMarketAndPlatform() {
+        XCTAssertThrowsError(
+            try PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "US", platform: .iphone))
+        ) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .unsupportedMarket)
+        }
+        XCTAssertThrowsError(
+            try PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .pc))
+        ) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .unsupportedPlatform)
+        }
+    }
+
+    func testContextRejectsEquipmentConnectionForIPhone() {
+        XCTAssertThrowsError(
+            try PilotCatalog.pilotBase.resolve(
+                GameContext(gameID: "fortnite", market: "BR", platform: .iphone, equipmentConnection: .wifi)
+            )
+        ) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .equipmentConnectionNotApplicable)
+        }
+    }
+
+    func testCatalogRejectsInvalidDestinationAndDanglingRegion() throws {
+        XCTAssertThrowsError(try ProbeDestination(host: "GameLift.example", port: 7770)) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .invalidProbeHost)
+        }
+
+        let destination = try ProbeDestination(host: "probe.example", port: 7770)
+        let region = try CatalogRegion(id: "sa-east-1", destination: destination)
+        let game = try CatalogGame(
+            id: "fortnite",
+            market: "BR",
+            supportedPlatforms: [.iphone],
+            profileID: .battleRoyaleCompetitive,
+            primaryRegionID: "missing-region",
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+        XCTAssertThrowsError(try PilotCatalog(version: "test", regions: [region], games: [game])) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .unknownPrimaryRegion)
+        }
+    }
+}

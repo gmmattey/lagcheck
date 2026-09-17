@@ -1,0 +1,37 @@
+{
+  "$schema": "nolaggy/tokens/shadow",
+  "description": "Elevação para dark UI: cards se separam do fundo por superfície e sombra discreta, não por contorno. Sombras são usadas para profundidade, nunca como efeito decorativo.",
+  "elevation": {
+    "level0": {
+      "usage": "Conteúdo no plano do fundo (telas, seções).",
+      "shadow": null,
+      "border": null
+    },
+    "level1": {
+      "usage": "GameTile, MetricRow container, InsightBanner, StatusMessage em repouso.",
+      "shadow": { "color": "rgba(0,0,0,0.28)", "x": 0, "y": 2, "blur": 8, "spread": 0 },
+      "border": null
+    },
+    "level2": {
+      "usage": "Cartão de resultado (NolaggyScore), cards em estado pressed/hover, EmptyState ilustrado.",
+      "shadow": { "color": "rgba(0,0,0,0.36)", "x": 0, "y": 6, "blur": 16, "spread": 0 },
+      "border": null
+    },
+    "level3": {
+      "usage": "Sheets e modais (Deep Check em progresso, seleção de plataforma).",
+      "shadow": { "color": "rgba(0,0,0,0.48)", "x": 0, "y": 12, "blur": 32, "spread": 0 },
+      "border": null
+    }
+  },
+  "glow": {
+    "scoreAccent": {
+      "usage": "Halo suave e opcional atrás do NolaggyScore, colorido pela cor semântica do score (excellent/unstable/lagRisk). Sempre sutil — nunca neon.",
+      "shadow": { "color": "var(score-color at 24% opacity)", "x": 0, "y": 0, "blur": 40, "spread": 0 }
+    }
+  },
+  "reduceTransparencyFallback": {
+    "usage": "Quando 'Reduzir Transparência' está ativo no iOS, remover sombras e glow; a hierarquia é preservada pelo contraste entre superfícies.",
+    "shadow": null,
+    "border": null
+  }
+}

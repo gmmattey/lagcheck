@@ -1,0 +1,31 @@
+{
+  "$schema": "nolaggy/tokens/spacing",
+  "description": "Escala de espaçamento em base 4pt. Usar sempre os tokens semânticos; nenhuma tela deve escrever um valor numérico de padding/gap diretamente.",
+  "scale": {
+    "none": { "value": 0 },
+    "xxs": { "value": 4 },
+    "xs": { "value": 8 },
+    "sm": { "value": 12 },
+    "md": { "value": 16 },
+    "lg": { "value": 24 },
+    "xl": { "value": 32 },
+    "xxl": { "value": 40 },
+    "xxxl": { "value": 56 },
+    "huge": { "value": 72 }
+  },
+  "semantic": {
+    "screenMarginHorizontal": { "value": "{scale.md}", "usage": "Margem lateral padrão de tela (16pt)." },
+    "screenMarginHorizontalCompact": { "value": "{scale.sm}", "usage": "Telas de medição em execução, para maximizar área do LatencyGraph." },
+    "sectionGap": { "value": "{scale.xl}", "usage": "Espaço entre seções verticais de uma tela (32pt)." },
+    "cardPadding": { "value": "{scale.md}", "usage": "Padding interno de GameTile, MetricRow container, InsightBanner." },
+    "cardGap": { "value": "{scale.sm}", "usage": "Espaço entre cards em uma lista/grid (12pt)." },
+    "stackGapTight": { "value": "{scale.xxs}", "usage": "Espaço entre elementos fortemente relacionados, ex.: score + selo de classificação." },
+    "stackGapDefault": { "value": "{scale.xs}", "usage": "Espaço padrão entre label e valor, ícone e texto." },
+    "resultConclusionToMetrics": { "value": "{scale.xxl}", "usage": "Espaço obrigatório entre o bloco de conclusão (score + classificação) e o bloco de métricas — reforça 'conclusão antes das métricas'." },
+    "componentInsetSmall": { "value": "{scale.xs}" },
+    "componentInsetMedium": { "value": "{scale.sm}" },
+    "componentInsetLarge": { "value": "{scale.md}" },
+    "safeAreaBottomAction": { "value": "{scale.lg}", "usage": "Distância entre o último elemento de conteúdo e a área segura inferior quando há um PrimaryButton fixo." },
+    "adSlotMargin": { "value": "{scale.md}", "usage": "Margem entre o BannerAdSlot e o conteúdo adjacente, para nunca 'colar' o anúncio em texto." }
+  }
+}

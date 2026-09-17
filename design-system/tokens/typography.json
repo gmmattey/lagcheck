@@ -1,0 +1,97 @@
+{
+  "$schema": "nolaggy/tokens/typography",
+  "description": "Escala tipográfica do Nolaggy. Oxanium é usada em elementos de destaque; SF Pro permanece em textos de leitura. Ambas respeitam Dynamic Type. Todo texto de produto deve mapear para um destes estilos semânticos, nunca para tamanho/peso soltos por tela.",
+  "fontFamily": {
+    "display": { "value": "Oxanium Regular, SIL Open Font License 1.1" },
+    "reading": { "value": "-apple-system (SF Pro Text/Display via SwiftUI system font)" }
+  },
+  "styles": {
+    "scoreDisplay": {
+      "textStyle": "largeTitle",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 64, relativeTo: .largeTitle)",
+      "dynamicTypeScaling": true,
+      "usage": "Número do Nolaggy Score no NolaggyScore e no resultado principal."
+    },
+    "displayTitle": {
+      "textStyle": "title",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 34, relativeTo: .largeTitle)",
+      "dynamicTypeScaling": true,
+      "usage": "Título de tela (Home, Resultado, Histórico)."
+    },
+    "headline": {
+      "textStyle": "title2",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 22, relativeTo: .title2)",
+      "dynamicTypeScaling": true,
+      "usage": "Classificação textual do resultado ('Excelente', 'Risco de lag'), títulos de seção."
+    },
+    "subheadline": {
+      "textStyle": "title3",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 20, relativeTo: .title3)",
+      "dynamicTypeScaling": true,
+      "usage": "Nome do jogo em destaque, títulos de card."
+    },
+    "bodyEmphasis": {
+      "textStyle": "headline",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 17, relativeTo: .headline)",
+      "dynamicTypeScaling": true,
+      "usage": "MetricRow — rótulo da métrica, texto de ação primária."
+    },
+    "body": {
+      "textStyle": "body",
+      "swiftUIFont": ".body",
+      "dynamicTypeScaling": true,
+      "usage": "Texto corrido, explicações de causa/recomendação."
+    },
+    "callout": {
+      "textStyle": "callout",
+      "swiftUIFont": ".callout",
+      "dynamicTypeScaling": true,
+      "usage": "InsightBanner, StatusMessage."
+    },
+    "contextDisclosure": {
+      "textStyle": "caption",
+      "swiftUIFont": ".caption",
+      "dynamicTypeScaling": true,
+      "usage": "Nota curta de precisão no contexto do jogo."
+    },
+    "subheadlineSecondary": {
+      "textStyle": "subheadline",
+      "swiftUIFont": ".subheadline",
+      "dynamicTypeScaling": true,
+      "usage": "Texto secundário sob títulos, valores de métrica no MetricRow."
+    },
+    "footnote": {
+      "textStyle": "footnote",
+      "swiftUIFont": ".footnote",
+      "dynamicTypeScaling": true,
+      "usage": "Metadados: região, confiança, timestamp."
+    },
+    "caption": {
+      "textStyle": "caption",
+      "swiftUIFont": ".caption",
+      "dynamicTypeScaling": true,
+      "usage": "Rótulos de eixo do LatencyGraph, badge 'Anúncio'."
+    },
+    "captionStrong": {
+      "textStyle": "caption2",
+      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 12, relativeTo: .caption2)",
+      "dynamicTypeScaling": true,
+      "usage": "Tags de plataforma, badges de status curtos (PlatformSelector, GameTile)."
+    }
+  },
+  "lineHeight": {
+    "tight": { "value": 1.1, "usage": "scoreDisplay" },
+    "snug": { "value": 1.2, "usage": "headline, displayTitle" },
+    "normal": { "value": 1.35, "usage": "body, callout" },
+    "relaxed": { "value": 1.5, "usage": "explicações longas em Detalhes" }
+  },
+  "letterSpacing": {
+    "default": { "value": "0" },
+    "caps": { "value": "0.04em", "usage": "captionStrong quando renderizado em versalete (ex.: badges de plataforma)." }
+  },
+  "accessibility": {
+    "dynamicTypeSupport": "Todos os estilos usam text styles nativos do sistema e escalam automaticamente com Dynamic Type, incluindo AX1–AX5.",
+    "minimumScaleFactorPolicy": "Não usar minimumScaleFactor em textos de decisão (score, classificação, ações). É permitido em rótulos curtos de badge quando o truncamento comprometeria a leitura, nunca abaixo de 0.8.",
+    "maxDynamicTypeGuard": "scoreDisplay e headline usam .dynamicTypeSize(...DynamicTypeSize.accessibility3) como teto de layout, trocando para composição vertical acima disso para não quebrar o layout do resultado."
+  }
+}
