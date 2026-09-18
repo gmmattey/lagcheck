@@ -241,3 +241,13 @@
 "settings.continent.asia_pacific" = "Ásia e Pacífico";
 "settings.continent.middle_east_africa" = "Oriente Médio e África";
 "quick_check.measuring.region_format %@" = "%@ · região de referência";
+
+/* Status Operacional de Plataformas de Console (Decisão 30) */
+"platform_health.degraded.title %@" = "%@ com instabilidade";
+"platform_health.outage.title %@" = "%@ fora do ar";
+"platform_health.degraded.message" = "Pode haver lentidão ou dificuldade temporária para entrar em partidas online.";
+"platform_health.outage.message" = "Os servidores de login e multiplayer estão passando por interrupções no momento.";
+"platform_health.status.operational" = "Serviços operacionais";
+"platform_health.affected_services %@" = "Afeta: %@";
+"game_detail.scope.iphone" = "Medição para iPhone na rede atual";
+"game_detail.scope.console %@" = "Estimativa para %@ na rede Wi-Fi atual";

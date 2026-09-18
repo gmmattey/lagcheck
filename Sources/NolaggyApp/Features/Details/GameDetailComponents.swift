@@ -54,14 +54,41 @@ struct GameDetailScoreHeader: View {
 }
 
 struct GameDetailMeasurementScope: View {
+    var platform: Platform = .iphone
+
     var body: some View {
-        Label("game_detail.measurement_scope", systemImage: "iphone")
+        Label(scopeText, systemImage: iconName)
             .font(NLTypography.footnote)
             .foregroundStyle(NLColor.textTertiary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(NLSpacing.cardPadding)
             .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
             .accessibilityIdentifier("game-detail-iphone-scope")
+    }
+
+    private var iconName: String {
+        switch platform {
+        case .iphone: return "iphone"
+        case .playstation: return "playstation.logo"
+        case .xbox: return "xbox.logo"
+        case .pc: return "display"
+        case .nintendo: return "gamecontroller.fill"
+        }
+    }
+
+    private var scopeText: String {
+        switch platform {
+        case .iphone:
+            return NSLocalizedString("game_detail.scope.iphone", comment: "")
+        case .playstation:
+            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "PlayStation")
+        case .xbox:
+            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "Xbox")
+        case .nintendo:
+            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "Switch")
+        case .pc:
+            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "PC")
+        }
     }
 }
 

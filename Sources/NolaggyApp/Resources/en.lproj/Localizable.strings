@@ -241,3 +241,13 @@
 "settings.continent.asia_pacific" = "Asia & Pacific";
 "settings.continent.middle_east_africa" = "Middle East & Africa";
 "quick_check.measuring.region_format %@" = "%@ · reference region";
+
+/* Console Platform Operational Status (Decision 30) */
+"platform_health.degraded.title %@" = "%@ Experiencing Issues";
+"platform_health.outage.title %@" = "%@ Service Outage";
+"platform_health.degraded.message" = "You may experience delays or matchmaking issues until services normalize.";
+"platform_health.outage.message" = "Online sign-in and multiplayer servers are currently experiencing interruptions.";
+"platform_health.status.operational" = "All services operational";
+"platform_health.affected_services %@" = "Affects: %@";
+"game_detail.scope.iphone" = "Measurement for iPhone on current network";
+"game_detail.scope.console %@" = "Estimate for %@ on current Wi-Fi network";

@@ -244,6 +244,10 @@ public enum RemoteCatalogVerifier {
     /// O teto reflete só quais jogos existem de fato em PlayStation/Xbox; a estratégia de
     /// medição continua `genericRegion`/`sa-east-1` porque o backend não muda por cliente.
     /// Ver docs/26-decisao-catalogo-console.md.
+    public static func allowedPlatforms(for gameID: String) -> Set<Platform> {
+        debugAllowedPlatforms[gameID] ?? [.iphone]
+    }
+
     private static let debugAllowedPlatforms: [String: Set<Platform>] = [
         "fortnite": [.iphone, .playstation, .xbox],
         "call-of-duty-mobile": [.iphone],
