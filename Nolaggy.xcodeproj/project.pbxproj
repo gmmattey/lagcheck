@@ -88,6 +88,10 @@
 		8ADB1B27F510C7DAB4807F3B /* NLStroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A828FE7884262D4FFBAFE0A /* NLStroke.swift */; };
 		8EC72315F6F2F3183C741E12 /* CatalogMeasurementJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF7BCDF7DEC7C88691EAEC9 /* CatalogMeasurementJourney.swift */; };
 		9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */; };
+		B10100012026091800000001 /* PlayFabQoSPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10100012026091800000001 /* PlayFabQoSPayloadCodec.swift */; };
+		B10100022026091800000002 /* SteamQueryA2SPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10100022026091800000002 /* SteamQueryA2SPayloadCodec.swift */; };
+		B10100032026091800000003 /* PlayFabQoSPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10100032026091800000003 /* PlayFabQoSPayloadCodecTests.swift */; };
+		B10100042026091800000004 /* SteamQueryA2SPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10100042026091800000004 /* SteamQueryA2SPayloadCodecTests.swift */; };
 		943428C7497403D7D197D225 /* WiFiBandModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */; };
 		94D39B7BFD64A557BE393F54 /* BoosterComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79E99C965A7BE3EBABFA526 /* BoosterComponents.swift */; };
 		96C4C87792B47EE839900ED0 /* GameArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B1AFA9A71ADA2E6D1DBE75 /* GameArtwork.swift */; };
@@ -359,6 +363,10 @@
 		84A5BCCF9EE4CA9B389923E2 /* MeasurementProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementProgressView.swift; sourceTree = "<group>"; };
 		85EC443D5349C88AA5AFD64A /* NolaggyScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyScore.swift; sourceTree = "<group>"; };
 		86AFA1204CBD12558DD7EB20 /* PingBeaconPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingBeaconPayloadCodec.swift; sourceTree = "<group>"; };
+		A10100012026091800000001 /* PlayFabQoSPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayFabQoSPayloadCodec.swift; sourceTree = "<group>"; };
+		A10100022026091800000002 /* SteamQueryA2SPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamQueryA2SPayloadCodec.swift; sourceTree = "<group>"; };
+		A10100032026091800000003 /* PlayFabQoSPayloadCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayFabQoSPayloadCodecTests.swift; sourceTree = "<group>"; };
+		A10100042026091800000004 /* SteamQueryA2SPayloadCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamQueryA2SPayloadCodecTests.swift; sourceTree = "<group>"; };
 		86F1D6F0F1AE0A1CD9AC2382 /* NLShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLShadow.swift; sourceTree = "<group>"; };
 		883900BA98624962E85880C9 /* NWPathWiFiAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWPathWiFiAvailability.swift; sourceTree = "<group>"; };
 		8A22C4ACEEC14A02D397C633 /* WiFiLocalGatewayProberTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiLocalGatewayProberTests.swift; sourceTree = "<group>"; };
@@ -588,6 +596,7 @@
 			isa = PBXGroup;
 			children = (
 				13D231D06024AFEC9FAAB47A /* GeminiConnectionBoosterService.swift */,
+				A10100052026091800000005 /* Network */,
 				7FEEA3DAE618704096C022F6 /* NWConnectionMeasurementTransport.swift */,
 				7D2F5111525A65687306D837 /* NWPathMonitorNetworkPathObserver.swift */,
 				883900BA98624962E85880C9 /* NWPathWiFiAvailability.swift */,
@@ -602,6 +611,15 @@
 			);
 			name = NolaggyInfrastructure;
 			path = Sources/NolaggyInfrastructure;
+			sourceTree = "<group>";
+		};
+		A10100052026091800000005 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				A10100012026091800000001 /* PlayFabQoSPayloadCodec.swift */,
+				A10100022026091800000002 /* SteamQueryA2SPayloadCodec.swift */,
+			);
+			path = Network;
 			sourceTree = "<group>";
 		};
 		96520359DBB1640682D24345 /* Settings */ = {
@@ -669,7 +687,9 @@
 				2512D74F648CC9282836D9A2 /* NWConnectionMeasurementTransportTests.swift */,
 				0C373FEDFBAADE3C4FE8F32F /* NWPathMonitorNetworkPathObserverTests.swift */,
 				7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */,
+				A10100032026091800000003 /* PlayFabQoSPayloadCodecTests.swift */,
 				FD54F5C987DD50A505752296 /* RemoteCatalogRepositoryTests.swift */,
+				A10100042026091800000004 /* SteamQueryA2SPayloadCodecTests.swift */,
 				13F21E592F851916179E6133 /* SwiftDataMeasurementHistoryRepositoryTests.swift */,
 				991580EB7CBA294988F2D81E /* URLSessionLoadTransportTests.swift */,
 				8A22C4ACEEC14A02D397C633 /* WiFiLocalGatewayProberTests.swift */,
@@ -1150,7 +1170,9 @@
 				4549507F612C6F0027C9E482 /* NWConnectionMeasurementTransportTests.swift in Sources */,
 				6A3CC6E9F35C65C5271150AE /* NWPathMonitorNetworkPathObserverTests.swift in Sources */,
 				9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */,
+				B10100032026091800000003 /* PlayFabQoSPayloadCodecTests.swift in Sources */,
 				12306FB0BD4FF320844C769E /* RemoteCatalogRepositoryTests.swift in Sources */,
+				B10100042026091800000004 /* SteamQueryA2SPayloadCodecTests.swift in Sources */,
 				70903562E58BB4195D201540 /* SwiftDataMeasurementHistoryRepositoryTests.swift in Sources */,
 				FB561E368113B7A0244D38F8 /* URLSessionLoadTransportTests.swift in Sources */,
 				BB9D5A6587B6328E84FFAF61 /* WiFiLocalGatewayProberTests.swift in Sources */,
@@ -1221,8 +1243,10 @@
 				6467AD1AC621ECB35BB5EA4E /* NWPathMonitorNetworkPathObserver.swift in Sources */,
 				F1FEB417E30B079469E02C0F /* NWPathWiFiAvailability.swift in Sources */,
 				7F51523EC52F09307E518808 /* PingBeaconPayloadCodec.swift in Sources */,
+				B10100012026091800000001 /* PlayFabQoSPayloadCodec.swift in Sources */,
 				6FB60E66B116C5594C665C34 /* RemoteCatalogRepository.swift in Sources */,
 				F44F55ACD876DF9321808063 /* SSIDBandPatternMatcher.swift in Sources */,
+				B10100022026091800000002 /* SteamQueryA2SPayloadCodec.swift in Sources */,
 				1DB4D0435CF82E6EEA3EC557 /* SwiftDataMeasurementHistoryRepository.swift in Sources */,
 				48B6290903697F3F3A63A307 /* URLSessionLoadTransport.swift in Sources */,
 				BA2E544DBF6F21F05B59D6D4 /* UserDefaultsRegionalPreferenceRepository.swift in Sources */,

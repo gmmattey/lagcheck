@@ -4,6 +4,26 @@ import NolaggyApplication
 import NolaggyDomain
 import Security
 
+/// Identifica a variante de protocolo de medição UDP com base na porta de serviço.
+public enum MeasurementProtocol: Sendable {
+    case gameLift
+    case playFab
+    case steamA2S
+
+    public static func `for`(port: UInt16) -> MeasurementProtocol {
+        switch port {
+        case 3075:
+            return .playFab
+        case 27015:
+            return .steamA2S
+        case 7770:
+            return .gameLift
+        default:
+            return .gameLift
+        }
+    }
+}
+
 /// Transporte UDP do piloto. Ele só mede o destino configurado e nunca tenta outro protocolo.
 /// A composição do app o habilita somente no binário Debug instalado em iPhone.
 public struct NWConnectionMeasurementTransport: MeasurementTransport {
@@ -14,35 +34,29 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         plan: QuickCheckPlan,
         onSample: @escaping @Sendable (ProbeSample) async -> Void
     ) async -> [ProbeSample] {
-        let sessionID: UUID
+        let protocolKind = MeasurementProtocol.for(port: plan.endpoint.port)
+        let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
         do {
-            sessionID = try SecureRandom.uuid()
-        } catch {
-            return (0..<ProbeAcceptancePolicy.plannedProbeCount).map {
-                ProbeSample(sequence: $0, outcome: .transportError)
-            }
-        }
-        let probes: [(sequence: Int, payload: Data)]
-        do {
-            probes = try (0..<ProbeAcceptancePolicy.plannedProbeCount).map { sequence in
-                let payload = PingBeaconPayload(
-                    sessionID: sessionID,
-                    sequence: UInt32(sequence),
-                    nonce: try SecureRandom.uint64()
-                )
-                return (sequence, PingBeaconPayloadCodec.encode(payload))
-            }
+            generated = try Self.generateProbes(count: ProbeAcceptancePolicy.plannedProbeCount, port: plan.endpoint.port)
         } catch {
             return (0..<ProbeAcceptancePolicy.plannedProbeCount).map {
                 ProbeSample(sequence: $0, outcome: .transportError)
             }
         }
 
-        let ledger = ProbeLedger(probes: probes)
+        let ledger = ProbeLedger(probes: generated.probes, isCorrelatedResponse: generated.validator)
+        let challengeHolder = SteamChallengeHolder()
+
         let connection = UDPConnection(
             host: NWEndpoint.Host(plan.endpoint.host),
             port: NWEndpoint.Port(rawValue: plan.endpoint.port)!
         ) { response, receivedAt in
+            if protocolKind == .steamA2S && SteamQueryA2SPayloadCodec.isChallengeResponse(response) {
+                if let token = try? SteamQueryA2SPayloadCodec.decodeChallenge(response) {
+                    challengeHolder.setToken(token)
+                }
+                return
+            }
             if let sample = ledger.accept(response: response, receivedAt: receivedAt) {
                 Task { await onSample(sample) }
             }
@@ -51,9 +65,18 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         return await withTaskCancellationHandler(operation: {
             connection.start()
 
+            // Para Steam A2S, realiza sondagem preliminar para obter o challengeToken antes dos probes.
+            if protocolKind == .steamA2S {
+                connection.send(SteamQueryA2SPayloadCodec.encodeInitialRequest()) {}
+                for _ in 0..<6 {
+                    if challengeHolder.getToken() != nil { break }
+                    await sleep(until: DispatchTime.now().uptimeNanoseconds + 50_000_000)
+                }
+            }
+
             // `t0` é obtido imediatamente antes do primeiro envio; os payloads já estão prontos.
             let start = DispatchTime.now().uptimeNanoseconds
-            for probe in probes {
+            for probe in generated.probes {
                 guard !Task.isCancelled else {
                     connection.cancel()
                     return []
@@ -66,9 +89,16 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
                     return []
                 }
 
+                let payloadToSend: Data
+                if protocolKind == .steamA2S, let token = challengeHolder.getToken() {
+                    payloadToSend = SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: token)
+                } else {
+                    payloadToSend = probe.payload
+                }
+
                 let sentAt = DispatchTime.now().uptimeNanoseconds
-                ledger.register(sequence: probe.sequence, payload: probe.payload, sentAt: sentAt)
-                connection.send(probe.payload) {
+                ledger.register(sequence: probe.sequence, payload: payloadToSend, sentAt: sentAt)
+                connection.send(payloadToSend) {
                     ledger.markTransportError(sequence: probe.sequence)
                 }
             }
@@ -81,6 +111,45 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         }, onCancel: {
             connection.cancel()
         })
+    }
+
+    static func generateProbes(
+        count: Int,
+        port: UInt16
+    ) throws -> (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool) {
+        let protocolKind = MeasurementProtocol.for(port: port)
+        switch protocolKind {
+        case .gameLift:
+            let sessionID = try SecureRandom.uuid()
+            let probes = try (0..<count).map { sequence in
+                let payload = PingBeaconPayload(
+                    sessionID: sessionID,
+                    sequence: UInt32(sequence),
+                    nonce: try SecureRandom.uint64()
+                )
+                return (sequence, PingBeaconPayloadCodec.encode(payload))
+            }
+            return (probes, { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) })
+
+        case .playFab:
+            let sessionID = try SecureRandom.uuid()
+            let probes = try (0..<count).map { sequence in
+                let payload = PlayFabQoSPayload(
+                    sessionID: sessionID,
+                    sequence: UInt32(sequence),
+                    nonce: try SecureRandom.uint64()
+                )
+                return (sequence, PlayFabQoSPayloadCodec.encode(payload))
+            }
+            return (probes, { req, resp in PlayFabQoSPayloadCodec.isValidEcho(of: req, response: resp) })
+
+        case .steamA2S:
+            let initialPayload = SteamQueryA2SPayloadCodec.encodeInitialRequest()
+            let probes = (0..<count).map { sequence in
+                (sequence, initialPayload)
+            }
+            return (probes, { _, resp in SteamQueryA2SPayloadCodec.isValidInfoResponse(resp) })
+        }
     }
 
     private func sleep(until deadline: UInt64) async {
@@ -96,20 +165,26 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
     public init() {}
 
     public func collect(candidate: RegionalSelectionCandidate) async -> [RegionalPreReadSample] {
-        guard let port = NWEndpoint.Port(rawValue: candidate.resolvedContext.destination.port),
-              let sessionID = try? SecureRandom.uuid() else { return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3) }
-        let payloads: [(Int, Data)] = (0..<3).compactMap { sequence in
-            guard let nonce = try? SecureRandom.uint64() else { return nil }
-            return (sequence, PingBeaconPayloadCodec.encode(PingBeaconPayload(sessionID: sessionID, sequence: UInt32(sequence), nonce: nonce)))
+        let portRaw = candidate.resolvedContext.destination.port
+        guard let port = NWEndpoint.Port(rawValue: portRaw) else {
+            return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }
-        guard payloads.count == 3 else { return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3) }
-        let ledger = ProbeLedger(probes: payloads)
+        let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
+        do {
+            generated = try NWConnectionMeasurementTransport.generateProbes(count: 3, port: portRaw)
+        } catch {
+            return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
+        }
+        guard generated.probes.count == 3 else {
+            return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
+        }
+        let ledger = ProbeLedger(probes: generated.probes, isCorrelatedResponse: generated.validator)
         let connection = UDPConnection(host: NWEndpoint.Host(candidate.resolvedContext.destination.host), port: port) { response, receivedAt in
             _ = ledger.accept(response: response, receivedAt: receivedAt)
         }
         connection.start()
         let start = DispatchTime.now().uptimeNanoseconds
-        for (sequence, payload) in payloads {
+        for (sequence, payload) in generated.probes {
             guard !Task.isCancelled else { connection.cancel(); return [] }
             let deadline = start + UInt64(sequence) * 1_000_000_000
             let now = DispatchTime.now().uptimeNanoseconds
@@ -124,6 +199,18 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
     }
 }
 
+private final class SteamChallengeHolder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var token: UInt32?
+
+    func setToken(_ t: UInt32) {
+        lock.withLock { token = t }
+    }
+
+    func getToken() -> UInt32? {
+        lock.withLock { token }
+    }
+}
 
 private enum SecureRandom {
     static func uuid() throws -> UUID {
@@ -131,8 +218,10 @@ private enum SecureRandom {
         let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         guard status == errSecSuccess else { throw RandomError.unavailable }
         return UUID(uuid: (
-            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-            bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]
         ))
     }
 
@@ -159,27 +248,55 @@ final class ProbeLedger: @unchecked Sendable {
     private let lock = NSLock()
     private var probes: [Int: PendingProbe]
     private var invalidResponseCount = 0
+    private let isCorrelatedResponse: @Sendable (_ request: Data, _ response: Data) -> Bool
 
-    init(probes: [(sequence: Int, payload: Data)]) {
+    init(
+        probes: [(sequence: Int, payload: Data)],
+        isCorrelatedResponse: @escaping @Sendable (_ request: Data, _ response: Data) -> Bool = { $0 == $1 }
+    ) {
         self.probes = Dictionary(uniqueKeysWithValues: probes.map { ($0.sequence, PendingProbe(payload: $0.payload, sentAt: nil, result: nil)) })
+        self.isCorrelatedResponse = isCorrelatedResponse
+    }
+
+    convenience init(probes: [(sequence: Int, payload: Data)], port: UInt16) {
+        let validator: @Sendable (Data, Data) -> Bool
+        switch MeasurementProtocol.for(port: port) {
+        case .gameLift:
+            validator = { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) }
+        case .playFab:
+            validator = { req, resp in PlayFabQoSPayloadCodec.isValidEcho(of: req, response: resp) }
+        case .steamA2S:
+            validator = { _, resp in SteamQueryA2SPayloadCodec.isValidInfoResponse(resp) }
+        }
+        self.init(probes: probes, isCorrelatedResponse: validator)
     }
 
     func register(sequence: Int, payload: Data, sentAt: UInt64) {
         lock.withLock {
-            guard var probe = probes[sequence], probe.payload == payload else { return }
+            guard var probe = probes[sequence] else { return }
             probe.sentAt = sentAt
-            probes[sequence] = probe
+            probes[sequence] = PendingProbe(payload: payload, sentAt: sentAt, result: probe.result)
         }
     }
 
     func accept(response: Data, receivedAt: UInt64) -> ProbeSample? {
         lock.withLock {
-            guard let match = probes.first(where: { $0.value.payload == response }),
-                  var probe = probes[match.key],
-                  let sentAt = probe.sentAt,
-                  probe.result == nil,
-                  receivedAt >= sentAt,
-                  receivedAt - sentAt < 2_000_000_000 else {
+            guard let match = probes
+                .filter({ entry in
+                    guard let sentAt = entry.value.sentAt,
+                          entry.value.result == nil,
+                          receivedAt >= sentAt,
+                          receivedAt - sentAt < 2_000_000_000 else {
+                        return false
+                    }
+                    return true
+                })
+                .sorted(by: {
+                    ($0.value.sentAt ?? 0) < ($1.value.sentAt ?? 0)
+                })
+                .first(where: { isCorrelatedResponse($0.value.payload, response) }),
+                var probe = probes[match.key],
+                let sentAt = probe.sentAt else {
                 invalidResponseCount += 1
                 return nil
             }
