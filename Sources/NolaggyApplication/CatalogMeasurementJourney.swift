@@ -22,6 +22,25 @@ public enum CatalogMeasurementJourney {
         case unavailableContext
     }
 
+    public static func resolvedMarket(
+        in payload: RemoteCatalogPayload,
+        preferred: String? = nil
+    ) -> String {
+        let systemRegion = preferred ?? Locale.current.region?.identifier ?? "US"
+        let upper = systemRegion.uppercased()
+        let availableMarkets = Set(payload.games.flatMap { $0.contexts.map { $0.market.uppercased() } })
+        if availableMarkets.contains(upper) {
+            return upper
+        }
+        if availableMarkets.contains("US") {
+            return "US"
+        }
+        if availableMarkets.contains("BR") {
+            return "BR"
+        }
+        return availableMarkets.first ?? "BR"
+    }
+
     public static func availableGames(
         in payload: RemoteCatalogPayload,
         market: String,
@@ -72,7 +91,15 @@ public enum CatalogMeasurementJourney {
         in payload: RemoteCatalogPayload,
         localeIdentifier: String = Locale.current.identifier
     ) -> RegionalSelectionViewSnapshot {
-        let language = localeIdentifier.lowercased().hasPrefix("pt") ? "pt-BR" : "en"
+        let lower = localeIdentifier.lowercased()
+        let language: String
+        if lower.hasPrefix("pt") {
+            language = "pt-BR"
+        } else if lower.hasPrefix("es") {
+            language = "es"
+        } else {
+            language = "en"
+        }
         return RegionalSelectionViewSnapshot(
             catalogVersion: snapshot.catalogVersion,
             candidates: snapshot.candidates.map { candidate in

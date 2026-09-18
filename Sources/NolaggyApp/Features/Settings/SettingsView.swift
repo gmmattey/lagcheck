@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
@@ -46,11 +47,24 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    settingValueRow(
-                        "settings.language",
-                        symbol: "globe",
-                        value: Locale.current.localizedString(forIdentifier: Locale.current.identifier) ?? Locale.current.identifier
-                    )
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(url)
+                        }
+                    } label: {
+                        SettingsRow(
+                            title: "settings.language",
+                            symbol: "globe",
+                            detail: Locale.current.localizedString(forIdentifier: Locale.current.identifier) ?? Locale.current.identifier,
+                            showsChevron: true
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(SettingsListSurface())
+                    .listRowSeparator(.hidden)
+                    .compactSettingsRow()
+                    .accessibilityIdentifier("settings-language")
+                    .accessibilityHint(Text("settings.link.opens_system_settings"))
                     if !regionCandidates.isEmpty {
                         Menu {
                             if let autoCandidate = regionCandidates.first(where: { $0.id == RegionalPreferenceIdentifiers.automatic }) {

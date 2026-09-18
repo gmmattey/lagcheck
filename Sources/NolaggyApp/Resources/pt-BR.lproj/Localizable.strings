@@ -101,6 +101,7 @@
 "settings.support" = "Suporte";
 "settings.link_unavailable" = "Indisponível neste build";
 "settings.link.opens_browser" = "Abre no navegador";
+"settings.link.opens_system_settings" = "Abre os Ajustes do sistema";
 "game_detail.measurement_scope" = "Esta medição avalia a rota deste iPhone até uma região de referência.";
 "game_detail.verdict.excellent.title" = "Conexão excelente";
 "game_detail.verdict.great.title" = "Boa conexão para jogar";
@@ -188,7 +189,7 @@
 "home.network.inconclusive" = "Medição inconclusiva";
 "home.network.awaiting_result" = "Aguardando resultado";
 "home.featured" = "Em destaque";
-"home.popular" = "Mais jogados no Brasil";
+"home.popular" = "Mais populares";
 "home.all_games" = "Todos os jogos";
 "home.score" = "Score";
 "home.hero.detail" = "Toque para ver os detalhes e fazer um Deep Check.";
@@ -251,3 +252,36 @@
 "platform_health.affected_services %@" = "Afeta: %@";
 "game_detail.scope.iphone" = "Medição para iPhone na rede atual";
 "game_detail.scope.console %@" = "Estimativa para %@ na rede Wi-Fi atual";
+"quick_check.measuring.progress" = "Avaliando estabilidade…";
+"quick_check.result.latency" = "Latência";
+
+/* Requisitos Editoriais e Perfil de Rede (Decisão 31) */
+"game_detail.requirements.platform_title" = "Requisitos da Plataforma";
+"game_detail.requirements.minimum_os" = "Sistema Mínimo";
+"game_detail.requirements.storage" = "Armazenamento";
+"game_detail.requirements.ram" = "Memória RAM";
+"game_detail.requirements.framerate" = "Taxa de Quadros";
+"game_detail.network_demands.title" = "Perfil de Rede Recomendado";
+"game_detail.network_demands.optimal_ping" = "Ping Ideal";
+"game_detail.network_demands.acceptable_ping" = "Ping Máximo";
+"game_detail.network_demands.max_jitter" = "Jitter Tolerado";
+"game_detail.network_demands.packet_loss" = "Perda Máx.";
+"game_detail.fit.excellent" = "Excelente Fit";
+"game_detail.fit.acceptable" = "Adequado";
+"game_detail.fit.suboptimal" = "Abaixo do Ideal";
+"game_detail.fit.excellent_desc %@" = "Sua latência medida de %@ atende com folga ao requisito ideal deste jogo para gameplay responsivo.";
+"game_detail.fit.acceptable_desc %@" = "Sua latência de %@ está na faixa aceitável, mas pode apresentar pequenas desvantagens em partidas competitivas intensas.";
+"game_detail.fit.suboptimal_desc %@" = "Sua latência de %@ está acima da recomendada para este jogo, com risco perceptível de atraso em ações.";
+
+/* Diagnóstico e Topologia NAT (Decisão 32) */
+"nat.type1.open.title" = "NAT Aberto";
+"nat.type2.moderate.title" = "NAT Moderado";
+"nat.type3.strict.title" = "NAT Estrito";
+"nat.inconclusive.title" = "NAT Não identificado";
+"nat_banner.cgnat.title" = "Operadora com CGNAT Detectado";
+"nat_banner.cgnat.message" = "Seu provedor utiliza CGNAT, o que pode bloquear conexões diretas em salas multijogador e chats de voz de consoles.";
+"nat_banner.double_nat.title" = "Duplo Roteador Detectado (NAT Duplo)";
+"nat_banner.double_nat.message" = "Dois roteadores estão ativos na sua casa ao mesmo tempo, causando conflito de portas. Recomendamos colocar um deles em modo Bridge.";
+"nat_banner.strict.title" = "NAT Estrito (Tipo 3) Detectado";
+"nat_banner.strict.message" = "Seu tipo de NAT é Estrito. Isso pode dificultar encontrar partidas no multiplayer e conectar com amigos em grupos de voz.";
+"nat_banner.default.title" = "Topologia de Rede";

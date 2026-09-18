@@ -57,6 +57,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `30` | Status operacional de plataformas de console a custo zero (PSN e Xbox Live) | decidido e em implementação |
 | `31` | Catálogo editorial com notas oficiais, requisitos de sistema e rede sem alucinação de dados | decidido e em implementação |
 | `32` | Diagnóstico de topologia de rede multiplayer a custo zero (tipo de NAT, CGNAT e duplo NAT via STUN RFC 5389) | decidido e em implementação |
+| `33` | Internacionalização multi-idiomas (pt-BR, en, es), resolução de mercados e lançamento global | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

@@ -50,7 +50,8 @@ extension QuickCheckFeatureView {
 
     var availableGames: [CatalogMeasurementJourney.Game] {
         guard let remoteCatalog else { return [] }
-        return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: "BR", platform: .iphone)
+        let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
+        return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: .iphone)
     }
 
     var selectedGameName: String { availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—" }
