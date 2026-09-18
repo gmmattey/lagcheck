@@ -183,10 +183,6 @@
 "home.last_score %lld" = "Latest LagCheck Score: %lld";
 "home.seven_day_average %lld" = "7-day average: %lld";
 "home.refresh.accessibility" = "Refresh measurement";
-"home.network.reference_region" = "São Paulo · BR";
-"home.network.latency" = "Observed latency";
-"home.network.beacon" = "UDP beacon";
-"home.network.beacon.value" = "sa-east-1 (7770)";
 "home.network.measuring" = "Checking route";
 "home.network.measured" = "Measurement complete";
 "home.network.inconclusive" = "Measurement inconclusive";
