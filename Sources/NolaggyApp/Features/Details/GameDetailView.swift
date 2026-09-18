@@ -2,6 +2,7 @@ import SwiftUI
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
+import NolaggyInfrastructure
 
 /// Tela de Detalhes do Jogo (Decisão 22).
 /// Apresenta o Score contextual do jogo, seletor de plataforma (iPhone, Console, PC),
@@ -14,11 +15,30 @@ struct GameDetailView: View {
     let resolvedContext: ResolvedMeasurementContext?
     let onStartDeepCheck: () -> Void
 
+    @State private var selectedPlatform: Platform = .iphone
+    @State private var platformHealth: PlatformHealth? = nil
+    private let healthClient = DirectPlatformHealthClient()
+
+    private var supportedPlatforms: [Platform] {
+        let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
+        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+        return order.filter { allowed.contains($0) }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: NLSpacing.lg) {
                 GameDetailScoreHeader(scoreState: scoreState)
-                GameDetailMeasurementScope()
+
+                if supportedPlatforms.count > 1 {
+                    PlatformSelectorRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
+                }
+
+                if let health = platformHealth, health.isIssueReported {
+                    PlatformHealthBannerView(health: health)
+                }
+
+                GameDetailMeasurementScope(platform: selectedPlatform)
                 GameDetailVerdictCard(
                     presentation: GameDetailPresentation(scoreState: scoreState, gameName: game.name)
                 )
@@ -63,6 +83,18 @@ struct GameDetailView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .task(id: selectedPlatform) {
+            if selectedPlatform == .playstation || selectedPlatform == .xbox || selectedPlatform == .nintendo {
+                let health = await healthClient.checkHealth(for: selectedPlatform, market: "BR")
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.platformHealth = health
+                }
+            } else {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.platformHealth = nil
+                }
+            }
+        }
     }
 
     private var observedMetrics: QualityMetrics? {
