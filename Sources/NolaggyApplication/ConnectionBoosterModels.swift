@@ -55,6 +55,7 @@ public struct ConnectionBoosterRequest: Sendable {
     public let packetLossRate: Double
     public let loadImpactMilliseconds: Double?
     public let wifiBandEstimate: WiFiBandDiagnostic?
+    public let natTopology: NATTopologySnapshot?
     public let locale: String
     
     public init(
@@ -66,6 +67,7 @@ public struct ConnectionBoosterRequest: Sendable {
         packetLossRate: Double,
         loadImpactMilliseconds: Double?,
         wifiBandEstimate: WiFiBandDiagnostic? = nil,
+        natTopology: NATTopologySnapshot? = nil,
         locale: String = Locale.current.identifier
     ) {
         self.gameName = gameName
@@ -76,6 +78,7 @@ public struct ConnectionBoosterRequest: Sendable {
         self.packetLossRate = packetLossRate
         self.loadImpactMilliseconds = loadImpactMilliseconds
         self.wifiBandEstimate = wifiBandEstimate
+        self.natTopology = natTopology
         self.locale = locale
     }
 }

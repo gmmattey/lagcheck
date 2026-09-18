@@ -17,7 +17,13 @@ struct GameDetailView: View {
 
     @State private var selectedPlatform: Platform = .iphone
     @State private var platformHealth: PlatformHealth? = nil
+    @State private var natSnapshot: NATTopologySnapshot? = nil
     private let healthClient = DirectPlatformHealthClient()
+    private let stunClient = StunProbeClient()
+
+    private var editorial: RemoteCatalogGameEditorial? {
+        GameEditorialRegistry.editorial(for: game.id)
+    }
 
     private var supportedPlatforms: [Platform] {
         let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
@@ -30,6 +36,10 @@ struct GameDetailView: View {
             VStack(spacing: NLSpacing.lg) {
                 GameDetailScoreHeader(scoreState: scoreState)
 
+                if let editorial {
+                    GameDetailRatingsRow(editorial: editorial)
+                }
+
                 if supportedPlatforms.count > 1 {
                     PlatformSelectorRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
                 }
@@ -38,12 +48,22 @@ struct GameDetailView: View {
                     PlatformHealthBannerView(health: health)
                 }
 
+                if let nat = natSnapshot, nat.hasAnyMultiplayerIssue {
+                    GameDetailNATBanner(snapshot: nat)
+                }
+
                 GameDetailMeasurementScope(platform: selectedPlatform)
                 GameDetailVerdictCard(
                     presentation: GameDetailPresentation(scoreState: scoreState, gameName: game.name)
                 )
                 if let metrics = observedMetrics {
                     GameDetailMetricsCard(metrics: metrics)
+                }
+                if let editorial {
+                    GameDetailNetworkDemandsCard(demands: editorial.networkDemands, observedMetrics: observedMetrics)
+                    if let req = editorial.requirement(for: selectedPlatform) {
+                        GameDetailRequirementsCard(requirement: req, platform: selectedPlatform)
+                    }
                 }
                 if let advice = wifiBandDiagnostic {
                     NetworkBandAdviceBanner(
@@ -83,6 +103,13 @@ struct GameDetailView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .task {
+            // Sonda topologia de NAT em segundo plano de forma não-bloqueante
+            let snapshot = await stunClient.probeTopology()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                self.natSnapshot = snapshot
+            }
+        }
         .task(id: selectedPlatform) {
             if selectedPlatform == .playstation || selectedPlatform == .xbox || selectedPlatform == .nintendo {
                 let health = await healthClient.checkHealth(for: selectedPlatform, market: "BR")

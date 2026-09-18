@@ -55,6 +55,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `28` | Servidores de teste globais (AWS GameLift UDP Beacons), submenus por continente e rotas amigáveis | decidido e em implementação |
 | `29` | Infraestruturas de medição a custo zero (AWS GameLift, Azure PlayFab QoS e Valve A2S_INFO) | decidido e em implementação |
 | `30` | Status operacional de plataformas de console a custo zero (PSN e Xbox Live) | decidido e em implementação |
+| `31` | Catálogo editorial com notas oficiais, requisitos de sistema e rede sem alucinação de dados | decidido e em implementação |
+| `32` | Diagnóstico de topologia de rede multiplayer a custo zero (tipo de NAT, CGNAT e duplo NAT via STUN RFC 5389) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 
