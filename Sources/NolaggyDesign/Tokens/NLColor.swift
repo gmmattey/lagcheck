@@ -9,18 +9,35 @@ public enum NLColor {
 
     public static let borderSubtle = Color(white: 84 / 255).opacity(0.35)
     public static let borderStrong = Color.white.opacity(0.10)
-    public static let borderFocus = Color(red: 0, green: 122 / 255, blue: 1)
+    public static let borderFocus = coralSolar
 
     public static let textPrimary = Color.white
     public static let textSecondary = Color(red: 142 / 255, green: 142 / 255, blue: 147 / 255)
     public static let textTertiary = Color(red: 99 / 255, green: 99 / 255, blue: 102 / 255)
     public static let textDisabled = Color(red: 72 / 255, green: 72 / 255, blue: 74 / 255)
     public static let textOnAccent = Color.white
-    public static let textLink = Color(red: 0, green: 122 / 255, blue: 1)
+    public static let textLink = coralSolar
 
-    public static let accentPrimary = Color(red: 0, green: 122 / 255, blue: 1)
-    public static let accentPrimaryStrong = Color(red: 0, green: 113 / 255, blue: 227 / 255)
-    public static let accentPrimarySubtle = Color(red: 0, green: 122 / 255, blue: 1).opacity(0.15)
+    // MARK: - Coral Solar Brand Tokens (Decisão 25)
+    public static let coralSolarRed = Color(red: 255 / 255, green: 56 / 255, blue: 35 / 255)       // #FF3823
+    public static let coralSolar = Color(red: 255 / 255, green: 107 / 255, blue: 53 / 255)         // #FF6B35
+    public static let coralSolarAmber = Color(red: 255 / 255, green: 171 / 255, blue: 46 / 255)   // #FFAB2E
+    public static let coralSolarStrong = Color(red: 235 / 255, green: 77 / 255, blue: 38 / 255)   // #EB4D26
+
+    public static let coralSolarGradient = LinearGradient(
+        colors: [coralSolarRed, coralSolar, coralSolarAmber],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    public static let coralSolarHorizontalGradient = LinearGradient(
+        colors: [coralSolarRed, coralSolar, coralSolarAmber],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+
+    public static let accentPrimary = coralSolar
+    public static let accentPrimaryStrong = coralSolarStrong
+    public static let accentPrimarySubtle = coralSolar.opacity(0.15)
 
     public static let scoreExcellent = Color(red: 52 / 255, green: 199 / 255, blue: 89 / 255)
     public static let scoreExcellentSubtle = Color(red: 52 / 255, green: 199 / 255, blue: 89 / 255).opacity(0.16)

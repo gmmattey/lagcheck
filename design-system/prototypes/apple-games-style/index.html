@@ -19,7 +19,7 @@
       --ios-secondary-bg: #1C1C1E;
       --ios-tertiary-bg: #2C2C2E;
       --ios-separator: rgba(84, 84, 88, 0.45);
-      --ios-blue: #007AFF;
+      --ios-blue: #FF6B35;
       --ios-green: #34C759;
       --ios-yellow: #FFD60A;
       --ios-red: #FF453A;
@@ -100,7 +100,7 @@
           <!-- Cabeçalho Canônico Padronizado: Somente Large Title -->
           <div class="px-5 pt-3 pb-1 flex justify-between items-center">
             <h1 class="text-[34px] font-bold tracking-tight text-white leading-tight">Início</h1>
-            <button onclick="triggerQuickPulse()" class="w-9 h-9 rounded-full bg-[#1C1C1E] text-[#007AFF] hover:bg-[#2C2C2E] active:opacity-70 flex items-center justify-center transition-all border border-white/5" title="Reavaliar rota">
+            <button onclick="triggerQuickPulse()" class="w-9 h-9 rounded-full bg-[#1C1C1E] text-[#FF6B35] hover:bg-[#2C2C2E] active:opacity-70 flex items-center justify-center transition-all border border-white/5" title="Reavaliar rota">
               <svg id="home-refresh-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
             </button>
           </div>
@@ -219,7 +219,7 @@
           <div class="space-y-3">
             <div class="px-5 flex justify-between items-baseline">
               <h2 class="text-[20px] font-bold tracking-tight text-white">Mais Jogados no Brasil</h2>
-              <button onclick="switchTab('games')" class="text-[14px] text-[#007AFF] font-medium hover:underline">Ver todos</button>
+              <button onclick="switchTab('games')" class="text-[14px] text-[#FF6B35] font-medium hover:underline">Ver todos</button>
             </div>
 
             <div class="flex overflow-x-auto no-scrollbar px-5 space-x-3 pb-2">
@@ -358,7 +358,7 @@
                 <p class="text-[15px] font-medium text-white">Região de Medição</p>
                 <p class="text-[13px] text-[#8E8E93]">São Paulo · sa-east-1</p>
               </div>
-              <span class="text-[14px] text-[#007AFF]">Automático</span>
+              <span class="text-[14px] text-[#FF6B35]">Automático</span>
             </div>
             <div class="p-4 flex justify-between items-center">
               <div>
@@ -386,7 +386,7 @@
         
         <!-- Apple Navigation Bar -->
         <div class="w-full pt-12 pb-2.5 px-4 bg-black/90 ios-blur border-b border-[rgba(84,84,88,0.35)] flex items-center justify-between z-20">
-          <button onclick="popFromGameDetail()" class="flex items-center space-x-1 text-[#007AFF] hover:opacity-75 transition-opacity">
+          <button onclick="popFromGameDetail()" class="flex items-center space-x-1 text-[#FF6B35] hover:opacity-75 transition-opacity">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
             <span class="text-[17px] font-normal tracking-tight">Jogos</span>
           </button>
@@ -465,7 +465,7 @@
 
           <!-- BOTÃO PRIMÁRIO APPLE -->
           <div class="space-y-2 pt-2">
-            <button onclick="openDeepCheckExecution()" id="screen-btn-deep" class="w-full py-3.5 bg-[#007AFF] hover:bg-[#0071E3] active:opacity-80 text-white font-semibold rounded-[14px] text-[16px] transition-all flex items-center justify-center space-x-2">
+            <button onclick="openDeepCheckExecution()" id="screen-btn-deep" class="w-full py-3.5 bg-[#FF6B35] hover:bg-[#EB4D26] active:opacity-80 text-white font-semibold rounded-[14px] text-[16px] transition-all flex items-center justify-center space-x-2">
               <span>Fazer Deep Check deste jogo</span>
             </button>
             <p class="text-[12px] text-center text-[#8E8E93]">Mede bufferbloat com download ativo em segundo plano.</p>
@@ -488,7 +488,7 @@
         <div class="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col justify-between pb-12">
           
           <div id="deep-view-measuring" class="space-y-6 pt-6 text-center">
-            <div class="w-14 h-14 rounded-full bg-[#007AFF]/10 border border-[#007AFF]/20 flex items-center justify-center mx-auto text-[#007AFF]">
+            <div class="w-14 h-14 rounded-full bg-[#FF6B35]/10 border border-[#FF6B35]/20 flex items-center justify-center mx-auto text-[#FF6B35]">
               <svg class="w-6 h-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
             </div>
             <div>
@@ -496,7 +496,7 @@
               <p id="deep-phase-sub" class="text-[13px] text-[#8E8E93] mt-1">Coletando amostras puras de rota contra sa-east-1...</p>
             </div>
             <div class="w-full bg-[#1C1C1E] rounded-full h-2 overflow-hidden border border-white/5">
-              <div id="deep-modal-bar" class="bg-[#007AFF] h-full w-1/3 transition-all duration-500"></div>
+              <div id="deep-modal-bar" class="bg-[#FF6B35] h-full w-1/3 transition-all duration-500"></div>
             </div>
             <p class="text-[12px] text-[#8E8E93]">Permaneça no app durante os 30 segundos de análise.</p>
           </div>
@@ -537,8 +537,8 @@
 
             <!-- CTA com IA -->
             <div class="pt-2 space-y-2">
-              <button onclick="openGeminiBoosterSheet()" class="w-full py-3.5 bg-[#2C2C2E] hover:bg-[#3A3A3C] active:opacity-80 text-[#007AFF] font-semibold rounded-[14px] text-[15px] transition-all flex items-center justify-center space-x-2 border border-white/10">
-                <svg class="w-4 h-4 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <button onclick="openGeminiBoosterSheet()" class="w-full py-3.5 bg-[#2C2C2E] hover:bg-[#3A3A3C] active:opacity-80 text-[#FF6B35] font-semibold rounded-[14px] text-[15px] transition-all flex items-center justify-center space-x-2 border border-white/10">
+                <svg class="w-4 h-4 text-[#FF6B35]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                 <span>Como melhorar sua conexão com IA</span>
               </button>
             </div>
@@ -566,7 +566,7 @@
             <div class="w-full flex justify-between items-center">
               <div class="w-12"></div>
               <h3 class="text-[17px] font-semibold text-white">Como Melhorar</h3>
-              <button onclick="closeGeminiBoosterSheet()" class="text-[17px] font-semibold text-[#007AFF] hover:opacity-75">
+              <button onclick="closeGeminiBoosterSheet()" class="text-[17px] font-semibold text-[#FF6B35] hover:opacity-75">
                 Fechar
               </button>
             </div>
@@ -582,7 +582,7 @@
 
             <!-- SKELETON / LOADING NATIVO -->
             <div id="booster-skeleton" class="space-y-3 py-2">
-              <div class="flex items-center space-x-2 text-[13px] text-[#007AFF] font-medium">
+              <div class="flex items-center space-x-2 text-[13px] text-[#FF6B35] font-medium">
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                 <span>Consultando Gemini...</span>
               </div>
@@ -620,7 +620,7 @@
       <div id="main-tab-bar" class="absolute bottom-0 inset-x-0 h-20 bg-[#121214]/90 ios-blur border-t border-[rgba(84,84,88,0.35)] px-4 flex justify-around items-center z-30">
         
         <!-- Tab 1: Início (SF Symbol: gamecontroller.fill) -->
-        <button onclick="switchTab('home')" id="tab-btn-home" class="tab-button flex flex-col items-center space-y-1 text-[#007AFF] transition-colors">
+        <button onclick="switchTab('home')" id="tab-btn-home" class="tab-button flex flex-col items-center space-y-1 text-[#FF6B35] transition-colors">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 6h-15C3.12 6 2 7.12 2 8.5v7C2 16.88 3.12 18 4.5 18h15c1.38 0 2.5-1.12 2.5-2.5v-7C22 7.12 20.88 6 19.5 6zM8 13.5H6.5V15H5.5v-1.5H4v-1h1.5V11h1v1.5H8v1zm7.5.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm2.5-2c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
           <span class="text-[10px] font-medium tracking-tight">Início</span>
         </button>
@@ -950,13 +950,13 @@
         
         items = [
           {
-            icon: `<svg class="w-5 h-5 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>`,
+            icon: `<svg class="w-5 h-5 text-[#FF6B35]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>`,
             category: "Roteador",
             title: "Ativar Prioridade de Jogos (SQM/QoS)",
             detail: "Ative a gestão de filas no roteador para que downloads simultâneos em segundo plano na sua residência não causem bufferbloat na sua conexão."
           },
           {
-            icon: `<svg class="w-5 h-5 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+            icon: `<svg class="w-5 h-5 text-[#FF6B35]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
             category: "Configuração do Sistema",
             title: "Verificar Tipo de NAT no Console/PC",
             detail: "Certifique-se de que o recurso UPnP esteja habilitado nas configurações do roteador para manter o NAT Aberto (Tipo 1 ou 2) em partidas multijogador."
@@ -979,7 +979,7 @@
             detail: `Conecte seu ${platform} na frequência de 5 GHz do roteador para evitar interferências com outros aparelhos que operam na faixa de 2.4 GHz.`
           },
           {
-            icon: `<svg class="w-5 h-5 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="7" y="2" width="10" height="12" rx="3"/><path d="M12 14v8M9 22h6"/></svg>`,
+            icon: `<svg class="w-5 h-5 text-[#FF6B35]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="7" y="2" width="10" height="12" rx="3"/><path d="M12 14v8M9 22h6"/></svg>`,
             category: "Conexão Física",
             title: "Cabo Ethernet para Partidas Competitivas",
             detail: "Se for disputar partidas decisivas, conectar temporariamente um cabo de rede eliminará qualquer oscilação de sinal sem fio no cômodo."
@@ -1075,11 +1075,11 @@
       document.getElementById(`tab-${tabId}`).classList.remove("hidden");
 
       document.querySelectorAll(".tab-button").forEach(btn => {
-        btn.classList.remove("text-[#007AFF]");
+        btn.classList.remove("text-[#FF6B35]");
         btn.classList.add("text-[#8E8E93]");
       });
       document.getElementById(`tab-btn-${tabId}`).classList.remove("text-[#8E8E93]");
-      document.getElementById(`tab-btn-${tabId}`).classList.add("text-[#007AFF]");
+      document.getElementById(`tab-btn-${tabId}`).classList.add("text-[#FF6B35]");
     }
 
     function triggerQuickPulse() {

@@ -69,7 +69,7 @@ Ver `design-system/tokens/colors.json` para os valores exatos e a estrutura `cor
 | Fundo | `background.base` | Fundo padrão, azul-marinho profundo quase preto. |
 | Fundo | `background.raised` / `background.overlay` | Cards, sheets, banners — camadas de profundidade sem sombra pesada. |
 | Texto | `text.primary` / `text.secondary` / `text.tertiary` | Hierarquia de leitura. |
-| Acento | `accent.primary` | Azul elétrico — CTA, símbolo da marca, seleção ativa. Uso estratégico, não decorativo. |
+| Acento | `accent.primary` | Coral Solar (`#FF6B35`) — CTA, anel de medição, tabs ativas, seleção de categoria. Uso estratégico, não decorativo. |
 | Score | `score.excellent` / `score.unstable` / `score.lagRisk` / `score.neutral` | Cores semânticas do LagCheck Score (Seção 4). |
 | Gráfico | `graph.line` / `graph.fillTop` / `graph.spike` / `graph.spikeSevere` | Paleta dedicada do LatencyGraph. |
 

@@ -41,10 +41,11 @@
       "500": { "value": "#F5B942" },
       "700": { "value": "#B8791E" }
     },
-    "coral": {
-      "400": { "value": "#F5747C" },
-      "500": { "value": "#F0525B" },
-      "700": { "value": "#A82E36" }
+    "coralSolar": {
+      "red": { "value": "#FF3823" },
+      "primary": { "value": "#FF6B35" },
+      "amber": { "value": "#FFAB2E" },
+      "strong": { "value": "#EB4D26" }
     }
   },
   "semantic": {
@@ -57,7 +58,7 @@
     "border": {
       "subtle": { "value": "rgba(84,84,88,0.35)", "usage": "Divisores e separadores de lista nativos do iOS (0.5pt)." },
       "strong": { "value": "rgba(255,255,255,0.10)", "usage": "Contorno sutil de cards e botões secundários." },
-      "focus": { "value": "#007AFF", "usage": "Anel de foco de teclado/VoiceOver e estados 'selected'." }
+      "focus": { "value": "#FF6B35", "usage": "Anel de foco de teclado/VoiceOver e estados 'selected' em Coral Solar." }
     },
     "text": {
       "primary": { "value": "#FFFFFF", "usage": "Títulos, score, conteúdo principal." },
@@ -65,14 +66,15 @@
       "tertiary": { "value": "#636366", "usage": "Ícones secundários de navegação, chevrons e datas." },
       "disabled": { "value": "#48484A", "usage": "Texto e ícones desabilitados." },
       "onAccent": { "value": "#FFFFFF", "usage": "Texto sobre botões de destaque primário." },
-      "link": { "value": "#007AFF", "usage": "Ações textuais e botões interativos." }
+      "link": { "value": "#FF6B35", "usage": "Ações textuais e botões interativos em Coral Solar." }
     },
     "accent": {
-      "primary": { "value": "#007AFF", "usage": "Azul nativo da Apple — botões primários, itens selecionados, links." },
-      "primaryStrong": { "value": "#0071E3", "usage": "Estado pressed/active do accent primário." },
-      "primarySubtle": { "value": "rgba(0,122,255,0.15)", "usage": "Preenchimento suave de seleção e badges de tecnologia." },
-      "gradientStart": { "value": "#007AFF", "usage": "Início do gradiente de marca (símbolo gg/infinito)." },
-      "gradientEnd": { "value": "#5856D6", "usage": "Fim do gradiente de marca (símbolo gg/infinito)." }
+      "primary": { "value": "#FF6B35", "usage": "Coral Solar — cor de destaque da marca para botões primários, itens selecionados, tabs ativas." },
+      "primaryStrong": { "value": "#EB4D26", "usage": "Estado pressed/active do accent primário Coral Solar." },
+      "primarySubtle": { "value": "rgba(255,107,53,0.15)", "usage": "Preenchimento suave de seleção e badges em Coral Solar." },
+      "gradientStart": { "value": "#FF3823", "usage": "Início do gradiente Coral Solar (vermelho vivo)." },
+      "gradientMiddle": { "value": "#FF6B35", "usage": "Meio do gradiente Coral Solar (laranja vibrante)." },
+      "gradientEnd": { "value": "#FFAB2E", "usage": "Fim do gradiente Coral Solar (âmbar solar)." }
     },
     "score": {
       "excellent": { "value": "#34C759", "label": "Excelente / Ótimo", "range": "75–100" },
@@ -85,9 +87,9 @@
       "neutralSubtle": { "value": "rgba(142,142,147,0.16)" }
     },
     "graph": {
-      "line": { "value": "#007AFF", "usage": "Linha principal do LatencyGraph." },
-      "fillTop": { "value": "rgba(0,122,255,0.25)", "usage": "Topo do gradiente de preenchimento sob a linha." },
-      "fillBottom": { "value": "rgba(0,122,255,0.0)", "usage": "Base do gradiente de preenchimento sob a linha." },
+      "line": { "value": "#FF6B35", "usage": "Linha principal do LatencyGraph em Coral Solar." },
+      "fillTop": { "value": "rgba(255,107,53,0.25)", "usage": "Topo do gradiente de preenchimento sob a linha." },
+      "fillBottom": { "value": "rgba(255,107,53,0.0)", "usage": "Base do gradiente de preenchimento sob a linha." },
       "spike": { "value": "#FFD60A", "usage": "Marcador de spike." },
       "spikeSevere": { "value": "#FF453A", "usage": "Marcador de spike severo." },
       "gridLine": { "value": "rgba(84,84,88,0.35)", "usage": "Linhas de grade discretas." }

@@ -38,6 +38,23 @@ Dentre as propostas criadas para a nova fase do app, foi aprovada a **Opção 2:
 - `Sources/NolaggyApp/Assets.xcassets/AppIcon.appiconset/`: Conjunto completo de ícones de 20pt a 1024pt gerado a partir do master Coral Solar.
 - `Sources/NolaggyApp/Assets.xcassets/WordmarkPrimary.imageset/`: Ativo de imagem da Wordmark atualizado no app.
 
+### 2.4 Aplicação no Design System e Tokens
+- **Tokens `NLColor` (`Sources/NolaggyDesign/Tokens/NLColor.swift`)**:
+  - `accentPrimary`: Coral Solar (`#FF6B35`).
+  - `accentPrimaryStrong`: Coral Solar Strong (`#EB4D26`).
+  - `accentPrimarySubtle`: `rgba(255, 107, 53, 0.15)`.
+  - `borderFocus` e `textLink`: Coral Solar (`#FF6B35`).
+  - Tokens de apoio e gradiente: `coralSolarRed` (`#FF3823`), `coralSolar` (`#FF6B35`), `coralSolarAmber` (`#FFAB2E`), `coralSolarGradient`.
+- **Tokens Semânticos (`design-system/tokens/colors.json`)**:
+  - Adicionado `core.coralSolar` (red, primary, amber, strong).
+  - Atualizados `accent`, `border.focus`, `text.link`, `graph.line` e `graph.fillTop`.
+- **Comportamento nos Componentes**:
+  - `PrimaryButton`: Botões de ação principal agora vestem Coral Solar com texto de alto contraste.
+  - `MeasurementPulse`: Anel de progresso e núcleo de pulso sincronizados com o ping Coral Solar do ícone.
+  - `LatencyGraph`: Curva de latência desenhada em Coral Solar.
+  - `CatalogCategoryChip`: Chips de filtro e categorias selecionadas destacadas em Coral Solar.
+  - `TabBar`: Itens ativos da TabView 4 abas iluminados em Coral Solar.
+
 ---
 
 ## 3. Impacto e Validação
