@@ -29,28 +29,15 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         // Chave client-side transitória conforme docs/23 aprovado pelo dono do produto (Luiz)
         // Busca chave: parâmetro explícito -> variável de ambiente -> Secrets.plist local -> Info.plist
         var resolvedKey = apiKey ?? ProcessInfo.processInfo.environment["GEMINI_API_KEY"]
-        
+
         if resolvedKey == nil || resolvedKey?.isEmpty == true {
-            if let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist") ?? Bundle.main.url(forResource: "Secrets", withExtension: "plist", subdirectory: "Secrets"),
-               let data = try? Data(contentsOf: url),
-               let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
-               let key = plist["GEMINI_API_KEY"] as? String, !key.isEmpty {
-                resolvedKey = key
-            }
+            resolvedKey = Self.readSecretsPlistKey()
         }
 
         if resolvedKey == nil || resolvedKey?.isEmpty == true {
-            if let path = Bundle.main.path(forResource: "Secrets", ofType: "plist"),
-               let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
-               let key = dict["GEMINI_API_KEY"] as? String, !key.isEmpty {
-                resolvedKey = key
-            }
-        }
-        
-        if resolvedKey == nil || resolvedKey?.isEmpty == true {
             resolvedKey = Bundle.main.object(forInfoDictionaryKey: "GEMINI_API_KEY") as? String
         }
-        
+
         self.apiKey = resolvedKey ?? ""
         if let customSession = session {
             self.session = customSession
@@ -63,6 +50,23 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         self.endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent")!
     }
     
+    /// Lê `GEMINI_API_KEY` de `Secrets.plist` em um único caminho de resolução,
+    /// tentando as localizações plausíveis do bundle sem duplicar a leitura em disco.
+    private static func readSecretsPlistKey() -> String? {
+        let candidateURLs = [
+            Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
+            Bundle.main.url(forResource: "Secrets", withExtension: "plist", subdirectory: "Secrets")
+        ].compactMap { $0 }
+
+        for url in candidateURLs {
+            guard let data = try? Data(contentsOf: url),
+                  let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+                  let key = plist["GEMINI_API_KEY"] as? String, !key.isEmpty else { continue }
+            return key
+        }
+        return nil
+    }
+
     /// Sanitiza o texto bruto recebido do LLM, removendo possíveis code blocks markdown (` ```json ` ou ` ``` `)
     public static func sanitizeJSONResponse(_ rawText: String) -> String {
         var text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)

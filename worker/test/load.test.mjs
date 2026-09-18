@@ -26,7 +26,7 @@ test("GET /v1/catalog.json returns the immutable signed Debug envelope", async (
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(envelope.schemaVersion, 1);
-  assert.equal(envelope.catalogVersion, "debug-2026.09.08.2");
+  assert.equal(envelope.catalogVersion, "debug-2026.09.18.1");
   assert.equal(envelope.algorithm, "Ed25519");
   assert.ok(envelope.payloadBase64.length > 0);
   assert.ok(envelope.signatureBase64.length > 0);
@@ -41,7 +41,7 @@ test("the catalog endpoint permits only GET", () => {
 test("the Debug catalog payload is signed by the public key embedded in iOS", async () => {
   const response = handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
   const envelope = await response.json();
-  const rawPublicKey = Buffer.from("4YJQhLLBC414Nj2gTjeDSqMxoJqsiw4BQeKTCxX5NuI=", "base64");
+  const rawPublicKey = Buffer.from("tCsSOLt9B7WpXalcu6iT6CxMrEx3w787rPRR7KXxGso=", "base64");
   const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
   const publicKey = createPublicKey({ key: Buffer.concat([spkiPrefix, rawPublicKey]), format: "der", type: "spki" });
 

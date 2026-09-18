@@ -109,7 +109,7 @@ public enum RemoteCatalogError: Error, Equatable, Sendable {
 /// Chave pública do catálogo Debug. A chave privada não pertence ao app nem ao
 /// Worker; o envelope inicial foi assinado antes de ser incluído no Worker.
 public enum DebugCatalogSigningKey {
-    public static let publicKeyBase64 = "4YJQhLLBC414Nj2gTjeDSqMxoJqsiw4BQeKTCxX5NuI="
+    public static let publicKeyBase64 = "tCsSOLt9B7WpXalcu6iT6CxMrEx3w787rPRR7KXxGso="
 }
 
 public enum RemoteCatalogVerifier {
@@ -256,13 +256,28 @@ public enum RemoteCatalogVerifier {
         "brawl-stars": [.iphone],
         "wild-rift": [.iphone],
         "roblox": [.iphone, .xbox],
-        "minecraft": [.iphone, .playstation, .xbox]
+        "minecraft": [.iphone, .playstation, .xbox],
+        "apex-legends": [.iphone],
+        "blood-strike": [.iphone],
+        "cs2": [.iphone],
+        "dota2": [.iphone],
+        "eafc": [.iphone],
+        "league-of-legends": [.iphone],
+        "palworld": [.iphone],
+        "rainbow-six": [.iphone],
+        "rocket-league": [.iphone],
+        "rust": [.iphone],
+        "valorant": [.iphone],
+        "warzone": [.iphone]
     ]
 
     private static func validateDebugPayload(_ payload: RemoteCatalogPayload) throws {
         let expectedGames: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
-            "brawl-stars", "wild-rift", "roblox", "minecraft"
+            "brawl-stars", "wild-rift", "roblox", "minecraft",
+            "apex-legends", "blood-strike", "cs2", "dota2", "eafc",
+            "league-of-legends", "palworld", "rainbow-six", "rocket-league",
+            "rust", "valorant", "warzone"
         ]
         guard payload.games.count == expectedGames.count,
               Set(payload.games.map(\.id)) == expectedGames else { throw RemoteCatalogError.unsupportedDebugCatalog }

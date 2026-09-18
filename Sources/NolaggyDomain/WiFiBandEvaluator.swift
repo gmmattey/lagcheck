@@ -44,8 +44,6 @@ public enum WiFiBandEvaluator {
 
         // 3. Verificação de resposta do gateway (se sondado)
         if telemetry.plannedSampleCount > 0 && telemetry.validSampleCount == 0 {
-            // Claude Code CLI audit: se o roteador não respondeu a nenhum probe,
-            // o diagnóstico do salto local é estritamente inconclusivo, nunca inventado.
             return makeResult(
                 diagnostic: .inconclusive(reason: .gatewayUnresponsive),
                 confidence: .none,

@@ -310,7 +310,8 @@ struct HomeCatalogView: View {
                     .padding(.top, NLSpacing.xs)
                 HomeCatalogFilters(selected: $selectedCategory, categories: categories, title: categoryTitle)
                 HomeCatalogList(games: games, categoryTitle: gameCategoryTitle, scoreState: scoreState, score: score, latency: latency, inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel, select: select)
-                    .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
+                    .padding(.horizontal, NLSpacing.md)
+                Spacer(minLength: NLSpacing.xl)
             }
         }
         .scrollContentBackground(.hidden)

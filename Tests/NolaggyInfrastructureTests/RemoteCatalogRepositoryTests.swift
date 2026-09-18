@@ -6,7 +6,7 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
     func testBundledDebugCatalogIsAvailableToTheInfrastructureBundle() throws {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
         let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: Date())
-        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.08.2")
+        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.18.1")
     }
 
     func testLaunchFallsBackToBaseWhenCacheIsInvalid() async throws {

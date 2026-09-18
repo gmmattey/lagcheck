@@ -47,7 +47,6 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
         }
 
         guard !rtts.isEmpty else {
-            // Auditoria Claude Code CLI: roteador doméstico sem resposta = inconclusivo.
             return WiFiLocalTelemetry(
                 validSampleCount: 0,
                 plannedSampleCount: sampleCount,
