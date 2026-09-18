@@ -238,6 +238,23 @@ public enum RemoteCatalogVerifier {
         )
     }
 
+    /// Teto de plataformas por jogo no catálogo Debug. Um contexto publicado pode usar
+    /// qualquer subconjunto deste teto — isso permite liberar console num jogo sem exigir
+    /// que o envelope já assinado hoje (iPhone-only) seja re-assinado ao mesmo tempo.
+    /// O teto reflete só quais jogos existem de fato em PlayStation/Xbox; a estratégia de
+    /// medição continua `genericRegion`/`sa-east-1` porque o backend não muda por cliente.
+    /// Ver docs/26-decisao-catalogo-console.md.
+    private static let debugAllowedPlatforms: [String: Set<Platform>] = [
+        "fortnite": [.iphone, .playstation, .xbox],
+        "call-of-duty-mobile": [.iphone],
+        "free-fire": [.iphone],
+        "pubg-mobile": [.iphone],
+        "brawl-stars": [.iphone],
+        "wild-rift": [.iphone],
+        "roblox": [.iphone, .xbox],
+        "minecraft": [.iphone, .playstation, .xbox]
+    ]
+
     private static func validateDebugPayload(_ payload: RemoteCatalogPayload) throws {
         let expectedGames: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
@@ -288,7 +305,11 @@ public enum RemoteCatalogVerifier {
             }
         }
         guard payload.games.allSatisfy({ game in
-            game.contexts.count == 1 && game.contexts[0].availability == .available && game.contexts[0].market == "BR" && game.contexts[0].platforms == [.iphone] && candidateIDs(for: game.contexts[0].measurement, schemaVersion: payload.schemaVersion) == ["sa-east-1"]
+            guard let allowedPlatforms = debugAllowedPlatforms[game.id] else { return false }
+            let context = game.contexts[0]
+            return game.contexts.count == 1 && context.availability == .available && context.market == "BR"
+                && context.platforms.isSubset(of: allowedPlatforms)
+                && candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion) == ["sa-east-1"]
         }),
               payload.regions.count == 1,
               payload.regions[0].probe.host == "gamelift-ping.sa-east-1.api.aws",

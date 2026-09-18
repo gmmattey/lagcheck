@@ -197,6 +197,51 @@ final class RemoteCatalogTests: XCTestCase {
         }
     }
 
+    func testConsolePlatformsResolveForCrossplayGamesUsingTheSameRegionalReference() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        var payload = debugPayload()
+        var games = payload.games
+        games[0] = crossplayGame(id: "fortnite", name: "Fortnite", profileID: "BATTLE_ROYALE_COMPETITIVE", platforms: [.iphone, .playstation, .xbox])
+        games[6] = crossplayGame(id: "roblox", name: "Roblox", profileID: "CASUAL_REALTIME", platforms: [.iphone, .xbox])
+        games[7] = crossplayGame(id: "minecraft", name: "Minecraft", profileID: "CASUAL_REALTIME", platforms: [.iphone, .playstation, .xbox])
+        payload = RemoteCatalogPayload(schemaVersion: payload.schemaVersion, catalogVersion: payload.catalogVersion, profiles: payload.profiles, regions: payload.regions, games: games)
+        let verified = try verify(payload, with: privateKey)
+
+        for (gameID, platform) in [("fortnite", Platform.playstation), ("fortnite", .xbox), ("roblox", .xbox), ("minecraft", .playstation), ("minecraft", .xbox)] {
+            let resolution = try RemoteCatalogVerifier.resolve(
+                GameContext(gameID: gameID, market: "BR", platform: platform, equipmentConnection: .wifi), in: verified
+            )
+            guard case let .available(resolved) = resolution else {
+                return XCTFail("\(gameID) must resolve on \(platform) using the same regional reference.")
+            }
+            XCTAssertEqual(resolved.destination.host, "gamelift-ping.sa-east-1.api.aws")
+            XCTAssertEqual(resolved.strategy, .genericRegion)
+        }
+
+        XCTAssertThrowsError(try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "roblox", market: "BR", platform: .playstation, equipmentConnection: .wifi), in: verified
+        ))
+    }
+
+    func testCatalogRejectsAPlatformOutsideTheGameApprovedCeiling() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        for (gameID, name, profileID, disallowedPlatform) in [
+            ("roblox", "Roblox", "CASUAL_REALTIME", Platform.playstation),
+            ("wild-rift", "League of Legends: Wild Rift", "MOBILE_REALTIME", Platform.xbox),
+            ("free-fire", "Free Fire", "BATTLE_ROYALE_COMPETITIVE", Platform.playstation)
+        ] {
+            var payload = debugPayload()
+            var games = payload.games
+            let index = games.firstIndex { $0.id == gameID }!
+            games[index] = crossplayGame(id: gameID, name: name, profileID: profileID, platforms: [.iphone, disallowedPlatform])
+            payload = RemoteCatalogPayload(schemaVersion: payload.schemaVersion, catalogVersion: payload.catalogVersion, profiles: payload.profiles, regions: payload.regions, games: games)
+
+            XCTAssertThrowsError(try verify(payload, with: privateKey)) { error in
+                XCTAssertEqual(error as? RemoteCatalogError, .unsupportedDebugCatalog)
+            }
+        }
+    }
+
     func testProfileWithUnsupportedRuleVersionIsRejectedBeforeResolution() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
         var payload = debugPayload()
@@ -276,6 +321,15 @@ private extension RemoteCatalogTests {
                 available("minecraft", "Minecraft", "CASUAL_REALTIME")
             ]
         )
+    }
+
+    func crossplayGame(id: String, name: String, profileID: String, platforms: Set<Platform>) -> RemoteCatalogGame {
+        RemoteCatalogGame(id: id, name: name, contexts: [
+            RemoteCatalogGameContext(
+                market: "BR", platforms: platforms, profileID: profileID, availability: .available,
+                measurement: RemoteCatalogMeasurement(primaryRegion: "sa-east-1", strategy: .genericRegion, confidence: .medium, precisionKey: "regionalReference")
+            )
+        ])
     }
 
     func schemaTwoPayload() -> RemoteCatalogPayload {
