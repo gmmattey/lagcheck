@@ -43,7 +43,8 @@ public struct GameRowView: View {
                     Text(title)
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     HStack(spacing: NLSpacing.xs) {
                         Text(category)
@@ -66,6 +67,7 @@ public struct GameRowView: View {
                 scoreBadge
             }
             .padding(.vertical, NLSpacing.xs)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

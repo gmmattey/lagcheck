@@ -94,7 +94,7 @@ extension QuickCheckFeatureView {
                 // ação primária. Em resultado saudável, testar de novo continua
                 // sendo o caminho mais provável e permanece em destaque.
                 if interpretation.scoreBand == .unstable || interpretation.scoreBand == .lagRisk {
-                    PrimaryButton(title: "quick_check.result.deep_check", action: { activeCover = .deep })
+                    PrimaryButton(title: "quick_check.result.deep_check", action: { openDeepCheck() })
                         .accessibilityIdentifier("deep-check-open")
 
                     HStack(spacing: NLSpacing.sm) {
@@ -107,12 +107,13 @@ extension QuickCheckFeatureView {
 
                     HStack(spacing: NLSpacing.sm) {
                         secondaryResultAction("quick_check.result.details", identifier: "quick-check-details") { showingDetails = true }
-                        secondaryResultAction("quick_check.result.deep_check", identifier: "deep-check-open") { activeCover = .deep }
+                        secondaryResultAction("quick_check.result.deep_check", identifier: "deep-check-open") { openDeepCheck() }
                     }
                 }
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)
+            .toolbar(.hidden, for: .tabBar)
         }
     }
 

@@ -36,11 +36,11 @@ public struct ConnectionBoosterSheet: View {
                 .padding(.vertical, NLSpacing.lg)
             }
             .background(NolaggyScreenBackground())
-            .navigationTitle(String(localized: "booster.sheet.nav_title", defaultValue: "Como Melhorar"))
+            .navigationTitle(String(localized: "booster.sheet.nav_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(String(localized: "common.close", defaultValue: "Fechar")) {
+                    Button(String(localized: "common.close")) {
                         dismiss()
                     }
                     .foregroundStyle(NLColor.textPrimary)

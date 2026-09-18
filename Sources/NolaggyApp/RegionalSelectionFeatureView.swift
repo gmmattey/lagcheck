@@ -38,6 +38,7 @@ struct RegionalSelectionFeatureView: View {
         .background(NolaggyScreenBackground())
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .onChange(of: presentation) { _, next in
             guard next != .confirming else { return }
             retryInProgress = false

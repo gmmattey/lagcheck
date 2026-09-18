@@ -1,5 +1,4 @@
 import SwiftUI
-import CoreText
 import NolaggyApplication
 import NolaggyDomain
 import NolaggyInfrastructure
@@ -12,7 +11,6 @@ struct NolaggyApp: App {
     @State private var catalogState: CatalogState
 
     init() {
-        Self.registerProductFont()
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
         let base = DebugCatalogBase.envelopeData() ?? Data()
@@ -28,11 +26,6 @@ struct NolaggyApp: App {
         } else {
             _catalogState = State(initialValue: .loading)
         }
-    }
-
-    private static func registerProductFont(bundle: Bundle = .main) {
-        guard let fontURL = bundle.url(forResource: "Oxanium-Variable", withExtension: "ttf") else { return }
-        CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
     }
 
     var body: some Scene {

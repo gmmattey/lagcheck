@@ -4,6 +4,24 @@ import XCTest
 @testable import NolaggyInfrastructure
 
 final class ConnectionBoosterTests: XCTestCase {
+    func testGeminiWithoutCredentialDoesNotInventAdvice() async {
+        let service = GeminiConnectionBoosterService(apiKey: "")
+        let request = ConnectionBoosterRequest(
+            gameName: "Fortnite", platform: .iphone, networkKind: .wifi,
+            p50Milliseconds: 20, jitterMilliseconds: 2, packetLossRate: 0,
+            loadImpactMilliseconds: nil, locale: "en-US"
+        )
+
+        do {
+            _ = try await service.fetchAdvice(for: request)
+            XCTFail("A build without a Gemini credential must not create fallback advice")
+        } catch let error as GeminiConnectionBoosterServiceError {
+            XCTAssertEqual(error, .notConfigured)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testVocabularyGuardrailSanitizesProhibitedGamerTerms() {
         let text = "Com isso você tem zero lag garantido e amassou no servidor"
         let sanitized = VocabularyGuardrail.sanitize(text)

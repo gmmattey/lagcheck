@@ -27,6 +27,7 @@ extension QuickCheckFeatureView {
             Spacer()
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 

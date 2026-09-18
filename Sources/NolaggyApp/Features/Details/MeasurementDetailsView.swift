@@ -9,49 +9,48 @@ struct MeasurementDetailsView: View {
     let samples: [ProbeSample]
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-                        Text("details.reference_region")
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textTertiary)
-                        Text("quick_check.measuring.region")
-                            .font(NLTypography.callout)
-                            .foregroundStyle(NLColor.textSecondary)
-                        Text("details.measured_target")
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textTertiary)
-                        Text(strategyLabel)
-                            .font(NLTypography.callout)
-                            .foregroundStyle(NLColor.textSecondary)
-                    }
-
-                    LatencyGraph(
-                        values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
-                        awaitingLabel: "details.history_graph_unavailable",
-                        accessibilityLabel: graphAccessibilitySummary
-                    )
-                    .frame(height: NLSizing.detailsGraphHeight)
-
-                    if let deepCheck = entry.deepCheck {
-                        deepComparison(deepCheck)
-                    }
-
-                    metricList
+        ScrollView {
+            VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                    Text("details.reference_region")
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                    Text("quick_check.measuring.region")
+                        .font(NLTypography.callout)
+                        .foregroundStyle(NLColor.textSecondary)
+                    Text("details.measured_target")
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                    Text(strategyLabel)
+                        .font(NLTypography.callout)
+                        .foregroundStyle(NLColor.textSecondary)
                 }
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, NLSpacing.lg)
+
+                LatencyGraph(
+                    values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
+                    awaitingLabel: "details.history_graph_unavailable",
+                    accessibilityLabel: graphAccessibilitySummary
+                )
+                .frame(height: NLSizing.detailsGraphHeight)
+
+                if let deepCheck = entry.deepCheck {
+                    deepComparison(deepCheck)
+                }
+
+                metricList
             }
-            .background(NolaggyScreenBackground())
-            .navigationTitle(Text("details.title"))
-            .navigationBarBackButtonHidden(true)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "measurement-details-back")
-                }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .padding(.vertical, NLSpacing.lg)
+        }
+        .background(NolaggyScreenBackground())
+        .navigationTitle(Text("details.title"))
+        .navigationBarBackButtonHidden(true)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "measurement-details-back")
             }
         }
         .preferredColorScheme(.dark)

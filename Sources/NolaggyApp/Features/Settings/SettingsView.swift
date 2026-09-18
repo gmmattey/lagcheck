@@ -28,25 +28,11 @@ struct SettingsView: View {
     }
 
     @Environment(\.openURL) private var openURL
-    @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteConfirmation = false
     @State private var deletionFailed = false
 
     var body: some View {
         VStack(spacing: 0) {
-            if showsBackHeader {
-                NolaggyBackHeader(action: { dismiss() }, accessibilityIdentifier: "settings-back")
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            }
-
-            Text("settings.title")
-                .font(NLTypography.displayTitle)
-                .foregroundStyle(NLColor.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.top, NLSpacing.xs)
-                .padding(.bottom, NLSpacing.xs)
-
             List {
                 Section {
                     Button(action: showHistory) {
@@ -103,9 +89,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    if let privacyPolicyURL = configuration.privacyPolicyURL {
-                        linkRow("settings.privacy_policy", symbol: "hand.raised", url: privacyPolicyURL)
-                    }
+                    configuredLinkRow("settings.privacy_policy", symbol: "hand.raised", url: configuration.privacyPolicyURL)
                     Button { showingDeleteConfirmation = true } label: {
                         SettingsRow(
                             title: "settings.delete_history",
@@ -126,9 +110,7 @@ struct SettingsView: View {
 
                 Section {
                     settingValueRow("settings.version", symbol: "info.circle", value: versionDescription)
-                    if let supportURL = configuration.supportURL {
-                        linkRow("settings.support", symbol: "questionmark.circle", url: supportURL)
-                    }
+                    configuredLinkRow("settings.support", symbol: "questionmark.circle", url: configuration.supportURL)
                 } header: {
                     sectionHeader("settings.section.about")
                 }
@@ -138,8 +120,10 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
         }
         .background(NolaggyScreenBackground())
-        .navigationBarBackButtonHidden(true)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle("settings.title")
+        .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .alert("settings.delete_history.confirmation.title", isPresented: $showingDeleteConfirmation) {
             Button("settings.delete_history.confirmation.cancel", role: .cancel) {}
             Button("settings.delete_history.confirmation.action", role: .destructive) {
@@ -167,10 +151,19 @@ struct SettingsView: View {
             .compactSettingsRow()
     }
 
-    private func linkRow(_ title: LocalizedStringKey, symbol: String, url: URL) -> some View {
-        Button { openURL(url) } label: { SettingsRow(title: title, symbol: symbol, detail: nil, showsChevron: true) }
-            .buttonStyle(.plain)
-            .listRowBackground(SettingsListSurface())
+    @ViewBuilder
+    private func configuredLinkRow(_ title: LocalizedStringKey, symbol: String, url: URL?) -> some View {
+        Group {
+            if let url {
+                Button { openURL(url) } label: { SettingsRow(title: title, symbol: symbol, detail: nil, showsChevron: true) }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("settings.link.opens_browser"))
+            } else {
+                SettingsRow(title: title, symbol: symbol, detail: String(localized: "settings.link_unavailable"), showsChevron: false)
+                    .accessibilityHint(Text("settings.link_unavailable"))
+            }
+        }
+        .listRowBackground(SettingsListSurface())
             .listRowSeparator(.hidden)
             .compactSettingsRow()
     }

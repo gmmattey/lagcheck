@@ -63,8 +63,10 @@ targets:
       - target: NolaggyInfrastructure
     sources:
       - path: Sources/NolaggyApp
-    resources:
-      - path: Sources/NolaggyApp/Resources/Fonts
+      # Credencial de desenvolvimento local, ignorada pelo Git. O serviço
+      # lê este recurso somente no bundle Debug instalado neste Mac.
+      - path: Secrets/Secrets.plist
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nolaggy.app
@@ -73,8 +75,12 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: "LagCheck"
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        INFOPLIST_KEY_NolaggySupportURL: ""
-        INFOPLIST_KEY_NolaggyPrivacyPolicyURL: ""
+        # URLs públicas só devem ser fornecidas pelo build/release depois de
+        # publicadas e testadas. Valores vazios aparecem como indisponíveis.
+        LAGCHECK_SUPPORT_URL: ""
+        LAGCHECK_PRIVACY_POLICY_URL: ""
+        INFOPLIST_KEY_NolaggySupportURL: "$(LAGCHECK_SUPPORT_URL)"
+        INFOPLIST_KEY_NolaggyPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
   NolaggyDomainTests:
     type: bundle.unit-test
     platform: iOS

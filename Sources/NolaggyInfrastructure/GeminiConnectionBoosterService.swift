@@ -2,6 +2,18 @@ import Foundation
 import NolaggyApplication
 import NolaggyDomain
 
+public enum GeminiConnectionBoosterServiceError: LocalizedError, Equatable {
+    case notConfigured
+    case invalidResponse
+
+    public var errorDescription: String? {
+        switch self {
+        case .notConfigured: "Connection tips are not configured for this build."
+        case .invalidResponse: "The connection tips service returned an invalid response."
+        }
+    }
+}
+
 public struct GeminiConnectionBoosterService: ConnectionBoosterService {
     private let apiKey: String
     private let session: URLSession
@@ -29,13 +41,14 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         
         self.apiKey = resolvedKey ?? ""
         self.session = session
-        self.endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent")!
+        self.endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent")!
     }
     
     public func fetchAdvice(for request: ConnectionBoosterRequest) async throws -> ConnectionBoosterAdvice {
         guard !apiKey.isEmpty else {
-            // Fallback de desenvolvimento caso chave não esteja presente
-            return makeFallbackAdvice(for: request)
+            // Sem credencial não há uma resposta baseada em medição. A UI já
+            // tem um estado explícito para indisponibilidade e tentativa nova.
+            throw GeminiConnectionBoosterServiceError.notConfigured
         }
         
         var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)!
@@ -72,6 +85,14 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         }
         
         let decodedPayload = try JSONDecoder().decode(GeminiAdvicePayload.self, from: jsonData)
+        guard !decodedPayload.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              (3...5).contains(decodedPayload.items.count),
+              decodedPayload.items.allSatisfy({
+                  !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                      && !$0.detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              }) else {
+            throw GeminiConnectionBoosterServiceError.invalidResponse
+        }
         
         let items = decodedPayload.items.map { item in
             let category: BoosterActionCategory
@@ -143,68 +164,6 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         """
     }
     
-    private func makeFallbackAdvice(for request: ConnectionBoosterRequest) -> ConnectionBoosterAdvice {
-        let isPortuguese = request.locale.lowercased().starts(with: "pt")
-        
-        if isPortuguese {
-            var items: [BoosterActionItem] = []
-            
-            if let impact = request.loadImpactMilliseconds, impact >= 20.0 {
-                items.append(BoosterActionItem(
-                    category: .routerEquipment,
-                    title: "Ativar QoS no Roteador",
-                    detail: "Sua rede sofreu atraso relevante sob uso intenso. Ativar 'Quality of Service' ou SQM prioriza o tráfego do seu jogo contra downloads."
-                ))
-            }
-            
-            if request.platform == .pc || request.platform == .playstation || request.platform == .xbox {
-                items.append(BoosterActionItem(
-                    category: .platformSystem,
-                    title: "Priorizar Cabo Ethernet",
-                    detail: "Para \(request.platform.rawValue.capitalized), conexões cabeadas eliminam oscilações de sinal e perda de pacotes causadas pelo Wi-Fi."
-                ))
-            } else {
-                items.append(BoosterActionItem(
-                    category: .routerEquipment,
-                    title: "Usar Wi-Fi de 5 GHz",
-                    detail: "Conectar na faixa de 5 GHz mais perto do roteador diminui interferências de outros aparelhos na casa."
-                ))
-            }
-            
-            if request.jitterMilliseconds > 15.0 || request.packetLossRate > 0.01 {
-                items.append(BoosterActionItem(
-                    category: .ispConnection,
-                    title: "Reiniciar Equipamento da Operadora",
-                    detail: "A oscilação observada pode ser atenuada limpando tabelas de estado do modem reiniciando-o por 30 segundos."
-                ))
-            }
-            
-            return ConnectionBoosterAdvice(
-                gameName: request.gameName,
-                platform: request.platform,
-                summary: "Dicas recomendadas com base nas métricas observadas nesta medição.",
-                items: items
-            )
-        } else {
-            return ConnectionBoosterAdvice(
-                gameName: request.gameName,
-                platform: request.platform,
-                summary: "Recommended steps based on the metrics measured in this test.",
-                items: [
-                    BoosterActionItem(
-                        category: .routerEquipment,
-                        title: "Use 5 GHz Wi-Fi or Ethernet",
-                        detail: "A direct wired connection or 5 GHz Wi-Fi significantly reduces packet jitter."
-                    ),
-                    BoosterActionItem(
-                        category: .platformSystem,
-                        title: "Pause Background Downloads",
-                        detail: "Ensure other apps or systems are not downloading updates while playing."
-                    )
-                ]
-            )
-        }
-    }
 }
 
 // MARK: - Gemini Models
