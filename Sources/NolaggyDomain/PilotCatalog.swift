@@ -4,10 +4,12 @@ import Foundation
 /// `genericRegion` não autoriza tratar o RTT como ping oficial do jogo.
 public enum MeasurementStrategy: String, Codable, CaseIterable, Hashable, Sendable {
     case genericRegion
+    case dedicatedServer
 }
 
 public enum MeasurementConfidence: String, Codable, CaseIterable, Hashable, Sendable {
     case medium
+    case high
 }
 
 public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable {

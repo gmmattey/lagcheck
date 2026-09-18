@@ -73,4 +73,40 @@ final class NWConnectionMeasurementTransportTests: XCTestCase {
             ]
         )
     }
+
+    func testPlayFabPort3075AcceptsFlippedHeaderEcho() {
+        let requestPayload = Data([0xFF, 0xFF] + Array(repeating: UInt8(5), count: 31))
+        let validFlippedResponse = Data([0x00, 0x00] + Array(repeating: UInt8(5), count: 31))
+        let unflippedResponse = requestPayload
+
+        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], port: 3075)
+        ledger.register(sequence: 0, payload: requestPayload, sentAt: 1_000_000_000)
+
+        // Exact reflection without flip is rejected as invalidResponse
+        XCTAssertNil(ledger.accept(response: unflippedResponse, receivedAt: 1_040_000_000))
+
+        // Flipped response is accepted
+        XCTAssertEqual(
+            ledger.accept(response: validFlippedResponse, receivedAt: 1_080_000_000),
+            ProbeSample(sequence: 0, roundTripMilliseconds: 80, outcome: .received)
+        )
+    }
+
+    func testSteamPort27015AcceptsA2SInfoResponse() {
+        let requestPayload = SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: 0x1234_5678)
+        let validInfoResponse = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x49, 0x11, 0x54, 0x65, 0x73, 0x74, 0x00])
+        let malformedResponse = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x00])
+
+        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], port: 27015)
+        ledger.register(sequence: 0, payload: requestPayload, sentAt: 1_000_000_000)
+
+        // Malformed response is rejected
+        XCTAssertNil(ledger.accept(response: malformedResponse, receivedAt: 1_030_000_000))
+
+        // Valid A2S_INFO response is accepted
+        XCTAssertEqual(
+            ledger.accept(response: validInfoResponse, receivedAt: 1_060_000_000),
+            ProbeSample(sequence: 0, roundTripMilliseconds: 60, outcome: .received)
+        )
+    }
 }
