@@ -1,24 +1,23 @@
 {
   "$schema": "nolaggy/tokens/radius",
-  "description": "Raios de canto semânticos. O app usa curvas suaves e consistentes; evitar cantos vivos (0) fora de divisores/linhas.",
+  "description": "Raios de canto semânticos alinhados ao Apple Human Interface Guidelines (HIG) e direção visual Apple Games.",
   "scale": {
     "none": { "value": 0 },
-    "xs": { "value": 6 },
+    "xs": { "value": 8 },
     "sm": { "value": 10 },
-    "md": { "value": 14 },
-    "lg": { "value": 18 },
-    "xl": { "value": 24 },
-    "xxl": { "value": 32 },
+    "md": { "value": 12 },
+    "control": { "value": 14 },
+    "sheet": { "value": 16 },
+    "hero": { "value": 26 },
     "pill": { "value": 999 }
   },
   "semantic": {
-    "controlSmall": { "value": "{scale.xs}", "usage": "Chips, badges, tags de plataforma." },
-    "controlMedium": { "value": "{scale.sm}", "usage": "Inputs, MetricRow container." },
-    "card": { "value": "{scale.md}", "usage": "GameTile, InsightBanner, StatusMessage." },
-    "cardLarge": { "value": "{scale.lg}", "usage": "Cartão de resultado (NolaggyScore container), sheets." },
-    "sheet": { "value": "{scale.xxl}", "usage": "Topo de bottom sheets e modais." },
-    "button": { "value": "{scale.pill}", "usage": "PrimaryButton — sempre pílula." },
-    "avatarOrGameArt": { "value": "{scale.lg}", "usage": "Capa de jogo no GameTile." },
-    "adSlot": { "value": "{scale.sm}", "usage": "Moldura do BannerAdSlot." }
+    "controlSmall": { "value": "{scale.xs}", "usage": "Chips, badges, tags e indicadores compactos." },
+    "controlMedium": { "value": "{scale.sm}", "usage": "Segmented controls, inputs de busca, containers de métrica." },
+    "card": { "value": "{scale.md}", "usage": "Cards de sistema, agrupamentos Inset Grouped, linhas de lista e prateleiras secundárias (12pt HIG)." },
+    "button": { "value": "{scale.control}", "usage": "Botões primários e secundários retangulares arredondados nativos (14pt HIG)." },
+    "sheet": { "value": "{scale.sheet}", "usage": "Topo de bottom sheets modais (ConnectionBoosterSheet, 16pt HIG)." },
+    "hero": { "value": "{scale.hero}", "usage": "Exclusivo para Hero Cards editoriais do carrossel principal (26pt HIG)." },
+    "avatarOrGameArt": { "value": "{scale.md}", "usage": "Miniatura/cover de jogo na lista agrupada ou shelf." }
   }
 }

@@ -49,48 +49,48 @@
   },
   "semantic": {
     "background": {
-      "base": { "value": "{core.navy.900}", "usage": "Fundo padrão de todas as telas. Nunca preto puro." },
-      "raised": { "value": "{core.navy.800}", "usage": "Cards, folhas modais, barra de tab." },
-      "overlay": { "value": "{core.navy.700}", "usage": "Camada acima de 'raised': sheets, popovers, banners de anúncio." },
-      "scrim": { "value": "rgba(4,10,22,0.72)", "usage": "Fundo de modais e sheets sobre conteúdo." }
+      "base": { "value": "#000000", "usage": "Fundo padrão de todas as telas (Apple True Black Dark Mode)." },
+      "raised": { "value": "#1C1C1E", "usage": "Cards de sistema, listas agrupadas Inset Grouped, barra de navegação e tab bar (#1C1C1E)." },
+      "overlay": { "value": "#2C2C2E", "usage": "Camada terciária: controles, segmented picker, search bar e containers internos (#2C2C2E)." },
+      "scrim": { "value": "rgba(0,0,0,0.80)", "usage": "Fundo escurecido de modais e sheets sobre o conteúdo com blur nativo." }
     },
     "border": {
-      "subtle": { "value": "{core.neutral.900}", "usage": "Divisores discretos, contorno de cards em repouso." },
-      "strong": { "value": "{core.neutral.800}", "usage": "Contorno de inputs, foco secundário, separadores de ênfase." },
-      "focus": { "value": "{core.blue.400}", "usage": "Anel de foco de teclado/VoiceOver e estados 'selected'." }
+      "subtle": { "value": "rgba(84,84,88,0.35)", "usage": "Divisores e separadores de lista nativos do iOS (0.5pt)." },
+      "strong": { "value": "rgba(255,255,255,0.10)", "usage": "Contorno sutil de cards e botões secundários." },
+      "focus": { "value": "#007AFF", "usage": "Anel de foco de teclado/VoiceOver e estados 'selected'." }
     },
     "text": {
-      "primary": { "value": "{core.neutral.50}", "usage": "Títulos, score, conteúdo principal." },
-      "secondary": { "value": "{core.neutral.400}", "usage": "Subtítulos, legendas, corpo secundário." },
-      "tertiary": { "value": "{core.neutral.600}", "usage": "Metadados, timestamps, texto auxiliar de baixa ênfase." },
-      "disabled": { "value": "{core.neutral.700}", "usage": "Texto e ícones desabilitados." },
-      "onAccent": { "value": "{core.neutral.0}", "usage": "Texto sobre preenchimentos azul-elétrico ou de score saturado." },
-      "link": { "value": "{core.blue.300}", "usage": "Links e ações textuais." }
+      "primary": { "value": "#FFFFFF", "usage": "Títulos, score, conteúdo principal." },
+      "secondary": { "value": "#8E8E93", "usage": "Subtítulos, legendas, corpo secundário e metadados." },
+      "tertiary": { "value": "#636366", "usage": "Ícones secundários de navegação, chevrons e datas." },
+      "disabled": { "value": "#48484A", "usage": "Texto e ícones desabilitados." },
+      "onAccent": { "value": "#FFFFFF", "usage": "Texto sobre botões de destaque primário." },
+      "link": { "value": "#007AFF", "usage": "Ações textuais e botões interativos." }
     },
     "accent": {
-      "primary": { "value": "{core.blue.500}", "usage": "Cor de destaque estratégico: CTA primário, símbolo da marca, seleção ativa. Nunca usar como cor de fundo de tela inteira." },
-      "primaryStrong": { "value": "{core.blue.600}", "usage": "Estado pressed/active do accent primário." },
-      "primarySubtle": { "value": "rgba(46,124,255,0.16)", "usage": "Preenchimentos suaves: chips selecionados, fundo de ícone, destaque de linha ativa." },
-      "gradientStart": { "value": "{core.blue.300}", "usage": "Início do gradiente de marca (símbolo gg/infinito)." },
-      "gradientEnd": { "value": "{core.blue.800}", "usage": "Fim do gradiente de marca (símbolo gg/infinito)." }
+      "primary": { "value": "#007AFF", "usage": "Azul nativo da Apple — botões primários, itens selecionados, links." },
+      "primaryStrong": { "value": "#0071E3", "usage": "Estado pressed/active do accent primário." },
+      "primarySubtle": { "value": "rgba(0,122,255,0.15)", "usage": "Preenchimento suave de seleção e badges de tecnologia." },
+      "gradientStart": { "value": "#007AFF", "usage": "Início do gradiente de marca (símbolo gg/infinito)." },
+      "gradientEnd": { "value": "#5856D6", "usage": "Fim do gradiente de marca (símbolo gg/infinito)." }
     },
     "score": {
-      "excellent": { "value": "{core.green.500}", "label": "Excelente / Ótimo", "range": "75–100" },
-      "excellentSubtle": { "value": "rgba(61,220,151,0.16)" },
-      "unstable": { "value": "{core.amber.500}", "label": "Instável", "range": "60–74" },
-      "unstableSubtle": { "value": "rgba(245,185,66,0.16)" },
-      "lagRisk": { "value": "{core.coral.500}", "label": "Risco de lag", "range": "0–59" },
-      "lagRiskSubtle": { "value": "rgba(240,82,91,0.16)" },
-      "neutral": { "value": "{core.neutral.600}", "label": "Inconclusivo / cancelado", "range": "n/a — sem nota" },
-      "neutralSubtle": { "value": "rgba(107,118,144,0.16)" }
+      "excellent": { "value": "#34C759", "label": "Excelente / Ótimo", "range": "75–100" },
+      "excellentSubtle": { "value": "rgba(52,199,89,0.16)" },
+      "unstable": { "value": "#FFD60A", "label": "Instável / Atenção", "range": "60–74" },
+      "unstableSubtle": { "value": "rgba(255,214,10,0.16)" },
+      "lagRisk": { "value": "#FF453A", "label": "Risco de lag", "range": "0–59" },
+      "lagRiskSubtle": { "value": "rgba(255,69,58,0.16)" },
+      "neutral": { "value": "#8E8E93", "label": "Inconclusivo / cancelado", "range": "n/a — sem nota" },
+      "neutralSubtle": { "value": "rgba(142,142,147,0.16)" }
     },
     "graph": {
-      "line": { "value": "{core.blue.400}", "usage": "Linha principal do LatencyGraph." },
-      "fillTop": { "value": "rgba(79,160,255,0.28)", "usage": "Topo do gradiente de preenchimento sob a linha." },
-      "fillBottom": { "value": "rgba(79,160,255,0.0)", "usage": "Base do gradiente de preenchimento sob a linha." },
-      "spike": { "value": "{core.amber.500}", "usage": "Marcador de spike." },
-      "spikeSevere": { "value": "{core.coral.500}", "usage": "Marcador de spike severo." },
-      "gridLine": { "value": "{core.neutral.900}", "usage": "Linhas de grade discretas." }
+      "line": { "value": "#007AFF", "usage": "Linha principal do LatencyGraph." },
+      "fillTop": { "value": "rgba(0,122,255,0.25)", "usage": "Topo do gradiente de preenchimento sob a linha." },
+      "fillBottom": { "value": "rgba(0,122,255,0.0)", "usage": "Base do gradiente de preenchimento sob a linha." },
+      "spike": { "value": "#FFD60A", "usage": "Marcador de spike." },
+      "spikeSevere": { "value": "#FF453A", "usage": "Marcador de spike severo." },
+      "gridLine": { "value": "rgba(84,84,88,0.35)", "usage": "Linhas de grade discretas." }
     },
     "surfaceAd": {
       "background": { "value": "{core.navy.800}", "usage": "Fundo do BannerAdSlot, discreto e nunca competindo com o conteúdo." },

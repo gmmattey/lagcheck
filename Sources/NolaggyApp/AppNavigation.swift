@@ -7,6 +7,13 @@ enum AppDestination: Hashable {
     case history
 }
 
+enum AppTab: String, Hashable, CaseIterable {
+    case home
+    case games
+    case history
+    case settings
+}
+
 struct NolaggyAppConfiguration: Equatable {
     let supportURL: URL?
     let privacyPolicyURL: URL?

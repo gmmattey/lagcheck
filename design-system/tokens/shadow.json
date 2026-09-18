@@ -1,37 +1,31 @@
 {
   "$schema": "nolaggy/tokens/shadow",
-  "description": "Elevação para dark UI: cards se separam do fundo por superfície e sombra discreta, não por contorno. Sombras são usadas para profundidade, nunca como efeito decorativo.",
+  "description": "Elevação semântica para dark UI nativa do iOS (Apple HIG). Elimina halos decorativos, néon e 'card soup'. A separação ocorre por contraste de superfície (#000000, #1C1C1E, #2C2C2E) e divisores sutis.",
   "elevation": {
     "level0": {
-      "usage": "Conteúdo no plano do fundo (telas, seções).",
+      "usage": "Plano de fundo base da aplicação.",
       "shadow": null,
       "border": null
     },
     "level1": {
-      "usage": "GameTile, MetricRow container, InsightBanner, StatusMessage em repouso.",
-      "shadow": { "color": "rgba(0,0,0,0.28)", "x": 0, "y": 2, "blur": 8, "spread": 0 },
-      "border": null
+      "usage": "Cards de sistema, listas agrupadas Inset Grouped (#1C1C1E).",
+      "shadow": { "color": "rgba(0,0,0,0.20)", "x": 0, "y": 1, "blur": 4, "spread": 0 },
+      "border": "1px solid rgba(255,255,255,0.05)"
     },
     "level2": {
-      "usage": "Cartão de resultado (NolaggyScore), cards em estado pressed/hover, EmptyState ilustrado.",
-      "shadow": { "color": "rgba(0,0,0,0.36)", "x": 0, "y": 6, "blur": 16, "spread": 0 },
-      "border": null
+      "usage": "Hero Cards editoriais em destaque, botões flutuantes.",
+      "shadow": { "color": "rgba(0,0,0,0.35)", "x": 0, "y": 4, "blur": 16, "spread": 0 },
+      "border": "1px solid rgba(255,255,255,0.10)"
     },
     "level3": {
-      "usage": "Sheets e modais (Deep Check em progresso, seleção de plataforma).",
-      "shadow": { "color": "rgba(0,0,0,0.48)", "x": 0, "y": 12, "blur": 32, "spread": 0 },
-      "border": null
-    }
-  },
-  "glow": {
-    "scoreAccent": {
-      "usage": "Halo suave e opcional atrás do NolaggyScore, colorido pela cor semântica do score (excellent/unstable/lagRisk). Sempre sutil — nunca neon.",
-      "shadow": { "color": "var(score-color at 24% opacity)", "x": 0, "y": 0, "blur": 40, "spread": 0 }
+      "usage": "Bottom sheets modais (ConnectionBoosterSheet, Deep Check).",
+      "shadow": { "color": "rgba(0,0,0,0.60)", "x": 0, "y": -4, "blur": 32, "spread": 0 },
+      "border": "1px solid rgba(255,255,255,0.10)"
     }
   },
   "reduceTransparencyFallback": {
-    "usage": "Quando 'Reduzir Transparência' está ativo no iOS, remover sombras e glow; a hierarquia é preservada pelo contraste entre superfícies.",
+    "usage": "Quando 'Reduzir Transparência' está ativo no iOS, sombras tornam-se nulas e a hierarquia é 100% suportada pelo contraste nativo de superfícies.",
     "shadow": null,
-    "border": null
+    "border": "1px solid rgba(84,84,88,0.35)"
   }
 }

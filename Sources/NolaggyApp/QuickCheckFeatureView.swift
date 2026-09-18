@@ -20,6 +20,7 @@ struct QuickCheckFeatureView: View {
     @State var history: [MeasurementHistoryEntry] = []
     @State var showingDetails = false
     @State var destination: AppDestination = .home
+    @State var selectedTab: AppTab = .home
     @State var showingSettings = false
     @State var activeCover: ActiveCover?
     @State var showingRegionalSelection = false
@@ -89,62 +90,123 @@ struct QuickCheckFeatureView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Group {
-                    switch destination {
-                    case .home:
-                        measurementJourney
-                    case .history:
-                        HistoryView(
-                            entries: history,
-                            gameName: gameName(for:),
-                            retry: retryFromHistory,
-                            returnToHome: { destination = .home },
-                            openSettings: { showingSettings = true }
+        TabView(selection: $selectedTab) {
+            // Tab 1: Início
+            NavigationStack {
+                measurementJourney
+                    .background(NolaggyScreenBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
+                    .toolbarColorScheme(.dark, for: .navigationBar)
+                    .navigationDestination(isPresented: $showingRegionalSelection) {
+                        RegionalSelectionFeatureView(
+                            gameTitle: selectedGameName,
+                            presentation: $regionalPresentation,
+                            onRetry: retryRegionalPreRead,
+                            onBackOrCancel: cancelRegionalSelection
                         )
                     }
-                }
+                    .navigationDestination(isPresented: $showingSettings) {
+                        SettingsView(
+                            configuration: appConfiguration,
+                            regionCandidates: regionCandidates,
+                            manualRegionID: manualRegionID,
+                            onSelectRegion: selectRegionPreference,
+                            deleteHistory: deleteHistory,
+                            showHistory: {
+                                showingSettings = false
+                                selectedTab = .history
+                            }
+                        )
+                    }
+                    .navigationDestination(item: $selectedGameForDetails) { game in
+                        GameDetailView(
+                            game: game,
+                            scoreState: scoreState(for: game),
+                            evaluation: evaluatedScores[game.id],
+                            resolvedContext: resolveGameContext(game),
+                            onStartDeepCheck: {
+                                if let resolved = resolveGameContext(game) {
+                                    selectedRegionalContext = resolved
+                                    activeCover = .deep
+                                }
+                            }
+                        )
+                    }
             }
-            .background(NolaggyScreenBackground())
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(isPresented: $showingRegionalSelection) {
-                RegionalSelectionFeatureView(
-                    gameTitle: selectedGameName,
-                    presentation: $regionalPresentation,
-                    onRetry: retryRegionalPreRead,
-                    onBackOrCancel: cancelRegionalSelection
+            .tabItem {
+                Label("Início", systemImage: "house.fill")
+            }
+            .tag(AppTab.home)
+
+            // Tab 2: Jogos
+            NavigationStack {
+                gamesCatalogView
+                    .background(NolaggyScreenBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
+                    .toolbarColorScheme(.dark, for: .navigationBar)
+                    .navigationDestination(item: $selectedGameForDetails) { game in
+                        GameDetailView(
+                            game: game,
+                            scoreState: scoreState(for: game),
+                            evaluation: evaluatedScores[game.id],
+                            resolvedContext: resolveGameContext(game),
+                            onStartDeepCheck: {
+                                if let resolved = resolveGameContext(game) {
+                                    selectedRegionalContext = resolved
+                                    activeCover = .deep
+                                }
+                            }
+                        )
+                    }
+            }
+            .tabItem {
+                Label("Jogos", systemImage: "gamecontroller.fill")
+            }
+            .tag(AppTab.games)
+
+            // Tab 3: Histórico
+            NavigationStack {
+                HistoryView(
+                    entries: history,
+                    gameName: gameName(for:),
+                    retry: retryFromHistory,
+                    returnToHome: { selectedTab = .home },
+                    openSettings: { selectedTab = .settings },
+                    showsBackHeader: false
                 )
+                .background(NolaggyScreenBackground())
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
             }
-            .navigationDestination(isPresented: $showingSettings) {
+            .tabItem {
+                Label("Histórico", systemImage: "clock.arrow.circlepath")
+            }
+            .tag(AppTab.history)
+
+            // Tab 4: Ajustes
+            NavigationStack {
                 SettingsView(
                     configuration: appConfiguration,
                     regionCandidates: regionCandidates,
                     manualRegionID: manualRegionID,
                     onSelectRegion: selectRegionPreference,
                     deleteHistory: deleteHistory,
-                    showHistory: {
-                        showingSettings = false
-                        destination = .history
-                    }
+                    showHistory: { selectedTab = .history },
+                    showsBackHeader: false
                 )
+                .background(NolaggyScreenBackground())
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
             }
-            .navigationDestination(item: $selectedGameForDetails) { game in
-                GameDetailView(
-                    game: game,
-                    scoreState: scoreState(for: game),
-                    evaluation: evaluatedScores[game.id],
-                    resolvedContext: resolveGameContext(game),
-                    onStartDeepCheck: {
-                        if let resolved = resolveGameContext(game) {
-                            selectedRegionalContext = resolved
-                            activeCover = .deep
-                        }
-                    }
-                )
+            .tabItem {
+                Label("Ajustes", systemImage: "gearshape.fill")
             }
+            .tag(AppTab.settings)
         }
+        .tint(NLColor.accentPrimary)
+        .toolbarBackground(NLColor.backgroundRaised.opacity(0.9), for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .preferredColorScheme(.dark)
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background else { return }
@@ -369,6 +431,7 @@ struct QuickCheckFeatureView: View {
     }
 
     func retryFromHistory(_ entry: MeasurementHistoryEntry) {
+        selectedTab = .home
         destination = .home
         // Mesmo caminho do reteste a partir da última medição na Home: usa
         // exatamente o jogo da entrada (nunca infere outro) e já inicia a

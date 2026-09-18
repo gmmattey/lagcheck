@@ -20,6 +20,7 @@ struct SettingsView: View {
     let onSelectRegion: (RegionalReferenceCandidate) -> Void
     let deleteHistory: () async throws -> Void
     let showHistory: () -> Void
+    var showsBackHeader: Bool = true
 
     private var regionDetailLabel: String {
         regionCandidates.first(where: { $0.id == (manualRegionID ?? RegionalPreferenceIdentifiers.automatic) })?.label
@@ -33,8 +34,10 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            NolaggyBackHeader(action: { dismiss() }, accessibilityIdentifier: "settings-back")
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            if showsBackHeader {
+                NolaggyBackHeader(action: { dismiss() }, accessibilityIdentifier: "settings-back")
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            }
 
             Text("settings.title")
                 .font(NLTypography.displayTitle)

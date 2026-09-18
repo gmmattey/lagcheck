@@ -10,11 +10,14 @@ struct HistoryView: View {
     let retry: (MeasurementHistoryEntry) -> Void
     let returnToHome: () -> Void
     let openSettings: () -> Void
+    var showsBackHeader: Bool = true
 
     var body: some View {
         VStack(spacing: 0) {
-            NolaggyBackHeader(action: returnToHome, accessibilityIdentifier: "history-back")
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            if showsBackHeader {
+                NolaggyBackHeader(action: returnToHome, accessibilityIdentifier: "history-back")
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: NLSpacing.lg) {
                     Text("history.title")

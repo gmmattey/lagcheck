@@ -12,9 +12,8 @@ Elemento visual distintivo de qualquer resultado. Nunca aparece sem uma classifi
 
 **Anatomia**
 - Anel de progresso (`NLSizing.nolaggyScore.ring.*`, espessura `ringStrokeWidth.*`), cor = cor semântica do score.
-- Número do score, estilo `scoreDisplay`.
+- Número do score, estilo `scoreDisplay` (SF Pro Display bold).
 - Selo/rótulo de classificação ("Excelente", "Risco de lag"...), estilo `headline`, cor semântica.
-- Halo opcional (`NLShadow.glow.scoreAccent`) atrás do anel.
 - Frase-resumo opcional abaixo (estilo `body`, `text.secondary`) — usada no resultado principal, omitida na variante `compact`.
 
 **Variantes**
@@ -43,8 +42,7 @@ public struct NolaggyScore: View {
     public init(
         outcome: Outcome,
         style: Style = .standard,
-        summary: String? = nil,
-        showsGlow: Bool = true
+        summary: String? = nil
     )
 }
 ```

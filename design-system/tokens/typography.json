@@ -1,82 +1,81 @@
 {
   "$schema": "nolaggy/tokens/typography",
-  "description": "Escala tipográfica do Nolaggy. Oxanium é usada em elementos de destaque; SF Pro permanece em textos de leitura. Ambas respeitam Dynamic Type. Todo texto de produto deve mapear para um destes estilos semânticos, nunca para tamanho/peso soltos por tela.",
+  "description": "Escala tipográfica nativa do Nolaggy, baseada estritamente no SF Pro da Apple. Alinhada ao Apple Human Interface Guidelines e à linha editorial Apple Games. Respeita Dynamic Type em 100% dos textos.",
   "fontFamily": {
-    "display": { "value": "Oxanium Regular, SIL Open Font License 1.1" },
-    "reading": { "value": "-apple-system (SF Pro Text/Display via SwiftUI system font)" }
+    "primary": { "value": "-apple-system (SF Pro Text / SF Pro Display via SwiftUI system font)" }
   },
   "styles": {
     "scoreDisplay": {
       "textStyle": "largeTitle",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 64, relativeTo: .largeTitle)",
+      "swiftUIFont": ".system(size: 64, weight: .bold, design: .default)",
       "dynamicTypeScaling": true,
-      "usage": "Número do Nolaggy Score no NolaggyScore e no resultado principal."
+      "usage": "Número do Nolaggy Score no anel de pontuação e no resultado principal."
     },
     "displayTitle": {
-      "textStyle": "title",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 34, relativeTo: .largeTitle)",
+      "textStyle": "largeTitle",
+      "swiftUIFont": ".system(size: 34, weight: .bold)",
       "dynamicTypeScaling": true,
-      "usage": "Título de tela (Home, Resultado, Histórico)."
+      "usage": "Título canônico das telas raiz (Início, Jogos, Histórico, Ajustes) — Large Title limpo."
     },
     "headline": {
       "textStyle": "title2",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 22, relativeTo: .title2)",
+      "swiftUIFont": ".system(size: 22, weight: .bold)",
       "dynamicTypeScaling": true,
-      "usage": "Classificação textual do resultado ('Excelente', 'Risco de lag'), títulos de seção."
+      "usage": "Classificação textual do resultado ('Conexão excelente', 'Oscilação detectada'), títulos de seção."
     },
     "subheadline": {
       "textStyle": "title3",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 20, relativeTo: .title3)",
+      "swiftUIFont": ".system(size: 20, weight: .semibold)",
       "dynamicTypeScaling": true,
-      "usage": "Nome do jogo em destaque, títulos de card."
+      "usage": "Nome do jogo em destaque nos cards editoriais e telas de detalhe."
     },
     "bodyEmphasis": {
       "textStyle": "headline",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 17, relativeTo: .headline)",
+      "swiftUIFont": ".system(size: 17, weight: .semibold)",
       "dynamicTypeScaling": true,
-      "usage": "MetricRow — rótulo da métrica, texto de ação primária."
+      "usage": "Rótulo de métricas destacadas, texto de ações primárias."
     },
     "body": {
       "textStyle": "body",
       "swiftUIFont": ".body",
       "dynamicTypeScaling": true,
-      "usage": "Texto corrido, explicações de causa/recomendação."
+      "usage": "Texto corrido, explicações contextuais de rota e veredito."
     },
     "callout": {
       "textStyle": "callout",
       "swiftUIFont": ".callout",
       "dynamicTypeScaling": true,
-      "usage": "InsightBanner, StatusMessage."
+      "usage": "Banners de insight, checklists de recomendação."
     },
     "contextDisclosure": {
       "textStyle": "caption",
       "swiftUIFont": ".caption",
       "dynamicTypeScaling": true,
-      "usage": "Nota curta de precisão no contexto do jogo."
+      "usage": "Nota curta de contexto (ex.: 'Rota regional São Paulo · sa-east-1')."
     },
     "subheadlineSecondary": {
       "textStyle": "subheadline",
       "swiftUIFont": ".subheadline",
       "dynamicTypeScaling": true,
-      "usage": "Texto secundário sob títulos, valores de métrica no MetricRow."
+      "usage": "Texto secundário sob títulos, valores numéricos de latência/jitter."
     },
     "footnote": {
       "textStyle": "footnote",
       "swiftUIFont": ".footnote",
       "dynamicTypeScaling": true,
-      "usage": "Metadados: região, confiança, timestamp."
+      "usage": "Metadados: região, horário, protocolo e notas de medição."
     },
     "caption": {
       "textStyle": "caption",
       "swiftUIFont": ".caption",
       "dynamicTypeScaling": true,
-      "usage": "Rótulos de eixo do LatencyGraph, badge 'Anúncio'."
+      "usage": "Rótulos compactos e legendas secundárias."
     },
     "captionStrong": {
       "textStyle": "caption2",
-      "swiftUIFont": ".custom(\"OxaniumRoman-Regular\", size: 12, relativeTo: .caption2)",
+      "swiftUIFont": ".system(size: 12, weight: .semibold)",
       "dynamicTypeScaling": true,
-      "usage": "Tags de plataforma, badges de status curtos (PlatformSelector, GameTile)."
+      "usage": "Tags de plataforma, badges de status ('Pronto para Partida', '18ms')."
     }
   },
   "lineHeight": {

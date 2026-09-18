@@ -48,6 +48,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `21` | Nova direção visual, simples e leve | decisão de direção tomada; substitui os princípios visuais de `docs/04-design-system.md` (seções 1–2); execução pixel a pixel ainda pendente de Renan |
 | `22` | Nova jornada com lista nativa e Quick Check automático em background | decisão aprovada pelo dono do produto; em especificação e implementação pelo time |
 | `23` | Dicas de conexão com Gemini após Deep Check (CTA e checklist de otimização) | decisão aprovada para especificação e implementação |
+| `24` | Adoção definitiva do Design System Apple Games Editorial Hub (SF Pro nativo, TabView 4 abas, Hero Carousel, Shelf) | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

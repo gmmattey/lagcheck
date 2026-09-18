@@ -11,9 +11,9 @@ Este documento não altera nem substitui os três documentos funcionais/técnico
 
 > **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do Nolaggy para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
 
-> **Paridade de interface:** o protótipo em `design-system/prototypes/ios-reference/` é a referência oficial de composição e comportamento para a V1. A implementação iPhone busca paridade 1:1 com seus estados; não é permitido tratá-lo como inspiração ou substituí-lo por layouts genéricos. Conflitos com regra funcional, precisão de rede ou acessibilidade precisam de decisão documentada antes da implementação.
+> **Paridade de interface:** o protótipo canônico e a especificação de design adotam a direção editorial nativa Apple Games (ver `docs/21` e `docs/24`). A implementação iPhone busca paridade 1:1 com seus estados nativos (SF Pro, TabView 4 abas, Hero Carousel, Inset Cards 12pt).
 
-> **Quick Check do piloto:** para a tela de resultado do Quick Check, o HTML canônico prevalece também sobre a variante genérica descrita no inventário de componentes: o anel de score tem 160pt. A variante de 216pt fica reservada ao resultado principal do Deep Check. A decisão e o recorte do piloto estão registrados em [`10-decisao-experiencia-piloto.md`](./10-decisao-experiencia-piloto.md).
+> **Adoção Apple Games Editorial (Decisão 24):** as seções de tipografia, superfícies e componentes deste documento foram atualizadas pela [`24-decisao-adocao-design-system-apple-games.md`](./24-decisao-adocao-design-system-apple-games.md). A tipografia é 100% SF Pro (Oxanium removida) e os raios seguem estritamente a escala Apple HIG.
 
 ## 1. Direção visual
 

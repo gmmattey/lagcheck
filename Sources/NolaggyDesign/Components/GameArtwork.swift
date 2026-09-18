@@ -21,8 +21,8 @@ public struct GameArtwork: View {
 
     public var body: some View {
         Group {
-            if let image, hasApprovedSourceRecord {
-                image
+            if let img = resolvedImage {
+                img
                     .resizable()
                     .scaledToFill()
                     .accessibilityHidden(true)
@@ -30,10 +30,40 @@ public struct GameArtwork: View {
                 fallback
             }
         }
-        .aspectRatio(aspectRatio, contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fill)
         .clipShape(RoundedRectangle(cornerRadius: NLRadius.card))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(title))
+    }
+
+    private var resolvedImage: Image? {
+        if let image { return image }
+        let lower = title.lowercased()
+        let assetName: String?
+        if lower.contains("fortnite") {
+            assetName = "GameFortnite"
+        } else if lower.contains("wild rift") || lower.contains("league") {
+            assetName = "GameWildRift"
+        } else if lower.contains("call of duty") || lower.contains("cod") {
+            assetName = "GameCodm"
+        } else if lower.contains("roblox") {
+            assetName = "GameRoblox"
+        } else if lower.contains("free fire") {
+            assetName = "GameFreeFire"
+        } else if lower.contains("brawl stars") {
+            assetName = "GameBrawlStars"
+        } else if lower.contains("pubg") {
+            assetName = "GamePubg"
+        } else if lower.contains("minecraft") {
+            assetName = "GameMinecraft"
+        } else {
+            assetName = nil
+        }
+
+        if let assetName, let uiImage = UIImage(named: assetName, in: Bundle.main, compatibleWith: nil) {
+            return Image(uiImage: uiImage)
+        }
+        return nil
     }
 
     private var fallback: some View {
@@ -61,11 +91,6 @@ public struct GameArtwork: View {
             RoundedRectangle(cornerRadius: NLRadius.card)
                 .stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline)
         }
-    }
-
-    private var hasApprovedSourceRecord: Bool {
-        guard let sourceRecordID else { return false }
-        return !sourceRecordID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
