@@ -3,10 +3,12 @@ import SwiftUI
 public struct RegionalReferenceCandidate: Identifiable, Hashable, Sendable {
     public let id: String
     public let label: String
+    public let continentKey: String?
 
-    public init(id: String, label: String) {
+    public init(id: String, label: String, continentKey: String? = nil) {
         self.id = id
         self.label = label
+        self.continentKey = continentKey
     }
 }
 

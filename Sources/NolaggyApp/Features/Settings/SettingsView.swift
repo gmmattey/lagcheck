@@ -53,15 +53,56 @@ struct SettingsView: View {
                     )
                     if !regionCandidates.isEmpty {
                         Menu {
-                            ForEach(regionCandidates) { candidate in
+                            if let autoCandidate = regionCandidates.first(where: { $0.id == RegionalPreferenceIdentifiers.automatic }) {
                                 Button {
-                                    onSelectRegion(candidate)
+                                    onSelectRegion(autoCandidate)
                                 } label: {
-                                    let isSelected = candidate.id == (manualRegionID ?? RegionalPreferenceIdentifiers.automatic)
+                                    let isSelected = (manualRegionID == nil || manualRegionID == RegionalPreferenceIdentifiers.automatic)
                                     if isSelected {
-                                        Label(candidate.label, systemImage: "checkmark")
+                                        Label(autoCandidate.label, systemImage: "checkmark")
                                     } else {
-                                        Text(candidate.label)
+                                        Text(autoCandidate.label)
+                                    }
+                                }
+                            }
+
+                            Divider()
+
+                            ForEach(GlobalProbeRegistry.Continent.allCases, id: \.self) { continent in
+                                let continentCandidates = regionCandidates.filter { $0.continentKey == continent.localizationKey }
+                                if !continentCandidates.isEmpty {
+                                    Menu(LocalizedStringKey(continent.localizationKey)) {
+                                        ForEach(continentCandidates) { candidate in
+                                            Button {
+                                                onSelectRegion(candidate)
+                                            } label: {
+                                                let isSelected = candidate.id == manualRegionID
+                                                if isSelected {
+                                                    Label(candidate.label, systemImage: "checkmark")
+                                                } else {
+                                                    Text(candidate.label)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            let otherCandidates = regionCandidates.filter {
+                                $0.id != RegionalPreferenceIdentifiers.automatic && $0.continentKey == nil
+                            }
+                            if !otherCandidates.isEmpty {
+                                Divider()
+                                ForEach(otherCandidates) { candidate in
+                                    Button {
+                                        onSelectRegion(candidate)
+                                    } label: {
+                                        let isSelected = candidate.id == manualRegionID
+                                        if isSelected {
+                                            Label(candidate.label, systemImage: "checkmark")
+                                        } else {
+                                            Text(candidate.label)
+                                        }
                                     }
                                 }
                             }

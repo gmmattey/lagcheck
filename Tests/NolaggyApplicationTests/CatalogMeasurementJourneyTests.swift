@@ -29,6 +29,24 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(view.candidates.first?.resolvedContext.destination.host, "gamelift-ping.sa-east-1.api.aws")
     }
 
+    func testManualGlobalCandidateEnrichesSnapshotAndResolvesFriendlyLabel() throws {
+        let payload = try payload()
+        let context = GameContext(gameID: "fortnite", market: "BR", platform: .iphone)
+
+        let snapshot = try CatalogMeasurementJourney.regionalSnapshot(for: context, in: payload, manualRegionID: "us-east-1")
+        let viewPt = CatalogMeasurementJourney.viewSnapshot(from: snapshot, in: payload, localeIdentifier: "pt_BR")
+        let viewEn = CatalogMeasurementJourney.viewSnapshot(from: snapshot, in: payload, localeIdentifier: "en_US")
+
+        XCTAssertEqual(snapshot.candidates.map(\.regionID), ["sa-east-1", "us-east-1"])
+        let manualCandidate = snapshot.candidates.first(where: { $0.regionID == "us-east-1" })
+        XCTAssertNotNil(manualCandidate)
+        XCTAssertEqual(manualCandidate?.resolvedContext.destination.host, "gamelift-ping.us-east-1.api.aws")
+        XCTAssertEqual(manualCandidate?.resolvedContext.destination.port, 7770)
+
+        XCTAssertEqual(viewPt.candidates.first(where: { $0.regionID == "us-east-1" })?.label, "Virgínia do Norte")
+        XCTAssertEqual(viewEn.candidates.first(where: { $0.regionID == "us-east-1" })?.label, "N. Virginia")
+    }
+
     func testUnavailableContextCannotCreateRegionalSnapshot() throws {
         let payload = try payload(availableFortnite: false)
 

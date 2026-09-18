@@ -36,12 +36,35 @@ public enum CatalogMeasurementJourney {
 
     public static func regionalSnapshot(
         for context: GameContext,
-        in payload: RemoteCatalogPayload
+        in payload: RemoteCatalogPayload,
+        manualRegionID: String? = nil
     ) throws -> RegionalSelectionSnapshot {
-        guard case .available = try RemoteCatalogVerifier.resolve(context, in: payload) else {
+        guard case let .available(baseResolved) = try RemoteCatalogVerifier.resolve(context, in: payload) else {
             throw Error.unavailableContext
         }
-        return try RemoteCatalogVerifier.regionalSelectionSnapshot(context, in: payload)
+        var snapshot = try RemoteCatalogVerifier.regionalSelectionSnapshot(context, in: payload)
+        if let manualRegionID,
+           !snapshot.candidates.contains(where: { $0.regionID == manualRegionID }),
+           let globalDef = GlobalProbeRegistry.definition(for: manualRegionID) {
+            let manualResolved = ResolvedMeasurementContext(
+                context: context,
+                catalogVersion: payload.catalogVersion,
+                profileID: baseResolved.profileID,
+                profileRuleVersion: baseResolved.profileRuleVersion,
+                regionID: globalDef.id,
+                destination: globalDef.probeDestination,
+                strategy: baseResolved.strategy,
+                confidence: baseResolved.confidence,
+                precisionKey: "regionalReference"
+            )
+            let manualCandidate = try RegionalSelectionCandidate(resolvedContext: manualResolved, priority: 0)
+            snapshot = try RegionalSelectionSnapshot(
+                catalogVersion: payload.catalogVersion,
+                context: context,
+                candidates: snapshot.candidates + [manualCandidate]
+            )
+        }
+        return snapshot
     }
 
     public static func viewSnapshot(
@@ -54,7 +77,7 @@ public enum CatalogMeasurementJourney {
             catalogVersion: snapshot.catalogVersion,
             candidates: snapshot.candidates.map { candidate in
                 let label = payload.regions.first(where: { $0.id == candidate.regionID })?.label[language]
-                    ?? candidate.regionID
+                    ?? GlobalProbeRegistry.friendlyLabel(for: candidate.regionID, languageCode: language)
                 return .init(
                     regionID: candidate.regionID,
                     label: label,

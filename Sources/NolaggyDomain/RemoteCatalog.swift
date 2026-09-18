@@ -307,13 +307,18 @@ public enum RemoteCatalogVerifier {
         guard payload.games.allSatisfy({ game in
             guard let allowedPlatforms = debugAllowedPlatforms[game.id] else { return false }
             let context = game.contexts[0]
+            let candidateList = candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion)
             return game.contexts.count == 1 && context.availability == .available && context.market == "BR"
                 && context.platforms.isSubset(of: allowedPlatforms)
-                && candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion) == ["sa-east-1"]
+                && !candidateList.isEmpty
+                && Set(candidateList).isSubset(of: GlobalProbeRegistry.allowedRegionIDs)
         }),
-              payload.regions.count == 1,
-              payload.regions[0].probe.host == "gamelift-ping.sa-east-1.api.aws",
-              payload.regions[0].probe.port == 7770 else {
+              !payload.regions.isEmpty,
+              payload.regions.allSatisfy({ region in
+                  GlobalProbeRegistry.allowedRegionIDs.contains(region.id)
+                      && region.probe.host == "gamelift-ping.\(region.id).api.aws"
+                      && region.probe.port == 7770
+              }) else {
             throw RemoteCatalogError.unsupportedDebugCatalog
         }
     }

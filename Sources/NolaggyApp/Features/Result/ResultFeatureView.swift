@@ -42,7 +42,7 @@ extension QuickCheckFeatureView {
                     Text("\(selectedGameName) · iPhone")
                         .font(NLTypography.footnote)
                         .foregroundStyle(NLColor.textTertiary)
-                    Text("quick_check.measuring.region")
+                    Text(selectedRegionRouteSubtitle)
                         .font(NLTypography.footnote)
                         .foregroundStyle(NLColor.textTertiary)
                 }

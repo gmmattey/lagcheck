@@ -234,3 +234,10 @@
 "network.band.action.settings" = "Open Wi-Fi Settings";
 "network.band.action.deep_check" = "Run Deep Check";
 "network.band.action.details" = "View details";
+
+/* Global Test Servers and Continents (Decision 28) */
+"settings.continent.americas" = "Americas";
+"settings.continent.europe" = "Europe";
+"settings.continent.asia_pacific" = "Asia & Pacific";
+"settings.continent.middle_east_africa" = "Middle East & Africa";
+"quick_check.measuring.region_format %@" = "%@ · reference region";
