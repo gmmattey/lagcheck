@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import NolaggyApplication
 import NolaggyDomain
+
+private let boosterLogger = Logger(subsystem: "com.nolaggy.app", category: "GeminiBooster")
 
 public enum GeminiConnectionBoosterServiceError: LocalizedError, Equatable {
     case notConfigured
@@ -21,12 +24,21 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
     
     public init(
         apiKey: String? = nil,
-        session: URLSession = .shared
+        session: URLSession? = nil
     ) {
         // Chave client-side transitória conforme docs/23 aprovado pelo dono do produto (Luiz)
         // Busca chave: parâmetro explícito -> variável de ambiente -> Secrets.plist local -> Info.plist
         var resolvedKey = apiKey ?? ProcessInfo.processInfo.environment["GEMINI_API_KEY"]
         
+        if resolvedKey == nil || resolvedKey?.isEmpty == true {
+            if let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist") ?? Bundle.main.url(forResource: "Secrets", withExtension: "plist", subdirectory: "Secrets"),
+               let data = try? Data(contentsOf: url),
+               let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+               let key = plist["GEMINI_API_KEY"] as? String, !key.isEmpty {
+                resolvedKey = key
+            }
+        }
+
         if resolvedKey == nil || resolvedKey?.isEmpty == true {
             if let path = Bundle.main.path(forResource: "Secrets", ofType: "plist"),
                let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
@@ -40,14 +52,34 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         }
         
         self.apiKey = resolvedKey ?? ""
-        self.session = session
-        self.endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent")!
+        if let customSession = session {
+            self.session = customSession
+        } else {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 20.0
+            config.timeoutIntervalForResource = 25.0
+            self.session = URLSession(configuration: config)
+        }
+        self.endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent")!
+    }
+    
+    /// Sanitiza o texto bruto recebido do LLM, removendo possíveis code blocks markdown (` ```json ` ou ` ``` `)
+    public static func sanitizeJSONResponse(_ rawText: String) -> String {
+        var text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.hasPrefix("```json") {
+            text = String(text.dropFirst(7))
+        } else if text.hasPrefix("```") {
+            text = String(text.dropFirst(3))
+        }
+        if text.hasSuffix("```") {
+            text = String(text.dropLast(3))
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     public func fetchAdvice(for request: ConnectionBoosterRequest) async throws -> ConnectionBoosterAdvice {
         guard !apiKey.isEmpty else {
-            // Sem credencial não há uma resposta baseada em medição. A UI já
-            // tem um estado explícito para indisponibilidade e tentativa nova.
+            boosterLogger.error("Chave do Gemini não configurada neste build.")
             throw GeminiConnectionBoosterServiceError.notConfigured
         }
         
@@ -58,7 +90,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue(apiKey, forHTTPHeaderField: "X-goog-api-key")
-        urlRequest.timeoutInterval = 12.0
+        urlRequest.timeoutInterval = 20.0
         
         let prompt = buildPrompt(for: request)
         let requestBody = GeminiRequestBody(
@@ -73,24 +105,64 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         
         urlRequest.httpBody = try JSONEncoder().encode(requestBody)
         
-        let (data, httpResponse) = try await session.data(for: urlRequest)
-        guard let http = httpResponse as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw NSError(domain: "GeminiService", code: (httpResponse as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: "Falha na resposta do serviço de dicas."])
+        boosterLogger.info("Enviando requisição de dicas de conexão para \(request.gameName, privacy: .public) no \(request.platform.rawValue, privacy: .public).")
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        let data: Data
+        let httpResponse: URLResponse
+        do {
+            (data, httpResponse) = try await session.data(for: urlRequest)
+        } catch {
+            let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+            boosterLogger.error("Erro de rede na chamada do Gemini após \(String(format: "%.2f", elapsed), privacy: .public)s: \(error.localizedDescription, privacy: .public)")
+            throw error
         }
         
-        let geminiResponse = try JSONDecoder().decode(GeminiResponse.self, from: data)
-        guard let text = geminiResponse.candidates.first?.content.parts.first?.text,
-              let jsonData = text.data(using: .utf8) else {
+        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+        guard let http = httpResponse as? HTTPURLResponse else {
+            boosterLogger.error("Resposta nula ou não-HTTP recebida do Gemini após \(String(format: "%.2f", elapsed), privacy: .public)s.")
+            throw NSError(domain: "GeminiService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Falha na resposta do serviço de dicas."])
+        }
+        
+        guard (200...299).contains(http.statusCode) else {
+            boosterLogger.error("Gemini retornou status HTTP \(http.statusCode, privacy: .public) após \(String(format: "%.2f", elapsed), privacy: .public)s.")
+            throw NSError(domain: "GeminiService", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Falha na resposta do serviço de dicas (HTTP \(http.statusCode))."])
+        }
+        
+        let geminiResponse: GeminiResponse
+        do {
+            geminiResponse = try JSONDecoder().decode(GeminiResponse.self, from: data)
+        } catch {
+            boosterLogger.error("Falha ao decodificar envelope GeminiResponse: \(error.localizedDescription, privacy: .public)")
+            throw GeminiConnectionBoosterServiceError.invalidResponse
+        }
+        
+        guard let rawText = geminiResponse.candidates.first?.content.parts.first(where: { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })?.text else {
+            boosterLogger.error("Candidato do Gemini vazio ou sem partes de texto válidas.")
             throw NSError(domain: "GeminiService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Resposta vazia do modelo."])
         }
         
-        let decodedPayload = try JSONDecoder().decode(GeminiAdvicePayload.self, from: jsonData)
+        let sanitizedJSON = Self.sanitizeJSONResponse(rawText)
+        guard let jsonData = sanitizedJSON.data(using: .utf8) else {
+            boosterLogger.error("Falha ao converter texto sanitizado para UTF-8.")
+            throw GeminiConnectionBoosterServiceError.invalidResponse
+        }
+        
+        let decodedPayload: GeminiAdvicePayload
+        do {
+            decodedPayload = try JSONDecoder().decode(GeminiAdvicePayload.self, from: jsonData)
+        } catch {
+            boosterLogger.error("Falha ao decodificar payload GeminiAdvicePayload: \(error.localizedDescription, privacy: .public). JSON bruto: \(sanitizedJSON, privacy: .public)")
+            throw GeminiConnectionBoosterServiceError.invalidResponse
+        }
+        
         guard !decodedPayload.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               (3...5).contains(decodedPayload.items.count),
               decodedPayload.items.allSatisfy({
                   !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                       && !$0.detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
               }) else {
+            boosterLogger.error("Payload fora dos critérios de negócio: summary vazio ou contagem inválida (\(decodedPayload.items.count) itens).")
             throw GeminiConnectionBoosterServiceError.invalidResponse
         }
         
@@ -110,6 +182,8 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
                 detail: item.detail
             )
         }
+        
+        boosterLogger.info("Dicas de conexão obtidas com sucesso em \(String(format: "%.2f", elapsed), privacy: .public)s (\(items.count, privacy: .public) ações).")
         
         return ConnectionBoosterAdvice(
             gameName: request.gameName,
