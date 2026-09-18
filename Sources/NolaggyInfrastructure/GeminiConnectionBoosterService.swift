@@ -220,6 +220,21 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
             wifiDiagnosticDesc = "não avaliado"
         }
 
+        let natDiagnosticDesc: String
+        if let nat = req.natTopology {
+            if nat.cgnatStatus.isImpacted {
+                natDiagnosticDesc = "CGNAT detectado (RFC 6598). Provedor não aloca IP público dedicado. Sugira solicitar suporte a IPv6 ou IP público dinâmico para jogos ao provedor."
+            } else if nat.doubleNATStatus.isImpacted {
+                natDiagnosticDesc = "Duplo NAT detectado (dois roteadores encadeados). Sugira fortemente configurar o roteador secundário em modo Ponto de Acesso (Bridge)."
+            } else if nat.natType.isMultiplayerRestricted {
+                natDiagnosticDesc = "NAT Estrito (Tipo 3) detectado. Recomende ativar UPnP no roteador para liberar portas de matchmaking."
+            } else {
+                natDiagnosticDesc = "NAT \(nat.natType.shortLabel) (sem restrições críticas de topologia)."
+            }
+        } else {
+            natDiagnosticDesc = "não avaliado"
+        }
+
         return """
         Você é o assistente técnico de rede do app LagCheck. Sua missão é fornecer dicas práticas e diretas para o jogador melhorar sua estabilidade de conexão.
         \(langInstruction)
@@ -236,6 +251,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         - Plataforma do jogador: \(req.platform.rawValue)
         - Tipo de conexão no iPhone: \(req.networkKind.rawValue)
         - Frequência / Estabilidade Wi-Fi: \(wifiDiagnosticDesc)
+        - Topologia de NAT / Rede: \(natDiagnosticDesc)
         - RTT P50 em repouso: \(String(format: "%.1f", req.p50Milliseconds)) ms
         - Jitter: \(String(format: "%.1f", req.jitterMilliseconds)) ms
         - Perda de pacotes: \(String(format: "%.1f", req.packetLossRate * 100))%
