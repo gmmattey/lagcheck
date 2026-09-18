@@ -24,6 +24,17 @@ struct GameDetailView: View {
                 if let metrics = observedMetrics {
                     GameDetailMetricsCard(metrics: metrics)
                 }
+                if let advice = wifiBandDiagnostic {
+                    NetworkBandAdviceBanner(
+                        title: LocalizedStringKey(advice.titleKey),
+                        message: LocalizedStringKey(advice.messageKey),
+                        badgeText: advice.diagnostic.isSuspectOrConfirmed24GHz ? "2.4 GHz" : nil,
+                        style: advice.diagnostic.isSuspectOrConfirmed24GHz ? .warning : .positive,
+                        iconName: advice.diagnostic.isSuspectOrConfirmed24GHz ? "antenna.radiowaves.left.and.right" : "wifi",
+                        actionTitle: advice.actionKey.map { LocalizedStringKey($0) },
+                        onAction: onStartDeepCheck
+                    )
+                }
                 VStack(spacing: NLSpacing.sm) {
                     PrimaryButton(
                         title: "deep_check.intro.start",
@@ -57,4 +68,17 @@ struct GameDetailView: View {
         }
     }
 
+    private var wifiBandDiagnostic: WiFiBandDiagnosticResult? {
+        guard let metrics = observedMetrics else { return nil }
+        let telemetry = WiFiLocalTelemetry(
+            gatewayRTTMedianMs: metrics.p50Milliseconds,
+            gatewayJitterMs: metrics.jitterMilliseconds,
+            tailRatioP95P50: metrics.p95ToP50Ratio,
+            validSampleCount: metrics.validResponseCount,
+            plannedSampleCount: metrics.validResponseCount,
+            isWiFi: true
+        )
+        let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
+        return result.diagnostic.isSuspectOrConfirmed24GHz ? result : nil
+    }
 }

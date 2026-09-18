@@ -40,6 +40,7 @@ struct HomeNetworkStatusCard: View {
     let color: Color
     let latency: String
     let isMeasuring: Bool
+    var wifiBandText: String? = nil
 
     private static let routeSymbols = ["iphone", "wifi", "network", "gamecontroller.fill"]
 
@@ -48,6 +49,14 @@ struct HomeNetworkStatusCard: View {
             HStack(spacing: NLSpacing.xs) {
                 Circle().fill(color).frame(width: 10, height: 10)
                 Text(title).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
+                if let wifiBandText {
+                    Text(wifiBandText)
+                        .font(NLTypography.captionStrong)
+                        .foregroundStyle(wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background((wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent).opacity(0.15), in: Capsule())
+                }
                 Spacer()
                 Text(latency).font(NLTypography.bodyEmphasis.monospacedDigit()).foregroundStyle(isMeasuring ? NLColor.textSecondary : color)
             }

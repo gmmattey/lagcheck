@@ -75,6 +75,18 @@ struct DeepCheckFeatureView: View {
         }
         .sheet(isPresented: $showingBooster) {
             if case let .result(result, _) = presentation {
+                let isWiFi = (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi
+                let telemetry = WiFiLocalTelemetry(
+                    gatewayRTTMedianMs: result.metrics.rest.p50Milliseconds,
+                    gatewayJitterMs: result.metrics.rest.jitterMilliseconds,
+                    tailRatioP95P50: result.metrics.rest.p95ToP50Ratio,
+                    loadDeltaP50Ms: result.metrics.loadImpact?.increaseMilliseconds,
+                    validSampleCount: result.metrics.rest.validResponseCount,
+                    plannedSampleCount: result.metrics.rest.validResponseCount,
+                    isWiFi: isWiFi
+                )
+                let wifiBandEstimate = WiFiBandEvaluator.evaluate(telemetry: telemetry).diagnostic
+
                 let req = ConnectionBoosterRequest(
                     gameName: gameName,
                     platform: resolvedContext.context.platform,
@@ -82,7 +94,8 @@ struct DeepCheckFeatureView: View {
                     p50Milliseconds: result.metrics.rest.p50Milliseconds ?? 0.0,
                     jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
                     packetLossRate: result.metrics.rest.packetLossPercentage / 100.0,
-                    loadImpactMilliseconds: result.metrics.loadImpact?.increaseMilliseconds
+                    loadImpactMilliseconds: result.metrics.loadImpact?.increaseMilliseconds,
+                    wifiBandEstimate: wifiBandEstimate
                 )
                 ConnectionBoosterSheet(request: req, coordinator: boosterCoordinator)
             }

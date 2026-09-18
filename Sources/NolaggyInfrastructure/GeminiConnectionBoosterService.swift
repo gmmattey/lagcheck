@@ -130,6 +130,22 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
             impactDesc = "não avaliado"
         }
         
+        let wifiDiagnosticDesc: String
+        if let band = req.wifiBandEstimate {
+            switch band {
+            case .confirmed24GHz:
+                wifiDiagnosticDesc = "Conectado em rede 2.4 GHz confirmada. Priorize fortemente sugerir migrar para rede 5 GHz ou usar cabo."
+            case .suspected24GHzContention:
+                wifiDiagnosticDesc = "Oscilações e contenção severa típicas de 2.4 GHz ou sinal instável observadas. Recomende testar frequência de 5 GHz ou aproximar-se do roteador."
+            case .confirmed5GHzOrHigher, .stableWiFi:
+                wifiDiagnosticDesc = "Rede Wi-Fi em 5 GHz/estável com baixo jitter local."
+            case .inconclusive:
+                wifiDiagnosticDesc = "Sem leitura conclusiva do rádio local."
+            }
+        } else {
+            wifiDiagnosticDesc = "não avaliado"
+        }
+
         return """
         Você é o assistente técnico de rede do app LagCheck. Sua missão é fornecer dicas práticas e diretas para o jogador melhorar sua estabilidade de conexão.
         \(langInstruction)
@@ -145,6 +161,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         - Jogo: \(req.gameName)
         - Plataforma do jogador: \(req.platform.rawValue)
         - Tipo de conexão no iPhone: \(req.networkKind.rawValue)
+        - Frequência / Estabilidade Wi-Fi: \(wifiDiagnosticDesc)
         - RTT P50 em repouso: \(String(format: "%.1f", req.p50Milliseconds)) ms
         - Jitter: \(String(format: "%.1f", req.jitterMilliseconds)) ms
         - Perda de pacotes: \(String(format: "%.1f", req.packetLossRate * 100))%

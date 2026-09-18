@@ -219,3 +219,18 @@
 "quick_check.result.insight.high_latency" = "A latência alta pode atrasar suas ações na partida.";
 "quick_check.result.insight.severe_spikes" = "Os picos intensos podem causar travadas durante a partida.";
 "quick_check.result.insight.high_jitter" = "A oscilação da rota pode deixar a partida instável.";
+
+/* Diagnóstico de Frequência e Estabilidade Wi-Fi (Decisão 27) */
+"network.band.confirmed_24.title" = "Conectado em Wi-Fi 2.4 GHz";
+"network.band.confirmed_24.message" = "Esta frequência tem maior alcance, mas sofre mais interferência durante as partidas. Se o seu roteador tiver rede 5 GHz ou Wi-Fi 6, conecte-se a ela para reduzir oscilações.";
+"network.band.confirmed_5.title" = "Wi-Fi 5 GHz detectado";
+"network.band.confirmed_5.message" = "Sua conexão local está em uma frequência rápida e com pouca interferência.";
+"network.band.suspected_24.title" = "Instabilidade detectada no sinal Wi-Fi";
+"network.band.suspected_24.message" = "Esta medição encontrou variações típicas de frequências de 2.4 GHz ou interferência de sinal. Se o seu roteador for dual-band, tente alternar para a rede 5 GHz ou aproximar-se do roteador.";
+"network.band.stable.title" = "Wi-Fi local estável";
+"network.band.stable.message" = "O sinal entre o aparelho e o roteador apresentou resposta rápida e baixa variação.";
+"network.band.inconclusive.title" = "Sinal Wi-Fi inconclusivo";
+"network.band.inconclusive.message" = "Não foi possível verificar a resposta do roteador local.";
+"network.band.action.settings" = "Ver ajustes de Wi-Fi";
+"network.band.action.deep_check" = "Fazer Deep Check";
+"network.band.action.details" = "Ver detalhes";

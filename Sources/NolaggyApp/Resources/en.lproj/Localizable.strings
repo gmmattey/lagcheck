@@ -219,3 +219,18 @@
 "quick_check.result.insight.high_latency" = "High latency may delay your actions in the match.";
 "quick_check.result.insight.severe_spikes" = "Severe spikes may cause stutters during the match.";
 "quick_check.result.insight.high_jitter" = "Route variation may make the match unstable.";
+
+/* Wi-Fi Band Diagnostics (Decision 27) */
+"network.band.confirmed_24.title" = "Connected to 2.4 GHz Wi-Fi";
+"network.band.confirmed_24.message" = "This band offers wider range, but is prone to interference during matches. If your router has a 5 GHz or Wi-Fi 6 network, switch to it for lower jitter.";
+"network.band.confirmed_5.title" = "5 GHz Wi-Fi detected";
+"network.band.confirmed_5.message" = "Your local connection is using a fast frequency band with low interference.";
+"network.band.suspected_24.title" = "Wi-Fi signal instability detected";
+"network.band.suspected_24.message" = "This check showed variations typical of 2.4 GHz networks or signal interference. If your router is dual-band, try switching to 5 GHz or moving closer to the router.";
+"network.band.stable.title" = "Stable local Wi-Fi";
+"network.band.stable.message" = "The wireless link to your router showed quick responses and minimal jitter.";
+"network.band.inconclusive.title" = "Inconclusive Wi-Fi signal";
+"network.band.inconclusive.message" = "Unable to verify the local router response.";
+"network.band.action.settings" = "Open Wi-Fi Settings";
+"network.band.action.deep_check" = "Run Deep Check";
+"network.band.action.details" = "View details";

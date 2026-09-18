@@ -17,7 +17,7 @@ extension QuickCheckFeatureView {
                 if remoteCatalog == nil {
                     catalogUnavailable.padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.lg)
                 } else {
-                    HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, isMeasuring: isBackgroundMeasuring)
+                    HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, isMeasuring: isBackgroundMeasuring, wifiBandText: networkWiFiBandText)
                         .padding(.horizontal, NLSpacing.md)
                     HomeHeroSection(title: localizedString("home.featured"), games: featuredGames, categoryTitle: categoryTitle(for:), statusTitle: heroStatusText(for:), latency: gameScoreLatencyText(for:), score: gameScoreNumber(for:), scoreLabel: localizedString("home.score"), detail: localizedString("home.hero.detail"), select: { selectedGameForDetails = $0 })
                     HomeShelfSection(title: localizedString("home.popular"), games: shelfGames, categoryTitle: categoryTitle(for:), detail: shelfDetailText(for:), detailColor: shelfDetailColor(for:), score: gameScoreNumber(for:), select: { selectedGameForDetails = $0 })
@@ -96,6 +96,25 @@ extension QuickCheckFeatureView {
     private var networkLatencyText: String {
         guard !isBackgroundMeasuring, !backgroundMeasurementFailed, let firstGame = availableGames.first, let latency = gameScoreLatencyText(for: firstGame) else { return localizedString("home.network.awaiting_result") }
         return latency
+    }
+
+    private var networkWiFiBandText: String? {
+        guard !isBackgroundMeasuring, !backgroundMeasurementFailed, let firstGame = availableGames.first, case let .completed(result)? = evaluatedScores[firstGame.id] else { return nil }
+        let telemetry = WiFiLocalTelemetry(
+            gatewayRTTMedianMs: result.metrics.p50Milliseconds,
+            gatewayJitterMs: result.metrics.jitterMilliseconds,
+            tailRatioP95P50: result.metrics.p95ToP50Ratio,
+            validSampleCount: result.metrics.validResponseCount,
+            plannedSampleCount: result.metrics.validResponseCount,
+            isWiFi: true
+        )
+        let eval = WiFiBandEvaluator.evaluate(telemetry: telemetry)
+        if eval.diagnostic.isSuspectOrConfirmed24GHz {
+            return "2.4 GHz"
+        } else if eval.diagnostic == .stableWiFi {
+            return "5 GHz"
+        }
+        return nil
     }
 
     private func heroStatusText(for game: CatalogMeasurementJourney.Game) -> String {
