@@ -7,14 +7,18 @@ import XCTest
 final class GameEditorialStructuralTests: XCTestCase {
 
     func testRegistryHasExactlyTwentyEntries() {
-        XCTAssertEqual(GameEditorialRegistry.allEditorials.count, 20, "O registro editorial deve conter as 20 fichas auditadas do catálogo (8 medidos + 12 aguardando beacon).")
+        XCTAssertEqual(GameEditorialRegistry.allEditorials.count, 20, "O registro editorial deve conter as 20 fichas auditadas do catálogo, todas com beacon medido.")
     }
 
     func testAllCatalogGameIDsMatchSignedCatalogAllowlist() {
         let signedCatalogGameIDs: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
-            "brawl-stars", "wild-rift", "roblox", "minecraft"
+            "brawl-stars", "wild-rift", "roblox", "minecraft",
+            "apex-legends", "blood-strike", "cs2", "dota2", "eafc",
+            "league-of-legends", "palworld", "rainbow-six", "rocket-league",
+            "rust", "valorant", "warzone"
         ]
+        XCTAssertEqual(signedCatalogGameIDs.count, 20, "Todos os 20 jogos do catálogo devem ter beacon assinado.")
         for gameID in signedCatalogGameIDs {
             XCTAssertNotNil(
                 GameEditorialRegistry.editorial(for: gameID),

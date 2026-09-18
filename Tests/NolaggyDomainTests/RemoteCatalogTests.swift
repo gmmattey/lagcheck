@@ -22,10 +22,10 @@ final class RemoteCatalogTests: XCTestCase {
         guard case .available = minecraft else { return XCTFail("Minecraft must use the approved regional-reference strategy in v2.") }
     }
 
-    func testPublishedDebugEnvelopeFeedsAllEightBRIPhoneContextsWithoutFortniteFallback() throws {
+    func testPublishedDebugEnvelopeFeedsAllTwentyBRIPhoneContextsWithoutFortniteFallback() throws {
         let payload = try RemoteCatalogVerifier.verifyAndDecode(
             envelopeData: try publishedDebugEnvelopeData(),
-            now: ISO8601DateFormatter().date(from: "2026-09-08T12:00:00Z")!
+            now: ISO8601DateFormatter().date(from: "2026-09-18T12:00:00Z")!
         )
         let expectedProfiles: [String: QualityProfileID] = [
             "fortnite": .battleRoyaleCompetitive,
@@ -35,10 +35,22 @@ final class RemoteCatalogTests: XCTestCase {
             "brawl-stars": .mobileRealtime,
             "wild-rift": .mobileRealtime,
             "roblox": .casualRealtime,
-            "minecraft": .casualRealtime
+            "minecraft": .casualRealtime,
+            "apex-legends": .battleRoyaleCompetitive,
+            "blood-strike": .battleRoyaleCompetitive,
+            "cs2": .battleRoyaleCompetitive,
+            "dota2": .mobileRealtime,
+            "eafc": .casualRealtime,
+            "league-of-legends": .mobileRealtime,
+            "palworld": .casualRealtime,
+            "rainbow-six": .battleRoyaleCompetitive,
+            "rocket-league": .casualRealtime,
+            "rust": .casualRealtime,
+            "valorant": .battleRoyaleCompetitive,
+            "warzone": .battleRoyaleCompetitive
         ]
 
-        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.08.2")
+        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.18.1")
         XCTAssertEqual(payload.games.map(\.id).sorted(), expectedProfiles.keys.sorted())
 
         for (gameID, expectedProfile) in expectedProfiles {
@@ -318,7 +330,19 @@ private extension RemoteCatalogTests {
                 available("brawl-stars", "Brawl Stars", "MOBILE_REALTIME"),
                 available("wild-rift", "League of Legends: Wild Rift", "MOBILE_REALTIME"),
                 available("roblox", "Roblox", "CASUAL_REALTIME"),
-                available("minecraft", "Minecraft", "CASUAL_REALTIME")
+                available("minecraft", "Minecraft", "CASUAL_REALTIME"),
+                available("apex-legends", "Apex Legends", "BATTLE_ROYALE_COMPETITIVE"),
+                available("blood-strike", "Blood Strike", "BATTLE_ROYALE_COMPETITIVE"),
+                available("cs2", "Counter-Strike 2", "BATTLE_ROYALE_COMPETITIVE"),
+                available("dota2", "Dota 2", "MOBILE_REALTIME"),
+                available("eafc", "EA Sports FC 24", "CASUAL_REALTIME"),
+                available("league-of-legends", "League of Legends", "MOBILE_REALTIME"),
+                available("palworld", "Palworld", "CASUAL_REALTIME"),
+                available("rainbow-six", "Rainbow Six Siege", "BATTLE_ROYALE_COMPETITIVE"),
+                available("rocket-league", "Rocket League", "CASUAL_REALTIME"),
+                available("rust", "Rust", "CASUAL_REALTIME"),
+                available("valorant", "VALORANT", "BATTLE_ROYALE_COMPETITIVE"),
+                available("warzone", "Call of Duty: Warzone", "BATTLE_ROYALE_COMPETITIVE")
             ]
         )
     }

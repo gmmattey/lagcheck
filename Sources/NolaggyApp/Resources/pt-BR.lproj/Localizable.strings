@@ -37,9 +37,6 @@
 "catalog.unavailable.message" = "Não conseguimos carregar uma configuração válida para testar jogos. Tente novamente mais tarde.";
 "catalog.fallback.title" = "Usando jogos disponíveis";
 "catalog.fallback.message" = "Não foi possível atualizar a lista agora. Você ainda pode testar os jogos mostrados aqui.";
-"catalog.coming_soon.title" = "Em breve";
-"catalog.coming_soon.badge" = "Aguardando beacon dedicado";
-"catalog.coming_soon.accessibility" = "%@, aguardando beacon dedicado de medição";
 "quick_check.start" = "Iniciar Quick Check";
 "quick_check.measuring.title" = "Verificando";
 "quick_check.measuring.region" = "São Paulo · região de referência";

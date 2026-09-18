@@ -138,7 +138,7 @@ extension QuickCheckFeatureView {
     private func shelfDetailColor(for game: CatalogMeasurementJourney.Game) -> Color { gameScoreLatencyText(for: game) == nil ? NLColor.textSecondary : NLColor.scoreExcellent }
 
     var gamesCatalogView: some View {
-        HomeCatalogView(title: localizedString("navigation.games"), query: $gameQuery, selectedCategory: $selectedCategory, categories: CatalogCategory.allCases, games: filteredGames, searchPlaceholder: localizedString("catalog.search.placeholder"), clearSearchAccessibilityLabel: localizedString("catalog.search.close"), categoryTitle: { localizedString($0.localizationKey) }, gameCategoryTitle: categoryTitle(for:), scoreState: scoreState(for:), score: gameScoreNumber(for:), latency: gameScoreLatencyText(for:), inconclusiveAccessibilityLabel: localizedString("home.status.inconclusive"), select: { selectedGameForDetails = $0 }, comingSoonGames: comingSoonGames)
+        HomeCatalogView(title: localizedString("navigation.games"), query: $gameQuery, selectedCategory: $selectedCategory, categories: CatalogCategory.allCases, games: filteredGames, searchPlaceholder: localizedString("catalog.search.placeholder"), clearSearchAccessibilityLabel: localizedString("catalog.search.close"), categoryTitle: { localizedString($0.localizationKey) }, gameCategoryTitle: categoryTitle(for:), scoreState: scoreState(for:), score: gameScoreNumber(for:), latency: gameScoreLatencyText(for:), inconclusiveAccessibilityLabel: localizedString("home.status.inconclusive"), select: { selectedGameForDetails = $0 })
     }
 
     private var filteredGames: [CatalogMeasurementJourney.Game] {
@@ -146,39 +146,5 @@ extension QuickCheckFeatureView {
             let matchesCategory = selectedCategory == .all || category(for: game.profileID) == selectedCategory
             return matchesCategory && (gameQuery.isEmpty || game.name.localizedCaseInsensitiveContains(gameQuery))
         }
-    }
-
-    /// Nomes de exibição para os jogos que já têm ficha editorial auditada
-    /// (`GameEditorialRegistry`) mas ainda não têm beacon de medição dedicado
-    /// no catálogo assinado — por isso não aparecem em `availableGames`.
-    /// Ver docs/31 (catálogo editorial) e docs/32 (topologia NAT).
-    private static let editorialOnlyGameNames: [String: String] = [
-        "apex-legends": "Apex Legends",
-        "blood-strike": "Blood Strike",
-        "cs2": "Counter-Strike 2",
-        "dota2": "Dota 2",
-        "eafc": "EA Sports FC 24",
-        "league-of-legends": "League of Legends",
-        "palworld": "Palworld",
-        "rainbow-six": "Rainbow Six Siege",
-        "rocket-league": "Rocket League",
-        "rust": "Rust",
-        "valorant": "VALORANT",
-        "warzone": "Call of Duty: Warzone"
-    ]
-
-    /// Jogos com metadados editoriais auditados que ainda não possuem um
-    /// beacon de medição dedicado no catálogo assinado. Exibidos apenas com
-    /// dados editoriais (nota, publisher) — nunca com score/latência/NAT
-    /// simulados — e sem navegação para o fluxo de medição ao vivo.
-    var comingSoonGames: [ComingSoonGame] {
-        let availableIDs = Set(availableGames.map(\.id))
-        return GameEditorialRegistry.allEditorials
-            .filter { !availableIDs.contains($0.key) }
-            .compactMap { id, editorial -> ComingSoonGame? in
-                guard let name = Self.editorialOnlyGameNames[id] else { return nil }
-                return ComingSoonGame(id: id, name: name, editorial: editorial)
-            }
-            .sorted { $0.name < $1.name }
     }
 }
