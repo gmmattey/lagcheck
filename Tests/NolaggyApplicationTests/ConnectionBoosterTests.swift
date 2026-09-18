@@ -22,6 +22,16 @@ final class ConnectionBoosterTests: XCTestCase {
         }
     }
 
+    func testSanitizeJSONResponseStripsMarkdownCodeBlocks() {
+        let rawWithFences = "```json\n{\"summary\": \"ok\"}\n```"
+        let sanitized = GeminiConnectionBoosterService.sanitizeJSONResponse(rawWithFences)
+        XCTAssertEqual(sanitized, "{\"summary\": \"ok\"}")
+        
+        let rawWithPlainFences = "```\n{\"summary\": \"ok\"}\n```"
+        let sanitizedPlain = GeminiConnectionBoosterService.sanitizeJSONResponse(rawWithPlainFences)
+        XCTAssertEqual(sanitizedPlain, "{\"summary\": \"ok\"}")
+    }
+
     func testVocabularyGuardrailSanitizesProhibitedGamerTerms() {
         let text = "Com isso você tem zero lag garantido e amassou no servidor"
         let sanitized = VocabularyGuardrail.sanitize(text)
