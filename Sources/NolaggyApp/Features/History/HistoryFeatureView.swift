@@ -59,7 +59,7 @@ struct HistoryView: View {
     @ViewBuilder
     private var historySummary: some View {
         if let summary = MeasurementHistorySummary(entries: entries) {
-            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(gameName(summary.latest))
                     .font(NLTypography.headline)
                     .foregroundStyle(NLColor.textPrimary)
@@ -107,7 +107,7 @@ private struct HistoryCard: View {
             GameArtwork(image: nil, sourceRecordID: nil, title: gameName)
                 .frame(width: NLSizing.compactGameArtworkSide, height: NLSizing.compactGameArtworkSide)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(gameName)
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
@@ -133,13 +133,13 @@ private struct HistoryCard: View {
                         .foregroundStyle(NLColor.textSecondary)
                 }
             }
+            Spacer(minLength: NLSpacing.sm)
             Text("\(entry.result.finalScore)")
                 .font(NLTypography.bodyEmphasis)
                 .foregroundStyle(scoreColor)
                 .frame(minWidth: NLSizing.touchTarget, minHeight: NLSizing.touchTarget)
                 .background(NLColor.backgroundBase, in: Capsule())
                 .overlay { Capsule().stroke(scoreColor, lineWidth: NLStroke.hairline) }
-            Spacer()
         }
         .padding(NLSpacing.cardPadding)
         .frame(maxWidth: .infinity, minHeight: NLSizing.historyCardMinHeight, alignment: .leading)

@@ -16,7 +16,7 @@ extension QuickCheckFeatureView {
         )
         return ScrollView {
             VStack(spacing: NLSpacing.xl) {
-                VStack(spacing: NLSpacing.sm) {
+                VStack(spacing: NLSpacing.md) {
                     NolaggyScore(
                         outcome: .revealed(
                             score: interpretation.score,
@@ -27,22 +27,27 @@ extension QuickCheckFeatureView {
                         accessibilityDescription: scoreAccessibilityDescription
                     )
 
-                    Text(localized(interpretation.conclusionKey.rawValue))
-                        .font(NLTypography.bodyEmphasis)
-                        .foregroundStyle(NLColor.textPrimary)
-                        .multilineTextAlignment(.center)
+                    VStack(spacing: NLSpacing.xs) {
+                        Text(localized(interpretation.conclusionKey.rawValue))
+                            .font(NLTypography.bodyEmphasis)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .multilineTextAlignment(.center)
 
-                    Text(localized(interpretation.explanationKey.rawValue))
-                        .font(NLTypography.callout)
-                        .foregroundStyle(NLColor.textSecondary)
-                        .multilineTextAlignment(.center)
+                        Text(localized(interpretation.explanationKey.rawValue))
+                            .font(NLTypography.callout)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
 
-                    Text("\(selectedGameName) · iPhone")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                    Text(selectedRegionRouteSubtitle)
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
+                    VStack(spacing: NLSpacing.xxs) {
+                        Text("\(selectedGameName) · iPhone")
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textTertiary)
+                        Text(selectedRegionRouteSubtitle)
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
+                    .padding(.top, NLSpacing.xxs)
                 }
                 .frame(maxWidth: .infinity)
 

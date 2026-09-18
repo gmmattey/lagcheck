@@ -11,19 +11,23 @@ struct MeasurementDetailsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-                    Text("details.reference_region")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                    Text("quick_check.measuring.region")
-                        .font(NLTypography.callout)
-                        .foregroundStyle(NLColor.textSecondary)
-                    Text("details.measured_target")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                    Text(strategyLabel)
-                        .font(NLTypography.callout)
-                        .foregroundStyle(NLColor.textSecondary)
+                VStack(alignment: .leading, spacing: NLSpacing.sm) {
+                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                        Text("details.reference_region")
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textTertiary)
+                        Text("quick_check.measuring.region")
+                            .font(NLTypography.callout)
+                            .foregroundStyle(NLColor.textSecondary)
+                    }
+                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                        Text("details.measured_target")
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textTertiary)
+                        Text(strategyLabel)
+                            .font(NLTypography.callout)
+                            .foregroundStyle(NLColor.textSecondary)
+                    }
                 }
 
                 LatencyGraph(
