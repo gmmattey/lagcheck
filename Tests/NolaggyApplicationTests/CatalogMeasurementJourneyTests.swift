@@ -47,6 +47,32 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(viewEn.candidates.first(where: { $0.regionID == "us-east-1" })?.label, "N. Virginia")
     }
 
+    func testSpanishViewSnapshotResolvesSpanishLabel() throws {
+        let payload = try payload()
+        let context = GameContext(gameID: "fortnite", market: "BR", platform: .iphone)
+
+        let snapshot = try CatalogMeasurementJourney.regionalSnapshot(for: context, in: payload, manualRegionID: "us-east-1")
+        let viewEs = CatalogMeasurementJourney.viewSnapshot(from: snapshot, in: payload, localeIdentifier: "es_ES")
+
+        XCTAssertEqual(viewEs.candidates.first(where: { $0.regionID == "us-east-1" })?.label, "Virginia del Norte")
+    }
+
+    func testResolvedMarketResolvesAvailableMarketOrGracefulFallback() throws {
+        let payload = try payload()
+
+        // Quando o sistema do usuário está no Brasil, resolve "BR"
+        let marketBR = CatalogMeasurementJourney.resolvedMarket(in: payload, preferred: "BR")
+        XCTAssertEqual(marketBR, "BR")
+
+        // Quando o sistema do usuário está na Espanha ("ES"), faz fallback elegante para o mercado ativo do catálogo ("BR") sem quebrar
+        let marketES = CatalogMeasurementJourney.resolvedMarket(in: payload, preferred: "ES")
+        XCTAssertEqual(marketES, "BR")
+
+        // Quando o sistema do usuário está na Alemanha ("DE"), faz fallback elegante
+        let marketDE = CatalogMeasurementJourney.resolvedMarket(in: payload, preferred: "DE")
+        XCTAssertEqual(marketDE, "BR")
+    }
+
     func testUnavailableContextCannotCreateRegionalSnapshot() throws {
         let payload = try payload(availableFortnite: false)
 

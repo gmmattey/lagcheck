@@ -18,10 +18,10 @@ public enum NATType: String, Codable, CaseIterable, Hashable, Sendable {
 
     public var shortLabel: String {
         switch self {
-        case .type1Open: return "NAT Aberto"
-        case .type2Moderate: return "NAT Moderado"
-        case .type3Strict: return "NAT Estrito"
-        case .inconclusive: return "NAT Não identificado"
+        case .type1Open: return "Type 1 (Open)"
+        case .type2Moderate: return "Type 2 (Moderate)"
+        case .type3Strict: return "Type 3 (Strict)"
+        case .inconclusive: return "Inconclusive"
         }
     }
 

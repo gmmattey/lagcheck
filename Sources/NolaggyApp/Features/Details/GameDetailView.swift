@@ -112,7 +112,7 @@ struct GameDetailView: View {
         }
         .task(id: selectedPlatform) {
             if selectedPlatform == .playstation || selectedPlatform == .xbox || selectedPlatform == .nintendo {
-                let health = await healthClient.checkHealth(for: selectedPlatform, market: "BR")
+                let health = await healthClient.checkHealth(for: selectedPlatform, market: game.context.market)
                 withAnimation(.easeInOut(duration: 0.2)) {
                     self.platformHealth = health
                 }

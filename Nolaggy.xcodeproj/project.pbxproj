@@ -447,6 +447,7 @@
 		E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePresentationComponents.swift; sourceTree = "<group>"; };
 		E8BD112C975F0E3A22FAA9E4 /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
 		E926065E20E7AD202F458578 /* PlatformSelectorRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSelectorRow.swift; sourceTree = "<group>"; };
+		E92D37962416BF196C9A47F1 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		EAB67CB0A5E79F662A101D45 /* NetworkBandAdviceBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkBandAdviceBanner.swift; sourceTree = "<group>"; };
 		ECD3A5462D81B3554DEFD4D6 /* ResultFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultFeatureView.swift; sourceTree = "<group>"; };
 		EFA895C9D16370FADFC6FC12 /* ConnectionBoosterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBoosterModels.swift; sourceTree = "<group>"; };
@@ -1121,6 +1122,7 @@
 			knownRegions = (
 				Base,
 				en,
+				es,
 				"pt-BR",
 			);
 			mainGroup = CDA9E9EBA3E62E559F57D6F2;
@@ -1435,6 +1437,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				6A455E04D5AE3BED184B26DB /* en */,
+				E92D37962416BF196C9A47F1 /* es */,
 				429B3D5330C2B17F77B7D81E /* pt-BR */,
 			);
 			name = Localizable.strings;

@@ -84,4 +84,16 @@ final class NATTopologyTests: XCTestCase {
         XCTAssertEqual(NATTopologyEvaluator.maskIP("177.136.25.100"), "177.136.***.***")
         XCTAssertEqual(NATTopologyEvaluator.maskIP("192.168.1.5"), "192.168.***.***")
     }
+
+    func testNATTypeTitleKeys() {
+        XCTAssertEqual(NATType.type1Open.titleKey, "nat.type1.open.title")
+        XCTAssertEqual(NATType.type2Moderate.titleKey, "nat.type2.moderate.title")
+        XCTAssertEqual(NATType.type3Strict.titleKey, "nat.type3.strict.title")
+        XCTAssertEqual(NATType.inconclusive.titleKey, "nat.inconclusive.title")
+
+        XCTAssertEqual(NATType.type1Open.shortLabel, "Type 1 (Open)")
+        XCTAssertEqual(NATType.type2Moderate.shortLabel, "Type 2 (Moderate)")
+        XCTAssertEqual(NATType.type3Strict.shortLabel, "Type 3 (Strict)")
+        XCTAssertEqual(NATType.inconclusive.shortLabel, "Inconclusive")
+    }
 }

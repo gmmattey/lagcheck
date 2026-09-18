@@ -57,7 +57,7 @@ struct GameDetailRequirementsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
             HStack {
-                Label("Requisitos da Plataforma", systemImage: "cpu")
+                Label(LocalizedStringKey("game_detail.requirements.platform_title"), systemImage: "cpu")
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
                 Spacer()
@@ -69,11 +69,11 @@ struct GameDetailRequirementsCard: View {
             Divider().overlay(NLColor.borderSubtle)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NLSpacing.sm) {
-                specItem(label: "Sistema Mínimo", value: requirement.minimumOS, icon: "gearshape")
-                specItem(label: "Armazenamento", value: requirement.formattedStorage, icon: "internaldrive")
-                specItem(label: "Memória RAM", value: requirement.formattedRAM, icon: "memorychip")
+                specItem(label: "game_detail.requirements.minimum_os", value: requirement.minimumOS, icon: "gearshape")
+                specItem(label: "game_detail.requirements.storage", value: requirement.formattedStorage, icon: "internaldrive")
+                specItem(label: "game_detail.requirements.ram", value: requirement.formattedRAM, icon: "memorychip")
                 if let fps = requirement.targetFramerate {
-                    specItem(label: "Taxa de Quadros", value: "\(fps) FPS", icon: "speedometer")
+                    specItem(label: "game_detail.requirements.framerate", value: "\(fps) FPS", icon: "speedometer")
                 }
             }
         }
@@ -91,7 +91,7 @@ struct GameDetailRequirementsCard: View {
         }
     }
 
-    private func specItem(label: String, value: String, icon: String) -> some View {
+    private func specItem(label: LocalizedStringKey, value: String, icon: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 4) {
                 Image(systemName: icon)
@@ -117,12 +117,12 @@ struct GameDetailNetworkDemandsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
             HStack {
-                Label("Perfil de Rede Recomendado", systemImage: "point.3.connected.trianglepath.dotted")
+                Label(LocalizedStringKey("game_detail.network_demands.title"), systemImage: "point.3.connected.trianglepath.dotted")
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
                 Spacer()
                 if let fit = connectionFit {
-                    Text(fit.label)
+                    Text(LocalizedStringKey(fit.labelKey))
                         .font(NLTypography.captionStrong)
                         .foregroundStyle(fit.color)
                         .padding(.horizontal, 6)
@@ -134,10 +134,10 @@ struct GameDetailNetworkDemandsCard: View {
             Divider().overlay(NLColor.borderSubtle)
 
             HStack(spacing: NLSpacing.md) {
-                demandItem(title: "Ping Ideal", value: "<\(Int(demands.optimalPingMs)) ms")
-                demandItem(title: "Ping Máximo", value: "<\(Int(demands.acceptablePingMs)) ms")
-                demandItem(title: "Jitter Tolerado", value: "<\(Int(demands.maxJitterMs)) ms")
-                demandItem(title: "Perda Máx.", value: demands.packetLossTolerancePct == 0 ? "0%" : "<\(demands.packetLossTolerancePct)%")
+                demandItem(title: "game_detail.network_demands.optimal_ping", value: "<\(Int(demands.optimalPingMs)) ms")
+                demandItem(title: "game_detail.network_demands.acceptable_ping", value: "<\(Int(demands.acceptablePingMs)) ms")
+                demandItem(title: "game_detail.network_demands.max_jitter", value: "<\(Int(demands.maxJitterMs)) ms")
+                demandItem(title: "game_detail.network_demands.packet_loss", value: demands.packetLossTolerancePct == 0 ? "0%" : "<\(demands.packetLossTolerancePct)%")
             }
 
             if let message = fitDescription {
@@ -151,7 +151,7 @@ struct GameDetailNetworkDemandsCard: View {
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
     }
 
-    private func demandItem(title: String, value: String) -> some View {
+    private func demandItem(title: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(NLTypography.caption)
@@ -163,26 +163,27 @@ struct GameDetailNetworkDemandsCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var connectionFit: (label: String, color: Color)? {
+    private var connectionFit: (labelKey: String, color: Color)? {
         guard let metrics = observedMetrics, let p50 = metrics.p50Milliseconds else { return nil }
         let jitter = metrics.jitterMilliseconds ?? 0
         if p50 <= demands.optimalPingMs && jitter <= demands.maxJitterMs {
-            return ("Excelente Fit", NLColor.scoreExcellent)
+            return ("game_detail.fit.excellent", NLColor.scoreExcellent)
         } else if p50 <= demands.acceptablePingMs {
-            return ("Adequado", NLColor.scoreUnstable)
+            return ("game_detail.fit.acceptable", NLColor.scoreUnstable)
         } else {
-            return ("Abaixo do Ideal", NLColor.scoreLagRisk)
+            return ("game_detail.fit.suboptimal", NLColor.scoreLagRisk)
         }
     }
 
     private var fitDescription: String? {
         guard let metrics = observedMetrics, let p50 = metrics.p50Milliseconds else { return nil }
+        let latencyFormatted = "\(Int(p50)) ms"
         if p50 <= demands.optimalPingMs {
-            return "Sua latência medida de \(Int(p50)) ms atende com folga ao requisito ideal deste jogo para gameplay responsivo."
+            return String(format: NSLocalizedString("game_detail.fit.excellent_desc %@", comment: ""), latencyFormatted)
         } else if p50 <= demands.acceptablePingMs {
-            return "Sua latência de \(Int(p50)) ms está na faixa aceitável, mas pode apresentar pequenas desvantagens em partidas competitivas intensas."
+            return String(format: NSLocalizedString("game_detail.fit.acceptable_desc %@", comment: ""), latencyFormatted)
         } else {
-            return "Sua latência de \(Int(p50)) ms está acima da recomendada para este jogo, com risco perceptível de atraso em ações."
+            return String(format: NSLocalizedString("game_detail.fit.suboptimal_desc %@", comment: ""), latencyFormatted)
         }
     }
 }
@@ -200,10 +201,10 @@ struct GameDetailNATBanner: View {
                     .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(titleText)
+                    Text(LocalizedStringKey(titleKey))
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
-                    Text(messageText)
+                    Text(LocalizedStringKey(messageKey))
                         .font(NLTypography.footnote)
                         .foregroundStyle(NLColor.textSecondary)
                 }
@@ -217,24 +218,24 @@ struct GameDetailNATBanner: View {
         }
     }
 
-    private var titleText: String {
+    private var titleKey: String {
         if snapshot.cgnatStatus.isImpacted {
-            return "Operadora com CGNAT Detectado"
+            return "nat_banner.cgnat.title"
         } else if snapshot.doubleNATStatus.isImpacted {
-            return "Duplo Roteador Detectado (NAT Duplo)"
+            return "nat_banner.double_nat.title"
         } else if snapshot.natType.isMultiplayerRestricted {
-            return "NAT Estrito (Tipo 3) Detectado"
+            return "nat_banner.strict.title"
         }
-        return "Topologia de Rede"
+        return "nat_banner.default.title"
     }
 
-    private var messageText: String {
+    private var messageKey: String {
         if snapshot.cgnatStatus.isImpacted {
-            return "Seu provedor utiliza CGNAT, o que pode bloquear conexões diretas em salas multijogador e chats de voz de consoles."
+            return "nat_banner.cgnat.message"
         } else if snapshot.doubleNATStatus.isImpacted {
-            return "Dois roteadores estão ativos na sua casa ao mesmo tempo, causando conflito de portas. Recomendamos colocar um deles em modo Bridge."
+            return "nat_banner.double_nat.message"
         } else {
-            return "Seu tipo de NAT é Estrito. Isso pode dificultar encontrar partidas no multiplayer e conectar com amigos em grupos de voz."
+            return "nat_banner.strict.message"
         }
     }
 }
