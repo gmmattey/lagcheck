@@ -37,6 +37,9 @@
 "catalog.unavailable.message" = "We couldn’t load a valid configuration to check games. Try again later.";
 "catalog.fallback.title" = "Using available games";
 "catalog.fallback.message" = "We couldn’t update the list right now. You can still check the games shown here.";
+"catalog.coming_soon.title" = "Coming soon";
+"catalog.coming_soon.badge" = "Awaiting dedicated beacon";
+"catalog.coming_soon.accessibility" = "%@, awaiting dedicated measurement beacon";
 "quick_check.start" = "Start Quick Check";
 "quick_check.measuring.title" = "Measuring";
 "quick_check.measuring.region" = "São Paulo · reference region";

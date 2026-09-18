@@ -301,6 +301,7 @@ struct HomeCatalogView: View {
     let latency: (CatalogMeasurementJourney.Game) -> String?
     let inconclusiveAccessibilityLabel: String
     let select: (CatalogMeasurementJourney.Game) -> Void
+    var comingSoonGames: [ComingSoonGame] = []
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -310,13 +311,93 @@ struct HomeCatalogView: View {
                     .padding(.top, NLSpacing.xs)
                 HomeCatalogFilters(selected: $selectedCategory, categories: categories, title: categoryTitle)
                 HomeCatalogList(games: games, categoryTitle: gameCategoryTitle, scoreState: scoreState, score: score, latency: latency, inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel, select: select)
-                    .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
+                    .padding(.horizontal, NLSpacing.md)
+                if !comingSoonGames.isEmpty && query.isEmpty {
+                    HomeComingSoonSection(games: comingSoonGames)
+                        .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
+                } else {
+                    Spacer(minLength: NLSpacing.xl)
+                }
             }
         }
         .scrollContentBackground(.hidden)
         .safeAreaPadding(.bottom, NLSpacing.md)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
+    }
+}
+
+/// Metadados editoriais de um jogo ainda sem beacon de medição dedicado no
+/// catálogo assinado (Decisão 31/32). Somente informação editorial pública é
+/// exibida — nenhum score, latência ou dado de NAT é inventado para estes títulos.
+struct ComingSoonGame: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let editorial: RemoteCatalogGameEditorial
+}
+
+/// Seção "Em breve" com jogos que já possuem ficha editorial auditada, mas
+/// ainda aguardam um beacon de medição dedicado para aparecer com score real.
+/// As linhas não são tocáveis: não abrem o fluxo de medição ao vivo.
+struct HomeComingSoonSection: View {
+    let games: [ComingSoonGame]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            Text(NSLocalizedString("catalog.coming_soon.title", comment: ""))
+                .font(NLTypography.headline)
+                .foregroundStyle(NLColor.textPrimary)
+            VStack(spacing: 0) {
+                ForEach(games) { game in
+                    HomeComingSoonRow(game: game)
+                        .padding(.horizontal, NLSpacing.md).padding(.vertical, NLSpacing.xs)
+                    if game.id != games.last?.id { Divider().overlay(NLColor.borderSubtle).padding(.leading, 72) }
+                }
+            }
+            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+            .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
+        }
+    }
+}
+
+private struct HomeComingSoonRow: View {
+    let game: ComingSoonGame
+
+    private var ratingText: String? {
+        game.editorial.ratings.first.map { "\($0.source.displayName) \($0.formattedScore)" }
+    }
+
+    var body: some View {
+        HStack(spacing: NLSpacing.md) {
+            GameArtwork(image: nil, sourceRecordID: nil, title: game.name)
+                .frame(width: 48, height: 48)
+                .accessibilityHidden(true)
+                .opacity(0.6)
+
+            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                Text(game.name)
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .lineLimit(1)
+                if let ratingText {
+                    Text(ratingText)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+            }
+
+            Spacer(minLength: NLSpacing.sm)
+
+            Text(NSLocalizedString("catalog.coming_soon.badge", comment: ""))
+                .font(NLTypography.caption)
+                .foregroundStyle(NLColor.textTertiary)
+                .padding(.horizontal, NLSpacing.xs).padding(.vertical, NLSpacing.xxs)
+                .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(format: NSLocalizedString("catalog.coming_soon.accessibility", comment: ""), game.name))
+        .accessibilityIdentifier("catalog-coming-soon-\(game.id)")
     }
 }
 
