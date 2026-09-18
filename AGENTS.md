@@ -1,15 +1,15 @@
-# Nolaggy — instruções de trabalho
+# LagCheck — instruções de trabalho
 
-Você está trabalhando no Nolaggy, um app para iPhone que ajuda jogadores a entender a qualidade da própria conexão antes de jogar. Trabalhe pela perspectiva de produto antes de pensar em implementação: problema, pessoa afetada, comportamento esperado, limite da promessa e evidência necessária.
+Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a entender a qualidade da própria conexão antes de jogar. Trabalhe pela perspectiva de produto antes de pensar em implementação: problema, pessoa afetada, comportamento esperado, limite da promessa e evidência necessária.
 
 ## Contexto inegociável
 
-- Marca oficial: **Nolaggy**, sempre com `nolaggy` em minúsculas na wordmark. Não usar “Nologgy”.
+- Marca oficial: **LagCheck**, sempre com `lagcheck` em minúsculas na wordmark. (Decisão 25; substitui a marca preliminar Nolaggy).
 - V1: somente iPhone, iOS 17 ou superior. Android está fora do escopo atual.
 - O app mede a rota do iPhone até uma infraestrutura de referência. Não promete ping real de um jogo sem evidência. Para console ou PC, comunica resultado como estimativa.
 - O score é determinístico, versionado e baseado em medição real. Sem respostas UDP válidas suficientes, o resultado é inconclusivo — nunca uma nota inventada, fallback HTTP/ICMP ou recomendação para jogar.
 - Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check) e `GET /v1/catalog.json` (catálogo remoto assinado em Debug) — ver `docs/12` e `docs/14`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.
-- Jogos no catálogo não exibem capa oficial, logo, personagem ou arte licenciada de terceiros. A identidade visual é uma miniatura neutra do Nolaggy; o nome localizado do jogo é a identificação primária (`docs/18`).
+- Jogos no catálogo não exibem capa oficial, logo, personagem ou arte licenciada de terceiros. A identidade visual é uma miniatura neutra do LagCheck; o nome localizado do jogo é a identificação primária (`docs/18`).
 - Publicidade não existe no MVP1: nenhum SDK, ID ou espaço reservado de anúncio entra no binário atual. A regra vale para quando o MVP1.1 for autorizado: banner apenas em Home e Histórico; nunca bloqueia medição, score, resultado, histórico ou ação essencial (`docs/01` §11).
 - O app suporta PT-BR e inglês desde a V1.
 
@@ -49,6 +49,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `22` | Nova jornada com lista nativa e Quick Check automático em background | decisão aprovada pelo dono do produto; em especificação e implementação pelo time |
 | `23` | Dicas de conexão com Gemini após Deep Check (CTA e checklist de otimização) | decisão aprovada para especificação e implementação |
 | `24` | Adoção definitiva do Design System Apple Games Editorial Hub (SF Pro nativo, TabView 4 abas, Hero Carousel, Shelf) | decidido e implementado |
+| `25` | Adoção da nova marca LagCheck e identidade visual Pulse Gauge Coral Solar | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

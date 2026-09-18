@@ -1,27 +1,27 @@
-# Nolaggy — documentação funcional
+# LagCheck — documentação funcional
 
 **Status:** rascunho inicial para V1  
 **Idioma do documento:** PT-BR  
 **Sistema mínimo:** iOS 17  
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
-> **Decisão de plataforma:** o Nolaggy nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
+> **Decisão de plataforma:** o LagCheck nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
 >
-> **Motivo registrado (2026-09-10):** a escolha é de viabilidade de distribuição, não de validação de público-alvo. Testar no Android exige closed testing de 14 dias com 12 usuários antes de qualquer disponibilização mais ampla — fricção desproporcional para um time pequeno validando um conceito. A App Store permite lançar e iterar de forma mais direta. **Isso não significa que o público iPhone BR/US seja quem mais sente a dor que o Nolaggy resolve** — jogadores em Android, dados móveis limitados e Wi-Fi doméstico compartilhado provavelmente têm mais incerteza sobre a própria conexão do que o público iPhone típico desses dois mercados. A equipe aceita conscientemente que a V1 valida o conceito e a qualidade técnica nesse subconjunto, não a tese completa de mercado do produto. Quando o Android entrar em escopo, os aprendizados de retenção e comportamento da V1 devem ser tratados como indicativos, não como prova de que funcionam para o público de maior necessidade.
+> **Motivo registrado (2026-09-10):** a escolha é de viabilidade de distribuição, não de validação de público-alvo. Testar no Android exige closed testing de 14 dias com 12 usuários antes de qualquer disponibilização mais ampla — fricção desproporcional para um time pequeno validando um conceito. A App Store permite lançar e iterar de forma mais direta. **Isso não significa que o público iPhone BR/US seja quem mais sente a dor que o LagCheck resolve** — jogadores em Android, dados móveis limitados e Wi-Fi doméstico compartilhado provavelmente têm mais incerteza sobre a própria conexão do que o público iPhone típico desses dois mercados. A equipe aceita conscientemente que a V1 valida o conceito e a qualidade técnica nesse subconjunto, não a tese completa de mercado do produto. Quando o Android entrar em escopo, os aprendizados de retenção e comportamento da V1 devem ser tratados como indicativos, não como prova de que funcionam para o público de maior necessidade.
 
 ## 1. Visão do produto
 
-Nolaggy responde, de forma simples e honesta, a uma pergunta que jogadores fazem antes de entrar em uma partida: **"minha conexão está boa para jogar isso agora?"**
+LagCheck responde, de forma simples e honesta, a uma pergunta que jogadores fazem antes de entrar em uma partida: **"minha conexão está boa para jogar isso agora?"**
 
-O aplicativo mede a qualidade da rota de rede do dispositivo até regiões de infraestrutura gamer relevantes para o jogo selecionado. Em vez de apresentar um painel técnico de banda larga, transforma a medição em uma conclusão imediata, o **Nolaggy Score**, explica qualquer risco de lag e permite investigar quando necessário.
+O aplicativo mede a qualidade da rota de rede do dispositivo até regiões de infraestrutura gamer relevantes para o jogo selecionado. Em vez de apresentar um painel técnico de banda larga, transforma a medição em uma conclusão imediata, o **LagCheck Score**, explica qualquer risco de lag e permite investigar quando necessário.
 
-Nolaggy não promete otimizar rota, acelerar a conexão, substituir uma VPN gamer ou medir o ping exato de um jogo quando não houver um destino oficial que permita isso.
+LagCheck não promete otimizar rota, acelerar a conexão, substituir uma VPN gamer ou medir o ping exato de um jogo quando não houver um destino oficial que permita isso.
 
 ## 2. Problema que resolve
 
 Jogadores normalmente descobrem uma conexão ruim no meio da partida. Aplicativos de speed test privilegiam download e upload, métricas que não explicam sozinhas responsividade, picos de latência, instabilidade ou perda de pacotes em jogos.
 
-Nolaggy reduz essa incerteza antes da partida. Ele avalia latência, estabilidade e perda para uma região gamer compatível com o jogo, comunica o grau de confiança da estimativa e indica o próximo passo quando a qualidade não for suficiente.
+LagCheck reduz essa incerteza antes da partida. Ele avalia latência, estabilidade e perda para uma região gamer compatível com o jogo, comunica o grau de confiança da estimativa e indica o próximo passo quando a qualidade não for suficiente.
 
 ## 3. Público e contexto de uso
 
@@ -49,7 +49,7 @@ A V1 inclui:
 - escolha de plataforma: iPhone, PlayStation, Xbox, PC e Nintendo;
 - Quick Check;
 - Deep Check;
-- Nolaggy Score determinístico;
+- LagCheck Score determinístico;
 - identificação de causa de lag e recomendação prática;
 - detecção de picos de latência;
 - comparação entre regiões gamer;
@@ -75,7 +75,7 @@ Ficam explicitamente fora da V1:
 
 | Conceito | Definição para o usuário |
 | --- | --- |
-| Nolaggy Score | Nota resumida da qualidade da conexão para o contexto selecionado. |
+| LagCheck Score | Nota resumida da qualidade da conexão para o contexto selecionado. |
 | Quick Check | Checagem curta para decidir se vale jogar agora. |
 | Deep Check | Investigação mais completa de estabilidade e comportamento sob carga. |
 | Região gamer | Região de infraestrutura usada como referência para avaliar a rota. Não é necessariamente o servidor do jogo. |
@@ -197,7 +197,7 @@ Para cada jogo, o usuário vê o último score, evolução recente e, após dado
 
 ### 7.8 Navegação e configurações
 
-O controle no topo da Home e do Histórico abre Configurações como uma tela própria, nunca uma gaveta lateral. Configurações usa a lista agrupada nativa do iPhone, sobre o fundo visual do Nolaggy, e concentra o acesso ao Histórico. O Histórico não abre como modal. Nas telas de jornada, a wordmark permanece centralizada e os controles de navegação ocupam a mesma altura.
+O controle no topo da Home e do Histórico abre Configurações como uma tela própria, nunca uma gaveta lateral. Configurações usa a lista agrupada nativa do iPhone, sobre o fundo visual do LagCheck, e concentra o acesso ao Histórico. O Histórico não abre como modal. Nas telas de jornada, a wordmark permanece centralizada e os controles de navegação ocupam a mesma altura.
 
 Configurações mostra o idioma do sistema, permite apagar o histórico local mediante confirmação, identifica a versão instalada e oferece Suporte e Política de privacidade. Os endereços de suporte e privacidade são configurados por ambiente de build e precisam estar públicos e funcionais antes da submissão à App Store. Não há conta no MVP1, portanto apagar histórico não é apresentado como exclusão de conta.
 
@@ -205,7 +205,7 @@ Notificações, publicidade, UMP, ATT e “Opções de privacidade” permanecem
 
 ## 8. Critérios de confiança e linguagem honesta
 
-Nolaggy deve explicitar internamente o tipo de alvo medido e traduzir isso em confiança proporcional. A UI normal usa linguagem simples; detalhes técnicos ficam na tela de detalhes.
+LagCheck deve explicitar internamente o tipo de alvo medido e traduzir isso em confiança proporcional. A UI normal usa linguagem simples; detalhes técnicos ficam na tela de detalhes.
 
 | Nível | Situação | Confiança | Como comunicar |
 | --- | --- | --- | --- |
@@ -249,7 +249,7 @@ A classificação de um jogo tem três objetivos diferentes e não intercambiáv
 | Classificação | Finalidade | Impacto no produto |
 | --- | --- | --- |
 | Categoria de descoberta | Ajudar a pessoa a encontrar o jogo. | Organiza busca e Home: FPS, Battle Royale, MOBA, Casual e Cloud. |
-| Perfil de exigência de rede | Definir quanto latência, jitter, perda e spikes afetam a experiência. | Seleciona os limites do Nolaggy Score, as causas e os textos de recomendação. |
+| Perfil de exigência de rede | Definir quanto latência, jitter, perda e spikes afetam a experiência. | Seleciona os limites do LagCheck Score, as causas e os textos de recomendação. |
 | Estratégia de medição | Definir quais regiões e destinos podem representar o jogo naquele mercado. | Define o alvo do teste, a confiança e a linguagem de precisão permitida. |
 
 Um jogo pode pertencer a uma única categoria principal de descoberta e ter múltiplas etiquetas secundárias, mas deve ter **um único perfil de rede ativo por combinação de jogo, plataforma e mercado**. Isso impede que o mesmo teste seja avaliado contra regras conflitantes.
@@ -347,7 +347,7 @@ Cada resultado precisa guardar e poder exibir as métricas abaixo. Os valores s�
 - O Quick Check planeja até 30 probes, com timeout de 2 segundos por probe. Com pelo menos 10 respostas válidas, gera score e contabiliza os timeouts como perda. Com menos de 10 respostas válidas, o resultado é **inconclusivo**, não uma nota baixa.
 - O MVP não troca UDP por HTTP ou ICMP quando os probes falham. Sem respostas UDP suficientes, o app explica que não foi possível medir a rota gamer naquela conexão e sugere tentar outra rede.
 - O Deep Check calcula as métricas de repouso e sob carga separadamente. Nunca usa as duas fases como uma única distribuição.
-- Mudança de caminho de rede, interrupção explícita, erro do destino ou quantidade insuficiente de amostras torna o teste cancelado ou inconclusivo; não gera Nolaggy Score.
+- Mudança de caminho de rede, interrupção explícita, erro do destino ou quantidade insuficiente de amostras torna o teste cancelado ou inconclusivo; não gera LagCheck Score.
 - Cada resultado persiste versão do perfil, região, tipo de alvo e versão da fórmula. Isso torna histórico e suporte auditáveis quando o catálogo evoluir.
 
 #### Regras de apresentação
@@ -361,7 +361,7 @@ Cada resultado precisa guardar e poder exibir as métricas abaixo. Os valores s�
 
 #### Regras de score e guardrails
 
-O **Nolaggy Score** varia de 0 a 100 e é uma avaliação do contexto selecionado, não um indicador genérico de internet. Ele combina componentes de latência, estabilidade, perda e spikes, ponderados pelo perfil de rede do jogo.
+O **LagCheck Score** varia de 0 a 100 e é uma avaliação do contexto selecionado, não um indicador genérico de internet. Ele combina componentes de latência, estabilidade, perda e spikes, ponderados pelo perfil de rede do jogo.
 
 No Deep Check, o score principal continua representando a conexão em repouso. A fase sob carga gera uma leitura separada de **impacto sob carga**, expressa pelo aumento de latência e pela classificação de estabilidade. Ela nunca reescreve o score de repouso; o resultado pode, por exemplo, mostrar "92 — Excelente em repouso" e "Sob carga: +67 ms, risco de lag".
 
@@ -432,7 +432,7 @@ Guardrails deste perfil:
 
 ## 11. Monetização — arco MVP1 → MVP1.1 → MVP2
 
-**Decisão registrada (2026-09-10):** a monetização do Nolaggy segue um arco em três etapas, não um modelo único fixado desde já.
+**Decisão registrada (2026-09-10):** a monetização do LagCheck segue um arco em três etapas, não um modelo único fixado desde já.
 
 1. **MVP1 — sem monetização.** Nenhuma biblioteca de anúncio, SDK de consentimento, unidade de anúncio, identificador publicitário ou preço entra no binário inicial. O objetivo do MVP1 é validar medição, catálogo e qualidade técnica, não receita.
 2. **MVP1.1 — anúncios como ponte.** Banner discreto em Home e Histórico (regras completas abaixo), suficiente para cobrir operação enquanto o produto ainda está provando conceito, sem exigir compromisso de compra do usuário.
@@ -444,7 +444,7 @@ Nada neste arco compromete os princípios de §8 e §9: confiança do resultado,
 
 Publicidade não faz parte do MVP1 e nenhuma biblioteca de anúncio, SDK de consentimento, unidade de anúncio ou identificador publicitário entra no binário inicial. O app pode ser distribuído sem anúncios enquanto a medição, o catálogo e a promessa de resultado são validados.
 
-No MVP1.1, o Nolaggy poderá ser monetizado com anúncios sem comprometer a confiança na medição ou atrasar a resposta que trouxe a pessoa ao app.
+No MVP1.1, o LagCheck poderá ser monetizado com anúncios sem comprometer a confiança na medição ou atrasar a resposta que trouxe a pessoa ao app.
 
 Formato previsto para o MVP1.1: **banner discreto apenas na Home e no Histórico**. Não haverá anúncio em tela cheia, anúncio recompensado ou publicidade na tela de resultado.
 
@@ -458,7 +458,7 @@ Regras do MVP1.1:
 - Um anúncio nunca cobre latência ao vivo, estado do teste, resultado, causa de lag, recomendação ou ações de "Testar novamente", "Ver detalhes" e "Fazer Deep Check".
 - Anúncios só aparecem na Home e no Histórico, em área reservada e sem deslocar ou cobrir conteúdo essencial.
 - Publicidade não altera score, classificação, confiança, catálogo de jogos nem recomendação. A mesma medição produz o mesmo resultado com ou sem anúncio.
-- O app identifica conteúdos patrocinados de forma clara e não apresenta anúncio como sugestão técnica do Nolaggy.
+- O app identifica conteúdos patrocinados de forma clara e não apresenta anúncio como sugestão técnica do LagCheck.
 - A experiência UMP de consentimento/privacidade é avaliada antes da inicialização do AdMob quando exigida pelo mercado. Ela preserva as regras acima e está disponível em PT-BR e inglês quando for exibida ao usuário.
 
 Anúncios recompensados e qualquer recurso que venda "otimização" ficam fora de escopo em qualquer versão. Assinatura paga fica fora do MVP1 e do MVP1.1; ela é a aposta de monetização principal do MVP2, conforme §11.
@@ -467,10 +467,10 @@ Anúncios recompensados e qualquer recurso que venda "otimização" ficam fora d
 
 - Dark mode é a experiência visual principal, sem estética gamer estereotipada, excesso de neon, gauges ou muitos cards.
 - O jogo é o protagonista; a ferramenta de rede fica em segundo plano.
-- Capas dos jogos trazem cor e contexto. O Nolaggy Score é o elemento visual distintivo de resultado.
+- Capas dos jogos trazem cor e contexto. O LagCheck Score é o elemento visual distintivo de resultado.
 - A linguagem é direta e útil: o que aconteceu, o que isso significa para a partida e o que fazer agora.
 - A interface suporta PT-BR e inglês desde a V1. Isso inclui onboarding eventual, estados de erro, resultados, detalhes, histórico, privacidade/consentimento e identificação publicitária.
-- A marca oficial é **Nolaggy**. O wordmark é a assinatura principal; o "gg" em forma de infinito é o símbolo compacto da marca.
+- A marca oficial é **LagCheck**. O wordmark é a assinatura principal; o "gg" em forma de infinito é o símbolo compacto da marca.
 
 ## 13. Critérios de aceite do MVP
 

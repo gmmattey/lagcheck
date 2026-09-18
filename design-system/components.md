@@ -1,17 +1,17 @@
-# Nolaggy — inventário de componentes (`NolaggyDesign`)
+# LagCheck — inventário de componentes (`LagCheckDesign`)
 
-Companion de [`docs/04-design-system.md`](../docs/04-design-system.md). Cada componente abaixo documenta anatomia, variantes, estados e a API SwiftUI pretendida para o módulo `NolaggyDesign`. Todos os valores citados (cor, espaçamento, raio, tipografia, motion) referenciam os tokens semânticos de `design-system/tokens/` — nenhum valor mágico.
+Companion de [`docs/04-design-system.md`](../docs/04-design-system.md). Cada componente abaixo documenta anatomia, variantes, estados e a API SwiftUI pretendida para o módulo `LagCheckDesign`. Todos os valores citados (cor, espaçamento, raio, tipografia, motion) referenciam os tokens semânticos de `design-system/tokens/` — nenhum valor mágico.
 
 Convenções de leitura: **Anatomia** lista as partes visuais; **Variantes** são configurações escolhidas por quem usa o componente; **Estados** são condições que o próprio componente gerencia ou recebe como binding; **API** é a assinatura pública pretendida.
 
 ---
 
-## `NolaggyScore`
+## `LagCheckScore`
 
 Elemento visual distintivo de qualquer resultado. Nunca aparece sem uma classificação textual associada.
 
 **Anatomia**
-- Anel de progresso (`NLSizing.nolaggyScore.ring.*`, espessura `ringStrokeWidth.*`), cor = cor semântica do score.
+- Anel de progresso (`NLSizing.lagcheckScore.ring.*`, espessura `ringStrokeWidth.*`), cor = cor semântica do score.
 - Número do score, estilo `scoreDisplay` (SF Pro Display bold).
 - Selo/rótulo de classificação ("Excelente", "Risco de lag"...), estilo `headline`, cor semântica.
 - Frase-resumo opcional abaixo (estilo `body`, `text.secondary`) — usada no resultado principal, omitida na variante `compact`.
@@ -31,7 +31,7 @@ Elemento visual distintivo de qualquer resultado. Nunca aparece sem uma classifi
 
 **API SwiftUI pretendida**
 ```swift
-public struct NolaggyScore: View {
+public struct LagCheckScore: View {
     public enum Style { case hero, standard, compact }
     public enum Outcome {
         case revealed(score: Int, classification: NLScoreClassification)
@@ -46,7 +46,7 @@ public struct NolaggyScore: View {
     )
 }
 ```
-- `accessibilityLabel` combina score, classificação e resumo em uma única leitura ("Nolaggy Score 92, Excelente, pronto para jogar").
+- `accessibilityLabel` combina score, classificação e resumo em uma única leitura ("LagCheck Score 92, Excelente, pronto para jogar").
 - Anima com `NLMotion.scoreReveal`; síncrono (sem contagem) quando Reduzir Movimento está ativo.
 
 ---
@@ -71,7 +71,7 @@ public struct NolaggyScore: View {
 **Estados**
 - `.measuring(phaseLabel)` — loop ativo (`NLMotion.patterns.measurementPulse`).
 - `.networkChanged` — transição imediata para `StatusMessage.cancelled`, o `MeasurementPulse` não permanece visível.
-- `.finishing` — pequena transição de saída antes de `NolaggyScore` assumir a tela.
+- `.finishing` — pequena transição de saída antes de `LagCheckScore` assumir a tela.
 
 **API SwiftUI pretendida**
 ```swift
@@ -141,7 +141,7 @@ O jogo é o protagonista — a capa do jogo domina visualmente o componente; a r
 **Anatomia**
 - Arte de capa (`aspectRatio` 3:4, raio `avatarOrGameArt`).
 - Nome do jogo, estilo `subheadline`, sobre ou abaixo da arte conforme variante.
-- Selo de score compacto opcional (`NolaggyScore.compact` sem frase-resumo) ou texto "Testar Fortnite de novo" quando há histórico recente.
+- Selo de score compacto opcional (`LagCheckScore.compact` sem frase-resumo) ou texto "Testar Fortnite de novo" quando há histórico recente.
 - Badge de categoria opcional (`captionStrong`, ex.: "Battle Royale").
 
 **Variantes**
@@ -168,7 +168,7 @@ public struct GameTile: View {
         artwork: Image,
         style: Style,
         categoryBadge: LocalizedStringKey? = nil,
-        lastScore: NolaggyScore.Outcome? = nil,
+        lastScore: LagCheckScore.Outcome? = nil,
         availability: Availability = .available,
         isSelected: Bool = false,
         action: () -> Void
@@ -366,9 +366,9 @@ public struct StatusMessage: View {
     )
 }
 ```
-- `.inconclusive` e `.cancelled` nunca renderizam ao lado de um `NolaggyScore` — são mutuamente exclusivos na composição da tela de resultado (reforça a regra "sem score para inconclusivo/cancelado").
-- **Composição aprovada para o piloto:** após o cabeçalho com voltar e o contexto jogo/região, renderizar somente `StatusMessage` centralizado em uma superfície `background.raised` com borda `border.subtle`. Não renderizar `NolaggyScore`, `MetricRow`, `LatencyGraph`, `InsightBanner` ou CTA de Deep Check/detalhes. Em `.inconclusive`, usar a mensagem “Não conseguimos dados suficientes para avaliar sua conexão. Tente novamente em instantes.” e a ação “Tentar novamente”. Em `.cancelled`, explicar o motivo aplicável, declarar que a leitura parcial foi descartada e usar “Reiniciar teste”.
-- No piloto, a moldura acima inclui a wordmark oficial `nolaggy` ao lado do retorno. A mensagem é anunciada antes da ação de recuperação; o botão mantém alvo de 44pt e permanece navegável separadamente por VoiceOver. Mensagem, título da ação e hint são localizáveis em PT-BR e inglês.
+- `.inconclusive` e `.cancelled` nunca renderizam ao lado de um `LagCheckScore` — são mutuamente exclusivos na composição da tela de resultado (reforça a regra "sem score para inconclusivo/cancelado").
+- **Composição aprovada para o piloto:** após o cabeçalho com voltar e o contexto jogo/região, renderizar somente `StatusMessage` centralizado em uma superfície `background.raised` com borda `border.subtle`. Não renderizar `LagCheckScore`, `MetricRow`, `LatencyGraph`, `InsightBanner` ou CTA de Deep Check/detalhes. Em `.inconclusive`, usar a mensagem “Não conseguimos dados suficientes para avaliar sua conexão. Tente novamente em instantes.” e a ação “Tentar novamente”. Em `.cancelled`, explicar o motivo aplicável, declarar que a leitura parcial foi descartada e usar “Reiniciar teste”.
+- No piloto, a moldura acima inclui a wordmark oficial `lagcheck` ao lado do retorno. A mensagem é anunciada antes da ação de recuperação; o botão mantém alvo de 44pt e permanece navegável separadamente por VoiceOver. Mensagem, título da ação e hint são localizáveis em PT-BR e inglês.
 - Dynamic Type suporta AX1–AX5 sem truncar a mensagem ou a ação. Com Reduzir Movimento, a entrada/substituição do cartão usa somente transição curta de opacidade; o estado é identificável por texto e ícone, sem depender de movimento.
 
 ---
@@ -414,7 +414,7 @@ public struct EmptyState: View {
 **Anatomia**
 - Moldura com fundo `surfaceAd.background`, raio `adSlot`.
 - Rótulo "Anúncio"/"Ad" (`surfaceAd.label`), sempre visível, `caption`.
-- Slot de conteúdo (a view nativa do Google Mobile Ads é injetada por `Features`/`App`; o módulo `NolaggyDesign` nunca importa o SDK).
+- Slot de conteúdo (a view nativa do Google Mobile Ads é injetada por `Features`/`App`; o módulo `LagCheckDesign` nunca importa o SDK).
 - Placeholder vazio com a mesma altura reservada quando não há anúncio carregado.
 
 **Variantes**

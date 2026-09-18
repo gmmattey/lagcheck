@@ -1,4 +1,4 @@
-# Nolaggy — sistema de design (V1)
+# LagCheck — sistema de design (V1)
 
 **Status:** rascunho implementation-ready para V1
 **Idioma do documento:** PT-BR
@@ -9,7 +9,7 @@
 
 Este documento não altera nem substitui os três documentos funcionais/técnicos existentes. Ele traduz as regras de produto já fechadas (Seções 7, 11 e 12 do documento funcional; Seção 9 da arquitetura) em um sistema visual consistente e implementável.
 
-> **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do Nolaggy para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
+> **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
 
 > **Paridade de interface:** o protótipo canônico e a especificação de design adotam a direção editorial nativa Apple Games (ver `docs/21` e `docs/24`). A implementação iPhone busca paridade 1:1 com seus estados nativos (SF Pro, TabView 4 abas, Hero Carousel, Inset Cards 12pt).
 
@@ -17,18 +17,18 @@ Este documento não altera nem substitui os três documentos funcionais/técnico
 
 ## 1. Direção visual
 
-Nolaggy é uma ferramenta de decisão, não um painel de rede. A interface deve parecer **premium, calma e confiável** — mais próxima de um app de saúde/performance de qualidade do que de um HUD gamer. Três princípios guiam toda decisão visual:
+LagCheck é uma ferramenta de decisão, não um painel de rede. A interface deve parecer **premium, calma e confiável** — mais próxima de um app de saúde/performance de qualidade do que de um HUD gamer. Três princípios guiam toda decisão visual:
 
-1. **Conclusão antes das métricas.** Em qualquer tela de resultado, o olho deve encontrar primeiro o Nolaggy Score e a classificação, depois a explicação, e só depois os números. Nenhum layout pode inverter essa ordem.
+1. **Conclusão antes das métricas.** Em qualquer tela de resultado, o olho deve encontrar primeiro o LagCheck Score e a classificação, depois a explicação, e só depois os números. Nenhum layout pode inverter essa ordem.
 2. **O jogo é o protagonista; a rede fica em segundo plano.** Arte de capa dos jogos, nomes e contexto de jogo recebem destaque visual. Indicadores técnicos (latência, jitter, perda) são tratados como conteúdo de apoio, nunca como o elemento mais chamativo da tela.
 3. **Sem estética gamer clichê.** Não há RGB espalhado, gauges/velocímetros, neon, gradientes cyberpunk, excesso de cards empilhados ("card soup") ou molduras agressivas. O azul elétrico é usado como **acento estratégico** — símbolo da marca, ações primárias, estado selecionado, gráfico de latência — nunca como cor de fundo de tela inteira nem em múltiplos elementos simultâneos na mesma vista.
 
 ### 1.1 Wordmark e regras da marca
 
-- Marca oficial: **Nolaggy** (nunca "Nologgy" ou variações).
-- Wordmark em minúsculas: `nolaggy`.
+- Marca oficial: **LagCheck** (nunca "Nologgy" ou variações).
+- Wordmark em minúsculas: `lagcheck`.
 - O `gg` do wordmark é substituído pelo **símbolo compacto**: duas argolas entrelaçadas em gradiente azul elétrico, lidas como um infinito e como conexão contínua ("less lag, more play, together always" é o território de mensagem, não um claim a ser impresso no produto).
-- O símbolo compacto (`design-system/assets/brand/symbol-compact.svg`) pode ser usado isoladamente como marca d'água, favicon, ícone de app ou selo, sempre que o texto completo "nolaggy" não couber.
+- O símbolo compacto (`design-system/assets/brand/symbol-compact.svg`) pode ser usado isoladamente como marca d'água, favicon, ícone de app ou selo, sempre que o texto completo "lagcheck" não couber.
 - **Não usar símbolo ™️ ou ®️** em nenhum artefato de produto desta V1.
 - Área de proteção mínima ao redor do wordmark e do símbolo: altura de uma letra "o" do próprio wordmark (medida no SVG-fonte), em todos os lados.
 - Tamanho mínimo de exibição: wordmark completo não deve ser reproduzido abaixo de 96pt de largura; símbolo compacto isolado não deve ser reproduzido abaixo de 20pt (equivalente ao ícone de notificação iOS).
@@ -51,7 +51,7 @@ Todos os SVGs são os vetores oficiais aprovados da marca, sem fonte externa ref
 
 ## 2. Modo de cor
 
-**Dark mode é a única experiência da V1.** O app não implementa um tema claro. O ativo oficial `AppBackground` é o fundo único de todas as telas: um gradiente azul-marinho profundo, protegido por uma sobreposição de `background.base` para preservar contraste. Não recriar esse fundo com cores ou gradientes soltos em features. Isso simplifica o contraste do Nolaggy Score e reforça a identidade "sala escura, foco no jogo".
+**Dark mode é a única experiência da V1.** O app não implementa um tema claro. O ativo oficial `AppBackground` é o fundo único de todas as telas: um gradiente azul-marinho profundo, protegido por uma sobreposição de `background.base` para preservar contraste. Não recriar esse fundo com cores ou gradientes soltos em features. Isso simplifica o contraste do LagCheck Score e reforça a identidade "sala escura, foco no jogo".
 
 Consequências práticas para implementação:
 
@@ -70,12 +70,12 @@ Ver `design-system/tokens/colors.json` para os valores exatos e a estrutura `cor
 | Fundo | `background.raised` / `background.overlay` | Cards, sheets, banners — camadas de profundidade sem sombra pesada. |
 | Texto | `text.primary` / `text.secondary` / `text.tertiary` | Hierarquia de leitura. |
 | Acento | `accent.primary` | Azul elétrico — CTA, símbolo da marca, seleção ativa. Uso estratégico, não decorativo. |
-| Score | `score.excellent` / `score.unstable` / `score.lagRisk` / `score.neutral` | Cores semânticas do Nolaggy Score (Seção 4). |
+| Score | `score.excellent` / `score.unstable` / `score.lagRisk` / `score.neutral` | Cores semânticas do LagCheck Score (Seção 4). |
 | Gráfico | `graph.line` / `graph.fillTop` / `graph.spike` / `graph.spikeSevere` | Paleta dedicada do LatencyGraph. |
 
 Regra de uso: **no máximo uma ocorrência de `accent.primary` em destaque por tela** (ex.: um botão primário OU o símbolo da marca no header, não ambos competindo). Score e gráfico têm paletas próprias e não competem com o acento de marca.
 
-## 4. Cores semânticas do Nolaggy Score
+## 4. Cores semânticas do LagCheck Score
 
 O score (0–100) e sua classificação textual (Seção 10.5 do funcional) usam sempre a mesma cor semântica, nunca uma escala contínua de matiz (evita leitura tipo "gauge"/semáforo RGB):
 
@@ -89,19 +89,19 @@ O score (0–100) e sua classificação textual (Seção 10.5 do funcional) usam
 
 Regras de aplicação:
 
-- A cor semântica se aplica ao anel/traço do `NolaggyScore`, ao selo de classificação e a ícones de estado relacionados (ex.: ícone de alerta em `InsightBanner` quando a causa é crítica).
+- A cor semântica se aplica ao anel/traço do `LagCheckScore`, ao selo de classificação e a ícones de estado relacionados (ex.: ícone de alerta em `InsightBanner` quando a causa é crítica).
 - **Nunca** usar essas cores para decoração fora do contexto de resultado (por exemplo, não usar `score.lagRisk` como cor de erro genérico de formulário — erros de UI usam `text.primary`/`border.strong` com ícone, não a paleta de score).
 - Resultado inconclusivo ou cancelado nunca recebe uma cor de "nota baixa": usa sempre `score.neutral`, reforçando a regra de produto de que inconclusivo não é uma nota ruim.
 - Em `MeasurementPulse` (durante o teste, antes de haver score), usa-se `accent.primary`, nunca uma cor de score — a classificação só existe após o encerramento válido da sessão.
-- Na tela final do piloto, inconclusivo e cancelado não usam `NolaggyScore`: a composição é `StatusMessage` em tom neutro, sem nota, classificação, métricas parciais, insight ou recomendação para jogar. O estado só oferece uma ação segura de recuperação.
+- Na tela final do piloto, inconclusivo e cancelado não usam `LagCheckScore`: a composição é `StatusMessage` em tom neutro, sem nota, classificação, métricas parciais, insight ou recomendação para jogar. O estado só oferece uma ação segura de recuperação.
 
 ## 5. Tipografia
 
-Oxanium é a fonte de destaque experimental do Nolaggy — títulos, score, categorias e ações — para trazer uma leitura tecnológica com mais presença, sem reproduzir a fonte proprietária de outra marca. O arquivo embarcado é distribuído sob SIL Open Font License 1.1 e sua cópia acompanha o app em `Resources/Fonts/Oxanium-OFL.txt`. SF Pro continua nos textos de leitura e explicações. Ambas as camadas usam Dynamic Type. A escala completa está em `design-system/tokens/typography.json`.
+Oxanium é a fonte de destaque experimental do LagCheck — títulos, score, categorias e ações — para trazer uma leitura tecnológica com mais presença, sem reproduzir a fonte proprietária de outra marca. O arquivo embarcado é distribuído sob SIL Open Font License 1.1 e sua cópia acompanha o app em `Resources/Fonts/Oxanium-OFL.txt`. SF Pro continua nos textos de leitura e explicações. Ambas as camadas usam Dynamic Type. A escala completa está em `design-system/tokens/typography.json`.
 
 Diretrizes principais:
 
-- `scoreDisplay` (64pt, bold, design `.rounded`) é reservado exclusivamente ao número do Nolaggy Score. Nenhum outro número do produto usa esse estilo.
+- `scoreDisplay` (64pt, bold, design `.rounded`) é reservado exclusivamente ao número do LagCheck Score. Nenhum outro número do produto usa esse estilo.
 - `headline` carrega a classificação textual ("Excelente", "Risco de lag") sempre imediatamente abaixo do score, nunca antes dele na ordem de leitura/DOM.
 - Textos de causa e recomendação usam `body`; nunca usam ênfase de cor da paleta de score (a cor já está no score/selo — repetir a cor no texto reduz legibilidade e pode falhar contraste).
 - Métricas técnicas (`MetricRow`, `Detalhes`) usam `bodyEmphasis` para o rótulo e `subheadlineSecondary` para o valor, mantendo uma hierarquia discreta e não competindo com o score.
@@ -117,7 +117,7 @@ Diretrizes principais:
 
 Dark UI não usa sombras pesadas como recurso primário de profundidade. A hierarquia visual vem primeiro de **camadas de superfície** (`background.base` → `raised` → `overlay`) e só secundariamente de sombra sutil + borda de 1pt (`design-system/tokens/shadow.json`, níveis `level0`–`level3`).
 
-- O halo (`glow.scoreAccent`) atrás do `NolaggyScore` é opcional, sempre sutil (24% de opacidade, blur alto) e colorido pela cor semântica do score — nunca um brilho neon saturado.
+- O halo (`glow.scoreAccent`) atrás do `LagCheckScore` é opcional, sempre sutil (24% de opacidade, blur alto) e colorido pela cor semântica do score — nunca um brilho neon saturado.
 - Quando "Reduzir Transparência" está ativo no iOS, sombra e halo são substituídos por uma borda sólida de 1pt (`reduceTransparencyFallback`), sem blur.
 
 ## 8. Motion
@@ -137,14 +137,14 @@ Acessibilidade é requisito de lançamento, não um passe de revisão posterior 
 ### 9.1 Dynamic Type
 
 - Todo texto de produto usa os estilos semânticos de `typography.json`, que mapeiam para text styles nativos do sistema e escalam automaticamente, incluindo os tamanhos de acessibilidade AX1–AX5.
-- O layout do resultado (`NolaggyScore` + classificação + `MetricRow`s) muda de composição horizontal para vertical automaticamente a partir de `DynamicTypeSize.accessibility3`, evitando truncamento do score ou das métricas.
+- O layout do resultado (`LagCheckScore` + classificação + `MetricRow`s) muda de composição horizontal para vertical automaticamente a partir de `DynamicTypeSize.accessibility3`, evitando truncamento do score ou das métricas.
 - `minimumScaleFactor` é proibido em texto de decisão (score, classificação, texto de ação). É permitido, com piso de 0.8, apenas em rótulos curtos de badge (ex.: tag de plataforma) onde o truncamento comprometeria mais a leitura do que a leve redução de escala.
 - Nenhum componente do Quick Check limita score, RTT, classificação, mensagem de estado ou CTA a um subconjunto de tamanhos de acessibilidade. AX1–AX5 é o intervalo obrigatório; quando necessário, `ViewThatFits` ou composição vertical substitui redução, corte ou truncamento.
 
 ### 9.2 VoiceOver
 
 - Ordem de leitura de VoiceOver segue a ordem visual e a regra de produto: score → classificação → frase-resumo → métricas → ações. Nenhum container agrupa esses elementos de forma que a leitura pule a conclusão.
-- `NolaggyScore` expõe um `accessibilityLabel` único e completo (ex.: "Nolaggy Score 92, Excelente, pronto para jogar"), evitando que VoiceOver leia número e classificação como dois elementos desconexos.
+- `LagCheckScore` expõe um `accessibilityLabel` único e completo (ex.: "LagCheck Score 92, Excelente, pronto para jogar"), evitando que VoiceOver leia número e classificação como dois elementos desconexos.
 - `MeasurementPulse` expõe estado textual do progresso ("Medindo latência", "Verificando estabilidade", "Procurando picos de lag") como `accessibilityValue`, atualizado a cada mudança de fase, para que quem usa VoiceOver acompanhe o teste sem depender do gráfico.
 - `LatencyGraph` expõe um resumo textual equivalente (mediana, pior spike, contagem de spikes) via `accessibilityLabel`, já que o gráfico em si não é navegável ponto a ponto.
 - Todo alvo interativo respeita o mínimo de 44×44pt (`tokens/sizing.json`), independentemente do tamanho visual do ícone.
@@ -182,7 +182,7 @@ Quando o MVP1.1 for autorizado, aplicar estas regras de layout:
 - A área é **reservada em layout desde o primeiro render**, com a altura do token `bannerAdSlot.heightStandard` (50pt) ou `heightLarge` (90pt) conforme o tamanho adaptativo retornado pelo SDK, para que o carregamento do anúncio nunca desloque conteúdo já visível (sem "layout shift").
 - Se o anúncio falhar ao carregar, a área permanece reservada e vazia (fundo `surfaceAd.background`) — o layout ao redor não deve recolher o espaço nem re-fluir.
 - O `BannerAdSlot` nunca cobre, sobrepõe ou fica adjacente sem margem (`adSlotMargin`) a: latência ao vivo, estado do teste, score, classificação, causa, recomendação, ou as ações "Testar novamente" / "Ver detalhes" / "Fazer Deep Check".
-- Rótulo de identificação publicitária (`surfaceAd.label`, ex.: "Anúncio"/"Ad") é sempre visível, nunca estilizado para se parecer com conteúdo do Nolaggy.
+- Rótulo de identificação publicitária (`surfaceAd.label`, ex.: "Anúncio"/"Ad") é sempre visível, nunca estilizado para se parecer com conteúdo do LagCheck.
 
 ## 12. Inventário de componentes
 
@@ -190,7 +190,7 @@ Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`desig
 
 | Componente | Papel |
 | --- | --- |
-| `NolaggyScore` | Exibição do score (anel + número + classificação). Elemento visual distintivo do resultado. |
+| `LagCheckScore` | Exibição do score (anel + número + classificação). Elemento visual distintivo do resultado. |
 | `MeasurementPulse` | Indicador vivo de medição em andamento (Quick/Deep Check). |
 | `LatencyGraph` | Gráfico vivo/histórico de latência com marcação de spikes. |
 | `GameTile` | Item compacto de jogo para a seleção da Home: card de altura fixa com nome centralizado e categoria como legenda abaixo, sem ilustração genérica repetida. O nome localizado é a identificação primária. |
@@ -205,7 +205,7 @@ O jogo selecionado na Home usa apenas uma mudança suave de superfície e halo a
 
 ### Navegação de retorno
 
-Configurações abre como tela própria pelo ícone de ajustes, nunca por gaveta lateral. A tela usa `List` agrupada do iPhone, preservando o fundo visual do Nolaggy; Histórico, preferências, privacidade e informações do app seguem a hierarquia nativa. O fundo do app é um degradê contínuo da escala de azuis do produto, sem ilustração ou textura, para não competir com a jornada.
+Configurações abre como tela própria pelo ícone de ajustes, nunca por gaveta lateral. A tela usa `List` agrupada do iPhone, preservando o fundo visual do LagCheck; Histórico, preferências, privacidade e informações do app seguem a hierarquia nativa. O fundo do app é um degradê contínuo da escala de azuis do produto, sem ilustração ou textura, para não competir com a jornada.
 
 Na vitrine de jogos, a busca começa como uma lupa no canto superior direito. Ao tocar, ela se expande no mesmo eixo para o campo nativo de texto e revela os filtros de categoria; fechar a busca limpa texto e filtros, devolve a lupa e não ocupa espaço permanente na Home. Na Home, a wordmark fica alinhada à esquerda e busca e Ajustes são agrupados à direita em uma única cápsula Glass, com lupa seguida de reticências. Isso evita controles circulares concorrendo com a marca e preserva dois alvos independentes de 44 pt.
 
@@ -234,7 +234,7 @@ Referência de MVP1.1, fora do inventário e dos gates visuais do MVP1: `BannerA
 ### 12.1 Recorte aprovado do piloto de Quick Check
 
 - O piloto tem um único jogo, uma única região e contexto iPhone fixo. Não apresenta seleção de console/PC nem nota de estimativa de equipamento externo.
-- A tela de medição reproduz o cabeçalho, jogo, região, ping atual, pulso/progresso, `LatencyGraph` vivo, perda, picos e fase textual do protótipo canônico. O cabeçalho com retorno inclui sempre a wordmark oficial `nolaggy`; ele não pode ser substituído por título vazio. O ping atual é conteúdo de acompanhamento da medição, não um score.
+- A tela de medição reproduz o cabeçalho, jogo, região, ping atual, pulso/progresso, `LatencyGraph` vivo, perda, picos e fase textual do protótipo canônico. O cabeçalho com retorno inclui sempre a wordmark oficial `lagcheck`; ele não pode ser substituído por título vazio. O ping atual é conteúdo de acompanhamento da medição, não um score.
 - O botão de voltar durante a medição é um cancelamento explícito: interrompe a sessão e descarta todos os dados parciais antes de mostrar o estado cancelado.
 - As ações de Deep Check e de detalhes não são renderizadas no resultado do piloto. Não há botão desabilitado, placeholder ou ação sem destino.
 - Resultado saudável e resultado com risco mantêm a ordem score, classificação, conclusão, evidência, métricas e insight. A distância `resultConclusionToMetrics` continua obrigatória.
@@ -242,13 +242,13 @@ Referência de MVP1.1, fora do inventário e dos gates visuais do MVP1: `BannerA
 - Cancelamento por voltar, troca de rede ou ciclo de vida mostra `StatusMessage.cancelled`: explica o motivo aplicável, confirma o descarte da leitura parcial e oferece “Reiniciar teste”.
 - A matriz completa de composição, divergências aprovadas e gate de acessibilidade do piloto está em [`10-decisao-experiencia-piloto.md`](./10-decisao-experiencia-piloto.md). Ela não substitui a validação visual/interativa exigida antes de declarar paridade.
 
-## 13. Convenções do módulo SwiftUI `NolaggyDesign`
+## 13. Convenções do módulo SwiftUI `LagCheckDesign`
 
-`NolaggyDesign` é um Swift Package/módulo local, sem dependência de rede, UI ou domínio de medição — importável por `Features` e por `App`, nunca o contrário.
+`LagCheckDesign` é um Swift Package/módulo local, sem dependência de rede, UI ou domínio de medição — importável por `Features` e por `App`, nunca o contrário.
 
 ```text
-NolaggyDesign/
-├── Sources/NolaggyDesign/
+LagCheckDesign/
+├── Sources/LagCheckDesign/
 │   ├── Tokens/          // enums/structs gerados a partir de design-system/tokens/*.json
 │   │   ├── NLColor.swift
 │   │   ├── NLTypography.swift
@@ -260,17 +260,17 @@ NolaggyDesign/
 │   ├── Components/      // um arquivo por componente do inventário da Seção 12
 │   ├── Brand/           // wordmark e símbolo como Image/Shape SwiftUI, gerados a partir dos SVGs-fonte
 │   └── Previews/        // SwiftUI Previews cobrindo todas as variantes/estados de cada componente
-└── Tests/NolaggyDesignTests/
+└── Tests/LagCheckDesignTests/
     └── SnapshotTests/   // snapshots por componente, incluindo Dynamic Type grande e Reduzir Movimento
 ```
 
 Convenções obrigatórias:
 
-1. **Tokens primeiro, valores mágicos nunca.** Nenhuma `Feature` referencia um hex, ponto de espaçamento, raio, duração ou tamanho de fonte diretamente — sempre via `NolaggyDesign.NL*`. Um valor numérico solto em uma view de `Features/` é considerado bug de design system.
+1. **Tokens primeiro, valores mágicos nunca.** Nenhuma `Feature` referencia um hex, ponto de espaçamento, raio, duração ou tamanho de fonte diretamente — sempre via `LagCheckDesign.NL*`. Um valor numérico solto em uma view de `Features/` é considerado bug de design system.
 2. **Nomenclatura**: tipos públicos do módulo usam o prefixo `NL` (`NLColor`, `NLButtonStyle`, `NLScoreRing`) para não colidir com tipos do SwiftUI/domínio e para deixar explícito, em qualquer arquivo, quando algo vem do design system.
 3. **Um arquivo por componente do inventário**, com a View pública, seus modificadores de variante/estado e um `#Preview` cobrindo todas as combinações relevantes (ver `components.md` para a lista de variantes/estados por componente).
 4. **Dark mode fixo dentro do módulo**: componentes não devem ler `colorScheme`; todo token já resolve para o valor único da V1. Isso mantém o módulo pronto para, no futuro, ganhar um segundo tema sem reescrever componentes — mas essa extensão não faz parte do escopo desta V1.
 5. **Acessibilidade embutida no componente, não em quem o consome.** `accessibilityLabel`, `accessibilityValue`, tamanho mínimo de toque e comportamento em Dynamic Type grande são responsabilidade do componente (Seção 9), não recriados em cada tela que o usa.
 6. **Motion via tokens nomeados** (`NLMotion.scoreReveal`, etc.), nunca `withAnimation(.easeInOut(duration: 0.3))` solto em `Features`. Cada API de componente que anima expõe o estado final de forma síncrona quando `UIAccessibility.isReduceMotionEnabled` é verdadeiro.
-7. **Sem SDKs externos no módulo.** `NolaggyDesign` não importa Google Mobile Ads, SwiftData, Network nem nenhum adaptador de `Infrastructure`. `BannerAdSlot` é apenas uma referência visual futura do MVP1.1; não há componente, reserva de layout ou injeção de SDK a implementar no MVP1. Se essa frente for autorizada, a `View` do SDK deverá ficar fora do módulo, em `Features`/`App`, via closure ou `UIViewRepresentable`.
+7. **Sem SDKs externos no módulo.** `LagCheckDesign` não importa Google Mobile Ads, SwiftData, Network nem nenhum adaptador de `Infrastructure`. `BannerAdSlot` é apenas uma referência visual futura do MVP1.1; não há componente, reserva de layout ou injeção de SDK a implementar no MVP1. Se essa frente for autorizada, a `View` do SDK deverá ficar fora do módulo, em `Features`/`App`, via closure ou `UIViewRepresentable`.
 8. **Geração a partir dos tokens JSON**: os arquivos em `Tokens/` devem ser gerados (manual ou por script) a partir de `design-system/tokens/*.json`, preservando os mesmos nomes semânticos (`NLColor.scoreExcellent`, `NLSpacing.resultConclusionToMetrics`, etc.), para que designer e engenheiro leiam o mesmo vocabulário nos dois lados.

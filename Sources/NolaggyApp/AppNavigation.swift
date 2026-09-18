@@ -54,7 +54,7 @@ struct NolaggyAppHeader: View {
                 .renderingMode(.original)
                 .scaledToFit()
                 .frame(width: 110, height: 30)
-                .accessibilityLabel(Text("nolaggy"))
+                .accessibilityLabel(Text("LagCheck"))
             Spacer()
             if let openSearch {
                 NolaggyHeaderActionGroup(openSettings: openSettings, openSearch: openSearch)

@@ -1,12 +1,12 @@
-# Nolaggy — voz do produto
+# LagCheck — voz do produto
 
 **Status:** regra de comunicação da V1  
 **Idiomas:** PT-BR e inglês  
 **Documentos relacionados:** [Funcional](./01-funcional.md) · [Sistema de design](./04-design-system.md) · [Governança](./05-governanca-e-fluxo-de-trabalho.md)
 
-## 1. A voz do Nolaggy
+## 1. A voz do LagCheck
 
-Nolaggy fala de forma **direta, calma e precisa**. É um parceiro que entende que a pessoa quer jogar, traduz o que a rede mostrou e ajuda a decidir o próximo passo — sem dramatizar uma oscilação e sem inventar uma certeza.
+LagCheck fala de forma **direta, calma e precisa**. É um parceiro que entende que a pessoa quer jogar, traduz o que a rede mostrou e ajuda a decidir o próximo passo — sem dramatizar uma oscilação e sem inventar uma certeza.
 
 Não fala como operadora de internet, streamer, gamer caricato ou painel técnico. Não precisa provar que é inteligente usando jargão. Sua credibilidade vem de dizer com clareza o que foi medido, o que isso pode significar na partida e o que vale fazer agora.
 
@@ -115,7 +115,7 @@ Não chamar o achado de “bufferbloat” na mensagem principal. O termo técnic
 ## 6. Regras de localização
 
 - PT-BR é a referência de intenção e precisa soar natural no Brasil; inglês é escrito para soar natural, não espelhado literalmente.
-- Nomes de produto permanecem: `Nolaggy Score`, `Quick Check` e `Deep Check`.
+- Nomes de produto permanecem: `LagCheck Score`, `Quick Check` e `Deep Check`.
 - Unidade e número seguem a localidade do sistema quando aplicável. Siglas técnicas, como `ms` e `%`, permanecem estáveis.
 - Texto de ação é curto. A interface deve acomodar PT-BR como caso de expansão, mas a copy não pode depender de truncamento.
 - Toda string nova passa por revisão de produto e design quando altera conclusão, risco, recomendação, consentimento ou confiança.

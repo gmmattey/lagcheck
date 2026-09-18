@@ -1,0 +1,52 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="p2-title p2-desc">
+  <title id="p2-title">LagCheck App Icon — Proposta 2 (Pulse Gauge)</title>
+  <desc id="p2-desc">Ícone do app LagCheck com o icônico anel de score determinístico e pulso dinâmico de rede em gradiente Apple Cyan e Azul.</desc>
+  <defs>
+    <!-- Fundo Escuro Profundo -->
+    <radialGradient id="p2-bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#08182B" />
+      <stop offset="60%" stop-color="#030812" />
+      <stop offset="100%" stop-color="#000000" />
+    </radialGradient>
+    
+    <!-- Gradiente do Anel de Performance (Verde Estável -> Azul Conexão) -->
+    <linearGradient id="p2-ring-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34C759" />
+      <stop offset="45%" stop-color="#30B0C7" />
+      <stop offset="100%" stop-color="#007AFF" />
+    </linearGradient>
+
+    <!-- Gradiente do Check Interno -->
+    <linearGradient id="p2-check-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E5F1FF" />
+    </linearGradient>
+
+    <filter id="p2-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="32" flood-color="#007AFF" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Fundo do Ícone (1024x1024) -->
+  <rect width="1024" height="1024" rx="224" fill="url(#p2-bg)" />
+  <rect width="1024" height="1024" rx="224" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+
+  <!-- Grupo Central do Anel e Pulso -->
+  <g transform="translate(512, 512)" filter="url(#p2-shadow)">
+    <!-- Trilha Escura do Anel (Fundo) -->
+    <path d="M -170 170 A 240 240 0 1 1 170 170" 
+          fill="none" stroke="#1C1C1E" stroke-width="52" stroke-linecap="round" />
+
+    <!-- Anel Ativo em Gradiente (Score / Desempenho) -->
+    <path d="M -170 170 A 240 240 0 1 1 130 200" 
+          fill="none" stroke="url(#p2-ring-grad)" stroke-width="52" stroke-linecap="round" />
+
+    <!-- Pulso Dinâmico Central (Latência Estável + Checkmark) -->
+    <path d="M -150 15 L -60 15 L -20 -60 L 30 70 L 65 -15 L 140 -15" 
+          fill="none" stroke="url(#p2-ring-grad)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
+
+    <!-- Checkmark Forte Central de Confirmação -->
+    <path d="M -70 10 L -10 70 L 110 -50" 
+          fill="none" stroke="url(#p2-check-grad)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

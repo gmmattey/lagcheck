@@ -1,6 +1,6 @@
-# Nolaggy — Site Estático Local (Suporte e Privacidade)
+# LagCheck — Site Estático Local (Suporte e Privacidade)
 
-Este diretório contém a página web estática local do **Nolaggy**, construída especificamente para atender aos requisitos de publicação da Apple App Store:
+Este diretório contém a página web estática local do **LagCheck**, construída especificamente para atender aos requisitos de publicação da Apple App Store:
 1. **Página de Suporte** publicamente acessível (`/support`).
 2. **Política de Privacidade** publicamente acessível (`/privacy`).
 
@@ -84,7 +84,7 @@ O script testará:
 
 ## Diretrizes de Marca e Design
 
-- **Marca:** Nolaggy.
+- **Marca:** LagCheck.
 - **Wordmark:** `nolaggy` em minúsculas com o símbolo duplo-g estilizado em gradiente azul elétrico.
 - **Estética:** Dark mode premium, sério e calmo. Sem elementos cyberpunk ou gamer estereotipado.
 - **Acessibilidade:**
@@ -98,6 +98,6 @@ O script testará:
 
 ## Suposições e Decisões Tomadas
 
-1. **Contato de Suporte:** Como não há endereço de e-mail institucional oficial registrado nos documentos do repositório, foi utilizado `suporte@nolaggy.app` e `privacidade@nolaggy.app`, **claramente identificados visualmente com alertas destacados como "Canal provisório a ser configurado oficialmente antes do lançamento público na App Store"**.
+1. **Contato de Suporte:** Como não há endereço de e-mail institucional oficial registrado nos documentos do repositório, foi utilizado `suporte@lagcheck.app` e `privacidade@lagcheck.app`, **claramente identificados visualmente com alertas destacados como "Canal provisório a ser configurado oficialmente antes do lançamento público na App Store"**.
 2. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
-3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Nolaggy.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.
+3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `LagCheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.

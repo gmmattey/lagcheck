@@ -1,4 +1,4 @@
-# Nolaggy — governança e fluxo de trabalho
+# LagCheck — governança e fluxo de trabalho
 
 **Status:** regra operacional do projeto  
 **Idioma:** PT-BR  
@@ -7,7 +7,7 @@
 
 ## 1. Objetivo
 
-Esta governança existe para manter o Nolaggy simples, confiável e coerente enquanto sai do papel. Ela separa claramente uma conversa exploratória de uma decisão de produto e uma decisão de uma mudança executável.
+Esta governança existe para manter o LagCheck simples, confiável e coerente enquanto sai do papel. Ela separa claramente uma conversa exploratória de uma decisão de produto e uma decisão de uma mudança executável.
 
 O objetivo não é criar burocracia. É evitar três erros caros: prometer precisão que a medição não entrega, transformar uma tela em uma solução visual isolada e alterar a fundação técnica sem saber o impacto no resultado para o jogador.
 
@@ -63,7 +63,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 
 - Nenhuma tela segue para desenvolvimento sem objetivo, fluxo e estados de carregamento, vazio, erro, cancelamento e sucesso necessários.
 - A direção Wordmark Focus é preservada: fundo navy profundo, azul elétrico com parcimônia e sem estética gamer genérica, neon excessivo ou “card soup”.
-- A wordmark `nolaggy` é a marca principal. O símbolo `gg` isolado é reservado a espaços reduzidos e usos aprovados, como App Icon.
+- A wordmark `lagcheck` é a marca principal. O símbolo `gg` isolado é reservado a espaços reduzidos e usos aprovados, como App Icon.
 - Tokens são a fonte de verdade. Valor de cor, espaço, raio, tipografia ou sombra solto na tela exige revisão de design.
 - Marca, ícones e artes vêm de arquivo-fonte aprovado e versionado. Não se redesenha, deforma, recolore ou adiciona efeito ad hoc a um asset.
 - Todo fluxo cumpre contraste adequado, alvo de toque de pelo menos 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor.

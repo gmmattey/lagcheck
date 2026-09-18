@@ -1,4 +1,4 @@
-# Nolaggy — fluxo de release
+# LagCheck — fluxo de release
 
 **Status:** regra operacional da V1  
 **Idioma:** PT-BR  
@@ -7,7 +7,7 @@
 
 ## 1. Objetivo
 
-Este fluxo define como o Nolaggy sai da máquina de desenvolvimento, passa por TestFlight e chega à App Store sem confundir estados diferentes de entrega.
+Este fluxo define como o LagCheck sai da máquina de desenvolvimento, passa por TestFlight e chega à App Store sem confundir estados diferentes de entrega.
 
 Uma instalação local não é beta. Um build enviado ao App Store Connect não é distribuído. Um build distribuído pelo TestFlight não é produção. Um build aprovado pela Apple não está publicado até que a opção de release escolhida seja executada.
 
@@ -23,7 +23,7 @@ O simulador ajuda a validar interface e lógica isolada, mas não substitui inst
 
 ## 3. Regra de versionamento
 
-O Nolaggy usa dois identificadores obrigatórios.
+O LagCheck usa dois identificadores obrigatórios.
 
 | Identificador | Formato | Onde aparece | Regra |
 | --- | --- | --- | --- |
@@ -152,7 +152,7 @@ Nas primeiras 48 horas, o time acompanha:
 - comportamento do catálogo remoto e fallback;
 - avaliações que indiquem problema recorrente de promessa ou compreensão.
 
-O Nolaggy não coleta telemetria própria no MVP1. A observação usa dados agregados do App Store Connect e feedback voluntário, respeitando a documentação funcional.
+O LagCheck não coleta telemetria própria no MVP1. A observação usa dados agregados do App Store Connect e feedback voluntário, respeitando a documentação funcional.
 
 ## 7. Correção urgente e rollback
 

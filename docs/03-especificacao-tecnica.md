@@ -1,4 +1,4 @@
-# Nolaggy — especificação técnica do MVP
+# LagCheck — especificação técnica do MVP
 
 **Status:** rascunho técnico inicial  
 **Aplicativo:** iPhone, iOS 17 ou superior  
@@ -25,7 +25,7 @@ Não entram no MVP1: Android, conta, sincronização, VPN/otimização de rota, 
 ## 2. Organização do código iOS
 
 ```text
-Nolaggy/
+LagCheck/
 ├── App/                 composição, ciclo de vida e dependências
 ├── Features/            Home, Game, Measurement, Result, Details, History, Settings
 ├── Domain/              modelos, NGQE, regras, resolvedor de contexto e interpretações
@@ -205,7 +205,7 @@ Plano de amostragem:
 | Deep, repouso | Primária e alternativa, se existir | 2 probes/s por região | 15 s | 30 por região |
 | Deep, carga | Primária | 2 probes/s | 15 s | 30 |
 
-O timeout de cada probe é 2 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de 10 respostas válidas na região primária, a sessão é `inconclusive` e não recebe Nolaggy Score.
+O timeout de cada probe é 2 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de 10 respostas válidas na região primária, a sessão é `inconclusive` e não recebe LagCheck Score.
 
 ### 5.3 Deep Check e carga controlada
 
@@ -229,7 +229,7 @@ Percentis não recebem um RTT artificial para timeout. A perda é sempre reporta
 
 ### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v1`
 
-Esta regra classifica apenas o delta observado entre os P50 válidos de repouso e carga. Ela não calcula um segundo Nolaggy Score, não altera o score/classe/guardrails de repouso e não infere a qualidade integral da conexão sob carga. Perda, jitter e spikes da carga continuam métricas comparativas separadas.
+Esta regra classifica apenas o delta observado entre os P50 válidos de repouso e carga. Ela não calcula um segundo LagCheck Score, não altera o score/classe/guardrails de repouso e não infere a qualidade integral da conexão sob carga. Perda, jitter e spikes da carga continuam métricas comparativas separadas.
 
 | Entrada | Regra |
 | --- | --- |

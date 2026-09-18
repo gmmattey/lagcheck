@@ -1,4 +1,4 @@
-# Nolaggy — arquitetura do MVP
+# LagCheck — arquitetura do MVP
 
 **Status:** rascunho inicial para V1  
 **Plataforma inicial:** iPhone (iOS 17 ou superior)  
@@ -10,18 +10,18 @@
 
 ## 1. Objetivo arquitetural
 
-O Nolaggy deve entregar uma avaliação confiável da experiência de jogo no iPhone com o mínimo de infraestrutura própria. A arquitetura privilegia medição no dispositivo, resultado determinístico, privacidade por padrão e evolução do catálogo sem publicação de uma nova versão.
+O LagCheck deve entregar uma avaliação confiável da experiência de jogo no iPhone com o mínimo de infraestrutura própria. A arquitetura privilegia medição no dispositivo, resultado determinístico, privacidade por padrão e evolução do catálogo sem publicação de uma nova versão.
 
 O princípio central é simples: **o app mede; o catálogo orienta; o motor interpreta; o backend não participa de cada teste**.
 
 ```mermaid
 flowchart LR
-    U[Jogador] --> A[Nolaggy no iPhone]
+    U[Jogador] --> A[LagCheck no iPhone]
     A --> C[Catálogo remoto]
     A --> P[Destinos de probe gamer]
     A --> H[Histórico local]
 
-    subgraph A[Nolaggy no iPhone]
+    subgraph A[LagCheck no iPhone]
         UI[Experiência e jornadas]
         ORQ[Orquestrador de medição]
         ENG[Motor de qualidade de jogo]
@@ -34,7 +34,7 @@ flowchart LR
 
 | Bloco | Responsabilidade | Não é responsabilidade |
 | --- | --- | --- |
-| App Nolaggy | Experiência, coleta, cálculo, explicação e histórico. | Depender de backend para calcular score ou armazenar cada teste. |
+| App LagCheck | Experiência, coleta, cálculo, explicação e histórico. | Depender de backend para calcular score ou armazenar cada teste. |
 | Catálogo remoto | Cloudflare Worker gratuito que publica jogos, perfis, regiões, limites e flags versionados. | Receber telemetria de probes ou decidir o score de uma sessão. |
 | Destinos de probe | Responder às medições de rede permitidas para uma região. | Conhecer usuário, jogo selecionado ou persistir resultado. |
 
@@ -75,7 +75,7 @@ O **Measurement Session Coordinator** é o dono do ciclo de uma medição. Ele g
 - agregação de amostras e validação de sessão;
 - cálculo de P50, P95, P99, jitter, perda, spikes, consistência e comportamento sob carga;
 - aplicação dos pesos, limites e guardrails do perfil;
-- geração do Nolaggy Score, classificação, causa principal, recomendação e confiança;
+- geração do LagCheck Score, classificação, causa principal, recomendação e confiança;
 - comparação de regiões quando esse modo for habilitado pelo catálogo.
 
 O domínio recebe dados de entrada tipados e devolve um resultado completo. Não acessa UI, armazenamento, HTTP, UDP nem estado global do iOS.

@@ -110,7 +110,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         }
         
         return """
-        Você é o assistente técnico de rede do app Nolaggy. Sua missão é fornecer dicas práticas e diretas para o jogador melhorar sua estabilidade de conexão.
+        Você é o assistente técnico de rede do app LagCheck. Sua missão é fornecer dicas práticas e diretas para o jogador melhorar sua estabilidade de conexão.
         \(langInstruction)
 
         DIRETRIZES DE TOM DE VOZ (INVIOLÁVEIS):

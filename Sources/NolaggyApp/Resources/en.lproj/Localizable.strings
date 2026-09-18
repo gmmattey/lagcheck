@@ -84,7 +84,7 @@
 "navigation.open_menu" = "Open menu";
 "navigation.open_settings" = "Open settings";
 "navigation.menu" = "Main menu";
-"navigation.version %@" = "Nolaggy %@";
+"navigation.version %@" = "LagCheck %@";
 "settings.title" = "Settings";
 "settings.section.preferences" = "PREFERENCES";
 "settings.section.privacy" = "PRIVACY";
@@ -108,7 +108,7 @@
 "settings.delete_history.error.action" = "OK";
 "game.unknown" = "Game";
 "history.details_accessibility" = "View measurement details";
-"history.entry_accessibility" = "Fortnite, %@, %@, Nolaggy Score %d, %@. View details.";
+"history.entry_accessibility" = "Fortnite, %@, %@, LagCheck Score %d, %@. View details.";
 "history.quick_check" = "Quick Check";
 "history.deep_check_short" = "Deep Check";
 "history.deep_check" = "Deep Check · score at rest";
@@ -166,10 +166,10 @@
 "home.latest_measurement" = "LATEST MEASUREMENT";
 "home.selected_game" = "READY TO CHECK";
 "home.retest_game %@" = "Check %@ again";
-"home.last_score %lld" = "Latest Nolaggy Score: %lld";
+"home.last_score %lld" = "Latest LagCheck Score: %lld";
 "home.seven_day_average %lld" = "7-day average: %lld";
 "quick_check.result.context" = "Fortnite · iPhone";
-"quick_check.result.score_accessibility" = "Nolaggy Score %d, %@";
+"quick_check.result.score_accessibility" = "LagCheck Score %d, %@";
 "quick_check.result.headline.excellent" = "Excellent";
 "quick_check.result.headline.great" = "Great";
 "quick_check.result.headline.unstable" = "Unstable";
