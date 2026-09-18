@@ -7,7 +7,6 @@ import NolaggyDomain
 extension QuickCheckFeatureView {
     var measurementView: some View {
         VStack(spacing: NLSpacing.xl) {
-            header(title: nil, showsBack: true)
             Spacer(minLength: NLSpacing.xs)
             VStack(spacing: NLSpacing.xs) {
                 Text("quick_check.measuring.title")
@@ -43,6 +42,12 @@ extension QuickCheckFeatureView {
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
         .toolbar(.hidden, for: .tabBar)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NolaggyBackButton(action: back, accessibilityIdentifier: "quick-check-back")
+            }
+        }
     }
 
     var observedMetrics: ObservedMeasurementMetrics {

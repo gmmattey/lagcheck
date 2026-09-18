@@ -13,45 +13,45 @@ struct HistoryView: View {
     var showsBackHeader: Bool = true
 
     var body: some View {
-        VStack(spacing: 0) {
-            if showsBackHeader {
-                NolaggyBackHeader(action: returnToHome, accessibilityIdentifier: "history-back")
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            }
-            ScrollView {
-                VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                    Text("history.title")
-                        .font(NLTypography.displayTitle)
-                        .foregroundStyle(NLColor.textPrimary)
-                    if entries.isEmpty {
-                        VStack(spacing: NLSpacing.md) {
-                            Text("history.empty")
-                                .font(NLTypography.body)
-                                .foregroundStyle(NLColor.textSecondary)
-                            PrimaryButton(title: "history.first_check", action: returnToHome)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
-                    } else {
-                        historySummary
-                        ForEach(entries) { entry in
-                            VStack(spacing: NLSpacing.sm) {
-                                NavigationLink {
-                                    MeasurementDetailsView(entry: entry, samples: [])
-                                } label: {
-                                    HistoryCard(entry: entry, gameName: gameName(entry))
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(historyAccessibilityLabel(entry))
-                                PrimaryButton(title: retryTitle(entry), style: .secondaryOutline, action: { retry(entry) })
-                                    .accessibilityLabel(Text(retryTitle(entry)))
+        ScrollView {
+            VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                if entries.isEmpty {
+                    VStack(spacing: NLSpacing.md) {
+                        Text("history.empty")
+                            .font(NLTypography.body)
+                            .foregroundStyle(NLColor.textSecondary)
+                        PrimaryButton(title: "history.first_check", action: returnToHome)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
+                } else {
+                    historySummary
+                    ForEach(entries) { entry in
+                        VStack(spacing: NLSpacing.sm) {
+                            NavigationLink {
+                                MeasurementDetailsView(entry: entry, samples: [])
+                            } label: {
+                                HistoryCard(entry: entry, gameName: gameName(entry))
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(historyAccessibilityLabel(entry))
+                            PrimaryButton(title: retryTitle(entry), style: .secondaryOutline, action: { retry(entry) })
+                                .accessibilityLabel(Text(retryTitle(entry)))
                         }
                     }
                 }
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, NLSpacing.lg)
             }
-            .background(NolaggyScreenBackground())
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .padding(.vertical, NLSpacing.lg)
+        }
+        .background(NolaggyScreenBackground())
+        .navigationTitle(Text("history.title"))
+        .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
+        .toolbar {
+            if showsBackHeader {
+                ToolbarItem(placement: .topBarLeading) {
+                    NolaggyBackButton(action: returnToHome, accessibilityIdentifier: "history-back")
+                }
+            }
         }
         .preferredColorScheme(.dark)
     }

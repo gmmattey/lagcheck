@@ -16,8 +16,6 @@ extension QuickCheckFeatureView {
         )
         return ScrollView {
             VStack(spacing: NLSpacing.xl) {
-                header(title: nil, showsBack: true)
-
                 VStack(spacing: NLSpacing.sm) {
                     NolaggyScore(
                         outcome: .revealed(
@@ -114,6 +112,12 @@ extension QuickCheckFeatureView {
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)
             .toolbar(.hidden, for: .tabBar)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NolaggyBackButton(action: back, accessibilityIdentifier: "quick-check-back")
+                }
+            }
         }
     }
 

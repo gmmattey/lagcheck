@@ -44,6 +44,7 @@ struct MeasurementDetailsView: View {
         }
         .background(NolaggyScreenBackground())
         .navigationTitle(Text("details.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.hidden, for: .navigationBar)

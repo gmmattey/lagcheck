@@ -5,6 +5,28 @@ import NolaggyDomain
 
 // MARK: - Home header and status
 
+struct HomeRefreshButton: View {
+    let refreshAccessibilityLabel: String
+    let isMeasuring: Bool
+    let refresh: () -> Void
+
+    var body: some View {
+        Button(action: refresh) {
+            Image(systemName: "arrow.clockwise")
+                .font(NLTypography.navigationIcon)
+                .foregroundStyle(isMeasuring ? NLColor.textTertiary : NLColor.accentPrimary)
+                .rotationEffect(.degrees(isMeasuring ? 360 : 0))
+                .animation(isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isMeasuring)
+                .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                .background(NLColor.backgroundRaised, in: Circle())
+                .overlay(Circle().stroke(NLColor.borderStrong, lineWidth: 1))
+        }
+        .disabled(isMeasuring)
+        .accessibilityLabel(refreshAccessibilityLabel)
+        .accessibilityIdentifier("home-refresh-button")
+    }
+}
+
 struct HomeHeader: View {
     let title: String
     let refreshAccessibilityLabel: String
@@ -15,19 +37,11 @@ struct HomeHeader: View {
         HStack {
             Text(title).font(NLTypography.displayTitle).foregroundStyle(NLColor.textPrimary)
             Spacer()
-            Button(action: refresh) {
-                Image(systemName: "arrow.clockwise")
-                    .font(NLTypography.navigationIcon)
-                    .foregroundStyle(isMeasuring ? NLColor.textTertiary : NLColor.accentPrimary)
-                    .rotationEffect(.degrees(isMeasuring ? 360 : 0))
-                    .animation(isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isMeasuring)
-                    .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                    .background(NLColor.backgroundRaised, in: Circle())
-                    .overlay(Circle().stroke(NLColor.borderStrong, lineWidth: 1))
-            }
-            .disabled(isMeasuring)
-            .accessibilityLabel(refreshAccessibilityLabel)
-            .accessibilityIdentifier("home-refresh-button")
+            HomeRefreshButton(
+                refreshAccessibilityLabel: refreshAccessibilityLabel,
+                isMeasuring: isMeasuring,
+                refresh: refresh
+            )
         }
     }
 }
@@ -264,8 +278,9 @@ struct HomeCatalogView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.md) {
-                Text(title).font(NLTypography.displayTitle).foregroundStyle(NLColor.textPrimary).padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.xs)
-                HomeCatalogSearch(query: $query, placeholder: searchPlaceholder, clearAccessibilityLabel: clearSearchAccessibilityLabel).padding(.horizontal, NLSpacing.md)
+                HomeCatalogSearch(query: $query, placeholder: searchPlaceholder, clearAccessibilityLabel: clearSearchAccessibilityLabel)
+                    .padding(.horizontal, NLSpacing.md)
+                    .padding(.top, NLSpacing.xs)
                 HomeCatalogFilters(selected: $selectedCategory, categories: categories, title: categoryTitle)
                 HomeCatalogList(games: games, categoryTitle: gameCategoryTitle, scoreState: scoreState, score: score, latency: latency, inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel, select: select)
                     .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
@@ -273,6 +288,8 @@ struct HomeCatalogView: View {
         }
         .scrollContentBackground(.hidden)
         .safeAreaPadding(.bottom, NLSpacing.md)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 

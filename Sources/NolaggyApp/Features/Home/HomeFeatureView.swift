@@ -11,14 +11,12 @@ extension QuickCheckFeatureView {
     var discoveryView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                HomeHeader(title: localizedString("navigation.home"), refreshAccessibilityLabel: localizedString("home.refresh.accessibility"), isMeasuring: isBackgroundMeasuring, refresh: startBackgroundQuickCheck)
-                    .padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.xs)
-
                 if remoteCatalog == nil {
                     catalogUnavailable.padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.lg)
                 } else {
                     HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, isMeasuring: isBackgroundMeasuring, wifiBandText: networkWiFiBandText)
                         .padding(.horizontal, NLSpacing.md)
+                        .padding(.top, NLSpacing.xs)
                     HomeHeroSection(title: localizedString("home.featured"), games: featuredGames, categoryTitle: categoryTitle(for:), statusTitle: heroStatusText(for:), latency: gameScoreLatencyText(for:), score: gameScoreNumber(for:), scoreLabel: localizedString("home.score"), detail: localizedString("home.hero.detail"), select: { selectedGameForDetails = $0 })
                     HomeShelfSection(title: localizedString("home.popular"), games: shelfGames, categoryTitle: categoryTitle(for:), detail: shelfDetailText(for:), detailColor: shelfDetailColor(for:), score: gameScoreNumber(for:), select: { selectedGameForDetails = $0 })
                     HomeGameListSection(title: localizedString("home.all_games"), games: availableGames, categoryTitle: categoryTitle(for:), platform: localizedString("quick_check.context.platform"), scoreState: scoreState(for:), select: { selectedGameForDetails = $0 })
@@ -29,6 +27,17 @@ extension QuickCheckFeatureView {
         .scrollContentBackground(.hidden)
         .refreshable { startBackgroundQuickCheck() }
         .safeAreaPadding(.bottom, NLSpacing.md)
+        .navigationTitle(localizedString("navigation.home"))
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                HomeRefreshButton(
+                    refreshAccessibilityLabel: localizedString("home.refresh.accessibility"),
+                    isMeasuring: isBackgroundMeasuring,
+                    refresh: startBackgroundQuickCheck
+                )
+            }
+        }
         .onAppear {
             if evaluatedScores.isEmpty && !isBackgroundMeasuring { startBackgroundQuickCheck() }
         }
