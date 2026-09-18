@@ -68,18 +68,20 @@ public struct NolaggyScore: View {
     }
 
     public var body: some View {
-        VStack(spacing: NLSpacing.stackGapTight) {
+        VStack(spacing: NLSpacing.sm) {
             scoreRing
             if style != .compact {
-                Text(classificationLabel ?? label)
-                    .font(NLTypography.headline)
-                    .foregroundStyle(scoreColor)
-                    .multilineTextAlignment(.center)
-                if let summary {
-                    Text(summary)
-                        .font(NLTypography.body)
-                        .foregroundStyle(NLColor.textSecondary)
+                VStack(spacing: NLSpacing.xs) {
+                    Text(classificationLabel ?? label)
+                        .font(NLTypography.headline)
+                        .foregroundStyle(scoreColor)
                         .multilineTextAlignment(.center)
+                    if let summary {
+                        Text(summary)
+                            .font(NLTypography.body)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
                 }
             }
         }

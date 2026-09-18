@@ -29,7 +29,8 @@ extension QuickCheckFeatureView {
         isBackgroundMeasuring = true
         backgroundMeasurementFailed = false
         Task { @MainActor in
-            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: firstGame.context, in: remoteCatalog) else {
+            let manualRegionID = await regionalPreferenceRepository.manualRegionID()
+            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: firstGame.context, in: remoteCatalog, manualRegionID: manualRegionID) else {
                 failBackgroundMeasurement(); return
             }
             let decision: RegionalSelectionDecision
@@ -37,7 +38,7 @@ extension QuickCheckFeatureView {
                 decision = try await coordinator.selectRegionalCandidate(
                     snapshot: snapshot,
                     using: RegionalPreReadCoordinator(collector: MeasurementTransportFactory.regionalPreReadCollector()),
-                    manualRegionID: await regionalPreferenceRepository.manualRegionID()
+                    manualRegionID: manualRegionID
                 )
             } catch { failBackgroundMeasurement(); return }
             guard case let .selected(selection) = decision else { failBackgroundMeasurement(); return }

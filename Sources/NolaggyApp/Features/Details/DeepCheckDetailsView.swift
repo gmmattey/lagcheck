@@ -22,7 +22,10 @@ struct DeepCheckDetailsView: View {
             }
             .background(NolaggyScreenBackground())
             .navigationTitle(Text("deep_check.result.details"))
+            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "deep-check-details-back")

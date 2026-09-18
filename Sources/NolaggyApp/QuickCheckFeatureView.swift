@@ -135,7 +135,7 @@ struct QuickCheckFeatureView: View {
                     }
             }
             .tabItem {
-                Label("Início", systemImage: "house.fill")
+                Label(LocalizedStringKey("navigation.home"), systemImage: "house.fill")
             }
             .tag(AppTab.home)
 
@@ -160,7 +160,7 @@ struct QuickCheckFeatureView: View {
                     }
             }
             .tabItem {
-                Label("Jogos", systemImage: "gamecontroller.fill")
+                Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
 
@@ -179,7 +179,7 @@ struct QuickCheckFeatureView: View {
                 .toolbarColorScheme(.dark, for: .navigationBar)
             }
             .tabItem {
-                Label("history.title", systemImage: "clock.arrow.circlepath")
+                Label(LocalizedStringKey("history.title"), systemImage: "clock.arrow.circlepath")
             }
             .tag(AppTab.history)
 
@@ -199,7 +199,7 @@ struct QuickCheckFeatureView: View {
                 .toolbarColorScheme(.dark, for: .navigationBar)
             }
             .tabItem {
-                Label("Ajustes", systemImage: "gearshape.fill")
+                Label(LocalizedStringKey("settings.title"), systemImage: "gearshape.fill")
             }
             .tag(AppTab.settings)
         }
@@ -281,15 +281,32 @@ struct QuickCheckFeatureView: View {
     }
 
     var regionCandidates: [RegionalReferenceCandidate] {
-        guard let remoteCatalog else { return [] }
+        guard remoteCatalog != nil else { return [] }
+        let isPt = regionLanguage.hasPrefix("pt")
         let automatic = RegionalReferenceCandidate(
             id: RegionalPreferenceIdentifiers.automatic,
-            label: NSLocalizedString("settings.region.automatic", comment: "")
+            label: NSLocalizedString("settings.region.automatic", comment: ""),
+            continentKey: nil
         )
-        let regions = remoteCatalog.regions.map { region in
-            RegionalReferenceCandidate(id: region.id, label: region.label[regionLanguage] ?? region.id)
+        let globalCandidates = GlobalProbeRegistry.allRegions.map { def in
+            RegionalReferenceCandidate(
+                id: def.id,
+                label: def.localizedLabel(isPortuguese: isPt),
+                continentKey: def.continent.localizationKey
+            )
         }
-        return [automatic] + regions
+        return [automatic] + globalCandidates
+    }
+
+    var selectedRegionFriendlyName: String {
+        guard let regionID = selectedRegionalContext?.regionID else {
+            return NSLocalizedString("quick_check.region.sao_paulo", comment: "")
+        }
+        return GlobalProbeRegistry.friendlyLabel(for: regionID, isPortuguese: regionLanguage.hasPrefix("pt"))
+    }
+
+    var selectedRegionRouteSubtitle: String {
+        String(format: NSLocalizedString("quick_check.measuring.region_format %@", comment: ""), selectedRegionFriendlyName)
     }
 
     func resolveGameContext(_ game: CatalogMeasurementJourney.Game) -> ResolvedMeasurementContext? {

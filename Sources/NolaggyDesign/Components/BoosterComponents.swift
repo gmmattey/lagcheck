@@ -20,7 +20,7 @@ public struct BoosterItemRow: View {
                 .background(NLColor.accentPrimarySubtle, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
                 .accessibilityHidden(true)
             
-            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(title)
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
@@ -28,6 +28,7 @@ public struct BoosterItemRow: View {
                 Text(detail)
                     .font(NLTypography.footnote)
                     .foregroundStyle(NLColor.textSecondary)
+                    .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

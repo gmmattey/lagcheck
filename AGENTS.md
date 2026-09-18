@@ -50,6 +50,9 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `23` | Dicas de conexão com Gemini após Deep Check (CTA e checklist de otimização) | decisão aprovada para especificação e implementação |
 | `24` | Adoção definitiva do Design System Apple Games Editorial Hub (SF Pro nativo, TabView 4 abas, Hero Carousel, Shelf) | decidido e implementado |
 | `25` | Adoção da nova marca LagCheck e identidade visual Pulse Gauge Coral Solar | decidido e implementado |
+| `26` | Teto de plataformas de console no catálogo Debug (Fortnite, Roblox, Minecraft) | decidido e implementado |
+| `27` | Diagnóstico e recomendação de frequência Wi-Fi (2.4 GHz vs 5 GHz) | decidido e em implementação |
+| `28` | Servidores de teste globais (AWS GameLift UDP Beacons), submenus por continente e rotas amigáveis | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

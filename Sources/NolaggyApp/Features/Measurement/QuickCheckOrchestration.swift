@@ -14,13 +14,14 @@ extension QuickCheckFeatureView {
     }
 
     func start() {
-        guard let remoteCatalog, let context,
-              let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog) else { return }
+        guard let remoteCatalog, let context else { return }
         regionalPresentation = .confirming
         showingRegionalSelection = true
         Task { @MainActor in
             await Task.yield()
-            await performRegionalPreRead(snapshot: snapshot, manualRegionID: await regionalPreferenceRepository.manualRegionID())
+            let manualRegionID = await regionalPreferenceRepository.manualRegionID()
+            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
     }
 
@@ -44,11 +45,12 @@ extension QuickCheckFeatureView {
     }
 
     func retryRegionalPreRead() {
-        guard let remoteCatalog, let context,
-              let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog) else { return }
+        guard let remoteCatalog, let context else { return }
         regionalPresentation = .confirming
         Task { @MainActor in
-            await performRegionalPreRead(snapshot: snapshot, manualRegionID: await regionalPreferenceRepository.manualRegionID())
+            let manualRegionID = await regionalPreferenceRepository.manualRegionID()
+            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
     }
 

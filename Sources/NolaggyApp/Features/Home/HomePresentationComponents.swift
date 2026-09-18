@@ -5,6 +5,28 @@ import NolaggyDomain
 
 // MARK: - Home header and status
 
+struct HomeRefreshButton: View {
+    let refreshAccessibilityLabel: String
+    let isMeasuring: Bool
+    let refresh: () -> Void
+
+    var body: some View {
+        Button(action: refresh) {
+            Image(systemName: "arrow.clockwise")
+                .font(NLTypography.navigationIcon)
+                .foregroundStyle(isMeasuring ? NLColor.textTertiary : NLColor.accentPrimary)
+                .rotationEffect(.degrees(isMeasuring ? 360 : 0))
+                .animation(isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isMeasuring)
+                .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                .background(NLColor.backgroundRaised, in: Circle())
+                .overlay(Circle().stroke(NLColor.borderStrong, lineWidth: 1))
+        }
+        .disabled(isMeasuring)
+        .accessibilityLabel(refreshAccessibilityLabel)
+        .accessibilityIdentifier("home-refresh-button")
+    }
+}
+
 struct HomeHeader: View {
     let title: String
     let refreshAccessibilityLabel: String
@@ -15,19 +37,11 @@ struct HomeHeader: View {
         HStack {
             Text(title).font(NLTypography.displayTitle).foregroundStyle(NLColor.textPrimary)
             Spacer()
-            Button(action: refresh) {
-                Image(systemName: "arrow.clockwise")
-                    .font(NLTypography.navigationIcon)
-                    .foregroundStyle(isMeasuring ? NLColor.textTertiary : NLColor.accentPrimary)
-                    .rotationEffect(.degrees(isMeasuring ? 360 : 0))
-                    .animation(isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isMeasuring)
-                    .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                    .background(NLColor.backgroundRaised, in: Circle())
-                    .overlay(Circle().stroke(NLColor.borderStrong, lineWidth: 1))
-            }
-            .disabled(isMeasuring)
-            .accessibilityLabel(refreshAccessibilityLabel)
-            .accessibilityIdentifier("home-refresh-button")
+            HomeRefreshButton(
+                refreshAccessibilityLabel: refreshAccessibilityLabel,
+                isMeasuring: isMeasuring,
+                refresh: refresh
+            )
         }
     }
 }
@@ -46,15 +60,15 @@ struct HomeNetworkStatusCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.md) {
-            HStack(spacing: NLSpacing.xs) {
+            HStack(spacing: NLSpacing.sm) {
                 Circle().fill(color).frame(width: 10, height: 10)
                 Text(title).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
                 if let wifiBandText {
                     Text(wifiBandText)
                         .font(NLTypography.captionStrong)
                         .foregroundStyle(wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
                         .background((wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent).opacity(0.15), in: Capsule())
                 }
                 Spacer()
@@ -134,7 +148,16 @@ private struct HomeHeroCard: View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
                 GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 340 / 240).frame(width: 340, height: 240).clipped()
-                LinearGradient(colors: [.black, .black.opacity(0.45), .clear], startPoint: .bottom, endPoint: .top)
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.0),
+                        .init(color: .black.opacity(0.3), location: 0.35),
+                        .init(color: .black.opacity(0.85), location: 0.7),
+                        .init(color: .black.opacity(0.96), location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
                 VStack {
                     HStack(alignment: .top) {
                         HStack(spacing: NLSpacing.xs) {
@@ -146,10 +169,10 @@ private struct HomeHeroCard: View {
                     }
                     .padding(NLSpacing.sm)
                     Spacer()
-                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                    VStack(alignment: .leading, spacing: NLSpacing.xs) {
                         Text(category).font(NLTypography.captionStrong).foregroundStyle(NLColor.scoreExcellent)
-                        Text(game.name).font(NLTypography.headline).foregroundStyle(.white).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                        Text(detail).font(NLTypography.footnote).foregroundStyle(.white.opacity(0.8))
+                        Text(game.name).font(NLTypography.headline).foregroundStyle(.white).lineLimit(1)
+                        Text(detail).font(NLTypography.footnote).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
                     }
                     .padding(NLSpacing.md)
                 }
@@ -196,19 +219,37 @@ private struct HomeShelfCard: View {
 
     var body: some View {
         Button(action: action) {
-            ZStack(alignment: .bottomLeading) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 150 / 190).frame(width: 150, height: 190).clipped()
-                LinearGradient(colors: [.black, .black.opacity(0.5), .clear], startPoint: .bottom, endPoint: .top)
-                VStack {
-                    HStack { Spacer(); if let score { HomeCompactScoreBadge(score: score) } }.padding(NLSpacing.xs)
-                    Spacer()
-                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-                        Text(category).font(NLTypography.captionStrong).textCase(.uppercase).foregroundStyle(NLColor.textSecondary)
-                        Text(game.name).font(NLTypography.bodyEmphasis).foregroundStyle(.white).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                        Text(detail).font(NLTypography.caption).foregroundStyle(detailColor)
+            VStack(alignment: .leading, spacing: 0) {
+                ZStack(alignment: .topTrailing) {
+                    GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 150 / 114)
+                        .frame(width: 150, height: 114)
+                        .clipped()
+                    if let score {
+                        HomeCompactScoreBadge(score: score)
+                            .padding(NLSpacing.xs)
                     }
-                    .padding(NLSpacing.sm)
                 }
+                .frame(width: 150, height: 114)
+
+                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                    Text(category)
+                        .font(NLTypography.captionStrong)
+                        .textCase(.uppercase)
+                        .foregroundStyle(NLColor.textSecondary)
+                        .lineLimit(1)
+                    Text(game.name)
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(1)
+                    Text(detail)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(detailColor)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, NLSpacing.xs)
+                .padding(.vertical, NLSpacing.xs)
+                .frame(width: 150, height: 76, alignment: .leading)
+                .background(NLColor.backgroundRaised)
             }
             .frame(width: 150, height: 190)
             .clipShape(RoundedRectangle(cornerRadius: NLRadius.card))
@@ -264,8 +305,9 @@ struct HomeCatalogView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.md) {
-                Text(title).font(NLTypography.displayTitle).foregroundStyle(NLColor.textPrimary).padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.xs)
-                HomeCatalogSearch(query: $query, placeholder: searchPlaceholder, clearAccessibilityLabel: clearSearchAccessibilityLabel).padding(.horizontal, NLSpacing.md)
+                HomeCatalogSearch(query: $query, placeholder: searchPlaceholder, clearAccessibilityLabel: clearSearchAccessibilityLabel)
+                    .padding(.horizontal, NLSpacing.md)
+                    .padding(.top, NLSpacing.xs)
                 HomeCatalogFilters(selected: $selectedCategory, categories: categories, title: categoryTitle)
                 HomeCatalogList(games: games, categoryTitle: gameCategoryTitle, scoreState: scoreState, score: score, latency: latency, inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel, select: select)
                     .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
@@ -273,6 +315,8 @@ struct HomeCatalogView: View {
         }
         .scrollContentBackground(.hidden)
         .safeAreaPadding(.bottom, NLSpacing.md)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
@@ -332,12 +376,12 @@ private struct HomeCatalogList: View {
                 Button { select(game) } label: {
                     HStack(spacing: NLSpacing.sm) {
                         GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1).frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
-                        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: NLSpacing.xs) {
                             Text(game.name).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary).lineLimit(2).fixedSize(horizontal: false, vertical: true).layoutPriority(1)
                             Text(categoryTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)
                         }
                         Spacer()
-                        HStack(spacing: NLSpacing.xs) {
+                        HStack(spacing: NLSpacing.sm) {
                             HomeCatalogScore(state: scoreState(game), score: score(game), latency: latency(game), inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel)
                             Image(systemName: "chevron.right").font(NLTypography.footnote.weight(.semibold)).foregroundStyle(NLColor.textTertiary)
                         }
