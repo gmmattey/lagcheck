@@ -74,18 +74,10 @@ public struct GameArtwork: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            VStack(spacing: NLSpacing.xs) {
-                Image(systemName: "gamecontroller")
-                    .font(.system(size: NLSizing.iconMedium, weight: .medium))
-                    .foregroundStyle(NLColor.textTertiary)
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(NLTypography.gameCover)
-                    .foregroundStyle(NLColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
-                    .padding(.horizontal, NLSpacing.sm)
-            }
+            Image(systemName: "gamecontroller")
+                .font(.system(size: NLSizing.iconMedium, weight: .medium))
+                .foregroundStyle(NLColor.textTertiary)
+                .accessibilityHidden(true)
         }
         .overlay {
             RoundedRectangle(cornerRadius: NLRadius.card)

@@ -7,6 +7,7 @@ import NolaggyDomain
 /// Apresenta o Score contextual do jogo, seletor de plataforma (iPhone, Console, PC),
 /// diagnóstico da rota de internet e acionamento de Deep Check.
 struct GameDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     let game: CatalogMeasurementJourney.Game
     let scoreState: GameRowView.ScoreState
     let evaluation: MeasurementEvaluation?
@@ -52,9 +53,15 @@ struct GameDetailView: View {
         .background(NolaggyScreenBackground())
         .navigationTitle(game.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "game-detail-back")
+            }
+        }
         .preferredColorScheme(.dark)
     }
 

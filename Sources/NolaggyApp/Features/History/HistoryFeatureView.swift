@@ -13,45 +13,45 @@ struct HistoryView: View {
     var showsBackHeader: Bool = true
 
     var body: some View {
-        VStack(spacing: 0) {
-            if showsBackHeader {
-                NolaggyBackHeader(action: returnToHome, accessibilityIdentifier: "history-back")
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            }
-            ScrollView {
-                VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                    Text("history.title")
-                        .font(NLTypography.displayTitle)
-                        .foregroundStyle(NLColor.textPrimary)
-                    if entries.isEmpty {
-                        VStack(spacing: NLSpacing.md) {
-                            Text("history.empty")
-                                .font(NLTypography.body)
-                                .foregroundStyle(NLColor.textSecondary)
-                            PrimaryButton(title: "history.first_check", action: returnToHome)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
-                    } else {
-                        historySummary
-                        ForEach(entries) { entry in
-                            VStack(spacing: NLSpacing.sm) {
-                                NavigationLink {
-                                    MeasurementDetailsView(entry: entry, samples: [])
-                                } label: {
-                                    HistoryCard(entry: entry, gameName: gameName(entry))
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(historyAccessibilityLabel(entry))
-                                PrimaryButton(title: retryTitle(entry), style: .secondaryOutline, action: { retry(entry) })
-                                    .accessibilityLabel(Text(retryTitle(entry)))
+        ScrollView {
+            VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                if entries.isEmpty {
+                    VStack(spacing: NLSpacing.md) {
+                        Text("history.empty")
+                            .font(NLTypography.body)
+                            .foregroundStyle(NLColor.textSecondary)
+                        PrimaryButton(title: "history.first_check", action: returnToHome)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
+                } else {
+                    historySummary
+                    ForEach(entries) { entry in
+                        VStack(spacing: NLSpacing.sm) {
+                            NavigationLink {
+                                MeasurementDetailsView(entry: entry, samples: [])
+                            } label: {
+                                HistoryCard(entry: entry, gameName: gameName(entry))
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(historyAccessibilityLabel(entry))
+                            PrimaryButton(title: retryTitle(entry), style: .secondaryOutline, action: { retry(entry) })
+                                .accessibilityLabel(Text(retryTitle(entry)))
                         }
                     }
                 }
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, NLSpacing.lg)
             }
-            .background(NolaggyScreenBackground())
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .padding(.vertical, NLSpacing.lg)
+        }
+        .background(NolaggyScreenBackground())
+        .navigationTitle(Text("history.title"))
+        .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
+        .toolbar {
+            if showsBackHeader {
+                ToolbarItem(placement: .topBarLeading) {
+                    NolaggyBackButton(action: returnToHome, accessibilityIdentifier: "history-back")
+                }
+            }
         }
         .preferredColorScheme(.dark)
     }
@@ -59,7 +59,7 @@ struct HistoryView: View {
     @ViewBuilder
     private var historySummary: some View {
         if let summary = MeasurementHistorySummary(entries: entries) {
-            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(gameName(summary.latest))
                     .font(NLTypography.headline)
                     .foregroundStyle(NLColor.textPrimary)
@@ -107,7 +107,7 @@ private struct HistoryCard: View {
             GameArtwork(image: nil, sourceRecordID: nil, title: gameName)
                 .frame(width: NLSizing.compactGameArtworkSide, height: NLSizing.compactGameArtworkSide)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(gameName)
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
@@ -133,13 +133,13 @@ private struct HistoryCard: View {
                         .foregroundStyle(NLColor.textSecondary)
                 }
             }
+            Spacer(minLength: NLSpacing.sm)
             Text("\(entry.result.finalScore)")
                 .font(NLTypography.bodyEmphasis)
                 .foregroundStyle(scoreColor)
                 .frame(minWidth: NLSizing.touchTarget, minHeight: NLSizing.touchTarget)
                 .background(NLColor.backgroundBase, in: Capsule())
                 .overlay { Capsule().stroke(scoreColor, lineWidth: NLStroke.hairline) }
-            Spacer()
         }
         .padding(NLSpacing.cardPadding)
         .frame(maxWidth: .infinity, minHeight: NLSizing.historyCardMinHeight, alignment: .leading)

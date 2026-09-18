@@ -249,7 +249,13 @@ private struct SettingsRow: View {
             Text(title).font(NLTypography.body).foregroundStyle(tone == .destructive ? NLColor.scoreLagRisk : NLColor.textPrimary)
             Spacer()
             if let detail { Text(detail).font(NLTypography.callout).foregroundStyle(NLColor.textSecondary).multilineTextAlignment(.trailing) }
-            if showsChevron { Image(systemName: "chevron.right").font(NLTypography.footnote.weight(.semibold)).foregroundStyle(NLColor.textSecondary).accessibilityHidden(true) }
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(NLTypography.footnote.weight(.semibold))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .accessibilityHidden(true)
+                    .padding(.leading, detail == nil ? 0 : NLSpacing.xs)
+            }
         }
         .padding(.horizontal, NLSpacing.md)
         .frame(minHeight: NLSizing.touchTarget)

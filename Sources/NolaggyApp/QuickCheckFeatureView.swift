@@ -135,7 +135,7 @@ struct QuickCheckFeatureView: View {
                     }
             }
             .tabItem {
-                Label("Início", systemImage: "house.fill")
+                Label(LocalizedStringKey("navigation.home"), systemImage: "house.fill")
             }
             .tag(AppTab.home)
 
@@ -160,7 +160,7 @@ struct QuickCheckFeatureView: View {
                     }
             }
             .tabItem {
-                Label("Jogos", systemImage: "gamecontroller.fill")
+                Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
 
@@ -179,7 +179,7 @@ struct QuickCheckFeatureView: View {
                 .toolbarColorScheme(.dark, for: .navigationBar)
             }
             .tabItem {
-                Label("history.title", systemImage: "clock.arrow.circlepath")
+                Label(LocalizedStringKey("history.title"), systemImage: "clock.arrow.circlepath")
             }
             .tag(AppTab.history)
 
@@ -199,7 +199,7 @@ struct QuickCheckFeatureView: View {
                 .toolbarColorScheme(.dark, for: .navigationBar)
             }
             .tabItem {
-                Label("Ajustes", systemImage: "gearshape.fill")
+                Label(LocalizedStringKey("settings.title"), systemImage: "gearshape.fill")
             }
             .tag(AppTab.settings)
         }

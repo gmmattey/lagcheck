@@ -19,7 +19,6 @@ struct DeepCheckResultView: View {
         let interpretation = ResultInterpreter.interpret(result.restResult, profile: profileID)
         ScrollView {
             VStack(spacing: NLSpacing.lg) {
-                NolaggyBackHeader(action: exit, accessibilityIdentifier: "deep-check-result-back")
                 NolaggyScore(
                     outcome: .revealed(score: interpretation.score, classification: classification(interpretation.scoreBand)),
                     style: .standard,
@@ -35,6 +34,12 @@ struct DeepCheckResultView: View {
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NolaggyBackButton(action: exit, accessibilityIdentifier: "deep-check-result-back")
+                }
+            }
         }
     }
 
