@@ -1,0 +1,135 @@
+import XCTest
+@testable import NolaggyApplication
+@testable import NolaggyDomain
+@testable import NolaggyInfrastructure
+
+final class ConnectionBoosterTests: XCTestCase {
+    func testVocabularyGuardrailSanitizesProhibitedGamerTerms() {
+        let text = "Com isso você tem zero lag garantido e amassou no servidor"
+        let sanitized = VocabularyGuardrail.sanitize(text)
+        
+        XCTAssertFalse(sanitized.localizedCaseInsensitiveContains("zero lag"))
+        XCTAssertFalse(sanitized.localizedCaseInsensitiveContains("garantido"))
+        XCTAssertFalse(sanitized.localizedCaseInsensitiveContains("amassou"))
+        XCTAssertTrue(sanitized.contains("conexão mais estável"))
+        XCTAssertTrue(sanitized.contains("recomendado"))
+        XCTAssertTrue(sanitized.contains("bom desempenho"))
+    }
+    
+    func testVocabularyGuardrailSanitizesActionItems() {
+        let items = [
+            BoosterActionItem(
+                category: .routerEquipment,
+                title: "Ativar Modo Turbo",
+                detail: "Garante zero-lag nas partidas."
+            )
+        ]
+        let sanitized = VocabularyGuardrail.sanitize(items: items)
+        
+        XCTAssertEqual(sanitized[0].title, "Ativar ajuste prioritário")
+        XCTAssertEqual(sanitized[0].detail, "Garante alta estabilidade nas partidas.")
+    }
+    
+    @MainActor
+    func testCoordinatorCachesAdviceForSameRequest() async {
+        let mockService = MockBoosterService()
+        let coordinator = ConnectionBoosterCoordinator(service: mockService)
+        
+        let request = ConnectionBoosterRequest(
+            gameName: "Fortnite",
+            platform: .iphone,
+            networkKind: .wifi,
+            p50Milliseconds: 25.0,
+            jitterMilliseconds: 2.0,
+            packetLossRate: 0.0,
+            loadImpactMilliseconds: 5.0,
+            locale: "pt-BR"
+        )
+        
+        await coordinator.loadAdvice(for: request)
+        XCTAssertEqual(mockService.callCount, 1)
+        
+        // Segunda chamada para a mesma medição deve bater no cache
+        await coordinator.loadAdvice(for: request)
+        XCTAssertEqual(mockService.callCount, 1)
+        
+        if case let .loaded(advice) = coordinator.state {
+            XCTAssertEqual(advice.gameName, "Fortnite")
+            XCTAssertEqual(advice.items.count, 1)
+        } else {
+            XCTFail("State should be loaded")
+        }
+        
+        await coordinator.retry(for: request)
+        XCTAssertEqual(mockService.callCount, 2)
+    }
+    
+    @MainActor
+    func testCoordinatorHandlesServiceFailureAndRetries() async {
+        let failingService = FailingBoosterService()
+        let coordinator = ConnectionBoosterCoordinator(service: failingService)
+        
+        let request = ConnectionBoosterRequest(
+            gameName: "Fortnite",
+            platform: .pc,
+            networkKind: .wifi,
+            p50Milliseconds: 42.0,
+            jitterMilliseconds: 8.5,
+            packetLossRate: 0.02,
+            loadImpactMilliseconds: 28.0,
+            locale: "pt-BR"
+        )
+        
+        await coordinator.loadAdvice(for: request)
+        if case let .failed(error) = coordinator.state {
+            XCTAssertTrue(error.contains("Falha de rede"))
+        } else {
+            XCTFail("State should be failed")
+        }
+        
+        failingService.shouldSucceed = true
+        await coordinator.retry(for: request)
+        
+        if case let .loaded(advice) = coordinator.state {
+            XCTAssertEqual(advice.gameName, "Fortnite")
+        } else {
+            XCTFail("State should be loaded after retry")
+        }
+    }
+}
+
+private final class FailingBoosterService: ConnectionBoosterService, @unchecked Sendable {
+    var shouldSucceed = false
+    
+    func fetchAdvice(for request: ConnectionBoosterRequest) async throws -> ConnectionBoosterAdvice {
+        if !shouldSucceed {
+            throw NSError(domain: "Test", code: -1, userInfo: [NSLocalizedDescriptionKey: "Falha de rede simulada."])
+        }
+        return ConnectionBoosterAdvice(
+            gameName: request.gameName,
+            platform: request.platform,
+            summary: "Recuperado.",
+            items: []
+        )
+    }
+}
+
+private final class MockBoosterService: ConnectionBoosterService, @unchecked Sendable {
+    var callCount = 0
+    
+    func fetchAdvice(for request: ConnectionBoosterRequest) async throws -> ConnectionBoosterAdvice {
+        callCount += 1
+        return ConnectionBoosterAdvice(
+            gameName: request.gameName,
+            platform: request.platform,
+            summary: "Conexão avaliada com sucesso.",
+            items: [
+                BoosterActionItem(
+                    category: .routerEquipment,
+                    title: "Conectar em 5 GHz",
+                    detail: "Reduz oscilações perto do roteador."
+                )
+            ]
+        )
+    }
+}

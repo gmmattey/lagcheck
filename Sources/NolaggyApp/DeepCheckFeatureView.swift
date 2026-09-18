@@ -12,6 +12,8 @@ struct DeepCheckFeatureView: View {
     @State private var restSamples: [ProbeSample] = []
     @State private var coordinator: DeepCheckSessionCoordinator
     @State private var showingDetails = false
+    @State private var showingBooster = false
+    @State private var boosterCoordinator: ConnectionBoosterCoordinator
 
     private let resolvedContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
@@ -30,6 +32,7 @@ struct DeepCheckFeatureView: View {
         self.historyRepository = historyRepository
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result")
         _coordinator = State(initialValue: DeepCheckTransportComposition.make(historyRepository: historyRepository))
+        _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
         if usesFixture {
             _presentation = State(initialValue: .result(UITestFixtures.validDeepResult, .measured))
         }
@@ -68,6 +71,20 @@ struct DeepCheckFeatureView: View {
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
                 DeepCheckDetailsView(result: result, resolvedContext: resolvedContext, gameName: gameName)
+            }
+        }
+        .sheet(isPresented: $showingBooster) {
+            if case let .result(result, _) = presentation {
+                let req = ConnectionBoosterRequest(
+                    gameName: gameName,
+                    platform: resolvedContext.context.platform,
+                    networkKind: resolvedContext.context.equipmentConnection ?? .wifi,
+                    p50Milliseconds: result.metrics.rest.p50Milliseconds ?? 0.0,
+                    jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
+                    packetLossRate: result.metrics.rest.packetLossPercentage / 100.0,
+                    loadImpactMilliseconds: result.metrics.loadImpact?.increaseMilliseconds
+                )
+                ConnectionBoosterSheet(request: req, coordinator: boosterCoordinator)
             }
         }
     }
@@ -185,6 +202,11 @@ struct DeepCheckFeatureView: View {
                     comparisonRows(result.metrics)
                 }
                 PrimaryButton(title: "deep_check.result.details", action: { showingDetails = true })
+                PrimaryButton(
+                    title: "booster.cta.button",
+                    style: .secondaryOutline,
+                    action: { showingBooster = true }
+                )
                 PrimaryButton(title: "deep_check.result.retry", style: .secondaryOutline, action: restart)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)

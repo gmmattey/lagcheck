@@ -33,6 +33,10 @@ struct QuickCheckFeatureView: View {
     @State var gameQuery = ""
     @State var isGameSearchExpanded = false
     @State var selectedCategory: CatalogCategory = .all
+    @State var evaluatedScores: [String: MeasurementEvaluation] = [:]
+    @State var isBackgroundMeasuring = false
+    @State var backgroundMeasurementFailed = false
+    @State var selectedGameForDetails: CatalogMeasurementJourney.Game?
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -126,6 +130,20 @@ struct QuickCheckFeatureView: View {
                     }
                 )
             }
+            .navigationDestination(item: $selectedGameForDetails) { game in
+                GameDetailView(
+                    game: game,
+                    scoreState: scoreState(for: game),
+                    evaluation: evaluatedScores[game.id],
+                    resolvedContext: resolveGameContext(game),
+                    onStartDeepCheck: {
+                        if let resolved = resolveGameContext(game) {
+                            selectedRegionalContext = resolved
+                            activeCover = .deep
+                        }
+                    }
+                )
+            }
         }
         .preferredColorScheme(.dark)
         .onChange(of: scenePhase) { _, phase in
@@ -182,14 +200,7 @@ struct QuickCheckFeatureView: View {
     @ViewBuilder
     func header(title: LocalizedStringKey?, showsBack: Bool, showsSearch: Bool = false) -> some View {
         if !showsBack {
-            if showsSearch {
-                NolaggyAppHeader(
-                    openSettings: { showingSettings = true },
-                    openSearch: { openGameSearch() }
-                )
-            } else {
                 NolaggyAppHeader(openSettings: { showingSettings = true })
-            }
         } else {
             NolaggyBackHeader(action: back, accessibilityIdentifier: "quick-check-back")
         }
@@ -403,6 +414,122 @@ struct QuickCheckFeatureView: View {
             RegionalReferenceCandidate(id: region.id, label: region.label[regionLanguage] ?? region.id)
         }
         return [automatic] + regions
+    }
+
+    func resolveGameContext(_ game: CatalogMeasurementJourney.Game) -> ResolvedMeasurementContext? {
+        guard let remoteCatalog else { return nil }
+        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(game.context, in: remoteCatalog) {
+            return resolved
+        }
+        return nil
+    }
+
+    func scoreState(for game: CatalogMeasurementJourney.Game) -> GameRowView.ScoreState {
+        if isBackgroundMeasuring && evaluatedScores[game.id] == nil {
+            return .measuring
+        }
+        if let eval = evaluatedScores[game.id] {
+            switch eval {
+            case let .completed(result):
+                let classification: NLScoreClassification
+                switch result.resultClass {
+                case .excellent: classification = .excellent
+                case .great: classification = .great
+                case .unstable: classification = .unstable
+                case .lagRisk: classification = .lagRisk
+                }
+                return .evaluated(score: result.finalScore, classification: classification)
+            case .inconclusive:
+                return .inconclusive
+            }
+        }
+        if backgroundMeasurementFailed {
+            return .failed
+        }
+        return .measuring
+    }
+
+    func startBackgroundQuickCheck() {
+        guard !isBackgroundMeasuring else { return }
+        guard let remoteCatalog, let firstGame = availableGames.first else { return }
+        isBackgroundMeasuring = true
+        backgroundMeasurementFailed = false
+
+        Task { @MainActor in
+            let snapshot: RegionalSelectionSnapshot
+            do {
+                snapshot = try CatalogMeasurementJourney.regionalSnapshot(for: firstGame.context, in: remoteCatalog)
+            } catch {
+                isBackgroundMeasuring = false
+                backgroundMeasurementFailed = true
+                return
+            }
+
+            let manualRegionID = await regionalPreferenceRepository.manualRegionID()
+            let decision: RegionalSelectionDecision
+            do {
+                decision = try await coordinator.selectRegionalCandidate(
+                    snapshot: snapshot,
+                    using: RegionalPreReadCoordinator(collector: RegionalPreReadTransportComposition.make()),
+                    manualRegionID: manualRegionID
+                )
+            } catch {
+                isBackgroundMeasuring = false
+                backgroundMeasurementFailed = true
+                return
+            }
+
+            guard case let .selected(selection) = decision else {
+                isBackgroundMeasuring = false
+                backgroundMeasurementFailed = true
+                return
+            }
+
+            let resolved = selection.selected.resolvedContext
+            do {
+                let plan = QuickCheckPlan(
+                    endpoint: MeasurementEndpoint(
+                        host: resolved.destination.host,
+                        port: resolved.destination.port
+                    )
+                )
+                _ = try await coordinator.startQuickCheck(resolvedContext: resolved, plan: plan)
+
+                // Aguarda a conclusão das amostras UDP
+                while true {
+                    let state = await coordinator.sessionState()
+                    switch state {
+                    case let .completed(_, _, entry):
+                        let samples = await coordinator.completedProbeSamples()
+                        evaluateAllGames(with: samples)
+                        if let entry {
+                            completedEntry = entry
+                            await loadHistory()
+                        }
+                        isBackgroundMeasuring = false
+                        return
+                    case .cancelled:
+                        isBackgroundMeasuring = false
+                        backgroundMeasurementFailed = true
+                        return
+                    case .measuring, .idle:
+                        try? await Task.sleep(for: .milliseconds(150))
+                    }
+                }
+            } catch {
+                isBackgroundMeasuring = false
+                backgroundMeasurementFailed = true
+            }
+        }
+    }
+
+    func evaluateAllGames(with samples: [ProbeSample]) {
+        var results: [String: MeasurementEvaluation] = [:]
+        for game in availableGames {
+            let evaluation = QualityEvaluator.evaluate(samples: samples, profile: game.profileID)
+            results[game.id] = evaluation
+        }
+        self.evaluatedScores = results
     }
 }
 

@@ -4,7 +4,7 @@ import NolaggyDomain
 /// A única porta da aplicação entre um catálogo já validado e uma medição.
 /// Descoberta e seleção nunca expõem JSON, host ou porta para a interface.
 public enum CatalogMeasurementJourney {
-    public struct Game: Equatable, Sendable, Identifiable {
+    public struct Game: Hashable, Sendable, Identifiable {
         public let id: String
         public let name: String
         public let context: GameContext
