@@ -32,44 +32,52 @@ struct HomeHeader: View {
     }
 }
 
+/// Card "Início": resume o veredito da medição como uma rota animada
+/// (aparelho → Wi-Fi → rede → jogo), sem expor dado técnico de rota ou do
+/// servidor testado — isso vive só na tela de Detalhes de cada jogo.
 struct HomeNetworkStatusCard: View {
     let title: String
     let color: Color
     let latency: String
-    let referenceRegion: String
-    let beaconLabel: String
-    let beaconValue: String
+    let isMeasuring: Bool
+
+    private static let routeSymbols = ["iphone", "wifi", "network", "gamecontroller.fill"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            HStack {
-                HStack(spacing: NLSpacing.xs) {
-                    Circle().fill(color).frame(width: 10, height: 10)
-                    Text(title).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
-                }
+        VStack(alignment: .leading, spacing: NLSpacing.md) {
+            HStack(spacing: NLSpacing.xs) {
+                Circle().fill(color).frame(width: 10, height: 10)
+                Text(title).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
                 Spacer()
-                Text(referenceRegion)
-                    .font(NLTypography.captionStrong)
-                    .padding(.horizontal, NLSpacing.sm).padding(.vertical, NLSpacing.xxs)
-                    .background(NLColor.accentPrimarySubtle, in: Capsule())
-                    .foregroundStyle(NLColor.accentPrimary)
+                Text(latency).font(NLTypography.bodyEmphasis.monospacedDigit()).foregroundStyle(isMeasuring ? NLColor.textSecondary : color)
             }
-            HStack {
-                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-                    Text("home.network.latency", bundle: .main)
-                        .font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)
-                    Text(latency).font(NLTypography.bodyEmphasis.monospacedDigit()).foregroundStyle(NLColor.textPrimary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: NLSpacing.xxs) {
-                    Text(beaconLabel).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)
-                    Text(beaconValue).font(NLTypography.captionStrong).foregroundStyle(NLColor.accentPrimary)
+            HStack(spacing: 0) {
+                ForEach(Array(Self.routeSymbols.enumerated()), id: \.offset) { index, symbol in
+                    routeNode(symbol: symbol)
+                    if index < Self.routeSymbols.count - 1 { routeSegment }
                 }
             }
         }
         .padding(NLSpacing.md)
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
+        .animation(.easeInOut(duration: 0.4), value: isMeasuring)
+    }
+
+    private func routeNode(symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(isMeasuring ? NLColor.textSecondary : color)
+            .frame(width: 26, height: 26)
+            .background(NLColor.backgroundBase, in: Circle())
+            .overlay(Circle().stroke(isMeasuring ? NLColor.borderStrong : color, lineWidth: 1))
+    }
+
+    private var routeSegment: some View {
+        Rectangle()
+            .fill(isMeasuring ? NLColor.borderStrong : color)
+            .frame(height: 3)
+            .clipShape(Capsule())
     }
 }
 

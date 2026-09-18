@@ -17,7 +17,7 @@ extension QuickCheckFeatureView {
                 if remoteCatalog == nil {
                     catalogUnavailable.padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.lg)
                 } else {
-                    HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, referenceRegion: localizedString("home.network.reference_region"), beaconLabel: localizedString("home.network.beacon"), beaconValue: localizedString("home.network.beacon.value"))
+                    HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, isMeasuring: isBackgroundMeasuring)
                         .padding(.horizontal, NLSpacing.md)
                     HomeHeroSection(title: localizedString("home.featured"), games: featuredGames, categoryTitle: categoryTitle(for:), statusTitle: heroStatusText(for:), latency: gameScoreLatencyText(for:), score: gameScoreNumber(for:), scoreLabel: localizedString("home.score"), detail: localizedString("home.hero.detail"), select: { selectedGameForDetails = $0 })
                     HomeShelfSection(title: localizedString("home.popular"), games: shelfGames, categoryTitle: categoryTitle(for:), detail: shelfDetailText(for:), detailColor: shelfDetailColor(for:), score: gameScoreNumber(for:), select: { selectedGameForDetails = $0 })
