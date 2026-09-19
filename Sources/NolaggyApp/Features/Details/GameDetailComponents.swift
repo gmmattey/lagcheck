@@ -122,13 +122,13 @@ struct GameDetailMetricsCard: View {
 
 /// Banner Hero Cinematográfico com arte full-bleed, gradiente escuro e metadados no padrão Apple HIG
 struct GameDetailCinemaHeroBanner: View {
-    let gameName: String
+    let game: CatalogMeasurementJourney.Game
     let editorial: RemoteCatalogGameEditorial?
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             // Artwork full-bleed
-            GameArtwork(title: gameName)
+            VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
                 .frame(maxWidth: .infinity)
                 .frame(height: 270)
                 .clipped()
@@ -178,7 +178,7 @@ struct GameDetailCinemaHeroBanner: View {
                 }
 
                 // Título em destaque do jogo (sem sombra artificial)
-                Text(gameName)
+                Text(game.name)
                     .font(.system(size: 30, weight: .black))
                     .foregroundStyle(.white)
                     .lineLimit(2)

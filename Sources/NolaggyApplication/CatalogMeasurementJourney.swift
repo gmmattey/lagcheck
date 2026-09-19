@@ -9,12 +9,25 @@ public enum CatalogMeasurementJourney {
         public let name: String
         public let context: GameContext
         public let profileID: QualityProfileID
+        /// Referência já validada no payload assinado. A UI não a transforma
+        /// diretamente em URL nem renderiza bytes antes da conferência do hash.
+        public let artwork: RemoteCatalogArtwork?
+        public let assetBaseURL: String?
 
-        public init(id: String, name: String, context: GameContext, profileID: QualityProfileID) {
+        public init(
+            id: String,
+            name: String,
+            context: GameContext,
+            profileID: QualityProfileID,
+            artwork: RemoteCatalogArtwork? = nil,
+            assetBaseURL: String? = nil
+        ) {
             self.id = id
             self.name = name
             self.context = context
             self.profileID = profileID
+            self.artwork = artwork
+            self.assetBaseURL = assetBaseURL
         }
     }
 
@@ -49,7 +62,14 @@ public enum CatalogMeasurementJourney {
         payload.games.compactMap { game in
             let context = GameContext(gameID: game.id, market: market, platform: platform)
             guard case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: payload) else { return nil }
-            return Game(id: game.id, name: game.name, context: context, profileID: resolved.profileID)
+            return Game(
+                id: game.id,
+                name: game.name,
+                context: context,
+                profileID: resolved.profileID,
+                artwork: game.artwork,
+                assetBaseURL: payload.assetBaseURL
+            )
         }
     }
 

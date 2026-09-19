@@ -79,7 +79,7 @@ final class NWConnectionMeasurementTransportTests: XCTestCase {
         let validFlippedResponse = Data([0x00, 0x00] + Array(repeating: UInt8(5), count: 31))
         let unflippedResponse = requestPayload
 
-        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], port: 3075)
+        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], protocolKind: .playFabQoS)
         ledger.register(sequence: 0, payload: requestPayload, sentAt: 1_000_000_000)
 
         // Exact reflection without flip is rejected as invalidResponse
@@ -97,7 +97,7 @@ final class NWConnectionMeasurementTransportTests: XCTestCase {
         let validInfoResponse = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x49, 0x11, 0x54, 0x65, 0x73, 0x74, 0x00])
         let malformedResponse = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x00])
 
-        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], port: 27015)
+        let ledger = ProbeLedger(probes: [(sequence: 0, payload: requestPayload)], protocolKind: .steamA2S)
         ledger.register(sequence: 0, payload: requestPayload, sentAt: 1_000_000_000)
 
         // Malformed response is rejected

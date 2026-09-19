@@ -16,6 +16,37 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(games.first?.context.platform, .iphone)
     }
 
+    func testDiscoveryCarriesOnlyTheSignedArtworkReferenceToTheUI() throws {
+        let base = try payload()
+        let artwork = RemoteCatalogArtwork(
+            path: "artwork/fortnite-editorial.webp",
+            sha256: String(repeating: "a", count: 64)
+        )
+        let first = try XCTUnwrap(base.games.first)
+        let enrichedFortnite = RemoteCatalogGame(
+            id: first.id,
+            name: first.name,
+            contexts: first.contexts,
+            artwork: artwork
+        )
+        let payload = RemoteCatalogPayload(
+            schemaVersion: base.schemaVersion,
+            catalogVersion: base.catalogVersion,
+            profiles: base.profiles,
+            regions: base.regions,
+            games: [enrichedFortnite] + Array(base.games.dropFirst()),
+            assetBaseURL: "https://catalog.example.invalid/"
+        )
+
+        let game = try XCTUnwrap(
+            CatalogMeasurementJourney.availableGames(in: payload, market: "BR", platform: .iphone)
+                .first(where: { $0.id == "fortnite" })
+        )
+
+        XCTAssertEqual(game.artwork, artwork)
+        XCTAssertEqual(game.assetBaseURL, "https://catalog.example.invalid/")
+    }
+
     func testSchemaOneContextBuildsSingleSignedRegionalCandidate() throws {
         let payload = try payload()
         let context = GameContext(gameID: "fortnite", market: "BR", platform: .iphone)

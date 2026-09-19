@@ -20,6 +20,26 @@ public struct RemoteCatalogPayload: Codable, Equatable, Sendable {
     public let profiles: [RemoteCatalogProfile]
     public let regions: [RemoteCatalogRegion]
     public let games: [RemoteCatalogGame]
+
+    /// Endereço base opcional dos assets editoriais. O binário só interpreta
+    /// dados assinados; nenhuma imagem altera comportamento de medição.
+    public let assetBaseURL: String?
+
+    public init(
+        schemaVersion: Int,
+        catalogVersion: String,
+        profiles: [RemoteCatalogProfile],
+        regions: [RemoteCatalogRegion],
+        games: [RemoteCatalogGame],
+        assetBaseURL: String? = nil
+    ) {
+        self.schemaVersion = schemaVersion
+        self.catalogVersion = catalogVersion
+        self.profiles = profiles
+        self.regions = regions
+        self.games = games
+        self.assetBaseURL = assetBaseURL
+    }
 }
 
 public struct RemoteCatalogProfile: Codable, Equatable, Sendable {
@@ -37,6 +57,65 @@ public struct RemoteCatalogGame: Codable, Equatable, Sendable {
     public let id: String
     public let name: String
     public let contexts: [RemoteCatalogGameContext]
+    public let artwork: RemoteCatalogArtwork?
+    public let rating: RemoteCatalogRating?
+
+    public init(
+        id: String,
+        name: String,
+        contexts: [RemoteCatalogGameContext],
+        artwork: RemoteCatalogArtwork? = nil,
+        rating: RemoteCatalogRating? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.contexts = contexts
+        self.artwork = artwork
+        self.rating = rating
+    }
+}
+
+/// Arte editorial criada para o LagCheck; nunca uma capa, logo ou asset do
+/// publisher. O hash impede que o arquivo servido se afaste do manifesto.
+public struct RemoteCatalogArtwork: Codable, Equatable, Hashable, Sendable {
+    public let path: String
+    public let sha256: String
+
+    public init(path: String, sha256: String) {
+        self.path = path
+        self.sha256 = sha256
+    }
+}
+
+/// Snapshot auditável de avaliação: fonte e data acompanham a nota.
+public struct RemoteCatalogRating: Codable, Equatable, Sendable {
+    public let status: RemoteCatalogRatingStatus
+    public let value: Double?
+    public let scale: Double?
+    public let sourceName: String
+    public let sourceURL: String?
+    public let updatedAt: String?
+
+    public init(
+        status: RemoteCatalogRatingStatus = .verified,
+        value: Double? = nil,
+        scale: Double? = nil,
+        sourceName: String,
+        sourceURL: String? = nil,
+        updatedAt: String? = nil
+    ) {
+        self.status = status
+        self.value = value
+        self.scale = scale
+        self.sourceName = sourceName
+        self.sourceURL = sourceURL
+        self.updatedAt = updatedAt
+    }
+}
+
+public enum RemoteCatalogRatingStatus: String, Codable, Equatable, Sendable {
+    case verified
+    case pendingVerification
 }
 
 public enum RemoteCatalogAvailability: String, Codable, Equatable, Sendable {
@@ -77,6 +156,72 @@ public struct RemoteCatalogGameContext: Codable, Equatable, Sendable {
     public let profileID: String
     public let availability: RemoteCatalogAvailability
     public let measurement: RemoteCatalogMeasurement?
+    /// Schema 3: lista ordenada. A rota própria ativa vem primeiro; a AWS
+    /// permanece como fallback ativo e não encerra a investigação da primária.
+    public let routes: [RemoteCatalogRoute]?
+
+    public init(
+        market: String,
+        platforms: Set<Platform>,
+        profileID: String,
+        availability: RemoteCatalogAvailability,
+        measurement: RemoteCatalogMeasurement?,
+        routes: [RemoteCatalogRoute]? = nil
+    ) {
+        self.market = market
+        self.platforms = platforms
+        self.profileID = profileID
+        self.availability = availability
+        self.measurement = measurement
+        self.routes = routes
+    }
+}
+
+public enum MeasurementRouteKind: String, Codable, Equatable, Sendable {
+    case gameOwned
+    case awsFallback
+}
+
+public enum MeasurementRouteStatus: String, Codable, Equatable, Sendable {
+    /// Está publicada, validada e pode ser selecionada agora.
+    case active
+    /// Existe no backlog, mas não pode receber tráfego até validar host/codec.
+    case pending
+    case unavailable
+}
+
+public struct RemoteCatalogRoute: Codable, Equatable, Sendable {
+    public let id: String
+    public let kind: MeasurementRouteKind
+    public let status: MeasurementRouteStatus
+    public let regionID: String
+    public let destination: ProbeDestination?
+    public let strategy: MeasurementStrategy
+    public let confidence: MeasurementConfidence
+    public let precisionKey: String
+    public let validUntil: String?
+
+    public init(
+        id: String,
+        kind: MeasurementRouteKind,
+        status: MeasurementRouteStatus,
+        regionID: String,
+        destination: ProbeDestination? = nil,
+        strategy: MeasurementStrategy,
+        confidence: MeasurementConfidence,
+        precisionKey: String,
+        validUntil: String? = nil
+    ) {
+        self.id = id
+        self.kind = kind
+        self.status = status
+        self.regionID = regionID
+        self.destination = destination
+        self.strategy = strategy
+        self.confidence = confidence
+        self.precisionKey = precisionKey
+        self.validUntil = validUntil
+    }
 }
 
 public enum RemoteCatalogResolution: Equatable, Sendable {
@@ -103,6 +248,9 @@ public enum RemoteCatalogError: Error, Equatable, Sendable {
     case unknownProfile
     case unknownRegion
     case invalidAvailability
+    case invalidRoute
+    case invalidArtwork
+    case invalidRating
     case unsupportedDebugCatalog
 }
 
@@ -118,7 +266,8 @@ public enum RemoteCatalogVerifier {
     /// prioridades explícitos, mas não é aceito sem envelope de schema 2.
     public static let legacySchemaVersion = 1
     public static let candidateRegionsSchemaVersion = 2
-    public static let supportedSchemaVersions: Set<Int> = [legacySchemaVersion, candidateRegionsSchemaVersion]
+    public static let routedCatalogSchemaVersion = 3
+    public static let supportedSchemaVersions: Set<Int> = [legacySchemaVersion, candidateRegionsSchemaVersion, routedCatalogSchemaVersion]
     public static let algorithm = "Ed25519"
     public static let maximumPayloadBytes = 64 * 1024
 
@@ -168,18 +317,64 @@ public enum RemoteCatalogVerifier {
     }
 
     public static func resolve(_ context: GameContext, in payload: RemoteCatalogPayload) throws -> RemoteCatalogResolution {
+        try resolve(context, in: payload, excludingRouteIDs: [])
+    }
+
+    /// Re-resolve apenas entre rotas assinadas após a camada de saúde marcar
+    /// uma tentativa como indisponível. Não transforma timeout da rede do
+    /// jogador em sucesso: a decisão de saúde pertence à aplicação.
+    public static func resolveFallback(
+        _ context: GameContext,
+        in payload: RemoteCatalogPayload,
+        excludingRouteID: String
+    ) throws -> RemoteCatalogResolution {
+        try resolve(context, in: payload, excludingRouteIDs: [excludingRouteID])
+    }
+
+    private static func resolve(
+        _ context: GameContext,
+        in payload: RemoteCatalogPayload,
+        excludingRouteIDs: Set<String>
+    ) throws -> RemoteCatalogResolution {
         try context.validateStructure()
         guard let game = payload.games.first(where: { $0.id == context.gameID }),
               let gameContext = game.contexts.first(where: { $0.market == context.market && $0.platforms.contains(context.platform) }) else {
             throw CatalogValidationError.unsupportedGame
         }
-        guard gameContext.availability == .available, let measurement = gameContext.measurement else {
+        guard gameContext.availability == .available else {
             return .unavailable
         }
         guard let profile = payload.profiles.first(where: { $0.id == gameContext.profileID }),
-              let regionID = candidateIDs(for: measurement, schemaVersion: payload.schemaVersion).first,
-              let region = payload.regions.first(where: { $0.id == regionID }),
               let profileID = QualityProfileID(rawValue: gameContext.profileID) else {
+            throw RemoteCatalogError.unknownRegion
+        }
+        if payload.schemaVersion == routedCatalogSchemaVersion {
+            guard let route = selectedRoute(
+                from: gameContext,
+                regions: payload.regions,
+                now: Date(),
+                excludingIDs: excludingRouteIDs
+            ),
+                  let destination = resolvedDestination(for: route, regions: payload.regions) else {
+                return .unavailable
+            }
+            return .available(ResolvedMeasurementContext(
+                context: context,
+                catalogVersion: payload.catalogVersion,
+                profileID: profileID,
+                profileRuleVersion: profile.ruleVersion,
+                regionID: route.regionID,
+                destination: destination,
+                strategy: route.strategy,
+                confidence: route.confidence,
+                precisionKey: route.precisionKey,
+                routeID: route.id,
+                routeKind: route.kind
+            ))
+        }
+        guard let measurement = gameContext.measurement,
+              let regionID = candidateIDs(for: measurement, schemaVersion: payload.schemaVersion).first,
+              let region = payload.regions.first(where: { $0.id == regionID }) else {
             throw RemoteCatalogError.unknownRegion
         }
         return .available(ResolvedMeasurementContext(
@@ -205,12 +400,36 @@ public enum RemoteCatalogVerifier {
         guard let game = verifiedPayload.games.first(where: { $0.id == context.gameID }),
               let gameContext = game.contexts.first(where: { $0.market == context.market && $0.platforms.contains(context.platform) }),
               gameContext.availability == .available,
-              let measurement = gameContext.measurement,
               let profile = verifiedPayload.profiles.first(where: { $0.id == gameContext.profileID }),
               let profileID = QualityProfileID(rawValue: gameContext.profileID),
               QualityEvaluator.supports(profile: profileID, ruleVersion: profile.ruleVersion) else {
             throw CatalogValidationError.unsupportedGame
         }
+        if verifiedPayload.schemaVersion == routedCatalogSchemaVersion {
+            guard let route = selectedRoute(from: gameContext, regions: verifiedPayload.regions, now: Date()),
+                  let destination = resolvedDestination(for: route, regions: verifiedPayload.regions) else {
+                throw CatalogValidationError.unsupportedGame
+            }
+            let resolved = ResolvedMeasurementContext(
+                context: context,
+                catalogVersion: verifiedPayload.catalogVersion,
+                profileID: profileID,
+                profileRuleVersion: profile.ruleVersion,
+                regionID: route.regionID,
+                destination: destination,
+                strategy: route.strategy,
+                confidence: route.confidence,
+                precisionKey: route.precisionKey,
+                routeID: route.id,
+                routeKind: route.kind
+            )
+            return try RegionalSelectionSnapshot(
+                catalogVersion: verifiedPayload.catalogVersion,
+                context: context,
+                candidates: [try RegionalSelectionCandidate(resolvedContext: resolved, priority: 0)]
+            )
+        }
+        guard let measurement = gameContext.measurement else { throw CatalogValidationError.unsupportedGame }
         let regionIDs = candidateIDs(for: measurement, schemaVersion: verifiedPayload.schemaVersion)
         let priorities = candidatePriorities(for: measurement, schemaVersion: verifiedPayload.schemaVersion)
         let candidates = try regionIDs.map { regionID -> RegionalSelectionCandidate in
@@ -276,6 +495,10 @@ public enum RemoteCatalogVerifier {
     ]
 
     private static func validateDebugPayload(_ payload: RemoteCatalogPayload) throws {
+        if payload.schemaVersion == routedCatalogSchemaVersion {
+            try validateRoutedPayload(payload)
+            return
+        }
         let expectedGames: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
             "brawl-stars", "wild-rift", "roblox", "minecraft",
@@ -381,6 +604,147 @@ public enum RemoteCatalogVerifier {
                 measurement.candidatePriorities != nil
         default:
             return false
+        }
+    }
+
+    private static func selectedRoute(
+        from context: RemoteCatalogGameContext,
+        regions: [RemoteCatalogRegion],
+        now: Date,
+        excludingIDs: Set<String> = []
+    ) -> RemoteCatalogRoute? {
+        context.routes?.first { route in
+            !excludingIDs.contains(route.id) && route.status == .active &&
+                routeIsCurrent(route, now: now) &&
+                resolvedDestination(for: route, regions: regions) != nil
+        }
+    }
+
+    private static func routeIsCurrent(_ route: RemoteCatalogRoute, now: Date) -> Bool {
+        guard let validUntil = route.validUntil else { return true }
+        guard let date = ISO8601DateFormatter().date(from: validUntil) else { return false }
+        return date > now
+    }
+
+    private static func resolvedDestination(
+        for route: RemoteCatalogRoute,
+        regions: [RemoteCatalogRegion]
+    ) -> ProbeDestination? {
+        route.destination ?? regions.first(where: { $0.id == route.regionID })?.probe
+    }
+
+    private static func validateRoutedPayload(_ payload: RemoteCatalogPayload) throws {
+        guard !payload.catalogVersion.isEmpty,
+              let baseURL = payload.assetBaseURL,
+              let parsedBaseURL = URL(string: baseURL),
+              parsedBaseURL.scheme == "https" else {
+            throw RemoteCatalogError.invalidGame
+        }
+        _ = parsedBaseURL
+        guard Set(payload.profiles.map(\.id)).count == payload.profiles.count else { throw RemoteCatalogError.duplicateProfile }
+        guard Set(payload.regions.map(\.id)).count == payload.regions.count else { throw RemoteCatalogError.duplicateRegion }
+        guard Set(payload.games.map(\.id)).count == payload.games.count else { throw RemoteCatalogError.duplicateGame }
+        let profiles = Dictionary(uniqueKeysWithValues: payload.profiles.map { ($0.id, $0) })
+        guard profiles.values.allSatisfy({ profile in
+            guard let id = QualityProfileID(rawValue: profile.id) else { return false }
+            return QualityEvaluator.supports(profile: id, ruleVersion: profile.ruleVersion)
+        }) else { throw RemoteCatalogError.unknownProfile }
+
+        let regions = Dictionary(uniqueKeysWithValues: payload.regions.map { ($0.id, $0) })
+        guard regions.values.allSatisfy({ region in
+            GlobalProbeRegistry.allowedRegionIDs.contains(region.id) &&
+                region.probe.host == "gamelift-ping.\(region.id).api.aws" &&
+                region.probe.port == 7770 && region.probe.protocolKind == .gameLiftPing
+        }) else { throw RemoteCatalogError.unknownRegion }
+
+        for game in payload.games {
+            guard validIdentifier(game.id), !game.name.isEmpty, !game.contexts.isEmpty,
+                  let artwork = game.artwork, validArtwork(artwork),
+                  let rating = game.rating, validRating(rating) else {
+                throw RemoteCatalogError.invalidGame
+            }
+            var covered = Set<String>()
+            for context in game.contexts {
+                guard validMarket(context.market), !context.platforms.isEmpty,
+                      profiles[context.profileID] != nil else { throw RemoteCatalogError.invalidContext }
+                for platform in context.platforms {
+                    let key = "\(context.market):\(platform.rawValue)"
+                    guard covered.insert(key).inserted else { throw RemoteCatalogError.invalidContext }
+                }
+                guard context.measurement == nil else { throw RemoteCatalogError.invalidContext }
+                guard context.availability == .available, let routes = context.routes, !routes.isEmpty else {
+                    throw RemoteCatalogError.invalidAvailability
+                }
+                guard Set(routes.map(\.id)).count == routes.count,
+                      routes.contains(where: { $0.kind == .awsFallback && $0.status == .active }) else {
+                    throw RemoteCatalogError.invalidRoute
+                }
+                for route in routes {
+                    try validate(route: route, regions: regions)
+                }
+            }
+        }
+    }
+
+    private static func validate(route: RemoteCatalogRoute, regions: [String: RemoteCatalogRegion]) throws {
+        guard validIdentifier(route.id), validIdentifier(route.regionID), !route.precisionKey.isEmpty else {
+            throw RemoteCatalogError.invalidRoute
+        }
+        if let validUntil = route.validUntil, ISO8601DateFormatter().date(from: validUntil) == nil {
+            throw RemoteCatalogError.invalidRoute
+        }
+        switch route.kind {
+        case .awsFallback:
+            guard route.status == .active,
+                  route.strategy == .genericRegion,
+                  route.confidence == .medium,
+                  route.precisionKey == "regionalReference",
+                  let region = regions[route.regionID],
+                  route.destination == nil || route.destination == region.probe else {
+                throw RemoteCatalogError.invalidRoute
+            }
+        case .gameOwned:
+            // Pendências não carregam host improvisado. Quando ficam ativas,
+            // precisam trazer um destino e o driver UDP já existente no app.
+            if route.status == .active {
+                guard route.destination != nil,
+                      route.strategy == .dedicatedServer,
+                      route.confidence == .high,
+                      route.precisionKey == "dedicatedServer" else {
+                    throw RemoteCatalogError.invalidRoute
+                }
+            } else if route.destination != nil {
+                throw RemoteCatalogError.invalidRoute
+            }
+        }
+    }
+
+    private static func validIdentifier(_ value: String) -> Bool {
+        !value.isEmpty && value == value.lowercased() && value.allSatisfy {
+            $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-")
+        }
+    }
+
+    private static func validMarket(_ value: String) -> Bool {
+        value.count == 2 && value == value.uppercased() && value.allSatisfy(\.isLetter)
+    }
+
+    private static func validArtwork(_ artwork: RemoteCatalogArtwork) -> Bool {
+        artwork.path.hasPrefix("artwork/") && !artwork.path.contains("..") &&
+            artwork.sha256.count == 64 && artwork.sha256.allSatisfy { $0.isHexDigit }
+    }
+
+    private static func validRating(_ rating: RemoteCatalogRating) -> Bool {
+        switch rating.status {
+        case .verified:
+            guard let value = rating.value, let scale = rating.scale,
+                  let sourceURL = rating.sourceURL, let updatedAt = rating.updatedAt else { return false }
+            return value >= 0 && scale > 0 && value <= scale &&
+                !rating.sourceName.isEmpty && URL(string: sourceURL)?.scheme == "https" &&
+                ISO8601DateFormatter().date(from: updatedAt) != nil
+        case .pendingVerification:
+            return rating.value == nil && rating.scale == nil &&
+                rating.sourceURL == nil && rating.updatedAt == nil && !rating.sourceName.isEmpty
         }
     }
 }

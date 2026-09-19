@@ -34,8 +34,19 @@ function loadStream() {
   });
 }
 
-export function handleRequest(request) {
+const artworkPath = /^\/artwork\/games\/([a-z0-9-]+\.(?:jpg|png))$/;
+
+export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
+  const assetMatch = url.pathname.match(artworkPath);
+  if (assetMatch) {
+    if (request.method !== "GET") {
+      return new Response("Method not allowed", { status: 405, headers: { "Allow": "GET", "Cache-Control": "no-store" } });
+    }
+    if (!env.ASSETS) return new Response("Asset binding unavailable", { status: 503, headers: { "Cache-Control": "no-store" } });
+    // A URL pública não expõe o diretório interno nem aceita segmentos livres.
+    return env.ASSETS.fetch(new Request(new URL(`/games/${assetMatch[1]}`, url), request));
+  }
   if (url.pathname === "/v1/catalog.json") {
     if (request.method !== "GET") {
       return new Response("Method not allowed", {

@@ -38,7 +38,7 @@ struct GameDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // 1. Cinema Hero Banner (Arte Full-bleed + Gradiente + Metadados Netflix)
-                GameDetailCinemaHeroBanner(gameName: game.name, editorial: editorial)
+                GameDetailCinemaHeroBanner(game: game, editorial: editorial)
 
                 // 2. Conteúdo Principal
                 VStack(alignment: .leading, spacing: NLSpacing.md) {

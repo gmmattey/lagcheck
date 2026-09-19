@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "generatedFor": "catalog-v3",
+  "artworkPolicy": "lagcheck-editorial-original-only",
+  "items": [
+    { "gameID": "fortnite", "path": "assets/games/fortnite.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "4e3faa99dbf7472eaa4da27d2009b6780b995b629fda89433407d1ccacb07aee", "status": "approved" },
+    { "gameID": "call-of-duty-mobile", "path": "assets/games/codm.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "2bb77542b922bdb25a058dea2c1b21179b6619aef6ad2265fbacf3ffe35e9956", "status": "approved" },
+    { "gameID": "free-fire", "path": "assets/games/freefire.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "103ffe79457e16c41accf2101fcf2bcc4bd2d2b85e1d6c80d784684110517130", "status": "approved" },
+    { "gameID": "pubg-mobile", "path": "assets/games/pubg.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "5097efdef788c1eb0c8fc2001b19d1b0b010d26f38e79e1180d815628ca852a3", "status": "approved" },
+    { "gameID": "brawl-stars", "path": "assets/games/brawlstars.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "415a3b42bdeb902a7bc200216a3fed088143b0e41eb58400ec8811bc1811a357", "status": "approved" },
+    { "gameID": "wild-rift", "path": "assets/games/wildrift.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "3b619530f0f18505ce41b55e5b6ca2d0db5cbd7bc1464df9475e3d974e92fed2", "status": "approved" },
+    { "gameID": "roblox", "path": "assets/games/roblox.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "6702b9ee977358dcb1a342d7df1559e1004b8efb583859a41a98ae9b909f1adc", "status": "approved" },
+    { "gameID": "minecraft", "path": "assets/games/minecraft.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "007d90a546786e95248f9eab54792f00e3eae314be20f22eb260f531be062a8f", "status": "approved" },
+    { "gameID": "apex-legends", "path": "assets/games/apexlegends.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "926453d9d8f76235e8fb1e051dec1706f9846ffe5bafce9f6c3be1e418250933", "status": "approved" },
+    { "gameID": "blood-strike", "path": "assets/games/bloodstrike.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "bba52776478797f67b7ec444cea6fd961ec74c1ffaab709d108c1397d51ab799", "status": "approved" },
+    { "gameID": "cs2", "path": "assets/games/cs2.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "46086f9ef16baa12ca1d69e0c12425afc78a578e74d63c81420c9eb8d7802799", "status": "approved" },
+    { "gameID": "dota2", "path": "assets/games/dota2.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "885cf7c733d6008681b5c255b7e7ea46ad1adf64621cf42309e162b09d102c5f", "status": "approved" },
+    { "gameID": "eafc", "path": "assets/games/eafc.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "75a365f296d43180a2fb2538f0e1e3af2bc3bb16962a0b12359bc071f3431f0d", "status": "approved" },
+    { "gameID": "league-of-legends", "path": "assets/games/leagueoflegends.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "d35fb3c48123299496f9cabdab601441c8f1d42ea1668b1f4173b283ec3fcd91", "status": "approved" },
+    { "gameID": "palworld", "path": "assets/games/palworld.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "068cf1637e7f87cce8ac15853b7e641ce6917fe9c2ad08baf582363b31c0f6e7", "status": "approved" },
+    { "gameID": "rainbow-six", "path": "assets/games/rainbowsix.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "fec730855eeb13931d1ef2eda597444e7551a19bc87757ab83df6439e62e5026", "status": "approved" },
+    { "gameID": "rocket-league", "path": "assets/games/rocketleague.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "a747138ec9410e42d6cc619a7064a6476203e73a755819aaf1ce534243559abb", "status": "approved" },
+    { "gameID": "rust", "path": "assets/games/rust.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "8960f0add7cecc4a4c2103f1100b649cbd32854847c5953fcd11cebb74c5dbde", "status": "approved" },
+    { "gameID": "valorant", "path": "assets/games/valorant.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "51642b7cc97e644473df17fa66dee563b796ce8416731310d08a3ea5bc0e9039", "status": "approved" },
+    { "gameID": "warzone", "path": "assets/games/warzone.jpg", "mimeType": "image/jpeg", "width": 1376, "height": 768, "sha256": "9523eed8e2abd4fdbf05ac5d4e8d971cee31ef75815b8a659d0ee78d2e833f09", "status": "approved" },
+    { "gameID": "rainbow-six-mobile", "path": "assets/games/rainbow-six-mobile.png", "mimeType": "image/png", "width": 1376, "height": 768, "sha256": "beb68f31bd2311c77ea077a1dd75e58937ef59729fed90086bee2f38ea980f77", "status": "ready" },
+    { "gameID": "rocket-league-sideswipe", "path": "assets/games/rocket-league-sideswipe.png", "mimeType": "image/png", "width": 1376, "height": 768, "sha256": "6cb85405784ae1bdfd459b3e5503540392a7025bba2e5f4807510dffc278dfda", "status": "ready" }
+  ]
+}
