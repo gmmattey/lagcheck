@@ -17,45 +17,24 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, NLSpacing.lg)
                 } else {
-                    // 1. Hero editorial de estado (Prioridade Máxima)
-                    HomeStateEditorialHero(
-                        game: targetGameForCTA,
-                        platform: effectivePlatform,
-                        regionName: selectedRegionFriendlyName,
-                        lastEntry: lastHistoryEntryForEffectiveGame,
+                    HomeDecisionCard(
+                        game: gameForLatestHistoryEntry,
+                        platform: latestHistoryEntry?.resolvedContext.context.platform,
+                        latestEntry: latestHistoryEntry,
                         isMeasuring: presentation == .measuring,
-                        onSelectGame: { selectedTab = .games }
+                        onStartCheck: startLagCheckFromCTA,
+                        onChooseGame: { selectedTab = .games },
+                        onOpenHistory: { selectedTab = .history }
                     )
                     .padding(.horizontal, NLSpacing.md)
                     .padding(.top, NLSpacing.xs)
 
-                    // 2. CTA Dominante: Iniciar LagCheck ou Escolher Jogo
-                    HomeDominantCTA(
-                        targetGame: targetGameForCTA,
-                        isMeasuring: presentation == .measuring,
-                        onStartLagCheck: startLagCheckFromCTA,
-                        onChooseAnotherGame: { selectedTab = .games }
-                    )
-                    .padding(.horizontal, NLSpacing.md)
-
-                    // 3. Seção "Últimos testados" (Sem autoplay, até 3 jogos)
-                    HomeRecentTestsSection(
-                        items: recentTestedItems,
-                        onSelectGame: { selectedGameForDetails = $0 },
-                        onExploreGames: { selectedTab = .games }
-                    )
-                    .padding(.top, NLSpacing.xs)
-
-                    // 4. Seção "Explorar jogos" (Prateleira discreta com link "Ver todos os jogos")
-                    HomeExploreShelfSection(
-                        title: localizedString("home.explore.title"),
-                        seeAllTitle: localizedString("home.explore.see_all"),
-                        games: popularGames,
-                        categoryTitle: categoryTitle(for:),
+                    HomeGamesListSection(
+                        games: Array(homeGames.prefix(5)),
                         onSelectGame: { selectedGameForDetails = $0 },
                         onSeeAllGames: { selectedTab = .games }
                     )
-                    .padding(.top, NLSpacing.xs)
+                    .padding(.horizontal, NLSpacing.md)
                     .padding(.bottom, NLSpacing.xl)
                 }
             }
@@ -97,6 +76,17 @@ extension QuickCheckFeatureView {
         lastHistoryEntryForEffectiveGame?.resolvedContext.context.platform ?? .iphone
     }
 
+    /// A Home fala primeiro da última observação real, sem atribuir um score
+    /// antigo ao jogo que a pessoa ainda nem escolheu nesta sessão.
+    var latestHistoryEntry: MeasurementHistoryEntry? {
+        history.max(by: { $0.completedAt < $1.completedAt })
+    }
+
+    var gameForLatestHistoryEntry: CatalogMeasurementJourney.Game? {
+        guard let gameID = latestHistoryEntry?.resolvedContext.context.gameID else { return nil }
+        return availableGames.first(where: { $0.id == gameID })
+    }
+
     /// Última entrada de histórico para o jogo ativo (ou a mais recente geral se nenhum jogo filtrado).
     var lastHistoryEntryForEffectiveGame: MeasurementHistoryEntry? {
         if let target = targetGameForCTA {
@@ -136,6 +126,14 @@ extension QuickCheckFeatureView {
         return rankedIDs.compactMap { gameMap[$0] }
     }
 
+    /// A lista curta mantém o último jogo no começo e não transforma a Home
+    /// em catálogo. A busca e os filtros pertencem exclusivamente à aba Jogos.
+    var homeGames: [CatalogMeasurementJourney.Game] {
+        var seen = Set<String>()
+        return (recentTestedItems.map(\.game) + popularGames)
+            .filter { seen.insert($0.id).inserted }
+    }
+
     /// Jogo alvo para o botão CTA principal: o explicitamente selecionado, ou o último testado, ou o primeiro disponível.
     var targetGameForCTA: CatalogMeasurementJourney.Game? {
         if let explicitID = selectedGameID, let found = availableGames.first(where: { $0.id == explicitID }) {
@@ -146,6 +144,10 @@ extension QuickCheckFeatureView {
 
     /// Inicia o LagCheck perguntando a plataforma do jogo alvo a partir do CTA da Home.
     func startLagCheckFromCTA() {
+        if let latestHistoryEntry {
+            retest(latestHistoryEntry)
+            return
+        }
         if let target = targetGameForCTA {
             gameForPlatformSelection = target
         } else {

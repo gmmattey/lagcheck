@@ -195,6 +195,13 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
     /// Candidato próprio efetivamente escolhido pela pré-validação automática.
     /// Nil preserva snapshots legados e medições AWS sem candidato dedicado.
     public let candidateID: String?
+    /// Interface efetivamente observada no iPhone durante a medição.
+    /// Nil em um snapshot novo significa que a medição ainda não a registrou;
+    /// nil com `connectionFactsVersion == nil` identifica um snapshot legado.
+    public let observedPhoneNetwork: NetworkKind?
+    /// Presente somente após a separação entre a declaração do equipamento e
+    /// a interface observada no iPhone. Snapshots anteriores não têm esse fato.
+    public let connectionFactsVersion: Int?
 
     public init(
         context: GameContext,
@@ -208,7 +215,9 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         precisionKey: String = "regionalReference",
         routeID: String? = nil,
         routeKind: MeasurementRouteKind? = nil,
-        candidateID: String? = nil
+        candidateID: String? = nil,
+        observedPhoneNetwork: NetworkKind? = nil,
+        connectionFactsVersion: Int? = 1
     ) {
         self.context = context
         self.catalogVersion = catalogVersion
@@ -222,17 +231,14 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         self.routeID = routeID
         self.routeKind = routeKind
         self.candidateID = candidateID
+        self.observedPhoneNetwork = observedPhoneNetwork
+        self.connectionFactsVersion = connectionFactsVersion
     }
 
-    public func withEquipmentConnection(_ connection: NetworkKind?) -> ResolvedMeasurementContext {
-        let updatedContext = GameContext(
-            gameID: context.gameID,
-            market: context.market,
-            platform: context.platform,
-            equipmentConnection: connection
-        )
+    /// Anexa o fato medido do iPhone sem alterar a declaração do equipamento externo.
+    public func withObservedPhoneNetwork(_ network: NetworkKind) -> ResolvedMeasurementContext {
         return ResolvedMeasurementContext(
-            context: updatedContext,
+            context: context,
             catalogVersion: catalogVersion,
             profileID: profileID,
             profileRuleVersion: profileRuleVersion,
@@ -243,8 +249,16 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
             precisionKey: precisionKey,
             routeID: routeID,
             routeKind: routeKind,
-            candidateID: candidateID
+            candidateID: candidateID,
+            observedPhoneNetwork: network,
+            connectionFactsVersion: connectionFactsVersion ?? 1
         )
+    }
+
+    /// Um snapshot só permite comparação de conexão quando nasceu depois da
+    /// separação e contém a interface realmente medida no iPhone.
+    public var hasCompleteConnectionFacts: Bool {
+        connectionFactsVersion != nil && observedPhoneNetwork != nil
     }
 }
 
@@ -260,7 +274,7 @@ public enum CatalogValidationError: Error, Equatable, Sendable {
     case duplicateRegionID
     case duplicateGameID
     case unknownPrimaryRegion
-    case equipmentConnectionNotApplicable
+    case externalEquipmentLinkNotApplicable
     case unsupportedGame
     case unsupportedMarket
     case unsupportedPlatform

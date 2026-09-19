@@ -235,7 +235,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
         let entries = await history.loadHistory()
         XCTAssertEqual(entries.count, 1)
-        XCTAssertEqual(entries.first?.resolvedContext.context.equipmentConnection, .cellular)
+        XCTAssertEqual(entries.first?.resolvedContext.observedPhoneNetwork, .cellular)
     }
 
     func testWiFiExecutesAndPersistsWiFiSnapshot() async throws {
@@ -253,7 +253,26 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
         let entries = await history.loadHistory()
         XCTAssertEqual(entries.count, 1)
-        XCTAssertEqual(entries.first?.resolvedContext.context.equipmentConnection, .wifi)
+        XCTAssertEqual(entries.first?.resolvedContext.observedPhoneNetwork, .wifi)
+    }
+
+    func testObservedPhoneNetworkDoesNotReplaceDeclaredExternalEquipmentLink() async throws {
+        let context = ResolvedMeasurementContext(
+            context: GameContext(gameID: "fortnite", market: "BR", platform: .playstation, declaredExternalLink: .ethernet),
+            catalogVersion: "test",
+            profileID: .battleRoyaleCompetitive,
+            regionID: "sa-east-1",
+            destination: try ProbeDestination(host: "example.invalid", port: 7770),
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+        let coordinator = makeCoordinator()
+
+        let session = try await coordinator.start(resolvedContext: context, plan: plan)
+
+        XCTAssertEqual(session.resolvedContext.context.declaredExternalLink, .ethernet)
+        XCTAssertEqual(session.resolvedContext.observedPhoneNetwork, .wifi)
+        await coordinator.cancel(id: session.id)
     }
 
     func testNetworkPathChangeDuringExecutionCancelsAndDiscardsPartialData() async throws {

@@ -144,7 +144,7 @@ public actor DeepCheckSessionCoordinator {
     ) async throws -> MeasurementSession {
         guard activeSession == nil else { throw DeepCheckSessionError.alreadyActive }
         let currentInterface = await wifiAvailability.currentInterface()
-        guard currentInterface != .none else {
+        guard currentInterface == .wifi || currentInterface == .cellular else {
             state = .requiresWiFi
             throw DeepCheckSessionError.requiresWiFi
         }
@@ -154,9 +154,9 @@ public actor DeepCheckSessionCoordinator {
             throw DeepCheckSessionError.requiresCellularConsent
         }
 
-        let connectionKind: NetworkKind = (currentInterface == .cellular) ? .cellular : .wifi
-        let contextWithConnection = resolvedContext.withEquipmentConnection(connectionKind)
-        let session = MeasurementSession(resolvedContext: contextWithConnection)
+        let observedPhoneNetwork: NetworkKind = currentInterface == .cellular ? .cellular : .wifi
+        let contextWithObservedPhoneNetwork = resolvedContext.withObservedPhoneNetwork(observedPhoneNetwork)
+        let session = MeasurementSession(resolvedContext: contextWithObservedPhoneNetwork)
 
         activeSession = session
         activePhase = .rest

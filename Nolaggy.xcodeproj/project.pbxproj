@@ -41,6 +41,7 @@
 		2E1656B09BB9353C72EE96CB /* MeasurementTransportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C4698BD3E3684CD23ECD21 /* MeasurementTransportFactory.swift */; };
 		2E95DA40D369FEC32DC296EF /* NLShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F1D6F0F1AE0A1CD9AC2382 /* NLShadow.swift */; };
 		2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */; };
+		31485C5758343ED2AD2BA6F8 /* VerifiedGameArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */; };
 		3159F1B15A26231BCD622738 /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		319EAA0C691585B49D89180C /* LocalInterfaceAddressResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */; };
 		352D086ED7B18C8038490D24 /* MeasurementPulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE867574BCC1C67171FECFF0 /* MeasurementPulse.swift */; };
@@ -138,6 +139,7 @@
 		B22E7128BC8A2F6CA0C5AAEA /* DeepCheckResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993F198820E2080EED0887A2 /* DeepCheckResultView.swift */; };
 		B2A5C832DD6850F1C3719F9E /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		B35A9C4450BBD6D1F71211B2 /* LatencyGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB69FBF1D0E5521EB0D5760 /* LatencyGraph.swift */; };
+		B5D455239D63CFB8C77676F4 /* VerifiedRemoteArtworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06CF63E8A62E65C646FF39E /* VerifiedRemoteArtworkLoader.swift */; };
 		B60332E3D4F48D170A4C4BCF /* LocalInterfaceAddressResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F124A151B5515C3A50BBA9E /* LocalInterfaceAddressResolver.swift */; };
 		B622860D07F6B1E5DEE7ED0D /* RemoteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B75694BACD36BAE2C1ECDD /* RemoteCatalog.swift */; };
 		BA2E544DBF6F21F05B59D6D4 /* UserDefaultsRegionalPreferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5265FA2DEC99B49E357332D7 /* UserDefaultsRegionalPreferenceRepository.swift */; };
@@ -366,6 +368,7 @@
 		3978615912067C61EB69B21B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3998CA61AC6C02C3CC88B332 /* GameContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContextTests.swift; sourceTree = "<group>"; };
 		3A73719161EFC233AFF86CC6 /* CheckCompletoResultDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultDomain.swift; sourceTree = "<group>"; };
+		3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedGameArtwork.swift; sourceTree = "<group>"; };
 		3B5BF17A1FA2D9B52C253FEE /* GameDetailEditorialComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDetailEditorialComponents.swift; sourceTree = "<group>"; };
 		3E0918E16C3535038A933568 /* AppNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
 		3F124A151B5515C3A50BBA9E /* LocalInterfaceAddressResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalInterfaceAddressResolver.swift; sourceTree = "<group>"; };
@@ -447,6 +450,7 @@
 		BAE9B5B99E085D18410992CC /* RemoteCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalogTests.swift; sourceTree = "<group>"; };
 		BAF02E7AEB1E14DAC4749586 /* QualityEvaluatorPilotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityEvaluatorPilotTests.swift; sourceTree = "<group>"; };
 		BB4F6FA557BB871F89C0BC2E /* MeasurementModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementModels.swift; sourceTree = "<group>"; };
+		C06CF63E8A62E65C646FF39E /* VerifiedRemoteArtworkLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedRemoteArtworkLoader.swift; sourceTree = "<group>"; };
 		C07F76E6CB6AABDDC047CBB9 /* StunProbeClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StunProbeClientTests.swift; sourceTree = "<group>"; };
 		C13CEE41EBF8FE561BB153BF /* PilotCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotCatalog.swift; sourceTree = "<group>"; };
 		C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NATTopologyTests.swift; sourceTree = "<group>"; };
@@ -586,6 +590,7 @@
 				19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */,
 				F51D4F39F3D3AA8985862D7D /* RegionalSelectionFeatureView.swift */,
 				1E088D2A263DD1FC232BF8B0 /* UITestFixtures.swift */,
+				3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */,
 				998AE6D78FF15628C1B74561 /* Features */,
 				30D3E7CAC2B6BF06E72ECCCE /* Resources */,
 			);
@@ -684,6 +689,7 @@
 				C9E7880A8A3918D259977078 /* SwiftDataMeasurementHistoryRepository.swift */,
 				B210DEADB7088D5FC2685AE1 /* URLSessionLoadTransport.swift */,
 				5265FA2DEC99B49E357332D7 /* UserDefaultsRegionalPreferenceRepository.swift */,
+				C06CF63E8A62E65C646FF39E /* VerifiedRemoteArtworkLoader.swift */,
 				4828C43E25BC8C3C5BEBD5F7 /* WiFiLocalGatewayProber.swift */,
 				C14EB075CAD2F9B4C066148B /* Network */,
 				2FA0F99685B5629256231CD2 /* PlatformHealth */,
@@ -1345,6 +1351,7 @@
 				972C51602A56645966B6C759 /* ResultFeatureView.swift in Sources */,
 				89DB9DD4C85F89D85C1B4252 /* SettingsView.swift in Sources */,
 				40DB605179B3901ABD02B137 /* UITestFixtures.swift in Sources */,
+				31485C5758343ED2AD2BA6F8 /* VerifiedGameArtwork.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1387,6 +1394,7 @@
 				1DB4D0435CF82E6EEA3EC557 /* SwiftDataMeasurementHistoryRepository.swift in Sources */,
 				48B6290903697F3F3A63A307 /* URLSessionLoadTransport.swift in Sources */,
 				BA2E544DBF6F21F05B59D6D4 /* UserDefaultsRegionalPreferenceRepository.swift in Sources */,
+				B5D455239D63CFB8C77676F4 /* VerifiedRemoteArtworkLoader.swift in Sources */,
 				F9BA8A23D469FD9E76414F75 /* WiFiLocalGatewayProber.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

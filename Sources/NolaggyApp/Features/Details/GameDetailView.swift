@@ -4,10 +4,8 @@ import NolaggyDesign
 import NolaggyDomain
 import NolaggyInfrastructure
 
-/// Tela de Detalhes do Jogo - Proposta Cinema Hero (Estilo Netflix).
-/// Apresenta arte cinematográfica full-bleed, metadados Netflix, botão Iniciar LagCheck,
-/// sinopse oficial, notas auditadas, plataformas suportadas, histórico exclusivo do jogo
-/// e especificações técnicas sob demanda (acordeão expansível).
+/// O detalhe começa pela decisão que muda o significado da medição: onde a
+/// pessoa joga e, para equipamento externo, como ele se conecta à rede.
 struct GameDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let game: CatalogMeasurementJourney.Game
@@ -15,12 +13,13 @@ struct GameDetailView: View {
     let evaluation: MeasurementEvaluation?
     let resolvedContext: ResolvedMeasurementContext?
     var gameHistory: [MeasurementHistoryEntry] = []
-    let onStartDeepCheck: (Platform) -> Void
+    let onStartDeepCheck: (Platform, ExternalEquipmentLink?) -> Void
+    let onOpenHistory: () -> Void
 
     @State private var selectedPlatform: Platform = .iphone
+    @State private var selectedExternalLink: ExternalEquipmentLink? = nil
     @State private var platformHealth: PlatformHealth? = nil
     @State private var natSnapshot: NATTopologySnapshot? = nil
-    @State private var showingPlatformSelection = false
     private let healthClient = DirectPlatformHealthClient()
     private let stunClient = StunProbeClient()
 
@@ -37,13 +36,22 @@ struct GameDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // 1. Cinema Hero Banner (Arte Full-bleed + Gradiente + Metadados Netflix)
+                // A arte contextualiza o título sem disputar atenção com a decisão.
                 GameDetailCinemaHeroBanner(game: game, editorial: editorial)
 
-                // 2. Conteúdo Principal
                 VStack(alignment: .leading, spacing: NLSpacing.md) {
-                    // Botão de Ação Primária: Iniciar LagCheck (Pergunta a plataforma)
-                    Button(action: { showingPlatformSelection = true }) {
+                    GameDetailMeasurementContextCard(
+                        supportedPlatforms: supportedPlatforms,
+                        selectedPlatform: $selectedPlatform,
+                        selectedExternalLink: $selectedExternalLink
+                    )
+
+                    GameDetailMeasurementScope(
+                        platform: selectedPlatform,
+                        externalLink: selectedExternalLink
+                    )
+
+                    Button(action: startDeepCheck) {
                         HStack(spacing: NLSpacing.xs) {
                             Image(systemName: "play.fill")
                                 .font(.system(size: 15, weight: .semibold))
@@ -52,10 +60,13 @@ struct GameDetailView: View {
                         }
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 48)
+                        .frame(minHeight: 48)
                         .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium))
                     }
+                    .disabled(requiresEquipmentConnection)
+                    .opacity(requiresEquipmentConnection ? 0.45 : 1)
                     .accessibilityIdentifier("start-game-deep-check")
+                    .accessibilityHint(Text(requiresEquipmentConnection ? "game_detail.context.connection_required" : "game_detail.context.start_hint"))
 
                     // Sinopse Oficial Localizada
                     if let synopsis = editorial?.localizedSummary(localeIdentifier: Locale.current.identifier), !synopsis.isEmpty {
@@ -71,13 +82,12 @@ struct GameDetailView: View {
                         GameDetailRatingsGrid(editorial: editorial)
                     }
 
-                    // Plataformas Suportadas (Interativas com seleção)
-                    if !supportedPlatforms.isEmpty {
-                        GameDetailPlatformsRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
-                    }
-
-                    // Histórico Exclusivo deste Jogo
-                    GameDetailExclusiveHistoryCard(entries: gameHistory, gameName: game.name)
+                    GameDetailExclusiveHistoryCard(
+                        entries: gameHistory,
+                        selectedPlatform: selectedPlatform,
+                        selectedExternalLink: selectedExternalLink,
+                        onOpenHistory: onOpenHistory
+                    )
 
                     // Especificações Técnicas e Rede (Acordeão / Oculto por padrão)
                     GameDetailTechnicalSpecsAccordion(
@@ -87,7 +97,7 @@ struct GameDetailView: View {
                         natSnapshot: natSnapshot,
                         platformHealth: platformHealth,
                         wifiBandDiagnostic: wifiBandDiagnostic,
-                        onStartDeepCheck: { showingPlatformSelection = true }
+                        onStartDeepCheck: { startDeepCheck() }
                     )
                 }
                 .padding(.horizontal, NLSpacing.screenMarginHorizontal)
@@ -102,16 +112,14 @@ struct GameDetailView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showingPlatformSelection) {
-            PlatformSelectionSheet(
-                gameName: game.name,
-                supportedPlatforms: supportedPlatforms,
-                initialPlatform: selectedPlatform,
-                onSelectPlatform: { platform in
-                    selectedPlatform = platform
-                    onStartDeepCheck(platform)
-                }
-            )
+        .onAppear {
+            guard !supportedPlatforms.contains(selectedPlatform) else { return }
+            selectedPlatform = supportedPlatforms.first ?? .iphone
+        }
+        .onChange(of: selectedPlatform) { _, platform in
+            if platform == .iphone {
+                selectedExternalLink = nil
+            }
         }
         .task {
             // Sonda topologia de NAT em segundo plano de forma não-bloqueante
@@ -145,7 +153,7 @@ struct GameDetailView: View {
     }
 
     private var wifiBandDiagnostic: WiFiBandDiagnosticResult? {
-        guard let metrics = observedMetrics else { return nil }
+        guard resolvedContext?.observedPhoneNetwork == .wifi, let metrics = observedMetrics else { return nil }
         let telemetry = WiFiLocalTelemetry(
             gatewayRTTMedianMs: metrics.p50Milliseconds,
             gatewayJitterMs: metrics.jitterMilliseconds,
@@ -156,5 +164,14 @@ struct GameDetailView: View {
         )
         let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
         return result.diagnostic.isSuspectOrConfirmed24GHz ? result : nil
+    }
+
+    private var requiresEquipmentConnection: Bool {
+        selectedPlatform != .iphone && selectedExternalLink == nil
+    }
+
+    private func startDeepCheck() {
+        guard !requiresEquipmentConnection else { return }
+        onStartDeepCheck(selectedPlatform, selectedExternalLink)
     }
 }

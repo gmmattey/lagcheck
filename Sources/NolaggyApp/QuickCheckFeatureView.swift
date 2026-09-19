@@ -40,6 +40,10 @@ struct QuickCheckFeatureView: View {
     @State var backgroundMeasurementFailed = false
     @State var selectedGameForDetails: CatalogMeasurementJourney.Game?
     @State var gameForPlatformSelection: CatalogMeasurementJourney.Game?
+    /// Contexto escolhido para uma nova leitura. No reteste ele preserva a
+    /// plataforma e o vínculo externo declarados, mas nunca reutiliza a rota
+    /// histórica: a região é resolvida novamente pelo catálogo atual.
+    @State var requestedMeasurementContext: GameContext?
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -165,10 +169,14 @@ struct QuickCheckFeatureView: View {
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
-                            onStartDeepCheck: { platform in
-                                if let resolved = resolveGameContext(game, platform: platform) {
+                            onStartDeepCheck: { platform, externalLink in
+                                if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
                                     openDeepCheck(resolvedContext: resolved, platform: platform)
                                 }
+                            },
+                            onOpenHistory: {
+                                selectedGameForDetails = nil
+                                selectedTab = .history
                             }
                         )
                     }
@@ -191,10 +199,14 @@ struct QuickCheckFeatureView: View {
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
-                            onStartDeepCheck: { platform in
-                                if let resolved = resolveGameContext(game, platform: platform) {
+                            onStartDeepCheck: { platform, externalLink in
+                                if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
                                     openDeepCheck(resolvedContext: resolved, platform: platform)
                                 }
+                            },
+                            onOpenHistory: {
+                                selectedGameForDetails = nil
+                                selectedTab = .history
                             }
                         )
                     }
@@ -282,6 +294,7 @@ struct QuickCheckFeatureView: View {
                 supportedPlatforms: supportedPlatforms(for: game),
                 onSelectPlatform: { platform in
                     selectedGameID = game.id
+                    requestedMeasurementContext = nil
                     if let resolved = resolveGameContext(game, platform: platform) {
                         startQuickCheck(resolvedContext: resolved)
                     }
@@ -363,13 +376,17 @@ struct QuickCheckFeatureView: View {
         String(format: NSLocalizedString("quick_check.measuring.region_format %@", comment: ""), selectedRegionFriendlyName)
     }
 
-    func resolveGameContext(_ game: CatalogMeasurementJourney.Game, platform: Platform = .iphone) -> ResolvedMeasurementContext? {
+    func resolveGameContext(
+        _ game: CatalogMeasurementJourney.Game,
+        platform: Platform = .iphone,
+        declaredExternalLink: ExternalEquipmentLink? = nil
+    ) -> ResolvedMeasurementContext? {
         guard let remoteCatalog else { return nil }
         let selectedGameContext = GameContext(
             gameID: game.id,
             market: game.context.market,
             platform: platform,
-            equipmentConnection: game.context.equipmentConnection
+            declaredExternalLink: platform == .iphone ? nil : declaredExternalLink
         )
         if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(selectedGameContext, in: remoteCatalog) {
             return resolved

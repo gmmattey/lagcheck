@@ -17,7 +17,7 @@ struct DeepCheckFeatureView: View {
     @State private var boosterCoordinator: ConnectionBoosterCoordinator
     @State private var hasCellularConsent = false
 
-    private let resolvedContext: ResolvedMeasurementContext
+    @State private var activeContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
     /// tela — o Deep Check nunca deve hardcodar ou inferir o jogo sozinho.
     private let gameName: String
@@ -31,7 +31,7 @@ struct DeepCheckFeatureView: View {
         historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
         autoStart: Bool = true
     ) {
-        self.resolvedContext = resolvedContext
+        _activeContext = State(initialValue: resolvedContext)
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.autoStart = autoStart
@@ -86,12 +86,13 @@ struct DeepCheckFeatureView: View {
         }
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
-                DeepCheckDetailsView(result: result, resolvedContext: resolvedContext, gameName: gameName)
+                DeepCheckDetailsView(result: result, resolvedContext: activeContext, gameName: gameName)
             }
         }
         .sheet(isPresented: $showingBooster) {
-            if case let .result(result, _) = presentation {
-                let isWiFi = (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi
+            if case let .result(result, _) = presentation,
+               let observedPhoneNetwork = activeContext.observedPhoneNetwork {
+                let isWiFi = observedPhoneNetwork == .wifi
                 let telemetry = WiFiLocalTelemetry(
                     gatewayRTTMedianMs: result.metrics.rest.p50Milliseconds,
                     gatewayJitterMs: result.metrics.rest.jitterMilliseconds,
@@ -105,8 +106,8 @@ struct DeepCheckFeatureView: View {
 
                 let req = ConnectionBoosterRequest(
                     gameName: gameName,
-                    platform: resolvedContext.context.platform,
-                    networkKind: resolvedContext.context.equipmentConnection ?? .wifi,
+                    platform: activeContext.context.platform,
+                    networkKind: observedPhoneNetwork,
                     p50Milliseconds: result.metrics.rest.p50Milliseconds ?? 0.0,
                     jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
                     packetLossRate: result.metrics.rest.packetLossPercentage / 100.0,
@@ -114,6 +115,8 @@ struct DeepCheckFeatureView: View {
                     wifiBandEstimate: wifiBandEstimate
                 )
                 ConnectionBoosterSheet(request: req, coordinator: boosterCoordinator)
+            } else {
+                EmptyView()
             }
         }
     }
@@ -191,11 +194,11 @@ struct DeepCheckFeatureView: View {
     private var friendlyRegion: String {
         let ident = locale.identifier.lowercased()
         let lang = ident.hasPrefix("pt") ? "pt-BR" : (ident.hasPrefix("es") ? "es" : "en")
-        return GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, languageCode: lang)
+        return GlobalProbeRegistry.friendlyLabel(for: activeContext.regionID, languageCode: lang)
     }
 
     private func measuring(_ phase: DeepCheckPhase) -> some View {
-        let isWiFi = (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi
+        let isWiFi = activeContext.observedPhoneNetwork == .wifi
 
         return VStack(spacing: NLSpacing.lg) {
             titleHeader
@@ -219,11 +222,11 @@ struct DeepCheckFeatureView: View {
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
         CheckCompletoResultView(
             result: result,
-            profileID: resolvedContext.profileID,
+            profileID: activeContext.profileID,
             gameName: gameName,
-            platform: resolvedContext.context.platform,
+            platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
-            isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+            isWiFi: activeContext.observedPhoneNetwork == .wifi,
             natSnapshot: nil,
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
@@ -235,11 +238,11 @@ struct DeepCheckFeatureView: View {
     private var inconclusiveResultView: some View {
         CheckCompletoResultView(
             result: nil,
-            profileID: resolvedContext.profileID,
+            profileID: activeContext.profileID,
             gameName: gameName,
-            platform: resolvedContext.context.platform,
+            platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
-            isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+            isWiFi: activeContext.observedPhoneNetwork == .wifi,
             natSnapshot: nil,
             retry: restart,
             exit: cancelOrDismiss
@@ -268,17 +271,18 @@ struct DeepCheckFeatureView: View {
     private func start(withConsent: Bool = false) {
         Task { @MainActor in
             let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(
-                host: resolvedContext.destination.host,
-                port: resolvedContext.destination.port,
-                protocolKind: resolvedContext.destination.protocolKind
+                host: activeContext.destination.host,
+                port: activeContext.destination.port,
+                protocolKind: activeContext.destination.protocolKind
             ))
             let plan = DeepCheckPlan(restProbePlan: probePlan, loadProbePlan: probePlan, loadRequest: LoadRequest(url: DeepCheckLoadEndpoint.pilot))
             do {
-                _ = try await coordinator.start(
-                    resolvedContext: resolvedContext,
+                let session = try await coordinator.start(
+                    resolvedContext: activeContext,
                     plan: plan,
                     hasCellularConsent: withConsent || hasCellularConsent
                 )
+                activeContext = session.resolvedContext
                 await refreshState()
                 await waitForTerminalState()
             } catch DeepCheckSessionError.requiresCellularConsent {

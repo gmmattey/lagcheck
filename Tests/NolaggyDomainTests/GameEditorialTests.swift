@@ -25,10 +25,14 @@ final class GameEditorialTests: XCTestCase {
             // Valida que as notas possuem fontes auditáveis válidas
             for rating in editorial.ratings {
                 XCTAssertGreaterThan(rating.score, 0.0)
-                XCTAssertTrue(rating.referenceURL.starts(with: "https://"), "A URL de referência deve ser HTTPS válida para \(gameID).")
+                XCTAssertTrue(
+                    hasVerifiableReferenceURL(rating.referenceURL, for: rating.source),
+                    "A URL de referência deve apontar para a fonte auditável correspondente em \(gameID)."
+                )
             }
 
             // Valida demandas de rede recomendadas
+            XCTAssertGreaterThan(editorial.networkDemands.minDownloadMbps, 0.0)
             XCTAssertGreaterThan(editorial.networkDemands.optimalPingMs, 0.0)
             XCTAssertGreaterThan(editorial.networkDemands.maxJitterMs, 0.0)
         }
@@ -61,5 +65,25 @@ final class GameEditorialTests: XCTestCase {
         XCTAssertNotNil(req)
         XCTAssertTrue(req?.formattedStorage.contains("GB") == true)
         XCTAssertTrue(req?.formattedRAM.contains("GB RAM") == true)
+    }
+
+    private func hasVerifiableReferenceURL(_ referenceURL: String, for source: EditorialRatingSource) -> Bool {
+        guard let components = URLComponents(string: referenceURL),
+              components.scheme == "https",
+              let host = components.host?.lowercased(),
+              !components.path.isEmpty else {
+            return false
+        }
+
+        switch source {
+        case .appStore:
+            return host == "apps.apple.com" || host.hasSuffix(".apps.apple.com")
+        case .metacriticCritic, .metacriticUser:
+            return host == "metacritic.com" || host.hasSuffix(".metacritic.com")
+        case .openCritic:
+            return host == "opencritic.com" || host.hasSuffix(".opencritic.com")
+        case .steam:
+            return host == "store.steampowered.com" || host.hasSuffix(".store.steampowered.com")
+        }
     }
 }

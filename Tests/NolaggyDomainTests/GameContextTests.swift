@@ -8,7 +8,7 @@ final class GameContextTests: XCTestCase {
         XCTAssertEqual(context.gameID, "pilot-game")
         XCTAssertEqual(context.market, "BR")
         XCTAssertEqual(context.platform, .iphone)
-        XCTAssertNil(context.equipmentConnection)
+        XCTAssertNil(context.declaredExternalLink)
     }
 
     func testPilotCatalogResolvesOnlyApprovedReferenceContext() throws {
@@ -46,14 +46,32 @@ final class GameContextTests: XCTestCase {
         }
     }
 
-    func testContextRejectsEquipmentConnectionForIPhone() {
+    func testContextRejectsExternalEquipmentLinkForIPhone() {
         XCTAssertThrowsError(
             try PilotCatalog.pilotBase.resolve(
-                GameContext(gameID: "fortnite", market: "BR", platform: .iphone, equipmentConnection: .wifi)
+                GameContext(gameID: "fortnite", market: "BR", platform: .iphone, declaredExternalLink: .wifi)
             )
         ) { error in
-            XCTAssertEqual(error as? CatalogValidationError, .equipmentConnectionNotApplicable)
+            XCTAssertEqual(error as? CatalogValidationError, .externalEquipmentLinkNotApplicable)
         }
+    }
+
+    func testObservedPhoneNetworkPreservesDeclaredExternalLink() throws {
+        let context = ResolvedMeasurementContext(
+            context: GameContext(gameID: "fortnite", market: "BR", platform: .playstation, declaredExternalLink: .ethernet),
+            catalogVersion: "catalog-1",
+            profileID: .battleRoyaleCompetitive,
+            regionID: "sa-east-1",
+            destination: try ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770),
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+
+        let observed = context.withObservedPhoneNetwork(.cellular)
+
+        XCTAssertEqual(observed.context.declaredExternalLink, .ethernet)
+        XCTAssertEqual(observed.observedPhoneNetwork, .cellular)
+        XCTAssertTrue(observed.hasCompleteConnectionFacts)
     }
 
     func testCatalogRejectsInvalidDestinationAndDanglingRegion() throws {

@@ -14,7 +14,7 @@ extension QuickCheckFeatureView {
             interpretation.score,
             headline
         )
-        let isWiFi = (context?.equipmentConnection ?? .wifi) == .wifi
+        let isWiFi = selectedRegionalContext?.observedPhoneNetwork == .wifi
         let isLocalHealthy = interpretation.primaryCauseKey != .highJitter
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi

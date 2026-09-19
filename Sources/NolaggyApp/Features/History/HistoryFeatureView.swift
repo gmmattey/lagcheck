@@ -16,7 +16,7 @@ struct HistoryView: View {
     @State private var filter: HistoryConnectionFilter = .all
 
     private var filteredEntries: [MeasurementHistoryEntry] {
-        entries.filter { filter.includes($0.historyConnection) }
+        entries.filter { filter.includes($0.historyPhoneNetwork) }
     }
 
     private var games: [HistoryGame] {
@@ -262,8 +262,7 @@ private struct HistoryGameRow: View {
     }
 
     private var contextText: String {
-        [entry.resolvedContext.context.platform.displayName, entry.historyConnection.title, entry.routeLabel(for: locale)]
-            .joined(separator: " · ")
+        entry.historyContextDescription(routeLabel: entry.routeLabel(for: locale))
     }
 
     private var scoreColor: Color {
@@ -359,26 +358,28 @@ private struct HistoryContext: Identifiable {
     let entries: [MeasurementHistoryEntry]
     let latest: MeasurementHistoryEntry
 
-    var title: String { [id.platform.displayName, id.connection.title].joined(separator: " · ") }
+    var title: String { [id.platform.displayName, id.externalLink.title, id.phoneNetwork.title].joined(separator: " · ") }
     var routeLabel: String { id.routeLabel }
 }
 
 private struct HistoryContextKey: Hashable, Identifiable {
     let gameID: String
     let platform: Platform
-    let connection: HistoryRecordedConnection
+    let externalLink: HistoryExternalLink
+    let phoneNetwork: HistoryPhoneNetwork
     let regionID: String
     let profileRuleVersion: String
 
     init(entry: MeasurementHistoryEntry) {
         gameID = entry.resolvedContext.context.gameID
         platform = entry.resolvedContext.context.platform
-        connection = entry.historyConnection
+        externalLink = entry.historyExternalLink
+        phoneNetwork = entry.historyPhoneNetwork
         regionID = entry.resolvedContext.regionID
         profileRuleVersion = entry.profileRuleVersion
     }
 
-    var id: String { [gameID, platform.rawValue, connection.rawValue, regionID, profileRuleVersion].joined(separator: "|") }
+    var id: String { [gameID, platform.rawValue, externalLink.rawValue, phoneNetwork.rawValue, regionID, profileRuleVersion].joined(separator: "|") }
 
     var routeLabel: String {
         let identifier = Locale.current.identifier.lowercased()
@@ -402,11 +403,11 @@ private enum HistoryConnectionFilter: String, CaseIterable, Identifiable {
         }
     }
 
-    func includes(_ connection: HistoryRecordedConnection) -> Bool {
+    func includes(_ network: HistoryPhoneNetwork) -> Bool {
         switch self {
         case .all: true
-        case .wifi: connection == .wifi
-        case .cellular: connection == .cellular
+        case .wifi: network == .wifi
+        case .cellular: network == .cellular
         }
     }
 }
@@ -417,8 +418,23 @@ private extension MeasurementHistoryEntry {
     /// apresentação precisa reconhecer esse estado pelo fato medido.
     var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
 
-    var historyConnection: HistoryRecordedConnection {
-        HistoryRecordedConnection(resolvedContext.context.equipmentConnection)
+    var historyPhoneNetwork: HistoryPhoneNetwork {
+        guard resolvedContext.hasCompleteConnectionFacts else { return .unrecorded }
+        return HistoryPhoneNetwork(resolvedContext.observedPhoneNetwork)
+    }
+
+    var historyExternalLink: HistoryExternalLink {
+        HistoryExternalLink(resolvedContext.context.declaredExternalLink)
+    }
+
+    func historyContextDescription(routeLabel: String) -> String {
+        [
+            resolvedContext.context.platform.displayName,
+            historyExternalLink.title,
+            historyPhoneNetwork.title,
+            routeLabel
+        ]
+        .joined(separator: " · ")
     }
 
     func routeLabel(for locale: Locale) -> String {
@@ -428,7 +444,7 @@ private extension MeasurementHistoryEntry {
     }
 }
 
-private enum HistoryRecordedConnection: String, Hashable {
+private enum HistoryPhoneNetwork: String, Hashable {
     case wifi
     case cellular
     case other
@@ -449,6 +465,28 @@ private enum HistoryRecordedConnection: String, Hashable {
         case .cellular: NSLocalizedString("history.connection.cellular", comment: "")
         case .other: NSLocalizedString("history.connection.other", comment: "")
         case .unrecorded: NSLocalizedString("history.connection.unrecorded", comment: "")
+        }
+    }
+}
+
+private enum HistoryExternalLink: String, Hashable {
+    case wifi
+    case ethernet
+    case notDeclared
+
+    init(_ link: ExternalEquipmentLink?) {
+        switch link {
+        case .wifi: self = .wifi
+        case .ethernet: self = .ethernet
+        case nil: self = .notDeclared
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .wifi: NSLocalizedString("history.equipment.wifi", comment: "")
+        case .ethernet: NSLocalizedString("history.equipment.ethernet", comment: "")
+        case .notDeclared: NSLocalizedString("history.equipment.not_declared", comment: "")
         }
     }
 }
