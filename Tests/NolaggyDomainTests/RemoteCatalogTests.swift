@@ -144,9 +144,48 @@ final class RemoteCatalogTests: XCTestCase {
             GameContext(gameID: "fortnite", market: "BR", platform: .iphone), in: verified
         )
 
-        XCTAssertEqual(snapshot.catalogVersion, "debug-2026.09.08.3")
+        XCTAssertEqual(snapshot.catalogVersion, "debug-2026.09.19.1")
         XCTAssertEqual(snapshot.candidates.map(\.regionID), ["sa-east-1"])
-        XCTAssertEqual(snapshot.candidates.map(\.priority), [10])
+        XCTAssertEqual(snapshot.candidates.map(\.priority), [0])
+    }
+
+    func testSchemaTwoCandidateResolvesEveryDeclaredPlatformWithoutInheritedDestinations() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let verified = try verify(schemaTwoPayload(), with: privateKey)
+
+        XCTAssertEqual(verified.games.count, 22)
+        XCTAssertEqual(Set(verified.games.map(\.id)), [
+            "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
+            "brawl-stars", "wild-rift", "roblox", "minecraft", "apex-legends",
+            "blood-strike", "cs2", "dota2", "eafc", "league-of-legends", "palworld",
+            "rainbow-six", "rainbow-six-mobile", "rocket-league", "rocket-league-sideswipe",
+            "rust", "valorant", "warzone"
+        ])
+
+        for game in verified.games {
+            let declaredPlatforms = Set(game.contexts.flatMap(\.platforms))
+            XCTAssertEqual(declaredPlatforms, RemoteCatalogVerifier.allowedPlatforms(for: game.id), game.id)
+
+            for platform in declaredPlatforms {
+                let resolution = try RemoteCatalogVerifier.resolve(
+                    GameContext(gameID: game.id, market: "BR", platform: platform),
+                    in: verified
+                )
+                guard case let .available(resolved) = resolution else {
+                    return XCTFail("\(game.id) · \(platform) must resolve its signed context.")
+                }
+                XCTAssertEqual(resolved.destination.host, "gamelift-ping.sa-east-1.api.aws")
+                XCTAssertEqual(resolved.probeProtocol, .gameLiftPing)
+                XCTAssertEqual(resolved.strategy, .genericRegion)
+                XCTAssertEqual(resolved.confidence, .medium)
+                XCTAssertEqual(resolved.precisionKey, "regionalReference")
+            }
+        }
+
+        XCTAssertThrowsError(try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "apex-legends", market: "BR", platform: .iphone),
+            in: verified
+        ))
     }
 
     func testSchemaTwoRejectsMissingPriorityForCandidate() throws {
@@ -265,7 +304,7 @@ final class RemoteCatalogTests: XCTestCase {
         let cs2Index = games.firstIndex { $0.id == "cs2" }!
         games[cs2Index] = RemoteCatalogGame(id: "cs2", name: "Counter-Strike 2", contexts: [
             RemoteCatalogGameContext(
-                market: "BR", platforms: [.iphone], profileID: "BATTLE_ROYALE_COMPETITIVE", availability: .available,
+                market: "BR", platforms: [.pc], profileID: "BATTLE_ROYALE_COMPETITIVE", availability: .available,
                 measurement: RemoteCatalogMeasurement(
                     candidateRegionIDs: ["steam-sp"], candidatePriorities: ["steam-sp": 10],
                     strategy: .dedicatedServer, confidence: .high, precisionKey: "dedicatedServer"
@@ -282,7 +321,7 @@ final class RemoteCatalogTests: XCTestCase {
 
         let verified = try verify(payload, with: privateKey)
         let resolution = try RemoteCatalogVerifier.resolve(
-            GameContext(gameID: "cs2", market: "BR", platform: .iphone),
+            GameContext(gameID: "cs2", market: "BR", platform: .pc),
             in: verified
         )
 
@@ -559,31 +598,10 @@ private extension RemoteCatalogTests {
     }
 
     func schemaTwoPayload() -> RemoteCatalogPayload {
-        let legacy = debugPayload()
-        let upgradedGames = legacy.games.map { game in
-            RemoteCatalogGame(id: game.id, name: game.name, contexts: game.contexts.map { context in
-                RemoteCatalogGameContext(
-                    market: context.market,
-                    platforms: context.platforms,
-                    profileID: context.profileID,
-                    availability: context.availability,
-                    measurement: RemoteCatalogMeasurement(
-                        candidateRegionIDs: ["sa-east-1"],
-                        candidatePriorities: ["sa-east-1": 10],
-                        strategy: .genericRegion,
-                        confidence: .medium,
-                        precisionKey: "regionalReference"
-                    )
-                )
-            })
-        }
-        return RemoteCatalogPayload(
-            schemaVersion: 2,
-            catalogVersion: "debug-2026.09.08.3",
-            profiles: legacy.profiles,
-            regions: legacy.regions,
-            games: upgradedGames
-        )
+        let sourceDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        let repositoryRoot = sourceDirectory.deletingLastPathComponent().deletingLastPathComponent()
+        let candidateURL = repositoryRoot.appendingPathComponent("worker/catalog/DebugCatalogPayload.schema2.canonical.json")
+        return try! JSONDecoder().decode(RemoteCatalogPayload.self, from: Data(contentsOf: candidateURL))
     }
 
     func publishedDebugEnvelopeData() throws -> Data {

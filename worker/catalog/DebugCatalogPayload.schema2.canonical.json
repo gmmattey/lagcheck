@@ -1,0 +1,1174 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "debug-2026.09.19.1",
+  "profiles": [
+    {
+      "id": "BATTLE_ROYALE_COMPETITIVE",
+      "ruleVersion": "pilot-2026.09.08.1"
+    },
+    {
+      "id": "MOBILE_REALTIME",
+      "ruleVersion": "mobile-realtime-2026.09.08.1"
+    },
+    {
+      "id": "CASUAL_REALTIME",
+      "ruleVersion": "casual-realtime-2026.09.08.1"
+    }
+  ],
+  "regions": [
+    {
+      "id": "sa-east-1",
+      "label": {
+        "pt-BR": "São Paulo",
+        "en": "São Paulo",
+        "es": "São Paulo"
+      },
+      "probe": {
+        "host": "gamelift-ping.sa-east-1.api.aws",
+        "port": 7770,
+        "protocolKind": "gameLiftPing"
+      }
+    }
+  ],
+  "games": [
+    {
+      "id": "fortnite",
+      "name": "Fortnite",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "nintendo"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "call-of-duty-mobile",
+      "name": "Call of Duty: Mobile",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "free-fire",
+      "name": "Free Fire",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pubg-mobile",
+      "name": "PUBG MOBILE",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "brawl-stars",
+      "name": "Brawl Stars",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "MOBILE_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "wild-rift",
+      "name": "League of Legends: Wild Rift",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "MOBILE_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "roblox",
+      "name": "Roblox",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "minecraft",
+      "name": "Minecraft",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "nintendo"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "apex-legends",
+      "name": "Apex Legends",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "nintendo"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "blood-strike",
+      "name": "Blood Strike",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cs2",
+      "name": "Counter-Strike 2",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dota2",
+      "name": "Dota 2",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "MOBILE_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "eafc",
+      "name": "EA SPORTS FC",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "league-of-legends",
+      "name": "League of Legends",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "MOBILE_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "palworld",
+      "name": "Palworld",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rainbow-six",
+      "name": "Rainbow Six Siege",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rainbow-six-mobile",
+      "name": "Rainbow Six Mobile",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rocket-league",
+      "name": "Rocket League",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "nintendo"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rocket-league-sideswipe",
+      "name": "Rocket League Sideswipe",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "iphone"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "CASUAL_REALTIME",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "valorant",
+      "name": "VALORANT",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    },
+    {
+      "id": "warzone",
+      "name": "Call of Duty: Warzone",
+      "contexts": [
+        {
+          "market": "BR",
+          "platforms": [
+            "playstation"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "xbox"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        },
+        {
+          "market": "BR",
+          "platforms": [
+            "pc"
+          ],
+          "profileID": "BATTLE_ROYALE_COMPETITIVE",
+          "availability": "available",
+          "measurement": {
+            "candidateRegionIDs": [
+              "sa-east-1"
+            ],
+            "candidatePriorities": {
+              "sa-east-1": 0
+            },
+            "strategy": "genericRegion",
+            "confidence": "medium",
+            "precisionKey": "regionalReference"
+          }
+        }
+      ]
+    }
+  ]
+}

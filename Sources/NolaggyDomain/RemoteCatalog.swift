@@ -683,22 +683,16 @@ public enum RemoteCatalogVerifier {
         )
     }
 
-    /// Teto de plataformas por jogo no catálogo Debug. Um contexto publicado pode usar
-    /// qualquer subconjunto deste teto — isso permite liberar console num jogo sem exigir
-    /// que o envelope já assinado hoje (iPhone-only) seja re-assinado ao mesmo tempo.
-    /// O teto reflete só quais jogos existem de fato em PlayStation/Xbox; a estratégia de
-    /// medição não é inferida pela plataforma: cada contexto assinado declara
-    /// explicitamente seus destinos e protocolos.
-    /// Ver docs/26-decisao-catalogo-console.md.
+    /// Teto de plataformas do candidato schema 2. A UI só oferece a plataforma
+    /// quando o contexto assinado a declara, mas este teto impede que um
+    /// envelope Debug publique uma combinação que não pertence ao produto.
     public static func allowedPlatforms(for gameID: String) -> Set<Platform> {
-        if let editorial = GameEditorialRegistry.editorial(for: gameID) {
-            let platforms = Set(editorial.requirements.map(\.platform))
-            if !platforms.isEmpty { return platforms }
-        }
-        return debugAllowedPlatforms[gameID] ?? [.iphone]
+        schemaTwoAllowedPlatforms[gameID] ?? legacyAllowedPlatforms[gameID] ?? []
     }
 
-    private static let debugAllowedPlatforms: [String: Set<Platform>] = [
+    /// O envelope schema 1 já publicado é aceito exatamente como foi assinado.
+    /// Ele não ganha plataformas novas por interpretação retrospectiva.
+    private static let legacyAllowedPlatforms: [String: Set<Platform>] = [
         "fortnite": [.iphone, .playstation, .xbox],
         "call-of-duty-mobile": [.iphone],
         "free-fire": [.iphone],
@@ -721,18 +715,55 @@ public enum RemoteCatalogVerifier {
         "warzone": [.iphone]
     ]
 
+    private static let schemaTwoAllowedPlatforms: [String: Set<Platform>] = [
+        "fortnite": [.iphone, .playstation, .xbox, .nintendo, .pc],
+        "call-of-duty-mobile": [.iphone],
+        "free-fire": [.iphone],
+        "pubg-mobile": [.iphone],
+        "brawl-stars": [.iphone],
+        "wild-rift": [.iphone],
+        "roblox": [.iphone, .playstation, .xbox, .pc],
+        "minecraft": [.iphone, .playstation, .xbox, .nintendo, .pc],
+        "apex-legends": [.playstation, .xbox, .nintendo, .pc],
+        "blood-strike": [.iphone, .pc],
+        "cs2": [.pc],
+        "dota2": [.pc],
+        "eafc": [.iphone, .playstation, .xbox, .pc],
+        "league-of-legends": [.pc],
+        "palworld": [.playstation, .xbox, .pc],
+        "rainbow-six": [.playstation, .xbox, .pc],
+        "rainbow-six-mobile": [.iphone],
+        "rocket-league": [.playstation, .xbox, .nintendo, .pc],
+        "rocket-league-sideswipe": [.iphone],
+        "rust": [.playstation, .xbox, .pc],
+        "valorant": [.playstation, .xbox, .pc],
+        "warzone": [.playstation, .xbox, .pc]
+    ]
+
     private static func validateDebugPayload(_ payload: RemoteCatalogPayload) throws {
         if payload.schemaVersion == routedCatalogSchemaVersion {
             try validateRoutedPayload(payload)
             return
         }
-        let expectedGames: Set<String> = [
+        let legacyGameIDs: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
             "brawl-stars", "wild-rift", "roblox", "minecraft",
             "apex-legends", "blood-strike", "cs2", "dota2", "eafc",
             "league-of-legends", "palworld", "rainbow-six", "rocket-league",
             "rust", "valorant", "warzone"
         ]
+        let expectedGames: Set<String>
+        let allowedPlatforms: [String: Set<Platform>]
+        switch payload.schemaVersion {
+        case legacySchemaVersion:
+            expectedGames = legacyGameIDs
+            allowedPlatforms = legacyAllowedPlatforms
+        case candidateRegionsSchemaVersion:
+            expectedGames = Set(schemaTwoAllowedPlatforms.keys)
+            allowedPlatforms = schemaTwoAllowedPlatforms
+        default:
+            throw RemoteCatalogError.unsupportedDebugCatalog
+        }
         guard payload.games.count == expectedGames.count,
               Set(payload.games.map(\.id)) == expectedGames else { throw RemoteCatalogError.unsupportedDebugCatalog }
         guard Set(payload.profiles.map(\.id)).count == payload.profiles.count else { throw RemoteCatalogError.duplicateProfile }
@@ -781,7 +812,7 @@ public enum RemoteCatalogVerifier {
             game.contexts.flatMap { candidateIDs(for: $0.measurement, schemaVersion: payload.schemaVersion) }
         })
         guard payload.games.allSatisfy({ game in
-            guard let allowedPlatforms = debugAllowedPlatforms[game.id] else { return false }
+            guard let allowedPlatforms = allowedPlatforms[game.id] else { return false }
             var claimedPlatforms = Set<Platform>()
             return game.contexts.allSatisfy { context in
                 let candidateList = candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion)
