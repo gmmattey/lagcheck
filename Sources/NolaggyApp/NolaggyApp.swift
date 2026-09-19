@@ -24,7 +24,7 @@ struct NolaggyApp: App {
             fetcher: URLSessionRemoteCatalogFetcher(url: URL(string: "https://nolaggy-deep-check.buildealabs.workers.dev/v1/catalog.json")!),
             cache: UserDefaultsRemoteCatalogCache()
         )
-        if UITestFixtures.isEnabled("-ui-fixture-confirmed-region"),
+        if (UITestFixtures.isEnabled("-ui-fixture-confirmed-region") || UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")),
            let data = DebugCatalogBase.envelopeData(),
            let payload = try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data) {
             _catalogState = State(initialValue: .ready(LoadedRemoteCatalog(payload: payload, source: .bundledBase)))
@@ -58,7 +58,8 @@ struct NolaggyApp: App {
                 // A fixture mantém o mesmo catálogo assinado e a mesma jornada da
                 // aplicação, mas não permite que o refresh remoto recompose a Home
                 // durante uma prova determinística de ciclo de vida em UI test.
-                guard !UITestFixtures.isEnabled("-ui-fixture-confirmed-region") else { return }
+                guard !UITestFixtures.isEnabled("-ui-fixture-confirmed-region"),
+                      !UITestFixtures.isEnabled("-ui-fixture-inconclusive-history") else { return }
                 await loadCatalogForHome()
                 await catalogRepository.refreshIfDue()
                 await loadCatalogForHome()

@@ -29,6 +29,21 @@ enum UITestFixtures {
         )
     }
 
+    static var inconclusiveEntry: MeasurementHistoryEntry {
+        let context = try! PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone))
+        let metrics = QualityMetrics(
+            validResponseCount: 0, timeoutCount: 30, invalidResponseCount: 0,
+            p50Milliseconds: nil, p95Milliseconds: nil, p99Milliseconds: nil, jitterMilliseconds: nil,
+            packetLossPercentage: 100, spikeCount: 0, severeSpikeCount: 0, spikeRatePercentage: 0,
+            p95ToP50Ratio: nil, worstSpikeMilliseconds: nil, components: nil
+        )
+        return MeasurementHistoryEntry(
+            completedAt: Date(), resolvedContext: context, profileRuleVersion: context.catalogVersion,
+            result: QualityResult(metrics: metrics, rawScore: 0, finalScore: 0, resultClass: .unstable, appliedGuardrails: []),
+            primaryCause: .packetLoss
+        )
+    }
+
     static let validSamples: [ProbeSample] = [24, 26, 23, 29, 25, 72, 24, 27, 22, 28, 25, 24, 41, 26, 23, 25].enumerated().map {
         ProbeSample(sequence: $0.offset, roundTripMilliseconds: Double($0.element), outcome: .received)
     }

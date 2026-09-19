@@ -289,13 +289,28 @@
 /* Nova Jornada e Iniciar LagCheck */
 "settings.language.system" = "Padrão do Sistema";
 "home.cta.start_lagcheck" = "Iniciar LagCheck";
+"home.cta.choose_game" = "Escolher um jogo";
+"home.cta.measuring" = "Medição em andamento…";
 "home.empty_recent.title" = "Nenhum jogo testado ainda";
-"home.empty_recent.message" = "Escolha um jogo na aba Jogos para fazer sua primeira verificação de rota.";
+"home.empty_recent.message" = "Faça sua primeira verificação de rota para ver a estabilidade antes da partida.";
 "home.empty_recent.button" = "Explorar Jogos";
 "home.recent_tested" = "Últimos testados";
 "home.last_tested" = "Verificado recentemente";
 "home.start_for_game %@" = "Iniciar LagCheck para %@";
 "home.choose_another_game" = "Escolher outro jogo";
+"home.explore.title" = "Explorar jogos";
+"home.explore.see_all" = "Ver todos os jogos";
+"home.hero.score_label" = "Score";
+"home.hero.estimate_note" = "Estimativa na rota do iPhone até a região";
+"home.hero.no_game_selected" = "Nenhum jogo selecionado";
+"home.hero.ready_title" = "Pronto para verificar sua rota";
+"home.hero.ready_subtitle" = "Meça a rota e o risco de lag antes de entrar na partida.";
+"home.hero.inconclusive_title" = "Medição inconclusiva";
+"home.hero.inconclusive_subtitle" = "Respostas UDP insuficientes para avaliar a rota com precisão.";
+"home.hero.last_check_format %@" = "Última medição: %@";
+"home.condition.excellent" = "Conexão excelente";
+"home.condition.unstable" = "Oscilação na rota";
+"home.condition.lag_risk" = "Risco de lag";
 
 /* Biblioteca estilo Netflix */
 "netflix.hero.badge" = "EM ALTA";

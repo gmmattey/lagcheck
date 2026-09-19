@@ -286,16 +286,31 @@
 "nat_banner.strict.message" = "Your NAT type is Strict. This can make matchmaking slower and cause issues connecting to voice parties.";
 "nat_banner.default.title" = "Network Topology";
 
-/* New Journey & Start LagCheck */
+/* Nova Jornada e Iniciar LagCheck */
 "settings.language.system" = "System Default";
 "home.cta.start_lagcheck" = "Start LagCheck";
+"home.cta.choose_game" = "Choose a game";
+"home.cta.measuring" = "Measurement in progress…";
 "home.empty_recent.title" = "No games tested yet";
-"home.empty_recent.message" = "Choose a game in the Games tab to run your first route check.";
+"home.empty_recent.message" = "Run your first route check to evaluate stability before playing.";
 "home.empty_recent.button" = "Explore Games";
 "home.recent_tested" = "Recently Tested";
 "home.last_tested" = "Recently verified";
 "home.start_for_game %@" = "Start LagCheck for %@";
 "home.choose_another_game" = "Choose another game";
+"home.explore.title" = "Explore Games";
+"home.explore.see_all" = "See all games";
+"home.hero.score_label" = "Score";
+"home.hero.estimate_note" = "Estimate based on iPhone route to reference region";
+"home.hero.no_game_selected" = "No game selected";
+"home.hero.ready_title" = "Ready to verify your route";
+"home.hero.ready_subtitle" = "Measure network route and lag risk before joining a match.";
+"home.hero.inconclusive_title" = "Inconclusive check";
+"home.hero.inconclusive_subtitle" = "Insufficient UDP responses to accurately assess route quality.";
+"home.hero.last_check_format %@" = "Last check: %@";
+"home.condition.excellent" = "Excellent connection";
+"home.condition.unstable" = "Route jitter detected";
+"home.condition.lag_risk" = "Lag risk";
 
 /* Netflix-style Library */
 "netflix.hero.badge" = "TRENDING";
