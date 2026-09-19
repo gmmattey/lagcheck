@@ -21,20 +21,25 @@ struct DeepCheckFeatureView: View {
     private let gameName: String
     private let historyRepository: any MeasurementHistoryRepository
     private let usesFixture: Bool
+    private let autoStart: Bool
 
     init(
         resolvedContext: ResolvedMeasurementContext,
         gameName: String,
-        historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository()
+        historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
+        autoStart: Bool = true
     ) {
         self.resolvedContext = resolvedContext
         self.gameName = gameName
         self.historyRepository = historyRepository
+        self.autoStart = autoStart
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
         _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
         if usesFixture {
             _presentation = State(initialValue: .result(UITestFixtures.validDeepResult, .measured))
+        } else if autoStart {
+            _presentation = State(initialValue: .measuring(.rest))
         }
     }
 
@@ -61,6 +66,11 @@ struct DeepCheckFeatureView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            if autoStart && !usesFixture {
+                start()
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background else { return }
             Task { @MainActor in
@@ -157,53 +167,54 @@ struct DeepCheckFeatureView: View {
     }
 
     private func measuring(_ phase: DeepCheckPhase) -> some View {
-        VStack(spacing: NLSpacing.xl) {
+        let metrics = ObservedDeepMetrics(samples: samples)
+        let isStressed = phase == .load
+        let stressLoc = isStressed ? metrics.stressLocation(restSamples: restSamples) : .none
+        let isPortuguese = Locale.current.identifier.hasPrefix("pt")
+        let friendlyRegion = GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, isPortuguese: isPortuguese)
+
+        return VStack(spacing: NLSpacing.lg) {
             titleHeader
             Spacer(minLength: NLSpacing.xs)
-            VStack(spacing: NLSpacing.sm) {
-                Text(phase == .rest ? "deep_check.phase.rest_progress" : "deep_check.phase.load_progress")
-                    .font(NLTypography.headline).foregroundStyle(NLColor.textPrimary).multilineTextAlignment(.center)
-                phaseProgressIndicator(phase)
-                measurementContext
-                Text(String(format: NSLocalizedString("deep_check.phase.remaining", comment: ""), estimatedSecondsRemaining))
-                    .font(NLTypography.footnote).foregroundStyle(NLColor.textSecondary)
-            }
-            MeasurementPulse(
-                phase: phase == .rest ? .deepIdle : .deepLoad,
-                phaseLabel: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load",
+
+            MeasurementLiveTrail(
+                isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+                destinationName: friendlyRegion,
+                currentRTT: metrics.currentRTTValue,
                 progress: Double(samples.count) / Double(ProbeAcceptancePolicy.plannedProbeCount),
-                currentRTT: ObservedDeepMetrics(samples: samples).currentRTT,
-                measuringLabel: "quick_check.measuring.waiting",
-                currentRTTLabel: "deep_check.phase.current_rtt",
-                phaseAccessibilityLabel: String(localized: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load"),
-                currentRTTAccessibilityLabel: String(localized: "deep_check.phase.current_rtt")
+                sampleCount: samples.count,
+                lossCount: metrics.lossCount,
+                isUnderStress: isStressed,
+                stressLocation: stressLoc,
+                phaseTitle: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load",
+                phaseSubtitle: LocalizedStringKey(gameName)
             )
-            LatencyGraph(
-                values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
-                awaitingLabel: "quick_check.measuring.awaiting_samples",
-                accessibilityLabel: String(localized: phase == .rest ? "deep_check.phase.rest_message" : "deep_check.phase.load_message"),
-                comparisonValues: restSamples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds)
-            )
-            if phase == .load {
-                HStack(spacing: NLSpacing.md) {
-                    Label("deep_check.graph.rest", systemImage: "minus")
-                    Label("deep_check.graph.load", systemImage: "line.diagonal")
-                }
-                .font(NLTypography.caption)
-                .foregroundStyle(NLColor.textTertiary)
-                .accessibilityElement(children: .combine)
+
+            HStack {
+                phaseProgressIndicator(phase)
+                Spacer()
+                Text(String(format: NSLocalizedString("deep_check.phase.remaining", comment: ""), estimatedSecondsRemaining))
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
             }
+            .padding(.horizontal, NLSpacing.xs)
+
             Spacer()
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
     }
 
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
-        DeepCheckResultView(
+        let isPortuguese = Locale.current.identifier.hasPrefix("pt")
+        let friendlyRegion = GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, isPortuguese: isPortuguese)
+        return DeepCheckResultView(
             result: result,
             availability: availability,
             profileID: resolvedContext.profileID,
             gameName: gameName,
+            platform: resolvedContext.context.platform,
+            regionFriendlyName: friendlyRegion,
+            isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
             retry: restart,
@@ -289,7 +300,16 @@ struct DeepCheckFeatureView: View {
         }
     }
 
-    private func restart() { samples = []; restSamples = []; presentation = .intro }
+    private func restart() {
+        samples = []
+        restSamples = []
+        if autoStart {
+            presentation = .measuring(.rest)
+            start()
+        } else {
+            presentation = .intro
+        }
+    }
     private func cancelOrDismiss() {
         Task { @MainActor in
             if let session = await coordinator.currentSession() { await coordinator.cancel(id: session.id) }
@@ -313,4 +333,24 @@ struct DeepCheckFeatureView: View {
 private struct ObservedDeepMetrics {
     let samples: [ProbeSample]
     var currentRTT: String? { samples.last?.roundTripMilliseconds.map { "\(Int($0.rounded())) ms" } }
+    var currentRTTValue: Double? { samples.last?.roundTripMilliseconds }
+    var lossCount: Int { samples.filter { $0.outcome == .timeout || $0.outcome == .transportError }.count }
+
+    func stressLocation(restSamples: [ProbeSample]) -> MeasurementStressLocation {
+        let restRTTs = restSamples.compactMap(\.roundTripMilliseconds).sorted()
+        let loadRTTs = samples.compactMap(\.roundTripMilliseconds).sorted()
+        guard !restRTTs.isEmpty, !loadRTTs.isEmpty else { return .none }
+        let restP50 = restRTTs[restRTTs.count / 2]
+        let loadP50 = loadRTTs[loadRTTs.count / 2]
+        let delta = loadP50 - restP50
+        if delta >= 20.0 {
+            let loadP95 = loadRTTs[Int(Double(loadRTTs.count - 1) * 0.95)]
+            if loadP95 / max(loadP50, 1.0) >= 1.45 {
+                return .localNetwork
+            } else {
+                return .externalRoute
+            }
+        }
+        return .none
+    }
 }

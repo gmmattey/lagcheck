@@ -46,161 +46,243 @@ struct HomeHeader: View {
     }
 }
 
-/// Card "Início": resume o veredito da medição como uma rota animada
-/// (aparelho → Wi-Fi → rede → jogo), sem expor dado técnico de rota ou do
-/// servidor testado — isso vive só na tela de Detalhes de cada jogo.
-struct HomeNetworkStatusCard: View {
-    let title: String
-    let color: Color
-    let latency: String
-    let isMeasuring: Bool
+/// Card "Início": resumo limpo de conectividade (sem métricas técnicas ou ping exposto na Home).
+struct HomeNetworkSummaryCard: View {
+    let isConnected: Bool
     var wifiBandText: String? = nil
 
-    private static let routeSymbols = ["iphone", "wifi", "network", "gamecontroller.fill"]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: NLSpacing.md) {
-            HStack(spacing: NLSpacing.sm) {
-                Circle().fill(color).frame(width: 10, height: 10)
-                Text(title).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
-                if let wifiBandText {
-                    Text(wifiBandText)
-                        .font(NLTypography.captionStrong)
-                        .foregroundStyle(wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background((wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent).opacity(0.15), in: Capsule())
-                }
-                Spacer()
-                Text(latency).font(NLTypography.bodyEmphasis.monospacedDigit()).foregroundStyle(isMeasuring ? NLColor.textSecondary : color)
+        HStack(spacing: NLSpacing.sm) {
+            Circle()
+                .fill(isConnected ? NLColor.scoreExcellent : NLColor.scoreNeutral)
+                .frame(width: 8, height: 8)
+
+            Text("LagCheck")
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+
+            if let wifiBandText {
+                Text(wifiBandText)
+                    .font(NLTypography.captionStrong)
+                    .foregroundStyle(wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background((wifiBandText.contains("2.4") ? NLColor.scoreUnstable : NLColor.scoreExcellent).opacity(0.15), in: Capsule())
             }
-            HStack(spacing: 0) {
-                ForEach(Array(Self.routeSymbols.enumerated()), id: \.offset) { index, symbol in
-                    routeNode(symbol: symbol)
-                    if index < Self.routeSymbols.count - 1 { routeSegment }
-                }
-            }
+
+            Spacer()
+
+            Image(systemName: "wifi")
+                .font(NLTypography.footnote)
+                .foregroundStyle(NLColor.textSecondary)
         }
-        .padding(NLSpacing.md)
+        .padding(.horizontal, NLSpacing.md)
+        .padding(.vertical, NLSpacing.sm)
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
-        .animation(.easeInOut(duration: 0.4), value: isMeasuring)
-    }
-
-    private func routeNode(symbol: String) -> some View {
-        Image(systemName: symbol)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(isMeasuring ? NLColor.textSecondary : color)
-            .frame(width: 26, height: 26)
-            .background(NLColor.backgroundBase, in: Circle())
-            .overlay(Circle().stroke(isMeasuring ? NLColor.borderStrong : color, lineWidth: 1))
-    }
-
-    private var routeSegment: some View {
-        Rectangle()
-            .fill(isMeasuring ? NLColor.borderStrong : color)
-            .frame(height: 3)
-            .clipShape(Capsule())
     }
 }
 
-// MARK: - Editorial game sections
+// MARK: - CTA Principal da Home
 
-struct HomeHeroSection: View {
+struct HomeCTASection: View {
+    let targetGame: CatalogMeasurementJourney.Game?
+    let onStartCheck: () -> Void
+    let onChooseAnotherGame: () -> Void
+
+    var body: some View {
+        VStack(spacing: NLSpacing.sm) {
+            if let targetGame {
+                HStack(spacing: NLSpacing.xs) {
+                    Image(systemName: "target")
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.accentPrimary)
+                    Text(String(format: NSLocalizedString("home.start_for_game %@", comment: ""), targetGame.name))
+                        .font(NLTypography.captionStrong)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+            }
+
+            PrimaryButton(
+                title: "home.cta.start_lagcheck",
+                action: onStartCheck
+            )
+            .accessibilityIdentifier("home-cta-start-lagcheck")
+
+            if targetGame != nil {
+                Button(action: onChooseAnotherGame) {
+                    Text(LocalizedStringKey("home.choose_another_game"))
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+// MARK: - Carrossel de Últimos Jogos Testados (Sem dados técnicos)
+
+struct HomeRecentCarouselSection: View {
     let title: String
     let games: [CatalogMeasurementJourney.Game]
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let statusTitle: (CatalogMeasurementJourney.Game) -> String
-    let latency: (CatalogMeasurementJourney.Game) -> String?
-    let score: (CatalogMeasurementJourney.Game) -> Int?
-    let scoreLabel: String
-    let detail: String
     let select: (CatalogMeasurementJourney.Game) -> Void
+    let onExploreGames: () -> Void
+
+    @State private var currentIndex: Int = 0
+    private let timer = Timer.publish(every: 4.0, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title).font(NLTypography.headline).foregroundStyle(NLColor.textPrimary).padding(.horizontal, NLSpacing.md)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NLSpacing.sm) {
-                    ForEach(games, id: \.id) { game in
-                        HomeHeroCard(game: game, category: categoryTitle(game), status: statusTitle(game), latency: latency(game), score: score(game), scoreLabel: scoreLabel, detail: detail) {
-                            select(game)
-                        }
+            Text(title)
+                .font(NLTypography.headline)
+                .foregroundStyle(NLColor.textPrimary)
+                .padding(.horizontal, NLSpacing.md)
+
+            if games.isEmpty {
+                HomeEmptyRecentCard(onExploreGames: onExploreGames)
+                    .padding(.horizontal, NLSpacing.md)
+            } else {
+                TabView(selection: $currentIndex) {
+                    ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
+                        HomeRecentCard(
+                            game: game,
+                            category: categoryTitle(game),
+                            action: { select(game) }
+                        )
+                        .tag(index)
                     }
                 }
-                .padding(.horizontal, NLSpacing.md)
+                .tabViewStyle(.page(indexDisplayMode: games.count > 1 ? .automatic : .never))
+                .frame(height: 200)
+                .onReceive(timer) { _ in
+                    guard games.count > 1 else { return }
+                    withAnimation(.easeInOut(duration: 0.6)) {
+                        currentIndex = (currentIndex + 1) % games.count
+                    }
+                }
             }
         }
     }
 }
 
-private struct HomeHeroCard: View {
+private struct HomeRecentCard: View {
     let game: CatalogMeasurementJourney.Game
     let category: String
-    let status: String
-    let latency: String?
-    let score: Int?
-    let scoreLabel: String
-    let detail: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 340 / 240).frame(width: 340, height: 240).clipped()
+                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 16 / 9)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+
                 LinearGradient(
                     stops: [
                         .init(color: .clear, location: 0.0),
-                        .init(color: .black.opacity(0.3), location: 0.35),
-                        .init(color: .black.opacity(0.85), location: 0.7),
+                        .init(color: .black.opacity(0.35), location: 0.4),
+                        .init(color: .black.opacity(0.85), location: 0.75),
                         .init(color: .black.opacity(0.96), location: 1.0)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                VStack {
-                    HStack(alignment: .top) {
-                        HStack(spacing: NLSpacing.xs) {
-                            HomeStatusBadge(title: status)
-                            if let latency { HomeLatencyBadge(latency: latency) }
-                        }
+
+                VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                    HStack {
+                        Text(category)
+                            .font(NLTypography.captionStrong)
+                            .textCase(.uppercase)
+                            .foregroundStyle(NLColor.accentPrimary)
+
                         Spacer()
-                        if let score { HomeScoreBadge(label: scoreLabel, score: score) }
+
+                        Text(LocalizedStringKey("home.last_tested"))
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .padding(.horizontal, NLSpacing.xs)
+                            .padding(.vertical, 2)
+                            .background(NLColor.backgroundRaised.opacity(0.85), in: Capsule())
                     }
-                    .padding(NLSpacing.sm)
-                    Spacer()
-                    VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                        Text(category).font(NLTypography.captionStrong).foregroundStyle(NLColor.scoreExcellent)
-                        Text(game.name).font(NLTypography.headline).foregroundStyle(.white).lineLimit(1)
-                        Text(detail).font(NLTypography.footnote).foregroundStyle(.white.opacity(0.8)).lineLimit(1)
-                    }
-                    .padding(NLSpacing.md)
+
+                    Text(game.name)
+                        .font(NLTypography.headline)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
+                .padding(NLSpacing.md)
             }
-            .frame(width: 340, height: 240)
             .clipShape(RoundedRectangle(cornerRadius: NLRadius.hero))
             .overlay(RoundedRectangle(cornerRadius: NLRadius.hero).stroke(NLColor.borderStrong, lineWidth: 1))
+            .padding(.horizontal, NLSpacing.md)
         }
         .buttonStyle(.plain)
     }
 }
 
-struct HomeShelfSection: View {
+private struct HomeEmptyRecentCard: View {
+    let onExploreGames: () -> Void
+
+    var body: some View {
+        VStack(spacing: NLSpacing.sm) {
+            Image(systemName: "gamecontroller.fill")
+                .font(.system(size: 36))
+                .foregroundStyle(NLColor.accentPrimary)
+                .padding(.top, NLSpacing.xs)
+
+            Text(LocalizedStringKey("home.empty_recent.title"))
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+
+            Text(LocalizedStringKey("home.empty_recent.message"))
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, NLSpacing.md)
+
+            Button(action: onExploreGames) {
+                Text(LocalizedStringKey("home.empty_recent.button"))
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, NLSpacing.lg)
+                    .padding(.vertical, NLSpacing.sm)
+                    .background(NLColor.accentPrimary, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, NLSpacing.xs)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, NLSpacing.lg)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+        .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
+    }
+}
+
+// MARK: - Prateleira de Jogos Populares (Automática por dados reais)
+
+struct HomePopularShelfSection: View {
     let title: String
     let games: [CatalogMeasurementJourney.Game]
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let detail: (CatalogMeasurementJourney.Game) -> String
-    let detailColor: (CatalogMeasurementJourney.Game) -> Color
-    let score: (CatalogMeasurementJourney.Game) -> Int?
     let select: (CatalogMeasurementJourney.Game) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title).font(NLTypography.headline).foregroundStyle(NLColor.textPrimary).padding(.horizontal, NLSpacing.md)
+            Text(title)
+                .font(NLTypography.headline)
+                .foregroundStyle(NLColor.textPrimary)
+                .padding(.horizontal, NLSpacing.md)
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: NLSpacing.sm) {
                     ForEach(games, id: \.id) { game in
-                        HomeShelfCard(game: game, category: categoryTitle(game), detail: detail(game), detailColor: detailColor(game), score: score(game)) { select(game) }
+                        HomePopularShelfCard(
+                            game: game,
+                            category: categoryTitle(game),
+                            action: { select(game) }
+                        )
                     }
                 }
                 .padding(.horizontal, NLSpacing.md)
@@ -209,27 +291,17 @@ struct HomeShelfSection: View {
     }
 }
 
-private struct HomeShelfCard: View {
+private struct HomePopularShelfCard: View {
     let game: CatalogMeasurementJourney.Game
     let category: String
-    let detail: String
-    let detailColor: Color
-    let score: Int?
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .topTrailing) {
-                    GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 150 / 114)
-                        .frame(width: 150, height: 114)
-                        .clipped()
-                    if let score {
-                        HomeCompactScoreBadge(score: score)
-                            .padding(NLSpacing.xs)
-                    }
-                }
-                .frame(width: 150, height: 114)
+                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 150 / 100)
+                    .frame(width: 150, height: 100)
+                    .clipped()
 
                 VStack(alignment: .leading, spacing: NLSpacing.xxs) {
                     Text(category)
@@ -237,21 +309,17 @@ private struct HomeShelfCard: View {
                         .textCase(.uppercase)
                         .foregroundStyle(NLColor.textSecondary)
                         .lineLimit(1)
+
                     Text(game.name)
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
                         .lineLimit(1)
-                    Text(detail)
-                        .font(NLTypography.caption)
-                        .foregroundStyle(detailColor)
-                        .lineLimit(1)
                 }
-                .padding(.horizontal, NLSpacing.xs)
-                .padding(.vertical, NLSpacing.xs)
-                .frame(width: 150, height: 76, alignment: .leading)
+                .padding(NLSpacing.xs)
+                .frame(width: 150, height: 56, alignment: .leading)
                 .background(NLColor.backgroundRaised)
             }
-            .frame(width: 150, height: 190)
+            .frame(width: 150)
             .clipShape(RoundedRectangle(cornerRadius: NLRadius.card))
             .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
         }
@@ -259,58 +327,62 @@ private struct HomeShelfCard: View {
     }
 }
 
-struct HomeGameListSection: View {
-    let title: String
-    let games: [CatalogMeasurementJourney.Game]
-    let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let platform: String
-    let scoreState: (CatalogMeasurementJourney.Game) -> GameRowView.ScoreState
-    let select: (CatalogMeasurementJourney.Game) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title).font(NLTypography.headline).foregroundStyle(NLColor.textPrimary)
-            VStack(spacing: 0) {
-                ForEach(games, id: \.id) { game in
-                    GameRowView(title: game.name, category: categoryTitle(game), platform: platform, scoreState: scoreState(game)) { select(game) }
-                        .accessibilityIdentifier("catalog-game-\(game.id)")
-                        .padding(.horizontal, NLSpacing.md).padding(.vertical, NLSpacing.xs)
-                    if game.id != games.last?.id { Divider().overlay(NLColor.borderSubtle).padding(.leading, 72) }
-                }
-            }
-            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-            .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
-        }
-    }
-}
-
-// MARK: - Catalog
+// MARK: - Catalog (Biblioteca Estilo Netflix)
 
 struct HomeCatalogView: View {
     let title: String
     @Binding var query: String
-    @Binding var selectedCategory: CatalogCategory
-    let categories: [CatalogCategory]
-    let games: [CatalogMeasurementJourney.Game]
+    let allGames: [CatalogMeasurementJourney.Game]
+    let popularGames: [CatalogMeasurementJourney.Game]
     let searchPlaceholder: String
     let clearSearchAccessibilityLabel: String
-    let categoryTitle: (CatalogCategory) -> String
-    let gameCategoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let scoreState: (CatalogMeasurementJourney.Game) -> GameRowView.ScoreState
-    let score: (CatalogMeasurementJourney.Game) -> Int?
-    let latency: (CatalogMeasurementJourney.Game) -> String?
-    let inconclusiveAccessibilityLabel: String
+    let categoryTitle: (CatalogMeasurementJourney.Game) -> String
     let select: (CatalogMeasurementJourney.Game) -> Void
+
+    private var searchResults: [CatalogMeasurementJourney.Game] {
+        guard !query.isEmpty else { return allGames }
+        return allGames.filter { $0.name.localizedCaseInsensitiveContains(query) }
+    }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: NLSpacing.md) {
-                HomeCatalogSearch(query: $query, placeholder: searchPlaceholder, clearAccessibilityLabel: clearSearchAccessibilityLabel)
-                    .padding(.horizontal, NLSpacing.md)
-                    .padding(.top, NLSpacing.xs)
-                HomeCatalogFilters(selected: $selectedCategory, categories: categories, title: categoryTitle)
-                HomeCatalogList(games: games, categoryTitle: gameCategoryTitle, scoreState: scoreState, score: score, latency: latency, inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel, select: select)
-                    .padding(.horizontal, NLSpacing.md)
+            VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                // Barra de busca no topo
+                HomeCatalogSearch(
+                    query: $query,
+                    placeholder: searchPlaceholder,
+                    clearAccessibilityLabel: clearSearchAccessibilityLabel
+                )
+                .padding(.horizontal, NLSpacing.md)
+                .padding(.top, NLSpacing.xs)
+
+                if query.isEmpty {
+                    // 1. Destaque Principal Cinematográfico (Hero Billboard estilo Netflix)
+                    if let heroGame = popularGames.first ?? allGames.first {
+                        NetflixHeroBillboard(
+                            game: heroGame,
+                            category: categoryTitle(heroGame),
+                            onSelect: { select(heroGame) }
+                        )
+                    }
+
+                    // 2. Fileiras de Prateleiras Temáticas (Shelves estilo Netflix)
+                    ForEach(NetflixCatalogRow.allCases) { row in
+                        let rowGames = row.games(from: allGames, rankedPopular: popularGames)
+                        NetflixShelfRow(
+                            title: NSLocalizedString(row.titleKey, comment: ""),
+                            games: rowGames,
+                            onSelect: select
+                        )
+                    }
+                } else {
+                    // Modo Busca: Grade de pôsteres com os resultados
+                    NetflixSearchGrid(
+                        games: searchResults,
+                        onSelect: select
+                    )
+                }
+
                 Spacer(minLength: NLSpacing.xl)
             }
         }

@@ -6,6 +6,16 @@ public enum Platform: String, Codable, CaseIterable, Hashable, Sendable {
     case xbox
     case pc
     case nintendo
+
+    public var displayName: String {
+        switch self {
+        case .iphone: return "iPhone"
+        case .playstation: return "PlayStation"
+        case .xbox: return "Xbox"
+        case .pc: return "PC"
+        case .nintendo: return "Nintendo Switch"
+        }
+    }
 }
 
 public enum NetworkKind: String, Codable, CaseIterable, Hashable, Sendable {

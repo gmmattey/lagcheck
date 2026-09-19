@@ -275,3 +275,67 @@
 "nat_banner.strict.title" = "NAT Estricto (Tipo 3) detectado";
 "nat_banner.strict.message" = "Tu tipo de NAT es Estricto. Esto puede dificultar encontrar partidas multijugador y conectarte con amigos en grupos de voz.";
 "nat_banner.default.title" = "Topología de red";
+
+/* Nueva Jornada e Iniciar LagCheck */
+"settings.language.system" = "Predeterminado del sistema";
+"home.cta.start_lagcheck" = "Iniciar LagCheck";
+"home.empty_recent.title" = "Ningún juego probado aún";
+"home.empty_recent.message" = "Elige un juego en la pestaña Juegos para realizar tu primera prueba de conexión.";
+"home.empty_recent.button" = "Explorar Juegos";
+"home.recent_tested" = "Últimos probados";
+"home.last_tested" = "Verificado recientemente";
+"home.start_for_game %@" = "Iniciar LagCheck para %@";
+"home.choose_another_game" = "Elegir otro juego";
+
+/* Biblioteca estilo Netflix */
+"netflix.hero.badge" = "TENDENCIA";
+"netflix.hero.view_details" = "Ver Detalles";
+"netflix.shelf.trending" = "En Tendencia Ahora";
+"netflix.shelf.battle_royale" = "Battle Royale";
+"netflix.shelf.fps" = "Tiro Táctico y FPS";
+"netflix.shelf.moba" = "MOBA y Estrategia";
+"netflix.shelf.sports_survival" = "Deportes y Supervivencia";
+
+/* Detalles del Juego - Netflix Cinema Hero */
+"game_detail.section.history" = "Tus Chequeos en este Juego";
+"game_detail.section.history_count %lld" = "%lld chequeos";
+"game_detail.section.history_empty" = "Aún no se han realizado chequeos para este juego.";
+"game_detail.section.history_empty_hint" = "Toca Iniciar LagCheck arriba para analizar tu conexión.";
+"game_detail.section.tech_specs" = "Especificaciones Técnicas y Red";
+"game_detail.section.tech_specs_subtitle" = "Requisitos mínimos, latencia ideal y NAT";
+"game_detail.section.supported_platforms" = "Plataformas Compatibles";
+"game_detail.meta.match" = "98% Coincidencia";
+"game_detail.ratings.reviews_count %@" = "%@ en App Store";
+"game_detail.ratings.critics_count %@" = "%@ Críticas Oficiales";
+"game_detail.tech.optimal_ping" = "Ping Ideal";
+"game_detail.tech.tolerated_jitter" = "Jitter Máx.";
+"game_detail.tech.tolerated_loss" = "Pérdida Máx.";
+"game_detail.tech.min_download" = "Descarga Mín.";
+"game_detail.tech.nat_topology" = "Topología NAT (STUN)";
+"game_detail.history.score_label" = "Puntaje";
+
+/* Selector de Plataforma */
+"lagcheck.platform_picker.title" = "¿Para qué plataforma?";
+"lagcheck.platform_picker.subtitle %@" = "Selecciona el dispositivo donde jugarás %@ para probar la ruta de red.";
+
+/* Trilha Viva de Medição (Decisión 34) */
+"live_trail.node.device" = "Tu iPhone";
+"live_trail.node.router" = "Router local";
+"live_trail.node.cellular" = "Red móvil";
+"live_trail.badge.origin" = "Origen del test";
+"live_trail.badge.wifi" = "Salto inalámbrico";
+"live_trail.badge.cellular" = "Operadora móvil";
+"live_trail.badge.destination" = "Infraestructura de referencia";
+"live_trail.footer.samples" = "Muestras UDP";
+
+/* Tela de Resultado HIG (Decisión 35) */
+"result.title" = "Resultado";
+"result.route_trail.title" = "Certificado de Ruta";
+"result.metrics.title" = "Métricas Detalladas";
+"result.metric.ping" = "Ping (Mediana P50)";
+"result.metric.jitter" = "Jitter (Variación)";
+"result.metric.loss" = "Pérdida de Paquetes";
+"result.metric.spikes" = "Picos de Latencia";
+"result.action.optimize" = "Optimizar Conexión";
+"result.action.details" = "Ver Detalles Técnicos";
+"result.diagnostic.title" = "Diagnóstico de Partida";

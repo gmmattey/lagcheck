@@ -3,8 +3,9 @@ import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
-/// Estado e composição da Home. Os componentes visuais vivem em
-/// `HomePresentationComponents.swift` para manter a jornada independente do layout.
+/// Estado e composição da Home (Nova Jornada de Produto).
+/// A Home agora é focada, calma e não executa testes automáticos em segundo plano.
+/// Exibe o carrossel dos últimos jogos testados, o CTA principal e a prateleira de jogos populares automatizada.
 extension QuickCheckFeatureView {
     var contextView: some View { discoveryView }
 
@@ -12,35 +13,43 @@ extension QuickCheckFeatureView {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
                 if remoteCatalog == nil {
-                    catalogUnavailable.padding(.horizontal, NLSpacing.md).padding(.top, NLSpacing.lg)
-                } else {
-                    HomeNetworkStatusCard(title: networkStatusTitle, color: networkStatusColor, latency: networkLatencyText, isMeasuring: isBackgroundMeasuring, wifiBandText: networkWiFiBandText)
+                    catalogUnavailable
                         .padding(.horizontal, NLSpacing.md)
-                        .padding(.top, NLSpacing.xs)
-                    HomeHeroSection(title: localizedString("home.featured"), games: featuredGames, categoryTitle: categoryTitle(for:), statusTitle: heroStatusText(for:), latency: gameScoreLatencyText(for:), score: gameScoreNumber(for:), scoreLabel: localizedString("home.score"), detail: localizedString("home.hero.detail"), select: { selectedGameForDetails = $0 })
-                    HomeShelfSection(title: localizedString("home.popular"), games: shelfGames, categoryTitle: categoryTitle(for:), detail: shelfDetailText(for:), detailColor: shelfDetailColor(for:), score: gameScoreNumber(for:), select: { selectedGameForDetails = $0 })
-                    HomeGameListSection(title: localizedString("home.all_games"), games: availableGames, categoryTitle: categoryTitle(for:), platform: localizedString("quick_check.context.platform"), scoreState: scoreState(for:), select: { selectedGameForDetails = $0 })
-                        .padding(.horizontal, NLSpacing.md).padding(.bottom, NLSpacing.xl)
+                        .padding(.top, NLSpacing.lg)
+                } else {
+                    // Carrossel dos últimos jogos testados
+                    HomeRecentCarouselSection(
+                        title: localizedString("home.recent_tested"),
+                        games: recentGames,
+                        categoryTitle: categoryTitle(for:),
+                        select: { selectedGameForDetails = $0 },
+                        onExploreGames: { selectedTab = .games }
+                    )
+                    .padding(.top, NLSpacing.sm)
+
+                    // CTA Principal: Iniciar LagCheck
+                    HomeCTASection(
+                        targetGame: targetGameForCTA,
+                        onStartCheck: startLagCheckFromCTA,
+                        onChooseAnotherGame: { selectedTab = .games }
+                    )
+
+                    // Prateleira de Jogos Populares do Momento (Automação por dados reais)
+                    HomePopularShelfSection(
+                        title: localizedString("home.popular"),
+                        games: popularGames,
+                        categoryTitle: categoryTitle(for:),
+                        select: { selectedGameForDetails = $0 }
+                    )
+                    .padding(.top, NLSpacing.xs)
+                    .padding(.bottom, NLSpacing.xl)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        .refreshable { startBackgroundQuickCheck() }
         .safeAreaPadding(.bottom, NLSpacing.md)
         .navigationTitle(localizedString("navigation.home"))
         .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HomeRefreshButton(
-                    refreshAccessibilityLabel: localizedString("home.refresh.accessibility"),
-                    isMeasuring: isBackgroundMeasuring,
-                    refresh: startBackgroundQuickCheck
-                )
-            }
-        }
-        .onAppear {
-            if evaluatedScores.isEmpty && !isBackgroundMeasuring { startBackgroundQuickCheck() }
-        }
     }
 
     var catalogUnavailable: some View {
@@ -54,7 +63,49 @@ extension QuickCheckFeatureView {
         return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: .iphone)
     }
 
-    var selectedGameName: String { availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—" }
+    var selectedGameName: String {
+        availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—"
+    }
+
+    /// Até os últimos 3 jogos medidos com entradas no histórico (sem duplicatas).
+    var recentGames: [CatalogMeasurementJourney.Game] {
+        var seen = Set<String>()
+        var result: [CatalogMeasurementJourney.Game] = []
+        for entry in history {
+            let gid = entry.resolvedContext.context.gameID
+            if !seen.contains(gid) {
+                seen.insert(gid)
+                if let g = availableGames.first(where: { $0.id == gid }) {
+                    result.append(g)
+                }
+            }
+            if result.count == 3 { break }
+        }
+        return result
+    }
+
+    /// Jogos mais populares do momento ordenados automaticamente por dados editoriais oficiais e engajamento.
+    var popularGames: [CatalogMeasurementJourney.Game] {
+        let historyGameIDs = history.map { $0.resolvedContext.context.gameID }
+        let allIDs = availableGames.map(\.id)
+        let rankedIDs = GamePopularityRanking.popularGames(from: allIDs, localHistory: historyGameIDs)
+        let gameMap = Dictionary(uniqueKeysWithValues: availableGames.map { ($0.id, $0) })
+        return rankedIDs.compactMap { gameMap[$0] }
+    }
+
+    /// Jogo alvo para o botão CTA principal: o último jogo testado, ou o primeiro disponível se novo usuário.
+    var targetGameForCTA: CatalogMeasurementJourney.Game? {
+        recentGames.first ?? popularGames.first ?? availableGames.first
+    }
+
+    /// Inicia o LagCheck perguntando a plataforma do jogo alvo a partir do CTA da Home.
+    func startLagCheckFromCTA() {
+        if let target = targetGameForCTA {
+            gameForPlatformSelection = target
+        } else {
+            selectedTab = .games
+        }
+    }
 
     func category(for profile: QualityProfileID) -> CatalogCategory {
         switch profile {
@@ -68,18 +119,6 @@ extension QuickCheckFeatureView {
         localizedString(category(for: game.profileID).localizationKey)
     }
 
-    private var featuredGames: [CatalogMeasurementJourney.Game] {
-        let preferred = ["fortnite", "wildrift", "codm"]
-        let matches = preferred.compactMap { id in availableGames.first(where: { $0.id == id }) }
-        return matches.isEmpty ? Array(availableGames.prefix(3)) : matches
-    }
-
-    private var shelfGames: [CatalogMeasurementJourney.Game] {
-        let featuredIDs = Set(featuredGames.map(\.id))
-        let remaining = availableGames.filter { !featuredIDs.contains($0.id) }
-        return remaining.isEmpty ? availableGames : remaining
-    }
-
     private func gameScoreNumber(for game: CatalogMeasurementJourney.Game) -> Int? {
         guard case let .completed(result)? = evaluatedScores[game.id] else { return nil }
         return result.finalScore
@@ -90,62 +129,18 @@ extension QuickCheckFeatureView {
         return "\(Int(latency.rounded())) ms"
     }
 
-    private var networkStatusTitle: String {
-        if isBackgroundMeasuring { return localizedString("home.network.measuring") }
-        if backgroundMeasurementFailed { return localizedString("home.network.inconclusive") }
-        if evaluatedScores.isEmpty { return localizedString("home.network.awaiting_result") }
-        return localizedString("home.network.measured")
-    }
-
-    private var networkStatusColor: Color {
-        if isBackgroundMeasuring { return NLColor.accentPrimary }
-        if backgroundMeasurementFailed || evaluatedScores.isEmpty { return NLColor.scoreNeutral }
-        return NLColor.accentPrimary
-    }
-
-    private var networkLatencyText: String {
-        guard !isBackgroundMeasuring, !backgroundMeasurementFailed, let firstGame = availableGames.first, let latency = gameScoreLatencyText(for: firstGame) else { return localizedString("home.network.awaiting_result") }
-        return latency
-    }
-
-    private var networkWiFiBandText: String? {
-        guard !isBackgroundMeasuring, !backgroundMeasurementFailed, let firstGame = availableGames.first, case let .completed(result)? = evaluatedScores[firstGame.id] else { return nil }
-        let telemetry = WiFiLocalTelemetry(
-            gatewayRTTMedianMs: result.metrics.p50Milliseconds,
-            gatewayJitterMs: result.metrics.jitterMilliseconds,
-            tailRatioP95P50: result.metrics.p95ToP50Ratio,
-            validSampleCount: result.metrics.validResponseCount,
-            plannedSampleCount: result.metrics.validResponseCount,
-            isWiFi: true
-        )
-        let eval = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-        if eval.diagnostic.isSuspectOrConfirmed24GHz {
-            return "2.4 GHz"
-        } else if eval.diagnostic == .stableWiFi {
-            return "5 GHz"
-        }
-        return nil
-    }
-
-    private func heroStatusText(for game: CatalogMeasurementJourney.Game) -> String {
-        switch scoreState(for: game) {
-        case .measuring: return localizedString("home.status.measuring")
-        case .inconclusive, .failed: return localizedString("home.status.inconclusive")
-        case .evaluated: return localizedString("home.status.measured")
-        }
-    }
-
-    private func shelfDetailText(for game: CatalogMeasurementJourney.Game) -> String { gameScoreLatencyText(for: game) ?? heroStatusText(for: game) }
-    private func shelfDetailColor(for game: CatalogMeasurementJourney.Game) -> Color { gameScoreLatencyText(for: game) == nil ? NLColor.textSecondary : NLColor.scoreExcellent }
+    // MARK: - Catálogo de Jogos (Aba Jogos estilo Netflix)
 
     var gamesCatalogView: some View {
-        HomeCatalogView(title: localizedString("navigation.games"), query: $gameQuery, selectedCategory: $selectedCategory, categories: CatalogCategory.allCases, games: filteredGames, searchPlaceholder: localizedString("catalog.search.placeholder"), clearSearchAccessibilityLabel: localizedString("catalog.search.close"), categoryTitle: { localizedString($0.localizationKey) }, gameCategoryTitle: categoryTitle(for:), scoreState: scoreState(for:), score: gameScoreNumber(for:), latency: gameScoreLatencyText(for:), inconclusiveAccessibilityLabel: localizedString("home.status.inconclusive"), select: { selectedGameForDetails = $0 })
-    }
-
-    private var filteredGames: [CatalogMeasurementJourney.Game] {
-        availableGames.filter { game in
-            let matchesCategory = selectedCategory == .all || category(for: game.profileID) == selectedCategory
-            return matchesCategory && (gameQuery.isEmpty || game.name.localizedCaseInsensitiveContains(gameQuery))
-        }
+        HomeCatalogView(
+            title: localizedString("navigation.games"),
+            query: $gameQuery,
+            allGames: availableGames,
+            popularGames: popularGames,
+            searchPlaceholder: localizedString("catalog.search.placeholder"),
+            clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
+            categoryTitle: categoryTitle(for:),
+            select: { selectedGameForDetails = $0 }
+        )
     }
 }

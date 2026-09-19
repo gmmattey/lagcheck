@@ -8,30 +8,35 @@ public struct GameArtwork: View {
     private let aspectRatio: CGFloat
 
     public init(
-        image: Image?,
-        sourceRecordID: String?,
+        image: Image? = nil,
+        sourceRecordID: String? = nil,
         title: String,
-        aspectRatio: CGFloat = 1
+        aspectRatio: CGFloat? = nil
     ) {
         self.image = image
         self.sourceRecordID = sourceRecordID
         self.title = title
-        self.aspectRatio = aspectRatio
+        self.aspectRatio = aspectRatio ?? 1.0
     }
 
     public var body: some View {
-        Group {
-            if let img = resolvedImage {
-                img
-                    .resizable()
-                    .scaledToFill()
-                    .accessibilityHidden(true)
-            } else {
-                fallback
+        GeometryReader { proxy in
+            ZStack {
+                if let img = resolvedImage {
+                    img
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                        .accessibilityHidden(true)
+                } else {
+                    fallback
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                }
             }
         }
-        .aspectRatio(aspectRatio, contentMode: .fill)
-        .clipShape(RoundedRectangle(cornerRadius: NLRadius.card))
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(title))
     }

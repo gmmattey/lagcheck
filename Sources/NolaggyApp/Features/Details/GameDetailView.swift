@@ -4,20 +4,23 @@ import NolaggyDesign
 import NolaggyDomain
 import NolaggyInfrastructure
 
-/// Tela de Detalhes do Jogo (Decisão 22).
-/// Apresenta o Score contextual do jogo, seletor de plataforma (iPhone, Console, PC),
-/// diagnóstico da rota de internet e acionamento de Deep Check.
+/// Tela de Detalhes do Jogo - Proposta Cinema Hero (Estilo Netflix).
+/// Apresenta arte cinematográfica full-bleed, metadados Netflix, botão Iniciar LagCheck,
+/// sinopse oficial, notas auditadas, plataformas suportadas, histórico exclusivo do jogo
+/// e especificações técnicas sob demanda (acordeão expansível).
 struct GameDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let game: CatalogMeasurementJourney.Game
     let scoreState: GameRowView.ScoreState
     let evaluation: MeasurementEvaluation?
     let resolvedContext: ResolvedMeasurementContext?
-    let onStartDeepCheck: () -> Void
+    var gameHistory: [MeasurementHistoryEntry] = []
+    let onStartDeepCheck: (Platform) -> Void
 
     @State private var selectedPlatform: Platform = .iphone
     @State private var platformHealth: PlatformHealth? = nil
     @State private var natSnapshot: NATTopologySnapshot? = nil
+    @State private var showingPlatformSelection = false
     private let healthClient = DirectPlatformHealthClient()
     private let stunClient = StunProbeClient()
 
@@ -33,76 +36,83 @@ struct GameDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: NLSpacing.lg) {
-                GameDetailScoreHeader(scoreState: scoreState)
+            VStack(alignment: .leading, spacing: 0) {
+                // 1. Cinema Hero Banner (Arte Full-bleed + Gradiente + Metadados Netflix)
+                GameDetailCinemaHeroBanner(gameName: game.name, editorial: editorial)
 
-                if let editorial {
-                    GameDetailRatingsRow(editorial: editorial)
-                }
-
-                if supportedPlatforms.count > 1 {
-                    PlatformSelectorRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
-                }
-
-                if let health = platformHealth, health.isIssueReported {
-                    PlatformHealthBannerView(health: health)
-                }
-
-                if let nat = natSnapshot, nat.hasAnyMultiplayerIssue {
-                    GameDetailNATBanner(snapshot: nat)
-                }
-
-                GameDetailMeasurementScope(platform: selectedPlatform)
-                GameDetailVerdictCard(
-                    presentation: GameDetailPresentation(scoreState: scoreState, gameName: game.name)
-                )
-                if let metrics = observedMetrics {
-                    GameDetailMetricsCard(metrics: metrics)
-                }
-                if let editorial {
-                    GameDetailNetworkDemandsCard(demands: editorial.networkDemands, observedMetrics: observedMetrics)
-                    if let req = editorial.requirement(for: selectedPlatform) {
-                        GameDetailRequirementsCard(requirement: req, platform: selectedPlatform)
+                // 2. Conteúdo Principal
+                VStack(alignment: .leading, spacing: NLSpacing.md) {
+                    // Botão de Ação Primária: Iniciar LagCheck (Pergunta a plataforma)
+                    Button(action: { showingPlatformSelection = true }) {
+                        HStack(spacing: NLSpacing.xs) {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text(LocalizedStringKey("home.cta.start_lagcheck"))
+                                .font(NLTypography.bodyEmphasis)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium))
                     }
-                }
-                if let advice = wifiBandDiagnostic {
-                    NetworkBandAdviceBanner(
-                        title: LocalizedStringKey(advice.titleKey),
-                        message: LocalizedStringKey(advice.messageKey),
-                        badgeText: advice.diagnostic.isSuspectOrConfirmed24GHz ? "2.4 GHz" : nil,
-                        style: advice.diagnostic.isSuspectOrConfirmed24GHz ? .warning : .positive,
-                        iconName: advice.diagnostic.isSuspectOrConfirmed24GHz ? "antenna.radiowaves.left.and.right" : "wifi",
-                        actionTitle: advice.actionKey.map { LocalizedStringKey($0) },
-                        onAction: onStartDeepCheck
+                    .accessibilityIdentifier("start-game-deep-check")
+
+                    // Sinopse Oficial Localizada
+                    if let synopsis = editorial?.localizedSummary(localeIdentifier: Locale.current.identifier), !synopsis.isEmpty {
+                        Text(synopsis)
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    // Grid de Avaliações Oficiais Auditadas (App Store & Metacritic)
+                    if let editorial {
+                        GameDetailRatingsGrid(editorial: editorial)
+                    }
+
+                    // Plataformas Suportadas (Interativas com seleção)
+                    if !supportedPlatforms.isEmpty {
+                        GameDetailPlatformsRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
+                    }
+
+                    // Histórico Exclusivo deste Jogo
+                    GameDetailExclusiveHistoryCard(entries: gameHistory, gameName: game.name)
+
+                    // Especificações Técnicas e Rede (Acordeão / Oculto por padrão)
+                    GameDetailTechnicalSpecsAccordion(
+                        editorial: editorial,
+                        selectedPlatform: selectedPlatform,
+                        observedMetrics: observedMetrics,
+                        natSnapshot: natSnapshot,
+                        platformHealth: platformHealth,
+                        wifiBandDiagnostic: wifiBandDiagnostic,
+                        onStartDeepCheck: { showingPlatformSelection = true }
                     )
                 }
-                VStack(spacing: NLSpacing.sm) {
-                    PrimaryButton(
-                        title: "deep_check.intro.start",
-                        accessibilityIdentifier: "start-game-deep-check",
-                        action: onStartDeepCheck
-                    )
-                    Text("deep_check.intro.wifi")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                }
+                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                .padding(.top, NLSpacing.sm)
+                .padding(.bottom, NLSpacing.xxl)
             }
-            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.vertical, NLSpacing.lg)
         }
-        .background(NolaggyScreenBackground())
-        .navigationTitle(game.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
+        .ignoresSafeArea(edges: .top)
+        .background(Color.black.ignoresSafeArea())
+        .tint(.white)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "game-detail-back")
-            }
-        }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingPlatformSelection) {
+            PlatformSelectionSheet(
+                gameName: game.name,
+                supportedPlatforms: supportedPlatforms,
+                initialPlatform: selectedPlatform,
+                onSelectPlatform: { platform in
+                    selectedPlatform = platform
+                    onStartDeepCheck(platform)
+                }
+            )
+        }
         .task {
             // Sonda topologia de NAT em segundo plano de forma não-bloqueante
             let snapshot = await stunClient.probeTopology()

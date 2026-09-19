@@ -286,3 +286,67 @@
 "nat_banner.strict.message" = "Your NAT type is Strict. This can make matchmaking slower and cause issues connecting to voice parties.";
 "nat_banner.default.title" = "Network Topology";
 
+/* New Journey & Start LagCheck */
+"settings.language.system" = "System Default";
+"home.cta.start_lagcheck" = "Start LagCheck";
+"home.empty_recent.title" = "No games tested yet";
+"home.empty_recent.message" = "Choose a game in the Games tab to run your first route check.";
+"home.empty_recent.button" = "Explore Games";
+"home.recent_tested" = "Recently Tested";
+"home.last_tested" = "Recently verified";
+"home.start_for_game %@" = "Start LagCheck for %@";
+"home.choose_another_game" = "Choose another game";
+
+/* Netflix-style Library */
+"netflix.hero.badge" = "TRENDING";
+"netflix.hero.view_details" = "View Details";
+"netflix.shelf.trending" = "Trending Now";
+"netflix.shelf.battle_royale" = "Battle Royale";
+"netflix.shelf.fps" = "Tactical Shooters & FPS";
+"netflix.shelf.moba" = "MOBA & Strategy";
+"netflix.shelf.sports_survival" = "Sports & Survival";
+
+/* Game Details - Netflix Cinema Hero */
+"game_detail.section.history" = "Your Checks for this Game";
+"game_detail.section.history_count %lld" = "%lld checks";
+"game_detail.section.history_empty" = "No checks performed for this game yet.";
+"game_detail.section.history_empty_hint" = "Tap Start LagCheck above to test your connection.";
+"game_detail.section.tech_specs" = "Technical & Network Specifications";
+"game_detail.section.tech_specs_subtitle" = "Minimum requirements, optimal latency & NAT";
+"game_detail.section.supported_platforms" = "Supported Platforms";
+"game_detail.meta.match" = "98% Match";
+"game_detail.ratings.reviews_count %@" = "%@ on App Store";
+"game_detail.ratings.critics_count %@" = "%@ Official Critic Reviews";
+"game_detail.tech.optimal_ping" = "Optimal Ping";
+"game_detail.tech.tolerated_jitter" = "Max Jitter";
+"game_detail.tech.tolerated_loss" = "Packet Loss";
+"game_detail.tech.min_download" = "Min Download";
+"game_detail.tech.nat_topology" = "NAT Topology (STUN)";
+"game_detail.history.score_label" = "Score";
+
+/* Platform Picker */
+"lagcheck.platform_picker.title" = "Which platform?";
+"lagcheck.platform_picker.subtitle %@" = "Select the device where you will play %@ to test the network route.";
+
+/* Live Measurement Trail (Decision 34) */
+"live_trail.node.device" = "Your iPhone";
+"live_trail.node.router" = "Local router";
+"live_trail.node.cellular" = "Cellular network";
+"live_trail.badge.origin" = "Test origin";
+"live_trail.badge.wifi" = "Wireless hop";
+"live_trail.badge.cellular" = "Mobile carrier";
+"live_trail.badge.destination" = "Reference infrastructure";
+"live_trail.footer.samples" = "UDP Samples";
+
+/* Result Screen HIG (Decision 35) */
+"result.title" = "Result";
+"result.route_trail.title" = "Route Certificate";
+"result.metrics.title" = "Detailed Metrics";
+"result.metric.ping" = "Ping (Median P50)";
+"result.metric.jitter" = "Jitter (Variance)";
+"result.metric.loss" = "Packet Loss";
+"result.metric.spikes" = "Latency Spikes";
+"result.action.optimize" = "Optimize Connection";
+"result.action.details" = "View Technical Details";
+"result.diagnostic.title" = "Match Diagnostics";
+

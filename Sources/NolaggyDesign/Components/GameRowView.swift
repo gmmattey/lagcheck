@@ -34,8 +34,9 @@ public struct GameRowView: View {
         Button(action: action) {
             HStack(spacing: NLSpacing.md) {
                 // Miniatura neutra
-                GameArtwork(image: nil, sourceRecordID: nil, title: title)
+                GameArtwork(image: nil, sourceRecordID: nil, title: title, aspectRatio: 1)
                     .frame(width: 48, height: 48)
+                    .clipped()
                     .accessibilityHidden(true)
 
                 // Título e Meta
@@ -43,8 +44,7 @@ public struct GameRowView: View {
                     Text(title)
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
 
                     HStack(spacing: NLSpacing.xs) {
                         Text(category)
@@ -60,6 +60,7 @@ public struct GameRowView: View {
                             .foregroundStyle(NLColor.textTertiary)
                     }
                 }
+                .layoutPriority(1)
 
                 Spacer(minLength: NLSpacing.sm)
 

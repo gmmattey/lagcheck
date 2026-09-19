@@ -14,105 +14,130 @@ extension QuickCheckFeatureView {
             interpretation.score,
             headline
         )
+        let isWiFi = (context?.equipmentConnection ?? .wifi) == .wifi
+        let isLocalHealthy = interpretation.primaryCauseKey != .highJitter
+        let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
+        let wifiStatusText = isWiFi ? (isLocalHealthy ? "5 GHz · Excelente (< 2 ms)" : "Oscilação no Wi-Fi") : "Rede móvel ativa"
+        let destinationStatus = "Respondendo · \(milliseconds(interpretation.metrics.p50Milliseconds)) ms"
+        let scoreColor = scoreToneColor(for: interpretation.scoreBand)
+
         return ScrollView {
             VStack(spacing: NLSpacing.xl) {
-                VStack(spacing: NLSpacing.md) {
-                    NolaggyScore(
-                        outcome: .revealed(
-                            score: interpretation.score,
-                            classification: scoreClassification(for: interpretation.scoreBand)
-                        ),
-                        style: .standard,
-                        classificationLabel: localized(interpretation.headlineKey.rawValue),
-                        accessibilityDescription: scoreAccessibilityDescription
-                    )
-
-                    VStack(spacing: NLSpacing.xs) {
-                        Text(localized(interpretation.conclusionKey.rawValue))
-                            .font(NLTypography.bodyEmphasis)
-                            .foregroundStyle(NLColor.textPrimary)
-                            .multilineTextAlignment(.center)
-
-                        Text(localized(interpretation.explanationKey.rawValue))
-                            .font(NLTypography.callout)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .multilineTextAlignment(.center)
+                // 1. Hero Editorial (Veredito Imediato do HIG)
+                VStack(spacing: NLSpacing.sm) {
+                    // Pílula semântica com o Score e Classificação
+                    HStack(spacing: NLSpacing.xs) {
+                        Text("\(interpretation.score)")
+                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                        Text("·")
+                            .font(.system(size: 15, weight: .bold))
+                        Text(localized(interpretation.headlineKey.rawValue))
+                            .font(NLTypography.caption.weight(.bold))
+                            .textCase(.uppercase)
                     }
+                    .foregroundStyle(scoreColor)
+                    .padding(.horizontal, NLSpacing.sm)
+                    .padding(.vertical, NLSpacing.xxs)
+                    .background(scoreColor.opacity(0.12), in: Capsule())
+                    .overlay { Capsule().stroke(scoreColor.opacity(0.3), lineWidth: 0.5) }
 
-                    VStack(spacing: NLSpacing.xxs) {
-                        Text("\(selectedGameName) · iPhone")
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textTertiary)
-                        Text(selectedRegionRouteSubtitle)
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textTertiary)
-                    }
-                    .padding(.top, NLSpacing.xxs)
+                    // Conclusão assertiva
+                    Text(localized(interpretation.conclusionKey.rawValue))
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .multilineTextAlignment(.center)
+
+                    // Explicação amigável
+                    Text(localized(interpretation.explanationKey.rawValue))
+                        .font(NLTypography.callout)
+                        .foregroundStyle(NLColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, NLSpacing.sm)
+
+                    // Contexto da partida
+                    Text("\(selectedGameName) · iPhone · \(selectedRegionFriendlyName)")
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .padding(.top, NLSpacing.xxs)
                 }
                 .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(scoreAccessibilityDescription)
 
-                VStack(spacing: 1) {
-                    MetricRow(
-                        label: "quick_check.result.ping",
-                        value: milliseconds(interpretation.metrics.p50Milliseconds),
-                        unit: "ms",
-                        isPrimaryCause: interpretation.primaryCauseKey == .highLatency,
-                        scoreColor: insightColor(for: interpretation.primaryCauseKey)
-                    )
-                    Divider().overlay(NLColor.borderSubtle)
-                    MetricRow(
-                        label: "quick_check.result.jitter",
-                        value: milliseconds(interpretation.metrics.jitterMilliseconds),
-                        unit: "ms",
-                        isPrimaryCause: interpretation.primaryCauseKey == .highJitter,
-                        scoreColor: insightColor(for: interpretation.primaryCauseKey)
-                    )
-                    Divider().overlay(NLColor.borderSubtle)
-                    MetricRow(
-                        label: "quick_check.result.loss",
-                        value: percentage(interpretation.metrics.packetLossPercentage),
-                        isPrimaryCause: interpretation.primaryCauseKey == .packetLoss,
-                        scoreColor: insightColor(for: interpretation.primaryCauseKey)
-                    )
-                    Divider().overlay(NLColor.borderSubtle)
-                    MetricRow(
-                        label: "quick_check.result.spikes",
-                        value: String(interpretation.metrics.spikeCount),
-                        isPrimaryCause: interpretation.primaryCauseKey == .severeSpikes,
-                        scoreColor: insightColor(for: interpretation.primaryCauseKey)
-                    )
+                // 2. Atestado da Rota (Trilha Consolidada HIG)
+                RouteTrailSummaryCard(
+                    isWiFi: isWiFi,
+                    wifiStatusText: wifiStatusText,
+                    isLocalHealthy: isLocalHealthy,
+                    destinationName: selectedRegionFriendlyName,
+                    destinationStatusText: destinationStatus,
+                    isDestinationHealthy: isDestinationHealthy
+                )
+
+                // 3. Grid de Métricas 2x2 HIG
+                VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                    Text(LocalizedStringKey("result.metrics.title"))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                        .padding(.leading, NLSpacing.xxs)
+
+                    VStack(spacing: NLSpacing.sm) {
+                        HStack(spacing: NLSpacing.sm) {
+                            metricCard(
+                                title: "result.metric.ping",
+                                value: milliseconds(interpretation.metrics.p50Milliseconds),
+                                unit: "ms",
+                                isCause: interpretation.primaryCauseKey == .highLatency,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                            metricCard(
+                                title: "result.metric.jitter",
+                                value: milliseconds(interpretation.metrics.jitterMilliseconds),
+                                unit: "ms",
+                                isCause: interpretation.primaryCauseKey == .highJitter,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                        }
+                        HStack(spacing: NLSpacing.sm) {
+                            metricCard(
+                                title: "result.metric.loss",
+                                value: percentage(interpretation.metrics.packetLossPercentage),
+                                unit: nil,
+                                isCause: interpretation.primaryCauseKey == .packetLoss,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                            metricCard(
+                                title: "result.metric.spikes",
+                                value: String(interpretation.metrics.spikeCount),
+                                unit: nil,
+                                isCause: interpretation.primaryCauseKey == .severeSpikes,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                        }
+                    }
                 }
-                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-                .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
-                .padding(.top, NLSpacing.resultConclusionToMetrics - NLSpacing.xl)
 
+                // 4. Banner de Diagnóstico (Insight)
                 InsightBanner(
                     tone: insightTone(for: interpretation.primaryCauseKey),
                     message: localized(interpretation.insightKey.rawValue),
                     icon: insightIcon(for: interpretation.primaryCauseKey)
                 )
 
-                // Com risco ou instabilidade, a ação que explica a causa (Deep
-                // Check) é mais útil agora do que testar de novo — ela vira a
-                // ação primária. Em resultado saudável, testar de novo continua
-                // sendo o caminho mais provável e permanece em destaque.
-                if interpretation.scoreBand == .unstable || interpretation.scoreBand == .lagRisk {
-                    PrimaryButton(title: "quick_check.result.deep_check", action: { openDeepCheck() })
-                        .accessibilityIdentifier("deep-check-open")
-
-                    HStack(spacing: NLSpacing.sm) {
-                        secondaryResultAction("quick_check.result.retry", identifier: "quick-check-retry", action: restart)
-                        secondaryResultAction("quick_check.result.details", identifier: "quick-check-details") { showingDetails = true }
-                    }
-                } else {
+                // 5. Barra de Ações (Action Bar HIG)
+                VStack(spacing: NLSpacing.sm) {
                     PrimaryButton(title: "quick_check.result.retry", action: restart)
                         .accessibilityIdentifier("quick-check-retry")
 
                     HStack(spacing: NLSpacing.sm) {
-                        secondaryResultAction("quick_check.result.details", identifier: "quick-check-details") { showingDetails = true }
-                        secondaryResultAction("quick_check.result.deep_check", identifier: "deep-check-open") { openDeepCheck() }
+                        secondaryResultAction("result.action.details", identifier: "quick-check-details") { showingDetails = true }
+                        secondaryResultAction("result.action.optimize", identifier: "quick-check-booster") { showingDetails = true }
                     }
                 }
+                .padding(.top, NLSpacing.xs)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)
@@ -126,6 +151,43 @@ extension QuickCheckFeatureView {
         }
     }
 
+    private func metricCard(title: LocalizedStringKey, value: String, unit: String?, isCause: Bool, causeColor: Color) -> some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(isCause ? causeColor : NLColor.textPrimary)
+                if let unit {
+                    Text(unit)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(isCause ? causeColor : NLColor.textTertiary)
+                }
+            }
+            Text(title)
+                .font(NLTypography.caption)
+                .foregroundStyle(NLColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(NLSpacing.cardPadding)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(isCause ? causeColor.opacity(0.5) : NLColor.borderSubtle, lineWidth: isCause ? 1.0 : 0.5)
+        }
+    }
+
+    private func scoreToneColor(for band: ResultClass) -> Color {
+        switch band {
+        case .excellent, .great:
+            return NLColor.scoreExcellent
+        case .unstable:
+            return NLColor.scoreUnstable
+        case .lagRisk:
+            return NLColor.coralSolarRed
+        }
+    }
+
     func secondaryResultAction(_ title: LocalizedStringKey, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
@@ -133,7 +195,8 @@ extension QuickCheckFeatureView {
                 .foregroundStyle(NLColor.textPrimary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
-                .overlay { Capsule().stroke(NLColor.borderStrong, lineWidth: NLStroke.hairline) }
+                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 0.5) }
         }
         .accessibilityIdentifier(identifier)
     }

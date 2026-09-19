@@ -82,9 +82,31 @@ extension QuickCheckFeatureView {
         presentation = .context
     }
 
-    func openDeepCheck(resolvedContext: ResolvedMeasurementContext? = nil) {
-        guard let context = resolvedContext ?? selectedRegionalContext ?? completedEntry?.resolvedContext else {
+    func openDeepCheck(resolvedContext: ResolvedMeasurementContext? = nil, platform: Platform? = nil) {
+        guard let baseContext = resolvedContext ?? selectedRegionalContext ?? completedEntry?.resolvedContext else {
             return
+        }
+        let context: ResolvedMeasurementContext
+        if let platform, platform != baseContext.context.platform {
+            let updatedGameContext = GameContext(
+                gameID: baseContext.context.gameID,
+                market: baseContext.context.market,
+                platform: platform,
+                equipmentConnection: baseContext.context.equipmentConnection
+            )
+            context = ResolvedMeasurementContext(
+                context: updatedGameContext,
+                catalogVersion: baseContext.catalogVersion,
+                profileID: baseContext.profileID,
+                profileRuleVersion: baseContext.profileRuleVersion,
+                regionID: baseContext.regionID,
+                destination: baseContext.destination,
+                strategy: baseContext.strategy,
+                confidence: baseContext.confidence,
+                precisionKey: baseContext.precisionKey
+            )
+        } else {
+            context = baseContext
         }
         selectedRegionalContext = context
         deepCheckDestination = DeepCheckDestination(

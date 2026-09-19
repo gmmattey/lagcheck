@@ -38,6 +38,7 @@ struct QuickCheckFeatureView: View {
     @State var isBackgroundMeasuring = false
     @State var backgroundMeasurementFailed = false
     @State var selectedGameForDetails: CatalogMeasurementJourney.Game?
+    @State var gameForPlatformSelection: CatalogMeasurementJourney.Game?
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -126,9 +127,10 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
-                            onStartDeepCheck: {
-                                if let resolved = resolveGameContext(game) {
-                                    openDeepCheck(resolvedContext: resolved)
+                            gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
+                            onStartDeepCheck: { platform in
+                                if let resolved = resolveGameContext(game, platform: platform) {
+                                    openDeepCheck(resolvedContext: resolved, platform: platform)
                                 }
                             }
                         )
@@ -151,9 +153,10 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
-                            onStartDeepCheck: {
-                                if let resolved = resolveGameContext(game) {
-                                    openDeepCheck(resolvedContext: resolved)
+                            gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
+                            onStartDeepCheck: { platform in
+                                if let resolved = resolveGameContext(game, platform: platform) {
+                                    openDeepCheck(resolvedContext: resolved, platform: platform)
                                 }
                             }
                         )
@@ -236,6 +239,17 @@ struct QuickCheckFeatureView: View {
                 historyRepository: historyRepository
             )
         }
+        .sheet(item: $gameForPlatformSelection) { game in
+            PlatformSelectionSheet(
+                gameName: game.name,
+                supportedPlatforms: supportedPlatforms(for: game),
+                onSelectPlatform: { platform in
+                    if let resolved = resolveGameContext(game, platform: platform) {
+                        openDeepCheck(resolvedContext: resolved, platform: platform)
+                    }
+                }
+            )
+        }
     }
 
     @ViewBuilder
@@ -309,14 +323,39 @@ struct QuickCheckFeatureView: View {
         String(format: NSLocalizedString("quick_check.measuring.region_format %@", comment: ""), selectedRegionFriendlyName)
     }
 
-    func resolveGameContext(_ game: CatalogMeasurementJourney.Game) -> ResolvedMeasurementContext? {
+    func resolveGameContext(_ game: CatalogMeasurementJourney.Game, platform: Platform = .iphone) -> ResolvedMeasurementContext? {
         guard let remoteCatalog else { return nil }
-        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(game.context, in: remoteCatalog) {
+        let selectedGameContext = GameContext(
+            gameID: game.id,
+            market: game.context.market,
+            platform: platform,
+            equipmentConnection: game.context.equipmentConnection
+        )
+        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(selectedGameContext, in: remoteCatalog) {
             return resolved
+        }
+        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(game.context, in: remoteCatalog) {
+            return ResolvedMeasurementContext(
+                context: selectedGameContext,
+                catalogVersion: resolved.catalogVersion,
+                profileID: resolved.profileID,
+                profileRuleVersion: resolved.profileRuleVersion,
+                regionID: resolved.regionID,
+                destination: resolved.destination,
+                strategy: resolved.strategy,
+                confidence: resolved.confidence,
+                precisionKey: resolved.precisionKey
+            )
         }
         return nil
     }
 
+    func supportedPlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
+        let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
+        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+        let filtered = order.filter { allowed.contains($0) }
+        return filtered.isEmpty ? [.iphone] : filtered
+    }
 }
 
 private extension RemoteCatalogResolution {

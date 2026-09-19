@@ -5,10 +5,15 @@ import NolaggyInfrastructure
 
 @main
 struct NolaggyApp: App {
+    @AppStorage("app_selected_language") private var selectedLanguage: String = AppLanguage.system.rawValue
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
     private let catalogRepository: RemoteCatalogRepository
     @State private var catalogState: CatalogState
+
+    private var currentLocale: Locale {
+        (AppLanguage(rawValue: selectedLanguage) ?? .system).locale
+    }
 
     init() {
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
@@ -48,6 +53,7 @@ struct NolaggyApp: App {
                     )
                 }
             }
+            .environment(\.locale, currentLocale)
             .task {
                 // A fixture mantém o mesmo catálogo assinado e a mesma jornada da
                 // aplicação, mas não permite que o refresh remoto recompose a Home
