@@ -13,6 +13,7 @@ struct QuickCheckFeatureView: View {
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.accessibilityReduceTransparency) var reduceTransparency
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @Environment(\.locale) var locale
     @State var presentation: QuickCheckPresentation = .context
     @State var coordinator: MeasurementSessionCoordinator
     @State var partialSamples: [ProbeSample] = []
@@ -328,12 +329,14 @@ struct QuickCheckFeatureView: View {
     }
 
     var regionLanguage: String {
-        Locale.current.identifier.lowercased().hasPrefix("pt") ? "pt-BR" : "en"
+        let ident = locale.identifier.lowercased()
+        if ident.hasPrefix("pt") { return "pt-BR" }
+        if ident.hasPrefix("es") { return "es" }
+        return "en"
     }
 
     var regionCandidates: [RegionalReferenceCandidate] {
         guard remoteCatalog != nil else { return [] }
-        let isPt = regionLanguage.hasPrefix("pt")
         let automatic = RegionalReferenceCandidate(
             id: RegionalPreferenceIdentifiers.automatic,
             label: NSLocalizedString("settings.region.automatic", comment: ""),
@@ -342,7 +345,7 @@ struct QuickCheckFeatureView: View {
         let globalCandidates = GlobalProbeRegistry.allRegions.map { def in
             RegionalReferenceCandidate(
                 id: def.id,
-                label: def.localizedLabel(isPortuguese: isPt),
+                label: def.localizedLabel(for: regionLanguage),
                 continentKey: def.continent.localizationKey
             )
         }
@@ -353,7 +356,7 @@ struct QuickCheckFeatureView: View {
         guard let regionID = selectedRegionalContext?.regionID else {
             return NSLocalizedString("quick_check.region.sao_paulo", comment: "")
         }
-        return GlobalProbeRegistry.friendlyLabel(for: regionID, isPortuguese: regionLanguage.hasPrefix("pt"))
+        return GlobalProbeRegistry.friendlyLabel(for: regionID, languageCode: regionLanguage)
     }
 
     var selectedRegionRouteSubtitle: String {

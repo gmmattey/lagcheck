@@ -188,6 +188,26 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         self.confidence = confidence
         self.precisionKey = precisionKey
     }
+
+    public func withEquipmentConnection(_ connection: NetworkKind?) -> ResolvedMeasurementContext {
+        let updatedContext = GameContext(
+            gameID: context.gameID,
+            market: context.market,
+            platform: context.platform,
+            equipmentConnection: connection
+        )
+        return ResolvedMeasurementContext(
+            context: updatedContext,
+            catalogVersion: catalogVersion,
+            profileID: profileID,
+            profileRuleVersion: profileRuleVersion,
+            regionID: regionID,
+            destination: destination,
+            strategy: strategy,
+            confidence: confidence,
+            precisionKey: precisionKey
+        )
+    }
 }
 
 public enum CatalogValidationError: Error, Equatable, Sendable {

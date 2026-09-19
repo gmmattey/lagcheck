@@ -7,6 +7,7 @@ import NolaggyInfrastructure
 struct DeepCheckFeatureView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var presentation: Presentation = .intro
     @State private var samples: [ProbeSample] = []
     @State private var restSamples: [ProbeSample] = []
@@ -14,6 +15,7 @@ struct DeepCheckFeatureView: View {
     @State private var showingDetails = false
     @State private var showingBooster = false
     @State private var boosterCoordinator: ConnectionBoosterCoordinator
+    @State private var hasCellularConsent = false
 
     private let resolvedContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
@@ -51,6 +53,8 @@ struct DeepCheckFeatureView: View {
                     intro
                 case .requiresWiFi:
                     requiresWiFi
+                case .cellularConsent:
+                    cellularConsentView
                 case let .measuring(phase):
                     measuring(phase)
                 case let .result(result, availability):
@@ -138,7 +142,7 @@ struct DeepCheckFeatureView: View {
             .padding(.horizontal, NLSpacing.xl)
             Spacer()
             VStack(spacing: NLSpacing.sm) {
-                PrimaryButton(title: "deep_check.intro.start", action: start)
+                PrimaryButton(title: "deep_check.intro.start", action: { start() })
                     .accessibilityIdentifier("deep-check-start")
                 PrimaryButton(title: "deep_check.intro.not_now", style: .secondaryOutline, action: { dismiss() })
             }
@@ -166,38 +170,44 @@ struct DeepCheckFeatureView: View {
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
     }
 
+    private var cellularConsentView: some View {
+        CellularDataConsentSheet(
+            onConfirm: {
+                hasCellularConsent = true
+                presentation = .measuring(.rest)
+                start(withConsent: true)
+            },
+            onQuickCheckOnly: {
+                dismiss()
+            },
+            onCancel: {
+                dismiss()
+            }
+        )
+    }
+
+    private var friendlyRegion: String {
+        let ident = locale.identifier.lowercased()
+        let lang = ident.hasPrefix("pt") ? "pt-BR" : (ident.hasPrefix("es") ? "es" : "en")
+        return GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, languageCode: lang)
+    }
+
     private func measuring(_ phase: DeepCheckPhase) -> some View {
-        let metrics = ObservedDeepMetrics(samples: samples)
-        let isStressed = phase == .load
-        let stressLoc = isStressed ? metrics.stressLocation(restSamples: restSamples) : .none
-        let isPortuguese = Locale.current.identifier.hasPrefix("pt")
-        let friendlyRegion = GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, isPortuguese: isPortuguese)
+        let isWiFi = (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi
 
         return VStack(spacing: NLSpacing.lg) {
             titleHeader
             Spacer(minLength: NLSpacing.xs)
 
             MeasurementLiveTrail(
-                isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+                isWiFi: isWiFi,
                 destinationName: friendlyRegion,
-                currentRTT: metrics.currentRTTValue,
-                progress: Double(samples.count) / Double(ProbeAcceptancePolicy.plannedProbeCount),
                 sampleCount: samples.count,
-                lossCount: metrics.lossCount,
-                isUnderStress: isStressed,
-                stressLocation: stressLoc,
+                isUnderStress: phase == .load,
+                isPhaseRest: phase == .rest,
                 phaseTitle: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load",
                 phaseSubtitle: LocalizedStringKey(gameName)
             )
-
-            HStack {
-                phaseProgressIndicator(phase)
-                Spacer()
-                Text(String(format: NSLocalizedString("deep_check.phase.remaining", comment: ""), estimatedSecondsRemaining))
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-            }
-            .padding(.horizontal, NLSpacing.xs)
 
             Spacer()
         }
@@ -205,8 +215,6 @@ struct DeepCheckFeatureView: View {
     }
 
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
-        let isPortuguese = Locale.current.identifier.hasPrefix("pt")
-        let friendlyRegion = GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, isPortuguese: isPortuguese)
         return DeepCheckResultView(
             result: result,
             availability: availability,
@@ -222,38 +230,16 @@ struct DeepCheckFeatureView: View {
         )
     }
 
-    /// Reforço visual compacto de "fase 1 de 2" — o texto do título já diz isso
-    /// por extenso (e é o que o VoiceOver lê); os pontos são só um reforço
-    /// visual rápido, por isso ficam ocultos do leitor de tela.
-    private func phaseProgressIndicator(_ phase: DeepCheckPhase) -> some View {
-        HStack(spacing: NLSpacing.xs) {
-            Circle().fill(NLColor.accentPrimary).frame(width: 6, height: 6)
-            Rectangle()
-                .fill(phase == .load ? NLColor.accentPrimary : NLColor.borderSubtle)
-                .frame(width: 20, height: 2)
-            Circle()
-                .fill(phase == .load ? NLColor.accentPrimary : NLColor.borderSubtle)
-                .frame(width: 6, height: 6)
-        }
-        .accessibilityHidden(true)
-    }
-
-    private var measurementContext: some View {
-        VStack(spacing: NLSpacing.xxs) {
-            Text(String(format: NSLocalizedString("deep_check.measurement.title %@", comment: ""), gameName))
-                .font(NLTypography.callout.weight(.semibold)).foregroundStyle(NLColor.textPrimary)
-            Label("deep_check.measurement.context", systemImage: "mappin.and.ellipse")
-                .font(NLTypography.footnote).foregroundStyle(NLColor.textTertiary)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-
     private func terminal(kind: StatusMessage.Kind) -> some View {
         VStack(spacing: NLSpacing.xl) {
             titleHeader
             Spacer()
-            StatusMessage(kind: kind, message: kind == .inconclusive ? "deep_check.inconclusive.message" : "deep_check.cancelled.message", actionTitle: "deep_check.result.retry", action: restart)
+            StatusMessage(
+                kind: kind,
+                message: kind == .inconclusive ? "deep_check.inconclusive.message" : "deep_check.cancelled.message",
+                actionTitle: "deep_check.result.retry",
+                action: restart
+            )
             Spacer()
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
@@ -263,17 +249,25 @@ struct DeepCheckFeatureView: View {
         NolaggyBackHeader(action: cancelOrDismiss, accessibilityIdentifier: "deep-check-back")
     }
 
-    private func start() {
+    private func start(withConsent: Bool = false) {
         Task { @MainActor in
             let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(host: resolvedContext.destination.host, port: resolvedContext.destination.port))
             let plan = DeepCheckPlan(restProbePlan: probePlan, loadProbePlan: probePlan, loadRequest: LoadRequest(url: DeepCheckLoadEndpoint.pilot))
             do {
-                _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+                _ = try await coordinator.start(
+                    resolvedContext: resolvedContext,
+                    plan: plan,
+                    hasCellularConsent: withConsent || hasCellularConsent
+                )
                 await refreshState()
                 await waitForTerminalState()
+            } catch DeepCheckSessionError.requiresCellularConsent {
+                presentation = .cellularConsent
             } catch DeepCheckSessionError.requiresWiFi {
                 presentation = .requiresWiFi
-            } catch { }
+            } catch {
+                presentation = .cancelled
+            }
         }
     }
 
@@ -293,6 +287,7 @@ struct DeepCheckFeatureView: View {
         switch await coordinator.sessionState() {
         case .idle: break
         case .requiresWiFi: presentation = .requiresWiFi
+        case .requiresCellularConsent: presentation = .cellularConsent
         case let .measuring(_, phase): presentation = .measuring(phase)
         case let .completed(_, .completed(result), availability): presentation = .result(result, availability)
         case .completed: presentation = .inconclusive
@@ -305,11 +300,12 @@ struct DeepCheckFeatureView: View {
         restSamples = []
         if autoStart {
             presentation = .measuring(.rest)
-            start()
+            start(withConsent: hasCellularConsent)
         } else {
             presentation = .intro
         }
     }
+
     private func cancelOrDismiss() {
         Task { @MainActor in
             if let session = await coordinator.currentSession() { await coordinator.cancel(id: session.id) }
@@ -317,40 +313,13 @@ struct DeepCheckFeatureView: View {
         }
     }
 
-    private var estimatedSecondsRemaining: Int {
-        let phaseRemaining = max(0, ProbeAcceptancePolicy.sendWindowSeconds - Double(samples.count) / 2)
-        return Int((phaseRemaining + (presentationIsRest ? ProbeAcceptancePolicy.sendWindowSeconds : 0)).rounded(.up))
-    }
-
-    private var presentationIsRest: Bool {
-        if case .measuring(.rest) = presentation { return true }
-        return false
-    }
-
-    private enum Presentation { case intro, requiresWiFi, measuring(DeepCheckPhase), result(DeepCheckResult, DeepCheckLoadAvailability), inconclusive, cancelled }
-}
-
-private struct ObservedDeepMetrics {
-    let samples: [ProbeSample]
-    var currentRTT: String? { samples.last?.roundTripMilliseconds.map { "\(Int($0.rounded())) ms" } }
-    var currentRTTValue: Double? { samples.last?.roundTripMilliseconds }
-    var lossCount: Int { samples.filter { $0.outcome == .timeout || $0.outcome == .transportError }.count }
-
-    func stressLocation(restSamples: [ProbeSample]) -> MeasurementStressLocation {
-        let restRTTs = restSamples.compactMap(\.roundTripMilliseconds).sorted()
-        let loadRTTs = samples.compactMap(\.roundTripMilliseconds).sorted()
-        guard !restRTTs.isEmpty, !loadRTTs.isEmpty else { return .none }
-        let restP50 = restRTTs[restRTTs.count / 2]
-        let loadP50 = loadRTTs[loadRTTs.count / 2]
-        let delta = loadP50 - restP50
-        if delta >= 20.0 {
-            let loadP95 = loadRTTs[Int(Double(loadRTTs.count - 1) * 0.95)]
-            if loadP95 / max(loadP50, 1.0) >= 1.45 {
-                return .localNetwork
-            } else {
-                return .externalRoute
-            }
-        }
-        return .none
+    private enum Presentation {
+        case intro
+        case requiresWiFi
+        case cellularConsent
+        case measuring(DeepCheckPhase)
+        case result(DeepCheckResult, DeepCheckLoadAvailability)
+        case inconclusive
+        case cancelled
     }
 }

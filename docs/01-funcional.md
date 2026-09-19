@@ -166,9 +166,14 @@ O resultado segue o padrão **Apple Games Editorial Hub / HIG**, organizando a e
    - Botão Primário (Coral Solar `#FF6B35`): **Testar novamente**.
    - Botões Secundários: **Ver Detalhes Técnicos** (abre folha técnica completa com histórico e comparação sob carga) e **Otimizar Conexão** (abre o Gemini Connection Booster).
 
-### 7.5 Unificação do LagCheck e Validação sob Carga
+### 7.5 Unificação do LagCheck e Validação sob Carga (Wi-Fi e Rede Móvel)
 
-A separação artificial entre "Quick Check" e "Deep Check" foi eliminada da experiência do usuário (Decisões 22 e 35). Existe apenas o **LagCheck**, que realiza a medição de repouso e valida o comportamento sob carga controlada (até 10 MB via endpoint seguro `/v1/load` do Cloudflare Worker).
+A separação artificial entre "Quick Check" e "Deep Check" foi eliminada da experiência do usuário (Decisões 22 e 35), e o Check Completo passa a operar tanto em **Wi-Fi** quanto em **rede móvel** (Decisão 36):
+- **Em Wi-Fi:** Executa rota em repouso por UDP e rota sob carga controlada (até 10 MB via endpoint seguro `/v1/load` do Cloudflare Worker). A trilha exibe "Wi-Fi" (`wifi`) e pode avaliar diagnósticos de frequência Wi-Fi local (2.4 GHz vs 5 GHz).
+- **Em Rede Móvel:** Executa rota em repouso por UDP e rota sob carga controlada com o mesmo limite de 10 MB e até 15 s. Exige **confirmação explícita de uso de dados móveis** antes de iniciar: *"O Check Completo usa dados móveis para avaliar sua conexão sob carga."*, informando o teto de 10 MB. Sem consentimento, permite apenas Quick Check ou cancelar. A trilha exibe "Rede móvel" (`antenna.radiowaves.left.and.right`) e nunca infere nem exibe roteador local, frequência 2.4/5GHz ou gateway.
+- **Trilha Visual HIG (5 Passos):** Durante a medição, a trilha conecta linearmente: `Wi-Fi / Rede móvel` ➔ `Ping` ➔ `Perda` ➔ `Sob carga` ➔ `[Região Amigável]`. Ping e Perda são observados em paralelo em ambas as fases; Sob carga aguarda na fase de repouso e ativa na fase de carga; Região começa na fase 1 e permanece ativa. É **terminantemente proibido** exibir números de ping, gráficos, percentuais, tempo restante, score prévio ou explicações durante a execução.
+- **Troca de Rede:** Transição Wi-Fi ➔ Rede Móvel ou Rede Móvel ➔ Wi-Fi durante a sessão cancela tudo imediatamente, descarta dados parciais da memória sem persistência e não retoma automaticamente.
+- **Histórico:** O tipo de conexão (`.wifi` ou `.cellular`) é registrado no histórico, e o sistema nunca compara automaticamente resultados Wi-Fi contra móveis como se fossem equivalentes.
 
 Os dados aprofundados sob carga são acessados de forma limpa através de "Ver Detalhes Técnicos", sem poluir visualmente o resultado principal.
 

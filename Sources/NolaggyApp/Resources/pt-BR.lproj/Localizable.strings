@@ -364,3 +364,29 @@
 "result.action.optimize" = "Otimizar Conexão";
 "result.action.details" = "Ver Detalhes Técnicos";
 "result.diagnostic.title" = "Diagnóstico de Partida";
+
+/* Check Completo em Wi-Fi e Rede Móvel (Decisão 36) */
+"deep_check.cellular_consent.title" = "Uso de dados móveis";
+"deep_check.cellular_consent.message" = "O Check Completo usa dados móveis para avaliar sua conexão sob carga.";
+"deep_check.cellular_consent.limit" = "Limite máximo de transferência: até 10 MB (cerca de 15 segundos).";
+"deep_check.cellular_consent.confirm" = "Continuar com dados móveis";
+"deep_check.cellular_consent.quick_check" = "Fazer apenas Quick Check";
+"deep_check.cellular_consent.cancel" = "Cancelar";
+"live_trail.node.wifi" = "Wi-Fi";
+"live_trail.node.ping" = "Ping";
+"live_trail.node.loss" = "Perda";
+"live_trail.node.under_load" = "Sob carga";
+"live_trail.state.connected" = "Conectado";
+"live_trail.state.measuring" = "Medindo";
+"live_trail.state.monitoring" = "Monitorando";
+"live_trail.state.waiting" = "Aguardando";
+"live_trail.state.active" = "Ativo";
+"live_trail.state.responding" = "Respondendo";
+"live_trail.state.connecting" = "Conectando";
+"result.route_trail.wifi_healthy" = "5 GHz · Excelente (< 2 ms)";
+"result.route_trail.wifi_unstable" = "Oscilação no Wi-Fi";
+"result.route_trail.cellular_active" = "Rede móvel ativa";
+"result.route_trail.destination_responding %@" = "Respondendo · %@ ms";
+"result.route_trail.badge_attention" = "Atenção";
+"result.route_trail.badge_slow" = "Lento";
+"result.route_trail.accessibility_format %@ %@ %@ %@" = "Atestado da rota: iPhone verificado. %@: %@. Destino %@: %@.";

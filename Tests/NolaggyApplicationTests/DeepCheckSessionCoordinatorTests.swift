@@ -194,6 +194,92 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         )
     }
 
+    func testCellularRequiresConsentBeforeStarting() async throws {
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 1)),
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedInterfaceAvailability(interface: .cellular)
+        )
+
+        do {
+            _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan, hasCellularConsent: false)
+            XCTFail("Deep Check on cellular must not start without explicit consent.")
+        } catch {
+            XCTAssertEqual(error as? DeepCheckSessionError, .requiresCellularConsent)
+        }
+
+        let state = await coordinator.sessionState()
+        XCTAssertEqual(state, .requiresCellularConsent)
+    }
+
+    func testCellularWithConsentExecutesAndPersistsCellularSnapshot() async throws {
+        let history = RecordingDeepHistoryRepository()
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 35), received(30, rtt: 85)]),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 5_000_000)),
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedInterfaceAvailability(interface: .cellular),
+            historyRepository: history
+        )
+
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan, hasCellularConsent: true)
+        try await waitForCompletion(coordinator)
+
+        let state = await coordinator.sessionState()
+        guard case let .completed(_, .completed(result), availability) = state else {
+            return XCTFail("Expected completed Deep Check on cellular.")
+        }
+        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 35)
+        XCTAssertEqual(availability, .measured)
+
+        let entries = await history.loadHistory()
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.resolvedContext.context.equipmentConnection, .cellular)
+    }
+
+    func testWiFiExecutesAndPersistsWiFiSnapshot() async throws {
+        let history = RecordingDeepHistoryRepository()
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: ScriptedTransport(samples: [received(30, rtt: 25), received(30, rtt: 40)]),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000)),
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedInterfaceAvailability(interface: .wifi),
+            historyRepository: history
+        )
+
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let entries = await history.loadHistory()
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.resolvedContext.context.equipmentConnection, .wifi)
+    }
+
+    func testNetworkPathChangeDuringExecutionCancelsAndDiscardsPartialData() async throws {
+        let history = RecordingDeepHistoryRepository()
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: DelayedTransport(),
+            loadTransport: FixedLoadTransport(outcome: .unavailable),
+            pathObserver: ImmediateChangeObserver(),
+            wifiAvailability: FixedInterfaceAvailability(interface: .wifi),
+            historyRepository: history
+        )
+
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await Task.sleep(for: .milliseconds(50))
+
+        let state = await coordinator.sessionState()
+        guard case let .cancelled(_, reason) = state else {
+            return XCTFail("Expected cancelled session due to network path change, got \(state)")
+        }
+        XCTAssertEqual(reason, .networkPathChanged)
+        let progress = await coordinator.measurementProgress()
+        XCTAssertNil(progress)
+        let entries = await history.loadHistory()
+        XCTAssertTrue(entries.isEmpty, "No partial data should be persisted on network change.")
+    }
+
     private func received(_ count: Int, rtt: Double) -> [ProbeSample] {
         (0..<count).map { ProbeSample(sequence: $0, roundTripMilliseconds: rtt, outcome: .received) }
     }
@@ -205,6 +291,13 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         }
         XCTFail("Deep Check did not finish.")
     }
+}
+
+private struct FixedInterfaceAvailability: WiFiAvailability {
+    let interface: NetworkInterfaceType
+    func isWiFiAvailable() async -> Bool { interface == .wifi }
+    func isCellularAvailable() async -> Bool { interface == .cellular }
+    func currentInterface() async -> NetworkInterfaceType { interface }
 }
 
 private actor ScriptedTransport: MeasurementTransport {

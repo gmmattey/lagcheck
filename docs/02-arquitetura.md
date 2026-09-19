@@ -167,9 +167,9 @@ sequenceDiagram
 
 O estado parcial alimenta somente a tela durante o teste. Score, classificação, causa e recomendação são calculados uma única vez no término de uma sessão válida.
 
-### 5.2 Deep Check
+### 5.2 Deep Check (Wi-Fi e Rede Móvel)
 
-O Deep Check reutiliza a resolução de contexto do Quick Check, porém só é habilitado em Wi-Fi na V1 para não consumir dados móveis. Ele divide a sessão em duas distribuições independentes:
+O Deep Check reutiliza a resolução de contexto do Quick Check e opera tanto em **Wi-Fi** quanto em **rede móvel** (Decisão 36). Em rede móvel, o início da fase de carga exige consentimento explícito do usuário, informando o limite máximo de dados (até 10 MB). Ele divide a sessão em duas distribuições independentes:
 
 1. fase de repouso, com probes UDP;
 2. fase sob carga controlada, com probes UDP simultâneos a uma transferência HTTP controlada de até 10 MB.
@@ -177,6 +177,8 @@ O Deep Check reutiliza a resolução de contexto do Quick Check, porém só é h
 Cada fase dura 15 segundos, totalizando aproximadamente 30 segundos, e executa até dois probes UDP por segundo.
 
 O NGQE recebe ambas as séries separadas e calcula a degradação. Na fase de repouso, o Deep Check também compara a região primária com uma alternativa quando o catálogo a disponibilizar; a fase sob carga continua na região primária. O score principal representa somente a fase de repouso; a fase de carga produz um indicador separado de impacto sob carga. Uma falha de carga não invalida automaticamente as amostras de repouso, mas impede uma conclusão sobre comportamento sob carga e precisa aparecer como limitação do resultado.
+
+Qualquer transição de caminho de rede durante a sessão (Wi-Fi ➔ celular ou celular ➔ Wi-Fi) aciona cancelamento imediato pelo `NetworkPathObserver` e descarte total de dados parciais. O histórico registra o tipo de conexão utilizado (`.wifi` ou `.cellular`), sem comparação automatizada entre elas.
 
 ### 5.3 Catálogo offline ou inválido
 
@@ -237,9 +239,9 @@ A versão Android futura deverá preservar os contratos de catálogo, métricas,
 
 Não há premissa de código compartilhado no MVP iPhone. A portabilidade vem dos contratos, catálogo versionado e comportamento determinístico, não de uma escolha prematura de framework multiplataforma.
 
-### 8.3 Comparação Wi-Fi e celular
-
-A comparação explícita entre Wi-Fi e rede celular fica fora do MVP e é candidata à V1.1. Na V1, uma mudança de caminho durante a sessão cancela a medição; o app não inicia comparação automatizada e não habilita Deep Check em rede celular sem uma evolução específica desse fluxo.
+### 8.3 Operação em Wi-Fi e celular
+ 
+Com a Decisão 36, o Check Completo opera tanto em Wi-Fi quanto em rede celular (com consentimento prévio para a carga HTTP de até 10 MB). Na V1, uma mudança de caminho durante a sessão cancela imediatamente a medição sem persistência parcial; o app não inicia comparação automatizada entre redes diferentes e nunca trata resultado de Wi-Fi e rede móvel como equivalentes.
 
 ### 8.4 Monetização futura
 
