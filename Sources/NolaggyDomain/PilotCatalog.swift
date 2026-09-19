@@ -12,9 +12,11 @@ public enum MeasurementConfidence: String, Codable, CaseIterable, Hashable, Send
     case high
 }
 
-/// O codec UDP faz parte do contrato assinado do catálogo. Porta não identifica
-/// protocolo: títulos podem usar portas não convencionais, e uma porta conhecida
-/// não autoriza supor que ela responde como GameLift, PlayFab ou A2S.
+/// Protocolo declarado pelo catálogo para a rota que será efetivamente medida.
+///
+/// A porta não identifica o protocolo: destinos futuros podem usar portas não
+/// canônicas e uma porta conhecida não transforma um host desconhecido em um
+/// beacon válido. A sessão deve receber este valor do contexto assinado.
 public enum ProbeProtocolKind: String, Codable, CaseIterable, Hashable, Sendable {
     case gameLiftPing
     case playFabQoS
@@ -32,7 +34,11 @@ public struct ProbeDestination: Codable, Hashable, Sendable {
     public let port: UInt16
     public let protocolKind: ProbeProtocolKind
 
-    public init(host: String, port: UInt16, protocolKind: ProbeProtocolKind = .gameLiftPing) throws {
+    public init(
+        host: String,
+        port: UInt16,
+        protocolKind: ProbeProtocolKind = .gameLiftPing
+    ) throws {
         guard Self.isValidHost(host) else {
             throw CatalogValidationError.invalidProbeHost
         }
@@ -44,16 +50,22 @@ public struct ProbeDestination: Codable, Hashable, Sendable {
         self.protocolKind = protocolKind
     }
 
-    private enum CodingKeys: String, CodingKey { case host, port, protocolKind }
+    private enum CodingKeys: String, CodingKey {
+        case host
+        case port
+        case protocolKind
+    }
 
+    /// Catálogos já assinados antes do campo existir representam somente os
+    /// beacons GameLift homologados. A compatibilidade se limita a esses
+    /// envelopes; novos destinos precisam declarar o protocolo explicitamente.
     public init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        let host = try values.decode(String.self, forKey: .host)
-        let port = try values.decode(UInt16.self, forKey: .port)
-        // Schema 1 e 2 foram assinados antes de o codec ser explícito; ambos
-        // só publicavam GameLift. O default existe exclusivamente para eles.
-        let protocolKind = try values.decodeIfPresent(ProbeProtocolKind.self, forKey: .protocolKind) ?? .gameLiftPing
-        try self.init(host: host, port: port, protocolKind: protocolKind)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            host: container.decode(String.self, forKey: .host),
+            port: container.decode(UInt16.self, forKey: .port),
+            protocolKind: try container.decodeIfPresent(ProbeProtocolKind.self, forKey: .protocolKind) ?? .gameLiftPing
+        )
     }
 
     private static func isValidHost(_ host: String) -> Bool {
@@ -202,6 +214,10 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
     /// Presente somente após a separação entre a declaração do equipamento e
     /// a interface observada no iPhone. Snapshots anteriores não têm esse fato.
     public let connectionFactsVersion: Int?
+
+    /// Protocolo que a sessão deve usar. Ele é carregado do destino assinado e
+    /// nunca deduzido a partir da porta.
+    public var probeProtocol: ProbeProtocolKind { destination.protocolKind }
 
     public init(
         context: GameContext,

@@ -148,6 +148,7 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
 
     public func collect(candidate: RegionalSelectionCandidate) async -> [RegionalPreReadSample] {
         let portRaw = candidate.resolvedContext.destination.port
+        let protocolKind = candidate.resolvedContext.probeProtocol
         guard let port = NWEndpoint.Port(rawValue: portRaw) else {
             return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }

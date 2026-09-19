@@ -417,6 +417,10 @@
 /* Seletor de Plataforma */
 "lagcheck.platform_picker.title" = "Para qual plataforma?";
 "lagcheck.platform_picker.subtitle %@" = "Selecione o dispositivo onde você jogará %@ para testar a rota de rede.";
+"lagcheck.platform_picker.unavailable.title" = "Sem rota para esta plataforma";
+"lagcheck.platform_picker.unavailable.message" = "Ainda não há uma rota de medição confirmada para este jogo nesta plataforma.";
+"lagcheck.platform_picker.unavailable.back" = "Voltar";
+"lagcheck.platform_picker.unavailable.accessibility" = "Sem rota para esta plataforma. Ainda não há uma rota de medição confirmada para este jogo nesta plataforma.";
 
 /* Trilha Viva de Medição (Decisão 34) */
 "live_trail.node.device" = "Seu iPhone";
@@ -431,6 +435,8 @@
 /* Tela de Resultado HIG (Decisão 35) */
 "result.title" = "Resultado";
 "result.route_trail.title" = "Atestado da Rota";
+"route_destination.regional_reference" = "Região de referência";
+"route_destination.dedicated_server" = "Servidor dedicado";
 "result.metrics.title" = "Métricas Detalhadas";
 "result.metric.ping" = "Ping (Mediana P50)";
 "result.metric.jitter" = "Jitter (Variação)";

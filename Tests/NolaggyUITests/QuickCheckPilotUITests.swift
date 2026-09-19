@@ -403,6 +403,9 @@ final class QuickCheckPilotUITests: XCTestCase {
         startButton.tap()
 
         XCTAssertTrue(app.buttons["confirm-platform-and-start"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["iPhone"].exists)
+        XCTAssertFalse(app.staticTexts["PlayStation"].exists)
+        XCTAssertFalse(app.staticTexts["Xbox"].exists)
         captureScreenshot(of: app, named: "home-platform-picker-opened")
     }
 

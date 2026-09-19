@@ -51,6 +51,37 @@ public struct RemoteCatalogRegion: Codable, Equatable, Sendable {
     public let id: String
     public let label: [String: String]
     public let probe: ProbeDestination
+    /// Evidência pública revisada para um destino que não é um beacon GameLift
+    /// previamente homologado. O catálogo assinado nunca deve introduzir um
+    /// host de PlayFab ou A2S sem esta ficha.
+    public let evidence: RemoteCatalogDestinationEvidence?
+
+    public init(
+        id: String,
+        label: [String: String],
+        probe: ProbeDestination,
+        evidence: RemoteCatalogDestinationEvidence? = nil
+    ) {
+        self.id = id
+        self.label = label
+        self.probe = probe
+        self.evidence = evidence
+    }
+}
+
+/// Registro mínimo auditável de por que um host pode receber sondas UDP do
+/// LagCheck. A assinatura ainda é obrigatória; a evidência evita que um campo
+/// de host isolado seja tratado como rota do jogo.
+public struct RemoteCatalogDestinationEvidence: Codable, Equatable, Sendable {
+    public let id: String
+    public let sourceURL: String
+    public let reviewedAt: String
+
+    public init(id: String, sourceURL: String, reviewedAt: String) {
+        self.id = id
+        self.sourceURL = sourceURL
+        self.reviewedAt = reviewedAt
+    }
 }
 
 public struct RemoteCatalogGame: Codable, Equatable, Sendable {
@@ -387,6 +418,8 @@ public enum RemoteCatalogError: Error, Equatable, Sendable {
     case invalidRoute
     case invalidArtwork
     case invalidRating
+    case invalidDestination
+    case invalidDestinationEvidence
     case unsupportedDebugCatalog
 }
 
@@ -650,21 +683,16 @@ public enum RemoteCatalogVerifier {
         )
     }
 
-    /// Teto de plataformas por jogo no catálogo Debug. Um contexto publicado pode usar
-    /// qualquer subconjunto deste teto — isso permite liberar console num jogo sem exigir
-    /// que o envelope já assinado hoje (iPhone-only) seja re-assinado ao mesmo tempo.
-    /// O teto reflete só quais jogos existem de fato em PlayStation/Xbox; a estratégia de
-    /// medição continua `genericRegion`/`sa-east-1` porque o backend não muda por cliente.
-    /// Ver docs/26-decisao-catalogo-console.md.
+    /// Teto de plataformas do candidato schema 2. A UI só oferece a plataforma
+    /// quando o contexto assinado a declara, mas este teto impede que um
+    /// envelope Debug publique uma combinação que não pertence ao produto.
     public static func allowedPlatforms(for gameID: String) -> Set<Platform> {
-        if let editorial = GameEditorialRegistry.editorial(for: gameID) {
-            let platforms = Set(editorial.requirements.map(\.platform))
-            if !platforms.isEmpty { return platforms }
-        }
-        return debugAllowedPlatforms[gameID] ?? [.iphone]
+        schemaTwoAllowedPlatforms[gameID] ?? legacyAllowedPlatforms[gameID] ?? []
     }
 
-    private static let debugAllowedPlatforms: [String: Set<Platform>] = [
+    /// O envelope schema 1 já publicado é aceito exatamente como foi assinado.
+    /// Ele não ganha plataformas novas por interpretação retrospectiva.
+    private static let legacyAllowedPlatforms: [String: Set<Platform>] = [
         "fortnite": [.iphone, .playstation, .xbox],
         "call-of-duty-mobile": [.iphone],
         "free-fire": [.iphone],
@@ -687,18 +715,55 @@ public enum RemoteCatalogVerifier {
         "warzone": [.iphone]
     ]
 
+    private static let schemaTwoAllowedPlatforms: [String: Set<Platform>] = [
+        "fortnite": [.iphone, .playstation, .xbox, .nintendo, .pc],
+        "call-of-duty-mobile": [.iphone],
+        "free-fire": [.iphone],
+        "pubg-mobile": [.iphone],
+        "brawl-stars": [.iphone],
+        "wild-rift": [.iphone],
+        "roblox": [.iphone, .playstation, .xbox, .pc],
+        "minecraft": [.iphone, .playstation, .xbox, .nintendo, .pc],
+        "apex-legends": [.playstation, .xbox, .nintendo, .pc],
+        "blood-strike": [.iphone, .pc],
+        "cs2": [.pc],
+        "dota2": [.pc],
+        "eafc": [.iphone, .playstation, .xbox, .pc],
+        "league-of-legends": [.pc],
+        "palworld": [.playstation, .xbox, .pc],
+        "rainbow-six": [.playstation, .xbox, .pc],
+        "rainbow-six-mobile": [.iphone],
+        "rocket-league": [.playstation, .xbox, .nintendo, .pc],
+        "rocket-league-sideswipe": [.iphone],
+        "rust": [.playstation, .xbox, .pc],
+        "valorant": [.playstation, .xbox, .pc],
+        "warzone": [.playstation, .xbox, .pc]
+    ]
+
     private static func validateDebugPayload(_ payload: RemoteCatalogPayload) throws {
         if payload.schemaVersion == routedCatalogSchemaVersion {
             try validateRoutedPayload(payload)
             return
         }
-        let expectedGames: Set<String> = [
+        let legacyGameIDs: Set<String> = [
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
             "brawl-stars", "wild-rift", "roblox", "minecraft",
             "apex-legends", "blood-strike", "cs2", "dota2", "eafc",
             "league-of-legends", "palworld", "rainbow-six", "rocket-league",
             "rust", "valorant", "warzone"
         ]
+        let expectedGames: Set<String>
+        let allowedPlatforms: [String: Set<Platform>]
+        switch payload.schemaVersion {
+        case legacySchemaVersion:
+            expectedGames = legacyGameIDs
+            allowedPlatforms = legacyAllowedPlatforms
+        case candidateRegionsSchemaVersion:
+            expectedGames = Set(schemaTwoAllowedPlatforms.keys)
+            allowedPlatforms = schemaTwoAllowedPlatforms
+        default:
+            throw RemoteCatalogError.unsupportedDebugCatalog
+        }
         guard payload.games.count == expectedGames.count,
               Set(payload.games.map(\.id)) == expectedGames else { throw RemoteCatalogError.unsupportedDebugCatalog }
         guard Set(payload.profiles.map(\.id)).count == payload.profiles.count else { throw RemoteCatalogError.duplicateProfile }
@@ -733,9 +798,9 @@ public enum RemoteCatalogVerifier {
                           Set(priorities.keys) == Set(candidates),
                           priorities.values.allSatisfy({ $0 >= 0 }),
                           candidates.allSatisfy(regionIDs.contains),
-                          measurement.strategy == .genericRegion,
-                          measurement.confidence == .medium,
-                          measurement.precisionKey == "regionalReference" else {
+                          candidates.compactMap({ regionID in payload.regions.first(where: { $0.id == regionID }) }).allSatisfy({
+                              isCompatible(measurement: measurement, destination: $0)
+                          }) else {
                         throw RemoteCatalogError.invalidAvailability
                     }
                 default:
@@ -743,23 +808,74 @@ public enum RemoteCatalogVerifier {
                 }
             }
         }
+        let referencedRegionIDs = Set(payload.games.flatMap { game in
+            game.contexts.flatMap { candidateIDs(for: $0.measurement, schemaVersion: payload.schemaVersion) }
+        })
         guard payload.games.allSatisfy({ game in
-            guard let allowedPlatforms = debugAllowedPlatforms[game.id] else { return false }
-            let context = game.contexts[0]
-            let candidateList = candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion)
-            return game.contexts.count == 1 && context.availability == .available && context.market == "BR"
-                && context.platforms.isSubset(of: allowedPlatforms)
-                && !candidateList.isEmpty
-                && Set(candidateList).isSubset(of: GlobalProbeRegistry.allowedRegionIDs)
+            guard let allowedPlatforms = allowedPlatforms[game.id] else { return false }
+            var claimedPlatforms = Set<Platform>()
+            return game.contexts.allSatisfy { context in
+                let candidateList = candidateIDs(for: context.measurement, schemaVersion: payload.schemaVersion)
+                guard context.market == "BR",
+                      context.platforms.isSubset(of: allowedPlatforms),
+                      claimedPlatforms.isDisjoint(with: context.platforms) else {
+                    return false
+                }
+                claimedPlatforms.formUnion(context.platforms)
+                return context.availability == .available && !candidateList.isEmpty
+            }
         }),
               !payload.regions.isEmpty,
+              referencedRegionIDs == regionIDs,
               payload.regions.allSatisfy({ region in
-                  GlobalProbeRegistry.allowedRegionIDs.contains(region.id)
-                      && region.probe.host == "gamelift-ping.\(region.id).api.aws"
-                      && region.probe.port == 7770
+                  isValidDestination(region)
               }) else {
             throw RemoteCatalogError.unsupportedDebugCatalog
         }
+    }
+
+    private static func isCompatible(
+        measurement: RemoteCatalogMeasurement,
+        destination: RemoteCatalogRegion
+    ) -> Bool {
+        switch destination.probe.protocolKind {
+        case .gameLiftPing, .playFabQoS:
+            return measurement.strategy == .genericRegion
+                && measurement.confidence == .medium
+                && measurement.precisionKey == "regionalReference"
+        case .steamA2S:
+            return measurement.strategy == .dedicatedServer
+                && measurement.confidence == .high
+                && measurement.precisionKey == "dedicatedServer"
+        }
+    }
+
+    private static func isValidDestination(_ region: RemoteCatalogRegion) -> Bool {
+        switch region.probe.protocolKind {
+        case .gameLiftPing:
+            return GlobalProbeRegistry.allowedRegionIDs.contains(region.id)
+                && region.probe.host == "gamelift-ping.\(region.id).api.aws"
+                && region.probe.port == 7770
+                && region.evidence == nil
+        case .playFabQoS:
+            return region.probe.port == 3075 && isValidEvidence(region.evidence)
+        case .steamA2S:
+            return region.probe.port > 0 && isValidEvidence(region.evidence)
+        }
+    }
+
+    private static func isValidEvidence(_ evidence: RemoteCatalogDestinationEvidence?) -> Bool {
+        guard let evidence,
+              !evidence.id.isEmpty,
+              evidence.id == evidence.id.lowercased(),
+              evidence.id.allSatisfy({ $0.isASCII && ($0.isLowercase || $0.isNumber || $0 == "-") }),
+              let sourceURL = URL(string: evidence.sourceURL),
+              sourceURL.scheme == "https",
+              sourceURL.host != nil,
+              ISO8601DateFormatter().date(from: evidence.reviewedAt) != nil else {
+            return false
+        }
+        return true
     }
 
     private static func candidateIDs(for measurement: RemoteCatalogMeasurement?, schemaVersion: Int) -> [String] {

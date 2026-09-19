@@ -109,4 +109,23 @@ final class NWConnectionMeasurementTransportTests: XCTestCase {
             ProbeSample(sequence: 0, roundTripMilliseconds: 60, outcome: .received)
         )
     }
+
+    func testProbeGenerationUsesTheDeclaredProtocolRatherThanThePort() throws {
+        let gameLift = try NWConnectionMeasurementTransport.generateProbes(
+            count: 1,
+            protocolKind: .gameLiftPing
+        )
+        let playFab = try NWConnectionMeasurementTransport.generateProbes(
+            count: 1,
+            protocolKind: .playFabQoS
+        )
+        let steam = try NWConnectionMeasurementTransport.generateProbes(
+            count: 1,
+            protocolKind: .steamA2S
+        )
+
+        XCTAssertEqual(gameLift.probes[0].payload.prefix(5), Data([0x4E, 0x4C, 0x50, 0x47, 0x01]))
+        XCTAssertEqual(playFab.probes[0].payload.prefix(2), Data([0xFF, 0xFF]))
+        XCTAssertEqual(steam.probes[0].payload, SteamQueryA2SPayloadCodec.encodeInitialRequest())
+    }
 }
