@@ -12,7 +12,7 @@ struct PlatformSelectionSheet: View {
     let supportedPlatforms: [Platform]
     let onSelectPlatform: (Platform) -> Void
 
-    @State private var selected: Platform
+    @State private var selected: Platform?
 
     init(
         gameName: String,
@@ -21,13 +21,26 @@ struct PlatformSelectionSheet: View {
         onSelectPlatform: @escaping (Platform) -> Void
     ) {
         self.gameName = gameName
-        let validPlatforms = supportedPlatforms.isEmpty ? [.iphone] : supportedPlatforms
-        self.supportedPlatforms = validPlatforms
+        self.supportedPlatforms = supportedPlatforms
         self.onSelectPlatform = onSelectPlatform
-        _selected = State(initialValue: validPlatforms.contains(initialPlatform) ? initialPlatform : (validPlatforms.first ?? .iphone))
+        _selected = State(initialValue: supportedPlatforms.contains(initialPlatform) ? initialPlatform : supportedPlatforms.first)
     }
 
     var body: some View {
+        Group {
+            if supportedPlatforms.isEmpty {
+                unavailablePlatformState
+            } else {
+                selectionContent
+            }
+        }
+        .presentationDetents([.height(supportedPlatforms.isEmpty ? 280 : 290)])
+        .presentationDragIndicator(.visible)
+        .background(NLColor.backgroundBase.ignoresSafeArea())
+        .preferredColorScheme(.dark)
+    }
+
+    private var selectionContent: some View {
         VStack(spacing: NLSpacing.lg) {
             // Cabeçalho da Sheet
             VStack(spacing: NLSpacing.xxs) {
@@ -59,7 +72,9 @@ struct PlatformSelectionSheet: View {
 
             // Botão de Confirmação Primário
             Button {
-                confirmAndStart(platform: selected)
+                if let selected {
+                    confirmAndStart(platform: selected)
+                }
             } label: {
                 HStack(spacing: NLSpacing.xs) {
                     Image(systemName: "play.fill")
@@ -76,10 +91,46 @@ struct PlatformSelectionSheet: View {
             .padding(.bottom, NLSpacing.lg)
             .accessibilityIdentifier("confirm-platform-and-start")
         }
-        .presentationDetents([.height(290)])
-        .presentationDragIndicator(.visible)
-        .background(NLColor.backgroundBase.ignoresSafeArea())
-        .preferredColorScheme(.dark)
+    }
+
+    private var unavailablePlatformState: some View {
+        VStack(spacing: NLSpacing.lg) {
+            Spacer(minLength: 0)
+
+            Image(systemName: "xmark.circle")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(NLColor.textSecondary)
+                .accessibilityHidden(true)
+
+            VStack(spacing: NLSpacing.xs) {
+                Text("lagcheck.platform_picker.unavailable.title")
+                    .font(NLTypography.headline)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text("lagcheck.platform_picker.unavailable.message")
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+
+            Button {
+                dismiss()
+            } label: {
+                Text("lagcheck.platform_picker.unavailable.back")
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textLink)
+                    .frame(minHeight: NLSizing.touchTarget)
+            }
+            .accessibilityIdentifier("platform-selection-unavailable-back")
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("lagcheck.platform_picker.unavailable.accessibility"))
     }
 
     private func platformCard(for platform: Platform) -> some View {

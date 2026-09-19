@@ -12,6 +12,7 @@ public struct ConsolidatedRouteTrailView: View {
 
     private let isWiFi: Bool
     private let regionName: String
+    private let destinationKind: RouteDestinationKind
     private let networkState: NodeState
     private let responseState: NodeState
     private let deliveryState: NodeState
@@ -21,6 +22,7 @@ public struct ConsolidatedRouteTrailView: View {
     public init(
         isWiFi: Bool,
         regionName: String,
+        destinationKind: RouteDestinationKind = .regionalReference,
         networkState: NodeState = .check,
         responseState: NodeState = .check,
         deliveryState: NodeState = .check,
@@ -29,6 +31,7 @@ public struct ConsolidatedRouteTrailView: View {
     ) {
         self.isWiFi = isWiFi
         self.regionName = regionName
+        self.destinationKind = destinationKind
         self.networkState = networkState
         self.responseState = responseState
         self.deliveryState = deliveryState
@@ -76,10 +79,10 @@ public struct ConsolidatedRouteTrailView: View {
 
             connectorLine()
 
-            // Nó 5: Região de referência (ex: São Paulo)
+            // Nó 5: destino medido, sem sugerir servidor oficial quando é só uma referência regional.
             nodeRow(
-                icon: "mappin.and.ellipse",
-                title: regionName,
+                icon: destinationKind.icon,
+                title: "\(destinationKind.title) · \(regionName)",
                 state: regionState
             )
         }

@@ -4,26 +4,6 @@ import NolaggyApplication
 import NolaggyDomain
 import Security
 
-/// Identifica a variante de protocolo de medição UDP com base na porta de serviço.
-public enum MeasurementProtocol: Sendable {
-    case gameLift
-    case playFab
-    case steamA2S
-
-    public static func `for`(port: UInt16) -> MeasurementProtocol {
-        switch port {
-        case 3075:
-            return .playFab
-        case 27015:
-            return .steamA2S
-        case 7770:
-            return .gameLift
-        default:
-            return .gameLift
-        }
-    }
-}
-
 /// Transporte UDP do piloto. Ele só mede o destino configurado e nunca tenta outro protocolo.
 /// A composição do app o habilita somente no binário Debug instalado em iPhone.
 public struct NWConnectionMeasurementTransport: MeasurementTransport {
@@ -34,10 +14,13 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         plan: QuickCheckPlan,
         onSample: @escaping @Sendable (ProbeSample) async -> Void
     ) async -> [ProbeSample] {
-        let protocolKind = MeasurementProtocol.for(port: plan.endpoint.port)
+        let protocolKind = plan.endpoint.protocolKind
         let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
         do {
-            generated = try Self.generateProbes(count: ProbeAcceptancePolicy.plannedProbeCount, port: plan.endpoint.port)
+            generated = try Self.generateProbes(
+                count: ProbeAcceptancePolicy.plannedProbeCount,
+                protocolKind: protocolKind
+            )
         } catch {
             return (0..<ProbeAcceptancePolicy.plannedProbeCount).map {
                 ProbeSample(sequence: $0, outcome: .transportError)
@@ -115,11 +98,10 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
 
     static func generateProbes(
         count: Int,
-        port: UInt16
+        protocolKind: ProbeProtocolKind
     ) throws -> (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool) {
-        let protocolKind = MeasurementProtocol.for(port: port)
         switch protocolKind {
-        case .gameLift:
+        case .gameLiftPing:
             let sessionID = try SecureRandom.uuid()
             let probes = try (0..<count).map { sequence in
                 let payload = PingBeaconPayload(
@@ -131,7 +113,7 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
             }
             return (probes, { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) })
 
-        case .playFab:
+        case .playFabQoS:
             let sessionID = try SecureRandom.uuid()
             let probes = try (0..<count).map { sequence in
                 let payload = PlayFabQoSPayload(
@@ -166,12 +148,13 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
 
     public func collect(candidate: RegionalSelectionCandidate) async -> [RegionalPreReadSample] {
         let portRaw = candidate.resolvedContext.destination.port
+        let protocolKind = candidate.resolvedContext.probeProtocol
         guard let port = NWEndpoint.Port(rawValue: portRaw) else {
             return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }
         let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
         do {
-            generated = try NWConnectionMeasurementTransport.generateProbes(count: 3, port: portRaw)
+            generated = try NWConnectionMeasurementTransport.generateProbes(count: 3, protocolKind: protocolKind)
         } catch {
             return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }
@@ -258,12 +241,12 @@ final class ProbeLedger: @unchecked Sendable {
         self.isCorrelatedResponse = isCorrelatedResponse
     }
 
-    convenience init(probes: [(sequence: Int, payload: Data)], port: UInt16) {
+    convenience init(probes: [(sequence: Int, payload: Data)], protocolKind: ProbeProtocolKind) {
         let validator: @Sendable (Data, Data) -> Bool
-        switch MeasurementProtocol.for(port: port) {
-        case .gameLift:
+        switch protocolKind {
+        case .gameLiftPing:
             validator = { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) }
-        case .playFab:
+        case .playFabQoS:
             validator = { req, resp in PlayFabQoSPayloadCodec.isValidEcho(of: req, response: resp) }
         case .steamA2S:
             validator = { _, resp in SteamQueryA2SPayloadCodec.isValidInfoResponse(resp) }

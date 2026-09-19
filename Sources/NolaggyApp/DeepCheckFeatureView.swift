@@ -223,6 +223,7 @@ struct DeepCheckFeatureView: View {
             gameName: gameName,
             platform: resolvedContext.context.platform,
             regionFriendlyName: friendlyRegion,
+            destinationKind: destinationKind,
             isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
             natSnapshot: nil,
             showDetails: { showingDetails = true },
@@ -239,11 +240,16 @@ struct DeepCheckFeatureView: View {
             gameName: gameName,
             platform: resolvedContext.context.platform,
             regionFriendlyName: friendlyRegion,
+            destinationKind: destinationKind,
             isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
             natSnapshot: nil,
             retry: restart,
             exit: cancelOrDismiss
         )
+    }
+
+    private var destinationKind: RouteDestinationKind {
+        resolvedContext.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference
     }
 
     private func terminal(kind: StatusMessage.Kind) -> some View {
@@ -267,7 +273,11 @@ struct DeepCheckFeatureView: View {
 
     private func start(withConsent: Bool = false) {
         Task { @MainActor in
-            let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(host: resolvedContext.destination.host, port: resolvedContext.destination.port))
+            let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(
+                host: resolvedContext.destination.host,
+                port: resolvedContext.destination.port,
+                protocolKind: resolvedContext.probeProtocol
+            ))
             let plan = DeepCheckPlan(restProbePlan: probePlan, loadProbePlan: probePlan, loadRequest: LoadRequest(url: DeepCheckLoadEndpoint.pilot))
             do {
                 _ = try await coordinator.start(

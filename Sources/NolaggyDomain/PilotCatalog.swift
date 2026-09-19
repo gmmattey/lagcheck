@@ -12,6 +12,17 @@ public enum MeasurementConfidence: String, Codable, CaseIterable, Hashable, Send
     case high
 }
 
+/// Protocolo declarado pelo catálogo para a rota que será efetivamente medida.
+///
+/// A porta não identifica o protocolo: destinos futuros podem usar portas não
+/// canônicas e uma porta conhecida não transforma um host desconhecido em um
+/// beacon válido. A sessão deve receber este valor do contexto assinado.
+public enum ProbeProtocolKind: String, Codable, CaseIterable, Hashable, Sendable {
+    case gameLiftPing
+    case playFabQoS
+    case steamA2S
+}
+
 public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable {
     case battleRoyaleCompetitive = "BATTLE_ROYALE_COMPETITIVE"
     case mobileRealtime = "MOBILE_REALTIME"
@@ -21,8 +32,13 @@ public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable 
 public struct ProbeDestination: Codable, Hashable, Sendable {
     public let host: String
     public let port: UInt16
+    public let protocolKind: ProbeProtocolKind
 
-    public init(host: String, port: UInt16) throws {
+    public init(
+        host: String,
+        port: UInt16,
+        protocolKind: ProbeProtocolKind = .gameLiftPing
+    ) throws {
         guard Self.isValidHost(host) else {
             throw CatalogValidationError.invalidProbeHost
         }
@@ -31,6 +47,25 @@ public struct ProbeDestination: Codable, Hashable, Sendable {
         }
         self.host = host
         self.port = port
+        self.protocolKind = protocolKind
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case host
+        case port
+        case protocolKind
+    }
+
+    /// Catálogos já assinados antes do campo existir representam somente os
+    /// beacons GameLift homologados. A compatibilidade se limita a esses
+    /// envelopes; novos destinos precisam declarar o protocolo explicitamente.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            host: container.decode(String.self, forKey: .host),
+            port: container.decode(UInt16.self, forKey: .port),
+            protocolKind: try container.decodeIfPresent(ProbeProtocolKind.self, forKey: .protocolKind) ?? .gameLiftPing
+        )
     }
 
     private static func isValidHost(_ host: String) -> Bool {
@@ -166,6 +201,10 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
     public let strategy: MeasurementStrategy
     public let confidence: MeasurementConfidence
     public let precisionKey: String
+
+    /// Protocolo que a sessão deve usar. Ele é carregado do destino assinado e
+    /// nunca deduzido a partir da porta.
+    public var probeProtocol: ProbeProtocolKind { destination.protocolKind }
 
     public init(
         context: GameContext,

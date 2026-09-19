@@ -14,6 +14,7 @@ struct GameDetailView: View {
     let scoreState: GameRowView.ScoreState
     let evaluation: MeasurementEvaluation?
     let resolvedContext: ResolvedMeasurementContext?
+    let supportedPlatforms: [Platform]
     var gameHistory: [MeasurementHistoryEntry] = []
     let onStartDeepCheck: (Platform) -> Void
 
@@ -26,12 +27,6 @@ struct GameDetailView: View {
 
     private var editorial: RemoteCatalogGameEditorial? {
         GameEditorialRegistry.editorial(for: game.id)
-    }
-
-    private var supportedPlatforms: [Platform] {
-        let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
-        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
-        return order.filter { allowed.contains($0) }
     }
 
     var body: some View {

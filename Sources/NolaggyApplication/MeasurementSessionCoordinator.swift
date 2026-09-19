@@ -30,10 +30,12 @@ public struct MeasurementSession: Equatable, Sendable {
 public struct MeasurementEndpoint: Equatable, Sendable {
     public let host: String
     public let port: UInt16
+    public let protocolKind: ProbeProtocolKind
 
-    public init(host: String, port: UInt16) {
+    public init(host: String, port: UInt16, protocolKind: ProbeProtocolKind) {
         self.host = host
         self.port = port
+        self.protocolKind = protocolKind
     }
 }
 

@@ -332,6 +332,10 @@
 /* Selector de Plataforma */
 "lagcheck.platform_picker.title" = "¿Para qué plataforma?";
 "lagcheck.platform_picker.subtitle %@" = "Selecciona el dispositivo donde jugarás %@ para probar la ruta de red.";
+"lagcheck.platform_picker.unavailable.title" = "Sin ruta para esta plataforma";
+"lagcheck.platform_picker.unavailable.message" = "Aún no hay una ruta de medición confirmada para este juego en esta plataforma.";
+"lagcheck.platform_picker.unavailable.back" = "Volver";
+"lagcheck.platform_picker.unavailable.accessibility" = "Sin ruta para esta plataforma. Aún no hay una ruta de medición confirmada para este juego en esta plataforma.";
 
 /* Trilha Viva de Medição (Decisión 34) */
 "live_trail.node.device" = "Tu iPhone";
@@ -346,6 +350,8 @@
 /* Tela de Resultado HIG (Decisión 35) */
 "result.title" = "Resultado";
 "result.route_trail.title" = "Certificado de Ruta";
+"route_destination.regional_reference" = "Región de referencia";
+"route_destination.dedicated_server" = "Servidor dedicado";
 "result.metrics.title" = "Métricas Detalladas";
 "result.metric.ping" = "Ping (Mediana P50)";
 "result.metric.jitter" = "Jitter (Variación)";
@@ -423,4 +429,3 @@
 "check_completo.action.try_again" = "Intentar de nuevo";
 "check_completo.action.details" = "Ver detalles";
 "check_completo.action.improve" = "Cómo mejorar";
-

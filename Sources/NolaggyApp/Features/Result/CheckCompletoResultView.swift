@@ -13,6 +13,7 @@ public struct CheckCompletoResultView: View {
     public let gameName: String
     public let platform: Platform
     public let regionFriendlyName: String
+    public let destinationKind: RouteDestinationKind
     public let isWiFi: Bool
     public let natSnapshot: NATTopologySnapshot?
     public let showDetails: () -> Void
@@ -28,6 +29,7 @@ public struct CheckCompletoResultView: View {
         gameName: String,
         platform: Platform = .iphone,
         regionFriendlyName: String,
+        destinationKind: RouteDestinationKind = .regionalReference,
         isWiFi: Bool = true,
         natSnapshot: NATTopologySnapshot? = nil,
         showDetails: @escaping () -> Void = {},
@@ -40,6 +42,7 @@ public struct CheckCompletoResultView: View {
         self.gameName = gameName
         self.platform = platform
         self.regionFriendlyName = regionFriendlyName
+        self.destinationKind = destinationKind
         self.isWiFi = isWiFi
         self.natSnapshot = natSnapshot
         self.showDetails = showDetails
@@ -69,6 +72,7 @@ public struct CheckCompletoResultView: View {
                 ConsolidatedRouteTrailView(
                     isWiFi: isWiFi,
                     regionName: regionFriendlyName,
+                    destinationKind: destinationKind,
                     networkState: mapTrailNodeState(trailSnapshot.networkState),
                     responseState: mapTrailNodeState(trailSnapshot.responseState),
                     deliveryState: mapTrailNodeState(trailSnapshot.deliveryState),

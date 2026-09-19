@@ -27,7 +27,11 @@ enum MeasurementTransportFactory {
     }
 
     static func quickCheckPlan(for context: ResolvedMeasurementContext) -> QuickCheckPlan {
-        QuickCheckPlan(endpoint: MeasurementEndpoint(host: context.destination.host, port: context.destination.port))
+        QuickCheckPlan(endpoint: MeasurementEndpoint(
+            host: context.destination.host,
+            port: context.destination.port,
+            protocolKind: context.probeProtocol
+        ))
     }
 
     static func deepCheckCoordinator(historyRepository: any MeasurementHistoryRepository) -> DeepCheckSessionCoordinator {

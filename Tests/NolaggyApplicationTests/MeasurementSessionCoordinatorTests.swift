@@ -206,7 +206,7 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
     }
 
     private var pilotPlan: QuickCheckPlan {
-        QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770))
+        QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770, protocolKind: .gameLiftPing))
     }
 
     private var emptyDiagnostics: QualityMetrics {

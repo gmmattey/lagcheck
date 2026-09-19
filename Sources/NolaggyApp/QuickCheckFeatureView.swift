@@ -164,6 +164,7 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
+                            supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
                             onStartDeepCheck: { platform in
                                 if let resolved = resolveGameContext(game, platform: platform) {
@@ -190,6 +191,7 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
+                            supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
                             onStartDeepCheck: { platform in
                                 if let resolved = resolveGameContext(game, platform: platform) {
@@ -374,27 +376,35 @@ struct QuickCheckFeatureView: View {
         if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(selectedGameContext, in: remoteCatalog) {
             return resolved
         }
-        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(game.context, in: remoteCatalog) {
-            return ResolvedMeasurementContext(
-                context: selectedGameContext,
-                catalogVersion: resolved.catalogVersion,
-                profileID: resolved.profileID,
-                profileRuleVersion: resolved.profileRuleVersion,
-                regionID: resolved.regionID,
-                destination: resolved.destination,
-                strategy: resolved.strategy,
-                confidence: resolved.confidence,
-                precisionKey: resolved.precisionKey
-            )
-        }
         return nil
     }
 
     func supportedPlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
-        let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
+        guard let remoteCatalog,
+              let catalogGame = remoteCatalog.games.first(where: { $0.id == game.id }) else {
+            return []
+        }
         let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
-        let filtered = order.filter { allowed.contains($0) }
-        return filtered.isEmpty ? [.iphone] : filtered
+        return order.filter { platform in
+            let context = GameContext(
+                gameID: game.id,
+                market: game.context.market,
+                platform: platform,
+                equipmentConnection: game.context.equipmentConnection
+            )
+            guard catalogGame.contexts.contains(where: {
+                $0.market == game.context.market
+                    && $0.platforms.contains(platform)
+                    && $0.availability == .available
+                    && $0.measurement != nil
+            }) else {
+                return false
+            }
+            if case .available = try? RemoteCatalogVerifier.resolve(context, in: remoteCatalog) {
+                return true
+            }
+            return false
+        }
     }
 }
 
