@@ -390,3 +390,47 @@
 "result.route_trail.badge_attention" = "Atenção";
 "result.route_trail.badge_slow" = "Lento";
 "result.route_trail.accessibility_format %@ %@ %@ %@" = "Atestado da rota: iPhone verificado. %@: %@. Destino %@: %@.";
+
+/* Check Completo - Veredito e Resultado HIG */
+"check_completo.verdict.held" = "A rota segurou";
+"check_completo.verdict.oscillated" = "A rota oscilou";
+"check_completo.verdict.load_heavy" = "A carga pesou";
+"check_completo.verdict.delivery_failed" = "A entrega falhou";
+"check_completo.verdict.inconclusive" = "Medição incompleta";
+
+"check_completo.context.estimate_footnote" = "Estimativa feita pelo iPhone nesta rede.";
+
+/* Trilha Consolidada */
+"check_completo.trail.wifi" = "Wi‑Fi";
+"check_completo.trail.cellular" = "Rede móvel";
+"check_completo.trail.response" = "Resposta";
+"check_completo.trail.delivery" = "Entrega";
+"check_completo.trail.load" = "Carga";
+
+"check_completo.trail.state.check" = "Verificado";
+"check_completo.trail.state.attention" = "Atenção observada";
+"check_completo.trail.state.neutral" = "Não avaliado";
+"check_completo.trail.a11y.node %@ %@" = "%@: %@";
+
+/* Faixa de Compatibilidade da Sessão */
+"check_completo.compat.multiplayer" = "Multiplayer";
+"check_completo.compat.calls" = "Calls";
+"check_completo.compat.streaming" = "Streaming";
+
+/* Compatibilidade - Acessibilidade VoiceOver */
+"check_completo.compat.multiplayer.a11y.check" = "Multiplayer: condições compatíveis observadas.";
+"check_completo.compat.multiplayer.a11y.attention" = "Multiplayer: há uma condição na rede que pode afetar a conexão.";
+"check_completo.compat.multiplayer.a11y.neutral" = "Multiplayer: não avaliado.";
+
+"check_completo.compat.calls.a11y.check" = "Calls: condições compatíveis observadas.";
+"check_completo.compat.calls.a11y.attention" = "Calls: há uma condição na rede que pode afetar a conexão.";
+"check_completo.compat.calls.a11y.neutral" = "Calls: não avaliado.";
+
+"check_completo.compat.streaming.a11y.neutral" = "Streaming: não avaliado.";
+
+/* Ações */
+"check_completo.action.retest" = "Testar de novo";
+"check_completo.action.try_again" = "Tentar de novo";
+"check_completo.action.details" = "Ver detalhes";
+"check_completo.action.improve" = "Como melhorar";
+

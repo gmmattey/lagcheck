@@ -21,7 +21,7 @@ struct CellularDataConsentSheet: View {
                     .accessibilityHidden(true)
 
                 Text("deep_check.cellular_consent.title")
-                    .font(NLTypography.title3.weight(.bold))
+                    .font(NLTypography.headline)
                     .foregroundStyle(NLColor.textPrimary)
                     .multilineTextAlignment(.center)
 

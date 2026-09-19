@@ -380,3 +380,47 @@
 "result.route_trail.badge_attention" = "Atención";
 "result.route_trail.badge_slow" = "Lento";
 "result.route_trail.accessibility_format %@ %@ %@ %@" = "Certificado de ruta: iPhone verificado. %@: %@. Destino %@: %@.";
+
+/* Check Completo - Veredito e Resultado HIG */
+"check_completo.verdict.held" = "La ruta resistió";
+"check_completo.verdict.oscillated" = "La ruta osciló";
+"check_completo.verdict.load_heavy" = "La carga pesó";
+"check_completo.verdict.delivery_failed" = "La entrega falló";
+"check_completo.verdict.inconclusive" = "Medición incompleta";
+
+"check_completo.context.estimate_footnote" = "Estimación realizada por el iPhone en esta red.";
+
+/* Trilha Consolidada */
+"check_completo.trail.wifi" = "Wi‑Fi";
+"check_completo.trail.cellular" = "Red móvil";
+"check_completo.trail.response" = "Respuesta";
+"check_completo.trail.delivery" = "Entrega";
+"check_completo.trail.load" = "Carga";
+
+"check_completo.trail.state.check" = "Verificado";
+"check_completo.trail.state.attention" = "Atención observada";
+"check_completo.trail.state.neutral" = "No evaluado";
+"check_completo.trail.a11y.node %@ %@" = "%@: %@";
+
+/* Faixa de Compatibilidade da Sessão */
+"check_completo.compat.multiplayer" = "Multiplayer";
+"check_completo.compat.calls" = "Calls";
+"check_completo.compat.streaming" = "Streaming";
+
+/* Compatibilidade - Acessibilidade VoiceOver */
+"check_completo.compat.multiplayer.a11y.check" = "Multiplayer: condiciones compatibles observadas.";
+"check_completo.compat.multiplayer.a11y.attention" = "Multiplayer: existe una condición en la red que puede afectar la conexión.";
+"check_completo.compat.multiplayer.a11y.neutral" = "Multiplayer: no evaluado.";
+
+"check_completo.compat.calls.a11y.check" = "Calls: condiciones compatibles observadas.";
+"check_completo.compat.calls.a11y.attention" = "Calls: existe una condición en la red que puede afectar la conexión.";
+"check_completo.compat.calls.a11y.neutral" = "Calls: no evaluado.";
+
+"check_completo.compat.streaming.a11y.neutral" = "Streaming: no evaluado.";
+
+/* Ações */
+"check_completo.action.retest" = "Probar de nuevo";
+"check_completo.action.try_again" = "Intentar de nuevo";
+"check_completo.action.details" = "Ver detalles";
+"check_completo.action.improve" = "Cómo mejorar";
+
