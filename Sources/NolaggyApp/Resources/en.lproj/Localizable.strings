@@ -391,3 +391,47 @@
 "result.route_trail.badge_slow" = "Slow";
 "result.route_trail.accessibility_format %@ %@ %@ %@" = "Route certificate: iPhone verified. %@: %@. Destination %@: %@.";
 
+/* Check Completo - Veredito e Resultado HIG */
+"check_completo.verdict.held" = "The route held";
+"check_completo.verdict.oscillated" = "The route fluctuated";
+"check_completo.verdict.load_heavy" = "The load weighed down";
+"check_completo.verdict.delivery_failed" = "Delivery failed";
+"check_completo.verdict.inconclusive" = "Incomplete measurement";
+
+"check_completo.context.estimate_footnote" = "Estimate made by iPhone on this network.";
+
+/* Trilha Consolidada */
+"check_completo.trail.wifi" = "Wi‑Fi";
+"check_completo.trail.cellular" = "Cellular";
+"check_completo.trail.response" = "Response";
+"check_completo.trail.delivery" = "Delivery";
+"check_completo.trail.load" = "Load";
+
+"check_completo.trail.state.check" = "Verified";
+"check_completo.trail.state.attention" = "Attention observed";
+"check_completo.trail.state.neutral" = "Not evaluated";
+"check_completo.trail.a11y.node %@ %@" = "%@: %@";
+
+/* Faixa de Compatibilidade da Sessão */
+"check_completo.compat.multiplayer" = "Multiplayer";
+"check_completo.compat.calls" = "Calls";
+"check_completo.compat.streaming" = "Streaming";
+
+/* Compatibilidade - Acessibilidade VoiceOver */
+"check_completo.compat.multiplayer.a11y.check" = "Multiplayer: compatible conditions observed.";
+"check_completo.compat.multiplayer.a11y.attention" = "Multiplayer: a network condition may affect the connection.";
+"check_completo.compat.multiplayer.a11y.neutral" = "Multiplayer: not evaluated.";
+
+"check_completo.compat.calls.a11y.check" = "Calls: compatible conditions observed.";
+"check_completo.compat.calls.a11y.attention" = "Calls: a network condition may affect the connection.";
+"check_completo.compat.calls.a11y.neutral" = "Calls: not evaluated.";
+
+"check_completo.compat.streaming.a11y.neutral" = "Streaming: not evaluated.";
+
+/* Ações */
+"check_completo.action.retest" = "Test again";
+"check_completo.action.try_again" = "Try again";
+"check_completo.action.details" = "View details";
+"check_completo.action.improve" = "How to improve";
+
+

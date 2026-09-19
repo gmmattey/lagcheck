@@ -35,10 +35,12 @@ struct DeepCheckFeatureView: View {
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.autoStart = autoStart
-        usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result")
+        usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
         _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
-        if usesFixture {
+        if UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive") {
+            _presentation = State(initialValue: .inconclusive)
+        } else if usesFixture {
             _presentation = State(initialValue: .result(UITestFixtures.validDeepResult, .measured))
         } else if autoStart {
             _presentation = State(initialValue: .measuring(.rest))
@@ -60,7 +62,7 @@ struct DeepCheckFeatureView: View {
                 case let .result(result, availability):
                     resultView(result, availability: availability)
                 case .inconclusive:
-                    terminal(kind: .inconclusive)
+                    inconclusiveResultView
                 case .cancelled:
                     terminal(kind: .cancelled)
                 }
@@ -215,16 +217,30 @@ struct DeepCheckFeatureView: View {
     }
 
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
-        return DeepCheckResultView(
+        CheckCompletoResultView(
             result: result,
-            availability: availability,
             profileID: resolvedContext.profileID,
             gameName: gameName,
             platform: resolvedContext.context.platform,
             regionFriendlyName: friendlyRegion,
             isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+            natSnapshot: nil,
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
+            retry: restart,
+            exit: cancelOrDismiss
+        )
+    }
+
+    private var inconclusiveResultView: some View {
+        CheckCompletoResultView(
+            result: nil,
+            profileID: resolvedContext.profileID,
+            gameName: gameName,
+            platform: resolvedContext.context.platform,
+            regionFriendlyName: friendlyRegion,
+            isWiFi: (resolvedContext.context.equipmentConnection ?? .wifi) == .wifi,
+            natSnapshot: nil,
             retry: restart,
             exit: cancelOrDismiss
         )
