@@ -156,7 +156,7 @@ extension QuickCheckFeatureView {
     func category(for profile: QualityProfileID) -> CatalogCategory {
         switch profile {
         case .battleRoyaleCompetitive: .battle
-        case .mobileRealtime: .mobile
+        case .mobileRealtime: .competitive
         case .casualRealtime: .casual
         }
     }
@@ -181,11 +181,19 @@ extension QuickCheckFeatureView {
         HomeCatalogView(
             title: localizedString("navigation.games"),
             query: $gameQuery,
+            selectedCategory: $selectedCategory,
             allGames: availableGames,
-            popularGames: popularGames,
+            recentItems: recentTestedItems,
             searchPlaceholder: localizedString("catalog.search.placeholder"),
             clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
             categoryTitle: categoryTitle(for:),
+            filterTitle: { localizedString($0.localizationKey) },
+            platformsTitle: { game in
+                RemoteCatalogVerifier.allowedPlatforms(for: game.id)
+                    .sorted { $0.rawValue < $1.rawValue }
+                    .map(\.displayName)
+                    .joined(separator: " · ")
+            },
             select: { selectedGameForDetails = $0 }
         )
     }
