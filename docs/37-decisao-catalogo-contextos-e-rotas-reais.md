@@ -1,6 +1,6 @@
 # LagCheck — Decisão 37: Catálogo por Contexto e Rotas Reais
 
-**Status:** decidido pelo dono do produto; implementação em andamento  
+**Status:** decidido pelo dono do produto; implementação pronta para assinatura externa
 **Data:** 19 de setembro de 2026  
 **Frentes:** Marco, Iury, Rian e Renan
 
@@ -93,9 +93,11 @@ um envelope novo permanece fora deste checkout e não faz parte desta entrega.
 
 ## Gates restantes
 
-- Iury fecha a matriz técnica de hosts e protocolos que podem ser publicados sem
-  inventar infraestrutura.
-- Rian valida domínio, transporte e a ausência de fallback entre contextos.
-- Renan aprova a apresentação dos estados e seus textos acessíveis.
+- Um cofre externo assina os bytes de `DebugCatalogPayload.schema2.canonical.json`
+  com a chave Ed25519 já confiada pelo app. A chave privada não pertence ao
+  checkout, Worker ou iPhone.
+- O envelope retornado precisa passar por `catalog-signing.mjs verify`, substituir
+  em conjunto o bundle Debug e o Worker, e então passar por testes e leitura
+  remota após deploy autorizado.
 - A publicação do catálogo assinado e qualquer teste físico de host externo exigem
   revisão separada; esta decisão não os declara concluídos.
