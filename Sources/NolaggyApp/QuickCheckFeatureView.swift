@@ -330,7 +330,7 @@ struct QuickCheckFeatureView: View {
 
     func localized(_ key: String) -> LocalizedStringKey { LocalizedStringKey(key) }
 
-    func localizedString(_ key: String) -> String { NSLocalizedString(key, comment: "") }
+    func localizedString(_ key: String) -> String { AppLocalization.string(key, comment: "") }
 
     func milliseconds(_ value: Double?) -> String {
         guard let value else { return "—" }
@@ -352,7 +352,7 @@ struct QuickCheckFeatureView: View {
         guard remoteCatalog != nil else { return [] }
         let automatic = RegionalReferenceCandidate(
             id: RegionalPreferenceIdentifiers.automatic,
-            label: NSLocalizedString("settings.region.automatic", comment: ""),
+            label: AppLocalization.string("settings.region.automatic", comment: ""),
             continentKey: nil
         )
         let globalCandidates = GlobalProbeRegistry.allRegions.map { def in
@@ -367,13 +367,13 @@ struct QuickCheckFeatureView: View {
 
     var selectedRegionFriendlyName: String {
         guard let regionID = selectedRegionalContext?.regionID else {
-            return NSLocalizedString("quick_check.region.sao_paulo", comment: "")
+            return AppLocalization.string("quick_check.region.sao_paulo", comment: "")
         }
         return GlobalProbeRegistry.friendlyLabel(for: regionID, languageCode: regionLanguage)
     }
 
     var selectedRegionRouteSubtitle: String {
-        String(format: NSLocalizedString("quick_check.measuring.region_format %@", comment: ""), selectedRegionFriendlyName)
+        String(format: AppLocalization.string("quick_check.measuring.region_format %@", comment: ""), selectedRegionFriendlyName)
     }
 
     func resolveGameContext(

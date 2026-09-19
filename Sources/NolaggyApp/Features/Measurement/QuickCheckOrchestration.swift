@@ -196,7 +196,7 @@ extension QuickCheckFeatureView {
     }
 
     func gameName(for entry: MeasurementHistoryEntry) -> String { gameName(forGameID: entry.resolvedContext.context.gameID) }
-    func gameName(forGameID gameID: String) -> String { availableGames.first(where: { $0.id == gameID })?.name ?? NSLocalizedString("game.unknown", comment: "") }
+    func gameName(forGameID gameID: String) -> String { availableGames.first(where: { $0.id == gameID })?.name ?? AppLocalization.string("game.unknown", comment: "") }
 
     func deleteHistory() async throws {
         try await historyRepository.deleteAll()

@@ -78,7 +78,7 @@ public struct NetworkBandAdviceBanner: View {
                         .frame(minHeight: NLSizing.touchTarget, alignment: .leading)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint(Text("Abre a ação recomendada"))
+                    .accessibilityHint(Text("network_band_advice.action_hint"))
                 }
             }
         }

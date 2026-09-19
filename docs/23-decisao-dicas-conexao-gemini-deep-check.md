@@ -33,7 +33,8 @@ Para transformar esses dados técnicos em valor prático sem complicar o app com
 3. **Tom de Voz do Retorno (Voz do Produto) e Idioma**:
    - Respeita integralmente o `docs/07-voz-do-produto.md`.
    - Tom: direto, calmo, preciso, gamer natural (usando conceitos compreensíveis do jogo/plataforma em questão), **sem cair no caricato** ("GG", "amassou", "OP") e **sem promessas infundadas** ("zero lag garantido", "ping perfeito").
-   - **Localização**: o prompt exige estritamente que a resposta siga o locale ativo do app (PT-BR ou EN).
+   - **Localização**: o prompt exige estritamente que a resposta siga o idioma efetivo do app: `pt-BR`, `en` ou `es`. Idioma efetivo é o idioma do sistema, salvo uma escolha explícita e ativa da pessoa no LagCheck.
+   - **Contrato de idioma**: instruções, contexto textual e saída devem estar no mesmo idioma alvo. Resposta vazia, fora do JSON ou em idioma incompatível é falha recuperável; o app oferece nova tentativa e não traduz, reescreve ou inventa recomendações localmente.
    - **Guardrail de Vocabulário**: a aplicação implementa validação/filtro client-side para rejeitar termos da tabela "Evitar" do `docs/07` §3 antes de renderizar para o usuário.
 4. **Formato das Recomendações**:
    - **Sem textão corrido**: o modelo deve devolver JSON estruturado (`responseMimeType: "application/json"`) mapeado diretamente para uma lista de ações práticas, concisas e acionáveis, agrupadas ou ordenadas por relevância e facilidade (ex.: Equipamento / Roteador, Plataforma / Jogo, Provedor).

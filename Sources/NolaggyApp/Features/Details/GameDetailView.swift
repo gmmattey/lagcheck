@@ -69,7 +69,7 @@ struct GameDetailView: View {
                     .accessibilityHint(Text(requiresEquipmentConnection ? "game_detail.context.connection_required" : "game_detail.context.start_hint"))
 
                     // Sinopse Oficial Localizada
-                    if let synopsis = editorial?.localizedSummary(localeIdentifier: Locale.current.identifier), !synopsis.isEmpty {
+                    if let synopsis = editorial?.localizedSummary(localeIdentifier: AppLocalization.locale.identifier), !synopsis.isEmpty {
                         Text(synopsis)
                             .font(NLTypography.footnote)
                             .foregroundStyle(NLColor.textSecondary)

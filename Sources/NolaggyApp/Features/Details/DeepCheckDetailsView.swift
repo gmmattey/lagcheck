@@ -37,7 +37,7 @@ struct DeepCheckDetailsView: View {
 
     private var measurementContext: some View {
         VStack(spacing: NLSpacing.xxs) {
-            Text(String(format: NSLocalizedString("deep_check.measurement.title %@", comment: ""), gameName))
+            Text(String(format: AppLocalization.string("deep_check.measurement.title %@", comment: ""), gameName))
                 .font(NLTypography.callout.weight(.semibold)).foregroundStyle(NLColor.textPrimary)
             Label("deep_check.measurement.context", systemImage: "mappin.and.ellipse")
                 .font(NLTypography.footnote).foregroundStyle(NLColor.textTertiary)
@@ -52,7 +52,7 @@ struct DeepCheckDetailsView: View {
                 .foregroundStyle(impact.classification == .material ? NLColor.scoreLagRisk : NLColor.textPrimary)
             Text(impact.classification == .material ? "deep_check.result.impact_material_explanation" : "deep_check.result.impact_explanation")
                 .font(NLTypography.footnote).foregroundStyle(NLColor.textSecondary)
-            Text(String(format: NSLocalizedString("deep_check.result.impact_value", comment: ""), Int(impact.increaseMilliseconds.rounded())))
+            Text(String(format: AppLocalization.string("deep_check.result.impact_value", comment: ""), Int(impact.increaseMilliseconds.rounded())))
                 .font(NLTypography.headline).foregroundStyle(NLColor.accentPrimary)
         }
         .padding(NLSpacing.cardPadding)

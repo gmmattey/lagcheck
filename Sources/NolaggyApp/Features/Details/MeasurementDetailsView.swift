@@ -100,7 +100,7 @@ struct MeasurementDetailsView: View {
                 )
                 MetricRow(
                     label: "deep_check.result.impact",
-                    value: String(format: NSLocalizedString("deep_check.result.impact_value", comment: ""), Int(impact.increaseMilliseconds.rounded())),
+                    value: String(format: AppLocalization.string("deep_check.result.impact_value", comment: ""), Int(impact.increaseMilliseconds.rounded())),
                     style: .detailed
                 )
             } else {
@@ -124,12 +124,12 @@ struct MeasurementDetailsView: View {
 
     private var strategyKey: String { "details.target.generic_region" }
     private var confidenceKey: String { "details.confidence.medium" }
-    private var strategyLabel: String { NSLocalizedString(strategyKey, comment: "") }
-    private var confidenceLabel: String { NSLocalizedString(confidenceKey, comment: "") }
+    private var strategyLabel: String { AppLocalization.string(strategyKey, comment: "") }
+    private var confidenceLabel: String { AppLocalization.string(confidenceKey, comment: "") }
     private var graphAccessibilitySummary: String {
         let metrics = entry.result.metrics
         return String(
-            format: NSLocalizedString("details.graph_accessibility", comment: ""),
+            format: AppLocalization.string("details.graph_accessibility", comment: ""),
             Int((metrics.p50Milliseconds ?? 0).rounded()),
             Int((metrics.worstSpikeMilliseconds ?? 0).rounded()),
             metrics.spikeCount

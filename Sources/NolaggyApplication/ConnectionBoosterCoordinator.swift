@@ -23,7 +23,7 @@ public final class ConnectionBoosterCoordinator {
     }
     
     public func loadAdvice(for request: ConnectionBoosterRequest) async {
-        let requestKey = "\(request.gameName)-\(request.platform.rawValue)-\(request.networkKind.rawValue)-\(request.p50Milliseconds)-\(request.loadImpactMilliseconds ?? 0)"
+        let requestKey = "\(request.gameName)-\(request.platform.rawValue)-\(request.networkKind.rawValue)-\(request.p50Milliseconds)-\(request.loadImpactMilliseconds ?? 0)-\(request.language.rawValue)"
         
         if let cached = cachedAdvice, lastRequestKey == requestKey {
             state = .loaded(cached)

@@ -1,6 +1,25 @@
 import Foundation
 import NolaggyDomain
 
+/// Idioma da cópia retornada pelo serviço de dicas. O idioma é derivado da
+/// localidade efetiva da interface (selecionada no app ou do sistema).
+public enum ConnectionBoosterLanguage: String, Codable, Sendable, CaseIterable {
+    case ptBR = "pt-BR"
+    case en = "en"
+    case es = "es"
+
+    public init(localeIdentifier: String) {
+        let normalized = localeIdentifier.lowercased().replacingOccurrences(of: "_", with: "-")
+        if normalized == "pt" || normalized.hasPrefix("pt-") {
+            self = .ptBR
+        } else if normalized == "es" || normalized.hasPrefix("es-") {
+            self = .es
+        } else {
+            self = .en
+        }
+    }
+}
+
 /// Categoria da ação recomendada de melhoria de rede
 public enum BoosterActionCategory: String, Codable, Sendable, CaseIterable {
     case routerEquipment = "router_equipment"
@@ -57,6 +76,9 @@ public struct ConnectionBoosterRequest: Sendable {
     public let wifiBandEstimate: WiFiBandDiagnostic?
     public let natTopology: NATTopologySnapshot?
     public let locale: String
+    public var language: ConnectionBoosterLanguage {
+        ConnectionBoosterLanguage(localeIdentifier: locale)
+    }
     
     public init(
         gameName: String,

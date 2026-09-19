@@ -12,7 +12,7 @@ public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
     public var displayName: String {
         switch self {
         case .system:
-            return NSLocalizedString("settings.language.system", comment: "")
+            return AppLocalization.string("settings.language.system", comment: "")
         case .ptBR:
             return "Português (Brasil)"
         case .en:

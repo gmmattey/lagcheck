@@ -50,7 +50,7 @@ public struct InsightBanner: View {
                             .frame(minHeight: NLSizing.touchTarget, alignment: .leading)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint("Executa a ação recomendada")
+                    .accessibilityHint(Text("insight_banner.action_hint"))
                 }
             }
         }

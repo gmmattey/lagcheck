@@ -86,10 +86,10 @@ struct HistoryView: View {
     private func accessibilityLabel(for game: HistoryGame) -> String {
         let latest = game.latest
         let result = latest.isInconclusive
-            ? NSLocalizedString("history.inconclusive", comment: "")
-            : String(format: NSLocalizedString("history.score_accessibility %@", comment: ""), latest.result.finalScore)
+            ? AppLocalization.string("history.inconclusive", comment: "")
+            : String(format: AppLocalization.string("history.score_accessibility %@", comment: ""), latest.result.finalScore)
         return String(
-            format: NSLocalizedString("history.game_accessibility %@ %@ %@", comment: ""),
+            format: AppLocalization.string("history.game_accessibility %@ %@ %@", comment: ""),
             gameName(latest), result, latest.completedAt.formatted(date: .abbreviated, time: .shortened)
         )
     }
@@ -197,7 +197,7 @@ private struct HistoryEvolution: View {
     private var evolutionText: String {
         var parts: [String] = []
         if let average = summary.sevenDayAverageScore {
-            parts.append(String(format: NSLocalizedString("history.seven_day_average %@", comment: ""), average))
+            parts.append(String(format: AppLocalization.string("history.seven_day_average %@", comment: ""), average))
         }
         if let trend = summary.trend {
             let key: String = switch trend {
@@ -205,7 +205,7 @@ private struct HistoryEvolution: View {
             case .worsening: "history.trend.worsening"
             case .stable: "history.trend.stable"
             }
-            parts.append(NSLocalizedString(key, comment: ""))
+            parts.append(AppLocalization.string(key, comment: ""))
         }
         return parts.joined(separator: " · ")
     }
@@ -253,11 +253,11 @@ private struct HistoryGameRow: View {
 
     private var resultText: String {
         entry.isInconclusive
-            ? NSLocalizedString("history.inconclusive", comment: "")
+            ? AppLocalization.string("history.inconclusive", comment: "")
             : String(
-                format: NSLocalizedString("history.score %@ %@", comment: ""),
+                format: AppLocalization.string("history.score %@ %@", comment: ""),
                 entry.result.finalScore,
-                NSLocalizedString(classificationKey, comment: "")
+                AppLocalization.string(classificationKey, comment: "")
             )
     }
 
@@ -295,8 +295,8 @@ private struct HistoryTimelineRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(entry.isInconclusive
-                    ? NSLocalizedString("history.inconclusive", comment: "")
-                    : String(format: NSLocalizedString("history.score %@", comment: ""), entry.result.finalScore))
+                    ? AppLocalization.string("history.inconclusive", comment: "")
+                    : String(format: AppLocalization.string("history.score %@", comment: ""), entry.result.finalScore))
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
                 Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
@@ -312,8 +312,8 @@ private struct HistoryTimelineRow: View {
         }
         .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget, alignment: .leading)
         .accessibilityLabel(entry.isInconclusive
-            ? String(format: NSLocalizedString("history.timeline.inconclusive %@", comment: ""), entry.completedAt.formatted(date: .abbreviated, time: .shortened))
-            : String(format: NSLocalizedString("history.timeline.score %@ %@", comment: ""), entry.result.finalScore, entry.completedAt.formatted(date: .abbreviated, time: .shortened)))
+            ? String(format: AppLocalization.string("history.timeline.inconclusive %@", comment: ""), entry.completedAt.formatted(date: .abbreviated, time: .shortened))
+            : String(format: AppLocalization.string("history.timeline.score %@ %@", comment: ""), entry.result.finalScore, entry.completedAt.formatted(date: .abbreviated, time: .shortened)))
     }
 }
 
@@ -382,7 +382,7 @@ private struct HistoryContextKey: Hashable, Identifiable {
     var id: String { [gameID, platform.rawValue, externalLink.rawValue, phoneNetwork.rawValue, regionID, profileRuleVersion].joined(separator: "|") }
 
     var routeLabel: String {
-        let identifier = Locale.current.identifier.lowercased()
+        let identifier = AppLocalization.locale.identifier.lowercased()
         let languageCode = identifier.hasPrefix("pt") ? "pt-BR" : identifier.hasPrefix("es") ? "es" : "en"
         return GlobalProbeRegistry.friendlyLabel(for: regionID, languageCode: languageCode)
     }
@@ -461,10 +461,10 @@ private enum HistoryPhoneNetwork: String, Hashable {
 
     var title: String {
         switch self {
-        case .wifi: NSLocalizedString("history.connection.wifi", comment: "")
-        case .cellular: NSLocalizedString("history.connection.cellular", comment: "")
-        case .other: NSLocalizedString("history.connection.other", comment: "")
-        case .unrecorded: NSLocalizedString("history.connection.unrecorded", comment: "")
+        case .wifi: AppLocalization.string("history.connection.wifi", comment: "")
+        case .cellular: AppLocalization.string("history.connection.cellular", comment: "")
+        case .other: AppLocalization.string("history.connection.other", comment: "")
+        case .unrecorded: AppLocalization.string("history.connection.unrecorded", comment: "")
         }
     }
 }
@@ -484,9 +484,9 @@ private enum HistoryExternalLink: String, Hashable {
 
     var title: String {
         switch self {
-        case .wifi: NSLocalizedString("history.equipment.wifi", comment: "")
-        case .ethernet: NSLocalizedString("history.equipment.ethernet", comment: "")
-        case .notDeclared: NSLocalizedString("history.equipment.not_declared", comment: "")
+        case .wifi: AppLocalization.string("history.equipment.wifi", comment: "")
+        case .ethernet: AppLocalization.string("history.equipment.ethernet", comment: "")
+        case .notDeclared: AppLocalization.string("history.equipment.not_declared", comment: "")
         }
     }
 }
