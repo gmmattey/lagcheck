@@ -342,6 +342,71 @@ final class QuickCheckPilotUITests: XCTestCase {
     }
 
     @MainActor
+    func testNewUserHomePresentsReadyStateAndExploreAction() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Início"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.otherElements["home-state-hero"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Pronto para verificar sua rota"].exists)
+        XCTAssertTrue(app.buttons["home-cta-start-lagcheck"].exists)
+
+        let exploreButton = app.buttons.matching(NSPredicate(format: "label == 'Explorar Jogos' OR identifier == 'home-empty-explore-button'")).firstMatch
+        XCTAssertTrue(exploreButton.waitForExistence(timeout: 3))
+        captureScreenshot(of: app, named: "home-new-user-ready")
+
+        exploreButton.tap()
+        XCTAssertTrue(app.staticTexts["Jogos"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testHomeDisplaysValidEvaluatedScoreHero() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR", "-ui-fixture-valid-result"]
+        app.launch()
+
+        if app.buttons["quick-check-back"].waitForExistence(timeout: 2) {
+            app.buttons["quick-check-back"].tap()
+        }
+
+        XCTAssertTrue(app.staticTexts["Início"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.otherElements["home-state-hero"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["home-hero-score-value"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Conexão excelente"].exists)
+        captureScreenshot(of: app, named: "home-valid-result-hero")
+    }
+
+    @MainActor
+    func testHomeDisplaysInconclusiveExplanationWithoutPositiveScore() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR", "-ui-fixture-inconclusive-history"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Início"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.otherElements["home-state-hero"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Medição inconclusiva"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Respostas UDP insuficientes para avaliar a rota com precisão."].exists)
+        XCTAssertFalse(app.staticTexts["home-hero-score-value"].exists)
+        XCTAssertFalse(app.staticTexts["Conexão excelente"].exists)
+        captureScreenshot(of: app, named: "home-inconclusive-hero")
+    }
+
+    @MainActor
+    func testHomeCTAOpensPlatformSelectionSheet() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        let startButton = app.buttons["home-cta-start-lagcheck"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 4))
+        startButton.tap()
+
+        XCTAssertTrue(app.buttons["confirm-platform-and-start"].waitForExistence(timeout: 3))
+        captureScreenshot(of: app, named: "home-platform-picker-opened")
+    }
+
+    @MainActor
     func testPhysicalNetworkSmokeThreeRuns() throws {
         #if targetEnvironment(simulator)
         throw XCTSkip("Esse smoke depende de uma rede física.")

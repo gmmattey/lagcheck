@@ -83,152 +83,474 @@ struct HomeNetworkSummaryCard: View {
     }
 }
 
-// MARK: - CTA Principal da Home
+// MARK: - Fundo Abstrato Pulse Gauge Coral Solar
 
+/// Fundo proprietário do LagCheck com arcos concêntricos de pulso Coral Solar.
+/// Respeita `accessibilityReduceMotion` permanecendo estático.
+struct HomePulseWavesBackground: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            NLColor.backgroundRaised
+
+            LinearGradient(
+                stops: [
+                    .init(color: NLColor.backgroundRaised, location: 0.0),
+                    .init(color: NLColor.backgroundRaised.opacity(0.95), location: 0.5),
+                    .init(color: NLColor.backgroundBase, location: 1.0)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            // Ondas concêntricas sutis do Pulse Gauge Coral Solar
+            GeometryReader { proxy in
+                let center = CGPoint(x: proxy.size.width * 0.90, y: proxy.size.height * 0.15)
+                ForEach(0..<4) { index in
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    NLColor.coralSolar.opacity(0.16 - Double(index) * 0.035),
+                                    NLColor.coralSolarRed.opacity(0.08 - Double(index) * 0.018),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.0
+                        )
+                        .frame(
+                            width: CGFloat(140 + index * 90),
+                            height: CGFloat(140 + index * 90)
+                        )
+                        .position(center)
+                }
+            }
+            .clipped()
+        }
+    }
+}
+
+// MARK: - Hero Editorial de Estado da Home (Prioridade Máxima)
+
+/// Hero editorial de estado da Home: primeira dobra com narrativa focada na jornada da conexão.
+struct HomeStateEditorialHero: View {
+    let game: CatalogMeasurementJourney.Game?
+    let platform: Platform?
+    let regionName: String
+    let lastEntry: MeasurementHistoryEntry?
+    let isMeasuring: Bool
+    let onSelectGame: () -> Void
+
+    @ScaledMetric(relativeTo: .largeTitle) private var scoreFontSize: CGFloat = 44
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.md) {
+            // Topo do Hero: Identificação do jogo (miniatura neutra secundária) + Região
+            HStack(spacing: NLSpacing.sm) {
+                if let game {
+                    GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1)
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(game.name)
+                            .font(NLTypography.headline)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .lineLimit(1)
+                            .accessibilityIdentifier("home-selected-game-title")
+
+                        HStack(spacing: NLSpacing.xs) {
+                            if let platform {
+                                Image(systemName: platformIcon(for: platform))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(NLColor.textSecondary)
+
+                                Text(platformDisplayName(for: platform))
+                                    .font(NLTypography.caption)
+                                    .foregroundStyle(NLColor.textSecondary)
+
+                                Text("•")
+                                    .font(NLTypography.caption)
+                                    .foregroundStyle(NLColor.textTertiary)
+                            }
+
+                            Text(regionName)
+                                .font(NLTypography.caption)
+                                .foregroundStyle(NLColor.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                            .fill(NLColor.backgroundOverlay)
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "gamecontroller")
+                            .font(.system(size: 20))
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(LocalizedStringKey("home.hero.no_game_selected"))
+                            .font(NLTypography.headline)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .accessibilityIdentifier("home-selected-game-title")
+
+                        Text(regionName)
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textSecondary)
+                    }
+                }
+
+                Spacer()
+            }
+
+            // Bloco central: Estado de Medição / Score / Condição
+            if let lastEntry {
+                stateContentForEntry(lastEntry)
+            } else {
+                newUserStateContent
+            }
+
+            // Ressalva de estimativa para console ou PC
+            if let platform, platform != .iphone {
+                HStack(spacing: NLSpacing.xs) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 11))
+                        .foregroundStyle(NLColor.textTertiary)
+                    Text(LocalizedStringKey("home.hero.estimate_note"))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                .padding(.top, NLSpacing.xxs)
+            }
+        }
+        .padding(NLSpacing.cardPadding)
+        .background(HomePulseWavesBackground())
+        .clipShape(RoundedRectangle(cornerRadius: NLRadius.hero, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: NLRadius.hero, style: .continuous)
+                .stroke(NLColor.borderStrong, lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("home-state-hero")
+    }
+
+    @ViewBuilder
+    private func stateContentForEntry(_ entry: MeasurementHistoryEntry) -> some View {
+        let result = entry.result
+        if result.metrics.validResponseCount == 0 {
+            inconclusiveStateContent
+        } else {
+            let isHealthy = result.resultClass == .excellent || result.resultClass == .great
+            let isUnstable = result.resultClass == .unstable
+            let statusColor = isHealthy ? NLColor.scoreExcellent : (isUnstable ? NLColor.scoreUnstable : NLColor.scoreLagRisk)
+
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: NLSpacing.md) {
+                    // Score numérico editorial (sem velocímetro)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("\(result.finalScore)")
+                            .font(.system(size: scoreFontSize, weight: .bold, design: .rounded))
+                            .foregroundStyle(NLColor.textPrimary)
+                            .accessibilityIdentifier("home-hero-score-value")
+                        Text(LocalizedStringKey("home.hero.score_label"))
+                            .font(NLTypography.captionStrong)
+                            .foregroundStyle(NLColor.textTertiary)
+                            .textCase(.uppercase)
+                    }
+
+                    VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                        HStack(spacing: NLSpacing.xs) {
+                            Image(systemName: isHealthy ? "checkmark.shield.fill" : "exclamationmark.triangle.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(statusColor)
+
+                            Text(conditionTitle(for: result.resultClass))
+                                .font(NLTypography.bodyEmphasis)
+                                .foregroundStyle(statusColor)
+                        }
+
+                        Text(relativeTimeString(for: entry.completedAt))
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textSecondary)
+                    }
+
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private var inconclusiveStateContent: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            HStack(spacing: NLSpacing.xs) {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(NLColor.scoreNeutral)
+                Text(LocalizedStringKey("home.hero.inconclusive_title"))
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textPrimary)
+            }
+
+            Text(LocalizedStringKey("home.hero.inconclusive_subtitle"))
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, NLSpacing.xs)
+    }
+
+    private var newUserStateContent: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            HStack(spacing: NLSpacing.xs) {
+                Image(systemName: "wave.3.forward.circle.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(NLColor.accentPrimary)
+                Text(LocalizedStringKey("home.hero.ready_title"))
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textPrimary)
+            }
+
+            Text(LocalizedStringKey("home.hero.ready_subtitle"))
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, NLSpacing.xs)
+    }
+
+    private func conditionTitle(for resultClass: ResultClass) -> LocalizedStringKey {
+        switch resultClass {
+        case .excellent, .great:
+            return "home.condition.excellent"
+        case .unstable:
+            return "home.condition.unstable"
+        case .lagRisk:
+            return "home.condition.lag_risk"
+        }
+    }
+
+    private func platformIcon(for platform: Platform) -> String {
+        switch platform {
+        case .iphone: return "iphone"
+        case .playstation, .xbox, .nintendo: return "gamecontroller"
+        case .pc: return "display"
+        }
+    }
+
+    private func platformDisplayName(for platform: Platform) -> String {
+        switch platform {
+        case .iphone: return "iPhone"
+        case .playstation: return "PlayStation"
+        case .xbox: return "Xbox"
+        case .pc: return "PC"
+        case .nintendo: return "Switch"
+        }
+    }
+
+    private func relativeTimeString(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        let relative = formatter.localizedString(for: date, relativeTo: Date())
+        return String(format: NSLocalizedString("home.hero.last_check_format %@", comment: ""), relative)
+    }
+
+    private var accessibilitySummary: String {
+        let gameName = game?.name ?? NSLocalizedString("home.hero.no_game_selected", comment: "")
+        if let lastEntry {
+            if lastEntry.result.metrics.validResponseCount == 0 {
+                return "\(gameName), \(regionName), \(NSLocalizedString("home.hero.inconclusive_title", comment: ""))"
+            } else {
+                return "\(gameName), \(regionName), Score \(lastEntry.result.finalScore), \(relativeTimeString(for: lastEntry.completedAt))"
+            }
+        } else {
+            return "\(gameName), \(regionName), \(NSLocalizedString("home.hero.ready_title", comment: ""))"
+        }
+    }
+}
+
+// MARK: - CTA Dominante da Home
+
+/// CTA Dominante da Home: um único botão primário Coral Solar com ação e estado claros.
+struct HomeDominantCTA: View {
+    let targetGame: CatalogMeasurementJourney.Game?
+    let isMeasuring: Bool
+    let onStartLagCheck: () -> Void
+    let onChooseAnotherGame: () -> Void
+
+    var body: some View {
+        VStack(spacing: NLSpacing.sm) {
+            Button(action: onStartLagCheck) {
+                HStack(spacing: NLSpacing.xs) {
+                    if isMeasuring {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.9)
+                        Text(LocalizedStringKey("home.cta.measuring"))
+                            .font(NLTypography.bodyEmphasis)
+                    } else {
+                        Image(systemName: targetGame != nil ? "play.fill" : "gamecontroller.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(LocalizedStringKey(targetGame != nil ? "home.cta.start_lagcheck" : "home.cta.choose_game"))
+                            .font(NLTypography.bodyEmphasis)
+                    }
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: NLSizing.touchTarget)
+                .background(
+                    isMeasuring ? NLColor.accentPrimary.opacity(0.6) : NLColor.accentPrimary,
+                    in: RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(isMeasuring)
+            .accessibilityIdentifier("home-cta-start-lagcheck")
+
+            if targetGame != nil && !isMeasuring {
+                Button(action: onChooseAnotherGame) {
+                    Text(LocalizedStringKey("home.choose_another_game"))
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .frame(minHeight: NLSizing.touchTarget)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-cta-choose-another")
+            }
+        }
+    }
+}
+
+// Compatibilidade transitória para CTASection
 struct HomeCTASection: View {
     let targetGame: CatalogMeasurementJourney.Game?
     let onStartCheck: () -> Void
     let onChooseAnotherGame: () -> Void
 
     var body: some View {
-        VStack(spacing: NLSpacing.sm) {
-            if let targetGame {
-                HStack(spacing: NLSpacing.xs) {
-                    Image(systemName: "target")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.accentPrimary)
-                    Text(String(format: NSLocalizedString("home.start_for_game %@", comment: ""), targetGame.name))
-                        .font(NLTypography.captionStrong)
-                        .foregroundStyle(NLColor.textSecondary)
-                }
-            }
-
-            PrimaryButton(
-                title: "home.cta.start_lagcheck",
-                action: onStartCheck
-            )
-            .accessibilityIdentifier("home-cta-start-lagcheck")
-
-            if targetGame != nil {
-                Button(action: onChooseAnotherGame) {
-                    Text(LocalizedStringKey("home.choose_another_game"))
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        HomeDominantCTA(
+            targetGame: targetGame,
+            isMeasuring: false,
+            onStartLagCheck: onStartCheck,
+            onChooseAnotherGame: onChooseAnotherGame
+        )
     }
 }
 
-// MARK: - Carrossel de Últimos Jogos Testados (Sem dados técnicos)
+// MARK: - Seção "Últimos testados" (Sem autoplay, máximo 3)
 
-struct HomeRecentCarouselSection: View {
-    let title: String
-    let games: [CatalogMeasurementJourney.Game]
-    let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let select: (CatalogMeasurementJourney.Game) -> Void
+struct HomeRecentTestsSection: View {
+    struct RecentItem: Identifiable {
+        var id: String { game.id }
+        let game: CatalogMeasurementJourney.Game
+        let lastEntry: MeasurementHistoryEntry
+    }
+
+    let items: [RecentItem]
+    let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
     let onExploreGames: () -> Void
-
-    @State private var currentIndex: Int = 0
-    private let timer = Timer.publish(every: 4.0, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title)
+            Text(LocalizedStringKey("home.recent_tested"))
                 .font(NLTypography.headline)
                 .foregroundStyle(NLColor.textPrimary)
                 .padding(.horizontal, NLSpacing.md)
 
-            if games.isEmpty {
+            if items.isEmpty {
                 HomeEmptyRecentCard(onExploreGames: onExploreGames)
                     .padding(.horizontal, NLSpacing.md)
             } else {
-                TabView(selection: $currentIndex) {
-                    ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
-                        HomeRecentCard(
-                            game: game,
-                            category: categoryTitle(game),
-                            action: { select(game) }
-                        )
-                        .tag(index)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: NLSpacing.sm) {
+                        ForEach(items) { item in
+                            HomeRecentCompactCard(
+                                game: item.game,
+                                lastEntry: item.lastEntry,
+                                action: { onSelectGame(item.game) }
+                            )
+                        }
                     }
-                }
-                .tabViewStyle(.page(indexDisplayMode: games.count > 1 ? .automatic : .never))
-                .frame(height: 200)
-                .onReceive(timer) { _ in
-                    guard games.count > 1 else { return }
-                    withAnimation(.easeInOut(duration: 0.6)) {
-                        currentIndex = (currentIndex + 1) % games.count
-                    }
+                    .padding(.horizontal, NLSpacing.md)
                 }
             }
         }
     }
 }
 
-private struct HomeRecentCard: View {
+private struct HomeRecentCompactCard: View {
     let game: CatalogMeasurementJourney.Game
-    let category: String
+    let lastEntry: MeasurementHistoryEntry
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            ZStack(alignment: .bottomLeading) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 16 / 9)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
+            HStack(spacing: NLSpacing.sm) {
+                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1)
+                    .frame(width: 48, height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
 
-                LinearGradient(
-                    stops: [
-                        .init(color: .clear, location: 0.0),
-                        .init(color: .black.opacity(0.35), location: 0.4),
-                        .init(color: .black.opacity(0.85), location: 0.75),
-                        .init(color: .black.opacity(0.96), location: 1.0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                    HStack {
-                        Text(category)
-                            .font(NLTypography.captionStrong)
-                            .textCase(.uppercase)
-                            .foregroundStyle(NLColor.accentPrimary)
-
-                        Spacer()
-
-                        Text(LocalizedStringKey("home.last_tested"))
-                            .font(NLTypography.caption)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .padding(.horizontal, NLSpacing.xs)
-                            .padding(.vertical, 2)
-                            .background(NLColor.backgroundRaised.opacity(0.85), in: Capsule())
-                    }
-
+                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
                     Text(game.name)
-                        .font(NLTypography.headline)
-                        .foregroundStyle(.white)
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textPrimary)
                         .lineLimit(1)
+
+                    HStack(spacing: NLSpacing.xs) {
+                        let score = lastEntry.result.finalScore
+                        Text("\(score)")
+                            .font(NLTypography.captionStrong)
+                            .foregroundStyle(score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                (score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk)).opacity(0.15),
+                                in: Capsule()
+                            )
+
+                        Text(relativeShortTime(for: lastEntry.completedAt))
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
                 }
-                .padding(NLSpacing.md)
+                .frame(width: 140, alignment: .leading)
             }
-            .clipShape(RoundedRectangle(cornerRadius: NLRadius.hero))
-            .overlay(RoundedRectangle(cornerRadius: NLRadius.hero).stroke(NLColor.borderStrong, lineWidth: 1))
-            .padding(.horizontal, NLSpacing.md)
+            .padding(NLSpacing.sm)
+            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    .stroke(NLColor.borderStrong, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(game.name), Score \(lastEntry.result.finalScore)")
+        .accessibilityIdentifier("recent-game-\(game.id)")
+    }
+
+    private func relativeShortTime(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
 
-private struct HomeEmptyRecentCard: View {
+// MARK: - Card de Estado Vazio para Recentes
+
+struct HomeEmptyRecentCard: View {
     let onExploreGames: () -> Void
 
     var body: some View {
         VStack(spacing: NLSpacing.sm) {
             Image(systemName: "gamecontroller.fill")
-                .font(.system(size: 36))
+                .font(.system(size: 32))
                 .foregroundStyle(NLColor.accentPrimary)
                 .padding(.top, NLSpacing.xs)
 
@@ -252,46 +574,68 @@ private struct HomeEmptyRecentCard: View {
             }
             .buttonStyle(.plain)
             .padding(.top, NLSpacing.xs)
+            .accessibilityIdentifier("home-empty-explore-button")
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, NLSpacing.lg)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous).stroke(NLColor.borderStrong, lineWidth: 1))
     }
 }
 
-// MARK: - Prateleira de Jogos Populares (Automática por dados reais)
+// MARK: - Prateleira "Explorar Jogos"
 
-struct HomePopularShelfSection: View {
+struct HomeExploreShelfSection: View {
     let title: String
+    let seeAllTitle: String
     let games: [CatalogMeasurementJourney.Game]
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let select: (CatalogMeasurementJourney.Game) -> Void
+    let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
+    let onSeeAllGames: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title)
-                .font(NLTypography.headline)
-                .foregroundStyle(NLColor.textPrimary)
-                .padding(.horizontal, NLSpacing.md)
+            HStack {
+                Text(title)
+                    .font(NLTypography.headline)
+                    .foregroundStyle(NLColor.textPrimary)
+
+                Spacer()
+
+                Button(action: onSeeAllGames) {
+                    HStack(spacing: 2) {
+                        Text(seeAllTitle)
+                            .font(NLTypography.captionStrong)
+                            .foregroundStyle(NLColor.accentPrimary)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(NLColor.accentPrimary)
+                    }
+                    .frame(minHeight: NLSizing.touchTarget)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-explore-see-all")
+            }
+            .padding(.horizontal, NLSpacing.md)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: NLSpacing.sm) {
                     ForEach(games, id: \.id) { game in
-                        HomePopularShelfCard(
+                        HomeExploreCard(
                             game: game,
                             category: categoryTitle(game),
-                            action: { select(game) }
+                            action: { onSelectGame(game) }
                         )
                     }
                 }
                 .padding(.horizontal, NLSpacing.md)
             }
         }
+        .accessibilityIdentifier("home-explore-shelf")
     }
 }
 
-private struct HomePopularShelfCard: View {
+private struct HomeExploreCard: View {
     let game: CatalogMeasurementJourney.Game
     let category: String
     let action: () -> Void
@@ -299,31 +643,35 @@ private struct HomePopularShelfCard: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 150 / 100)
-                    .frame(width: 150, height: 100)
+                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 4 / 3)
+                    .frame(width: 130, height: 90)
                     .clipped()
 
                 VStack(alignment: .leading, spacing: NLSpacing.xxs) {
                     Text(category)
-                        .font(NLTypography.captionStrong)
-                        .textCase(.uppercase)
-                        .foregroundStyle(NLColor.textSecondary)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
                         .lineLimit(1)
 
                     Text(game.name)
-                        .font(NLTypography.bodyEmphasis)
+                        .font(NLTypography.footnote.weight(.semibold))
                         .foregroundStyle(NLColor.textPrimary)
                         .lineLimit(1)
                 }
                 .padding(NLSpacing.xs)
-                .frame(width: 150, height: 56, alignment: .leading)
+                .frame(width: 130, height: 48, alignment: .leading)
                 .background(NLColor.backgroundRaised)
             }
-            .frame(width: 150)
-            .clipShape(RoundedRectangle(cornerRadius: NLRadius.card))
-            .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
+            .frame(width: 130)
+            .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    .stroke(NLColor.borderStrong, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(game.name), \(category)")
+        .accessibilityIdentifier("explore-game-\(game.id)")
     }
 }
 

@@ -72,17 +72,53 @@ struct QuickCheckFeatureView: View {
         self.remoteCatalog = remoteCatalog
         self.usesCatalogFallback = usesCatalogFallback
         self.appConfiguration = appConfiguration
-        usesUIFixture = UITestFixtures.isEnabled(UITestFixtures.launchArgument)
-        let fixture = usesUIFixture ? UITestFixtures.validEntry : nil
         let measuringFixture = UITestFixtures.isEnabled("-ui-fixture-measuring")
-        _presentation = State(initialValue: measuringFixture ? .measuring : (fixture.map { .result($0.result) } ?? .context))
-        _completedEntry = State(initialValue: fixture)
-        _history = State(initialValue: fixture.map { [$0] } ?? [])
-        _partialSamples = State(initialValue: fixture == nil ? [] : UITestFixtures.validSamples)
+        let inconclusiveFixture = UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")
+        let validResultFixture = UITestFixtures.isEnabled(UITestFixtures.launchArgument)
+        usesUIFixture = validResultFixture || inconclusiveFixture
+        let fixture = validResultFixture ? UITestFixtures.validEntry : nil
+
+        let initialPresentation: QuickCheckPresentation
+        let initialCompletedEntry: MeasurementHistoryEntry?
+        let initialHistory: [MeasurementHistoryEntry]
+        let initialPartialSamples: [ProbeSample]
+        let initialSelectedRegionalContext: ResolvedMeasurementContext?
+
+        if inconclusiveFixture {
+            let entry = UITestFixtures.inconclusiveEntry
+            initialPresentation = .context
+            initialCompletedEntry = entry
+            initialHistory = [entry]
+            initialPartialSamples = []
+            initialSelectedRegionalContext = entry.resolvedContext
+        } else if let fixture {
+            initialPresentation = .result(fixture.result)
+            initialCompletedEntry = fixture
+            initialHistory = [fixture]
+            initialPartialSamples = UITestFixtures.validSamples
+            initialSelectedRegionalContext = fixture.resolvedContext
+        } else if measuringFixture {
+            initialPresentation = .measuring
+            initialCompletedEntry = nil
+            initialHistory = []
+            initialPartialSamples = []
+            initialSelectedRegionalContext = nil
+        } else {
+            initialPresentation = .context
+            initialCompletedEntry = nil
+            initialHistory = []
+            initialPartialSamples = []
+            initialSelectedRegionalContext = nil
+        }
+
+        _presentation = State(initialValue: initialPresentation)
+        _completedEntry = State(initialValue: initialCompletedEntry)
+        _history = State(initialValue: initialHistory)
+        _partialSamples = State(initialValue: initialPartialSamples)
         // Uma entrada preserva o contexto resolvido que produziu seu score.
         // A fixture de resultado precisa mantê-lo também para que a jornada
         // Quick resultado → Deep use o mesmo contexto, não um catálogo inferido.
-        _selectedRegionalContext = State(initialValue: fixture?.resolvedContext)
+        _selectedRegionalContext = State(initialValue: initialSelectedRegionalContext)
         _coordinator = State(initialValue: MeasurementSessionCoordinator(
             transport: MeasurementTransportFactory.quickCheckTransport(),
             pathObserver: MeasurementTransportFactory.pathObserver(),
@@ -244,8 +280,9 @@ struct QuickCheckFeatureView: View {
                 gameName: game.name,
                 supportedPlatforms: supportedPlatforms(for: game),
                 onSelectPlatform: { platform in
+                    selectedGameID = game.id
                     if let resolved = resolveGameContext(game, platform: platform) {
-                        openDeepCheck(resolvedContext: resolved, platform: platform)
+                        startQuickCheck(resolvedContext: resolved)
                     }
                 }
             )
