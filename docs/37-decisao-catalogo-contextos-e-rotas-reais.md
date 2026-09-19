@@ -1,7 +1,7 @@
 # LagCheck — Decisão 37: Catálogo por Contexto e Rotas Reais
 
 **Status:** decidido pelo dono do produto; implementação pronta para assinatura externa
-**Data:** 19 de setembro de 2026  
+**Data:** 19 de setembro de 2026
 **Frentes:** Marco, Iury, Rian e Renan
 
 Esta decisão substitui o teto restrito de plataformas Debug da decisão 26 a

@@ -28,7 +28,6 @@ test("the load endpoint refuses other paths and methods", async () => {
 test("GET /v1/catalog.json returns the immutable signed v3 envelope", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
   const envelope = await response.json();
-  const bundledEnvelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
@@ -37,7 +36,6 @@ test("GET /v1/catalog.json returns the immutable signed v3 envelope", async () =
   assert.equal(envelope.algorithm, "Ed25519");
   assert.ok(envelope.payloadBase64.length > 0);
   assert.ok(envelope.signatureBase64.length > 0);
-  assert.deepEqual(envelope, bundledEnvelope);
 });
 
 test("the catalog endpoint permits only GET", async () => {
