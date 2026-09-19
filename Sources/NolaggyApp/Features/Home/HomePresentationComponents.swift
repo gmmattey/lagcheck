@@ -504,21 +504,27 @@ private struct HomeRecentCompactCard: View {
                         .foregroundStyle(NLColor.textPrimary)
                         .lineLimit(1)
 
-                    HStack(spacing: NLSpacing.xs) {
-                        let score = lastEntry.result.finalScore
-                        Text("\(score)")
-                            .font(NLTypography.captionStrong)
-                            .foregroundStyle(score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(
-                                (score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk)).opacity(0.15),
-                                in: Capsule()
-                            )
-
-                        Text(relativeShortTime(for: lastEntry.completedAt))
+                    if isInconclusive {
+                        Text(String(format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""), relativeShortTime(for: lastEntry.completedAt)))
                             .font(NLTypography.caption)
-                            .foregroundStyle(NLColor.textTertiary)
+                            .foregroundStyle(NLColor.textSecondary)
+                    } else {
+                        HStack(spacing: NLSpacing.xs) {
+                            let score = lastEntry.result.finalScore
+                            Text("\(score)")
+                                .font(NLTypography.captionStrong)
+                                .foregroundStyle(score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    (score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk)).opacity(0.15),
+                                    in: Capsule()
+                                )
+
+                            Text(relativeShortTime(for: lastEntry.completedAt))
+                                .font(NLTypography.caption)
+                                .foregroundStyle(NLColor.textTertiary)
+                        }
                     }
                 }
                 .frame(width: 140, alignment: .leading)
@@ -531,7 +537,7 @@ private struct HomeRecentCompactCard: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(game.name), Score \(lastEntry.result.finalScore)")
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityIdentifier("recent-game-\(game.id)")
     }
 
@@ -539,6 +545,22 @@ private struct HomeRecentCompactCard: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
         return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private var isInconclusive: Bool {
+        lastEntry.result.metrics.validResponseCount < 10
+    }
+
+    private var accessibilityLabel: String {
+        let time = relativeShortTime(for: lastEntry.completedAt)
+        if isInconclusive {
+            let status = String(
+                format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""),
+                time
+            )
+            return "\(game.name), \(status)"
+        }
+        return "\(game.name), Score \(lastEntry.result.finalScore), \(time)"
     }
 }
 
@@ -675,27 +697,32 @@ private struct HomeExploreCard: View {
     }
 }
 
-// MARK: - Catalog (Biblioteca Estilo Netflix)
+// MARK: - Catálogo de Jogos
 
 struct HomeCatalogView: View {
     let title: String
     @Binding var query: String
+    @Binding var selectedCategory: CatalogCategory
     let allGames: [CatalogMeasurementJourney.Game]
-    let popularGames: [CatalogMeasurementJourney.Game]
+    let recentItems: [HomeRecentTestsSection.RecentItem]
     let searchPlaceholder: String
     let clearSearchAccessibilityLabel: String
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
+    let filterTitle: (CatalogCategory) -> String
+    let platformsTitle: (CatalogMeasurementJourney.Game) -> String
     let select: (CatalogMeasurementJourney.Game) -> Void
 
-    private var searchResults: [CatalogMeasurementJourney.Game] {
-        guard !query.isEmpty else { return allGames }
-        return allGames.filter { $0.name.localizedCaseInsensitiveContains(query) }
+    private var filteredGames: [CatalogMeasurementJourney.Game] {
+        allGames.filter { game in
+            let matchesQuery = query.isEmpty || game.name.localizedCaseInsensitiveContains(query)
+            let matchesCategory = selectedCategory == .all || category(for: game) == selectedCategory
+            return matchesQuery && matchesCategory
+        }
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                // Barra de busca no topo
                 HomeCatalogSearch(
                     query: $query,
                     placeholder: searchPlaceholder,
@@ -704,31 +731,38 @@ struct HomeCatalogView: View {
                 .padding(.horizontal, NLSpacing.md)
                 .padding(.top, NLSpacing.xs)
 
-                if query.isEmpty {
-                    // 1. Destaque Principal Cinematográfico (Hero Billboard estilo Netflix)
-                    if let heroGame = popularGames.first ?? allGames.first {
-                        NetflixHeroBillboard(
-                            game: heroGame,
-                            category: categoryTitle(heroGame),
-                            onSelect: { select(heroGame) }
-                        )
-                    }
+                HomeCatalogFilters(
+                    selected: $selectedCategory,
+                    categories: CatalogCategory.allCases,
+                    title: filterTitle
+                )
 
-                    // 2. Fileiras de Prateleiras Temáticas (Shelves estilo Netflix)
-                    ForEach(NetflixCatalogRow.allCases) { row in
-                        let rowGames = row.games(from: allGames, rankedPopular: popularGames)
-                        NetflixShelfRow(
-                            title: NSLocalizedString(row.titleKey, comment: ""),
-                            games: rowGames,
-                            onSelect: select
-                        )
-                    }
-                } else {
-                    // Modo Busca: Grade de pôsteres com os resultados
-                    NetflixSearchGrid(
-                        games: searchResults,
+                if query.isEmpty, !recentItems.isEmpty {
+                    CatalogRecentTestsSection(
+                        items: Array(recentItems.prefix(3)),
+                        platformsTitle: platformsTitle,
                         onSelect: select
                     )
+                }
+
+                VStack(alignment: .leading, spacing: NLSpacing.sm) {
+                    Text(LocalizedStringKey("catalog.all_games"))
+                        .font(NLTypography.headline)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .padding(.horizontal, NLSpacing.md)
+
+                    if filteredGames.isEmpty {
+                        CatalogEmptyState(isSearching: !query.isEmpty)
+                            .padding(.horizontal, NLSpacing.md)
+                    } else {
+                        HomeCatalogList(
+                            games: filteredGames,
+                            categoryTitle: categoryTitle,
+                            platformsTitle: platformsTitle,
+                            select: select
+                        )
+                        .padding(.horizontal, NLSpacing.md)
+                    }
                 }
 
                 Spacer(minLength: NLSpacing.xl)
@@ -738,6 +772,14 @@ struct HomeCatalogView: View {
         .safeAreaPadding(.bottom, NLSpacing.md)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
+    }
+
+    private func category(for game: CatalogMeasurementJourney.Game) -> CatalogCategory {
+        switch game.profileID {
+        case .battleRoyaleCompetitive: .battle
+        case .mobileRealtime: .competitive
+        case .casualRealtime: .casual
+        }
     }
 }
 
@@ -786,10 +828,7 @@ private struct HomeCatalogFilters: View {
 private struct HomeCatalogList: View {
     let games: [CatalogMeasurementJourney.Game]
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
-    let scoreState: (CatalogMeasurementJourney.Game) -> GameRowView.ScoreState
-    let score: (CatalogMeasurementJourney.Game) -> Int?
-    let latency: (CatalogMeasurementJourney.Game) -> String?
-    let inconclusiveAccessibilityLabel: String
+    let platformsTitle: (CatalogMeasurementJourney.Game) -> String
     let select: (CatalogMeasurementJourney.Game) -> Void
     var body: some View {
         VStack(spacing: 0) {
@@ -800,16 +839,16 @@ private struct HomeCatalogList: View {
                         VStack(alignment: .leading, spacing: NLSpacing.xs) {
                             Text(game.name).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary).lineLimit(2).fixedSize(horizontal: false, vertical: true).layoutPriority(1)
                             Text(categoryTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)
+                            Text(platformsTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textTertiary).lineLimit(1)
                         }
                         Spacer()
-                        HStack(spacing: NLSpacing.sm) {
-                            HomeCatalogScore(state: scoreState(game), score: score(game), latency: latency(game), inconclusiveAccessibilityLabel: inconclusiveAccessibilityLabel)
-                            Image(systemName: "chevron.right").font(NLTypography.footnote.weight(.semibold)).foregroundStyle(NLColor.textTertiary)
-                        }
+                        Image(systemName: "chevron.right").font(NLTypography.footnote.weight(.semibold)).foregroundStyle(NLColor.textTertiary)
                     }
-                    .padding(.horizontal, NLSpacing.md).padding(.vertical, NLSpacing.sm).frame(minHeight: 64)
+                    .padding(.horizontal, NLSpacing.md).padding(.vertical, NLSpacing.sm).frame(minHeight: 72)
                 }
-                .buttonStyle(.plain).accessibilityIdentifier("catalog-game-\(game.id)")
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(game.name), \(categoryTitle(game)), \(platformsTitle(game))")
+                .accessibilityIdentifier("catalog-game-\(game.id)")
                 if game.id != games.last?.id { Divider().overlay(NLColor.borderSubtle).padding(.leading, 76) }
             }
         }
@@ -818,20 +857,126 @@ private struct HomeCatalogList: View {
     }
 }
 
-private struct HomeCatalogScore: View {
-    let state: GameRowView.ScoreState
-    let score: Int?
-    let latency: String?
-    let inconclusiveAccessibilityLabel: String
+private struct CatalogRecentTestsSection: View {
+    @Environment(\.locale) private var locale
+
+    let items: [HomeRecentTestsSection.RecentItem]
+    let platformsTitle: (CatalogMeasurementJourney.Game) -> String
+    let onSelect: (CatalogMeasurementJourney.Game) -> Void
+
     var body: some View {
-        switch state {
-        case .measuring:
-            ProgressView().progressViewStyle(CircularProgressViewStyle(tint: NLColor.textTertiary)).frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-        case .evaluated:
-            if let score { VStack(alignment: .trailing, spacing: NLSpacing.xxs) { Text("\(score)").font(NLTypography.bodyEmphasis).foregroundStyle(score >= 90 ? NLColor.scoreExcellent : NLColor.scoreUnstable); if let latency { Text(latency).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary) } } }
-        case .inconclusive, .failed:
-            Text("—").font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textTertiary).frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget).accessibilityLabel(inconclusiveAccessibilityLabel)
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            Text(LocalizedStringKey("home.recent_tested"))
+                .font(NLTypography.headline)
+                .foregroundStyle(NLColor.textPrimary)
+                .padding(.horizontal, NLSpacing.md)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NLSpacing.sm) {
+                    ForEach(items) { item in
+                        Button { onSelect(item.game) } label: {
+                            HStack(spacing: NLSpacing.sm) {
+                                VerifiedGameArtwork(game: item.game, aspectRatio: 1)
+                                    .frame(width: 48, height: 48)
+                                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+
+                                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                                    Text(item.game.name)
+                                        .font(NLTypography.bodyEmphasis)
+                                        .foregroundStyle(NLColor.textPrimary)
+                                        .lineLimit(1)
+                                    Text(measurementStatus(for: item.lastEntry))
+                                        .font(NLTypography.caption)
+                                        .foregroundStyle(NLColor.textSecondary)
+                                        .lineLimit(1)
+                                    Text(String(format: NSLocalizedString("catalog.recent.context", comment: ""), platformsTitle(item.game), routeLabel(for: item.lastEntry)))
+                                        .font(NLTypography.caption)
+                                        .foregroundStyle(NLColor.textTertiary)
+                                        .lineLimit(1)
+                                }
+                            }
+                            .padding(NLSpacing.sm)
+                            .frame(width: 230, alignment: .leading)
+                            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous).stroke(NLColor.borderStrong, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(accessibilityLabel(for: item))
+                    }
+                }
+                .padding(.horizontal, NLSpacing.md)
+            }
         }
+    }
+
+    private func relativeTime(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func accessibilityLabel(for item: HomeRecentTestsSection.RecentItem) -> String {
+        let context = String(
+            format: NSLocalizedString("catalog.recent.context", comment: ""),
+            platformsTitle(item.game),
+            routeLabel(for: item.lastEntry)
+        )
+        return "\(item.game.name), \(measurementStatus(for: item.lastEntry)), \(context)"
+    }
+
+    private func measurementStatus(for entry: MeasurementHistoryEntry) -> String {
+        let relativeTime = relativeTime(for: entry.completedAt)
+        guard entry.result.metrics.validResponseCount >= 10 else {
+            return String(
+                format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""),
+                relativeTime
+            )
+        }
+        return String(
+            format: NSLocalizedString("catalog.recent.score_time", comment: ""),
+            entry.result.finalScore,
+            relativeTime
+        )
+    }
+
+    private func routeLabel(for entry: MeasurementHistoryEntry) -> String {
+        let languageCode: String
+        switch locale.identifier.lowercased() {
+        case let identifier where identifier.hasPrefix("pt"): languageCode = "pt-BR"
+        case let identifier where identifier.hasPrefix("es"): languageCode = "es"
+        default: languageCode = "en"
+        }
+        guard let region = GlobalProbeRegistry.definition(for: entry.resolvedContext.regionID) else {
+            return NSLocalizedString("catalog.recent.reference_route", comment: "")
+        }
+        return String(
+            format: NSLocalizedString("catalog.recent.route", comment: ""),
+            region.localizedLabel(for: languageCode)
+        )
+    }
+}
+
+private struct CatalogEmptyState: View {
+    let isSearching: Bool
+
+    var body: some View {
+        VStack(spacing: NLSpacing.xs) {
+            Image(systemName: "magnifyingglass")
+                .font(NLTypography.navigationIcon)
+                .foregroundStyle(NLColor.textTertiary)
+            Text(LocalizedStringKey("catalog.empty.title"))
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+            Text(LocalizedStringKey(isSearching ? "catalog.empty.search_message" : "catalog.empty.filter_message"))
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, NLSpacing.lg)
+        .padding(.horizontal, NLSpacing.md)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous).stroke(NLColor.borderStrong, lineWidth: 1))
     }
 }
 
@@ -843,12 +988,12 @@ private struct HomeScoreBadge: View { let label: String; let score: Int; var bod
 private struct HomeCompactScoreBadge: View { let score: Int; var body: some View { Text("\(score)").font(NLTypography.captionStrong).foregroundStyle(score >= 90 ? NLColor.scoreExcellent : NLColor.scoreUnstable).padding(.horizontal, NLSpacing.xs).padding(.vertical, NLSpacing.xxs).background(Color.black.opacity(0.8), in: RoundedRectangle(cornerRadius: NLRadius.controlSmall)).overlay(RoundedRectangle(cornerRadius: NLRadius.controlSmall).stroke(Color.white.opacity(0.15), lineWidth: 1)) } }
 
 enum CatalogCategory: CaseIterable {
-    case all, battle, mobile, casual
+    case all, battle, competitive, casual
     var localizationKey: String {
         switch self {
         case .all: "catalog.category.all"
         case .battle: "catalog.category.battle"
-        case .mobile: "catalog.category.mobile"
+        case .competitive: "catalog.category.competitive"
         case .casual: "catalog.category.casual"
         }
     }

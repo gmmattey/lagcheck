@@ -2,8 +2,9 @@ import SwiftUI
 import NolaggyDesign
 import NolaggyDomain
 
-/// Histórico local por jogo (doc 01 §7.7): último score, evolução recente e,
-/// após dados suficientes, média de sete dias. Nunca é apresentado como modal.
+/// Histórico local organizado pela pergunta que importa para quem joga: como
+/// cada jogo evoluiu. A lista não mistura medições de contextos diferentes;
+/// detalhes e comparações sempre ficam dentro de um contexto imutável.
 struct HistoryView: View {
     let entries: [MeasurementHistoryEntry]
     let gameName: (MeasurementHistoryEntry) -> String
@@ -12,30 +13,46 @@ struct HistoryView: View {
     let openSettings: () -> Void
     var showsBackHeader: Bool = true
 
+    @State private var filter: HistoryConnectionFilter = .all
+
+    private var filteredEntries: [MeasurementHistoryEntry] {
+        entries.filter { filter.includes($0.historyConnection) }
+    }
+
+    private var games: [HistoryGame] {
+        Dictionary(grouping: filteredEntries, by: { $0.resolvedContext.context.gameID })
+            .compactMap { gameID, entries in
+                guard let latest = entries.max(by: { $0.completedAt < $1.completedAt }) else { return nil }
+                return HistoryGame(id: gameID, entries: entries, latest: latest)
+            }
+            .sorted { $0.latest.completedAt > $1.latest.completedAt }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
                 if entries.isEmpty {
-                    VStack(spacing: NLSpacing.md) {
-                        Text("history.empty")
-                            .font(NLTypography.body)
-                            .foregroundStyle(NLColor.textSecondary)
-                        PrimaryButton(title: "history.first_check", action: returnToHome)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
+                    HistoryEmptyState(action: returnToHome)
                 } else {
-                    historySummary
-                    ForEach(entries) { entry in
-                        VStack(spacing: NLSpacing.sm) {
-                            NavigationLink {
-                                MeasurementDetailsView(entry: entry, samples: [])
-                            } label: {
-                                HistoryCard(entry: entry, gameName: gameName(entry))
+                    filterPicker
+
+                    if games.isEmpty {
+                        HistoryFilteredEmptyState(filter: filter)
+                    } else {
+                        LazyVStack(spacing: NLSpacing.md) {
+                            ForEach(games) { game in
+                                NavigationLink {
+                                    HistoryGameDetailView(
+                                        gameName: gameName(game.latest),
+                                        entries: game.entries,
+                                        retry: retry
+                                    )
+                                } label: {
+                                    HistoryGameRow(entry: game.latest, gameName: gameName(game.latest))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(accessibilityLabel(for: game))
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(historyAccessibilityLabel(entry))
-                            PrimaryButton(title: retryTitle(entry), style: .secondaryOutline, action: { retry(entry) })
-                                .accessibilityLabel(Text(retryTitle(entry)))
                         }
                     }
                 }
@@ -56,90 +73,177 @@ struct HistoryView: View {
         .preferredColorScheme(.dark)
     }
 
-    @ViewBuilder
-    private var historySummary: some View {
-        if let summary = MeasurementHistorySummary(entries: entries) {
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                Text(gameName(summary.latest))
-                    .font(NLTypography.headline)
-                    .foregroundStyle(NLColor.textPrimary)
-                Text(String(format: NSLocalizedString("home.last_score %lld", comment: ""), summary.latest.result.finalScore))
-                    .font(NLTypography.callout)
-                    .foregroundStyle(NLColor.textSecondary)
-                if let average = summary.sevenDayAverageScore {
-                    Text(String(format: NSLocalizedString("home.seven_day_average %lld", comment: ""), average))
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textTertiary)
-                }
+    private var filterPicker: some View {
+        Picker("history.filter.accessibility", selection: $filter) {
+            ForEach(HistoryConnectionFilter.allCases) { filter in
+                Text(filter.titleKey).tag(filter)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .pickerStyle(.segmented)
+        .accessibilityIdentifier("history-connection-filter")
     }
 
-    private func retryTitle(_ entry: MeasurementHistoryEntry) -> LocalizedStringKey {
-        LocalizedStringKey(String(format: NSLocalizedString("history.retry %@", comment: ""), gameName(entry)))
-    }
-
-    private func historyAccessibilityLabel(_ entry: MeasurementHistoryEntry) -> String {
-        let type = NSLocalizedString(entry.kind == .deep ? "history.deep_check_short" : "history.quick_check", comment: "")
-        let classificationKey: String = switch entry.result.resultClass {
-        case .excellent: "quick_check.result.headline.excellent"
-        case .great: "quick_check.result.headline.great"
-        case .unstable: "quick_check.result.headline.unstable"
-        case .lagRisk: "quick_check.result.headline.lag_risk"
-        }
+    private func accessibilityLabel(for game: HistoryGame) -> String {
+        let latest = game.latest
+        let result = latest.isInconclusive
+            ? NSLocalizedString("history.inconclusive", comment: "")
+            : String(format: NSLocalizedString("history.score_accessibility %@", comment: ""), latest.result.finalScore)
         return String(
-            format: NSLocalizedString("history.entry_accessibility", comment: ""),
-            entry.completedAt.formatted(date: .abbreviated, time: .shortened),
-            type,
-            entry.result.finalScore,
-            NSLocalizedString(classificationKey, comment: "")
+            format: NSLocalizedString("history.game_accessibility %@ %@ %@", comment: ""),
+            gameName(latest), result, latest.completedAt.formatted(date: .abbreviated, time: .shortened)
         )
     }
 }
 
-private struct HistoryCard: View {
+private struct HistoryGameDetailView: View {
+    let gameName: String
+    let entries: [MeasurementHistoryEntry]
+    let retry: (MeasurementHistoryEntry) -> Void
+
+    private var contexts: [HistoryContext] {
+        Dictionary(grouping: entries, by: HistoryContextKey.init(entry:))
+            .compactMap { key, entries in
+                guard let latest = entries.max(by: { $0.completedAt < $1.completedAt }) else { return nil }
+                return HistoryContext(id: key, entries: entries.sorted { $0.completedAt > $1.completedAt }, latest: latest)
+            }
+            .sorted { $0.latest.completedAt > $1.latest.completedAt }
+    }
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: NLSpacing.lg) {
+                ForEach(contexts) { context in
+                    HistoryContextSection(context: context, retry: retry)
+                }
+            }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .padding(.vertical, NLSpacing.lg)
+        }
+        .background(NolaggyScreenBackground())
+        .navigationTitle(gameName)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
+        .preferredColorScheme(.dark)
+    }
+}
+
+private struct HistoryContextSection: View {
+    let context: HistoryContext
+    let retry: (MeasurementHistoryEntry) -> Void
+
+    private var summary: MeasurementHistorySummary? {
+        MeasurementHistorySummary(entries: context.entries)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.md) {
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                Text(context.title)
+                    .font(NLTypography.headline)
+                    .foregroundStyle(NLColor.textPrimary)
+                Text(context.routeLabel)
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+            }
+
+            PrimaryButton(title: "history.retry", action: { retry(context.latest) })
+                .accessibilityLabel(Text("history.retry"))
+
+            if let summary, !context.latest.isInconclusive,
+               summary.sevenDayAverageScore != nil || summary.trend != nil {
+                HistoryEvolution(summary: summary)
+            }
+
+            VStack(spacing: NLSpacing.sm) {
+                ForEach(context.entries) { entry in
+                    HistoryTimelineRow(entry: entry)
+                }
+            }
+        }
+        .padding(NLSpacing.cardPadding)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+        .overlay {
+            RoundedRectangle(cornerRadius: NLRadius.card)
+                .stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline)
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct HistoryEvolution: View {
+    let summary: MeasurementHistorySummary
+
+    var body: some View {
+        HStack(spacing: NLSpacing.sm) {
+            Image(systemName: trendSymbol)
+                .foregroundStyle(NLColor.accentPrimary)
+                .accessibilityHidden(true)
+            Text(evolutionText)
+                .font(NLTypography.footnote)
+                .foregroundStyle(NLColor.textSecondary)
+        }
+        .padding(.vertical, NLSpacing.xs)
+        .accessibilityLabel(evolutionText)
+    }
+
+    private var trendSymbol: String {
+        switch summary.trend {
+        case .improving: "arrow.up.right"
+        case .worsening: "arrow.down.right"
+        case .stable, .none: "minus"
+        }
+    }
+
+    private var evolutionText: String {
+        var parts: [String] = []
+        if let average = summary.sevenDayAverageScore {
+            parts.append(String(format: NSLocalizedString("history.seven_day_average %@", comment: ""), average))
+        }
+        if let trend = summary.trend {
+            let key: String = switch trend {
+            case .improving: "history.trend.improving"
+            case .worsening: "history.trend.worsening"
+            case .stable: "history.trend.stable"
+            }
+            parts.append(NSLocalizedString(key, comment: ""))
+        }
+        return parts.joined(separator: " · ")
+    }
+}
+
+private struct HistoryGameRow: View {
     let entry: MeasurementHistoryEntry
     let gameName: String
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(spacing: NLSpacing.md) {
             GameArtwork(image: nil, sourceRecordID: nil, title: gameName)
                 .frame(width: NLSizing.compactGameArtworkSide, height: NLSizing.compactGameArtworkSide)
                 .accessibilityHidden(true)
+
             VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(gameName)
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
-                Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
+                    .lineLimit(2)
+                Text(resultText)
+                    .font(NLTypography.callout.weight(.semibold))
+                    .foregroundStyle(entry.isInconclusive ? NLColor.textSecondary : scoreColor)
+                Text(contextText)
                     .font(NLTypography.footnote)
                     .foregroundStyle(NLColor.textSecondary)
-                if entry.kind == .deep {
-                    Text("history.deep_check")
-                        .font(NLTypography.footnote.weight(.semibold))
-                        .foregroundStyle(NLColor.accentPrimary)
-                    if let impact = entry.deepCheck?.metrics.loadImpact {
-                        Text(String(format: NSLocalizedString("history.deep_check_delta", comment: ""), Int(impact.increaseMilliseconds.rounded())))
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textSecondary)
-                    } else {
-                        Text("deep_check.result.load_unavailable")
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textSecondary)
-                    }
-                } else {
-                    Text("history.quick_check")
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textSecondary)
-                }
+                    .lineLimit(2)
+                Text(entry.completedAt, style: .relative)
+                    .font(NLTypography.caption)
+                    .foregroundStyle(NLColor.textTertiary)
             }
+
             Spacer(minLength: NLSpacing.sm)
-            Text("\(entry.result.finalScore)")
-                .font(NLTypography.bodyEmphasis)
-                .foregroundStyle(scoreColor)
-                .frame(minWidth: NLSizing.touchTarget, minHeight: NLSizing.touchTarget)
-                .background(NLColor.backgroundBase, in: Capsule())
-                .overlay { Capsule().stroke(scoreColor, lineWidth: NLStroke.hairline) }
+            Image(systemName: "chevron.right")
+                .font(NLTypography.captionStrong)
+                .foregroundStyle(NLColor.textTertiary)
+                .accessibilityHidden(true)
         }
         .padding(NLSpacing.cardPadding)
         .frame(maxWidth: .infinity, minHeight: NLSizing.historyCardMinHeight, alignment: .leading)
@@ -147,17 +251,23 @@ private struct HistoryCard: View {
         .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
     }
 
-    private var classification: NLScoreClassification {
-        switch entry.result.resultClass {
-        case .excellent: .excellent
-        case .great: .great
-        case .unstable: .unstable
-        case .lagRisk: .lagRisk
-        }
+    private var resultText: String {
+        entry.isInconclusive
+            ? NSLocalizedString("history.inconclusive", comment: "")
+            : String(
+                format: NSLocalizedString("history.score %@ %@", comment: ""),
+                entry.result.finalScore,
+                NSLocalizedString(classificationKey, comment: "")
+            )
+    }
+
+    private var contextText: String {
+        [entry.resolvedContext.context.platform.displayName, entry.historyConnection.title, entry.routeLabel(for: locale)]
+            .joined(separator: " · ")
     }
 
     private var scoreColor: Color {
-        switch classification {
+        switch entry.result.resultClass {
         case .excellent: NLColor.scoreExcellent
         case .great: NLColor.accentPrimary
         case .unstable: NLColor.scoreUnstable
@@ -165,12 +275,180 @@ private struct HistoryCard: View {
         }
     }
 
-    private var classificationLabel: LocalizedStringKey {
+    private var classificationKey: String {
         switch entry.result.resultClass {
         case .excellent: "quick_check.result.headline.excellent"
         case .great: "quick_check.result.headline.great"
         case .unstable: "quick_check.result.headline.unstable"
         case .lagRisk: "quick_check.result.headline.lag_risk"
+        }
+    }
+}
+
+private struct HistoryTimelineRow: View {
+    let entry: MeasurementHistoryEntry
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: NLSpacing.sm) {
+            Circle()
+                .fill(entry.isInconclusive ? NLColor.textTertiary : NLColor.accentPrimary)
+                .frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                Text(entry.isInconclusive
+                    ? NSLocalizedString("history.inconclusive", comment: "")
+                    : String(format: NSLocalizedString("history.score %@", comment: ""), entry.result.finalScore))
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textPrimary)
+                Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+                if entry.kind == .deep {
+                    Text("history.deep_check_short")
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget, alignment: .leading)
+        .accessibilityLabel(entry.isInconclusive
+            ? String(format: NSLocalizedString("history.timeline.inconclusive %@", comment: ""), entry.completedAt.formatted(date: .abbreviated, time: .shortened))
+            : String(format: NSLocalizedString("history.timeline.score %@ %@", comment: ""), entry.result.finalScore, entry.completedAt.formatted(date: .abbreviated, time: .shortened)))
+    }
+}
+
+private struct HistoryEmptyState: View {
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: NLSpacing.md) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(NLTypography.displayTitle)
+                .foregroundStyle(NLColor.textTertiary)
+                .accessibilityHidden(true)
+            Text("history.empty")
+                .font(NLTypography.body)
+                .foregroundStyle(NLColor.textSecondary)
+            PrimaryButton(title: "history.choose_game", action: action)
+        }
+        .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
+    }
+}
+
+private struct HistoryFilteredEmptyState: View {
+    let filter: HistoryConnectionFilter
+
+    var body: some View {
+        Text(filter == .wifi ? "history.filter.empty_wifi" : "history.filter.empty_cellular")
+            .font(NLTypography.body)
+            .foregroundStyle(NLColor.textSecondary)
+            .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
+            .multilineTextAlignment(.center)
+    }
+}
+
+private struct HistoryGame: Identifiable {
+    let id: String
+    let entries: [MeasurementHistoryEntry]
+    let latest: MeasurementHistoryEntry
+}
+
+private struct HistoryContext: Identifiable {
+    let id: HistoryContextKey
+    let entries: [MeasurementHistoryEntry]
+    let latest: MeasurementHistoryEntry
+
+    var title: String { [id.platform.displayName, id.connection.title].joined(separator: " · ") }
+    var routeLabel: String { id.routeLabel }
+}
+
+private struct HistoryContextKey: Hashable, Identifiable {
+    let gameID: String
+    let platform: Platform
+    let connection: HistoryRecordedConnection
+    let regionID: String
+    let profileRuleVersion: String
+
+    init(entry: MeasurementHistoryEntry) {
+        gameID = entry.resolvedContext.context.gameID
+        platform = entry.resolvedContext.context.platform
+        connection = entry.historyConnection
+        regionID = entry.resolvedContext.regionID
+        profileRuleVersion = entry.profileRuleVersion
+    }
+
+    var id: String { [gameID, platform.rawValue, connection.rawValue, regionID, profileRuleVersion].joined(separator: "|") }
+
+    var routeLabel: String {
+        let identifier = Locale.current.identifier.lowercased()
+        let languageCode = identifier.hasPrefix("pt") ? "pt-BR" : identifier.hasPrefix("es") ? "es" : "en"
+        return GlobalProbeRegistry.friendlyLabel(for: regionID, languageCode: languageCode)
+    }
+}
+
+private enum HistoryConnectionFilter: String, CaseIterable, Identifiable {
+    case all
+    case wifi
+    case cellular
+
+    var id: Self { self }
+
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .all: "history.filter.all"
+        case .wifi: "history.filter.wifi"
+        case .cellular: "history.filter.cellular"
+        }
+    }
+
+    func includes(_ connection: HistoryRecordedConnection) -> Bool {
+        switch self {
+        case .all: true
+        case .wifi: connection == .wifi
+        case .cellular: connection == .cellular
+        }
+    }
+}
+
+private extension MeasurementHistoryEntry {
+    /// A ausência das respostas UDP mínimas não é uma nota baixa: é ausência
+    /// de evidência. Snapshots antigos preservam um `QualityResult`, então a
+    /// apresentação precisa reconhecer esse estado pelo fato medido.
+    var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
+
+    var historyConnection: HistoryRecordedConnection {
+        HistoryRecordedConnection(resolvedContext.context.equipmentConnection)
+    }
+
+    func routeLabel(for locale: Locale) -> String {
+        let identifier = locale.identifier.lowercased()
+        let languageCode = identifier.hasPrefix("pt") ? "pt-BR" : identifier.hasPrefix("es") ? "es" : "en"
+        return GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, languageCode: languageCode)
+    }
+}
+
+private enum HistoryRecordedConnection: String, Hashable {
+    case wifi
+    case cellular
+    case other
+    case unrecorded
+
+    init(_ networkKind: NetworkKind?) {
+        switch networkKind {
+        case .wifi: self = .wifi
+        case .cellular: self = .cellular
+        case .other: self = .other
+        case nil: self = .unrecorded
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .wifi: NSLocalizedString("history.connection.wifi", comment: "")
+        case .cellular: NSLocalizedString("history.connection.cellular", comment: "")
+        case .other: NSLocalizedString("history.connection.other", comment: "")
+        case .unrecorded: NSLocalizedString("history.connection.unrecorded", comment: "")
         }
     }
 }

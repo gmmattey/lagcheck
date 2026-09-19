@@ -6,8 +6,17 @@
 "catalog.search.close" = "Close search";
 "catalog.category.all" = "All";
 "catalog.category.battle" = "Battle Royale";
-"catalog.category.mobile" = "Real-time";
+"catalog.category.competitive" = "Competitive";
 "catalog.category.casual" = "Casual";
+"catalog.all_games" = "All games";
+"catalog.recent.score_time" = "Score %d · %@";
+"catalog.recent.inconclusive_time" = "Inconclusive · %@";
+"catalog.recent.context" = "%@ · %@";
+"catalog.recent.route" = "%@ route";
+"catalog.recent.reference_route" = "Reference route";
+"catalog.empty.title" = "No games found";
+"catalog.empty.search_message" = "Try searching for a different name.";
+"catalog.empty.filter_message" = "There are no games in this category right now.";
 "quick_check.game.cover" = "FORTNITE";
 "quick_check.context.platform_title" = "You're playing on iPhone";
 "quick_check.context.platform_label" = "Platform";
@@ -80,6 +89,29 @@
 "history.empty" = "Your checks will appear here.";
 "history.first_check" = "Start your first check";
 "history.retry %@" = "Check %@ again";
+"history.filter.accessibility" = "Filter history by connection";
+"history.filter.all" = "All";
+"history.filter.wifi" = "Wi-Fi";
+"history.filter.cellular" = "Cellular";
+"history.filter.empty_wifi" = "There are no Wi-Fi checks yet.";
+"history.filter.empty_cellular" = "There are no cellular checks yet.";
+"history.choose_game" = "Choose a game";
+"history.inconclusive" = "Inconclusive";
+"history.retry" = "Check again";
+"history.score %@" = "Score %@";
+"history.score %@ %@" = "%@ · %@";
+"history.score_accessibility %@" = "Score %@";
+"history.game_accessibility %@ %@ %@" = "%@. %@. Latest check: %@.";
+"history.timeline.inconclusive %@" = "Inconclusive on %@.";
+"history.timeline.score %@ %@" = "Score %@ on %@.";
+"history.connection.wifi" = "Wi-Fi";
+"history.connection.cellular" = "Cellular";
+"history.connection.other" = "Other network";
+"history.connection.unrecorded" = "Connection not recorded";
+"history.seven_day_average %@" = "7-day average: %@";
+"history.trend.improving" = "Improving";
+"history.trend.worsening" = "Worsening";
+"history.trend.stable" = "Stable";
 "navigation.home" = "Home";
 "navigation.games" = "Games";
 "navigation.open_menu" = "Open menu";
@@ -433,5 +465,3 @@
 "check_completo.action.try_again" = "Try again";
 "check_completo.action.details" = "View details";
 "check_completo.action.improve" = "How to improve";
-
-
