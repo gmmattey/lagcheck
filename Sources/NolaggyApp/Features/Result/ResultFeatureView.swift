@@ -17,8 +17,15 @@ extension QuickCheckFeatureView {
         let isWiFi = (context?.equipmentConnection ?? .wifi) == .wifi
         let isLocalHealthy = interpretation.primaryCauseKey != .highJitter
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
-        let wifiStatusText = isWiFi ? (isLocalHealthy ? "5 GHz · Excelente (< 2 ms)" : "Oscilação no Wi-Fi") : "Rede móvel ativa"
-        let destinationStatus = "Respondendo · \(milliseconds(interpretation.metrics.p50Milliseconds)) ms"
+        let wifiStatusText = isWiFi
+            ? (isLocalHealthy
+                ? NSLocalizedString("result.route_trail.wifi_healthy", comment: "")
+                : NSLocalizedString("result.route_trail.wifi_unstable", comment: ""))
+            : NSLocalizedString("result.route_trail.cellular_active", comment: "")
+        let destinationStatus = String(
+            format: NSLocalizedString("result.route_trail.destination_responding %@", comment: ""),
+            milliseconds(interpretation.metrics.p50Milliseconds)
+        )
         let scoreColor = scoreToneColor(for: interpretation.scoreBand)
 
         return ScrollView {

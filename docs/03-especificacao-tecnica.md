@@ -11,7 +11,7 @@
 | App | Nativo para iPhone, iOS 17+, Swift e SwiftUI. |
 | Medição | UDP direto do iPhone para AWS GameLift Ping Beacons. |
 | Quick Check | 15 s, até 30 probes, até 2 probes/s, timeout de 2 s. |
-| Deep Check | Apenas Wi-Fi; 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. |
+| Deep Check | Wi-Fi e rede móvel (com consentimento); 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. |
 | Score | Local, determinístico, de 0 a 100. |
 | Catálogo | Cloudflare Worker gratuito; catálogo-base embarcado + `/v1/catalog.json` remoto assinado. |
 | Assinatura | Ed25519; somente a chave pública vai no app. |
@@ -173,10 +173,10 @@ O carregamento de assets é oportunista. Falha, cache ausente ou pressão de arm
 ## 5. Medição de rede
 
 ### 5.1 Observação do caminho
+ 
+`NWPathMonitor` começa antes da sessão e registra o caminho inicial. Uma alteração relevante de interface, por exemplo Wi-Fi para celular ou celular para Wi-Fi, cancela imediatamente a sessão e descarta integralmente todas as amostras parciais da memória sem persistência. A UI recebe o estado `cancelled(networkChanged)` e oferece reinício na rede atual.
 
-`NWPathMonitor` começa antes da sessão e registra o caminho inicial. Uma alteração relevante de interface, por exemplo Wi-Fi para celular, cancela a sessão e descarta suas amostras. A UI recebe o estado `cancelled(networkChanged)`.
-
-`Quick Check` pode ser iniciado em Wi-Fi ou celular. `Deep Check` exige `NWPath.usesInterfaceType(.wifi)` antes de iniciar e durante as duas fases.
+`Quick Check` e `Deep Check` podem ser iniciados em Wi-Fi ou rede celular. Em rede celular, o `Deep Check` exige confirmação explícita prévia de uso de dados móveis (teto de 10 MB). Sem consentimento, permite apenas Quick Check ou cancelar.
 
 ### 5.2 Transporte UDP
 
@@ -207,11 +207,14 @@ Plano de amostragem:
 
 O timeout de cada probe é 2 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de 10 respostas válidas na região primária, a sessão é `inconclusive` e não recebe LagCheck Score.
 
-### 5.3 Deep Check e carga controlada
+### 5.3 Deep Check e carga controlada (Wi-Fi e Rede Móvel)
 
-Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não usa cache. A transferência é interrompida ao atingir 10 MB ou 15 segundos, o que ocorrer primeiro. A tarefa não é iniciada fora do Wi-Fi e é cancelada se a sessão mudar de caminho.
+Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não usa cache. A transferência é interrompida ao atingir 10 MB ou 15 segundos, o que ocorrer primeiro.
+- Em Wi-Fi: executado diretamente.
+- Em rede celular: exige consentimento explícito e transparente prévio (*"O Check Completo usa dados móveis para avaliar sua conexão sob carga."* com teto informado de 10 MB).
+- Cancelamento imediato: ao cancelar por ação do usuário, background ou troca de caminho de rede, tanto a transferência HTTP quanto os sockets UDP são cancelados imediatamente.
 
-O app mantém a série UDP de repouso e a série UDP sob carga separadas. Falha na transferência HTTP não invalida o resultado em repouso, mas remove a conclusão sobre impacto sob carga e mostra a limitação ao usuário.
+O app mantém a série UDP de repouso e a série UDP sob carga estritamente separadas. Falha na transferência HTTP não invalida o resultado em repouso, mas remove a conclusão sobre impacto sob carga e mostra a limitação ao usuário. O tipo de conexão (`.wifi` ou `.cellular`) é persistido no snapshot histórico.
 
 ## 6. Métricas
 
@@ -373,8 +376,8 @@ Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produt
 | --- | --- | --- |
 | Catálogo indisponível, mas cache válido | `catalogFallback` | Continua com catálogo válido. |
 | Catálogo inválido sem fallback aplicável | `catalogUnavailable` | Explica que a configuração do jogo não está disponível. |
-| Mudança de rede | `cancelled(networkChanged)` | Explica e oferece reinício. |
-| Deep Check fora do Wi-Fi | `deepRequiresWiFi` | Mantém Quick disponível; explica o requisito. |
+| Mudança de rede (Wi-Fi ⇄ celular) | `cancelled(networkChanged)` | Cancela na hora, descarta parciais e oferece reinício na rede atual. |
+| Deep Check em rede celular | Confirmação prévia de dados | Apresenta modal/aviso de consumo (máx 10 MB); permite aceitar, Quick Check ou cancelar. |
 | Menos de 10 RTTs válidos | `inconclusive(insufficientUDPResponses)` | Não dá nota; sugere outra rede. |
 | Falha de carga HTTP | `loadUnavailable` | Exibe resultado de repouso e limitação do Deep Check. |
 | Destino/configuração inválida | `failed(invalidContext)` | Não inicia medição e registra erro local de diagnóstico. |
@@ -385,12 +388,20 @@ Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produt
 | --- | --- |
 | Domínio | Percentis, jitter, perda, spikes, score, guardrails, classe e causa principal para cada perfil. |
 | Catálogo | Assinatura válida/inválida, validade, schema, rollback, cache de 24 h e fallback de 30 dias/base. |
-| Transporte | Correlação de payload, timeout, duplicata, resposta tardia e cancelamento. |
-| Sessão | Quick, Deep, troca de caminho, Wi-Fi obrigatório e carga falha. |
-| Persistência | Limites de 90 dias/100 por jogo e apagar histórico. |
-| UI | Resultado antes das métricas, estados inconclusivo/cancelado e PT-BR/EN. |
+| Transporte | Correlação de payload, timeout, duplicata, resposta tardia e cancelamento imediato de sockets/HTTP. |
+| Sessão | Quick, Deep (Wi-Fi e Celular), consentimento de dados, troca de caminho (Wi-Fi ⇄ celular) com descarte total e carga falha. |
+| Persistência | Registro explícito do tipo de conexão (`.wifi` ou `.cellular`), limites de 90 dias/100 por jogo e apagar histórico. |
+| UI | Trilha HIG de 5 passos sem poluição visual (sem números, percentuais, gráficos ou score preliminar), estados inconclusivo/cancelado e PT-BR/EN/ES. |
 
-Além dos testes automatizados, o MVP1 precisa de smoke tests em iPhone real nas redes Wi-Fi e celular, com verificação visual do gráfico e cancelamento de caminho. Nenhum teste local prova por si só disponibilidade da App Store ou qualidade de tráfego real em escala.
+### 11.1 Matriz de Testes Obrigatórios em iPhone Físico (Decisão 36)
+- Wi-Fi: repouso, carga, resultado válido e inconclusivo.
+- Rede móvel: confirmação de consumo, repouso, carga, resultado válido e inconclusivo.
+- Recusar confirmação em rede móvel (deve permitir Quick Check ou cancelar).
+- Wi-Fi → rede móvel durante repouso (descarte total imediato).
+- Wi-Fi → rede móvel durante carga (descarte total e cancelamento imediato de sockets/HTTP).
+- Rede móvel → Wi-Fi durante repouso (descarte total imediato).
+- Rede móvel → Wi-Fi durante carga (descarte total e cancelamento imediato de sockets/HTTP).
+- Confirmar que nenhuma troca de rede mantém resultado parcial.
 
 ## 12. Critérios para iniciar implementação
 

@@ -24,10 +24,15 @@ struct DeepCheckResultView: View {
         let isLocalHealthy = (result.metrics.loadImpact?.increaseMilliseconds ?? 0) < 35.0 && interpretation.primaryCauseKey != .highJitter
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi
-            ? (isLocalHealthy ? "5 GHz · Excelente (< 2 ms)" : "Oscilação no Wi-Fi")
-            : "Rede móvel ativa"
+            ? (isLocalHealthy
+                ? NSLocalizedString("result.route_trail.wifi_healthy", comment: "")
+                : NSLocalizedString("result.route_trail.wifi_unstable", comment: ""))
+            : NSLocalizedString("result.route_trail.cellular_active", comment: "")
         let pingMs = milliseconds(result.metrics.rest.p50Milliseconds)
-        let destinationStatus = "Respondendo · \(pingMs) ms"
+        let destinationStatus = String(
+            format: NSLocalizedString("result.route_trail.destination_responding %@", comment: ""),
+            pingMs
+        )
         let scoreColor = scoreToneColor(for: interpretation.scoreBand)
 
         ScrollView {

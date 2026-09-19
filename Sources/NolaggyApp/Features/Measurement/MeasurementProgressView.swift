@@ -12,12 +12,9 @@ extension QuickCheckFeatureView {
             MeasurementLiveTrail(
                 isWiFi: (context?.equipmentConnection ?? .wifi) == .wifi,
                 destinationName: selectedRegionFriendlyName,
-                currentRTT: observedMetrics.currentRTTValue,
-                progress: Double(partialSamples.count) / Double(ProbeAcceptancePolicy.plannedProbeCount),
                 sampleCount: partialSamples.count,
-                lossCount: observedMetrics.lossCount,
                 isUnderStress: false,
-                stressLocation: .none,
+                isPhaseRest: true,
                 phaseTitle: "quick_check.measuring.phase",
                 phaseSubtitle: LocalizedStringKey(selectedGameName)
             )

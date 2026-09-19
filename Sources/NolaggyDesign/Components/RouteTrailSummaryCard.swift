@@ -54,7 +54,7 @@ public struct RouteTrailSummaryCard: View {
                     title: isWiFi ? String(localized: "live_trail.node.router", defaultValue: "Wi-Fi local") : String(localized: "live_trail.node.cellular", defaultValue: "Rede móvel"),
                     detail: wifiStatusText,
                     isHealthy: isLocalHealthy,
-                    statusBadge: isLocalHealthy ? "OK" : "Atenção"
+                    statusBadge: isLocalHealthy ? "OK" : String(localized: "result.route_trail.badge_attention", defaultValue: "Atenção")
                 )
 
                 // Conector 2
@@ -66,7 +66,7 @@ public struct RouteTrailSummaryCard: View {
                     title: destinationName,
                     detail: destinationStatusText,
                     isHealthy: isDestinationHealthy,
-                    statusBadge: isDestinationHealthy ? "OK" : "Lento"
+                    statusBadge: isDestinationHealthy ? "OK" : String(localized: "result.route_trail.badge_slow", defaultValue: "Lento")
                 )
             }
             .padding(NLSpacing.cardPadding)
@@ -130,6 +130,13 @@ public struct RouteTrailSummaryCard: View {
     }
 
     private var accessibilityDescription: String {
-        "Atestado da rota: iPhone verificado. \(isWiFi ? "Wi-Fi" : "Rede móvel"): \(wifiStatusText). Destino \(destinationName): \(destinationStatusText)."
+        let networkName = isWiFi
+            ? String(localized: "live_trail.node.wifi", defaultValue: "Wi-Fi")
+            : String(localized: "live_trail.node.cellular", defaultValue: "Rede móvel")
+        let format = String(
+            localized: "result.route_trail.accessibility_format %@ %@ %@ %@",
+            defaultValue: "Atestado da rota: iPhone verificado. %@: %@. Destino %@: %@."
+        )
+        return String(format: format, networkName, wifiStatusText, destinationName, destinationStatusText)
     }
 }

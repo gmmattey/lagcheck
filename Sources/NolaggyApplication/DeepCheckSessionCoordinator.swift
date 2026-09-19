@@ -1,10 +1,28 @@
 import Foundation
 import NolaggyDomain
 
-/// Disponibilidade de Wi-Fi separada do observador de mudanças para que o pré-requisito
-/// do Deep Check seja verificável sem depender de `NWPathMonitor` em testes.
+public enum NetworkInterfaceType: String, Sendable {
+    case wifi
+    case cellular
+    case other
+    case none
+}
+
+/// Disponibilidade de interface de rede (Wi-Fi e Celular) separada do observador de mudanças
+/// para que os pré-requisitos do Deep Check sejam verificáveis sem depender de `NWPathMonitor` em testes.
 public protocol WiFiAvailability: Sendable {
     func isWiFiAvailable() async -> Bool
+    func isCellularAvailable() async -> Bool
+    func currentInterface() async -> NetworkInterfaceType
+}
+
+public extension WiFiAvailability {
+    func isCellularAvailable() async -> Bool { false }
+    func currentInterface() async -> NetworkInterfaceType {
+        if await isWiFiAvailable() { return .wifi }
+        if await isCellularAvailable() { return .cellular }
+        return .none
+    }
 }
 
 public struct DeepCheckPlan: Equatable, Sendable {
@@ -58,6 +76,7 @@ public enum DeepCheckLoadAvailability: Equatable, Sendable {
 public enum DeepCheckSessionState: Equatable, Sendable {
     case idle
     case requiresWiFi
+    case requiresCellularConsent
     case measuring(MeasurementSession, DeepCheckPhase)
     case completed(MeasurementSession, DeepCheckEvaluation, DeepCheckLoadAvailability)
     case cancelled(MeasurementSession, MeasurementCancellationReason)
@@ -81,6 +100,8 @@ public struct DeepCheckMeasurementProgress: Equatable, Sendable {
 
 public enum DeepCheckSessionError: Error, Equatable, Sendable {
     case requiresWiFi
+    case requiresCellularConsent
+    case noConnection
     case alreadyActive
 }
 
@@ -90,6 +111,7 @@ public actor DeepCheckSessionCoordinator {
     private var activeSession: MeasurementSession?
     private var state: DeepCheckSessionState = .idle
     private var activePhase: DeepCheckPhase?
+    private var activeCellularConsent: Bool = false
     private var partialSamples: [ProbeSample] = []
     private var completedRestSamples: [ProbeSample] = []
     private var executionTask: Task<Void, Never>?
@@ -115,16 +137,30 @@ public actor DeepCheckSessionCoordinator {
     }
 
     @discardableResult
-    public func start(resolvedContext: ResolvedMeasurementContext, plan: DeepCheckPlan) async throws -> MeasurementSession {
+    public func start(
+        resolvedContext: ResolvedMeasurementContext,
+        plan: DeepCheckPlan,
+        hasCellularConsent: Bool = false
+    ) async throws -> MeasurementSession {
         guard activeSession == nil else { throw DeepCheckSessionError.alreadyActive }
-        guard await wifiAvailability.isWiFiAvailable() else {
+        let currentInterface = await wifiAvailability.currentInterface()
+        guard currentInterface != .none else {
             state = .requiresWiFi
             throw DeepCheckSessionError.requiresWiFi
         }
 
-        let session = MeasurementSession(resolvedContext: resolvedContext)
+        if currentInterface == .cellular && !hasCellularConsent {
+            state = .requiresCellularConsent
+            throw DeepCheckSessionError.requiresCellularConsent
+        }
+
+        let connectionKind: NetworkKind = (currentInterface == .cellular) ? .cellular : .wifi
+        let contextWithConnection = resolvedContext.withEquipmentConnection(connectionKind)
+        let session = MeasurementSession(resolvedContext: contextWithConnection)
+
         activeSession = session
         activePhase = .rest
+        activeCellularConsent = hasCellularConsent
         partialSamples = []
         completedRestSamples = []
         state = .measuring(session, .rest)
@@ -162,6 +198,7 @@ public actor DeepCheckSessionCoordinator {
         let session = activeSession!
         activeSession = nil
         activePhase = nil
+        activeCellularConsent = false
         partialSamples = []
         completedRestSamples = []
         executionTask?.cancel()
@@ -194,7 +231,8 @@ public actor DeepCheckSessionCoordinator {
         wifiAvailability: any WiFiAvailability
     ) async {
         guard activeSession?.id == sessionID else { return }
-        guard await wifiAvailability.isWiFiAvailable() else {
+        let currentInterface = await wifiAvailability.currentInterface()
+        guard currentInterface == .wifi || (currentInterface == .cellular && activeCellularConsent) else {
             cancel(id: sessionID, reason: .networkPathChanged)
             return
         }
@@ -222,6 +260,7 @@ public actor DeepCheckSessionCoordinator {
         guard activeSession?.id == sessionID else { return }
         activeSession = nil
         activePhase = nil
+        activeCellularConsent = false
         partialSamples = []
         completedRestSamples = []
         pathTask?.cancel()
@@ -262,6 +301,8 @@ public actor DeepCheckSessionCoordinator {
 public struct NoopWiFiAvailability: WiFiAvailability {
     public init() {}
     public func isWiFiAvailable() async -> Bool { false }
+    public func isCellularAvailable() async -> Bool { false }
+    public func currentInterface() async -> NetworkInterfaceType { .none }
 }
 
 public struct NoopLoadTransport: LoadTransport {
