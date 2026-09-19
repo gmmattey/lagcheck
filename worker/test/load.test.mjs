@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createPublicKey, verify } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { handleRequest } from "../src/index.js";
 
 test("GET /v1/load streams exactly 10 MB without cache", async () => {
@@ -22,14 +23,11 @@ test("the load endpoint refuses other paths and methods", () => {
 test("GET /v1/catalog.json returns the immutable signed Debug envelope", async () => {
   const response = handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
   const envelope = await response.json();
+  const bundledEnvelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
-  assert.equal(envelope.schemaVersion, 1);
-  assert.equal(envelope.catalogVersion, "debug-2026.09.18.1");
-  assert.equal(envelope.algorithm, "Ed25519");
-  assert.ok(envelope.payloadBase64.length > 0);
-  assert.ok(envelope.signatureBase64.length > 0);
+  assert.deepEqual(envelope, bundledEnvelope);
 });
 
 test("the catalog endpoint permits only GET", () => {
@@ -46,4 +44,11 @@ test("the Debug catalog payload is signed by the public key embedded in iOS", as
   const publicKey = createPublicKey({ key: Buffer.concat([spkiPrefix, rawPublicKey]), format: "der", type: "spki" });
 
   assert.equal(verify(null, Buffer.from(envelope.payloadBase64, "base64"), publicKey, Buffer.from(envelope.signatureBase64, "base64")), true);
+});
+
+test("the canonical signing input matches the bundled Debug envelope bytes", async () => {
+  const canonicalPayload = await readFile(new URL("../catalog/DebugCatalogPayload.canonical.json", import.meta.url));
+  const bundledEnvelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
+
+  assert.deepEqual(Buffer.from(bundledEnvelope.payloadBase64, "base64"), canonicalPayload.subarray(0, -1));
 });
