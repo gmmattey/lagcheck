@@ -394,6 +394,7 @@ public enum RemoteCatalogError: Error, Equatable, Sendable {
 /// Worker; o envelope inicial foi assinado antes de ser incluído no Worker.
 public enum DebugCatalogSigningKey {
     public static let publicKeyBase64 = "tCsSOLt9B7WpXalcu6iT6CxMrEx3w787rPRR7KXxGso="
+    public static let v3PublicKeyBase64 = "oe/5VSQfhWcma+W6DdUzAESJpjgTrLtkXAcT0nEbDwo="
 }
 
 public enum RemoteCatalogVerifier {
@@ -427,9 +428,12 @@ public enum RemoteCatalogVerifier {
             throw RemoteCatalogError.invalidDates
         }
         guard issuedAt <= now, expiresAt > now else { throw RemoteCatalogError.expired }
+        let resolvedPublicKeyBase64 = envelope.schemaVersion == routedCatalogSchemaVersion && publicKeyBase64 == DebugCatalogSigningKey.publicKeyBase64
+            ? DebugCatalogSigningKey.v3PublicKeyBase64
+            : publicKeyBase64
         guard let payloadData = Data(base64Encoded: envelope.payloadBase64),
               let signature = Data(base64Encoded: envelope.signatureBase64),
-              let publicKeyData = Data(base64Encoded: publicKeyBase64) else {
+              let publicKeyData = Data(base64Encoded: resolvedPublicKeyBase64) else {
             throw RemoteCatalogError.invalidBase64
         }
         guard payloadData.count <= maximumPayloadBytes else { throw RemoteCatalogError.payloadTooLarge }

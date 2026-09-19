@@ -74,7 +74,7 @@ function routesFor(gameID, platform) {
 export function buildCanonicalCatalog() {
   return {
     schemaVersion: 3,
-    catalogVersion: "catalog-v3-pending-signature.1",
+    catalogVersion: "catalog-v3-2026.09.19.1",
     assetBaseURL: "https://nolaggy-deep-check.buildealabs.workers.dev/",
     profiles: Object.entries(profileVersions).map(([id, ruleVersion]) => ({ id, ruleVersion })),
     regions: [{
