@@ -60,7 +60,7 @@ public struct NetflixHeroBillboard: View {
         Button(action: onSelect) {
             ZStack(alignment: .bottom) {
                 // Arte do jogo em escala exata preenchendo o card
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name)
+                VerifiedGameArtwork(game: game)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Gradientes cinematográficos de fusão com fundo escuro
@@ -143,7 +143,7 @@ public struct NetflixPosterCard: View {
     public var body: some View {
         Button(action: onSelect) {
             ZStack(alignment: .bottomLeading) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name)
+                VerifiedGameArtwork(game: game)
                     .frame(width: 115, height: 165)
 
                 LinearGradient(

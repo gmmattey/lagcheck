@@ -151,7 +151,7 @@ struct HomeStateEditorialHero: View {
             // Topo do Hero: Identificação do jogo (miniatura neutra secundária) + Região
             HStack(spacing: NLSpacing.sm) {
                 if let game {
-                    GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1)
+                    VerifiedGameArtwork(game: game, aspectRatio: 1)
                         .frame(width: 48, height: 48)
                         .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
                         .overlay(
@@ -494,7 +494,7 @@ private struct HomeRecentCompactCard: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: NLSpacing.sm) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1)
+                VerifiedGameArtwork(game: game, aspectRatio: 1)
                     .frame(width: 48, height: 48)
                     .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
 
@@ -643,7 +643,7 @@ private struct HomeExploreCard: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
-                GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 4 / 3)
+                VerifiedGameArtwork(game: game, aspectRatio: 4 / 3)
                     .frame(width: 130, height: 90)
                     .clipped()
 
@@ -796,7 +796,7 @@ private struct HomeCatalogList: View {
             ForEach(games, id: \.id) { game in
                 Button { select(game) } label: {
                     HStack(spacing: NLSpacing.sm) {
-                        GameArtwork(image: nil, sourceRecordID: nil, title: game.name, aspectRatio: 1).frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
+                        VerifiedGameArtwork(game: game, aspectRatio: 1).frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
                         VStack(alignment: .leading, spacing: NLSpacing.xs) {
                             Text(game.name).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary).lineLimit(2).fixedSize(horizontal: false, vertical: true).layoutPriority(1)
                             Text(categoryTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)

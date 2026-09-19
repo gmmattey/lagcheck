@@ -9,12 +9,25 @@ public enum CatalogMeasurementJourney {
         public let name: String
         public let context: GameContext
         public let profileID: QualityProfileID
+        /// Referência já validada no payload assinado. A UI não a transforma
+        /// diretamente em URL nem renderiza bytes antes da conferência do hash.
+        public let artwork: RemoteCatalogArtwork?
+        public let assetBaseURL: String?
 
-        public init(id: String, name: String, context: GameContext, profileID: QualityProfileID) {
+        public init(
+            id: String,
+            name: String,
+            context: GameContext,
+            profileID: QualityProfileID,
+            artwork: RemoteCatalogArtwork? = nil,
+            assetBaseURL: String? = nil
+        ) {
             self.id = id
             self.name = name
             self.context = context
             self.profileID = profileID
+            self.artwork = artwork
+            self.assetBaseURL = assetBaseURL
         }
     }
 
@@ -49,7 +62,14 @@ public enum CatalogMeasurementJourney {
         payload.games.compactMap { game in
             let context = GameContext(gameID: game.id, market: market, platform: platform)
             guard case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: payload) else { return nil }
-            return Game(id: game.id, name: game.name, context: context, profileID: resolved.profileID)
+            return Game(
+                id: game.id,
+                name: game.name,
+                context: context,
+                profileID: resolved.profileID,
+                artwork: game.artwork,
+                assetBaseURL: payload.assetBaseURL
+            )
         }
     }
 
@@ -113,5 +133,38 @@ public enum CatalogMeasurementJourney {
                 )
             }
         )
+    }
+}
+
+/// Porta para a pré-validação de uma rota própria. A implementação de rede só
+/// recebe um candidato que já veio do catálogo assinado; ela não descobre nem
+/// percorre outros hosts.
+public protocol GameRoutePreflighting: Sendable {
+    func validates(candidate: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity) async -> Bool
+}
+
+/// Resolve a rota de uma medição sem expor servidores na UI. Para catálogo v3
+/// tenta apenas candidatos Steam A2S que o app tem driver para validar; todo
+/// timeout, identidade divergente e protocolo sem driver volta ao fallback AWS
+/// já assinado. O score continua sendo calculado pela sessão normal.
+public enum AutomaticGameRouteResolver {
+    public static func resolve(
+        _ context: GameContext,
+        in payload: RemoteCatalogPayload,
+        preflighting preflight: any GameRoutePreflighting,
+        now: Date = Date()
+    ) async throws -> ResolvedMeasurementContext? {
+        guard let plan = try RemoteCatalogVerifier.automaticRoutePlan(context, in: payload, now: now) else {
+            guard case let .available(resolved) = try RemoteCatalogVerifier.resolve(context, in: payload) else {
+                return nil
+            }
+            return resolved
+        }
+        for candidate in plan.ownedCandidates where candidate.context.destination.protocolKind == .steamA2S {
+            if await preflight.validates(candidate: candidate.context, identity: candidate.identity) {
+                return candidate.context
+            }
+        }
+        return plan.fallback
     }
 }

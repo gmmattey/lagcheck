@@ -4,26 +4,6 @@ import NolaggyApplication
 import NolaggyDomain
 import Security
 
-/// Identifica a variante de protocolo de medição UDP com base na porta de serviço.
-public enum MeasurementProtocol: Sendable {
-    case gameLift
-    case playFab
-    case steamA2S
-
-    public static func `for`(port: UInt16) -> MeasurementProtocol {
-        switch port {
-        case 3075:
-            return .playFab
-        case 27015:
-            return .steamA2S
-        case 7770:
-            return .gameLift
-        default:
-            return .gameLift
-        }
-    }
-}
-
 /// Transporte UDP do piloto. Ele só mede o destino configurado e nunca tenta outro protocolo.
 /// A composição do app o habilita somente no binário Debug instalado em iPhone.
 public struct NWConnectionMeasurementTransport: MeasurementTransport {
@@ -34,10 +14,13 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         plan: QuickCheckPlan,
         onSample: @escaping @Sendable (ProbeSample) async -> Void
     ) async -> [ProbeSample] {
-        let protocolKind = MeasurementProtocol.for(port: plan.endpoint.port)
+        let protocolKind = plan.endpoint.protocolKind
         let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
         do {
-            generated = try Self.generateProbes(count: ProbeAcceptancePolicy.plannedProbeCount, port: plan.endpoint.port)
+            generated = try Self.generateProbes(
+                count: ProbeAcceptancePolicy.plannedProbeCount,
+                protocolKind: protocolKind
+            )
         } catch {
             return (0..<ProbeAcceptancePolicy.plannedProbeCount).map {
                 ProbeSample(sequence: $0, outcome: .transportError)
@@ -115,11 +98,10 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
 
     static func generateProbes(
         count: Int,
-        port: UInt16
+        protocolKind: ProbeProtocolKind
     ) throws -> (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool) {
-        let protocolKind = MeasurementProtocol.for(port: port)
         switch protocolKind {
-        case .gameLift:
+        case .gameLiftPing:
             let sessionID = try SecureRandom.uuid()
             let probes = try (0..<count).map { sequence in
                 let payload = PingBeaconPayload(
@@ -131,7 +113,7 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
             }
             return (probes, { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) })
 
-        case .playFab:
+        case .playFabQoS:
             let sessionID = try SecureRandom.uuid()
             let probes = try (0..<count).map { sequence in
                 let payload = PlayFabQoSPayload(
@@ -171,7 +153,10 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
         }
         let generated: (probes: [(sequence: Int, payload: Data)], validator: @Sendable (Data, Data) -> Bool)
         do {
-            generated = try NWConnectionMeasurementTransport.generateProbes(count: 3, port: portRaw)
+            generated = try NWConnectionMeasurementTransport.generateProbes(
+                count: 3,
+                protocolKind: candidate.resolvedContext.destination.protocolKind
+            )
         } catch {
             return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }
@@ -258,12 +243,12 @@ final class ProbeLedger: @unchecked Sendable {
         self.isCorrelatedResponse = isCorrelatedResponse
     }
 
-    convenience init(probes: [(sequence: Int, payload: Data)], port: UInt16) {
+    convenience init(probes: [(sequence: Int, payload: Data)], protocolKind: ProbeProtocolKind) {
         let validator: @Sendable (Data, Data) -> Bool
-        switch MeasurementProtocol.for(port: port) {
-        case .gameLift:
+        switch protocolKind {
+        case .gameLiftPing:
             validator = { req, resp in PingBeaconPayloadCodec.isExactEcho(of: req, response: resp) }
-        case .playFab:
+        case .playFabQoS:
             validator = { req, resp in PlayFabQoSPayloadCodec.isValidEcho(of: req, response: resp) }
         case .steamA2S:
             validator = { _, resp in SteamQueryA2SPayloadCodec.isValidInfoResponse(resp) }
@@ -370,5 +355,82 @@ private final class UDPConnection: @unchecked Sendable {
             guard error == nil else { return }
             self.receiveNext()
         }
+    }
+}
+
+/// Pré-validação curta e silenciosa para um candidato A2S já assinado. Não é
+/// scanner: abre no máximo uma conexão UDP para o host/porta recebido e só
+/// aceita uma resposta cuja identidade seja a esperada.
+public final class SteamA2SRoutePreflight: GameRoutePreflighting, @unchecked Sendable {
+    private let timeout: Duration
+    private let queue: DispatchQueue
+
+    public init(timeout: Duration = .seconds(2), queue: DispatchQueue = DispatchQueue(label: "com.lagcheck.a2s-preflight")) {
+        self.timeout = timeout
+        self.queue = queue
+    }
+
+    public func validates(candidate: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity) async -> Bool {
+        guard candidate.destination.protocolKind == .steamA2S,
+              let port = NWEndpoint.Port(rawValue: candidate.destination.port) else { return false }
+        let connection = NWConnection(host: NWEndpoint.Host(candidate.destination.host), port: port, using: .udp)
+        return await withCheckedContinuation { continuation in
+            let completion = A2SPreflightCompletion(connection: connection, continuation: continuation)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    connection.send(content: SteamQueryA2SPayloadCodec.encodeInitialRequest(), completion: .contentProcessed { error in
+                        guard error == nil else { completion.finish(false); return }
+                        Self.receiveInfo(from: connection, identity: identity, completion: completion)
+                    })
+                case .failed, .cancelled:
+                    completion.finish(false)
+                default:
+                    break
+                }
+            }
+            connection.start(queue: queue)
+            Task { [timeout] in
+                try? await Task.sleep(for: timeout)
+                completion.finish(false)
+            }
+        }
+    }
+
+    private static func receiveInfo(from connection: NWConnection, identity: RemoteCatalogRouteIdentity, completion: A2SPreflightCompletion) {
+        connection.receiveMessage { data, _, _, error in
+            guard error == nil, let data else { completion.finish(false); return }
+            if let token = try? SteamQueryA2SPayloadCodec.decodeChallenge(data) {
+                connection.send(content: SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: token), completion: .contentProcessed { error in
+                    guard error == nil else { completion.finish(false); return }
+                    receiveInfo(from: connection, identity: identity, completion: completion)
+                })
+                return
+            }
+            guard let info = try? SteamQueryA2SPayloadCodec.decodeInfo(data) else { completion.finish(false); return }
+            let nameMatches = identity.expectedServerNamePrefix.map { info.name.hasPrefix($0) } ?? true
+            completion.finish(info.appID == identity.expectedAppID && info.gameDirectory == identity.expectedGameDirectory && nameMatches)
+        }
+    }
+}
+
+private final class A2SPreflightCompletion: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private let connection: NWConnection
+
+    init(connection: NWConnection, continuation: CheckedContinuation<Bool, Never>) {
+        self.connection = connection
+        self.continuation = continuation
+    }
+
+    func finish(_ value: Bool) {
+        lock.lock()
+        let continuation = self.continuation
+        self.continuation = nil
+        lock.unlock()
+        guard let continuation else { return }
+        connection.cancel()
+        continuation.resume(returning: value)
     }
 }

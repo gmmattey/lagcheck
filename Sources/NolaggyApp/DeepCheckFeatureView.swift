@@ -267,7 +267,11 @@ struct DeepCheckFeatureView: View {
 
     private func start(withConsent: Bool = false) {
         Task { @MainActor in
-            let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(host: resolvedContext.destination.host, port: resolvedContext.destination.port))
+            let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(
+                host: resolvedContext.destination.host,
+                port: resolvedContext.destination.port,
+                protocolKind: resolvedContext.destination.protocolKind
+            ))
             let plan = DeepCheckPlan(restProbePlan: probePlan, loadProbePlan: probePlan, loadRequest: LoadRequest(url: DeepCheckLoadEndpoint.pilot))
             do {
                 _ = try await coordinator.start(

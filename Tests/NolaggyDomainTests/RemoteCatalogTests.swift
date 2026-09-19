@@ -265,6 +265,57 @@ final class RemoteCatalogTests: XCTestCase {
             XCTAssertEqual(error as? RemoteCatalogError, .unknownProfile)
         }
     }
+
+    func testSchemaThreeExposesOnlySignedA2SCandidateForAutomaticPreflight() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let payload = schemaThreePayload(primaryStatus: .active)
+        let verified = try verify(payload, with: privateKey)
+
+        let plan = try XCTUnwrap(RemoteCatalogVerifier.automaticRoutePlan(
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            in: verified
+        ))
+
+        XCTAssertEqual(plan.ownedCandidates.count, 1)
+        XCTAssertEqual(plan.ownedCandidates[0].context.routeID, "route-fixture-owned-route-fixture-a2s")
+        XCTAssertEqual(plan.ownedCandidates[0].context.candidateID, "route-fixture-a2s")
+        XCTAssertEqual(plan.ownedCandidates[0].context.routeKind, .gameOwned)
+        XCTAssertEqual(plan.ownedCandidates[0].context.destination.host, "validated.example.invalid")
+        XCTAssertEqual(plan.ownedCandidates[0].context.destination.protocolKind, .steamA2S)
+        XCTAssertEqual(plan.ownedCandidates[0].identity.expectedAppID, 730)
+    }
+
+    func testSchemaThreeUsesAWSFallbackWhenGameRouteIsPending() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let verified = try verify(schemaThreePayload(primaryStatus: .pending), with: privateKey)
+
+        let resolution = try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            in: verified
+        )
+
+        guard case let .available(resolved) = resolution else { return XCTFail("O fallback AWS precisa manter o jogo testável.") }
+        XCTAssertEqual(resolved.routeID, "route-fixture-aws")
+        XCTAssertEqual(resolved.routeKind, .awsFallback)
+        XCTAssertEqual(resolved.destination.host, "gamelift-ping.sa-east-1.api.aws")
+        XCTAssertEqual(resolved.destination.protocolKind, .gameLiftPing)
+        XCTAssertEqual(resolved.strategy, .genericRegion)
+    }
+
+    func testSchemaThreeCanResolveSignedAWSFallbackAfterOwnedRouteHealthFailure() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let verified = try verify(schemaThreePayload(primaryStatus: .active), with: privateKey)
+
+        let resolution = try RemoteCatalogVerifier.resolveFallback(
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            in: verified,
+            excludingRouteID: "route-fixture-owned"
+        )
+
+        guard case let .available(resolved) = resolution else { return XCTFail("O fallback assinado deve ser resolvível.") }
+        XCTAssertEqual(resolved.routeID, "route-fixture-aws")
+        XCTAssertEqual(resolved.routeKind, .awsFallback)
+    }
 }
 
 private extension RemoteCatalogTests {
@@ -392,5 +443,62 @@ private extension RemoteCatalogTests {
 
     func receivedSamples() -> [ProbeSample] {
         (0..<30).map { ProbeSample(sequence: $0, roundTripMilliseconds: 30, outcome: .received) }
+    }
+
+    func schemaThreePayload(primaryStatus: MeasurementRouteStatus) -> RemoteCatalogPayload {
+        let profile = RemoteCatalogProfile(id: "CASUAL_REALTIME", ruleVersion: "casual-realtime-2026.09.08.1")
+        let region = RemoteCatalogRegion(
+            id: "sa-east-1",
+            label: ["pt-BR": "São Paulo"],
+            probe: try! ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770, protocolKind: .gameLiftPing)
+        )
+        let candidate = RemoteCatalogRouteCandidate(
+            id: "route-fixture-a2s",
+            priority: 10,
+            destination: try! ProbeDestination(host: "validated.example.invalid", port: 27015, protocolKind: .steamA2S),
+            regionID: "sa-east-1",
+            identity: RemoteCatalogRouteIdentity(expectedAppID: 730, expectedGameDirectory: "csgo", expectedServerNamePrefix: "Fixture"),
+            operatorEvidenceURL: "https://operator.example.invalid/fixture"
+        )
+        let owned = RemoteCatalogRoute(
+            id: "route-fixture-owned",
+            kind: .gameOwned,
+            status: primaryStatus,
+            regionID: "route-fixture-br",
+            strategy: .dedicatedServer,
+            confidence: .high,
+            precisionKey: "dedicatedServer",
+            selection: primaryStatus == .active ? RemoteCatalogRouteSelection(candidates: [candidate]) : nil
+        )
+        let fallback = RemoteCatalogRoute(
+            id: "route-fixture-aws",
+            kind: .awsFallback,
+            status: .active,
+            regionID: "sa-east-1",
+            strategy: .genericRegion,
+            confidence: .medium,
+            precisionKey: "regionalReference"
+        )
+        return RemoteCatalogPayload(
+            schemaVersion: 3,
+            catalogVersion: "test-v3",
+            profiles: [profile],
+            regions: [region],
+            games: [RemoteCatalogGame(
+                id: "route-fixture",
+                name: "Route Fixture",
+                contexts: [RemoteCatalogGameContext(
+                    market: "BR",
+                    platforms: [.pc],
+                    profileID: profile.id,
+                    availability: .available,
+                    measurement: nil,
+                    routes: [owned, fallback]
+                )],
+                artwork: RemoteCatalogArtwork(path: "artwork/route-fixture.webp", sha256: String(repeating: "a", count: 64)),
+                rating: RemoteCatalogRating(value: 8, scale: 10, sourceName: "Fixture", sourceURL: "https://example.invalid/rating", updatedAt: "2026-09-08T00:00:00Z")
+            )],
+            assetBaseURL: "https://catalog.example.invalid/"
+        )
     }
 }

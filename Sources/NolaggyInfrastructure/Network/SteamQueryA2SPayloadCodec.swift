@@ -4,6 +4,13 @@ public enum SteamQueryA2SError: Error, Equatable, Sendable {
     case invalidLength
     case invalidHeader
     case unexpectedResponseType
+    case invalidString
+}
+
+public struct SteamA2SInfo: Equatable, Sendable {
+    public let name: String
+    public let gameDirectory: String
+    public let appID: UInt16
 }
 
 /// Codec puro para o protocolo Valve A2S_INFO (Steam Query) na porta 27015 UDP.
@@ -62,6 +69,34 @@ public enum SteamQueryA2SPayloadCodec {
             return false
         }
         return data[s + 4] == responseTypeInfo
+    }
+
+    /// Lê somente os campos A2S_INFO necessários para confirmar que um
+    /// candidato assinado é o servidor esperado. Não usa nome de mapa, slots
+    /// ou qualquer detalhe como sinal de qualidade de rede.
+    public static func decodeInfo(_ data: Data) throws -> SteamA2SInfo {
+        guard isValidInfoResponse(data), data.count >= 6 else {
+            throw SteamQueryA2SError.invalidHeader
+        }
+        var index = 6 // header, tipo 'I' e byte de versão do protocolo
+        let name = try readCString(data, index: &index)
+        _ = try readCString(data, index: &index) // mapa
+        let directory = try readCString(data, index: &index)
+        _ = try readCString(data, index: &index) // nome do jogo
+        guard index + 2 <= data.endIndex else { throw SteamQueryA2SError.invalidLength }
+        let appID = UInt16(data[index]) | (UInt16(data[index + 1]) << 8)
+        return SteamA2SInfo(name: name, gameDirectory: directory, appID: appID)
+    }
+
+    private static func readCString(_ data: Data, index: inout Int) throws -> String {
+        let start = index
+        while index < data.endIndex, data[index] != 0 { index += 1 }
+        guard index < data.endIndex,
+              let value = String(data: data[start..<index], encoding: .utf8) else {
+            throw SteamQueryA2SError.invalidString
+        }
+        index += 1
+        return value
     }
 
     /// Verifica se o datagrama é um pacote S2C_CHALLENGE (0xFFFFFFFF seguido de 'A').

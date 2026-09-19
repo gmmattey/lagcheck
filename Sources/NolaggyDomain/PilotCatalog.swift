@@ -12,6 +12,15 @@ public enum MeasurementConfidence: String, Codable, CaseIterable, Hashable, Send
     case high
 }
 
+/// O codec UDP faz parte do contrato assinado do catálogo. Porta não identifica
+/// protocolo: títulos podem usar portas não convencionais, e uma porta conhecida
+/// não autoriza supor que ela responde como GameLift, PlayFab ou A2S.
+public enum ProbeProtocolKind: String, Codable, CaseIterable, Hashable, Sendable {
+    case gameLiftPing
+    case playFabQoS
+    case steamA2S
+}
+
 public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable {
     case battleRoyaleCompetitive = "BATTLE_ROYALE_COMPETITIVE"
     case mobileRealtime = "MOBILE_REALTIME"
@@ -21,8 +30,9 @@ public enum QualityProfileID: String, Codable, CaseIterable, Hashable, Sendable 
 public struct ProbeDestination: Codable, Hashable, Sendable {
     public let host: String
     public let port: UInt16
+    public let protocolKind: ProbeProtocolKind
 
-    public init(host: String, port: UInt16) throws {
+    public init(host: String, port: UInt16, protocolKind: ProbeProtocolKind = .gameLiftPing) throws {
         guard Self.isValidHost(host) else {
             throw CatalogValidationError.invalidProbeHost
         }
@@ -31,6 +41,19 @@ public struct ProbeDestination: Codable, Hashable, Sendable {
         }
         self.host = host
         self.port = port
+        self.protocolKind = protocolKind
+    }
+
+    private enum CodingKeys: String, CodingKey { case host, port, protocolKind }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let host = try values.decode(String.self, forKey: .host)
+        let port = try values.decode(UInt16.self, forKey: .port)
+        // Schema 1 e 2 foram assinados antes de o codec ser explícito; ambos
+        // só publicavam GameLift. O default existe exclusivamente para eles.
+        let protocolKind = try values.decodeIfPresent(ProbeProtocolKind.self, forKey: .protocolKind) ?? .gameLiftPing
+        try self.init(host: host, port: port, protocolKind: protocolKind)
     }
 
     private static func isValidHost(_ host: String) -> Bool {
@@ -166,6 +189,12 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
     public let strategy: MeasurementStrategy
     public let confidence: MeasurementConfidence
     public let precisionKey: String
+    /// Identifica a rota exata assinada que gerou esta medição. Nil é legado.
+    public let routeID: String?
+    public let routeKind: MeasurementRouteKind?
+    /// Candidato próprio efetivamente escolhido pela pré-validação automática.
+    /// Nil preserva snapshots legados e medições AWS sem candidato dedicado.
+    public let candidateID: String?
 
     public init(
         context: GameContext,
@@ -176,7 +205,10 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         destination: ProbeDestination,
         strategy: MeasurementStrategy,
         confidence: MeasurementConfidence,
-        precisionKey: String = "regionalReference"
+        precisionKey: String = "regionalReference",
+        routeID: String? = nil,
+        routeKind: MeasurementRouteKind? = nil,
+        candidateID: String? = nil
     ) {
         self.context = context
         self.catalogVersion = catalogVersion
@@ -187,6 +219,9 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         self.strategy = strategy
         self.confidence = confidence
         self.precisionKey = precisionKey
+        self.routeID = routeID
+        self.routeKind = routeKind
+        self.candidateID = candidateID
     }
 
     public func withEquipmentConnection(_ connection: NetworkKind?) -> ResolvedMeasurementContext {
@@ -205,7 +240,10 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
             destination: destination,
             strategy: strategy,
             confidence: confidence,
-            precisionKey: precisionKey
+            precisionKey: precisionKey,
+            routeID: routeID,
+            routeKind: routeKind,
+            candidateID: candidateID
         )
     }
 }

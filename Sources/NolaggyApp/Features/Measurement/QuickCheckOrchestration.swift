@@ -20,7 +20,7 @@ extension QuickCheckFeatureView {
         Task { @MainActor in
             await Task.yield()
             let manualRegionID = await regionalPreferenceRepository.manualRegionID()
-            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            guard let snapshot = await automaticRegionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
             await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
     }
@@ -49,9 +49,32 @@ extension QuickCheckFeatureView {
         regionalPresentation = .confirming
         Task { @MainActor in
             let manualRegionID = await regionalPreferenceRepository.manualRegionID()
-            guard let snapshot = try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            guard let snapshot = await automaticRegionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
             await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
+    }
+
+    /// O catálogo v3 pode oferecer candidatos A2S próprios. Eles são
+    /// pré-validados silenciosamente antes da pré-leitura que produz a decisão
+    /// de medição; falha de identidade/UDP devolve apenas a AWS assinada.
+    func automaticRegionalSnapshot(
+        for context: GameContext,
+        in catalog: RemoteCatalogPayload,
+        manualRegionID: String?
+    ) async -> RegionalSelectionSnapshot? {
+        guard catalog.schemaVersion == RemoteCatalogVerifier.routedCatalogSchemaVersion else {
+            return try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: catalog, manualRegionID: manualRegionID)
+        }
+        guard let resolved = try? await AutomaticGameRouteResolver.resolve(
+            context,
+            in: catalog,
+            preflighting: SteamA2SRoutePreflight()
+        ) else { return nil }
+        return try? RegionalSelectionSnapshot(
+            catalogVersion: resolved.catalogVersion,
+            context: context,
+            candidates: [try RegionalSelectionCandidate(resolvedContext: resolved, priority: 0)]
+        )
     }
 
     func cancelRegionalSelection() {
