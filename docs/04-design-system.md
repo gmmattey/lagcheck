@@ -186,20 +186,17 @@ Quando o MVP1.1 for autorizado, aplicar estas regras de layout:
 
 ## 12. Inventário de componentes
 
-Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`design-system/components.md`](../design-system/components.md). Resumo do inventário do MVP1:
+Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`design-system/components.md`](../design-system/components.md). Resumo do inventário atualizado (Decisões 24, 34 e 35):
 
 | Componente | Papel |
 | --- | --- |
-| `LagCheckScore` | Exibição do score (anel + número + classificação). Elemento visual distintivo do resultado. |
-| `MeasurementPulse` | Indicador vivo de medição em andamento (Quick/Deep Check). |
-| `LatencyGraph` | Gráfico vivo/histórico de latência com marcação de spikes. |
-| `GameTile` | Item compacto de jogo para a seleção da Home: card de altura fixa com nome centralizado e categoria como legenda abaixo, sem ilustração genérica repetida. O nome localizado é a identificação primária. |
-
-O jogo selecionado na Home usa apenas uma mudança suave de superfície e halo azul; não usa borda, checkmark nem preenchimento saturado.
-| `PlatformSelector` | Seleção de plataforma (iPhone/PlayStation/Xbox/PC/Nintendo) e, quando aplicável, Wi-Fi/Ethernet. |
-| `PrimaryButton` | Ação principal da tela (pílula, alto contraste). |
-| `MetricRow` | Linha rótulo+valor para métricas (ping, jitter, perda, spikes...). |
-| `InsightBanner` | Explicação/causa em destaque (ex.: "Sua conexão fica instável sob carga"). |
+| `MeasurementLiveTrail` | **Trilha Viva de Medição (Decisão 34):** fluxo de pacotes nos 3 nós (`iPhone` ➔ `Wi-Fi` ➔ `Região Gamer`) com partículas proporcionais ao RTT, evaporação de pacotes perdidos e diagnóstico de saturação sob estresse. Substitui o gauge circular e o gráfico abstrato. |
+| `RouteTrailSummaryCard` | **Atestado da Rota HIG (Decisão 35):** síntese visual dos 3 nós pós-teste com selos semânticos de integridade (`checkmark.circle.fill` / alertas), integrando o resultado final. |
+| `LagCheckScore` | Pílula semântica no topo do Hero Editorial (`[ 92 · EXCELENTE ]`) com tipografia `.monospacedDigit()`. |
+| `MetricCard` (Grid 2x2) | Cards compactos com curvatura contínua 12pt para Ping, Jitter, Perda de Pacotes e Picos de Latência, com realce automático de cor na causa raiz. |
+| `PlatformSelectionSheet` | Seleção interativa da plataforma de jogo (iPhone, PlayStation, Xbox, PC, Nintendo Switch) antes de iniciar a medição. |
+| `PrimaryButton` | Ação principal da tela (Coral Solar `#FF6B35`, pílula, alto contraste, 52pt). |
+| `InsightBanner` | Explicação/causa em destaque da qualidade observada para a partida. |
 | `StatusMessage` | Estados de progresso, erro, cancelamento e inconclusivo. |
 | `EmptyState` | Ausência de histórico, catálogo indisponível, busca sem resultado. |
 

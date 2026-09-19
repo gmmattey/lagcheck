@@ -1,39 +1,115 @@
-# LagCheck — Decisão 35: Tela de Resultado HIG com Trilha Consolidada e Grid de Métricas
+# LagCheck — Decisão 35: Tela de Resultado HIG com Trilha Consolidada e Unificação da Jornada
 
-**Status:** Decisão aprovada pelo Dono do Produto (Luiz); em implementação  
+**Status:** Decisão aprovada pelo Dono do Produto (Luiz) e implementada no binário iOS  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Rian (iOS), Iury (Rede)  
-**Complementa:** `docs/01-funcional.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/10-decisao-experiencia-piloto.md`, `docs/11-decisao-detalhes-e-historico-local.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`, `docs/27-decisao-diagnostico-frequencia-wifi.md`, `docs/34-decisao-trilha-viva-medicao-e-estresse.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`, `docs/27-decisao-diagnostico-frequencia-wifi.md`, `docs/34-decisao-trilha-viva-medicao-e-estresse.md`
 
 ---
 
 ## 1. Contexto e Motivação de Produto (Marco)
 
-A experiência de medição do LagCheck foi aprimorada pela **Trilha Viva de Medição (`MeasurementLiveTrail`)**, que ilustra o fluxo de pacotes em tempo real através dos 3 nós da rede.
+Na evolução contínua da experiência do **LagCheck**, duas decisões de produto foram formalizadas pelo Dono do Produto:
 
-Na transição para a tela de **Resultado**, o usuário recebia um anel de score circular e uma lista vertical de métricas, criando uma descontinuidade visual com a trilha observada durante o teste.
-
-Para elevar a experiência ao padrão das **Human Interface Guidelines (HIG) da Apple** e ao estilo **Apple Games Editorial Hub**, a tela de resultado é reestruturada em torno de 4 componentes integrados:
-1. **Hero Editorial (Veredito Imediato):** Pílula semântica com o LagCheck Score e conclusão verbal em destaque.
-2. **Atestado da Rota (Trilha Consolidada):** Os 3 nós da medição convertidos em um atestado visual com selos de status (`checkmark.circle.fill` / `exclamationmark.triangle.fill`), permitindo identificar em 1 segundo a saúde de cada salto.
-3. **Grid de Métricas 2x2 HIG:** Cards agrupados compactos com curvatura contínua de 12pt, tipografia `.monospacedDigit()` e realce de cor para a causa raiz.
-4. **Painel de Ações Contextual:** Priorização inteligente da próxima ação (ex.: Deep Check em caso de instabilidade; novo teste em caso de sucesso).
+1. **Eliminação do Conceito de "Quick Check":**  
+   O usuário não deve escolher entre um teste preliminar incompleto e um "Deep Check". A experiência é unificada em um único teste direto: o **LagCheck**, que avalia a linha de base em repouso e a estabilidade sob carga controlada sem bifurcações artificiais na interface.
+2. **Substituição do Anel Circular pelo Wireframe Editorial HIG:**  
+   Durante a medição, a **Trilha Viva (`MeasurementLiveTrail`)** expõe os 3 nós da conexão em tempo real. No resultado, essa experiência se transforma no **Atestado da Rota (`RouteTrailSummaryCard`)**, complementado por um Hero editorial, Grid de Métricas 2x2 e Diagnóstico de Partida.
 
 ---
 
-## 2. Padrão Visual Apple HIG (Renan)
+## 2. Wireframe Canônico Aprovado (Apple HIG)
 
-* **Cards e Contêineres:** `RoundedRectangle(cornerRadius: 16, style: .continuous)` com borda sutil hairline de 0.5pt.
-* **Tipografia:** SF Pro nativo com Dynamic Type. Números e valores usam `.monospacedDigit()` com design arredondado (`.system(..., design: .rounded)`).
-* **Selos de Status Semânticos:**
-  * Sucesso / Conforme: `NLColor.scoreExcellent` (`#34C759`)
-  * Atenção / Instabilidade: `NLColor.scoreUnstable` (`#FFD60A`)
-  * Risco de Lag / Falha: `NLColor.coralSolarRed` (`#FF3823`)
-* **Acessibilidade:** Suporte completo ao VoiceOver com leitura ordenada do veredito, atestado de cada trecho e métricas individuais.
+A tela de resultado segue rigorosamente a hierarquia aprovada:
+
+```
+┌────────────────────────────────────────────────────────┐
+│                        RESULTADO                       │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│   [ 92 · EXCELENTE ]  ← Pílula semântica no topo       │
+│                                                        │
+│   Pronto para jogar                                    │
+│   Sua rota para São Paulo está rápida e estável.      │
+│   Fortnite · iPhone · São Paulo (AWS)                  │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│  ATESTADO DA ROTA (Trilha Consolidada)                 │
+│                                                        │
+│   (✓) Seu iPhone          Dispositivo de teste         │
+│        │                                               │
+│   (✓) Wi-Fi local         5 GHz · Excelente (< 2 ms)   │
+│        │                                               │
+│   (✓) São Paulo (AWS)     Respondendo · 24 ms          │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│  MÉTRICAS DETALHADAS (Grid 2x2 HIG)                    │
+│  ┌───────────────────────┬──────────────────────────┐  │
+│  │ 24 ms                 │ 1.2 ms                   │  │
+│  │ Ping (Mediana P50)    │ Jitter (Variação)        │  │
+│  ├───────────────────────┼──────────────────────────┤  │
+│  │ 0%                    │ 0                        │  │
+│  │ Perda de Pacotes      │ Picos de Latência        │  │
+│  └───────────────────────┴──────────────────────────┘  │
+│                                                        │
+├────────────────────────────────────────────────────────┤
+│  [Ícone Info] Diagnóstico de Partida                   │
+│  Nenhuma interferência encontrada no seu Wi-Fi nem     │
+│  na rota da internet. Aproveite a partida!             │
+│                                                        │
+│  [ BOTAO PRINCIPAL CORAL SOLAR: Testar Novamente ]     │
+│                                                        │
+│  [ Ver Detalhes Técnicos ]    [ Otimizar Conexão ]     │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 3. Arquitetura e Componentes iOS (Rian)
+## 3. Padrão Visual e Componentes Apple HIG (Renan)
 
-* **Novo Componente:** `RouteTrailSummaryCard` em `NolaggyDesign` (ou extensão de Resultado) para renderizar a trilha consolidada de 3 saltos.
-* **Refatoração:** `ResultFeatureView.swift` atualizado com o layout Hero Editorial, Trilha Consolidada, Grid 2x2 e Action Bar.
+* **Hero Editorial (Veredito Imediato):**
+  - Pílula semântica no topo (`Capsule` com borda hairline de 0.5pt): exibe exclusivamente `[ 92 · EXCELENTE ]`, eliminando rótulos de fase técnica.
+  - Título do veredito: tipografia `.system(size: 28, weight: .bold, design: .rounded)`.
+  - Explicação amigável em `NLTypography.callout`.
+  - Linha de contexto: `\(jogo) · \(plataforma) · \(região)` (ex.: `Fortnite · iPhone · São Paulo (AWS)`).
+
+* **Atestado da Rota (`RouteTrailSummaryCard`):**
+  - Três nós verticais encapsulados em cartão `RoundedRectangle(cornerRadius: 16, style: .continuous)` com bordas de 0.5pt.
+  - Selos semânticos de validação ótica:
+    - Verde (`checkmark.circle.fill`): nó saudável.
+    - Âmbar (`exclamationmark.triangle.fill`): oscilação / instabilidade (ex.: Wi-Fi 2.4 GHz).
+    - Coral Solar (`exclamationmark.triangle.fill`): gargalo severo ou perda.
+  - Conectores visuais verticais contínuos integrando os saltos.
+
+* **Grid de Métricas 2x2 HIG:**
+  - Título de seção em caixa alta discreta: `MÉTRICAS DETALHADAS`.
+  - Quatro cartões modulares com cantos contínuos de 12pt (`NLRadius.card`):
+    - `Ping (Mediana P50)` (ms)
+    - `Jitter (Variação)` (ms)
+    - `Perda de Pacotes` (%)
+    - `Picos de Latência` (quantidade)
+  - Numerais destacados com `.monospacedDigit()` e design arredondado.
+  - Realce automático de cor na borda e no valor caso uma métrica represente a causa primária de instabilidade.
+
+* **Diagnóstico de Partida (`InsightBanner`):**
+  - Card integrado com ícone semântico (`checkmark.shield.fill`, `info.circle.fill` ou `exclamationmark.triangle.fill`) traduzindo a saúde observada para a partida.
+
+* **Barra de Ações:**
+  - **Ação Primária (Coral Solar `#FF6B35`):** "Testar novamente" (`PrimaryButton`).
+  - **Ações Secundárias (Linha de 2 Botões):**
+    - "Ver Detalhes Técnicos" (abre `DeepCheckDetailsView` com dados aprofundados e impacto sob carga).
+    - "Otimizar Conexão" (abre o Gemini Connection Booster).
+  - Removido qualquer botão ou menção a "Fazer Deep Check".
+
+---
+
+## 4. Arquitetura e Implementação iOS (Rian)
+
+1. **`DeepCheckResultView.swift`:**
+   - Reescrito para implementar integralmente o wireframe canônico HIG.
+   - Recebe contexto resolvido com `platform` e `regionFriendlyName` (`GlobalProbeRegistry.friendlyLabel`).
+   - Apresenta o Atestado da Rota, Grid 2x2, Diagnóstico e Ações balanceadas.
+2. **`ResultFeatureView.swift`:**
+   - Atualizado com os mesmos títulos de métricas e remoção de qualquer menção a Quick/Deep Check.
+3. **`Localizable.strings` (pt-BR, en, es):**
+   - Chaves oficiais adicionadas: `result.title`, `result.route_trail.title`, `result.metrics.title`, `result.metric.ping`, `result.metric.jitter`, `result.metric.loss`, `result.metric.spikes`, `result.action.optimize`, `result.action.details`, `result.diagnostic.title`.

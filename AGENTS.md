@@ -58,6 +58,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `31` | Catálogo editorial com notas oficiais, requisitos de sistema e rede sem alucinação de dados | decidido e em implementação |
 | `32` | Diagnóstico de topologia de rede multiplayer a custo zero (tipo de NAT, CGNAT e duplo NAT via STUN RFC 5389) | decidido e em implementação |
 | `33` | Internacionalização multi-idiomas (pt-BR, en, es), resolução de mercados e lançamento global | decidido e implementado |
+| `34` | Trilha Viva de Medição (`MeasurementLiveTrail`), fluxo de pacotes UDP nos 3 nós e visualização de estresse sob carga | decidido e implementado |
+| `35` | Tela de Resultado HIG com Hero Editorial, Atestado da Rota consolidado (`RouteTrailSummaryCard`), Grid 2x2 e unificação definitiva do LagCheck | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

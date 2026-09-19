@@ -119,62 +119,59 @@ Para console ou computador, quando influenciar a interpretação do resultado, o
 - Se o console/PC usa Wi-Fi, a estimativa é mais próxima da experiência real.
 - Se usa Ethernet, o app informa que a rota de internet tem alta confiança, mas que a conexão local é estimada.
 
-O usuário pode iniciar o Quick Check com uma única ação depois dessas escolhas.
+O usuário pode iniciar o LagCheck com uma única ação depois dessas escolhas.
 
-### 7.3 Quick Check
+### 7.3 Medição ao Vivo: Trilha de Teste (Decisão 34)
 
-Objetivo: entregar uma resposta confiável e rápida, em aproximadamente 15 segundos.
+Objetivo: demonstrar a rota real dos pacotes em tempo real, eliminando gauges abstratos e identificando com precisão a origem de qualquer instabilidade.
 
-Durante o teste, a tela mostra:
+Durante o teste, a tela apresenta a **Trilha Viva de Medição (`MeasurementLiveTrail`)** estruturada em 3 nós verificáveis:
+1. `[ Seu iPhone ]`: Origem do tráfego local.
+2. `[ Wi-Fi local / Rede móvel ]`: Primeiro salto, aferido via micro-rajadas UDP no gateway local (`en0`) e diagnóstico de frequência (2.4 GHz vs 5 GHz).
+3. `[ Servidor / Região Gamer ]`: Destino de infraestrutura de referência (AWS GameLift, Azure PlayFab ou Valve A2S).
 
-- jogo e região em avaliação;
-- latência atual;
-- gráfico vivo simples da latência;
-- perda de pacotes e quantidade de spikes até o momento;
-- estados de progresso, por exemplo: "Medindo latência", "Verificando estabilidade" e "Procurando picos de lag".
+A trilha exibe:
+- Animação de pacotes fluindo entre os nós com cadência proporcional ao RTT ($P50$);
+- Evaporação visual de pacotes em caso de perda (*packet loss*);
+- Fase 1 (Repouso, ~15s) e Fase 2 (Sob carga controlada, ~15s via Cloudflare Worker);
+- Destaque visual de estresse e saturação de buffer (`MeasurementStressLocation`), discriminando se o gargalo é no enlace sem fio doméstico ou na rota externa da operadora.
 
-O gráfico é parte da explicação: um pico relevante deve ser visualmente percebido enquanto acontece. Não haverá velocímetro nem excesso de indicadores.
+Se a conexão de rede mudar durante o teste (ex.: de Wi-Fi para celular), o teste é cancelado e a leitura parcial descartada, garantindo integridade e confiabilidade.
 
-Se a conexão de rede mudar durante o teste, por exemplo de Wi-Fi para rede celular, o teste é cancelado. O app explica que a conexão mudou durante a medição e oferece reinício. Resultados de caminhos de rede diferentes nunca são misturados.
+### 7.4 Tela de Resultado HIG (Decisão 35)
 
-### 7.4 Resultado do Quick Check
+O resultado segue o padrão **Apple Games Editorial Hub / HIG**, organizando a entrega em 4 seções integradas:
 
-O resultado começa sempre pela decisão, seguido das métricas e da explicação.
+1. **Hero Editorial (Veredito Imediato):**
+   - Pílula semântica no topo: `[ 92 · EXCELENTE ]`.
+   - Veredito verbal em destaque bold: *"Pronto para jogar"*, *"Conexão instável"* ou *"Risco de lag"*.
+   - Explicação concisa da rota.
+   - Linha de contexto: `Fortnite · iPhone · São Paulo (AWS)`.
 
-Exemplo de resultado saudável:
+2. **Atestado da Rota (Trilha Consolidada):**
+   - Card `RouteTrailSummaryCard` consolidando os 3 nós com selos semânticos de integridade (`checkmark.circle.fill` verde, atenção amarela ou alerta vermelho).
 
-> **92 — Excelente**  
-> Pronto para jogar.
+3. **Grid de Métricas 2x2 HIG:**
+   - Quatro cards com curvatura contínua de 12pt e `.monospacedDigit()`:
+     - `Ping (Mediana P50)` (ms);
+     - `Jitter (Variação)` (ms);
+     - `Perda de Pacotes` (%);
+     - `Picos de Latência` (quantidade).
+   - Realce automático de cor na métrica identificada como causa raiz de instabilidade.
 
-Em seguida, o app mostra jogo, plataforma, região de referência, ping, jitter, perda e spikes. Uma explicação curta traduz o achado, como: "Sua conexão parece responsiva e estável para jogar Fortnite. Encontramos um pequeno pico que não deve ser perceptível na partida."
+4. **Diagnóstico de Partida (`InsightBanner`):**
+   - Resumo claro sobre a saúde da rede para a partida.
 
-Exemplo de resultado com risco:
+5. **Barra de Ações:**
+   - Botão Primário (Coral Solar `#FF6B35`): **Testar novamente**.
+   - Botões Secundários: **Ver Detalhes Técnicos** (abre folha técnica completa com histórico e comparação sob carga) e **Otimizar Conexão** (abre o Gemini Connection Booster).
 
-> **58 — Risco de lag**  
-> A perda de pacotes pode prejudicar sua partida.
+### 7.5 Unificação do LagCheck e Validação sob Carga
 
-As ações disponíveis são:
+A separação artificial entre "Quick Check" e "Deep Check" foi eliminada da experiência do usuário (Decisões 22 e 35). Existe apenas o **LagCheck**, que realiza a medição de repouso e valida o comportamento sob carga controlada (até 10 MB via endpoint seguro `/v1/load` do Cloudflare Worker).
 
-- **Testar novamente**;
-- **Ver detalhes**;
-- **Fazer Deep Check**, prioritário quando houver indício relevante de problema.
+Os dados aprofundados sob carga são acessados de forma limpa através de "Ver Detalhes Técnicos", sem poluir visualmente o resultado principal.
 
-### 7.5 Deep Check
-
-Objetivo: explicar a origem provável da instabilidade quando o Quick Check não for suficiente.
-
-O Deep Check ocorre em duas fases:
-
-1. **Em repouso (15 s):** acompanha a latência e a estabilidade para a região gamer.
-2. **Sob carga controlada (15 s):** simula uma pequena transferência enquanto continua observando a latência.
-
-O Deep Check dura aproximadamente 30 segundos no total. Cada fase realiza até dois probes UDP por segundo; a comparação só usa as distribuições separadas de cada fase.
-
-O Deep Check só fica disponível em Wi-Fi na V1, pois a fase sob carga transfere dados. Ela dura até 15 segundos e transfere no máximo 10 MB. Em 4G/5G, o app mantém o Quick Check disponível e informa que a investigação sob carga requer Wi-Fi.
-
-O resultado compara a condição em repouso com a condição sob carga. Por exemplo, uma latência que salta de 26 ms para 93 ms permite explicar: "Sua conexão fica instável quando está ocupada. Downloads ou streaming na rede podem causar lag."
-
-Além da conclusão, o Deep Check pode apresentar melhor região disponível, detalhes de estabilidade, causa provável e recomendação acionável.
 
 ### 7.6 Detalhes da conexão
 

@@ -57,7 +57,7 @@ flowchart TB
 
 ### 3.1 Apresentação e experiência
 
-Contém as superfícies de Home, descoberta de jogos, seleção de plataforma, Quick Check, Deep Check, resultado, detalhes, histórico e estados de erro.
+Contém as superfícies de Home, catálogo editorial de jogos estilo Netflix/Apple Games, seleção de plataforma (`PlatformSelectionSheet`), medição ao vivo com a Trilha de Teste (`MeasurementLiveTrail`), tela de resultado no padrão Apple HIG (`DeepCheckResultView` / `ResultFeatureView` com `RouteTrailSummaryCard`, Grid 2x2 e `InsightBanner`), detalhes técnicos com impacto sob carga (`DeepCheckDetailsView`), histórico e configurações.
 
 Essa camada só apresenta estado pronto para uso. Ela não calcula métricas, escolhe endpoints, interpreta UDP nem aplica regras de classificação.
 
