@@ -357,3 +357,80 @@ private final class UDPConnection: @unchecked Sendable {
         }
     }
 }
+
+/// Pré-validação curta e silenciosa para um candidato A2S já assinado. Não é
+/// scanner: abre no máximo uma conexão UDP para o host/porta recebido e só
+/// aceita uma resposta cuja identidade seja a esperada.
+public final class SteamA2SRoutePreflight: GameRoutePreflighting, @unchecked Sendable {
+    private let timeout: Duration
+    private let queue: DispatchQueue
+
+    public init(timeout: Duration = .seconds(2), queue: DispatchQueue = DispatchQueue(label: "com.lagcheck.a2s-preflight")) {
+        self.timeout = timeout
+        self.queue = queue
+    }
+
+    public func validates(candidate: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity) async -> Bool {
+        guard candidate.destination.protocolKind == .steamA2S,
+              let port = NWEndpoint.Port(rawValue: candidate.destination.port) else { return false }
+        let connection = NWConnection(host: NWEndpoint.Host(candidate.destination.host), port: port, using: .udp)
+        return await withCheckedContinuation { continuation in
+            let completion = A2SPreflightCompletion(connection: connection, continuation: continuation)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    connection.send(content: SteamQueryA2SPayloadCodec.encodeInitialRequest(), completion: .contentProcessed { error in
+                        guard error == nil else { completion.finish(false); return }
+                        Self.receiveInfo(from: connection, identity: identity, completion: completion)
+                    })
+                case .failed, .cancelled:
+                    completion.finish(false)
+                default:
+                    break
+                }
+            }
+            connection.start(queue: queue)
+            Task { [timeout] in
+                try? await Task.sleep(for: timeout)
+                completion.finish(false)
+            }
+        }
+    }
+
+    private static func receiveInfo(from connection: NWConnection, identity: RemoteCatalogRouteIdentity, completion: A2SPreflightCompletion) {
+        connection.receiveMessage { data, _, _, error in
+            guard error == nil, let data else { completion.finish(false); return }
+            if let token = try? SteamQueryA2SPayloadCodec.decodeChallenge(data) {
+                connection.send(content: SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: token), completion: .contentProcessed { error in
+                    guard error == nil else { completion.finish(false); return }
+                    receiveInfo(from: connection, identity: identity, completion: completion)
+                })
+                return
+            }
+            guard let info = try? SteamQueryA2SPayloadCodec.decodeInfo(data) else { completion.finish(false); return }
+            let nameMatches = identity.expectedServerNamePrefix.map { info.name.hasPrefix($0) } ?? true
+            completion.finish(info.appID == identity.expectedAppID && info.gameDirectory == identity.expectedGameDirectory && nameMatches)
+        }
+    }
+}
+
+private final class A2SPreflightCompletion: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private let connection: NWConnection
+
+    init(connection: NWConnection, continuation: CheckedContinuation<Bool, Never>) {
+        self.connection = connection
+        self.continuation = continuation
+    }
+
+    func finish(_ value: Bool) {
+        lock.lock()
+        let continuation = self.continuation
+        self.continuation = nil
+        lock.unlock()
+        guard let continuation else { return }
+        connection.cancel()
+        continuation.resume(returning: value)
+    }
+}

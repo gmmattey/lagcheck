@@ -115,6 +115,47 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         }
     }
 
+    func testAutomaticOwnedRouteTriesSignedA2SCandidatesInPriorityOrderAndKeepsCandidateInRouteFact() async throws {
+        let payload = try routedPayload()
+        let context = GameContext(gameID: "route-fixture", market: "BR", platform: .pc)
+
+        let resolved = try await AutomaticGameRouteResolver.resolve(
+            context,
+            in: payload,
+            preflighting: StubRoutePreflight(acceptedRouteIDs: ["community-br-second"])
+        )
+
+        XCTAssertEqual(resolved?.routeKind, .gameOwned)
+        XCTAssertEqual(resolved?.routeID, "community-br-community-br-second")
+        XCTAssertEqual(resolved?.candidateID, "community-br-second")
+        XCTAssertEqual(resolved?.destination.host, "second.community.example")
+    }
+
+    func testAutomaticOwnedRouteFallsBackToSignedAWSWhenNoIdentityPasses() async throws {
+        let payload = try routedPayload()
+        let context = GameContext(gameID: "route-fixture", market: "BR", platform: .pc)
+
+        let resolved = try await AutomaticGameRouteResolver.resolve(
+            context,
+            in: payload,
+            preflighting: StubRoutePreflight(acceptedRouteIDs: [])
+        )
+
+        XCTAssertEqual(resolved?.routeKind, .awsFallback)
+        XCTAssertEqual(resolved?.routeID, "aws-sa-east-1")
+        XCTAssertEqual(resolved?.destination.protocolKind, .gameLiftPing)
+    }
+
+    func testNormalCatalogResolutionNeverMeasuresAutomaticCandidateWithoutPreflight() throws {
+        let payload = try routedPayload()
+        let context = GameContext(gameID: "route-fixture", market: "BR", platform: .pc)
+
+        guard case let .available(resolved) = try RemoteCatalogVerifier.resolve(context, in: payload) else {
+            return XCTFail("Expected signed fallback")
+        }
+        XCTAssertEqual(resolved.routeKind, .awsFallback)
+    }
+
     private func payload(availableFortnite: Bool = true) throws -> RemoteCatalogPayload {
         let profiles = [
             RemoteCatalogProfile(id: "BATTLE_ROYALE_COMPETITIVE", ruleVersion: "pilot-2026.09.08.1"),
@@ -154,5 +195,51 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
 
     private func availableContext(profile: String, measurement: RemoteCatalogMeasurement) -> RemoteCatalogGameContext {
         RemoteCatalogGameContext(market: "BR", platforms: [.iphone], profileID: profile, availability: .available, measurement: measurement)
+    }
+
+    private func routedPayload() throws -> RemoteCatalogPayload {
+        let profile = RemoteCatalogProfile(id: "CASUAL_REALTIME", ruleVersion: "casual-realtime-2026.09.08.1")
+        let region = RemoteCatalogRegion(
+            id: "sa-east-1",
+            label: ["pt-BR": "São Paulo"],
+            probe: try ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770, protocolKind: .gameLiftPing)
+        )
+        let identity = RemoteCatalogRouteIdentity(expectedAppID: 730, expectedGameDirectory: "csgo", expectedServerNamePrefix: "Community")
+        let first = RemoteCatalogRouteCandidate(
+            id: "community-br-first", priority: 10,
+            destination: try ProbeDestination(host: "first.community.example", port: 27019, protocolKind: .steamA2S),
+            regionID: "sa-east-1", identity: identity, operatorEvidenceURL: "https://operator.example/first"
+        )
+        let second = RemoteCatalogRouteCandidate(
+            id: "community-br-second", priority: 20,
+            destination: try ProbeDestination(host: "second.community.example", port: 27020, protocolKind: .steamA2S),
+            regionID: "sa-east-1", identity: identity, operatorEvidenceURL: "https://operator.example/second"
+        )
+        let owned = RemoteCatalogRoute(
+            id: "community-br", kind: .gameOwned, status: .active, regionID: "sa-east-1",
+            strategy: .dedicatedServer, confidence: .high, precisionKey: "dedicatedServer",
+            selection: RemoteCatalogRouteSelection(candidates: [first, second])
+        )
+        let fallback = RemoteCatalogRoute(
+            id: "aws-sa-east-1", kind: .awsFallback, status: .active, regionID: "sa-east-1",
+            strategy: .genericRegion, confidence: .medium, precisionKey: "regionalReference"
+        )
+        return RemoteCatalogPayload(
+            schemaVersion: 3, catalogVersion: "test-v3", profiles: [profile], regions: [region],
+            games: [RemoteCatalogGame(
+                id: "route-fixture", name: "Route Fixture",
+                contexts: [RemoteCatalogGameContext(market: "BR", platforms: [.pc], profileID: profile.id, availability: .available, measurement: nil, routes: [owned, fallback])]
+            )],
+            assetBaseURL: "https://catalog.example/"
+        )
+    }
+}
+
+private struct StubRoutePreflight: GameRoutePreflighting {
+    let acceptedRouteIDs: Set<String>
+
+    func validates(candidate: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity) async -> Bool {
+        guard let routeID = candidate.routeID else { return false }
+        return acceptedRouteIDs.contains { routeID.hasSuffix($0) }
     }
 }

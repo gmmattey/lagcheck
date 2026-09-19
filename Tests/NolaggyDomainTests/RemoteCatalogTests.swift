@@ -266,22 +266,23 @@ final class RemoteCatalogTests: XCTestCase {
         }
     }
 
-    func testSchemaThreeChoosesActiveGameRouteBeforeAWSFallbackAndPreservesRouteFact() throws {
+    func testSchemaThreeExposesOnlySignedA2SCandidateForAutomaticPreflight() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
         let payload = schemaThreePayload(primaryStatus: .active)
         let verified = try verify(payload, with: privateKey)
 
-        let resolution = try RemoteCatalogVerifier.resolve(
+        let plan = try XCTUnwrap(RemoteCatalogVerifier.automaticRoutePlan(
             GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
             in: verified
-        )
+        ))
 
-        guard case let .available(resolved) = resolution else { return XCTFail("A rota própria ativa deve ser selecionada.") }
-        XCTAssertEqual(resolved.routeID, "route-fixture-owned")
-        XCTAssertEqual(resolved.routeKind, .gameOwned)
-        XCTAssertEqual(resolved.destination.host, "validated.example.invalid")
-        XCTAssertEqual(resolved.destination.protocolKind, .steamA2S)
-        XCTAssertEqual(resolved.strategy, .dedicatedServer)
+        XCTAssertEqual(plan.ownedCandidates.count, 1)
+        XCTAssertEqual(plan.ownedCandidates[0].context.routeID, "route-fixture-owned-route-fixture-a2s")
+        XCTAssertEqual(plan.ownedCandidates[0].context.candidateID, "route-fixture-a2s")
+        XCTAssertEqual(plan.ownedCandidates[0].context.routeKind, .gameOwned)
+        XCTAssertEqual(plan.ownedCandidates[0].context.destination.host, "validated.example.invalid")
+        XCTAssertEqual(plan.ownedCandidates[0].context.destination.protocolKind, .steamA2S)
+        XCTAssertEqual(plan.ownedCandidates[0].identity.expectedAppID, 730)
     }
 
     func testSchemaThreeUsesAWSFallbackWhenGameRouteIsPending() throws {
@@ -451,17 +452,23 @@ private extension RemoteCatalogTests {
             label: ["pt-BR": "São Paulo"],
             probe: try! ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770, protocolKind: .gameLiftPing)
         )
+        let candidate = RemoteCatalogRouteCandidate(
+            id: "route-fixture-a2s",
+            priority: 10,
+            destination: try! ProbeDestination(host: "validated.example.invalid", port: 27015, protocolKind: .steamA2S),
+            regionID: "sa-east-1",
+            identity: RemoteCatalogRouteIdentity(expectedAppID: 730, expectedGameDirectory: "csgo", expectedServerNamePrefix: "Fixture"),
+            operatorEvidenceURL: "https://operator.example.invalid/fixture"
+        )
         let owned = RemoteCatalogRoute(
             id: "route-fixture-owned",
             kind: .gameOwned,
             status: primaryStatus,
             regionID: "route-fixture-br",
-            destination: primaryStatus == .active
-                ? try! ProbeDestination(host: "validated.example.invalid", port: 27015, protocolKind: .steamA2S)
-                : nil,
             strategy: .dedicatedServer,
             confidence: .high,
-            precisionKey: "dedicatedServer"
+            precisionKey: "dedicatedServer",
+            selection: primaryStatus == .active ? RemoteCatalogRouteSelection(candidates: [candidate]) : nil
         )
         let fallback = RemoteCatalogRoute(
             id: "route-fixture-aws",

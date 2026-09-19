@@ -200,6 +200,12 @@ public struct RemoteCatalogRoute: Codable, Equatable, Sendable {
     public let confidence: MeasurementConfidence
     public let precisionKey: String
     public let validUntil: String?
+    /// Candidatos já autorizados e assinados para uma rota própria. O iPhone
+    /// jamais descobre hosts, resolve listas públicas ou aceita IP digitado
+    /// como parte desta política automática.
+    public let selection: RemoteCatalogRouteSelection?
+
+    public var candidates: [RemoteCatalogRouteCandidate]? { selection?.candidates }
 
     public init(
         id: String,
@@ -210,7 +216,8 @@ public struct RemoteCatalogRoute: Codable, Equatable, Sendable {
         strategy: MeasurementStrategy,
         confidence: MeasurementConfidence,
         precisionKey: String,
-        validUntil: String? = nil
+        validUntil: String? = nil,
+        selection: RemoteCatalogRouteSelection? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -221,6 +228,135 @@ public struct RemoteCatalogRoute: Codable, Equatable, Sendable {
         self.confidence = confidence
         self.precisionKey = precisionKey
         self.validUntil = validUntil
+        self.selection = selection
+    }
+}
+
+/// Identidade que uma resposta de protocolo precisa confirmar antes de um
+/// candidato próprio receber tráfego de medição. O catálogo descreve dados;
+/// o codec que sabe interpretá-los continua no binário iOS.
+public struct RemoteCatalogRouteIdentity: Codable, Equatable, Sendable {
+    public let expectedAppID: UInt16
+    public let expectedGameDirectory: String
+    public let expectedServerNamePrefix: String?
+
+    public init(expectedAppID: UInt16, expectedGameDirectory: String, expectedServerNamePrefix: String? = nil) {
+        self.expectedAppID = expectedAppID
+        self.expectedGameDirectory = expectedGameDirectory
+        self.expectedServerNamePrefix = expectedServerNamePrefix
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case expectedAppID = "appID"
+        case expectedGameDirectory = "gameDirectory"
+        case expectedServerNamePrefix = "namePrefix"
+    }
+}
+
+/// Um candidato de servidor dedicado publicado no catálogo assinado. A
+/// prioridade menor é testada primeiro; igualdade é desempatada pelo ID,
+/// nunca por RTT ou um host descoberto fora do catálogo.
+public struct RemoteCatalogRouteCandidate: Codable, Equatable, Sendable {
+    public let id: String
+    public let priority: Int
+    public let destination: ProbeDestination
+    public let regionID: String
+    public let identity: RemoteCatalogRouteIdentity
+    public let operatorEvidenceURL: String
+
+    public init(
+        id: String,
+        priority: Int,
+        destination: ProbeDestination,
+        regionID: String,
+        identity: RemoteCatalogRouteIdentity,
+        operatorEvidenceURL: String
+    ) {
+        self.id = id
+        self.priority = priority
+        self.destination = destination
+        self.regionID = regionID
+        self.identity = identity
+        self.operatorEvidenceURL = operatorEvidenceURL
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, priority
+        case host
+        case queryPort
+        case region = "region"
+        case identity = "expectedIdentity"
+        case operatorEvidenceURL
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        priority = try values.decode(Int.self, forKey: .priority)
+        regionID = try values.decode(String.self, forKey: .region)
+        identity = try values.decode(RemoteCatalogRouteIdentity.self, forKey: .identity)
+        operatorEvidenceURL = try values.decode(String.self, forKey: .operatorEvidenceURL)
+        destination = try ProbeDestination(
+            host: values.decode(String.self, forKey: .host),
+            port: values.decode(UInt16.self, forKey: .queryPort),
+            protocolKind: .steamA2S
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(id, forKey: .id)
+        try values.encode(priority, forKey: .priority)
+        try values.encode(destination.host, forKey: .host)
+        try values.encode(destination.port, forKey: .queryPort)
+        try values.encode(regionID, forKey: .region)
+        try values.encode(identity, forKey: .identity)
+        try values.encode(operatorEvidenceURL, forKey: .operatorEvidenceURL)
+    }
+}
+
+public enum RemoteCatalogRouteSelectionMode: String, Codable, Equatable, Sendable {
+    case automaticValidatedCandidates
+}
+
+public struct RemoteCatalogRouteSelection: Codable, Equatable, Sendable {
+    public let mode: RemoteCatalogRouteSelectionMode
+    public let maxCandidates: Int
+    public let candidates: [RemoteCatalogRouteCandidate]
+
+    public init(
+        mode: RemoteCatalogRouteSelectionMode = .automaticValidatedCandidates,
+        maxCandidates: Int = 3,
+        candidates: [RemoteCatalogRouteCandidate]
+    ) {
+        self.mode = mode
+        self.maxCandidates = maxCandidates
+        self.candidates = candidates
+    }
+}
+
+/// Plano determinístico entregue à aplicação depois da assinatura/schema do
+/// catálogo já terem sido aceitos. A aplicação pode apenas pré-validar os
+/// candidatos desta lista e, se todos falharem, usar o fallback assinado.
+public struct RemoteCatalogRoutePlan: Equatable, Sendable {
+    public let ownedCandidates: [ResolvedRemoteCatalogRouteCandidate]
+    public let fallback: ResolvedMeasurementContext
+
+    public init(ownedCandidates: [ResolvedRemoteCatalogRouteCandidate], fallback: ResolvedMeasurementContext) {
+        self.ownedCandidates = ownedCandidates
+        self.fallback = fallback
+    }
+}
+
+public struct ResolvedRemoteCatalogRouteCandidate: Equatable, Sendable {
+    public let context: ResolvedMeasurementContext
+    public let identity: RemoteCatalogRouteIdentity
+    public let priority: Int
+
+    public init(context: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity, priority: Int) {
+        self.context = context
+        self.identity = identity
+        self.priority = priority
     }
 }
 
@@ -331,6 +467,64 @@ public enum RemoteCatalogVerifier {
         try resolve(context, in: payload, excludingRouteIDs: [excludingRouteID])
     }
 
+    /// Entrega a política automática de uma rota v3 sem abrir socket. Só
+    /// candidatos previamente assinados entram aqui; a aplicação é obrigada a
+    /// pré-validá-los com um driver conhecido antes de usar um deles.
+    public static func automaticRoutePlan(
+        _ context: GameContext,
+        in payload: RemoteCatalogPayload,
+        now: Date = Date()
+    ) throws -> RemoteCatalogRoutePlan? {
+        guard payload.schemaVersion == routedCatalogSchemaVersion else { return nil }
+        try context.validateStructure()
+        guard let game = payload.games.first(where: { $0.id == context.gameID }),
+              let gameContext = game.contexts.first(where: { $0.market == context.market && $0.platforms.contains(context.platform) }),
+              gameContext.availability == .available,
+              let profile = payload.profiles.first(where: { $0.id == gameContext.profileID }),
+              let profileID = QualityProfileID(rawValue: gameContext.profileID),
+              let routes = gameContext.routes,
+              let fallbackRoute = routes.first(where: { $0.kind == .awsFallback && $0.status == .active && routeIsCurrent($0, now: now) }),
+              let fallbackDestination = resolvedDestination(for: fallbackRoute, regions: payload.regions) else {
+            return nil
+        }
+
+        let fallback = resolvedContext(
+            context,
+            catalogVersion: payload.catalogVersion,
+            profileID: profileID,
+            profileRuleVersion: profile.ruleVersion,
+            route: fallbackRoute,
+            destination: fallbackDestination
+        )
+        var ownedCandidates: [ResolvedRemoteCatalogRouteCandidate] = []
+        for route in routes where route.kind == .gameOwned && route.status == .active && routeIsCurrent(route, now: now) {
+            for candidate in route.candidates ?? [] {
+                let candidateRouteID = route.id + "-" + candidate.id
+                let candidateContext = resolvedContext(
+                    context,
+                    catalogVersion: payload.catalogVersion,
+                    profileID: profileID,
+                    profileRuleVersion: profile.ruleVersion,
+                    route: route,
+                    destination: candidate.destination,
+                    routeID: candidateRouteID,
+                    candidateID: candidate.id
+                )
+                ownedCandidates.append(ResolvedRemoteCatalogRouteCandidate(
+                    context: candidateContext,
+                    identity: candidate.identity,
+                    priority: candidate.priority
+                ))
+            }
+        }
+        ownedCandidates.sort { lhs, rhs in
+                lhs.priority == rhs.priority
+                    ? (lhs.context.routeID ?? "") < (rhs.context.routeID ?? "")
+                    : lhs.priority < rhs.priority
+        }
+        return RemoteCatalogRoutePlan(ownedCandidates: ownedCandidates, fallback: fallback)
+    }
+
     private static func resolve(
         _ context: GameContext,
         in payload: RemoteCatalogPayload,
@@ -358,18 +552,13 @@ public enum RemoteCatalogVerifier {
                   let destination = resolvedDestination(for: route, regions: payload.regions) else {
                 return .unavailable
             }
-            return .available(ResolvedMeasurementContext(
-                context: context,
+            return .available(resolvedContext(
+                context,
                 catalogVersion: payload.catalogVersion,
                 profileID: profileID,
                 profileRuleVersion: profile.ruleVersion,
-                regionID: route.regionID,
-                destination: destination,
-                strategy: route.strategy,
-                confidence: route.confidence,
-                precisionKey: route.precisionKey,
-                routeID: route.id,
-                routeKind: route.kind
+                route: route,
+                destination: destination
             ))
         }
         guard let measurement = gameContext.measurement,
@@ -616,6 +805,10 @@ public enum RemoteCatalogVerifier {
         context.routes?.first { route in
             !excludingIDs.contains(route.id) && route.status == .active &&
                 routeIsCurrent(route, now: now) &&
+                // Candidatos automáticos precisam passar pelo resolvedor da
+                // aplicação; `resolve` nunca pode iniciar uma sessão A2S sem
+                // a confirmação de identidade.
+                !(route.kind == .gameOwned && route.candidates != nil) &&
                 resolvedDestination(for: route, regions: regions) != nil
         }
     }
@@ -630,7 +823,35 @@ public enum RemoteCatalogVerifier {
         for route: RemoteCatalogRoute,
         regions: [RemoteCatalogRegion]
     ) -> ProbeDestination? {
-        route.destination ?? regions.first(where: { $0.id == route.regionID })?.probe
+        route.destination ?? route.candidates?
+            .sorted { $0.priority == $1.priority ? $0.id < $1.id : $0.priority < $1.priority }
+            .first?.destination ?? regions.first(where: { $0.id == route.regionID })?.probe
+    }
+
+    private static func resolvedContext(
+        _ context: GameContext,
+        catalogVersion: String,
+        profileID: QualityProfileID,
+        profileRuleVersion: String,
+        route: RemoteCatalogRoute,
+        destination: ProbeDestination,
+        routeID: String? = nil,
+        candidateID: String? = nil
+    ) -> ResolvedMeasurementContext {
+        ResolvedMeasurementContext(
+            context: context,
+            catalogVersion: catalogVersion,
+            profileID: profileID,
+            profileRuleVersion: profileRuleVersion,
+            regionID: route.regionID,
+            destination: destination,
+            strategy: route.strategy,
+            confidence: route.confidence,
+            precisionKey: route.precisionKey,
+            routeID: routeID ?? route.id,
+            routeKind: route.kind,
+            candidateID: candidateID
+        )
     }
 
     private static func validateRoutedPayload(_ payload: RemoteCatalogPayload) throws {
@@ -704,19 +925,48 @@ public enum RemoteCatalogVerifier {
                 throw RemoteCatalogError.invalidRoute
             }
         case .gameOwned:
-            // Pendências não carregam host improvisado. Quando ficam ativas,
-            // precisam trazer um destino e o driver UDP já existente no app.
+            // Pendências não carregam host improvisado. Uma rota automática
+            // ativa só pode publicar candidatos A2S que o binário sabe
+            // pré-validar; outros protocolos ficam em pendência e caem na AWS.
             if route.status == .active {
-                guard route.destination != nil,
+                guard route.destination == nil,
+                      let selection = route.selection,
+                      selection.mode == .automaticValidatedCandidates,
+                      selection.maxCandidates == 3,
+                      let candidates = route.candidates,
+                      !candidates.isEmpty,
+                      candidates.count <= selection.maxCandidates,
+                      Set(candidates.map(\.id)).count == candidates.count,
+                      Set(candidates.map { "\($0.destination.host):\($0.destination.port)" }).count == candidates.count,
                       route.strategy == .dedicatedServer,
                       route.confidence == .high,
                       route.precisionKey == "dedicatedServer" else {
                     throw RemoteCatalogError.invalidRoute
                 }
-            } else if route.destination != nil {
+                guard candidates.allSatisfy(valid) else { throw RemoteCatalogError.invalidRoute }
+            } else if route.destination != nil || route.selection != nil {
                 throw RemoteCatalogError.invalidRoute
             }
         }
+    }
+
+    private static func valid(_ candidate: RemoteCatalogRouteCandidate) -> Bool {
+        guard validIdentifier(candidate.id), candidate.priority >= 0,
+              candidate.destination.protocolKind == .steamA2S,
+              validIdentifier(candidate.regionID),
+              candidate.identity.expectedAppID > 0,
+              !candidate.identity.expectedGameDirectory.isEmpty,
+              candidate.identity.expectedGameDirectory.count <= 80,
+              candidate.identity.expectedGameDirectory == candidate.identity.expectedGameDirectory.lowercased(),
+              !candidate.identity.expectedGameDirectory.contains("\0"),
+              URL(string: candidate.operatorEvidenceURL)?.scheme == "https" else {
+            return false
+        }
+        guard let prefix = candidate.identity.expectedServerNamePrefix else { return true }
+        return !prefix.isEmpty && prefix.count <= 80 &&
+            prefix.unicodeScalars.allSatisfy { scalar in
+                !(0...31).contains(scalar.value) && !(127...159).contains(scalar.value)
+            }
     }
 
     private static func validIdentifier(_ value: String) -> Bool {

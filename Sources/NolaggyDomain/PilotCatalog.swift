@@ -192,6 +192,9 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
     /// Identifica a rota exata assinada que gerou esta medição. Nil é legado.
     public let routeID: String?
     public let routeKind: MeasurementRouteKind?
+    /// Candidato próprio efetivamente escolhido pela pré-validação automática.
+    /// Nil preserva snapshots legados e medições AWS sem candidato dedicado.
+    public let candidateID: String?
 
     public init(
         context: GameContext,
@@ -204,7 +207,8 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         confidence: MeasurementConfidence,
         precisionKey: String = "regionalReference",
         routeID: String? = nil,
-        routeKind: MeasurementRouteKind? = nil
+        routeKind: MeasurementRouteKind? = nil,
+        candidateID: String? = nil
     ) {
         self.context = context
         self.catalogVersion = catalogVersion
@@ -217,6 +221,7 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
         self.precisionKey = precisionKey
         self.routeID = routeID
         self.routeKind = routeKind
+        self.candidateID = candidateID
     }
 
     public func withEquipmentConnection(_ connection: NetworkKind?) -> ResolvedMeasurementContext {
@@ -237,7 +242,8 @@ public struct ResolvedMeasurementContext: Codable, Hashable, Sendable {
             confidence: confidence,
             precisionKey: precisionKey,
             routeID: routeID,
-            routeKind: routeKind
+            routeKind: routeKind,
+            candidateID: candidateID
         )
     }
 }

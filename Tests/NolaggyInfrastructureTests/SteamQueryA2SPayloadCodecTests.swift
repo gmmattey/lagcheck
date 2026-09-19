@@ -67,4 +67,16 @@ final class SteamQueryA2SPayloadCodecTests: XCTestCase {
         XCTAssertFalse(SteamQueryA2SPayloadCodec.isValidInfoResponse(Data(sampleChallengeResponseBytes)))
         XCTAssertFalse(SteamQueryA2SPayloadCodec.isValidInfoResponse(Data([0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x01])))
     }
+
+    func testDecodesIdentityFieldsFromA2SInfoResponse() throws {
+        var packet = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x49, 0x11])
+        packet.append("SP Community #1\0de_dust2\0csgo\0Counter-Strike 2\0".data(using: .utf8)!)
+        packet.append(contentsOf: [0xDA, 0x02]) // AppID 730, little-endian
+
+        let info = try SteamQueryA2SPayloadCodec.decodeInfo(packet)
+
+        XCTAssertEqual(info.name, "SP Community #1")
+        XCTAssertEqual(info.gameDirectory, "csgo")
+        XCTAssertEqual(info.appID, 730)
+    }
 }
