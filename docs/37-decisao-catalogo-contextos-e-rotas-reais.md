@@ -4,6 +4,11 @@
 **Data:** 19 de setembro de 2026  
 **Frentes:** Marco, Iury, Rian e Renan
 
+Esta decisão substitui o teto restrito de plataformas Debug da decisão 26 a
+partir do primeiro catálogo assinado que usar o schema 2. O envelope legado de
+schema 1 continua aceito apenas para que uma atualização inválida nunca deixe
+o app sem catálogo.
+
 ## Decisão
 
 O LagCheck preserva todos os jogos do catálogo, mas cada entrada passa a representar
