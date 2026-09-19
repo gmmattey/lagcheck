@@ -1,0 +1,37 @@
+# LagCheck — Decisão 40: assinatura e ativação do catálogo remoto v3
+
+**Status:** decidido pelo Dono do Produto; ativo no Worker após a publicação desta decisão
+
+**Data:** 19 de setembro de 2026
+
+**Responsáveis:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS)
+
+**Complementa:** `docs/14-decisao-catalogo-remoto-debug.md`, `docs/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/39-decisao-selecao-automatica-rotas-proprias.md`.
+
+---
+
+## 1. Decisão
+
+O catálogo remoto v3 será publicado no endpoint já autorizado `GET /v1/catalog.json`, assinado em Ed25519. Como não há build distribuído por TestFlight ou App Store, a chave pública do v3 pode ser adotada antes da primeira distribuição do app.
+
+O payload ativo usa `catalog-v3-2026.09.19.1`, schema `3` e validade de 30 dias. O Worker somente entrega o envelope já assinado: ele não contém nem gera chave privada.
+
+## 2. Custódia da chave
+
+- A chave privada é criada e mantida no Keychain local do macOS de publicação, no item de serviço `com.buildea.lagcheck.catalog.ed25519.v3` e conta `publisher`.
+- Nenhum material privado entra no repositório, no app, no Worker, em logs ou na documentação.
+- `worker/scripts/CatalogV3Signer.swift` é a rotina reprodutível de assinatura: lê o payload canônico, recupera a chave no Keychain e grava somente o envelope assinado.
+- A chave pública v3 fica embutida no verificador iOS e no verificador do Worker. A chave pública anterior permanece exclusivamente para validar o catálogo v1 empacotado como fallback offline.
+- Uma cópia de recuperação da chave privada exige procedimento de cofre aprovado separadamente; nunca deve ser versionada junto ao catálogo.
+
+## 3. Regras de operação
+
+1. Alterar o catálogo canônico e validar schema, regras de negócio, arte, hashes, perfis e rotas.
+2. Assinar o payload com a rotina local, informando emissão e expiração explícitas.
+3. Validar assinatura com a chave pública v3 e rodar testes do Worker e do iOS antes do deploy.
+4. Publicar pelo Worker existente e confirmar que o endpoint remoto devolve o envelope esperado e verificável.
+5. Quando expirar, repetir o processo com novo envelope; não alterar a chave privada sem uma decisão de rotação.
+
+## 4. Limites
+
+Ativar o catálogo não ativa destinos próprios pendentes, não remove o fallback AWS e não distribui o app. A primeira build iOS distribuída consumirá o envelope v3 na atualização remota; até lá, este é apenas o estado publicado da infraestrutura de catálogo.

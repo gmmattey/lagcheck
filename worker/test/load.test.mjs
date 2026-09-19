@@ -21,14 +21,14 @@ test("the load endpoint refuses other paths and methods", async () => {
   assert.equal(response.headers.get("allow"), "GET");
 });
 
-test("GET /v1/catalog.json returns the immutable signed Debug envelope", async () => {
+test("GET /v1/catalog.json returns the immutable signed v3 envelope", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
   const envelope = await response.json();
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
-  assert.equal(envelope.schemaVersion, 1);
-  assert.equal(envelope.catalogVersion, "debug-2026.09.18.1");
+  assert.equal(envelope.schemaVersion, 3);
+  assert.equal(envelope.catalogVersion, "catalog-v3-2026.09.19.1");
   assert.equal(envelope.algorithm, "Ed25519");
   assert.ok(envelope.payloadBase64.length > 0);
   assert.ok(envelope.signatureBase64.length > 0);
@@ -87,7 +87,7 @@ test("canonical v3 references the approved editorial artwork manifest exactly", 
 test("the Debug catalog payload is signed by the public key embedded in iOS", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
   const envelope = await response.json();
-  const rawPublicKey = Buffer.from("tCsSOLt9B7WpXalcu6iT6CxMrEx3w787rPRR7KXxGso=", "base64");
+  const rawPublicKey = Buffer.from("oe/5VSQfhWcma+W6DdUzAESJpjgTrLtkXAcT0nEbDwo=", "base64");
   const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
   const publicKey = createPublicKey({ key: Buffer.concat([spkiPrefix, rawPublicKey]), format: "der", type: "spki" });
 

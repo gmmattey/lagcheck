@@ -1,9 +1,11 @@
+import CATALOG_ENVELOPE from "../catalog/catalog-v3.envelope.json" with { type: "json" };
+
 const LOAD_BYTES = 10 * 1024 * 1024;
 const CHUNK_BYTES = 64 * 1024;
 
 // O Worker não assina em tempo de requisição e não contém chave privada. Este
 // envelope Debug já foi assinado sobre os bytes de payloadBase64 decodificados.
-const CATALOG_ENVELOPE = {
+const LEGACY_CATALOG_ENVELOPE = {
   schemaVersion: 1,
   catalogVersion: "debug-2026.09.18.1",
   issuedAt: "2026-09-18T00:00:00Z",
