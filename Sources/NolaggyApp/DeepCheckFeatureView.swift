@@ -227,6 +227,7 @@ struct DeepCheckFeatureView: View {
             gameName: gameName,
             platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
+            destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
             natSnapshot: nil,
             showDetails: { showingDetails = true },
@@ -243,11 +244,16 @@ struct DeepCheckFeatureView: View {
             gameName: gameName,
             platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
+            destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
             natSnapshot: nil,
             retry: restart,
             exit: cancelOrDismiss
         )
+    }
+
+    private var destinationKind: RouteDestinationKind {
+        resolvedContext.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference
     }
 
     private func terminal(kind: StatusMessage.Kind) -> some View {

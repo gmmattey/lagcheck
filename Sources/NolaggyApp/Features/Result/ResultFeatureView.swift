@@ -78,6 +78,7 @@ extension QuickCheckFeatureView {
                     wifiStatusText: wifiStatusText,
                     isLocalHealthy: isLocalHealthy,
                     destinationName: selectedRegionFriendlyName,
+                    destinationKind: selectedRegionalContext?.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference,
                     destinationStatusText: destinationStatus,
                     isDestinationHealthy: isDestinationHealthy
                 )

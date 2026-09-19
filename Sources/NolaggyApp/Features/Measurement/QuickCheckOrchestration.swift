@@ -121,28 +121,11 @@ extension QuickCheckFeatureView {
         }
         let context: ResolvedMeasurementContext
         if let platform, platform != baseContext.context.platform {
-            let updatedGameContext = GameContext(
-                gameID: baseContext.context.gameID,
-                market: baseContext.context.market,
-                platform: platform,
-                declaredExternalLink: baseContext.context.declaredExternalLink
-            )
-            context = ResolvedMeasurementContext(
-                context: updatedGameContext,
-                catalogVersion: baseContext.catalogVersion,
-                profileID: baseContext.profileID,
-                profileRuleVersion: baseContext.profileRuleVersion,
-                regionID: baseContext.regionID,
-                destination: baseContext.destination,
-                strategy: baseContext.strategy,
-                confidence: baseContext.confidence,
-                precisionKey: baseContext.precisionKey,
-                routeID: baseContext.routeID,
-                routeKind: baseContext.routeKind,
-                candidateID: baseContext.candidateID,
-                observedPhoneNetwork: baseContext.observedPhoneNetwork,
-                connectionFactsVersion: baseContext.connectionFactsVersion
-            )
+            guard let game = availableGames.first(where: { $0.id == baseContext.context.gameID }),
+                  let resolved = resolveGameContext(game, platform: platform) else {
+                return
+            }
+            context = resolved
         } else {
             context = baseContext
         }

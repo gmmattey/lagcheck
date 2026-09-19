@@ -1,5 +1,28 @@
 import SwiftUI
 
+/// Declara o tipo do último destino da rota sem presumir que todo destino é um
+/// servidor oficial do jogo.
+public enum RouteDestinationKind: Sendable {
+    case regionalReference
+    case dedicatedServer
+
+    var title: String {
+        switch self {
+        case .regionalReference:
+            String(localized: "route_destination.regional_reference", defaultValue: "Região de referência")
+        case .dedicatedServer:
+            String(localized: "route_destination.dedicated_server", defaultValue: "Servidor dedicado")
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .regionalReference: "mappin.and.ellipse"
+        case .dedicatedServer: "server.rack"
+        }
+    }
+}
+
 /// Card de síntese e atestado dos 3 nós da rota no encerramento da medição.
 /// Padrão HIG da Apple com curvatura contínua, selos de validação ótica e hierarquia clara.
 public struct RouteTrailSummaryCard: View {
@@ -7,6 +30,7 @@ public struct RouteTrailSummaryCard: View {
     private let wifiStatusText: String
     private let isLocalHealthy: Bool
     private let destinationName: String
+    private let destinationKind: RouteDestinationKind
     private let destinationStatusText: String
     private let isDestinationHealthy: Bool
 
@@ -15,6 +39,7 @@ public struct RouteTrailSummaryCard: View {
         wifiStatusText: String,
         isLocalHealthy: Bool = true,
         destinationName: String,
+        destinationKind: RouteDestinationKind = .regionalReference,
         destinationStatusText: String,
         isDestinationHealthy: Bool = true
     ) {
@@ -22,6 +47,7 @@ public struct RouteTrailSummaryCard: View {
         self.wifiStatusText = wifiStatusText
         self.isLocalHealthy = isLocalHealthy
         self.destinationName = destinationName
+        self.destinationKind = destinationKind
         self.destinationStatusText = destinationStatusText
         self.isDestinationHealthy = isDestinationHealthy
     }
@@ -60,11 +86,11 @@ public struct RouteTrailSummaryCard: View {
                 // Conector 2
                 connector(isHealthy: isDestinationHealthy)
 
-                // Nó 3: Servidor / Região Gamer
+                // Nó 3: destino medido, explicitando se é referência regional ou servidor dedicado.
                 summaryNode(
-                    icon: "server.rack",
-                    title: destinationName,
-                    detail: destinationStatusText,
+                    icon: destinationKind.icon,
+                    title: destinationKind.title,
+                    detail: "\(destinationName) · \(destinationStatusText)",
                     isHealthy: isDestinationHealthy,
                     statusBadge: isDestinationHealthy ? "OK" : String(localized: "result.route_trail.badge_slow", defaultValue: "Lento")
                 )

@@ -191,6 +191,157 @@ final class RemoteCatalogTests: XCTestCase {
         }
     }
 
+    func testSchemaTwoResolvesAnExplicitPlayFabDestinationWithEvidence() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        var payload = schemaTwoPayload()
+        let playFab = RemoteCatalogRegion(
+            id: "playfab-sa",
+            label: ["pt-BR": "São Paulo (Azure)", "en": "São Paulo (Azure)"],
+            probe: try ProbeDestination(
+                host: "qos.example.invalid",
+                port: 3075,
+                protocolKind: .playFabQoS
+            ),
+            evidence: RemoteCatalogDestinationEvidence(
+                id: "playfab-qos-contract",
+                sourceURL: "https://learn.microsoft.com/gaming/playfab/multiplayer/servers/using-qos-beacons-to-measure-player-latency-to-azure",
+                reviewedAt: "2026-09-18T00:00:00Z"
+            )
+        )
+        var regions = payload.regions
+        regions.append(playFab)
+        var games = payload.games
+        let minecraftIndex = games.firstIndex { $0.id == "minecraft" }!
+        games[minecraftIndex] = RemoteCatalogGame(id: "minecraft", name: "Minecraft", contexts: [
+            RemoteCatalogGameContext(
+                market: "BR", platforms: [.iphone], profileID: "CASUAL_REALTIME", availability: .available,
+                measurement: RemoteCatalogMeasurement(
+                    candidateRegionIDs: ["playfab-sa"], candidatePriorities: ["playfab-sa": 10],
+                    strategy: .genericRegion, confidence: .medium, precisionKey: "regionalReference"
+                )
+            )
+        ])
+        payload = RemoteCatalogPayload(
+            schemaVersion: payload.schemaVersion,
+            catalogVersion: payload.catalogVersion,
+            profiles: payload.profiles,
+            regions: regions,
+            games: games
+        )
+
+        let verified = try verify(payload, with: privateKey)
+        let resolution = try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "minecraft", market: "BR", platform: .iphone),
+            in: verified
+        )
+
+        guard case let .available(context) = resolution else { return XCTFail("Expected a resolved context.") }
+        XCTAssertEqual(context.destination.host, "qos.example.invalid")
+        XCTAssertEqual(context.probeProtocol, .playFabQoS)
+        XCTAssertEqual(context.strategy, .genericRegion)
+        XCTAssertEqual(context.confidence, .medium)
+    }
+
+    func testSchemaTwoResolvesAnExplicitSteamDestinationWithEvidence() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        var payload = schemaTwoPayload()
+        let steam = RemoteCatalogRegion(
+            id: "steam-sp",
+            label: ["pt-BR": "Servidor SP", "en": "SP Server"],
+            probe: try ProbeDestination(
+                host: "cs2.example.invalid",
+                port: 27015,
+                protocolKind: .steamA2S
+            ),
+            evidence: RemoteCatalogDestinationEvidence(
+                id: "steam-a2s-contract",
+                sourceURL: "https://developer.valvesoftware.com/wiki/Server_queries",
+                reviewedAt: "2026-09-18T00:00:00Z"
+            )
+        )
+        var regions = payload.regions
+        regions.append(steam)
+        var games = payload.games
+        let cs2Index = games.firstIndex { $0.id == "cs2" }!
+        games[cs2Index] = RemoteCatalogGame(id: "cs2", name: "Counter-Strike 2", contexts: [
+            RemoteCatalogGameContext(
+                market: "BR", platforms: [.iphone], profileID: "BATTLE_ROYALE_COMPETITIVE", availability: .available,
+                measurement: RemoteCatalogMeasurement(
+                    candidateRegionIDs: ["steam-sp"], candidatePriorities: ["steam-sp": 10],
+                    strategy: .dedicatedServer, confidence: .high, precisionKey: "dedicatedServer"
+                )
+            )
+        ])
+        payload = RemoteCatalogPayload(
+            schemaVersion: payload.schemaVersion,
+            catalogVersion: payload.catalogVersion,
+            profiles: payload.profiles,
+            regions: regions,
+            games: games
+        )
+
+        let verified = try verify(payload, with: privateKey)
+        let resolution = try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "cs2", market: "BR", platform: .iphone),
+            in: verified
+        )
+
+        guard case let .available(context) = resolution else { return XCTFail("Expected a resolved context.") }
+        XCTAssertEqual(context.destination.host, "cs2.example.invalid")
+        XCTAssertEqual(context.probeProtocol, .steamA2S)
+        XCTAssertEqual(context.strategy, .dedicatedServer)
+        XCTAssertEqual(context.confidence, .high)
+    }
+
+    func testSchemaTwoRejectsNonGameLiftDestinationWithoutEvidence() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        var payload = schemaTwoPayload()
+        var regions = payload.regions
+        regions[0] = RemoteCatalogRegion(
+            id: "sa-east-1",
+            label: ["pt-BR": "São Paulo", "en": "São Paulo"],
+            probe: try ProbeDestination(host: "qos.example.invalid", port: 3075, protocolKind: .playFabQoS)
+        )
+        payload = RemoteCatalogPayload(
+            schemaVersion: payload.schemaVersion,
+            catalogVersion: payload.catalogVersion,
+            profiles: payload.profiles,
+            regions: regions,
+            games: payload.games
+        )
+
+        XCTAssertThrowsError(try verify(payload, with: privateKey)) { error in
+            XCTAssertEqual(error as? RemoteCatalogError, .unsupportedDebugCatalog)
+        }
+    }
+
+    func testSchemaTwoRejectsA2SDestinationClaimingRegionalPrecision() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        var payload = schemaTwoPayload()
+        var regions = payload.regions
+        regions[0] = RemoteCatalogRegion(
+            id: "sa-east-1",
+            label: ["pt-BR": "Servidor SP", "en": "SP Server"],
+            probe: try ProbeDestination(host: "cs2.example.invalid", port: 27015, protocolKind: .steamA2S),
+            evidence: RemoteCatalogDestinationEvidence(
+                id: "steam-a2s-contract",
+                sourceURL: "https://developer.valvesoftware.com/wiki/Server_queries",
+                reviewedAt: "2026-09-18T00:00:00Z"
+            )
+        )
+        payload = RemoteCatalogPayload(
+            schemaVersion: payload.schemaVersion,
+            catalogVersion: payload.catalogVersion,
+            profiles: payload.profiles,
+            regions: regions,
+            games: payload.games
+        )
+
+        XCTAssertThrowsError(try verify(payload, with: privateKey)) { error in
+            XCTAssertEqual(error as? RemoteCatalogError, .invalidAvailability)
+        }
+    }
+
     func testSchemaOneRejectsCandidateFieldsToKeepCompatibilityExplicit() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
         var payload = debugPayload()

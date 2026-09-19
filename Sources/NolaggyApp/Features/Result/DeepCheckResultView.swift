@@ -13,6 +13,7 @@ struct DeepCheckResultView: View {
     let gameName: String
     let platform: Platform
     let regionFriendlyName: String
+    let destinationKind: RouteDestinationKind
     let isWiFi: Bool
     let showDetails: () -> Void
     let showBooster: () -> Void
@@ -83,6 +84,7 @@ struct DeepCheckResultView: View {
                     wifiStatusText: wifiStatusText,
                     isLocalHealthy: isLocalHealthy,
                     destinationName: regionFriendlyName,
+                    destinationKind: destinationKind,
                     destinationStatusText: destinationStatus,
                     isDestinationHealthy: isDestinationHealthy
                 )

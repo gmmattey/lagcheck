@@ -417,6 +417,10 @@
 /* Platform Picker */
 "lagcheck.platform_picker.title" = "Which platform?";
 "lagcheck.platform_picker.subtitle %@" = "Select the device where you will play %@ to test the network route.";
+"lagcheck.platform_picker.unavailable.title" = "No route for this platform";
+"lagcheck.platform_picker.unavailable.message" = "There is not yet a confirmed measurement route for this game on this platform.";
+"lagcheck.platform_picker.unavailable.back" = "Go back";
+"lagcheck.platform_picker.unavailable.accessibility" = "No route for this platform. There is not yet a confirmed measurement route for this game on this platform.";
 
 /* Live Measurement Trail (Decision 34) */
 "live_trail.node.device" = "Your iPhone";
@@ -431,6 +435,8 @@
 /* Result Screen HIG (Decision 35) */
 "result.title" = "Result";
 "result.route_trail.title" = "Route Certificate";
+"route_destination.regional_reference" = "Reference region";
+"route_destination.dedicated_server" = "Dedicated server";
 "result.metrics.title" = "Detailed Metrics";
 "result.metric.ping" = "Ping (Median P50)";
 "result.metric.jitter" = "Jitter (Variance)";

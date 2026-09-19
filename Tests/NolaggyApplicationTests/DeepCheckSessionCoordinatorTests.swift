@@ -175,8 +175,8 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
     private var plan: DeepCheckPlan {
         DeepCheckPlan(
-            restProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770)),
-            loadProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770)),
+            restProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770, protocolKind: .gameLiftPing)),
+            loadProbePlan: QuickCheckPlan(endpoint: MeasurementEndpoint(host: "example.invalid", port: 7770, protocolKind: .gameLiftPing)),
             loadRequest: LoadRequest(url: URL(string: "https://example.invalid/v1/load")!)
         )
     }
