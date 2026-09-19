@@ -25,12 +25,12 @@ struct DeepCheckResultView: View {
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi
             ? (isLocalHealthy
-                ? NSLocalizedString("result.route_trail.wifi_healthy", comment: "")
-                : NSLocalizedString("result.route_trail.wifi_unstable", comment: ""))
-            : NSLocalizedString("result.route_trail.cellular_active", comment: "")
+                ? AppLocalization.string("result.route_trail.wifi_healthy", comment: "")
+                : AppLocalization.string("result.route_trail.wifi_unstable", comment: ""))
+            : AppLocalization.string("result.route_trail.cellular_active", comment: "")
         let pingMs = milliseconds(result.metrics.rest.p50Milliseconds)
         let destinationStatus = String(
-            format: NSLocalizedString("result.route_trail.destination_responding %@", comment: ""),
+            format: AppLocalization.string("result.route_trail.destination_responding %@", comment: ""),
             pingMs
         )
         let scoreColor = scoreToneColor(for: interpretation.scoreBand)

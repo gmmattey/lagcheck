@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 import OSLog
 import NolaggyApplication
 import NolaggyDomain
@@ -8,11 +9,13 @@ private let boosterLogger = Logger(subsystem: "com.nolaggy.app", category: "Gemi
 public enum GeminiConnectionBoosterServiceError: LocalizedError, Equatable {
     case notConfigured
     case invalidResponse
+    case unexpectedLanguage
 
     public var errorDescription: String? {
         switch self {
         case .notConfigured: "Connection tips are not configured for this build."
         case .invalidResponse: "The connection tips service returned an invalid response."
+        case .unexpectedLanguage: "The connection tips service responded in an unexpected language."
         }
     }
 }
@@ -169,6 +172,16 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
             boosterLogger.error("Payload fora dos critérios de negócio: summary vazio ou contagem inválida (\(decodedPayload.items.count) itens).")
             throw GeminiConnectionBoosterServiceError.invalidResponse
         }
+
+        guard Self.isAdviceLanguageValid(
+            declaredLanguage: decodedPayload.language,
+            summary: decodedPayload.summary,
+            items: decodedPayload.items.map { ($0.title, $0.detail) },
+            expected: request.language
+        ) else {
+            boosterLogger.error("Gemini returned advice outside the requested language \(request.language.rawValue, privacy: .public).")
+            throw GeminiConnectionBoosterServiceError.unexpectedLanguage
+        }
         
         let items = decodedPayload.items.map { item in
             let category: BoosterActionCategory
@@ -197,9 +210,48 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         )
     }
     
-    private func buildPrompt(for req: ConnectionBoosterRequest) -> String {
-        let isPortuguese = req.locale.lowercased().starts(with: "pt")
-        let langInstruction = isPortuguese ? "Responda obrigatoriamente em Português do Brasil (pt-BR)." : "Respond strictly in English (en-US)."
+    func buildPrompt(for req: ConnectionBoosterRequest) -> String {
+        switch req.language {
+        case .ptBR:
+            return portuguesePrompt(for: req)
+        case .en:
+            return englishPrompt(for: req)
+        case .es:
+            return spanishPrompt(for: req)
+        }
+    }
+
+    /// The model must declare its output language and the returned prose is
+    /// checked independently. A mismatched response is discarded; no fallback
+    /// recommendation is created from partial or translated content.
+    static func isAdviceLanguageValid(
+        declaredLanguage: String,
+        summary: String,
+        items: [(String, String)],
+        expected: ConnectionBoosterLanguage
+    ) -> Bool {
+        guard declaredLanguage.caseInsensitiveCompare(expected.rawValue) == .orderedSame else {
+            return false
+        }
+
+        let prose = ([summary] + items.flatMap { [$0.0, $0.1] })
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !prose.isEmpty else { return false }
+
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(prose)
+        let detected = recognizer.dominantLanguage?.rawValue.lowercased()
+        let expectedCode: String
+        switch expected {
+        case .ptBR: expectedCode = "pt"
+        case .en: expectedCode = "en"
+        case .es: expectedCode = "es"
+        }
+        return detected == expectedCode
+    }
+
+    private func portuguesePrompt(for req: ConnectionBoosterRequest) -> String {
         
         let impactDesc: String
         if let impact = req.loadImpactMilliseconds {
@@ -241,7 +293,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
 
         return """
         Você é o assistente técnico de rede do app LagCheck. Sua missão é fornecer dicas práticas e diretas para o jogador melhorar sua estabilidade de conexão.
-        \(langInstruction)
+        Responda exclusivamente em Português do Brasil (pt-BR). Todas as frases, inclusive os campos JSON, devem estar nesse idioma.
 
         DIRETRIZES DE TOM DE VOZ (INVIOLÁVEIS):
         - Tom calmo, direto, preciso, usando termos naturais da plataforma/jogo.
@@ -263,6 +315,7 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
 
         FORMATO DE SAÍDA (JSON ESTRITO):
         {
+          "language": "pt-BR",
           "summary": "Uma frase curta resumindo o diagnóstico da conexão nesta medição.",
           "items": [
             {
@@ -273,6 +326,118 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
           ]
         }
         """
+    }
+
+    private func englishPrompt(for req: ConnectionBoosterRequest) -> String {
+        let loadImpact = req.loadImpactMilliseconds.map { String(format: "%.1f ms of added delay under heavy use", $0) } ?? "not measured"
+        let wifi = englishWiFiDescription(req.wifiBandEstimate)
+        let nat = englishNATDescription(req.natTopology)
+        return """
+        You are LagCheck's network assistant. Give the player practical, direct advice to improve connection stability.
+        Respond exclusively in English (en). Every sentence, including JSON field values, must be in English.
+
+        VOICE RULES (NON-NEGOTIABLE):
+        - Be calm, direct, and precise, using natural game and platform terms.
+        - Never use terms such as 'zero lag', 'perfect network', 'guaranteed', 'turbo mode', or 'GG'.
+        - Never promise miracles or infallible future performance.
+        - Do not write long paragraphs or introductions.
+        - Return 3 to 5 concrete, actionable steps.
+
+        REAL MEASUREMENT DATA (DEEP CHECK):
+        - Game: \(req.gameName)
+        - Player platform: \(req.platform.rawValue)
+        - iPhone connection type: \(req.networkKind.rawValue)
+        - Wi-Fi frequency / stability: \(wifi)
+        - NAT / network topology: \(nat)
+        - Idle RTT P50: \(String(format: "%.1f", req.p50Milliseconds)) ms
+        - Jitter: \(String(format: "%.1f", req.jitterMilliseconds)) ms
+        - Packet loss: \(String(format: "%.1f", req.packetLossRate * 100))%
+        - Load impact (bufferbloat): \(loadImpact)
+
+        STRICT JSON OUTPUT:
+        {
+          "language": "en",
+          "summary": "One short sentence summarizing this connection measurement.",
+          "items": [{
+            "category": "router_equipment" | "platform_system" | "isp_connection",
+            "title": "Clear action in a few words",
+            "detail": "One or two objective sentences explaining how and why to do it."
+          }]
+        }
+        """
+    }
+
+    private func spanishPrompt(for req: ConnectionBoosterRequest) -> String {
+        let loadImpact = req.loadImpactMilliseconds.map { String(format: "%.1f ms de retraso adicional bajo uso intenso", $0) } ?? "no medido"
+        let wifi = spanishWiFiDescription(req.wifiBandEstimate)
+        let nat = spanishNATDescription(req.natTopology)
+        return """
+        Eres el asistente de red de LagCheck. Ofrece al jugador consejos prácticos y directos para mejorar la estabilidad de su conexión.
+        Responde exclusivamente en español (es). Todas las frases, incluidos los valores de los campos JSON, deben estar en español.
+
+        REGLAS DE VOZ (OBLIGATORIAS):
+        - Mantén un tono tranquilo, directo y preciso, con términos naturales del juego y la plataforma.
+        - Nunca uses expresiones como 'lag cero', 'red perfecta', 'garantizado', 'modo turbo' o 'GG'.
+        - Nunca prometas milagros ni rendimiento futuro infalible.
+        - No escribas párrafos largos ni introducciones.
+        - Devuelve de 3 a 5 acciones concretas y realizables.
+
+        DATOS REALES DE LA MEDICIÓN (DEEP CHECK):
+        - Juego: \(req.gameName)
+        - Plataforma del jugador: \(req.platform.rawValue)
+        - Tipo de conexión en el iPhone: \(req.networkKind.rawValue)
+        - Frecuencia / estabilidad Wi-Fi: \(wifi)
+        - Topología de NAT / red: \(nat)
+        - RTT P50 en reposo: \(String(format: "%.1f", req.p50Milliseconds)) ms
+        - Jitter: \(String(format: "%.1f", req.jitterMilliseconds)) ms
+        - Pérdida de paquetes: \(String(format: "%.1f", req.packetLossRate * 100))%
+        - Impacto bajo carga (bufferbloat): \(loadImpact)
+
+        SALIDA JSON ESTRICTA:
+        {
+          "language": "es",
+          "summary": "Una frase corta que resuma esta medición de conexión.",
+          "items": [{
+            "category": "router_equipment" | "platform_system" | "isp_connection",
+            "title": "Acción clara en pocas palabras",
+            "detail": "Una o dos frases objetivas que expliquen cómo y por qué hacerlo."
+          }]
+        }
+        """
+    }
+
+    private func englishWiFiDescription(_ diagnostic: WiFiBandDiagnostic?) -> String {
+        switch diagnostic {
+        case .confirmed24GHz?: "Confirmed 2.4 GHz Wi-Fi. Prioritize moving to 5 GHz or using Ethernet."
+        case .suspected24GHzContention?: "Severe variation or contention typical of 2.4 GHz or unstable signal was observed. Suggest testing 5 GHz or moving closer to the router."
+        case .confirmed5GHzOrHigher?, .stableWiFi?: "5 GHz or stable Wi-Fi with low local jitter."
+        case .inconclusive?, nil: "not measured or inconclusive"
+        }
+    }
+
+    private func spanishWiFiDescription(_ diagnostic: WiFiBandDiagnostic?) -> String {
+        switch diagnostic {
+        case .confirmed24GHz?: "Wi-Fi de 2,4 GHz confirmado. Prioriza cambiar a 5 GHz o usar cable Ethernet."
+        case .suspected24GHzContention?: "Se observaron variaciones o congestión intensa típicas de 2,4 GHz o de señal inestable. Sugiere probar 5 GHz o acercarse al router."
+        case .confirmed5GHzOrHigher?, .stableWiFi?: "Wi-Fi de 5 GHz o estable, con poco jitter local."
+        case .inconclusive?, nil: "sin medición o sin resultado concluyente"
+        }
+    }
+
+    private func englishNATDescription(_ topology: NATTopologySnapshot?) -> String {
+        guard let topology else { return "not measured" }
+        if topology.cgnatStatus.isImpacted { return "CGNAT detected (RFC 6598). Suggest asking the ISP about IPv6 or a public dynamic IP for gaming." }
+        if topology.doubleNATStatus.isImpacted { return "Double NAT detected (two chained routers). Strongly suggest setting the secondary router to Access Point or Bridge mode." }
+        if topology.natType.isMultiplayerRestricted { return "Strict NAT (Type 3) detected. Recommend enabling UPnP on the router for matchmaking." }
+        return "NAT \(topology.natType.shortLabel), with no critical topology restrictions."
+    }
+
+    private func spanishNATDescription(_ topology: NATTopologySnapshot?) -> String {
+        guard let topology else { return "sin medición" }
+        if topology.cgnatStatus.isImpacted { return "Se detectó CGNAT (RFC 6598). Sugiere consultar al proveedor por IPv6 o una IP pública dinámica para jugar." }
+        if topology.doubleNATStatus.isImpacted { return "Se detectó doble NAT (dos routers en cadena). Recomienda configurar el router secundario en modo Punto de Acceso o Bridge." }
+        if topology.natType.isMultiplayerRestricted { return "Se detectó NAT estricta (Tipo 3). Recomienda activar UPnP en el router para el emparejamiento." }
+        return "NAT \(topology.natType.shortLabel), sin restricciones críticas de topología."
     }
     
 }
@@ -314,6 +479,7 @@ private struct GeminiPartResponse: Decodable {
 }
 
 private struct GeminiAdvicePayload: Decodable {
+    let language: String
     let summary: String
     let items: [GeminiAdviceItem]
 }

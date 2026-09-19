@@ -40,7 +40,7 @@ struct PlatformHealthBannerView: View {
                         .lineSpacing(2)
 
                     if !health.affectedServices.isEmpty {
-                        Text(String(format: NSLocalizedString("platform_health.affected_services %@", comment: ""), health.affectedServices.joined(separator: ", ")))
+                        Text(String(format: AppLocalization.string("platform_health.affected_services %@", comment: ""), health.affectedServices.joined(separator: ", ")))
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textTertiary)
                             .padding(.top, NLSpacing.xxs)
@@ -73,7 +73,7 @@ struct PlatformHealthBannerView: View {
 
     private var bannerTitle: String {
         let key = isMajorOutage ? "platform_health.outage.title %@" : "platform_health.degraded.title %@"
-        return String(format: NSLocalizedString(key, comment: ""), health.serviceName)
+        return String(format: AppLocalization.string(key, comment: ""), health.serviceName)
     }
 
     private var bannerMessage: String {
@@ -81,10 +81,10 @@ struct PlatformHealthBannerView: View {
             return details
         }
         let key = isMajorOutage ? "platform_health.outage.message" : "platform_health.degraded.message"
-        return NSLocalizedString(key, comment: "")
+        return AppLocalization.string(key, comment: "")
     }
 
     private var badgeText: String? {
-        isMajorOutage ? "Fora do ar" : "Instável"
+        AppLocalization.string(isMajorOutage ? "platform_health.status.outage" : "platform_health.status.degraded")
     }
 }

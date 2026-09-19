@@ -179,11 +179,11 @@ struct GameDetailNetworkDemandsCard: View {
         guard let metrics = observedMetrics, let p50 = metrics.p50Milliseconds else { return nil }
         let latencyFormatted = "\(Int(p50)) ms"
         if p50 <= demands.optimalPingMs {
-            return String(format: NSLocalizedString("game_detail.fit.excellent_desc %@", comment: ""), latencyFormatted)
+            return String(format: AppLocalization.string("game_detail.fit.excellent_desc %@", comment: ""), latencyFormatted)
         } else if p50 <= demands.acceptablePingMs {
-            return String(format: NSLocalizedString("game_detail.fit.acceptable_desc %@", comment: ""), latencyFormatted)
+            return String(format: AppLocalization.string("game_detail.fit.acceptable_desc %@", comment: ""), latencyFormatted)
         } else {
-            return String(format: NSLocalizedString("game_detail.fit.suboptimal_desc %@", comment: ""), latencyFormatted)
+            return String(format: AppLocalization.string("game_detail.fit.suboptimal_desc %@", comment: ""), latencyFormatted)
         }
     }
 }

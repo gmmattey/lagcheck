@@ -8,10 +8,10 @@ public enum NLScoreClassification: String, CaseIterable, Sendable {
 
     public var label: LocalizedStringKey {
         switch self {
-        case .excellent: "Excelente"
-        case .great: "Ótimo"
-        case .unstable: "Instável"
-        case .lagRisk: "Risco de lag"
+        case .excellent: "score.classification.excellent"
+        case .great: "score.classification.great"
+        case .unstable: "score.classification.unstable"
+        case .lagRisk: "score.classification.lag_risk"
         }
     }
 
@@ -86,7 +86,7 @@ public struct NolaggyScore: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityDescriptionOverride ?? defaultAccessibilityDescription)
+        .accessibilityLabel(accessibilityDescriptionOverride.map(Text.init) ?? defaultAccessibilityDescription)
         .animation(reduceMotion ? nil : NLMotion.scoreReveal, value: outcomeDescription)
     }
 
@@ -139,8 +139,8 @@ public struct NolaggyScore: View {
     private var label: LocalizedStringKey {
         switch outcome {
         case let .revealed(_, classification): classification.label
-        case .inconclusive: "Inconclusivo"
-        case .cancelled: "Cancelado"
+        case .inconclusive: "score.outcome.inconclusive"
+        case .cancelled: "score.outcome.cancelled"
         }
     }
     private var scoreColor: Color {
@@ -157,12 +157,12 @@ public struct NolaggyScore: View {
         case .cancelled: "cancelled"
         }
     }
-    private var defaultAccessibilityDescription: String {
+    private var defaultAccessibilityDescription: Text {
         switch outcome {
         case let .revealed(score, classification):
-            ["Nolaggy Score \(score)", classification.rawValue == "lagRisk" ? "Risco de lag" : classification.rawValue.capitalized, summary].compactMap { $0 }.joined(separator: ", ")
-        case .inconclusive: "Resultado inconclusivo"
-        case .cancelled: "Teste cancelado"
+            Text("score.accessibility.title") + Text(" \(score), ") + Text(classification.label) + (summary.map { Text(", \($0)") } ?? Text(""))
+        case .inconclusive: Text("score.accessibility.inconclusive")
+        case .cancelled: Text("score.accessibility.cancelled")
         }
     }
 }

@@ -360,19 +360,19 @@ struct HomeStateEditorialHero: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         let relative = formatter.localizedString(for: date, relativeTo: Date())
-        return String(format: NSLocalizedString("home.hero.last_check_format %@", comment: ""), relative)
+        return String(format: AppLocalization.string("home.hero.last_check_format %@", comment: ""), relative)
     }
 
     private var accessibilitySummary: String {
-        let gameName = game?.name ?? NSLocalizedString("home.hero.no_game_selected", comment: "")
+        let gameName = game?.name ?? AppLocalization.string("home.hero.no_game_selected", comment: "")
         if let lastEntry {
             if lastEntry.result.metrics.validResponseCount == 0 {
-                return "\(gameName), \(regionName), \(NSLocalizedString("home.hero.inconclusive_title", comment: ""))"
+                return "\(gameName), \(regionName), \(AppLocalization.string("home.hero.inconclusive_title", comment: ""))"
             } else {
                 return "\(gameName), \(regionName), Score \(lastEntry.result.finalScore), \(relativeTimeString(for: lastEntry.completedAt))"
             }
         } else {
-            return "\(gameName), \(regionName), \(NSLocalizedString("home.hero.ready_title", comment: ""))"
+            return "\(gameName), \(regionName), \(AppLocalization.string("home.hero.ready_title", comment: ""))"
         }
     }
 }
@@ -505,7 +505,7 @@ private struct HomeRecentCompactCard: View {
                         .lineLimit(1)
 
                     if isInconclusive {
-                        Text(String(format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""), relativeShortTime(for: lastEntry.completedAt)))
+                        Text(String(format: AppLocalization.string("catalog.recent.inconclusive_time", comment: ""), relativeShortTime(for: lastEntry.completedAt)))
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textSecondary)
                     } else {
@@ -555,7 +555,7 @@ private struct HomeRecentCompactCard: View {
         let time = relativeShortTime(for: lastEntry.completedAt)
         if isInconclusive {
             let status = String(
-                format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""),
+                format: AppLocalization.string("catalog.recent.inconclusive_time", comment: ""),
                 time
             )
             return "\(game.name), \(status)"
@@ -911,7 +911,7 @@ struct HomeDecisionCard: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         let relative = formatter.localizedString(for: date, relativeTo: Date())
-        return String(format: NSLocalizedString("home.hero.last_check_format %@", comment: ""), relative)
+        return String(format: AppLocalization.string("home.hero.last_check_format %@", comment: ""), relative)
     }
 
     private func platformName(_ platform: Platform) -> String {
@@ -1174,7 +1174,7 @@ private struct CatalogRecentTestsSection: View {
                                         .font(NLTypography.caption)
                                         .foregroundStyle(NLColor.textSecondary)
                                         .lineLimit(1)
-                                    Text(String(format: NSLocalizedString("catalog.recent.context", comment: ""), platformsTitle(item.game), routeLabel(for: item.lastEntry)))
+                                    Text(String(format: AppLocalization.string("catalog.recent.context", comment: ""), platformsTitle(item.game), routeLabel(for: item.lastEntry)))
                                         .font(NLTypography.caption)
                                         .foregroundStyle(NLColor.textTertiary)
                                         .lineLimit(1)
@@ -1202,7 +1202,7 @@ private struct CatalogRecentTestsSection: View {
 
     private func accessibilityLabel(for item: HomeRecentTestsSection.RecentItem) -> String {
         let context = String(
-            format: NSLocalizedString("catalog.recent.context", comment: ""),
+            format: AppLocalization.string("catalog.recent.context", comment: ""),
             platformsTitle(item.game),
             routeLabel(for: item.lastEntry)
         )
@@ -1213,12 +1213,12 @@ private struct CatalogRecentTestsSection: View {
         let relativeTime = relativeTime(for: entry.completedAt)
         guard entry.result.metrics.validResponseCount >= 10 else {
             return String(
-                format: NSLocalizedString("catalog.recent.inconclusive_time", comment: ""),
+                format: AppLocalization.string("catalog.recent.inconclusive_time", comment: ""),
                 relativeTime
             )
         }
         return String(
-            format: NSLocalizedString("catalog.recent.score_time", comment: ""),
+            format: AppLocalization.string("catalog.recent.score_time", comment: ""),
             entry.result.finalScore,
             relativeTime
         )
@@ -1232,10 +1232,10 @@ private struct CatalogRecentTestsSection: View {
         default: languageCode = "en"
         }
         guard let region = GlobalProbeRegistry.definition(for: entry.resolvedContext.regionID) else {
-            return NSLocalizedString("catalog.recent.reference_route", comment: "")
+            return AppLocalization.string("catalog.recent.reference_route", comment: "")
         }
         return String(
-            format: NSLocalizedString("catalog.recent.route", comment: ""),
+            format: AppLocalization.string("catalog.recent.route", comment: ""),
             region.localizedLabel(for: languageCode)
         )
     }

@@ -5,14 +5,14 @@ import NolaggyInfrastructure
 
 @main
 struct NolaggyApp: App {
-    @AppStorage("app_selected_language") private var selectedLanguage: String = AppLanguage.system.rawValue
+    @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
     private let catalogRepository: RemoteCatalogRepository
     @State private var catalogState: CatalogState
 
     private var currentLocale: Locale {
-        (AppLanguage(rawValue: selectedLanguage) ?? .system).locale
+        AppLocalization.locale
     }
 
     init() {

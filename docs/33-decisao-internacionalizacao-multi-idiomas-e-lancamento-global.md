@@ -19,6 +19,8 @@ Ficam estabelecidas quatro diretrizes mandatórias:
    - Paridade de 100% nas chaves entre todos os arquivos `.lproj`.
    - Nenhuma string voltada ao usuário pode permanecer como texto literal chumbado em código Swift.
 4. **Integração com Ajustes de Idioma do Sistema Operacional:** Em Configurações, a linha de Idioma deve oferecer acesso direto às preferências do aplicativo no iOS (`UIApplication.openSettingsURLString`), permitindo que o usuário escolha seu idioma preferido através do recurso *Per-App Language Settings* da Apple.
+5. **Idioma efetivo único:** O idioma do sistema é o padrão; uma escolha explícita da pessoa no LagCheck o substitui enquanto estiver ativa. Toda copy apresentada — texto de tela, VoiceOver, erro, estado vazio, formato textual e conteúdo editorial dinâmico — deve usar esse mesmo idioma efetivo. Não é aceitável uma tela parcialmente traduzida.
+6. **IA no idioma efetivo:** As dicas pós-Deep Check devem receber o locale efetivo no contrato e retornar exclusivamente em `pt-BR`, `en` ou `es` correspondente. O pedido inteiro enviado ao modelo deve estar coerente com o idioma alvo; conteúdo em idioma inesperado, vazio ou fora do contrato é falha recuperável, nunca uma tradução ou recomendação inventada no cliente.
 
 ---
 
@@ -44,6 +46,7 @@ Ficam estabelecidas quatro diretrizes mandatórias:
    - Configuração de `developmentLanguage: en` e registro formal de `knownRegions: [Base, en, pt-BR, es]`.
 4. **Remoção de Strings Literais:**
    - Componentes de detalhes editoriais e fichas técnicas (`GameDetailEditorialComponents.swift`, `NATTopologyModels.swift`) passam a consumir chaves formais de localização.
+5. **Propagação do locale:** A escolha efetiva deve ser injetada nos adaptadores que montam textos e formatos. `NSLocalizedString`, `Locale.current` ou `String(format:)` não podem contornar essa escolha quando ela divergir do idioma do sistema.
 
 ---
 

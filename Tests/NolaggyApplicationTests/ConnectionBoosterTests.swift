@@ -32,6 +32,66 @@ final class ConnectionBoosterTests: XCTestCase {
         XCTAssertEqual(sanitizedPlain, "{\"summary\": \"ok\"}")
     }
 
+    func testRequestMapsSupportedLocalesToTheExpectedAdviceLanguage() {
+        XCTAssertEqual(ConnectionBoosterRequest.localeLanguage("pt-BR"), .ptBR)
+        XCTAssertEqual(ConnectionBoosterRequest.localeLanguage("en-US"), .en)
+        XCTAssertEqual(ConnectionBoosterRequest.localeLanguage("es-MX"), .es)
+    }
+
+    func testPromptIsEntirelyTargetedToRequestedLanguage() {
+        let service = GeminiConnectionBoosterService(apiKey: "test")
+
+        let portuguese = service.buildPrompt(for: boosterRequest(locale: "pt-BR"))
+        XCTAssertTrue(portuguese.contains("Português do Brasil"))
+        XCTAssertTrue(portuguese.contains("\"language\": \"pt-BR\""))
+
+        let english = service.buildPrompt(for: boosterRequest(locale: "en-US"))
+        XCTAssertTrue(english.contains("Respond exclusively in English"))
+        XCTAssertTrue(english.contains("\"language\": \"en\""))
+        XCTAssertFalse(english.contains("DADOS DA MEDIÇÃO REAL"))
+
+        let spanish = service.buildPrompt(for: boosterRequest(locale: "es-ES"))
+        XCTAssertTrue(spanish.contains("Responde exclusivamente en español"))
+        XCTAssertTrue(spanish.contains("\"language\": \"es\""))
+        XCTAssertFalse(spanish.contains("DADOS DA MEDIÇÃO REAL"))
+    }
+
+    func testLanguageValidationAcceptsPortugueseEnglishAndSpanishAdvice() {
+        XCTAssertTrue(GeminiConnectionBoosterService.isAdviceLanguageValid(
+            declaredLanguage: "pt-BR",
+            summary: "A conexão apresentou pouca variação nesta medição.",
+            items: [("Use a rede de 5 GHz", "Aproxime-se do roteador para reduzir interferências e oscilações.")],
+            expected: .ptBR
+        ))
+        XCTAssertTrue(GeminiConnectionBoosterService.isAdviceLanguageValid(
+            declaredLanguage: "en",
+            summary: "This measurement showed low variation in the connection.",
+            items: [("Use the 5 GHz network", "Move closer to the router to reduce interference and instability.")],
+            expected: .en
+        ))
+        XCTAssertTrue(GeminiConnectionBoosterService.isAdviceLanguageValid(
+            declaredLanguage: "es",
+            summary: "Esta medición mostró poca variación en la conexión.",
+            items: [("Usa la red de 5 GHz", "Acércate al router para reducir interferencias e inestabilidad.")],
+            expected: .es
+        ))
+    }
+
+    func testLanguageValidationRejectsAdviceInAnotherLanguageWithoutFallback() {
+        XCTAssertFalse(GeminiConnectionBoosterService.isAdviceLanguageValid(
+            declaredLanguage: "pt-BR",
+            summary: "This measurement showed low variation in the connection.",
+            items: [("Use the 5 GHz network", "Move closer to the router to reduce interference and instability.")],
+            expected: .ptBR
+        ))
+        XCTAssertFalse(GeminiConnectionBoosterService.isAdviceLanguageValid(
+            declaredLanguage: "en",
+            summary: "Esta medición mostró poca variación en la conexión.",
+            items: [("Usa la red de 5 GHz", "Acércate al router para reducir interferencias e inestabilidad.")],
+            expected: .en
+        ))
+    }
+
     func testVocabularyGuardrailSanitizesProhibitedGamerTerms() {
         let text = "Com isso você tem zero lag garantido e amassou no servidor"
         let sanitized = VocabularyGuardrail.sanitize(text)
@@ -124,6 +184,25 @@ final class ConnectionBoosterTests: XCTestCase {
             XCTFail("State should be loaded after retry")
         }
     }
+}
+
+private extension ConnectionBoosterRequest {
+    static func localeLanguage(_ locale: String) -> ConnectionBoosterLanguage {
+        ConnectionBoosterLanguage(localeIdentifier: locale)
+    }
+}
+
+private func boosterRequest(locale: String) -> ConnectionBoosterRequest {
+    ConnectionBoosterRequest(
+        gameName: "Fortnite",
+        platform: .iphone,
+        networkKind: .wifi,
+        p50Milliseconds: 25,
+        jitterMilliseconds: 2,
+        packetLossRate: 0,
+        loadImpactMilliseconds: 5,
+        locale: locale
+    )
 }
 
 private final class FailingBoosterService: ConnectionBoosterService, @unchecked Sendable {

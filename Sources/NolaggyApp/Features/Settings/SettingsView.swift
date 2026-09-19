@@ -25,11 +25,11 @@ struct SettingsView: View {
 
     private var regionDetailLabel: String {
         regionCandidates.first(where: { $0.id == (manualRegionID ?? RegionalPreferenceIdentifiers.automatic) })?.label
-            ?? NSLocalizedString("settings.region.automatic", comment: "")
+            ?? AppLocalization.string("settings.region.automatic", comment: "")
     }
 
     @Environment(\.openURL) private var openURL
-    @AppStorage("app_selected_language") private var selectedLanguage: String = AppLanguage.system.rawValue
+    @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     @State private var showingDeleteConfirmation = false
     @State private var deletionFailed = false
 
@@ -204,7 +204,7 @@ struct SettingsView: View {
     private var versionDescription: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
-        return String(format: NSLocalizedString("settings.version.value", comment: ""), version, build)
+        return String(format: AppLocalization.string("settings.version.value", comment: ""), version, build)
     }
 
     private func settingValueRow(_ title: LocalizedStringKey, symbol: String, value: String) -> some View {

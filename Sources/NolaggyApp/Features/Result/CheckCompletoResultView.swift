@@ -151,7 +151,7 @@ public struct CheckCompletoResultView: View {
     }
 
     private func heroAccessibilityLabel(verdict: CheckCompletoVerdict) -> String {
-        let verdictLocalized = NSLocalizedString(verdict.titleKey, comment: "")
+        let verdictLocalized = AppLocalization.string(verdict.titleKey, comment: "")
         if let result {
             return String(
                 localized: "quick_check.result.score_accessibility",

@@ -112,7 +112,8 @@ struct DeepCheckFeatureView: View {
                     jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
                     packetLossRate: result.metrics.rest.packetLossPercentage / 100.0,
                     loadImpactMilliseconds: result.metrics.loadImpact?.increaseMilliseconds,
-                    wifiBandEstimate: wifiBandEstimate
+                    wifiBandEstimate: wifiBandEstimate,
+                    locale: locale.identifier
                 )
                 ConnectionBoosterSheet(request: req, coordinator: boosterCoordinator)
             } else {

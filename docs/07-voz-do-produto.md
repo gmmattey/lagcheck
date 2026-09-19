@@ -1,7 +1,7 @@
 # LagCheck — voz do produto
 
 **Status:** regra de comunicação da V1  
-**Idiomas:** PT-BR e inglês  
+**Idiomas:** PT-BR, inglês e espanhol
 **Documentos relacionados:** [Funcional](./01-funcional.md) · [Sistema de design](./04-design-system.md) · [Governança](./05-governanca-e-fluxo-de-trabalho.md)
 
 ## 1. A voz do LagCheck
@@ -19,7 +19,7 @@ Não fala como operadora de internet, streamer, gamer caricato ou painel técnic
 5. **Seja honesto no inconclusivo.** Dados insuficientes não são uma nota baixa e não recebem recomendação positiva. Explique o limite e ofereça uma ação possível.
 6. **Traduza antes de detalhar.** “Sua conexão ficou instável” vem antes de “jitter alto”. Termos técnicos aparecem nos detalhes ou quando ajudam diretamente a agir.
 7. **Use frases curtas e verbos ativos.** Prefira “Tente novamente” a “Uma nova tentativa poderá ser realizada”.
-8. **Mantenha a mesma personalidade nos dois idiomas.** Inglês não é tradução palavra por palavra; ele precisa manter a mesma clareza, sobriedade e confiança.
+8. **Mantenha a mesma personalidade nos três idiomas.** Inglês e espanhol não são tradução palavra por palavra; precisam manter a mesma clareza, sobriedade e confiança.
 
 ## 3. Vocabulário
 
@@ -114,7 +114,8 @@ Não chamar o achado de “bufferbloat” na mensagem principal. O termo técnic
 
 ## 6. Regras de localização
 
-- PT-BR é a referência de intenção e precisa soar natural no Brasil; inglês é escrito para soar natural, não espelhado literalmente.
+- PT-BR é a referência de intenção e precisa soar natural no Brasil; inglês e espanhol são escritos para soar naturais, não espelhados literalmente. O espanhol é pan-hispânico, claro e formal sem rigidez.
+- O idioma efetivo é o idioma do sistema, salvo escolha explícita e ativa da pessoa no LagCheck. Nenhum texto apresentado, inclusive VoiceOver, erro, formatação textual e retorno da IA, pode consultar outro locale.
 - Nomes de produto permanecem: `LagCheck Score`, `Quick Check` e `Deep Check`.
 - Unidade e número seguem a localidade do sistema quando aplicável. Siglas técnicas, como `ms` e `%`, permanecem estáveis.
 - Texto de ação é curto. A interface deve acomodar PT-BR como caso de expansão, mas a copy não pode depender de truncamento.
@@ -128,6 +129,5 @@ Antes de publicar um texto novo, confirme:
 2. Ela explica a consequência para a partida sem prometer demais?
 3. Há uma próxima ação quando a pessoa precisa agir?
 4. O texto continua verdadeiro em console/PC, região de referência e resultado inconclusivo?
-5. PT-BR e inglês mantêm a mesma intenção e cabem no componente?
+5. PT-BR, inglês e espanhol mantêm a mesma intenção e cabem no componente?
 6. Ele pode ser entendido sem conhecer jargão de rede?
-

@@ -8,9 +8,9 @@ extension QuickCheckFeatureView {
     func resultView(result: QualityResult) -> some View {
         let profile = selectedRegionalContext?.profileID ?? .battleRoyaleCompetitive
         let interpretation = ResultInterpreter.interpret(result, profile: profile)
-        let headline = NSLocalizedString(interpretation.headlineKey.rawValue, comment: "")
+        let headline = AppLocalization.string(interpretation.headlineKey.rawValue, comment: "")
         let scoreAccessibilityDescription = String(
-            format: NSLocalizedString("quick_check.result.score_accessibility", comment: ""),
+            format: AppLocalization.string("quick_check.result.score_accessibility", comment: ""),
             interpretation.score,
             headline
         )
@@ -19,11 +19,11 @@ extension QuickCheckFeatureView {
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi
             ? (isLocalHealthy
-                ? NSLocalizedString("result.route_trail.wifi_healthy", comment: "")
-                : NSLocalizedString("result.route_trail.wifi_unstable", comment: ""))
-            : NSLocalizedString("result.route_trail.cellular_active", comment: "")
+                ? AppLocalization.string("result.route_trail.wifi_healthy", comment: "")
+                : AppLocalization.string("result.route_trail.wifi_unstable", comment: ""))
+            : AppLocalization.string("result.route_trail.cellular_active", comment: "")
         let destinationStatus = String(
-            format: NSLocalizedString("result.route_trail.destination_responding %@", comment: ""),
+            format: AppLocalization.string("result.route_trail.destination_responding %@", comment: ""),
             milliseconds(interpretation.metrics.p50Milliseconds)
         )
         let scoreColor = scoreToneColor(for: interpretation.scoreBand)

@@ -36,7 +36,7 @@ struct PlatformSelectionSheet: View {
                     .foregroundStyle(NLColor.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text(String(format: NSLocalizedString("lagcheck.platform_picker.subtitle %@", comment: ""), gameName))
+                Text(String(format: AppLocalization.string("lagcheck.platform_picker.subtitle %@", comment: ""), gameName))
                     .font(NLTypography.footnote)
                     .foregroundStyle(NLColor.textSecondary)
                     .multilineTextAlignment(.center)

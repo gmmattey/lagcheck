@@ -30,7 +30,7 @@ struct GameDetailPresentation {
             case .unstable: key = "game_detail.verdict.unstable.message %@"
             case .lagRisk: key = "game_detail.verdict.lag_risk.message %@"
             }
-            return String(format: NSLocalizedString(key, comment: ""), gameName)
+            return String(format: AppLocalization.string(key, comment: ""), gameName)
         case .measuring: return String(localized: "game_detail.verdict.measuring.message")
         case .inconclusive, .failed: return String(localized: "game_detail.verdict.inconclusive.message")
         }
@@ -87,7 +87,7 @@ struct GameDetailMeasurementScope: View {
     private var scopeText: String {
         switch platform {
         case .iphone:
-            return NSLocalizedString("game_detail.scope.iphone", comment: "")
+            return AppLocalization.string("game_detail.scope.iphone", comment: "")
         case .playstation:
             return externalScope(for: "PlayStation")
         case .xbox:
@@ -103,7 +103,7 @@ struct GameDetailMeasurementScope: View {
         let connectionKey = externalLink == .wifi
             ? "game_detail.scope.external_wifi %@"
             : "game_detail.scope.external_cable %@"
-        return String(format: NSLocalizedString(connectionKey, comment: ""), platformName)
+        return String(format: AppLocalization.string(connectionKey, comment: ""), platformName)
     }
 }
 
@@ -328,7 +328,7 @@ struct GameDetailRatingsGrid: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text([title, subtitle].compactMap { $0 }.joined(separator: ", ")))
-        .accessibilityHint(Text("Abre na App Store"))
+        .accessibilityHint(Text("game_detail.ratings.app_store_hint"))
     }
 
     private func metacriticButton(score: Int, count: Int?, urlString: String) -> some View {
@@ -354,7 +354,7 @@ struct GameDetailRatingsGrid: View {
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
                     if let count {
-                        Text(String(format: NSLocalizedString("game_detail.ratings.critics_count %@", comment: ""), "\(count)"))
+                        Text(String(format: AppLocalization.string("game_detail.ratings.critics_count %@", comment: ""), "\(count)"))
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textSecondary)
                             .lineLimit(1)
@@ -373,13 +373,13 @@ struct GameDetailRatingsGrid: View {
             .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(Color.white.opacity(0.08), lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text("Metacritic: \(score)"))
-        .accessibilityHint(Text("Abre no Metacritic"))
+        .accessibilityLabel(Text("game_detail.ratings.metacritic_label \(score)"))
+        .accessibilityHint(Text("game_detail.ratings.metacritic_hint"))
     }
 
     private func reviewCountSubtitle(for rating: EditorialRating) -> String? {
         rating.reviewCount.map { count in
-            String(format: NSLocalizedString("game_detail.ratings.reviews_count %@", comment: ""), formattedCount(count))
+            String(format: AppLocalization.string("game_detail.ratings.reviews_count %@", comment: ""), formattedCount(count))
         }
     }
 

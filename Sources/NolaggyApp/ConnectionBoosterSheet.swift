@@ -55,11 +55,11 @@ public struct ConnectionBoosterSheet: View {
     
     private var headerView: some View {
         VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-            Text(String(format: NSLocalizedString("booster.header.title %@", comment: ""), request.gameName))
+            Text(AppLocalization.format("booster.header.title %@", request.gameName))
                 .font(NLTypography.headline)
                 .foregroundStyle(NLColor.textPrimary)
             
-            Text(String(format: NSLocalizedString("booster.header.subtitle %@ %@", comment: ""), request.platform.rawValue.capitalized, request.networkKind.rawValue.uppercased()))
+            Text(AppLocalization.format("booster.header.subtitle %@ %@", request.platform.rawValue.capitalized, request.networkKind.rawValue.uppercased()))
                 .font(NLTypography.footnote)
                 .foregroundStyle(NLColor.textTertiary)
         }
