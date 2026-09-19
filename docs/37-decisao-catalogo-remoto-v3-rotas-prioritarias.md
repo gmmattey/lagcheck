@@ -100,4 +100,3 @@ Uma rota própria só autoriza falar em medição daquele servidor ou infraestru
 3. Uma rota própria ativa vence o fallback e deixa rastro auditável no resultado e histórico.
 4. Rota privada pendente mostra AWS como referência, mas permanece na matriz com ação objetiva e próxima revisão.
 5. Nenhum payload remoto executa código ou cria um protocolo desconhecido no iPhone.
-

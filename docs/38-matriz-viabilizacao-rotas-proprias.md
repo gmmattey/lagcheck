@@ -2,7 +2,7 @@
 
 **Status:** operacional; primeira revisão técnica em 19 de setembro de 2026
 
-**Responsável por rede:** Iury  
+**Responsável por rede:** Iury
 **Consumidores:** catálogo remoto v3, resolvedor de destinos iOS, QA físico e curadoria
 
 Esta matriz cobre os 20 produtos hoje no catálogo editorial mais dois produtos que precisam existir separadamente: **Rainbow Six Mobile** e **Rocket League Sideswipe**. Ela não remove jogos: todos mantêm o fallback AWS ativo até que uma rota própria seja ativada.

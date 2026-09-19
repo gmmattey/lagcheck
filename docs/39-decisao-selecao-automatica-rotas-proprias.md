@@ -1,7 +1,7 @@
 # LagCheck — Decisão 39: seleção automática de rotas próprias elegíveis
 
-**Status:** decidido pelo Dono do Produto; em implementação  
-**Data:** 19 de setembro de 2026  
+**Status:** decidido pelo Dono do Produto; em implementação
+**Data:** 19 de setembro de 2026
 **Autores / revisores necessários:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS)
 
 **Complementa e prevalece para seleção de rota própria sobre:** `docs/16-decisao-selecao-regional-automatica.md`, `docs/29-decisao-infraestrutura-medicao-custo-zero.md`, `docs/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/38-matriz-viabilizacao-rotas-proprias.md`.
