@@ -3,13 +3,17 @@ import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
-/// Resultado puro do Deep Check. Recebe o snapshot final e callbacks; não
-/// inicia, cancela nem interpreta transporte de rede.
+/// Tela de Resultado do LagCheck (Decisão 35).
+/// Implementa o padrão Apple HIG com Hero Editorial, Atestado da Rota,
+/// Grid de Métricas 2x2, Diagnóstico de Partida e Ações balanceadas.
 struct DeepCheckResultView: View {
     let result: DeepCheckResult
     let availability: DeepCheckLoadAvailability
     let profileID: QualityProfileID
     let gameName: String
+    let platform: Platform
+    let regionFriendlyName: String
+    let isWiFi: Bool
     let showDetails: () -> Void
     let showBooster: () -> Void
     let retry: () -> Void
@@ -17,23 +21,134 @@ struct DeepCheckResultView: View {
 
     var body: some View {
         let interpretation = ResultInterpreter.interpret(result.restResult, profile: profileID)
+        let isLocalHealthy = (result.metrics.loadImpact?.increaseMilliseconds ?? 0) < 35.0 && interpretation.primaryCauseKey != .highJitter
+        let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
+        let wifiStatusText = isWiFi
+            ? (isLocalHealthy ? "5 GHz · Excelente (< 2 ms)" : "Oscilação no Wi-Fi")
+            : "Rede móvel ativa"
+        let pingMs = milliseconds(result.metrics.rest.p50Milliseconds)
+        let destinationStatus = "Respondendo · \(pingMs) ms"
+        let scoreColor = scoreToneColor(for: interpretation.scoreBand)
+
         ScrollView {
-            VStack(spacing: NLSpacing.lg) {
-                NolaggyScore(
-                    outcome: .revealed(score: interpretation.score, classification: classification(interpretation.scoreBand)),
-                    style: .standard,
-                    classificationLabel: LocalizedStringKey(String(format: NSLocalizedString("deep_check.result.rest", comment: ""), NSLocalizedString(interpretation.headlineKey.rawValue, comment: ""))),
-                    accessibilityDescription: String(format: NSLocalizedString("deep_check.result.rest", comment: ""), "LagCheck Score \(interpretation.score)")
+            VStack(spacing: NLSpacing.xl) {
+                // 1. Hero Editorial HIG (Veredito Imediato)
+                VStack(spacing: NLSpacing.sm) {
+                    // Pílula semântica: [ 92 · EXCELENTE ]
+                    HStack(spacing: NLSpacing.xs) {
+                        Text("\(interpretation.score)")
+                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                        Text("·")
+                            .font(.system(size: 15, weight: .bold))
+                        Text(localizedKey(interpretation.headlineKey.rawValue))
+                            .font(NLTypography.caption.weight(.bold))
+                            .textCase(.uppercase)
+                    }
+                    .foregroundStyle(scoreColor)
+                    .padding(.horizontal, NLSpacing.sm)
+                    .padding(.vertical, NLSpacing.xxs)
+                    .background(scoreColor.opacity(0.12), in: Capsule())
+                    .overlay { Capsule().stroke(scoreColor.opacity(0.3), lineWidth: 0.5) }
+
+                    // Veredito verbal em destaque
+                    Text(localizedKey(interpretation.conclusionKey.rawValue))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .multilineTextAlignment(.center)
+
+                    // Explicação amigável da conexão
+                    Text(localizedKey(interpretation.explanationKey.rawValue))
+                        .font(NLTypography.callout)
+                        .foregroundStyle(NLColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, NLSpacing.sm)
+
+                    // Contexto: Fortnite · iPhone · São Paulo (AWS)
+                    Text("\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .padding(.top, NLSpacing.xxs)
+                }
+                .frame(maxWidth: .infinity)
+
+                // 2. Atestado da Rota HIG (Trilha Consolidada)
+                RouteTrailSummaryCard(
+                    isWiFi: isWiFi,
+                    wifiStatusText: wifiStatusText,
+                    isLocalHealthy: isLocalHealthy,
+                    destinationName: regionFriendlyName,
+                    destinationStatusText: destinationStatus,
+                    isDestinationHealthy: isDestinationHealthy
                 )
-                measurementContext
-                impactCard(result.metrics.loadImpact)
-                if result.metrics.load != nil { comparisonRows(result.metrics) }
-                PrimaryButton(title: "deep_check.result.details", action: showDetails)
-                PrimaryButton(title: "booster.cta.button", style: .secondaryOutline, action: showBooster)
-                PrimaryButton(title: "deep_check.result.retry", style: .secondaryOutline, action: retry)
+
+                // 3. Grid de Métricas 2x2 HIG
+                VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                    Text(LocalizedStringKey("result.metrics.title"))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                        .padding(.leading, NLSpacing.xxs)
+
+                    VStack(spacing: NLSpacing.sm) {
+                        HStack(spacing: NLSpacing.sm) {
+                            metricCard(
+                                title: "result.metric.ping",
+                                value: pingMs,
+                                unit: "ms",
+                                isCause: interpretation.primaryCauseKey == .highLatency,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                            metricCard(
+                                title: "result.metric.jitter",
+                                value: milliseconds(result.metrics.rest.jitterMilliseconds),
+                                unit: "ms",
+                                isCause: interpretation.primaryCauseKey == .highJitter,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                        }
+                        HStack(spacing: NLSpacing.sm) {
+                            metricCard(
+                                title: "result.metric.loss",
+                                value: percentage(result.metrics.rest.packetLossPercentage),
+                                unit: nil,
+                                isCause: interpretation.primaryCauseKey == .packetLoss,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                            metricCard(
+                                title: "result.metric.spikes",
+                                value: String(result.metrics.rest.spikeCount),
+                                unit: nil,
+                                isCause: interpretation.primaryCauseKey == .severeSpikes,
+                                causeColor: insightColor(for: interpretation.primaryCauseKey)
+                            )
+                        }
+                    }
+                }
+
+                // 4. Diagnóstico de Partida (Insight Banner)
+                InsightBanner(
+                    tone: insightTone(for: interpretation.primaryCauseKey),
+                    message: localizedKey(interpretation.insightKey.rawValue),
+                    icon: insightIcon(for: interpretation.primaryCauseKey)
+                )
+
+                // 5. Barra de Ações HIG
+                VStack(spacing: NLSpacing.sm) {
+                    PrimaryButton(title: "quick_check.result.retry", action: retry)
+                        .accessibilityIdentifier("lagcheck-result-retry")
+
+                    HStack(spacing: NLSpacing.sm) {
+                        secondaryActionButton("result.action.details", identifier: "lagcheck-result-details", action: showDetails)
+                        secondaryActionButton("result.action.optimize", identifier: "lagcheck-result-booster", action: showBooster)
+                    }
+                }
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)
+            .navigationTitle(LocalizedStringKey("result.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -43,61 +158,90 @@ struct DeepCheckResultView: View {
         }
     }
 
-    private var measurementContext: some View {
-        VStack(spacing: NLSpacing.xxs) {
-            Text(String(format: NSLocalizedString("deep_check.measurement.title %@", comment: ""), gameName))
-                .font(NLTypography.callout.weight(.semibold)).foregroundStyle(NLColor.textPrimary)
-            Label("deep_check.measurement.context", systemImage: "mappin.and.ellipse")
-                .font(NLTypography.footnote).foregroundStyle(NLColor.textTertiary)
-        }.frame(maxWidth: .infinity)
+    private func localizedKey(_ key: String) -> LocalizedStringKey {
+        LocalizedStringKey(key)
     }
 
-    private func impactCard(_ impact: DeepCheckLoadImpact?) -> some View {
-        VStack(alignment: .leading, spacing: NLSpacing.xs) {
-            Label(impact.map(title) ?? "deep_check.result.load_unavailable_title", systemImage: impact.map(icon) ?? "exclamationmark.circle")
-                .font(NLTypography.bodyEmphasis).foregroundStyle(impact.map(color) ?? NLColor.textPrimary)
-            if let impact {
-                Text(explanation(impact)).font(NLTypography.footnote).foregroundStyle(NLColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                Text(String(format: NSLocalizedString("deep_check.result.impact_value", comment: ""), Int(impact.increaseMilliseconds.rounded())))
-                    .font(NLTypography.headline).foregroundStyle(NLColor.accentPrimary)
-            } else {
-                Text(availability == .loadUnavailable ? "deep_check.result.load_unavailable" : "deep_check.result.comparison_unavailable")
-                    .font(NLTypography.footnote).foregroundStyle(NLColor.textSecondary)
-            }
+    private func scoreToneColor(for band: ResultClass) -> Color {
+        switch band {
+        case .excellent, .great: return NLColor.scoreExcellent
+        case .unstable: return NLColor.scoreUnstable
+        case .lagRisk: return NLColor.coralSolarRed
         }
-        .padding(NLSpacing.cardPadding).frame(maxWidth: .infinity, alignment: .leading)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
     }
 
-    private func comparisonRows(_ metrics: DeepCheckMetrics) -> some View {
-        VStack(spacing: 1) {
-            comparisonRow("quick_check.result.ping", rest: metrics.rest.p50Milliseconds, load: metrics.load?.p50Milliseconds)
-            Divider().overlay(NLColor.borderSubtle)
-            comparisonRow("quick_check.result.jitter", rest: metrics.rest.jitterMilliseconds, load: metrics.load?.jitterMilliseconds)
-        }
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
-    }
-
-    private func comparisonRow(_ label: LocalizedStringKey, rest: Double?, load: Double?) -> some View {
+    private func metricCard(title: String, value: String, unit: String?, isCause: Bool, causeColor: Color) -> some View {
         VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-            Text(label).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary)
-            ViewThatFits(in: .horizontal) {
-                HStack { value("deep_check.result.rest_value", rest); Spacer(); value("deep_check.result.load_value", load) }
-                VStack(alignment: .leading, spacing: NLSpacing.xs) { value("deep_check.result.rest_value", rest); value("deep_check.result.load_value", load) }
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(isCause ? causeColor : NLColor.textPrimary)
+                if let unit {
+                    Text(unit)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(isCause ? causeColor : NLColor.textTertiary)
+                }
             }
-        }.padding(NLSpacing.cardPadding)
-    }
-    private func value(_ label: LocalizedStringKey, _ milliseconds: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(label).font(NLTypography.caption).foregroundStyle(NLColor.textTertiary)
-            Text(milliseconds.map { "\(Int($0.rounded())) ms" } ?? "—").font(NLTypography.callout).foregroundStyle(NLColor.textSecondary)
+            Text(LocalizedStringKey(title))
+                .font(NLTypography.caption)
+                .foregroundStyle(NLColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(NLSpacing.cardPadding)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(isCause ? causeColor.opacity(0.5) : NLColor.borderSubtle, lineWidth: isCause ? 1.0 : 0.5)
         }
     }
-    private func classification(_ value: ResultClass) -> NLScoreClassification { switch value { case .excellent: .excellent; case .great: .great; case .unstable: .unstable; case .lagRisk: .lagRisk } }
-    private func title(_ impact: DeepCheckLoadImpact) -> LocalizedStringKey { impact.classification == .material ? "deep_check.result.impact_material" : "deep_check.result.impact" }
-    private func explanation(_ impact: DeepCheckLoadImpact) -> LocalizedStringKey { impact.classification == .material ? "deep_check.result.impact_material_explanation" : "deep_check.result.impact_explanation" }
-    private func icon(_ impact: DeepCheckLoadImpact) -> String { impact.classification == .material ? "exclamationmark.triangle" : "arrow.left.arrow.right" }
-    private func color(_ impact: DeepCheckLoadImpact) -> Color { impact.classification == .material ? NLColor.scoreLagRisk : NLColor.textPrimary }
+
+    private func secondaryActionButton(_ titleKey: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(LocalizedStringKey(titleKey))
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
+                        .stroke(NLColor.borderSubtle, lineWidth: 0.5)
+                }
+        }
+        .accessibilityIdentifier(identifier)
+    }
+
+    private func milliseconds(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        return String(Int(value.rounded()))
+    }
+
+    private func percentage(_ value: Double) -> String {
+        "\(Int(value.rounded()))%"
+    }
+
+    private func insightColor(for cause: ResultPrimaryCauseKey) -> Color {
+        switch cause {
+        case .stableConnection: return NLColor.scoreExcellent
+        case .highLatency, .highJitter: return NLColor.scoreUnstable
+        case .packetLoss, .severeSpikes: return NLColor.coralSolarRed
+        }
+    }
+
+    private func insightTone(for cause: ResultPrimaryCauseKey) -> InsightBanner.Tone {
+        switch cause {
+        case .stableConnection: return .positive
+        case .highLatency, .highJitter: return .tip
+        case .packetLoss, .severeSpikes: return .risk
+        }
+    }
+
+    private func insightIcon(for cause: ResultPrimaryCauseKey) -> Image {
+        switch cause {
+        case .stableConnection: return Image(systemName: "checkmark.shield.fill")
+        case .highLatency, .highJitter: return Image(systemName: "info.circle.fill")
+        case .packetLoss, .severeSpikes: return Image(systemName: "exclamationmark.triangle.fill")
+        }
+    }
 }

@@ -194,26 +194,27 @@ struct GameDetailNATBanner: View {
 
     var body: some View {
         if snapshot.hasAnyMultiplayerIssue {
-            HStack(alignment: .top, spacing: NLSpacing.sm) {
+            HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(NLColor.scoreUnstable)
                     .padding(.top, 2)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(LocalizedStringKey(titleKey))
-                        .font(NLTypography.bodyEmphasis)
+                        .font(NLTypography.captionStrong)
                         .foregroundStyle(NLColor.textPrimary)
                     Text(LocalizedStringKey(messageKey))
                         .font(NLTypography.footnote)
                         .foregroundStyle(NLColor.textSecondary)
                 }
             }
-            .padding(NLSpacing.cardPadding)
-            .background(NLColor.scoreUnstableSubtle, in: RoundedRectangle(cornerRadius: NLRadius.card))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10)
+            .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             .overlay {
-                RoundedRectangle(cornerRadius: NLRadius.card)
-                    .stroke(NLColor.scoreUnstable.opacity(0.3), lineWidth: NLStroke.hairline)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(NLColor.scoreUnstable.opacity(0.35), lineWidth: 0.5)
             }
         }
     }

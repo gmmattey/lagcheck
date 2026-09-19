@@ -245,7 +245,11 @@ public enum RemoteCatalogVerifier {
     /// medição continua `genericRegion`/`sa-east-1` porque o backend não muda por cliente.
     /// Ver docs/26-decisao-catalogo-console.md.
     public static func allowedPlatforms(for gameID: String) -> Set<Platform> {
-        debugAllowedPlatforms[gameID] ?? [.iphone]
+        if let editorial = GameEditorialRegistry.editorial(for: gameID) {
+            let platforms = Set(editorial.requirements.map(\.platform))
+            if !platforms.isEmpty { return platforms }
+        }
+        return debugAllowedPlatforms[gameID] ?? [.iphone]
     }
 
     private static let debugAllowedPlatforms: [String: Set<Platform>] = [

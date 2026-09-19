@@ -29,6 +29,7 @@ struct SettingsView: View {
     }
 
     @Environment(\.openURL) private var openURL
+    @AppStorage("app_selected_language") private var selectedLanguage: String = AppLanguage.system.rawValue
     @State private var showingDeleteConfirmation = false
     @State private var deletionFailed = false
 
@@ -47,15 +48,23 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            openURL(url)
+                    Menu {
+                        ForEach(AppLanguage.allCases) { lang in
+                            Button {
+                                selectedLanguage = lang.rawValue
+                            } label: {
+                                if (AppLanguage(rawValue: selectedLanguage) ?? .system) == lang {
+                                    Label(lang.displayName, systemImage: "checkmark")
+                                } else {
+                                    Text(lang.displayName)
+                                }
+                            }
                         }
                     } label: {
                         SettingsRow(
                             title: "settings.language",
                             symbol: "globe",
-                            detail: Locale.current.localizedString(forIdentifier: Locale.current.identifier) ?? Locale.current.identifier,
+                            detail: (AppLanguage(rawValue: selectedLanguage) ?? .system).displayName,
                             showsChevron: true
                         )
                     }
@@ -64,7 +73,6 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                     .compactSettingsRow()
                     .accessibilityIdentifier("settings-language")
-                    .accessibilityHint(Text("settings.link.opens_system_settings"))
                     if !regionCandidates.isEmpty {
                         Menu {
                             if let autoCandidate = regionCandidates.first(where: { $0.id == RegionalPreferenceIdentifiers.automatic }) {

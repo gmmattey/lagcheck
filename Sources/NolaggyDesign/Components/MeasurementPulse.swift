@@ -47,6 +47,7 @@ public struct MeasurementPulse: View {
                         .trim(from: 0, to: progress)
                         .stroke(NLColor.accentPrimary, style: StrokeStyle(lineWidth: NLSizing.measurementPulseStrokeWidth, lineCap: .round))
                         .rotationEffect(.degrees(-90))
+                        .animation(.smooth(duration: 0.35), value: progress)
                 } else {
                     Circle()
                         .trim(from: 0, to: 0.66)
@@ -59,6 +60,8 @@ public struct MeasurementPulse: View {
                         Text(currentRTT)
                             .font(.system(size: currentRTTFontSize, weight: .bold, design: .rounded))
                             .foregroundStyle(NLColor.textPrimary)
+                            .contentTransition(.numericText(countsDown: false))
+                            .animation(.smooth(duration: 0.25), value: currentRTT)
                         Text(currentRTTLabel)
                             .font(NLTypography.footnote)
                             .foregroundStyle(NLColor.textTertiary)
