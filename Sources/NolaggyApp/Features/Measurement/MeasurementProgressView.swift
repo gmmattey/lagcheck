@@ -10,7 +10,7 @@ extension QuickCheckFeatureView {
             Spacer(minLength: NLSpacing.xs)
 
             MeasurementLiveTrail(
-                isWiFi: (context?.equipmentConnection ?? .wifi) == .wifi,
+                isWiFi: selectedRegionalContext?.observedPhoneNetwork == .wifi,
                 destinationName: selectedRegionFriendlyName,
                 sampleCount: partialSamples.count,
                 isUnderStress: false,

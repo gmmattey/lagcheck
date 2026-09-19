@@ -18,14 +18,43 @@ final class MeasurementHistorySummaryTests: XCTestCase {
         XCTAssertNil(MeasurementHistorySummary(entries: [newer, older], now: now)?.trend)
     }
 
-    func testSummaryRefusesDifferentEquipmentConnection() {
+    func testSummaryRefusesDifferentDeclaredExternalLink() {
         let now = Date(timeIntervalSince1970: 1_000_000)
-        let latest = entry(score: 90, date: now, equipmentConnection: .wifi)
-        let cellular = entry(score: 40, date: now.addingTimeInterval(-86_400), equipmentConnection: .cellular)
+        let latest = entry(score: 90, date: now, declaredExternalLink: .wifi)
+        let ethernet = entry(score: 40, date: now.addingTimeInterval(-86_400), declaredExternalLink: .ethernet)
+
+        let summary = MeasurementHistorySummary(entries: [latest, ethernet], now: now)
+        XCTAssertNil(summary?.sevenDayAverageScore)
+        XCTAssertNil(summary?.trend)
+    }
+
+    func testSummaryRefusesDifferentObservedPhoneNetwork() {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let latest = entry(score: 90, date: now, observedPhoneNetwork: .wifi)
+        let cellular = entry(score: 40, date: now.addingTimeInterval(-86_400), observedPhoneNetwork: .cellular)
 
         let summary = MeasurementHistorySummary(entries: [latest, cellular], now: now)
         XCTAssertNil(summary?.sevenDayAverageScore)
         XCTAssertNil(summary?.trend)
+    }
+
+    func testLegacySnapshotDoesNotParticipateInComparison() throws {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let current = entry(score: 90, date: now)
+        let legacyContext = try legacyContext(from: current.resolvedContext)
+        let legacy = MeasurementHistoryEntry(
+            completedAt: now.addingTimeInterval(-86_400),
+            resolvedContext: legacyContext,
+            profileRuleVersion: "rule-1",
+            result: current.result,
+            primaryCause: .stableConnection
+        )
+
+        XCTAssertNil(legacy.resolvedContext.context.declaredExternalLink)
+        XCTAssertNil(legacy.resolvedContext.observedPhoneNetwork)
+        XCTAssertFalse(legacy.resolvedContext.hasCompleteConnectionFacts)
+        XCTAssertNil(MeasurementHistorySummary(entries: [current, legacy], now: now)?.sevenDayAverageScore)
+        XCTAssertNil(MeasurementHistorySummary(entries: [current, legacy], now: now)?.trend)
     }
 
     func testSummaryRefusesDifferentGame() {
@@ -64,16 +93,18 @@ final class MeasurementHistorySummaryTests: XCTestCase {
         date: Date,
         ruleVersion: String = "rule-1",
         gameID: String = "fortnite",
-        equipmentConnection: NetworkKind? = nil,
+        declaredExternalLink: ExternalEquipmentLink? = nil,
+        observedPhoneNetwork: NetworkKind? = .wifi,
         platform: Platform = .pc,
         regionID: String = "sa-east-1",
         validResponseCount: Int = 30
     ) -> MeasurementHistoryEntry {
         let context = resolvedContext(
             gameID: gameID,
-            equipmentConnection: equipmentConnection,
+            declaredExternalLink: declaredExternalLink,
             platform: platform,
-            regionID: regionID
+            regionID: regionID,
+            observedPhoneNetwork: observedPhoneNetwork
         )
         let metrics = QualityMetrics(validResponseCount: validResponseCount, timeoutCount: 0, invalidResponseCount: 0, p50Milliseconds: 30, p95Milliseconds: 30, p99Milliseconds: 30, jitterMilliseconds: 0, packetLossPercentage: 0, spikeCount: 0, severeSpikeCount: 0, spikeRatePercentage: 0, p95ToP50Ratio: 1, worstSpikeMilliseconds: 30, components: nil)
         return MeasurementHistoryEntry(completedAt: date, resolvedContext: context, profileRuleVersion: ruleVersion, result: QualityResult(metrics: metrics, rawScore: score, finalScore: score, resultClass: .excellent, appliedGuardrails: []), primaryCause: .stableConnection)
@@ -81,20 +112,33 @@ final class MeasurementHistorySummaryTests: XCTestCase {
 
     private func resolvedContext(
         gameID: String,
-        equipmentConnection: NetworkKind?,
+        declaredExternalLink: ExternalEquipmentLink?,
         platform: Platform,
-        regionID: String
+        regionID: String,
+        observedPhoneNetwork: NetworkKind?
     ) -> ResolvedMeasurementContext {
         let destination = try! ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770)
         return ResolvedMeasurementContext(
-            context: GameContext(gameID: gameID, market: "BR", platform: platform, equipmentConnection: equipmentConnection),
+            context: GameContext(gameID: gameID, market: "BR", platform: platform, declaredExternalLink: declaredExternalLink),
             catalogVersion: "catalog-1",
             profileID: .battleRoyaleCompetitive,
             profileRuleVersion: "rule-1",
             regionID: regionID,
             destination: destination,
             strategy: .genericRegion,
-            confidence: .medium
+            confidence: .medium,
+            observedPhoneNetwork: observedPhoneNetwork
         )
+    }
+
+    private func legacyContext(from current: ResolvedMeasurementContext) throws -> ResolvedMeasurementContext {
+        var envelope = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(current)) as? [String: Any])
+        envelope.removeValue(forKey: "observedPhoneNetwork")
+        envelope.removeValue(forKey: "connectionFactsVersion")
+        var context = try XCTUnwrap(envelope["context"] as? [String: Any])
+        context.removeValue(forKey: "declaredExternalLink")
+        context["equipmentConnection"] = "wifi"
+        envelope["context"] = context
+        return try JSONDecoder().decode(ResolvedMeasurementContext.self, from: JSONSerialization.data(withJSONObject: envelope))
     }
 }

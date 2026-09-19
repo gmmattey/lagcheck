@@ -697,6 +697,291 @@ private struct HomeExploreCard: View {
     }
 }
 
+// MARK: - Home simples: decisão e jogos
+
+/// A Home tem uma única responsabilidade: dizer qual é a próxima ação antes da
+/// partida. O score só aparece quando a leitura ainda é recente e válida.
+struct HomeDecisionCard: View {
+    let game: CatalogMeasurementJourney.Game?
+    let platform: Platform?
+    let latestEntry: MeasurementHistoryEntry?
+    let isMeasuring: Bool
+    let onStartCheck: () -> Void
+    let onChooseGame: () -> Void
+    let onOpenHistory: () -> Void
+
+    private static let freshnessInterval: TimeInterval = 24 * 60 * 60
+
+    private var hasValidMeasurement: Bool {
+        guard let latestEntry else { return false }
+        return latestEntry.result.metrics.validResponseCount >= 10
+            && latestEntry.result.metrics.p50Milliseconds != nil
+    }
+
+    private var isRecent: Bool {
+        guard let latestEntry else { return false }
+        let age = Date().timeIntervalSince(latestEntry.completedAt)
+        return age >= 0 && age <= Self.freshnessInterval
+    }
+
+    private var showsCurrentResult: Bool { hasValidMeasurement && isRecent }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.md) {
+            contextHeader
+            decisionContent
+
+            Button(action: primaryAction) {
+                HStack(spacing: NLSpacing.xs) {
+                    if isMeasuring {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                    } else {
+                        Image(systemName: primaryIcon)
+                    }
+                    Text(LocalizedStringKey(primaryTitleKey))
+                        .font(NLTypography.bodyEmphasis)
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
+                .background(
+                    isMeasuring ? NLColor.accentPrimary.opacity(0.6) : NLColor.accentPrimary,
+                    in: RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(isMeasuring)
+            .accessibilityIdentifier("home-decision-primary-action")
+
+            if latestEntry != nil {
+                Button(action: onOpenHistory) {
+                    Label("home.decision.history", systemImage: "clock.arrow.circlepath")
+                        .font(NLTypography.footnote.weight(.semibold))
+                        .foregroundStyle(NLColor.textSecondary)
+                        .frame(minHeight: NLSizing.touchTarget)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-decision-history")
+            }
+        }
+        .padding(NLSpacing.cardPadding)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                .stroke(NLColor.borderStrong, lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("home-decision-card")
+    }
+
+    private var contextHeader: some View {
+        HStack(spacing: NLSpacing.sm) {
+            if let game {
+                VerifiedGameArtwork(game: game, aspectRatio: 1)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+            } else {
+                Image(systemName: "gamecontroller")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(width: 44, height: 44)
+                    .background(NLColor.backgroundOverlay, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                if let game {
+                    Text(game.name)
+                        .font(NLTypography.headline)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(1)
+                } else {
+                    Text("home.decision.no_game")
+                        .font(NLTypography.headline)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(1)
+                }
+
+                if let platform {
+                    Text(platformName(platform))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textSecondary)
+                } else {
+                    Text(LocalizedStringKey("home.decision.select_game_hint"))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var decisionContent: some View {
+        if isMeasuring {
+            decisionText(title: "home.decision.measuring.title", message: "home.cta.measuring", symbol: "wave.3.forward")
+        } else if let latestEntry, showsCurrentResult {
+            let result = latestEntry.result
+            HStack(alignment: .firstTextBaseline, spacing: NLSpacing.md) {
+                Text("\(result.finalScore)")
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .accessibilityIdentifier("home-decision-score")
+
+                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                    Text(conditionTitle(result.resultClass))
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(conditionColor(result.resultClass))
+                    Text(lastMeasuredText(for: latestEntry.completedAt))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+            }
+        } else if let latestEntry, hasValidMeasurement {
+            decisionText(
+                title: "home.decision.stale.title",
+                message: "home.decision.stale.message",
+                symbol: "clock"
+            )
+            Text(lastMeasuredText(for: latestEntry.completedAt))
+                .font(NLTypography.caption)
+                .foregroundStyle(NLColor.textSecondary)
+        } else if let latestEntry {
+            decisionText(
+                title: "home.hero.inconclusive_title",
+                message: "home.hero.inconclusive_subtitle",
+                symbol: "questionmark.circle"
+            )
+            Text(lastMeasuredText(for: latestEntry.completedAt))
+                .font(NLTypography.caption)
+                .foregroundStyle(NLColor.textSecondary)
+        } else {
+            decisionText(
+                title: "home.decision.empty.title",
+                message: "home.decision.empty.message",
+                symbol: "play.circle"
+            )
+        }
+    }
+
+    private func decisionText(title: LocalizedStringKey, message: LocalizedStringKey, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+            Label(title, systemImage: symbol)
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+            Text(message)
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var primaryTitleKey: String {
+        if isMeasuring { return "home.cta.measuring" }
+        if latestEntry == nil { return "home.cta.choose_game" }
+        return showsCurrentResult ? "home.decision.retest" : "home.decision.new_check"
+    }
+
+    private var primaryIcon: String {
+        latestEntry == nil ? "gamecontroller.fill" : "arrow.clockwise"
+    }
+
+    private func primaryAction() {
+        latestEntry == nil ? onChooseGame() : onStartCheck()
+    }
+
+    private func conditionTitle(_ resultClass: ResultClass) -> LocalizedStringKey {
+        switch resultClass {
+        case .excellent, .great: "home.condition.excellent"
+        case .unstable: "home.condition.unstable"
+        case .lagRisk: "home.condition.lag_risk"
+        }
+    }
+
+    private func conditionColor(_ resultClass: ResultClass) -> Color {
+        switch resultClass {
+        case .excellent, .great: NLColor.scoreExcellent
+        case .unstable: NLColor.scoreUnstable
+        case .lagRisk: NLColor.scoreLagRisk
+        }
+    }
+
+    private func lastMeasuredText(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        let relative = formatter.localizedString(for: date, relativeTo: Date())
+        return String(format: NSLocalizedString("home.hero.last_check_format %@", comment: ""), relative)
+    }
+
+    private func platformName(_ platform: Platform) -> String {
+        switch platform {
+        case .iphone: "iPhone"
+        case .playstation: "PlayStation"
+        case .xbox: "Xbox"
+        case .nintendo: "Switch"
+        case .pc: "PC"
+        }
+    }
+}
+
+/// Uma lista vertical curta deixa a descoberta como continuação da decisão,
+/// enquanto catálogo completo, busca e filtros continuam na aba Jogos.
+struct HomeGamesListSection: View {
+    let games: [CatalogMeasurementJourney.Game]
+    let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
+    let onSeeAllGames: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            HStack {
+                Text("home.decision.games.title")
+                    .font(NLTypography.headline)
+                    .foregroundStyle(NLColor.textPrimary)
+                Spacer()
+                Button(action: onSeeAllGames) {
+                    Text("home.explore.see_all")
+                        .font(NLTypography.footnote.weight(.semibold))
+                        .foregroundStyle(NLColor.accentPrimary)
+                        .frame(minHeight: NLSizing.touchTarget)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-games-see-all")
+            }
+
+            VStack(spacing: 0) {
+                ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
+                    Button(action: { onSelectGame(game) }) {
+                        HStack(spacing: NLSpacing.sm) {
+                            VerifiedGameArtwork(game: game, aspectRatio: 1)
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+                            Text(game.name)
+                                .font(NLTypography.bodyEmphasis)
+                                .foregroundStyle(NLColor.textPrimary)
+                                .lineLimit(1)
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(NLColor.textTertiary)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("home-game-\(game.id)")
+
+                    if index < games.count - 1 {
+                        Divider()
+                            .overlay(NLColor.borderStrong)
+                            .padding(.leading, 56)
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("home-games-list")
+    }
+}
+
 // MARK: - Catálogo de Jogos
 
 struct HomeCatalogView: View {

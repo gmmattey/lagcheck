@@ -2,25 +2,33 @@ import SwiftUI
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
+import NolaggyInfrastructure
 
 /// Ciclo de vida e navegação da sessão. Mantido fora da casca de tabs para que
 /// `QuickCheckFeatureView` fique responsável somente por compor a jornada.
 extension QuickCheckFeatureView {
     func retest(_ entry: MeasurementHistoryEntry) {
-        guard availableGames.contains(where: { $0.id == entry.resolvedContext.context.gameID }) else { return }
-        selectedGameID = entry.resolvedContext.context.gameID
-        selectedRegionalContext = entry.resolvedContext
+        let previous = entry.resolvedContext.context
+        guard availableGames.contains(where: { $0.id == previous.gameID }) else { return }
+        selectedGameID = previous.gameID
+        requestedMeasurementContext = GameContext(
+            gameID: previous.gameID,
+            market: previous.market,
+            platform: previous.platform,
+            declaredExternalLink: previous.declaredExternalLink
+        )
+        selectedRegionalContext = nil
         start()
     }
 
     func start() {
-        guard let remoteCatalog, let context else { return }
+        guard let remoteCatalog, let activeContext = requestedMeasurementContext ?? context else { return }
         regionalPresentation = .confirming
         showingRegionalSelection = true
         Task { @MainActor in
             await Task.yield()
             let manualRegionID = await regionalPreferenceRepository.manualRegionID()
-            guard let snapshot = await automaticRegionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            guard let snapshot = await automaticRegionalSnapshot(for: activeContext, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
             await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
     }
@@ -45,11 +53,11 @@ extension QuickCheckFeatureView {
     }
 
     func retryRegionalPreRead() {
-        guard let remoteCatalog, let context else { return }
+        guard let remoteCatalog, let activeContext = requestedMeasurementContext ?? context else { return }
         regionalPresentation = .confirming
         Task { @MainActor in
             let manualRegionID = await regionalPreferenceRepository.manualRegionID()
-            guard let snapshot = await automaticRegionalSnapshot(for: context, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
+            guard let snapshot = await automaticRegionalSnapshot(for: activeContext, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
             await performRegionalPreRead(snapshot: snapshot, manualRegionID: manualRegionID)
         }
     }
@@ -82,12 +90,14 @@ extension QuickCheckFeatureView {
             await coordinator.cancelRegionalPreRead()
             deepCheckDestination = nil
             showingRegionalSelection = false
+            requestedMeasurementContext = nil
         }
     }
 
     func startQuickCheck(resolvedContext: ResolvedMeasurementContext) {
         Task { @MainActor in
             selectedRegionalContext = resolvedContext
+            requestedMeasurementContext = nil
             deepCheckDestination = nil
             showingRegionalSelection = false
             do {
@@ -115,7 +125,7 @@ extension QuickCheckFeatureView {
                 gameID: baseContext.context.gameID,
                 market: baseContext.context.market,
                 platform: platform,
-                equipmentConnection: baseContext.context.equipmentConnection
+                declaredExternalLink: baseContext.context.declaredExternalLink
             )
             context = ResolvedMeasurementContext(
                 context: updatedGameContext,
@@ -126,7 +136,12 @@ extension QuickCheckFeatureView {
                 destination: baseContext.destination,
                 strategy: baseContext.strategy,
                 confidence: baseContext.confidence,
-                precisionKey: baseContext.precisionKey
+                precisionKey: baseContext.precisionKey,
+                routeID: baseContext.routeID,
+                routeKind: baseContext.routeKind,
+                candidateID: baseContext.candidateID,
+                observedPhoneNetwork: baseContext.observedPhoneNetwork,
+                connectionFactsVersion: baseContext.connectionFactsVersion
             )
         } else {
             context = baseContext

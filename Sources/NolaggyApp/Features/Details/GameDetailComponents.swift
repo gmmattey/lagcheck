@@ -1,4 +1,5 @@
 import SwiftUI
+import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
@@ -54,16 +55,23 @@ struct GameDetailScoreHeader: View {
 }
 
 struct GameDetailMeasurementScope: View {
-    var platform: Platform = .iphone
+    let platform: Platform
+    let externalLink: ExternalEquipmentLink?
 
     var body: some View {
-        Label(scopeText, systemImage: iconName)
+        Label {
+            Text(scopeText)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: iconName)
+                .accessibilityHidden(true)
+        }
             .font(NLTypography.footnote)
-            .foregroundStyle(NLColor.textTertiary)
+            .foregroundStyle(NLColor.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(NLSpacing.cardPadding)
             .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-            .accessibilityIdentifier("game-detail-iphone-scope")
+            .accessibilityIdentifier("game-detail-measurement-scope")
     }
 
     private var iconName: String {
@@ -81,14 +89,76 @@ struct GameDetailMeasurementScope: View {
         case .iphone:
             return NSLocalizedString("game_detail.scope.iphone", comment: "")
         case .playstation:
-            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "PlayStation")
+            return externalScope(for: "PlayStation")
         case .xbox:
-            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "Xbox")
+            return externalScope(for: "Xbox")
         case .nintendo:
-            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "Switch")
+            return externalScope(for: "Nintendo Switch")
         case .pc:
-            return String(format: NSLocalizedString("game_detail.scope.console %@", comment: ""), "PC")
+            return externalScope(for: "PC")
         }
+    }
+
+    private func externalScope(for platformName: String) -> String {
+        let connectionKey = externalLink == .wifi
+            ? "game_detail.scope.external_wifi %@"
+            : "game_detail.scope.external_cable %@"
+        return String(format: NSLocalizedString(connectionKey, comment: ""), platformName)
+    }
+}
+
+/// Contexto explícito antes da ação. A escolha de cabo representa um
+/// equipamento externo conectado por Ethernet; ela nunca é tratada como
+/// telemetria Wi-Fi do iPhone.
+struct GameDetailMeasurementContextCard: View {
+    let supportedPlatforms: [Platform]
+    @Binding var selectedPlatform: Platform
+    @Binding var selectedExternalLink: ExternalEquipmentLink?
+
+    private var needsEquipmentConnection: Bool { selectedPlatform != .iphone }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            Text(LocalizedStringKey("game_detail.context.platform_title"))
+                .font(NLTypography.bodyEmphasis)
+                .foregroundStyle(NLColor.textPrimary)
+
+            PlatformSelectorRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
+
+            if needsEquipmentConnection {
+                Text(LocalizedStringKey("game_detail.context.connection_title"))
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+
+                HStack(spacing: NLSpacing.xs) {
+                    connectionButton(.wifi, titleKey: "game_detail.context.connection_wifi", icon: "wifi")
+                    connectionButton(.ethernet, titleKey: "game_detail.context.connection_cable", icon: "cable.connector")
+                }
+            }
+        }
+        .padding(NLSpacing.cardPadding)
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+        .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline))
+    }
+
+    private func connectionButton(_ connection: ExternalEquipmentLink, titleKey: LocalizedStringKey, icon: String) -> some View {
+        let isSelected = selectedExternalLink == connection
+        return Button {
+            UISelectionFeedbackGenerator().selectionChanged()
+            selectedExternalLink = connection
+        } label: {
+            Label(titleKey, systemImage: icon)
+                .font(NLTypography.captionStrong)
+                .foregroundStyle(isSelected ? NLColor.textPrimary : NLColor.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, NLSpacing.xs)
+                .background(isSelected ? NLColor.accentPrimarySubtle : NLColor.backgroundBase, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+                .overlay(RoundedRectangle(cornerRadius: NLRadius.controlSmall).stroke(isSelected ? NLColor.accentPrimary : NLColor.borderSubtle, lineWidth: isSelected ? 1.5 : NLStroke.hairline))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(titleKey)
+        .accessibilityHint(Text(isSelected ? "game_detail.context.connection_selected" : "game_detail.context.connection_hint"))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -130,7 +200,7 @@ struct GameDetailCinemaHeroBanner: View {
             // Artwork full-bleed
             VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
                 .frame(maxWidth: .infinity)
-                .frame(height: 270)
+                .frame(height: 210)
                 .clipped()
 
             // Gradiente cinematográfico sobre a imagem
@@ -198,44 +268,29 @@ struct GameDetailRatingsGrid: View {
     var body: some View {
         HStack(spacing: NLSpacing.sm) {
             // Card App Store Interativo
-            if let appStore = editorial.ratings.first(where: { $0.source == .appStore }) {
+            if let appStore = verifiedRating(for: .appStore) {
                 ratingButton(
                     icon: "star.fill",
                     iconColor: Color.yellow,
                     iconBg: Color.white.opacity(0.08),
                     title: appStore.formattedScore,
-                    subtitle: String(format: NSLocalizedString("game_detail.ratings.reviews_count %@", comment: ""), formattedCount(appStore.reviewCount)),
+                    subtitle: reviewCountSubtitle(for: appStore),
                     urlString: appStore.referenceURL
-                )
-            } else {
-                ratingButton(
-                    icon: "star.fill",
-                    iconColor: Color.yellow,
-                    iconBg: Color.white.opacity(0.08),
-                    title: "4.6 ★",
-                    subtitle: String(format: NSLocalizedString("game_detail.ratings.reviews_count %@", comment: ""), "3.2M"),
-                    urlString: "https://www.apple.com/app-store/"
                 )
             }
 
             // Card Metacritic Interativo
-            if let metacritic = editorial.ratings.first(where: { $0.source == .metacriticCritic }) {
+            if let metacritic = verifiedRating(for: .metacriticCritic) {
                 metacriticButton(
                     score: Int(metacritic.score),
-                    count: metacritic.reviewCount ?? 42,
+                    count: metacritic.reviewCount,
                     urlString: metacritic.referenceURL
-                )
-            } else {
-                metacriticButton(
-                    score: 83,
-                    count: 42,
-                    urlString: "https://www.metacritic.com"
                 )
             }
         }
     }
 
-    private func ratingButton(icon: String, iconColor: Color, iconBg: Color, title: String, subtitle: String, urlString: String) -> some View {
+    private func ratingButton(icon: String, iconColor: Color, iconBg: Color, title: String, subtitle: String?, urlString: String) -> some View {
         Button {
             if let url = URL(string: urlString) {
                 openURL(url)
@@ -252,10 +307,12 @@ struct GameDetailRatingsGrid: View {
                     Text(title)
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
-                    Text(subtitle)
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textSecondary)
-                        .lineLimit(1)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .lineLimit(1)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -270,11 +327,11 @@ struct GameDetailRatingsGrid: View {
             .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(Color.white.opacity(0.08), lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text("\(title), \(subtitle)"))
+        .accessibilityLabel(Text([title, subtitle].compactMap { $0 }.joined(separator: ", ")))
         .accessibilityHint(Text("Abre na App Store"))
     }
 
-    private func metacriticButton(score: Int, count: Int, urlString: String) -> some View {
+    private func metacriticButton(score: Int, count: Int?, urlString: String) -> some View {
         Button {
             if let url = URL(string: urlString) {
                 openURL(url)
@@ -296,10 +353,12 @@ struct GameDetailRatingsGrid: View {
                     Text("Metacritic")
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
-                    Text(String(format: NSLocalizedString("game_detail.ratings.critics_count %@", comment: ""), "\(count)"))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textSecondary)
-                        .lineLimit(1)
+                    if let count {
+                        Text(String(format: NSLocalizedString("game_detail.ratings.critics_count %@", comment: ""), "\(count)"))
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .lineLimit(1)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -318,14 +377,43 @@ struct GameDetailRatingsGrid: View {
         .accessibilityHint(Text("Abre no Metacritic"))
     }
 
-    private func formattedCount(_ count: Int?) -> String {
-        guard let count else { return "Milhares" }
+    private func reviewCountSubtitle(for rating: EditorialRating) -> String? {
+        rating.reviewCount.map { count in
+            String(format: NSLocalizedString("game_detail.ratings.reviews_count %@", comment: ""), formattedCount(count))
+        }
+    }
+
+    private func formattedCount(_ count: Int) -> String {
         if count >= 1_000_000 {
             return String(format: "%.1fM", Double(count) / 1_000_000)
         } else if count >= 1_000 {
             return "\(count / 1_000)k"
         } else {
             return "\(count)"
+        }
+    }
+
+    private func verifiedRating(for source: EditorialRatingSource) -> EditorialRating? {
+        editorial.ratings.first { rating in
+            rating.source == source && hasVerifiableReferenceURL(rating.referenceURL, for: source)
+        }
+    }
+
+    private func hasVerifiableReferenceURL(_ referenceURL: String, for source: EditorialRatingSource) -> Bool {
+        guard let components = URLComponents(string: referenceURL),
+              components.scheme == "https",
+              let host = components.host?.lowercased(),
+              !components.path.isEmpty else {
+            return false
+        }
+
+        switch source {
+        case .appStore:
+            return host == "apps.apple.com" || host.hasSuffix(".apps.apple.com")
+        case .metacriticCritic:
+            return host == "metacritic.com" || host.hasSuffix(".metacritic.com")
+        default:
+            return false
         }
     }
 }
@@ -399,47 +487,49 @@ struct GameDetailPlatformsRow: View {
     }
 }
 
-/// Bloco dedicado ao histórico exclusivo de medições deste jogo
+/// A tela do jogo mostra uma única leitura comparável ao contexto atual. A
+/// linha do tempo completa pertence ao Histórico, que preserva os contextos.
 struct GameDetailExclusiveHistoryCard: View {
     let entries: [MeasurementHistoryEntry]
-    let gameName: String
+    let selectedPlatform: Platform
+    let selectedExternalLink: ExternalEquipmentLink?
+    let onOpenHistory: () -> Void
+
+    private var latestContextualEntry: MeasurementHistoryEntry? {
+        entries
+            .filter { entry in
+                entry.resolvedContext.hasCompleteConnectionFacts
+                    && entry.resolvedContext.context.platform == selectedPlatform
+                    && entry.resolvedContext.context.declaredExternalLink == selectedExternalLink
+                    && !entry.isInconclusive
+            }
+            .max(by: { $0.completedAt < $1.completedAt })
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
             HStack {
-                Label(LocalizedStringKey("game_detail.section.history"), systemImage: "clock.arrow.circlepath")
+                Label(LocalizedStringKey("game_detail.section.latest_measurement"), systemImage: "clock.arrow.circlepath")
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
 
                 Spacer()
 
-                if !entries.isEmpty {
-                    Text(String(format: NSLocalizedString("game_detail.section.history_count %lld", comment: ""), Int64(entries.count)))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-                }
+                Button(LocalizedStringKey("game_detail.section.open_history"), action: onOpenHistory)
+                    .font(NLTypography.captionStrong)
+                    .foregroundStyle(NLColor.accentPrimary)
+                    .frame(minHeight: 44)
             }
 
-            if entries.isEmpty {
-                VStack(spacing: 6) {
-                    Text(LocalizedStringKey("game_detail.section.history_empty"))
-                        .font(NLTypography.footnote)
-                        .foregroundStyle(NLColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                    Text(LocalizedStringKey("game_detail.section.history_empty_hint"))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, NLSpacing.md)
-                .background(NLColor.backgroundBase.opacity(0.4), in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+            if let entry = latestContextualEntry {
+                latestMeasurement(entry)
             } else {
-                VStack(spacing: NLSpacing.xs) {
-                    ForEach(Array(entries.prefix(4))) { entry in
-                        historyRow(entry: entry)
-                    }
-                }
+                Text(LocalizedStringKey("game_detail.section.latest_empty"))
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, NLSpacing.xs)
             }
         }
         .padding(NLSpacing.cardPadding)
@@ -447,7 +537,7 @@ struct GameDetailExclusiveHistoryCard: View {
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: 1))
     }
 
-    private func historyRow(entry: MeasurementHistoryEntry) -> some View {
+    private func latestMeasurement(_ entry: MeasurementHistoryEntry) -> some View {
         HStack(spacing: NLSpacing.sm) {
             Circle()
                 .fill(scoreColor(entry.result.resultClass))
@@ -458,20 +548,9 @@ struct GameDetailExclusiveHistoryCard: View {
                     .font(NLTypography.captionStrong)
                     .foregroundStyle(NLColor.textPrimary)
 
-                HStack(spacing: 4) {
-                    Text(formattedDate(entry.completedAt))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-
-                    Text("•")
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-
-                    Text(entry.resolvedContext.regionID.uppercased())
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-                        .lineLimit(1)
-                }
+                Text(formattedDate(entry.completedAt))
+                    .font(NLTypography.caption)
+                    .foregroundStyle(NLColor.textTertiary)
             }
 
             Spacer()
@@ -510,21 +589,12 @@ struct GameDetailExclusiveHistoryCard: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        let calendar = Calendar.current
-        if calendar.isDateInToday(date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm"
-            return "Hoje às \(formatter.string(from: date))"
-        } else if calendar.isDateInYesterday(date) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm"
-            return "Ontem às \(formatter.string(from: date))"
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "d MMM"
-            return formatter.string(from: date)
-        }
+        date.formatted(.relative(presentation: .named))
     }
+}
+
+private extension MeasurementHistoryEntry {
+    var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
 }
 
 /// Acordeão nativo com especificações técnicas e rede (oculto por padrão)
@@ -589,7 +659,7 @@ struct GameDetailTechnicalSpecsAccordion: View {
                                 techSpecBox(label: "game_detail.tech.optimal_ping", value: "<\(Int(demands.optimalPingMs)) ms", systemImage: "gauge.with.needle")
                                 techSpecBox(label: "game_detail.tech.tolerated_jitter", value: "<\(Int(demands.maxJitterMs)) ms", systemImage: "waveform.path.ecg")
                                 techSpecBox(label: "game_detail.tech.tolerated_loss", value: demands.packetLossTolerancePct == 0 ? "0%" : "<\(demands.packetLossTolerancePct)%", systemImage: "antenna.radiowaves.left.and.right")
-                                techSpecBox(label: "game_detail.tech.min_download", value: "5.0 Mbps", systemImage: "arrow.down.circle")
+                                techSpecBox(label: "game_detail.tech.min_download", value: formattedMbps(demands.minDownloadMbps), systemImage: "arrow.down.circle")
                             }
                         }
                     }
@@ -680,5 +750,9 @@ struct GameDetailTechnicalSpecsAccordion: View {
         .padding(10)
         .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
+    }
+
+    private func formattedMbps(_ value: Double) -> String {
+        String(format: "%.1f Mbps", value)
     }
 }

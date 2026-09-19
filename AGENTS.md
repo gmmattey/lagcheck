@@ -61,6 +61,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `34` | Trilha Viva de Medição (`MeasurementLiveTrail`), fluxo de pacotes UDP nos 3 nós e visualização de estresse sob carga | decidido e implementado |
 | `35` | Tela de Resultado HIG com Hero Editorial, Atestado da Rota consolidado (`RouteTrailSummaryCard`), Grid 2x2 e unificação definitiva do LagCheck | decidido e implementado |
 | `36` | Check Completo em Wi-Fi e rede móvel com consentimento de dados, trilha visual HIG sem ruído e descarte em troca de rede | decidido e em implementação |
+| `41` | Separação entre vínculo declarado do equipamento externo e rede observada no iPhone | decidido e em implementação |
+| `42` | Home orientada por estado da conexão e ação primária | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

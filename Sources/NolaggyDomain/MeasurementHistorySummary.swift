@@ -39,16 +39,22 @@ public struct MeasurementHistorySummary: Equatable, Sendable {
     }
 
     /// Um score só é comparável quando veio de evidência UDP suficiente e do mesmo
-    /// recorte de jogo, equipamento, conexão, região e regra da medição mais recente.
+    /// recorte de jogo, ligação declarada do equipamento, rede observada no iPhone,
+    /// região e regra da medição mais recente.
     /// O histórico preserva os scores originais: esta seleção nunca os recalcula.
     private static func isComparable(_ entry: MeasurementHistoryEntry, to latest: MeasurementHistoryEntry) -> Bool {
-        guard entry.result.metrics.validResponseCount >= 10 else { return false }
+        guard entry.result.metrics.validResponseCount >= 10,
+              entry.resolvedContext.hasCompleteConnectionFacts,
+              latest.resolvedContext.hasCompleteConnectionFacts else {
+            return false
+        }
 
         let entryContext = entry.resolvedContext
         let latestContext = latest.resolvedContext
         return entryContext.context.gameID == latestContext.context.gameID &&
             entryContext.context.platform == latestContext.context.platform &&
-            entryContext.context.equipmentConnection == latestContext.context.equipmentConnection &&
+            entryContext.context.declaredExternalLink == latestContext.context.declaredExternalLink &&
+            entryContext.observedPhoneNetwork == latestContext.observedPhoneNetwork &&
             entryContext.regionID == latestContext.regionID &&
             entry.profileRuleVersion == latest.profileRuleVersion
     }

@@ -108,6 +108,9 @@
 "history.connection.cellular" = "Cellular";
 "history.connection.other" = "Other network";
 "history.connection.unrecorded" = "Connection not recorded";
+"history.equipment.wifi" = "Equipment: Wi-Fi";
+"history.equipment.ethernet" = "Equipment: cable";
+"history.equipment.not_declared" = "Equipment: not declared";
 "history.seven_day_average %@" = "7-day average: %@";
 "history.trend.improving" = "Improving";
 "history.trend.worsening" = "Worsening";
@@ -282,8 +285,18 @@
 "platform_health.outage.message" = "Online sign-in and multiplayer servers are currently experiencing interruptions.";
 "platform_health.status.operational" = "All services operational";
 "platform_health.affected_services %@" = "Affects: %@";
-"game_detail.scope.iphone" = "Measurement for iPhone on current network";
+"game_detail.scope.iphone" = "This check measures the route from this iPhone to a reference region. It is the closest representation of playing on iPhone.";
 "game_detail.scope.console %@" = "Estimate for %@ on current Wi-Fi network";
+"game_detail.context.platform_title" = "Where do you play?";
+"game_detail.context.connection_title" = "The equipment uses";
+"game_detail.context.connection_wifi" = "Wi-Fi";
+"game_detail.context.connection_cable" = "Cable";
+"game_detail.context.connection_required" = "Choose Wi-Fi or cable to continue.";
+"game_detail.context.connection_selected" = "Selected.";
+"game_detail.context.connection_hint" = "Selects this connection for the equipment.";
+"game_detail.context.start_hint" = "Starts the check with this context.";
+"game_detail.scope.external_wifi %@" = "An estimate of the internet route for %@. It is closer to the match when the equipment uses the same Wi-Fi as this iPhone.";
+"game_detail.scope.external_cable %@" = "An estimate of the internet route for %@. This iPhone does not measure the equipment's cable directly.";
 "quick_check.measuring.progress" = "Checking stability…";
 "quick_check.result.latency" = "Latency";
 
@@ -343,6 +356,17 @@
 "home.condition.excellent" = "Excellent connection";
 "home.condition.unstable" = "Route jitter detected";
 "home.condition.lag_risk" = "Lag risk";
+"home.decision.no_game" = "Before your match";
+"home.decision.select_game_hint" = "Choose a game to get started";
+"home.decision.measuring.title" = "Measurement in progress";
+"home.decision.empty.title" = "See how your network is doing for gaming";
+"home.decision.empty.message" = "Choose a game and run a check before your match.";
+"home.decision.stale.title" = "Check again before you play";
+"home.decision.stale.message" = "Your network conditions may have changed since the last measurement.";
+"home.decision.retest" = "Check again";
+"home.decision.new_check" = "Run a new check";
+"home.decision.history" = "View History";
+"home.decision.games.title" = "Games";
 
 /* Netflix-style Library */
 "netflix.hero.badge" = "TRENDING";
@@ -355,6 +379,9 @@
 
 /* Game Details - Netflix Cinema Hero */
 "game_detail.section.history" = "Your Checks for this Game";
+"game_detail.section.latest_measurement" = "Latest check in this context";
+"game_detail.section.open_history" = "View history";
+"game_detail.section.latest_empty" = "There is no valid check for this platform and connection yet.";
 "game_detail.section.history_count %lld" = "%lld checks";
 "game_detail.section.history_empty" = "No checks performed for this game yet.";
 "game_detail.section.history_empty_hint" = "Tap Start LagCheck above to test your connection.";

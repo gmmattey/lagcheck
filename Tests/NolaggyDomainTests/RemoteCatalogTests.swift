@@ -221,7 +221,7 @@ final class RemoteCatalogTests: XCTestCase {
 
         for (gameID, platform) in [("fortnite", Platform.playstation), ("fortnite", .xbox), ("roblox", .xbox), ("minecraft", .playstation), ("minecraft", .xbox)] {
             let resolution = try RemoteCatalogVerifier.resolve(
-                GameContext(gameID: gameID, market: "BR", platform: platform, equipmentConnection: .wifi), in: verified
+                GameContext(gameID: gameID, market: "BR", platform: platform, declaredExternalLink: .wifi), in: verified
             )
             guard case let .available(resolved) = resolution else {
                 return XCTFail("\(gameID) must resolve on \(platform) using the same regional reference.")
@@ -231,7 +231,7 @@ final class RemoteCatalogTests: XCTestCase {
         }
 
         XCTAssertThrowsError(try RemoteCatalogVerifier.resolve(
-            GameContext(gameID: "roblox", market: "BR", platform: .playstation, equipmentConnection: .wifi), in: verified
+            GameContext(gameID: "roblox", market: "BR", platform: .playstation, declaredExternalLink: .wifi), in: verified
         ))
     }
 
@@ -272,7 +272,7 @@ final class RemoteCatalogTests: XCTestCase {
         let verified = try verify(payload, with: privateKey)
 
         let plan = try XCTUnwrap(RemoteCatalogVerifier.automaticRoutePlan(
-            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, declaredExternalLink: .wifi),
             in: verified
         ))
 
@@ -290,7 +290,7 @@ final class RemoteCatalogTests: XCTestCase {
         let verified = try verify(schemaThreePayload(primaryStatus: .pending), with: privateKey)
 
         let resolution = try RemoteCatalogVerifier.resolve(
-            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, declaredExternalLink: .wifi),
             in: verified
         )
 
@@ -307,7 +307,7 @@ final class RemoteCatalogTests: XCTestCase {
         let verified = try verify(schemaThreePayload(primaryStatus: .active), with: privateKey)
 
         let resolution = try RemoteCatalogVerifier.resolveFallback(
-            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, equipmentConnection: .wifi),
+            GameContext(gameID: "route-fixture", market: "BR", platform: .pc, declaredExternalLink: .wifi),
             in: verified,
             excludingRouteID: "route-fixture-owned"
         )
