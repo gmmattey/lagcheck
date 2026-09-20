@@ -8,6 +8,7 @@
 "catalog.category.battle" = "Battle Royale";
 "catalog.category.competitive" = "Competitivo";
 "catalog.category.casual" = "Casual";
+"catalog.platform_filter.title" = "Plataformas";
 "catalog.all_games" = "Todos los juegos";
 "catalog.recent.score_time" = "Puntuación %d · %@";
 "catalog.recent.inconclusive_time" = "No concluyente · %@";
@@ -46,7 +47,6 @@
 "catalog.unavailable.message" = "No pudimos cargar una configuración válida para probar juegos. Inténtalo de nuevo más tarde.";
 "catalog.fallback.title" = "Usando juegos disponibles";
 "catalog.fallback.message" = "No fue posible actualizar la lista ahora. Aún puedes probar los juegos mostrados aquí.";
-"quick_check.start" = "Iniciar Quick Check";
 "quick_check.measuring.title" = "Verificando";
 "quick_check.measuring.region" = "São Paulo · región de referencia";
 "quick_check.measuring.phase" = "Midiendo la ruta regional de referencia…";
@@ -122,6 +122,7 @@
 "navigation.menu" = "Menú principal";
 "navigation.version %@" = "LagCheck %@";
 "settings.title" = "Configuración";
+"game_detail.more_information" = "Más información";
 "settings.section.preferences" = "PREFERENCIAS";
 "settings.section.privacy" = "PRIVACIDAD";
 "settings.section.about" = "ACERCA DE";
@@ -159,19 +160,19 @@
 "game.unknown" = "Juego";
 "history.details_accessibility" = "Ver detalles de la medición";
 "history.entry_accessibility" = "Fortnite, %@, %@, LagCheck Score %d, %@. Ver detalles.";
-"history.quick_check" = "Quick Check";
+"history.quick_check" = "Deep Check";
 "history.deep_check_short" = "Deep Check";
 "history.deep_check" = "Deep Check · puntaje en reposo";
 "history.deep_check_delta" = "Diferencia observada bajo carga: %+d ms";
 "quick_check.result.deep_check" = "Hacer Deep Check";
 "deep_check.title" = "Deep Check";
-"deep_check.intro.title" = "¿Investigar más a fondo?";
-"deep_check.intro.message" = "Compararemos tu red en reposo y durante un uso intenso. Toma unos 30 segundos y requiere Wi-Fi.";
-"deep_check.intro.wifi" = "Disponible solo en Wi-Fi en esta versión.";
+"deep_check.intro.title" = "¿Iniciar Deep Check?";
+"deep_check.intro.message" = "Mediremos tu ruta en reposo y durante un uso intenso. Toma unos 30 segundos.";
+"deep_check.intro.wifi" = "Con datos móviles, pediremos tu consentimiento para usar hasta 10 MB antes de comenzar.";
 "deep_check.intro.start" = "Iniciar Deep Check";
 "deep_check.intro.not_now" = "Ahora no";
-"deep_check.wifi.title" = "Deep Check requiere Wi-Fi";
-"deep_check.wifi.message" = "Conéctate al Wi-Fi para comparar tu red en reposo y bajo uso intenso.";
+"deep_check.wifi.title" = "No se pudo iniciar Deep Check";
+"deep_check.wifi.message" = "Conéctate a una red e inténtalo de nuevo.";
 "deep_check.wifi.action" = "Volver";
 "deep_check.phase.rest" = "Reposo";
 "deep_check.phase.load" = "Bajo carga";
@@ -280,9 +281,6 @@
 "platform_health.status.operational" = "Servicios operativos";
 "platform_health.status.outage" = "Fuera de servicio";
 "platform_health.status.degraded" = "Inestable";
-"game_detail.ratings.app_store_hint" = "Abrir en App Store";
-"game_detail.ratings.metacritic_label %d" = "Metacritic: %d";
-"game_detail.ratings.metacritic_hint" = "Abrir en Metacritic";
 "insight_banner.action_hint" = "Realiza la acción recomendada";
 "network_band_advice.action_hint" = "Abre la acción recomendada";
 "score.classification.excellent" = "Excelente";
@@ -309,34 +307,6 @@
 "game_detail.scope.external_cable %@" = "Estimación de la ruta de internet para %@. Este iPhone no mide directamente el cable del equipo.";
 "quick_check.measuring.progress" = "Evaluando estabilidad…";
 "quick_check.result.latency" = "Latencia";
-"game_detail.requirements.platform_title" = "Requisitos de la plataforma";
-"game_detail.requirements.minimum_os" = "Sistema mínimo";
-"game_detail.requirements.storage" = "Almacenamiento";
-"game_detail.requirements.ram" = "Memoria RAM";
-"game_detail.requirements.framerate" = "Tasa de cuadros";
-"game_detail.network_demands.title" = "Perfil de red recomendado";
-"game_detail.network_demands.optimal_ping" = "Ping ideal";
-"game_detail.network_demands.acceptable_ping" = "Ping máximo";
-"game_detail.network_demands.max_jitter" = "Jitter tolerado";
-"game_detail.network_demands.packet_loss" = "Pérdida máx.";
-"game_detail.fit.excellent" = "Excelente ajuste";
-"game_detail.fit.acceptable" = "Adecuado";
-"game_detail.fit.suboptimal" = "Por debajo del ideal";
-"game_detail.fit.excellent_desc %@" = "Tu latencia medida de %@ cumple con creces el requisito ideal de este juego para una respuesta inmediata.";
-"game_detail.fit.acceptable_desc %@" = "Tu latencia de %@ está en el rango aceptable, pero puede presentar leves desventajas en partidas competitivas intensas.";
-"game_detail.fit.suboptimal_desc %@" = "Tu latencia de %@ supera la recomendada para este juego, con riesgo perceptible de retraso en tus acciones.";
-"nat.type1.open.title" = "NAT Abierto";
-"nat.type2.moderate.title" = "NAT Moderado";
-"nat.type3.strict.title" = "NAT Estricto";
-"nat.inconclusive.title" = "NAT no identificado";
-"nat_banner.cgnat.title" = "Operador con CGNAT detectado";
-"nat_banner.cgnat.message" = "Tu proveedor utiliza CGNAT, lo que puede bloquear conexiones directas en salas multijugador y chat de voz en consolas.";
-"nat_banner.double_nat.title" = "Doble router detectado (NAT doble)";
-"nat_banner.double_nat.message" = "Hay dos routers activos en tu red al mismo tiempo causando conflictos de puertos. Te recomendamos configurar uno en modo Bridge.";
-"nat_banner.strict.title" = "NAT Estricto (Tipo 3) detectado";
-"nat_banner.strict.message" = "Tu tipo de NAT es Estricto. Esto puede dificultar encontrar partidas multijugador y conectarte con amigos en grupos de voz.";
-"nat_banner.default.title" = "Topología de red";
-
 /* Nueva Jornada e Iniciar LagCheck */
 "settings.language.system" = "Predeterminado del sistema";
 "home.cta.start_lagcheck" = "Iniciar LagCheck";
@@ -391,17 +361,9 @@
 "game_detail.section.history_count %lld" = "%lld chequeos";
 "game_detail.section.history_empty" = "Aún no se han realizado chequeos para este juego.";
 "game_detail.section.history_empty_hint" = "Toca Iniciar LagCheck arriba para analizar tu conexión.";
-"game_detail.section.tech_specs" = "Especificaciones Técnicas y Red";
-"game_detail.section.tech_specs_subtitle" = "Requisitos mínimos, latencia ideal y NAT";
+"game_detail.section.network_information" = "Información de conexión";
+"game_detail.section.network_information_subtitle" = "Observaciones verificables de esta medición";
 "game_detail.section.supported_platforms" = "Plataformas Compatibles";
-"game_detail.meta.match" = "98% Coincidencia";
-"game_detail.ratings.reviews_count %@" = "%@ en App Store";
-"game_detail.ratings.critics_count %@" = "%@ Críticas Oficiales";
-"game_detail.tech.optimal_ping" = "Ping Ideal";
-"game_detail.tech.tolerated_jitter" = "Jitter Máx.";
-"game_detail.tech.tolerated_loss" = "Pérdida Máx.";
-"game_detail.tech.min_download" = "Descarga Mín.";
-"game_detail.tech.nat_topology" = "Topología NAT (STUN)";
 "game_detail.history.score_label" = "Puntaje";
 
 /* Selector de Plataforma */
@@ -436,12 +398,11 @@
 "result.action.details" = "Ver Detalles Técnicos";
 "result.diagnostic.title" = "Diagnóstico de Partida";
 
-/* Check Completo en Wi-Fi y Red Móvil (Decisión 36) */
+/* Deep Check en Wi-Fi y red móvil (Decisión 36) */
 "deep_check.cellular_consent.title" = "Uso de datos móviles";
-"deep_check.cellular_consent.message" = "El Check Completo usa datos móviles para evaluar su conexión bajo carga.";
+"deep_check.cellular_consent.message" = "Deep Check usa datos móviles para evaluar tu conexión bajo carga.";
 "deep_check.cellular_consent.limit" = "Límite máximo de transferencia: hasta 10 MB (unos 15 segundos).";
 "deep_check.cellular_consent.confirm" = "Continuar con datos móviles";
-"deep_check.cellular_consent.quick_check" = "Hacer solo Quick Check";
 "deep_check.cellular_consent.cancel" = "Cancelar";
 "live_trail.node.wifi" = "Wi-Fi";
 "live_trail.node.ping" = "Ping";
@@ -454,7 +415,7 @@
 "live_trail.state.active" = "Activo";
 "live_trail.state.responding" = "Respondiendo";
 "live_trail.state.connecting" = "Conectando";
-"result.route_trail.wifi_healthy" = "5 GHz · Excelente (< 2 ms)";
+"result.route_trail.wifi_healthy" = "Conexión Wi-Fi observada";
 "result.route_trail.wifi_unstable" = "Oscilación en el Wi-Fi";
 "result.route_trail.cellular_active" = "Red móvil activa";
 "result.route_trail.destination_responding %@" = "Respondiendo · %@ ms";
@@ -462,12 +423,12 @@
 "result.route_trail.badge_slow" = "Lento";
 "result.route_trail.accessibility_format %@ %@ %@ %@" = "Certificado de ruta: iPhone verificado. %@: %@. Destino %@: %@.";
 
-/* Check Completo - Veredito e Resultado HIG */
-"check_completo.verdict.held" = "La ruta resistió";
-"check_completo.verdict.oscillated" = "La ruta osciló";
-"check_completo.verdict.load_heavy" = "La carga pesó";
-"check_completo.verdict.delivery_failed" = "La entrega falló";
-"check_completo.verdict.inconclusive" = "Medición incompleta";
+/* Deep Check - Veredicto y resultado HIG */
+"check_completo.verdict.held" = "Conexión buena";
+"check_completo.verdict.oscillated" = "Conexión inestable";
+"check_completo.verdict.load_heavy" = "La red empeoró bajo carga";
+"check_completo.verdict.delivery_failed" = "Riesgo de lag";
+"check_completo.verdict.inconclusive" = "Medición no concluyente";
 
 "check_completo.context.estimate_footnote" = "Estimación realizada por el iPhone en esta red.";
 

@@ -35,12 +35,29 @@ enum MeasurementTransportFactory {
     }
 
     static func deepCheckCoordinator(historyRepository: any MeasurementHistoryRepository) -> DeepCheckSessionCoordinator {
+        if UITestFixtures.isEnabled("-ui-fixture-cellular-consent") {
+            return DeepCheckSessionCoordinator(
+                transport: NoopMeasurementTransport(),
+                loadTransport: NoopLoadTransport(),
+                pathObserver: NoopNetworkPathObserver(),
+                wifiAvailability: CellularConsentFixtureAvailability(),
+                historyRepository: historyRepository
+            )
+        }
         #if !targetEnvironment(simulator)
-        DeepCheckSessionCoordinator(transport: NWConnectionMeasurementTransport(), loadTransport: URLSessionLoadTransport(), pathObserver: NWPathMonitorNetworkPathObserver(), wifiAvailability: NWPathWiFiAvailability(), historyRepository: historyRepository)
+        return DeepCheckSessionCoordinator(transport: NWConnectionMeasurementTransport(), loadTransport: URLSessionLoadTransport(), pathObserver: NWPathMonitorNetworkPathObserver(), wifiAvailability: NWPathWiFiAvailability(), historyRepository: historyRepository)
         #else
-        DeepCheckSessionCoordinator(transport: NoopMeasurementTransport(), loadTransport: NoopLoadTransport(), pathObserver: NoopNetworkPathObserver(), wifiAvailability: NoopWiFiAvailability(), historyRepository: historyRepository)
+        return DeepCheckSessionCoordinator(transport: NoopMeasurementTransport(), loadTransport: NoopLoadTransport(), pathObserver: NoopNetworkPathObserver(), wifiAvailability: NoopWiFiAvailability(), historyRepository: historyRepository)
         #endif
     }
+}
+
+/// Fixture restrita a DEBUG para exercitar o ponto de consentimento antes de
+/// qualquer transporte. Não simula uma medição nem produz resultado.
+private struct CellularConsentFixtureAvailability: WiFiAvailability {
+    func isWiFiAvailable() async -> Bool { false }
+    func isCellularAvailable() async -> Bool { true }
+    func currentInterface() async -> NetworkInterfaceType { .cellular }
 }
 
 private struct ConfirmedRegionalPreReadFixture: RegionalPreReadCollecting {

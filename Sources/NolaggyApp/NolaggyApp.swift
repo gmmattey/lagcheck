@@ -11,11 +11,21 @@ struct NolaggyApp: App {
     private let catalogRepository: RemoteCatalogRepository
     @State private var catalogState: CatalogState
 
+    private var currentLanguage: AppLanguage {
+        AppLanguage(rawValue: selectedLanguage) ?? .system
+    }
+
     private var currentLocale: Locale {
-        AppLocalization.locale
+        currentLanguage.locale
     }
 
     init() {
+        // Cada cenário de UI começa no idioma do sistema. Diferente de passar
+        // `-app_selected_language system`, isto não cria uma camada de
+        // argumentos que impeça a pessoa de trocar de idioma durante o teste.
+        if UITestFixtures.isEnabled(UITestFixtures.resetLanguageArgument) {
+            UserDefaults.standard.removeObject(forKey: AppLocalization.selectedLanguageKey)
+        }
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
         let base = DebugCatalogBase.envelopeData() ?? Data()

@@ -20,21 +20,15 @@ struct GameDetailView: View {
     @State private var selectedPlatform: Platform = .iphone
     @State private var selectedExternalLink: ExternalEquipmentLink? = nil
     @State private var platformHealth: PlatformHealth? = nil
-    @State private var natSnapshot: NATTopologySnapshot? = nil
     private let healthClient = DirectPlatformHealthClient()
-    private let stunClient = StunProbeClient()
-
-    private var editorial: RemoteCatalogGameEditorial? {
-        GameEditorialRegistry.editorial(for: game.id)
-    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // A arte contextualiza o título sem disputar atenção com a decisão.
-                GameDetailCinemaHeroBanner(game: game, editorial: editorial)
+                GameDetailCinemaHeroBanner(game: game)
 
-                VStack(alignment: .leading, spacing: NLSpacing.md) {
+                VStack(alignment: .leading, spacing: NLSpacing.lg) {
                     GameDetailMeasurementContextCard(
                         supportedPlatforms: supportedPlatforms,
                         selectedPlatform: $selectedPlatform,
@@ -63,37 +57,7 @@ struct GameDetailView: View {
                     .accessibilityIdentifier("start-game-deep-check")
                     .accessibilityHint(Text(requiresEquipmentConnection ? "game_detail.context.connection_required" : "game_detail.context.start_hint"))
 
-                    // Sinopse Oficial Localizada
-                    if let synopsis = editorial?.localizedSummary(localeIdentifier: AppLocalization.locale.identifier), !synopsis.isEmpty {
-                        Text(synopsis)
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .lineSpacing(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    // Grid de Avaliações Oficiais Auditadas (App Store & Metacritic)
-                    if let editorial {
-                        GameDetailRatingsGrid(editorial: editorial)
-                    }
-
-                    GameDetailExclusiveHistoryCard(
-                        entries: gameHistory,
-                        selectedPlatform: selectedPlatform,
-                        selectedExternalLink: selectedExternalLink,
-                        onOpenHistory: onOpenHistory
-                    )
-
-                    // Especificações Técnicas e Rede (Acordeão / Oculto por padrão)
-                    GameDetailTechnicalSpecsAccordion(
-                        editorial: editorial,
-                        selectedPlatform: selectedPlatform,
-                        observedMetrics: observedMetrics,
-                        natSnapshot: natSnapshot,
-                        platformHealth: platformHealth,
-                        wifiBandDiagnostic: wifiBandDiagnostic,
-                        onStartDeepCheck: { startDeepCheck() }
-                    )
+                    supplementaryInformation
                 }
                 .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                 .padding(.top, NLSpacing.sm)
@@ -114,13 +78,6 @@ struct GameDetailView: View {
         .onChange(of: selectedPlatform) { _, platform in
             if platform == .iphone {
                 selectedExternalLink = nil
-            }
-        }
-        .task {
-            // Sonda topologia de NAT em segundo plano de forma não-bloqueante
-            let snapshot = await stunClient.probeTopology()
-            withAnimation(.easeInOut(duration: 0.2)) {
-                self.natSnapshot = snapshot
             }
         }
         .task(id: selectedPlatform) {
@@ -163,6 +120,41 @@ struct GameDetailView: View {
 
     private var requiresEquipmentConnection: Bool {
         selectedPlatform != .iphone && selectedExternalLink == nil
+    }
+
+    /// Histórico e observações verificáveis não disputam a decisão de medir.
+    /// Dados editoriais de terceiros ficam fora desta versão até serem auditados.
+    @ViewBuilder
+    private var supplementaryInformation: some View {
+        if !gameHistory.isEmpty || wifiBandDiagnostic != nil || platformHealth?.isIssueReported == true {
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                    if !gameHistory.isEmpty {
+                        GameDetailExclusiveHistoryCard(
+                            entries: gameHistory,
+                            selectedPlatform: selectedPlatform,
+                            selectedExternalLink: selectedExternalLink,
+                            onOpenHistory: onOpenHistory
+                        )
+                    }
+
+                    if wifiBandDiagnostic != nil || platformHealth?.isIssueReported == true {
+                        GameDetailNetworkInformationAccordion(
+                            platformHealth: platformHealth,
+                            wifiBandDiagnostic: wifiBandDiagnostic,
+                            onStartDeepCheck: { startDeepCheck() }
+                        )
+                    }
+                }
+                .padding(.top, NLSpacing.sm)
+            } label: {
+                Label("game_detail.more_information", systemImage: "info.circle")
+                    .font(NLTypography.bodyEmphasis)
+                    .foregroundStyle(NLColor.textPrimary)
+            }
+            .tint(NLColor.textSecondary)
+            .accessibilityIdentifier("game-detail-more-information")
+        }
     }
 
     private func startDeepCheck() {

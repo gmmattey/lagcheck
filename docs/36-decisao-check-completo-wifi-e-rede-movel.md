@@ -36,7 +36,7 @@ Com a presente decisão formalizada pelo Dono do Produto (Luiz):
   - Antes de iniciar o Check Completo em rede móvel, o app deve exibir uma confirmação explícita de consumo de dados:  
     *“O Check Completo usa dados móveis para avaliar sua conexão sob carga.”*
   - A confirmação deve discriminar de forma transparente o limite técnico máximo previsto para a medição (até 10 MB).
-  - Sem consentimento do usuário, a carga jamais é iniciada. O usuário tem apenas duas opções: **executar apenas o Quick Check** (que consome somente micro-pacotes UDP insignificantes de telemetria) ou **cancelar**.
+  - Sem consentimento do usuário, a jornada é cancelada antes de qualquer probe UDP ou carga. Não há medição alternativa reduzida, resultado, score, histórico ou reteste parcial. Esta regra é consolidada pela decisão 46.
 * **Identificação na Trilha:** O primeiro nó exibe "Rede móvel", com o ícone SF Symbol `antenna.radiowaves.left.and.right`.
 * **Restrição de Integridade de Diagnóstico:** Em rede celular é **estritamente proibido** inferir ou exibir roteador local, frequência Wi-Fi (2.4 GHz ou 5 GHz), gateway residencial ou suposto gargalo local de Wi-Fi.
 
@@ -112,7 +112,7 @@ O fechamento desta decisão e a validação de release exigem evidência real no
 | TC-01 | Check Completo em Wi-Fi (Válido) | iPhone Físico | Executa repouso e carga; trilha exibe "Wi-Fi"; gera resultado válido com impacto de carga. |
 | TC-02 | Check Completo em Wi-Fi (Inconclusivo) | iPhone Físico | UDP bloqueado ou sem 10 respostas; exibe estado inconclusivo neutro sem score. |
 | TC-03 | Consentimento em Rede Móvel (Aceite) | iPhone Físico | Exibe tela/aviso com texto exato e teto de 10 MB; após aceite, inicia repouso e carga. |
-| TC-04 | Consentimento em Rede Móvel (Recusa) | iPhone Físico | Permite optar por Quick Check ou cancelar; carga HTTP jamais é disparada. |
+| TC-04 | Consentimento em Rede Móvel (Recusa) | iPhone Físico | Encerra Deep Check sem oferecer alternativa reduzida; não inicia UDP ou carga HTTP, não exibe resultado e não persiste histórico. |
 | TC-05 | Check Completo em Rede Móvel (Válido) | iPhone Físico | Trilha exibe "Rede móvel" com `antenna.radiowaves.left.and.right`; sem dados de roteador/2.4GHz; grava no histórico como celular. |
 | TC-06 | Wi-Fi ➔ Rede Móvel (Durante Repouso) | iPhone Físico | Desliga Wi-Fi na Central de Controle; sessão cancela na hora; nenhum dado gravado. |
 | TC-07 | Wi-Fi ➔ Rede Móvel (Durante Carga) | iPhone Físico | Desliga Wi-Fi durante transferência; carga e UDP param na hora; sessão cancelada. |

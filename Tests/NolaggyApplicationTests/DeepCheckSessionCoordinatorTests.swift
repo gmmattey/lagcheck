@@ -195,11 +195,15 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
     }
 
     func testCellularRequiresConsentBeforeStarting() async throws {
+        let probes = InvocationCountingMeasurementTransport()
+        let load = InvocationCountingLoadTransport()
+        let history = RecordingDeepHistoryRepository()
         let coordinator = DeepCheckSessionCoordinator(
-            transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
-            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 1)),
+            transport: probes,
+            loadTransport: load,
             pathObserver: NoChangesObserver(),
-            wifiAvailability: FixedInterfaceAvailability(interface: .cellular)
+            wifiAvailability: FixedInterfaceAvailability(interface: .cellular),
+            historyRepository: history
         )
 
         do {
@@ -210,7 +214,17 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         }
 
         let state = await coordinator.sessionState()
+        let activeSession = await coordinator.currentSession()
+        let progress = await coordinator.measurementProgress()
+        let probeCalls = await probes.invocationCount
+        let loadCalls = await load.invocationCount
+        let entries = await history.loadHistory()
         XCTAssertEqual(state, .requiresCellularConsent)
+        XCTAssertNil(activeSession)
+        XCTAssertNil(progress)
+        XCTAssertEqual(probeCalls, 0)
+        XCTAssertEqual(loadCalls, 0)
+        XCTAssertTrue(entries.isEmpty)
     }
 
     func testCellularWithConsentExecutesAndPersistsCellularSnapshot() async throws {
@@ -354,6 +368,24 @@ private actor ProgressTransport: MeasurementTransport {
 private struct FixedLoadTransport: LoadTransport {
     let outcome: LoadTransferOutcome
     func transfer(_: LoadRequest) async -> LoadTransferOutcome { outcome }
+}
+
+private actor InvocationCountingMeasurementTransport: MeasurementTransport {
+    private(set) var invocationCount = 0
+
+    func collect(session: MeasurementSession, plan: QuickCheckPlan, onSample: @escaping @Sendable (ProbeSample) async -> Void) async -> [ProbeSample] {
+        invocationCount += 1
+        return []
+    }
+}
+
+private actor InvocationCountingLoadTransport: LoadTransport {
+    private(set) var invocationCount = 0
+
+    func transfer(_: LoadRequest) async -> LoadTransferOutcome {
+        invocationCount += 1
+        return .completed(bytesTransferred: 0)
+    }
 }
 
 private struct FixedWiFiAvailability: WiFiAvailability {

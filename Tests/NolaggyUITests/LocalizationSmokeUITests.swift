@@ -3,10 +3,10 @@ import XCTest
 final class LocalizationSmokeUITests: XCTestCase {
     @MainActor
     func testCatalogDetailUsesTheSystemLanguageForEverySupportedLocale() {
-        let expectations: [(language: String, locale: String, games: String, platform: String, estimate: String)] = [
-            ("pt-BR", "pt_BR", "Jogos", "Plataforma", "Estimativa de conexão para São Paulo, não o ping oficial do jogo."),
-            ("en", "en_US", "Games", "Platform", "Connection estimate for São Paulo, not the game's official ping."),
-            ("es", "es_ES", "Juegos", "Plataforma", "Estimación de conexión para São Paulo, no el ping oficial del juego.")
+        let expectations: [(language: String, locale: String, games: String, platformTitle: String)] = [
+            ("pt-BR", "pt_BR", "Jogos", "Onde você joga?"),
+            ("en", "en_US", "Games", "Where do you play?"),
+            ("es", "es_ES", "Juegos", "¿Dónde juegas?")
         ]
 
         for expectation in expectations {
@@ -16,6 +16,7 @@ final class LocalizationSmokeUITests: XCTestCase {
             app.launchArguments += [
                 "-AppleLanguages", "(\(expectation.language))",
                 "-AppleLocale", expectation.locale,
+                "-app_selected_language", "system",
                 "-ui-fixture-confirmed-region"
             ]
             app.launch()
@@ -24,9 +25,8 @@ final class LocalizationSmokeUITests: XCTestCase {
             app.buttons[expectation.games].tap()
             XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3), expectation.language)
             app.buttons["catalog-game-fortnite"].tap()
-            XCTAssertTrue(app.staticTexts[expectation.platform].waitForExistence(timeout: 2), expectation.language)
-            XCTAssertTrue(app.staticTexts[expectation.estimate].waitForExistence(timeout: 2), expectation.language)
-            XCTAssertTrue(app.buttons["quick-check-start"].exists, expectation.language)
+            XCTAssertTrue(app.staticTexts[expectation.platformTitle].waitForExistence(timeout: 2), expectation.language)
+            XCTAssertTrue(app.buttons["start-game-deep-check"].exists, expectation.language)
             app.terminate()
         }
     }

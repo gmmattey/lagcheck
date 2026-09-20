@@ -4,6 +4,7 @@ import NolaggyDomain
 /// Dados exclusivos de revisão visual no simulador. Não são rota, transporte ou fallback de rede.
 enum UITestFixtures {
     static let launchArgument = "-ui-fixture-valid-result"
+    static let resetLanguageArgument = "-ui-fixture-reset-language"
 
     static func isEnabled(_ argument: String) -> Bool {
         #if DEBUG

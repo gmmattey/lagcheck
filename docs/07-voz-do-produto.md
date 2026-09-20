@@ -116,7 +116,7 @@ Não chamar o achado de “bufferbloat” na mensagem principal. O termo técnic
 
 - PT-BR é a referência de intenção e precisa soar natural no Brasil; inglês e espanhol são escritos para soar naturais, não espelhados literalmente. O espanhol é pan-hispânico, claro e formal sem rigidez.
 - O idioma efetivo é o idioma do sistema, salvo escolha explícita e ativa da pessoa no LagCheck. Nenhum texto apresentado, inclusive VoiceOver, erro, formatação textual e retorno da IA, pode consultar outro locale.
-- Nomes de produto permanecem: `LagCheck Score`, `Quick Check` e `Deep Check`.
+- Nomes de produto permanecem: `LagCheck Score` e `Deep Check`. `Quick Check` pode existir somente como nome técnico interno, nunca em copy para a pessoa.
 - Unidade e número seguem a localidade do sistema quando aplicável. Siglas técnicas, como `ms` e `%`, permanecem estáveis.
 - Texto de ação é curto. A interface deve acomodar PT-BR como caso de expansão, mas a copy não pode depender de truncamento.
 - Toda string nova passa por revisão de produto e design quando altera conclusão, risco, recomendação, consentimento ou confiança.

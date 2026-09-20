@@ -5,6 +5,8 @@
 **Sistema mínimo:** iOS 17  
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
+> **Atualização de jornada (2026-09-19):** toda referência a Quick Check como funcionalidade visível, fallback ou etapa da jornada foi substituída pelas decisões 43 e 46. A V1 oferece somente Deep Check; nomes legados podem permanecer apenas na implementação interna de coleta UDP.
+
 > **Decisão de plataforma:** o LagCheck nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
 >
 > **Motivo registrado (2026-09-10):** a escolha é de viabilidade de distribuição, não de validação de público-alvo. Testar no Android exige closed testing de 14 dias com 12 usuários antes de qualquer disponibilização mais ampla — fricção desproporcional para um time pequeno validando um conceito. A App Store permite lançar e iterar de forma mais direta. **Isso não significa que o público iPhone BR/US seja quem mais sente a dor que o LagCheck resolve** — jogadores em Android, dados móveis limitados e Wi-Fi doméstico compartilhado provavelmente têm mais incerteza sobre a própria conexão do que o público iPhone típico desses dois mercados. A equipe aceita conscientemente que a V1 valida o conceito e a qualidade técnica nesse subconjunto, não a tese completa de mercado do produto. Quando o Android entrar em escopo, os aprendizados de retenção e comportamento da V1 devem ser tratados como indicativos, não como prova de que funcionam para o público de maior necessidade.

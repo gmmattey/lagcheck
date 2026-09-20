@@ -13,7 +13,8 @@ public enum NLColor {
 
     public static let textPrimary = Color.white
     public static let textSecondary = Color(red: 142 / 255, green: 142 / 255, blue: 147 / 255)
-    public static let textTertiary = Color(red: 99 / 255, green: 99 / 255, blue: 102 / 255)
+    /// Texto auxiliar com contraste AA sobre as superfícies escuras do app.
+    public static let textTertiary = Color(red: 138 / 255, green: 138 / 255, blue: 142 / 255)
     public static let textDisabled = Color(red: 72 / 255, green: 72 / 255, blue: 74 / 255)
     public static let textOnAccent = Color.white
     public static let textLink = coralSolar

@@ -34,41 +34,47 @@ struct PlatformSelectionSheet: View {
                 selectionContent
             }
         }
-        .presentationDetents([.height(supportedPlatforms.isEmpty ? 280 : 290)])
+        // A altura acompanha as Preferências de Texto do sistema. Uma altura fixa
+        // cortava o título, os cartões ou a ação primária em tamanhos extremos.
+        .presentationDetents([.medium, .large])
+        .presentationContentInteraction(.scrolls)
         .presentationDragIndicator(.visible)
         .background(NLColor.backgroundBase.ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
 
     private var selectionContent: some View {
-        VStack(spacing: NLSpacing.lg) {
-            // Cabeçalho da Sheet
-            VStack(spacing: NLSpacing.xxs) {
-                Text(LocalizedStringKey("lagcheck.platform_picker.title"))
-                    .font(NLTypography.headline)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .multilineTextAlignment(.center)
+        VStack(spacing: NLSpacing.md) {
+            ScrollView {
+                VStack(spacing: NLSpacing.lg) {
+                    // Cabeçalho da Sheet
+                    VStack(spacing: NLSpacing.xxs) {
+                        Text(LocalizedStringKey("lagcheck.platform_picker.title"))
+                            .font(NLTypography.headline)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .multilineTextAlignment(.center)
 
-                Text(String(format: AppLocalization.string("lagcheck.platform_picker.subtitle %@", comment: ""), gameName))
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, NLSpacing.sm)
-            }
-            .padding(.top, NLSpacing.md)
+                        Text(String(format: AppLocalization.string("lagcheck.platform_picker.subtitle %@", comment: ""), gameName))
+                            .font(NLTypography.footnote)
+                            .foregroundStyle(NLColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, NLSpacing.sm)
+                    }
+                    .padding(.top, NLSpacing.md)
 
-            // Linha Horizontal de Plataformas (Decisão 26)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NLSpacing.sm) {
-                    ForEach(supportedPlatforms, id: \.self) { platform in
-                        platformCard(for: platform)
+                    // Linha Horizontal de Plataformas (Decisão 26)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: NLSpacing.sm) {
+                            ForEach(supportedPlatforms, id: \.self) { platform in
+                                platformCard(for: platform)
+                            }
+                        }
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                        .padding(.vertical, NLSpacing.xxs)
                     }
                 }
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, NLSpacing.xxs)
             }
-
-            Spacer(minLength: 0)
 
             // Botão de Confirmação Primário
             Button {
@@ -88,7 +94,7 @@ struct PlatformSelectionSheet: View {
                 .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium))
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.bottom, NLSpacing.lg)
+            .padding(.bottom, NLSpacing.md)
             .accessibilityIdentifier("confirm-platform-and-start")
         }
     }
@@ -155,7 +161,8 @@ struct PlatformSelectionSheet: View {
                     .font(NLTypography.caption)
                     .foregroundStyle(NLColor.textTertiary)
             }
-            .frame(width: 96, height: 104)
+            .frame(width: 96)
+            .frame(minHeight: 104)
             .background(
                 isSelected ? Color.white.opacity(0.14) : NLColor.backgroundRaised,
                 in: RoundedRectangle(cornerRadius: 12)

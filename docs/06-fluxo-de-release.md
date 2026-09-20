@@ -107,10 +107,11 @@ Archive Release
 
 Para um build ser aceito como release candidate, a evidência deve cobrir:
 
-- Quick Check em iPhone físico, pelo menos em Wi-Fi e rede celular;
+- Deep Check único em iPhone físico, pelo menos em Wi-Fi e rede celular, incluindo aceite e recusa de consentimento móvel sem rota alternativa;
 - cancelamento correto por troca de rede, ida a background e ação da pessoa;
 - Deep Check em Wi-Fi, incluindo carga concluída, carga interrompida e resultado sem dados suficientes;
 - catálogo assinado, cache e catálogo-base funcionando em cenários de falha;
+- validação de que toda rota exibida continua identificada como região de referência, sem apresentar servidor, endpoint ou ping oficial de jogo;
 - persistência e exclusão de histórico conforme a regra da V1;
 - PT-BR e inglês, Dynamic Type e VoiceOver nos fluxos alterados;
 - validação explícita de que as limitações são comunicadas como estimativa quando a medição não é do dispositivo/jogo real.

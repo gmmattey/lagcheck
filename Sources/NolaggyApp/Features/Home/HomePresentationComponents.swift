@@ -6,6 +6,8 @@ import NolaggyDomain
 // MARK: - Home header and status
 
 struct HomeRefreshButton: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let refreshAccessibilityLabel: String
     let isMeasuring: Bool
     let refresh: () -> Void
@@ -15,11 +17,16 @@ struct HomeRefreshButton: View {
             Image(systemName: "arrow.clockwise")
                 .font(NLTypography.navigationIcon)
                 .foregroundStyle(isMeasuring ? NLColor.textTertiary : NLColor.accentPrimary)
-                .rotationEffect(.degrees(isMeasuring ? 360 : 0))
-                .animation(isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isMeasuring)
+                .rotationEffect(.degrees(isMeasuring && !reduceMotion ? 360 : 0))
+                .animation(
+                    reduceMotion ? nil : (isMeasuring ? .linear(duration: 1).repeatForever(autoreverses: false) : .default),
+                    value: isMeasuring
+                )
                 .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                .background(NLColor.backgroundRaised, in: Circle())
-                .overlay(Circle().stroke(NLColor.borderStrong, lineWidth: 1))
+                // A barra de navegação já fornece a superfície e a área de
+                // toque do controle. Não desenhar uma segunda cápsula/círculo
+                // aqui evita o aspecto de dois botões sobrepostos no topo.
+                .contentShape(Rectangle())
         }
         .disabled(isMeasuring)
         .accessibilityLabel(refreshAccessibilityLabel)
@@ -806,10 +813,6 @@ struct HomeDecisionCard: View {
                     Text(platformName(platform))
                         .font(NLTypography.caption)
                         .foregroundStyle(NLColor.textSecondary)
-                } else {
-                    Text(LocalizedStringKey("home.decision.select_game_hint"))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textSecondary)
                 }
             }
 
@@ -857,24 +860,16 @@ struct HomeDecisionCard: View {
                 .font(NLTypography.caption)
                 .foregroundStyle(NLColor.textSecondary)
         } else {
-            decisionText(
-                title: "home.decision.empty.title",
-                message: "home.decision.empty.message",
-                symbol: "play.circle"
-            )
+            EmptyView()
         }
     }
 
-    private func decisionText(title: LocalizedStringKey, message: LocalizedStringKey, symbol: String) -> some View {
-        VStack(alignment: .leading, spacing: NLSpacing.xxs) {
-            Label(title, systemImage: symbol)
-                .font(NLTypography.bodyEmphasis)
-                .foregroundStyle(NLColor.textPrimary)
-            Text(message)
-                .font(NLTypography.callout)
-                .foregroundStyle(NLColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+    private func decisionText(title: LocalizedStringKey, message _: LocalizedStringKey, symbol: String) -> some View {
+        // A ação imediatamente abaixo já explica o próximo passo. Manter só
+        // a conclusão evita repetir cada título como subtítulo instrucional.
+        Label(title, systemImage: symbol)
+            .font(NLTypography.bodyEmphasis)
+            .foregroundStyle(NLColor.textPrimary)
     }
 
     private var primaryTitleKey: String {
@@ -949,8 +944,10 @@ struct HomeGamesListSection: View {
                 .accessibilityIdentifier("home-games-see-all")
             }
 
-            VStack(spacing: 0) {
-                ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
+            // A Home é uma continuação leve da decisão acima: linhas nativas
+            // com espaço entre si, não uma segunda pilha de cards.
+            VStack(spacing: NLSpacing.md) {
+                ForEach(games, id: \.id) { game in
                     Button(action: { onSelectGame(game) }) {
                         HStack(spacing: NLSpacing.sm) {
                             VerifiedGameArtwork(game: game, aspectRatio: 1)
@@ -966,15 +963,11 @@ struct HomeGamesListSection: View {
                                 .foregroundStyle(NLColor.textTertiary)
                         }
                         .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
+                        .padding(.horizontal, NLSpacing.sm)
+                        .padding(.vertical, NLSpacing.xxs)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("home-game-\(game.id)")
-
-                    if index < games.count - 1 {
-                        Divider()
-                            .overlay(NLColor.borderStrong)
-                            .padding(.leading, 56)
-                    }
                 }
             }
         }
@@ -988,20 +981,26 @@ struct HomeCatalogView: View {
     let title: String
     @Binding var query: String
     @Binding var selectedCategory: CatalogCategory
+    @Binding var selectedPlatforms: Set<Platform>
     let allGames: [CatalogMeasurementJourney.Game]
     let recentItems: [HomeRecentTestsSection.RecentItem]
     let searchPlaceholder: String
     let clearSearchAccessibilityLabel: String
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
     let filterTitle: (CatalogCategory) -> String
+    let platformsForGame: (CatalogMeasurementJourney.Game) -> [Platform]
+    let platformFilterTitle: String
     let platformsTitle: (CatalogMeasurementJourney.Game) -> String
+    let onReturnToHome: (() -> Void)?
     let select: (CatalogMeasurementJourney.Game) -> Void
 
     private var filteredGames: [CatalogMeasurementJourney.Game] {
         allGames.filter { game in
             let matchesQuery = query.isEmpty || game.name.localizedCaseInsensitiveContains(query)
             let matchesCategory = selectedCategory == .all || category(for: game) == selectedCategory
-            return matchesQuery && matchesCategory
+            let gamePlatforms = Set(platformsForGame(game))
+            let matchesPlatform = selectedPlatforms.isEmpty || !gamePlatforms.isDisjoint(with: selectedPlatforms)
+            return matchesQuery && matchesCategory && matchesPlatform
         }
     }
 
@@ -1020,6 +1019,11 @@ struct HomeCatalogView: View {
                     selected: $selectedCategory,
                     categories: CatalogCategory.allCases,
                     title: filterTitle
+                )
+
+                HomeCatalogPlatformFilters(
+                    selectedPlatforms: $selectedPlatforms,
+                    title: platformFilterTitle
                 )
 
                 if query.isEmpty, !recentItems.isEmpty {
@@ -1054,9 +1058,19 @@ struct HomeCatalogView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .safeAreaPadding(.bottom, NLSpacing.md)
+        .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if let onReturnToHome {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: onReturnToHome) {
+                        Label(LocalizedStringKey("quick_check.back"), systemImage: "chevron.backward")
+                    }
+                    .accessibilityIdentifier("games-return-home")
+                }
+            }
+        }
     }
 
     private func category(for game: CatalogMeasurementJourney.Game) -> CatalogCategory {
@@ -1110,35 +1124,75 @@ private struct HomeCatalogFilters: View {
     }
 }
 
+private struct HomeCatalogPlatformFilters: View {
+    @Binding var selectedPlatforms: Set<Platform>
+    let title: String
+
+    private let platformOrder: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xs) {
+            Text(title)
+                .font(NLTypography.captionStrong)
+                .foregroundStyle(NLColor.textSecondary)
+                .padding(.horizontal, NLSpacing.md)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NLSpacing.xs) {
+                    ForEach(platformOrder, id: \.self) { platform in
+                        Button {
+                            if selectedPlatforms.contains(platform) {
+                                selectedPlatforms.remove(platform)
+                            } else {
+                                selectedPlatforms.insert(platform)
+                            }
+                        } label: {
+                            Text(platform.displayName)
+                                .font(NLTypography.footnote.weight(selectedPlatforms.contains(platform) ? .semibold : .regular))
+                                .foregroundStyle(selectedPlatforms.contains(platform) ? NLColor.textOnAccent : NLColor.textSecondary)
+                                .padding(.horizontal, NLSpacing.sm)
+                                .frame(minHeight: NLSizing.touchTarget)
+                                .background(selectedPlatforms.contains(platform) ? NLColor.accentPrimary : NLColor.backgroundRaised, in: Capsule())
+                                .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(platform.displayName)
+                        .accessibilityIdentifier("catalog-platform-\(platform.rawValue)")
+                        .accessibilityAddTraits(selectedPlatforms.contains(platform) ? .isSelected : [])
+                    }
+                }
+                .padding(.horizontal, NLSpacing.md)
+            }
+        }
+    }
+}
+
 private struct HomeCatalogList: View {
     let games: [CatalogMeasurementJourney.Game]
     let categoryTitle: (CatalogMeasurementJourney.Game) -> String
     let platformsTitle: (CatalogMeasurementJourney.Game) -> String
     let select: (CatalogMeasurementJourney.Game) -> Void
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: NLSpacing.xs) {
             ForEach(games, id: \.id) { game in
                 Button { select(game) } label: {
                     HStack(spacing: NLSpacing.sm) {
                         VerifiedGameArtwork(game: game, aspectRatio: 1).frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
-                        VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                        VStack(alignment: .leading) {
                             Text(game.name).font(NLTypography.bodyEmphasis).foregroundStyle(NLColor.textPrimary).lineLimit(2).fixedSize(horizontal: false, vertical: true).layoutPriority(1)
-                            Text(categoryTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textSecondary)
-                            Text(platformsTitle(game)).font(NLTypography.caption).foregroundStyle(NLColor.textTertiary).lineLimit(1)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").font(NLTypography.footnote.weight(.semibold)).foregroundStyle(NLColor.textTertiary)
                     }
                     .padding(.horizontal, NLSpacing.md).padding(.vertical, NLSpacing.sm).frame(minHeight: 72)
+                    .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+                    .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(game.name), \(categoryTitle(game)), \(platformsTitle(game))")
                 .accessibilityIdentifier("catalog-game-\(game.id)")
-                if game.id != games.last?.id { Divider().overlay(NLColor.borderSubtle).padding(.leading, 76) }
             }
         }
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderStrong, lineWidth: 1))
     }
 }
 

@@ -22,6 +22,11 @@ struct QuickCheckFeatureView: View {
     @State var showingDetails = false
     @State var destination: AppDestination = .home
     @State var selectedTab: AppTab = .home
+    /// A aba Jogos continua sendo um destino principal da tab bar. Quando a
+    /// própria Home a abre como próximo passo, porém, oferecemos retorno
+    /// explícito à Home sem criar uma segunda NavigationStack ou uma barra
+    /// manual concorrendo com a barra nativa.
+    @State var gamesReturnToHome = false
     @State var showingSettings = false
     @State var deepCheckDestination: DeepCheckDestination?
     @State var showingRegionalSelection = false
@@ -35,11 +40,11 @@ struct QuickCheckFeatureView: View {
     @State var gameQuery = ""
     @State var isGameSearchExpanded = false
     @State var selectedCategory: CatalogCategory = .all
+    @State var selectedPlatforms: Set<Platform> = []
     @State var evaluatedScores: [String: MeasurementEvaluation] = [:]
     @State var isBackgroundMeasuring = false
     @State var backgroundMeasurementFailed = false
     @State var selectedGameForDetails: CatalogMeasurementJourney.Game?
-    @State var gameForPlatformSelection: CatalogMeasurementJourney.Game?
     /// Contexto escolhido para uma nova leitura. No reteste ele preserva a
     /// plataforma e o vínculo externo declarados, mas nunca reutiliza a rota
     /// histórica: a região é resolvida novamente pelo catálogo atual.
@@ -262,10 +267,21 @@ struct QuickCheckFeatureView: View {
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(.dark, for: .tabBar)
         .preferredColorScheme(.dark)
+        .onChange(of: selectedTab) { _, tab in
+            // Ao sair da aba, uma entrada seguinte pela tab bar volta a ser um
+            // destino de nível superior — portanto não herda um "Voltar" de
+            // uma abertura anterior feita pela Home.
+            if tab != .games {
+                gamesReturnToHome = false
+            }
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .background else { return }
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
+                // O Deep Check é descartado ao sair de primeiro plano. Fechar
+                // a cobertura devolve a pessoa ao jogo escolhido, sem reter
+                // resultado parcial nem deixar uma tela de medição órfã.
                 deepCheckDestination = nil
                 showingRegionalSelection = false
                 let next = QuickCheckPresentationMapper.map(await coordinator.sessionState())
@@ -288,19 +304,6 @@ struct QuickCheckFeatureView: View {
                 resolvedContext: destination.resolvedContext,
                 gameName: destination.gameName,
                 historyRepository: historyRepository
-            )
-        }
-        .sheet(item: $gameForPlatformSelection) { game in
-            PlatformSelectionSheet(
-                gameName: game.name,
-                supportedPlatforms: supportedPlatforms(for: game),
-                onSelectPlatform: { platform in
-                    selectedGameID = game.id
-                    requestedMeasurementContext = nil
-                    if let resolved = resolveGameContext(game, platform: platform) {
-                        startQuickCheck(resolvedContext: resolved)
-                    }
-                }
             )
         }
     }
@@ -326,7 +329,7 @@ struct QuickCheckFeatureView: View {
         if !showsBack {
                 NolaggyAppHeader(openSettings: { showingSettings = true })
         } else {
-            NolaggyBackHeader(action: back, accessibilityIdentifier: "quick-check-back")
+            NolaggyBackHeader(action: back, accessibilityIdentifier: "measurement-back")
         }
     }
 
@@ -407,13 +410,12 @@ struct QuickCheckFeatureView: View {
                 gameID: game.id,
                 market: game.context.market,
                 platform: platform,
-                equipmentConnection: game.context.equipmentConnection
+                declaredExternalLink: nil
             )
             guard catalogGame.contexts.contains(where: {
                 $0.market == game.context.market
                     && $0.platforms.contains(platform)
                     && $0.availability == .available
-                    && $0.measurement != nil
             }) else {
                 return false
             }

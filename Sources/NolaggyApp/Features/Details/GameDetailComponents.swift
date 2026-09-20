@@ -69,8 +69,7 @@ struct GameDetailMeasurementScope: View {
             .font(NLTypography.footnote)
             .foregroundStyle(NLColor.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(NLSpacing.cardPadding)
-            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
+            .padding(.horizontal, NLSpacing.xs)
             .accessibilityIdentifier("game-detail-measurement-scope")
     }
 
@@ -188,19 +187,18 @@ struct GameDetailMetricsCard: View {
     private func milliseconds(_ value: Double?) -> String { value.map { String(Int($0.rounded())) } ?? "—" }
 }
 
-// MARK: - Cinema Hero (Estilo Netflix) Components
+// MARK: - Game detail hero
 
-/// Banner Hero Cinematográfico com arte full-bleed, gradiente escuro e metadados no padrão Apple HIG
+/// Banner com a arte gerada para o app e o nome do jogo selecionado.
 struct GameDetailCinemaHeroBanner: View {
     let game: CatalogMeasurementJourney.Game
-    let editorial: RemoteCatalogGameEditorial?
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             // Artwork full-bleed
             VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
                 .frame(maxWidth: .infinity)
-                .frame(height: 210)
+                .frame(height: NLSizing.gameDetailHeroHeight)
                 .clipped()
 
             // Gradiente cinematográfico sobre a imagem
@@ -216,204 +214,15 @@ struct GameDetailCinemaHeroBanner: View {
                 endPoint: .bottom
             )
 
-            // Informações sobrepostas na base do banner
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                // Linha de Metadados Apple HIG (sem glow ou percentuais artificiais)
-                HStack(spacing: 6) {
-                    if let year = editorial?.releaseYear {
-                        Text(String(year))
-                            .font(NLTypography.subheadline)
-                            .foregroundStyle(NLColor.textSecondary)
-                    }
-
-                    if let age = editorial?.ageRating {
-                        Text("•")
-                            .foregroundStyle(NLColor.textTertiary)
-                        Text(age)
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(NLColor.textPrimary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
-                    }
-
-                    if let publisher = editorial?.publisher {
-                        Text("•")
-                            .foregroundStyle(NLColor.textTertiary)
-                        Text(publisher)
-                            .font(NLTypography.subheadline)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-
-                // Título em destaque do jogo (sem sombra artificial)
-                Text(game.name)
-                    .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-            }
+            // O título basta para orientar a escolha sem introduzir metadados
+            // de terceiros antes de sua auditoria.
+            Text(game.name)
+                .font(.system(.title, design: .default, weight: .black))
+                .foregroundStyle(.white)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.bottom, NLSpacing.sm)
-        }
-    }
-}
-
-/// Grid com as Notas e Avaliações Oficiais Auditadas (App Store & Metacritic)
-/// Ao clicar, abre a página oficial correspondente no Safari/App Store.
-struct GameDetailRatingsGrid: View {
-    @Environment(\.openURL) private var openURL
-    let editorial: RemoteCatalogGameEditorial
-
-    var body: some View {
-        HStack(spacing: NLSpacing.sm) {
-            // Card App Store Interativo
-            if let appStore = verifiedRating(for: .appStore) {
-                ratingButton(
-                    icon: "star.fill",
-                    iconColor: Color.yellow,
-                    iconBg: Color.white.opacity(0.08),
-                    title: appStore.formattedScore,
-                    subtitle: reviewCountSubtitle(for: appStore),
-                    urlString: appStore.referenceURL
-                )
-            }
-
-            // Card Metacritic Interativo
-            if let metacritic = verifiedRating(for: .metacriticCritic) {
-                metacriticButton(
-                    score: Int(metacritic.score),
-                    count: metacritic.reviewCount,
-                    urlString: metacritic.referenceURL
-                )
-            }
-        }
-    }
-
-    private func ratingButton(icon: String, iconColor: Color, iconBg: Color, title: String, subtitle: String?, urlString: String) -> some View {
-        Button {
-            if let url = URL(string: urlString) {
-                openURL(url)
-            }
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(iconColor)
-                    .frame(width: 32, height: 32)
-                    .background(iconBg, in: RoundedRectangle(cornerRadius: 8))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(NLTypography.bodyEmphasis)
-                        .foregroundStyle(NLColor.textPrimary)
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(NLTypography.caption)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(NLColor.textTertiary)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-            .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(Color.white.opacity(0.08), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text([title, subtitle].compactMap { $0 }.joined(separator: ", ")))
-        .accessibilityHint(Text("game_detail.ratings.app_store_hint"))
-    }
-
-    private func metacriticButton(score: Int, count: Int?, urlString: String) -> some View {
-        Button {
-            if let url = URL(string: urlString) {
-                openURL(url)
-            }
-        } label: {
-            HStack(spacing: 10) {
-                Text("\(score)")
-                    .font(.system(size: 14, weight: .black))
-                    .foregroundStyle(.white)
-                    .frame(width: 32, height: 32)
-                    .background(
-                        score >= 75
-                            ? Color(red: 52 / 255, green: 199 / 255, blue: 89 / 255)
-                            : Color(red: 255 / 255, green: 204 / 255, blue: 0 / 255),
-                        in: RoundedRectangle(cornerRadius: 8)
-                    )
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Metacritic")
-                        .font(NLTypography.bodyEmphasis)
-                        .foregroundStyle(NLColor.textPrimary)
-                    if let count {
-                        Text(String(format: AppLocalization.string("game_detail.ratings.critics_count %@", comment: ""), "\(count)"))
-                            .font(NLTypography.caption)
-                            .foregroundStyle(NLColor.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(NLColor.textTertiary)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-            .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(Color.white.opacity(0.08), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("game_detail.ratings.metacritic_label \(score)"))
-        .accessibilityHint(Text("game_detail.ratings.metacritic_hint"))
-    }
-
-    private func reviewCountSubtitle(for rating: EditorialRating) -> String? {
-        rating.reviewCount.map { count in
-            String(format: AppLocalization.string("game_detail.ratings.reviews_count %@", comment: ""), formattedCount(count))
-        }
-    }
-
-    private func formattedCount(_ count: Int) -> String {
-        if count >= 1_000_000 {
-            return String(format: "%.1fM", Double(count) / 1_000_000)
-        } else if count >= 1_000 {
-            return "\(count / 1_000)k"
-        } else {
-            return "\(count)"
-        }
-    }
-
-    private func verifiedRating(for source: EditorialRatingSource) -> EditorialRating? {
-        editorial.ratings.first { rating in
-            rating.source == source && hasVerifiableReferenceURL(rating.referenceURL, for: source)
-        }
-    }
-
-    private func hasVerifiableReferenceURL(_ referenceURL: String, for source: EditorialRatingSource) -> Bool {
-        guard let components = URLComponents(string: referenceURL),
-              components.scheme == "https",
-              let host = components.host?.lowercased(),
-              !components.path.isEmpty else {
-            return false
-        }
-
-        switch source {
-        case .appStore:
-            return host == "apps.apple.com" || host.hasSuffix(".apps.apple.com")
-        case .metacriticCritic:
-            return host == "metacritic.com" || host.hasSuffix(".metacritic.com")
-        default:
-            return false
+            .padding(.bottom, NLSpacing.md)
         }
     }
 }
@@ -597,12 +406,9 @@ private extension MeasurementHistoryEntry {
     var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
 }
 
-/// Acordeão nativo com especificações técnicas e rede (oculto por padrão)
-struct GameDetailTechnicalSpecsAccordion: View {
-    let editorial: RemoteCatalogGameEditorial?
-    let selectedPlatform: Platform
-    let observedMetrics: QualityMetrics?
-    let natSnapshot: NATTopologySnapshot?
+/// Acordeão com observações verificáveis da conexão e da plataforma.
+/// Metas editoriais de jogos e topologia NAT não são expostas no corte 1.0.0.
+struct GameDetailNetworkInformationAccordion: View {
     let platformHealth: PlatformHealth?
     let wifiBandDiagnostic: WiFiBandDiagnosticResult?
     let onStartDeepCheck: () -> Void
@@ -617,17 +423,17 @@ struct GameDetailTechnicalSpecsAccordion: View {
                 }
             } label: {
                 HStack(spacing: NLSpacing.sm) {
-                    Image(systemName: "cpu")
+                    Image(systemName: "network")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(NLColor.textSecondary)
                         .frame(width: 34, height: 34)
                         .background(NLColor.backgroundBase, in: RoundedRectangle(cornerRadius: 8))
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(LocalizedStringKey("game_detail.section.tech_specs"))
+                        Text(LocalizedStringKey("game_detail.section.network_information"))
                             .font(NLTypography.bodyEmphasis)
                             .foregroundStyle(NLColor.textPrimary)
-                        Text(LocalizedStringKey("game_detail.section.tech_specs_subtitle"))
+                        Text(LocalizedStringKey("game_detail.section.network_information_subtitle"))
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textTertiary)
                     }
@@ -647,66 +453,7 @@ struct GameDetailTechnicalSpecsAccordion: View {
                 VStack(spacing: NLSpacing.md) {
                     Divider().overlay(NLColor.borderSubtle)
 
-                    // 1. Requisitos de Rede Recomendados
-                    if let demands = editorial?.networkDemands {
-                        VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                            Text(LocalizedStringKey("game_detail.network_demands.title"))
-                                .font(NLTypography.captionStrong)
-                                .textCase(.uppercase)
-                                .foregroundStyle(NLColor.textTertiary)
-
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NLSpacing.xs) {
-                                techSpecBox(label: "game_detail.tech.optimal_ping", value: "<\(Int(demands.optimalPingMs)) ms", systemImage: "gauge.with.needle")
-                                techSpecBox(label: "game_detail.tech.tolerated_jitter", value: "<\(Int(demands.maxJitterMs)) ms", systemImage: "waveform.path.ecg")
-                                techSpecBox(label: "game_detail.tech.tolerated_loss", value: demands.packetLossTolerancePct == 0 ? "0%" : "<\(demands.packetLossTolerancePct)%", systemImage: "antenna.radiowaves.left.and.right")
-                                techSpecBox(label: "game_detail.tech.min_download", value: formattedMbps(demands.minDownloadMbps), systemImage: "arrow.down.circle")
-                            }
-                        }
-                    }
-
-                    // 2. Diagnóstico NAT STUN (Alinhado com os demais itens)
-                    if let nat = natSnapshot {
-                        VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                            Text(LocalizedStringKey("game_detail.tech.nat_topology"))
-                                .font(NLTypography.captionStrong)
-                                .textCase(.uppercase)
-                                .foregroundStyle(NLColor.textTertiary)
-
-                            HStack(spacing: 8) {
-                                Image(systemName: "network")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(NLColor.textSecondary)
-
-                                Text(LocalizedStringKey(nat.natType.titleKey))
-                                    .font(NLTypography.callout)
-                                    .foregroundStyle(NLColor.textPrimary)
-
-                                Spacer()
-
-                                Text(nat.natType.isMultiplayerRestricted ? "Estrito" : "Normal")
-                                    .font(NLTypography.captionStrong)
-                                    .foregroundStyle(nat.natType.isMultiplayerRestricted ? NLColor.scoreLagRisk : NLColor.scoreExcellent)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(10)
-                            .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
-
-                            if nat.hasAnyMultiplayerIssue {
-                                GameDetailNATBanner(snapshot: nat)
-                            }
-                        }
-                    }
-
-                    // 3. Ficha Técnica de Hardware da Plataforma Selecionada
-                    if let editorial, let req = editorial.requirement(for: selectedPlatform) {
-                        GameDetailRequirementsCard(requirement: req, platform: selectedPlatform)
-                    }
-
-                    // 4. Diagnóstico de Wi-Fi 2.4 GHz
+                    // Diagnóstico derivado da conexão observada no iPhone.
                     if let advice = wifiBandDiagnostic {
                         NetworkBandAdviceBanner(
                             title: LocalizedStringKey(advice.titleKey),
@@ -719,7 +466,7 @@ struct GameDetailTechnicalSpecsAccordion: View {
                         )
                     }
 
-                    // 5. Status de Servidores de Plataforma (PSN / Xbox)
+                    // Status operacional publicado pela plataforma, quando houver.
                     if let health = platformHealth, health.isIssueReported {
                         PlatformHealthBannerView(health: health)
                     }
@@ -732,27 +479,4 @@ struct GameDetailTechnicalSpecsAccordion: View {
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: 1))
     }
 
-    private func techSpecBox(label: LocalizedStringKey, value: String, systemImage: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 4) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(NLColor.textTertiary)
-                Text(label)
-                    .font(.system(size: 11))
-                    .foregroundStyle(NLColor.textTertiary)
-            }
-            Text(value)
-                .font(NLTypography.callout)
-                .foregroundStyle(NLColor.textPrimary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
-    }
-
-    private func formattedMbps(_ value: Double) -> String {
-        String(format: "%.1f Mbps", value)
-    }
 }

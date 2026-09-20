@@ -23,7 +23,7 @@ extension QuickCheckFeatureView {
                         latestEntry: latestHistoryEntry,
                         isMeasuring: presentation == .measuring,
                         onStartCheck: startLagCheckFromCTA,
-                        onChooseGame: { selectedTab = .games },
+                        onChooseGame: openGamesFromHome,
                         onOpenHistory: { selectedTab = .history }
                     )
                     .padding(.horizontal, NLSpacing.md)
@@ -32,7 +32,7 @@ extension QuickCheckFeatureView {
                     HomeGamesListSection(
                         games: Array(homeGames.prefix(5)),
                         onSelectGame: { selectedGameForDetails = $0 },
-                        onSeeAllGames: { selectedTab = .games }
+                        onSeeAllGames: openGamesFromHome
                     )
                     .padding(.horizontal, NLSpacing.md)
                     .padding(.bottom, NLSpacing.xl)
@@ -40,7 +40,9 @@ extension QuickCheckFeatureView {
             }
         }
         .scrollContentBackground(.hidden)
-        .safeAreaPadding(.bottom, NLSpacing.md)
+        // Mantém a última linha acima da tab bar em telas compactas e com
+        // Dynamic Type; o conteúdo não pode terminar sob um controle do sistema.
+        .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .navigationTitle(localizedString("navigation.home"))
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
@@ -64,7 +66,14 @@ extension QuickCheckFeatureView {
     var availableGames: [CatalogMeasurementJourney.Game] {
         guard let remoteCatalog else { return [] }
         let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
-        return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: .iphone)
+        // O catálogo é descoberto pelo contexto do jogo, não pela plataforma
+        // do telefone. A pessoa usa o iPhone para medir, mas pode jogar em PC
+        // ou console; por isso unimos os títulos disponíveis em cada
+        // plataforma antes de montar a lista.
+        var seen = Set<String>()
+        return Platform.allCases
+            .flatMap { CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: $0) }
+            .filter { seen.insert($0.id).inserted }
     }
 
     var selectedGameName: String {
@@ -142,17 +151,21 @@ extension QuickCheckFeatureView {
         return recentTestedItems.first?.game ?? popularGames.first ?? availableGames.first
     }
 
-    /// Inicia o LagCheck perguntando a plataforma do jogo alvo a partir do CTA da Home.
+    /// A Home encaminha à escolha explícita de plataforma e vínculo no detalhe
+    /// do jogo. A medição começa somente pelo Deep Check daquele contexto.
     func startLagCheckFromCTA() {
-        if let latestHistoryEntry {
-            retest(latestHistoryEntry)
-            return
-        }
         if let target = targetGameForCTA {
-            gameForPlatformSelection = target
+            selectedGameForDetails = target
         } else {
-            selectedTab = .games
+            openGamesFromHome()
         }
+    }
+
+    /// Abre o catálogo como continuação da Home. A aba mantém sua identidade
+    /// de destino principal quando é escolhida diretamente na tab bar.
+    func openGamesFromHome() {
+        gamesReturnToHome = true
+        selectedTab = .games
     }
 
     func category(for profile: QualityProfileID) -> CatalogCategory {
@@ -184,18 +197,24 @@ extension QuickCheckFeatureView {
             title: localizedString("navigation.games"),
             query: $gameQuery,
             selectedCategory: $selectedCategory,
+            selectedPlatforms: $selectedPlatforms,
             allGames: availableGames,
             recentItems: recentTestedItems,
             searchPlaceholder: localizedString("catalog.search.placeholder"),
             clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
             categoryTitle: categoryTitle(for:),
             filterTitle: { localizedString($0.localizationKey) },
+            platformsForGame: supportedPlatforms(for:),
+            platformFilterTitle: localizedString("catalog.platform_filter.title"),
             platformsTitle: { game in
                 RemoteCatalogVerifier.allowedPlatforms(for: game.id)
                     .sorted { $0.rawValue < $1.rawValue }
                     .map(\.displayName)
                     .joined(separator: " · ")
             },
+            onReturnToHome: gamesReturnToHome ? {
+                selectedTab = .home
+            } : nil,
             select: { selectedGameForDetails = $0 }
         )
     }

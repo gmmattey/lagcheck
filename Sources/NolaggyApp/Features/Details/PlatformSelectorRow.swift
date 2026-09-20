@@ -9,39 +9,41 @@ struct PlatformSelectorRow: View {
     @Binding var selectedPlatform: Platform
 
     var body: some View {
-        HStack(spacing: NLSpacing.xs) {
-            ForEach(supportedPlatforms, id: \.self) { platform in
-                let isSelected = (platform == selectedPlatform)
-                Button {
-                    UISelectionFeedbackGenerator().selectionChanged()
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                        selectedPlatform = platform
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: NLSpacing.xs) {
+                ForEach(supportedPlatforms, id: \.self) { platform in
+                    let isSelected = (platform == selectedPlatform)
+                    Button {
+                        UISelectionFeedbackGenerator().selectionChanged()
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                            selectedPlatform = platform
+                        }
+                    } label: {
+                        HStack(spacing: NLSpacing.xxs) {
+                            Image(systemName: iconName(for: platform))
+                                .font(.system(size: 15, weight: isSelected ? .bold : .medium))
+                            Text(displayName(for: platform))
+                                .font(NLTypography.captionStrong)
+                        }
+                        .foregroundStyle(isSelected ? NLColor.textPrimary : NLColor.textSecondary)
+                        .frame(minWidth: 92)
+                        .frame(minHeight: NLSizing.touchTarget)
+                        .background(
+                            isSelected ? NLColor.backgroundRaised : Color.clear,
+                            in: RoundedRectangle(cornerRadius: NLRadius.controlSmall)
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: NLRadius.controlSmall)
+                                .stroke(
+                                    isSelected ? NLColor.coralSolar.opacity(0.8) : NLColor.borderSubtle,
+                                    lineWidth: isSelected ? 1.5 : NLStroke.hairline
+                                )
+                        }
                     }
-                } label: {
-                    HStack(spacing: NLSpacing.xxs) {
-                        Image(systemName: iconName(for: platform))
-                            .font(.system(size: 15, weight: isSelected ? .bold : .medium))
-                        Text(displayName(for: platform))
-                            .font(NLTypography.captionStrong)
-                    }
-                    .foregroundStyle(isSelected ? NLColor.textPrimary : NLColor.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 38)
-                    .background(
-                        isSelected ? NLColor.backgroundRaised : Color.clear,
-                        in: RoundedRectangle(cornerRadius: NLRadius.controlSmall)
-                    )
-                    .overlay {
-                        RoundedRectangle(cornerRadius: NLRadius.controlSmall)
-                            .stroke(
-                                isSelected ? NLColor.coralSolar.opacity(0.8) : NLColor.borderSubtle,
-                                lineWidth: isSelected ? 1.5 : NLStroke.hairline
-                            )
-                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(displayName(for: platform))
+                    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(displayName(for: platform))
-                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
         .padding(4)

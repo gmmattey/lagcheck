@@ -183,9 +183,6 @@ struct DeepCheckFeatureView: View {
                 presentation = .measuring(.rest)
                 start(withConsent: true)
             },
-            onQuickCheckOnly: {
-                dismiss()
-            },
             onCancel: {
                 dismiss()
             }
@@ -229,7 +226,6 @@ struct DeepCheckFeatureView: View {
             regionFriendlyName: friendlyRegion,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
-            natSnapshot: nil,
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
             retry: restart,
@@ -246,14 +242,13 @@ struct DeepCheckFeatureView: View {
             regionFriendlyName: friendlyRegion,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
-            natSnapshot: nil,
             retry: restart,
             exit: cancelOrDismiss
         )
     }
 
     private var destinationKind: RouteDestinationKind {
-        resolvedContext.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference
+        activeContext.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference
     }
 
     private func terminal(kind: StatusMessage.Kind) -> some View {

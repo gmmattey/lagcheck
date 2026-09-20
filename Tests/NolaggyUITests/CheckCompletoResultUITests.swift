@@ -8,6 +8,7 @@ final class CheckCompletoResultUITests: XCTestCase {
         app.launchArguments += [
             "-AppleLanguages", "(pt-BR)",
             "-AppleLocale", "pt_BR",
+            "-app_selected_language", "system",
             "-ui-fixture-deep-standalone",
             "-ui-fixture-deep-result"
         ]
@@ -25,10 +26,10 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].exists)
         let verdictLabel = app.staticTexts["check-completo-verdict"].label
         let validVerdicts = [
-            "A rota segurou",
-            "A rota oscilou",
-            "A carga pesou",
-            "A entrega falhou"
+            "Conexão boa",
+            "Conexão instável",
+            "A rede piorou sob carga",
+            "Risco de lag"
         ]
         XCTAssertTrue(validVerdicts.contains(verdictLabel), "Veredito inesperado: \(verdictLabel)")
 
@@ -52,12 +53,9 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Resposta"].exists)
         XCTAssertTrue(app.staticTexts["Entrega"].exists)
         XCTAssertTrue(app.staticTexts["Carga"].exists)
-        XCTAssertTrue(app.staticTexts["São Paulo"].exists)
 
-        // 4. Faixa de compatibilidade da sessão
-        XCTAssertTrue(app.staticTexts["Multiplayer"].exists)
-        XCTAssertTrue(app.staticTexts["Calls"].exists)
-        XCTAssertTrue(app.staticTexts["Streaming"].exists)
+        // 4. O resultado não mostra compatibilidades genéricas sem evidência.
+        XCTAssertFalse(app.staticTexts["Streaming"].exists)
 
         // 5. Ações
         let primaryAction = app.buttons["check-completo-primary-action"]
@@ -79,6 +77,7 @@ final class CheckCompletoResultUITests: XCTestCase {
         app.launchArguments += [
             "-AppleLanguages", "(en)",
             "-AppleLocale", "en_US",
+            "-app_selected_language", "system",
             "-ui-fixture-deep-standalone",
             "-ui-fixture-deep-result"
         ]
@@ -92,10 +91,10 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].exists)
         let verdictLabel = app.staticTexts["check-completo-verdict"].label
         let validEnglishVerdicts = [
-            "The route held",
-            "The route fluctuated",
-            "The load weighed down",
-            "Delivery failed"
+            "Good connection",
+            "Unstable connection",
+            "The network worsened under load",
+            "Lag risk"
         ]
         XCTAssertTrue(validEnglishVerdicts.contains(verdictLabel), "Unexpected English verdict: \(verdictLabel)")
 
@@ -105,10 +104,8 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Delivery"].exists)
         XCTAssertTrue(app.staticTexts["Load"].exists)
 
-        // 4. Compatibility strip in English
-        XCTAssertTrue(app.staticTexts["Multiplayer"].exists)
-        XCTAssertTrue(app.staticTexts["Calls"].exists)
-        XCTAssertTrue(app.staticTexts["Streaming"].exists)
+        // 4. The result does not show generic compatibility claims without evidence.
+        XCTAssertFalse(app.staticTexts["Streaming"].exists)
 
         // 5. Actions in English
         let primaryAction = app.buttons["check-completo-primary-action"]
@@ -130,14 +127,15 @@ final class CheckCompletoResultUITests: XCTestCase {
         app.launchArguments += [
             "-AppleLanguages", "(pt-BR)",
             "-AppleLocale", "pt_BR",
+            "-app_selected_language", "system",
             "-ui-fixture-deep-standalone",
             "-ui-fixture-deep-inconclusive"
         ]
         app.launch()
 
-        // 1. Inconclusive verdict: "Medição incompleta"
+        // 1. Inconclusive verdict: "Medição inconclusiva"
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["check-completo-verdict"].label, "Medição incompleta")
+        XCTAssertEqual(app.staticTexts["check-completo-verdict"].label, "Medição inconclusiva")
 
         // 2. Score must NOT exist
         XCTAssertFalse(app.staticTexts["check-completo-score"].exists)

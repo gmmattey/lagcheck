@@ -47,7 +47,7 @@ extension QuickCheckFeatureView {
         } catch { return }
 
         switch decision {
-        case let .selected(selection): startQuickCheck(resolvedContext: selection.selected.resolvedContext)
+        case let .selected(selection): openDeepCheck(resolvedContext: selection.selected.resolvedContext)
         case .inconclusive: regionalPresentation = .noViableCandidate
         }
     }
@@ -170,12 +170,10 @@ extension QuickCheckFeatureView {
 
     func retryFromHistory(_ entry: MeasurementHistoryEntry) {
         selectedTab = .home
-        // A Home já mede uma única rota de referência e reaplica a mesma
-        // amostra aos perfis do catálogo. Refazer pelo Histórico portanto não
-        // reabre a antiga jornada de seleção regional/resultado; volta à Home
-        // e inicia uma nova leitura em background, igual à abertura do app.
-        selectedGameID = entry.resolvedContext.context.gameID
-        startBackgroundQuickCheck()
+        // O reteste mantém a jornada única: o detalhe permite confirmar o
+        // contexto antes de iniciar outro Deep Check, nunca uma leitura rápida
+        // autônoma em segundo plano.
+        selectedGameForDetails = availableGames.first { $0.id == entry.resolvedContext.context.gameID }
     }
 
     func gameName(for entry: MeasurementHistoryEntry) -> String { gameName(forGameID: entry.resolvedContext.context.gameID) }
