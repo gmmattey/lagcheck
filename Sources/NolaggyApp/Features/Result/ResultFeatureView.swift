@@ -2,7 +2,7 @@ import SwiftUI
 import NolaggyDesign
 import NolaggyDomain
 
-/// Tela de resultado do Quick Check (doc 01 §7.4): a conclusão vem antes das
+/// Tela de resultado da medição: a conclusão vem antes das
 /// métricas, seguida de causa e recomendação já interpretadas pelo domínio.
 extension QuickCheckFeatureView {
     func resultView(result: QualityResult) -> some View {
@@ -138,11 +138,11 @@ extension QuickCheckFeatureView {
                 // 5. Barra de Ações (Action Bar HIG)
                 VStack(spacing: NLSpacing.sm) {
                     PrimaryButton(title: "quick_check.result.retry", action: restart)
-                        .accessibilityIdentifier("quick-check-retry")
+                        .accessibilityIdentifier("measurement-retry")
 
                     HStack(spacing: NLSpacing.sm) {
-                        secondaryResultAction("result.action.details", identifier: "quick-check-details") { showingDetails = true }
-                        secondaryResultAction("result.action.optimize", identifier: "quick-check-booster") { showingDetails = true }
+                        secondaryResultAction("result.action.details", identifier: "measurement-details") { showingDetails = true }
+                        secondaryResultAction("result.action.optimize", identifier: "measurement-booster") { showingDetails = true }
                     }
                 }
                 .padding(.top, NLSpacing.xs)
@@ -153,7 +153,7 @@ extension QuickCheckFeatureView {
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    NolaggyBackButton(action: back, accessibilityIdentifier: "quick-check-back")
+                    NolaggyBackButton(action: back, accessibilityIdentifier: "measurement-back")
                 }
             }
         }

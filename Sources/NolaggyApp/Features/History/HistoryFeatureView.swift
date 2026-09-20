@@ -87,7 +87,10 @@ struct HistoryView: View {
         let latest = game.latest
         let result = latest.isInconclusive
             ? AppLocalization.string("history.inconclusive", comment: "")
-            : String(format: AppLocalization.string("history.score_accessibility %@", comment: ""), latest.result.finalScore)
+            : String(
+                format: AppLocalization.string("history.score_accessibility %@", comment: ""),
+                String(latest.result.finalScore)
+            )
         return String(
             format: AppLocalization.string("history.game_accessibility %@ %@ %@", comment: ""),
             gameName(latest), result, latest.completedAt.formatted(date: .abbreviated, time: .shortened)
@@ -197,7 +200,12 @@ private struct HistoryEvolution: View {
     private var evolutionText: String {
         var parts: [String] = []
         if let average = summary.sevenDayAverageScore {
-            parts.append(String(format: AppLocalization.string("history.seven_day_average %@", comment: ""), average))
+            parts.append(
+                String(
+                    format: AppLocalization.string("history.seven_day_average %@", comment: ""),
+                    String(average)
+                )
+            )
         }
         if let trend = summary.trend {
             let key: String = switch trend {
@@ -256,7 +264,7 @@ private struct HistoryGameRow: View {
             ? AppLocalization.string("history.inconclusive", comment: "")
             : String(
                 format: AppLocalization.string("history.score %@ %@", comment: ""),
-                entry.result.finalScore,
+                String(entry.result.finalScore),
                 AppLocalization.string(classificationKey, comment: "")
             )
     }
@@ -296,7 +304,10 @@ private struct HistoryTimelineRow: View {
             VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(entry.isInconclusive
                     ? AppLocalization.string("history.inconclusive", comment: "")
-                    : String(format: AppLocalization.string("history.score %@", comment: ""), entry.result.finalScore))
+                    : String(
+                        format: AppLocalization.string("history.score %@", comment: ""),
+                        String(entry.result.finalScore)
+                    ))
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
                 Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
@@ -313,7 +324,11 @@ private struct HistoryTimelineRow: View {
         .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget, alignment: .leading)
         .accessibilityLabel(entry.isInconclusive
             ? String(format: AppLocalization.string("history.timeline.inconclusive %@", comment: ""), entry.completedAt.formatted(date: .abbreviated, time: .shortened))
-            : String(format: AppLocalization.string("history.timeline.score %@ %@", comment: ""), entry.result.finalScore, entry.completedAt.formatted(date: .abbreviated, time: .shortened)))
+            : String(
+                format: AppLocalization.string("history.timeline.score %@ %@", comment: ""),
+                String(entry.result.finalScore),
+                entry.completedAt.formatted(date: .abbreviated, time: .shortened)
+            ))
     }
 }
 

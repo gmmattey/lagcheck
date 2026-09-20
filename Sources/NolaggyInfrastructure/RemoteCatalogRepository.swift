@@ -98,7 +98,8 @@ public actor RemoteCatalogRepository {
         let date = now()
         let base = try validator.validate(baseEnvelopeData, now: date)
         guard let stored = await cache.load(),
-              let cached = try? validator.validate(stored.envelopeData, now: date) else {
+              let cached = try? validator.validate(stored.envelopeData, now: date),
+              cached.schemaVersion >= base.schemaVersion else {
             return LoadedRemoteCatalog(payload: base, source: .bundledBase)
         }
         return LoadedRemoteCatalog(payload: cached, source: .cachedRemote)
@@ -108,7 +109,11 @@ public actor RemoteCatalogRepository {
     /// estava válido; dados remotos só entram no cache depois da validação.
     public func refreshIfDue() async {
         let date = now()
-        if let stored = await cache.load(), date.timeIntervalSince(stored.refreshedAt) < Self.refreshInterval {
+        if let stored = await cache.load(),
+           date.timeIntervalSince(stored.refreshedAt) < Self.refreshInterval,
+           let base = try? validator.validate(baseEnvelopeData, now: date),
+           let cached = try? validator.validate(stored.envelopeData, now: date),
+           cached.schemaVersion >= base.schemaVersion {
             return
         }
         guard let data = try? await fetcher.fetchCatalog(),

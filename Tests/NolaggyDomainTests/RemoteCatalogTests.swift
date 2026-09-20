@@ -22,61 +22,33 @@ final class RemoteCatalogTests: XCTestCase {
         guard case .available = minecraft else { return XCTFail("Minecraft must use the approved regional-reference strategy in v2.") }
     }
 
-    func testPublishedDebugEnvelopeFeedsAllTwentyBRIPhoneContextsWithoutFortniteFallback() throws {
+    func testPublishedDebugEnvelopeExposesOnlyItsSignedPlatformContexts() throws {
         let payload = try RemoteCatalogVerifier.verifyAndDecode(
             envelopeData: try publishedDebugEnvelopeData(),
-            now: ISO8601DateFormatter().date(from: "2026-09-18T12:00:00Z")!
+            now: ISO8601DateFormatter().date(from: "2026-09-19T16:00:00Z")!
         )
-        let expectedProfiles: [String: QualityProfileID] = [
-            "fortnite": .battleRoyaleCompetitive,
-            "call-of-duty-mobile": .battleRoyaleCompetitive,
-            "free-fire": .battleRoyaleCompetitive,
-            "pubg-mobile": .battleRoyaleCompetitive,
-            "brawl-stars": .mobileRealtime,
-            "wild-rift": .mobileRealtime,
-            "roblox": .casualRealtime,
-            "minecraft": .casualRealtime,
-            "apex-legends": .battleRoyaleCompetitive,
-            "blood-strike": .battleRoyaleCompetitive,
-            "cs2": .battleRoyaleCompetitive,
-            "dota2": .mobileRealtime,
-            "eafc": .casualRealtime,
-            "league-of-legends": .mobileRealtime,
-            "palworld": .casualRealtime,
-            "rainbow-six": .battleRoyaleCompetitive,
-            "rocket-league": .casualRealtime,
-            "rust": .casualRealtime,
-            "valorant": .battleRoyaleCompetitive,
-            "warzone": .battleRoyaleCompetitive
-        ]
+        XCTAssertEqual(payload.schemaVersion, 3)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.09.19.1")
+        XCTAssertEqual(payload.games.count, 22)
 
-        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.18.1")
-        XCTAssertEqual(payload.games.map(\.id).sorted(), expectedProfiles.keys.sorted())
-
-        for (gameID, expectedProfile) in expectedProfiles {
-            let gameContext = GameContext(gameID: gameID, market: "BR", platform: .iphone)
-            let resolution = try RemoteCatalogVerifier.resolve(gameContext, in: payload)
-            guard case let .available(resolved) = resolution else {
-                return XCTFail("\(gameID) must be available in the published BR catalog.")
-            }
-            XCTAssertEqual(resolved.context.gameID, gameID)
-            XCTAssertEqual(resolved.profileID, expectedProfile)
-            XCTAssertEqual(resolved.profileRuleVersion, QualityEvaluator.ruleVersion(for: expectedProfile))
-            XCTAssertEqual(resolved.regionID, "sa-east-1")
-            XCTAssertEqual(resolved.strategy, .genericRegion)
-            XCTAssertEqual(resolved.confidence, .medium)
-            XCTAssertEqual(resolved.precisionKey, "regionalReference")
-            XCTAssertTrue(QualityEvaluator.supports(profile: resolved.profileID, ruleVersion: resolved.profileRuleVersion))
-
-            let snapshot = try RemoteCatalogVerifier.regionalSelectionSnapshot(gameContext, in: payload)
-            XCTAssertEqual(snapshot.candidates.count, 1)
-            XCTAssertEqual(snapshot.candidates[0].regionID, "sa-east-1")
-            XCTAssertEqual(snapshot.candidates[0].resolvedContext.context.gameID, gameID)
-
-            guard case .completed = QualityEvaluator.evaluate(samples: receivedSamples(), profile: resolved.profileID) else {
-                return XCTFail("\(gameID) must be evaluable by its own profile.")
-            }
+        let cs2 = try XCTUnwrap(payload.games.first(where: { $0.id == "cs2" }))
+        XCTAssertEqual(cs2.contexts.flatMap(\.platforms), [.pc])
+        XCTAssertThrowsError(try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "cs2", market: "BR", platform: .iphone), in: payload
+        )) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .unsupportedGame)
         }
+
+        let resolution = try RemoteCatalogVerifier.resolve(
+            GameContext(gameID: "cs2", market: "BR", platform: .pc), in: payload
+        )
+        guard case let .available(resolved) = resolution else {
+            return XCTFail("CS2 deve manter seu fallback AWS assinado disponível.")
+        }
+        XCTAssertEqual(resolved.context.gameID, "cs2")
+        XCTAssertEqual(resolved.routeKind, .awsFallback)
+        XCTAssertEqual(resolved.strategy, .genericRegion)
+        XCTAssertEqual(resolved.confidence, .medium)
     }
 
     func testTamperedPayloadIsRejectedBeforeJSONValidation() throws {

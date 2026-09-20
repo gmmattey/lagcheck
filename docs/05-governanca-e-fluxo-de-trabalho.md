@@ -180,7 +180,7 @@ Uma entrega só está concluída quando:
 
 ### 7.3 Antes de TestFlight
 
-1. Quick Check validado em iPhone real em Wi-Fi e celular.
+1. Deep Check único validado em iPhone real em Wi-Fi e celular, incluindo aceite e recusa de consentimento móvel.
 2. Cancelamento por troca de rede, background e interrupção verificado.
 3. Deep Check validado em Wi-Fi com carga concluída, falha e dados insuficientes.
 4. Catálogo assinado, cache e fallback testados.

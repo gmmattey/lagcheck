@@ -134,7 +134,6 @@
 		AA52E19F400A96A9695F1308 /* NWConnectionMeasurementTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FEEA3DAE618704096C022F6 /* NWConnectionMeasurementTransport.swift */; };
 		AB0AD0F86F9B3F4135AAA671 /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		AB5814D73057090BBE7DD3B7 /* CatalogDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A87871425090B97D5CE9B44 /* CatalogDiscovery.swift */; };
-		ABAF1BE232F0D7E3A5EEC3AC /* GameDetailEditorialComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5BF17A1FA2D9B52C253FEE /* GameDetailEditorialComponents.swift */; };
 		AC6D54ED9B677FC485EC13E3 /* QualityEvaluatorPilotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF02E7AEB1E14DAC4749586 /* QualityEvaluatorPilotTests.swift */; };
 		AD41CE771EF74C7409E9C456 /* NLRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEC0FE1DACCD7AB8A0BE3CF /* NLRadius.swift */; };
 		B0B33572E502FB8ACA7A7EF6 /* SteamQueryA2SPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ED4DDB22B174C9E53B28D0B /* SteamQueryA2SPayloadCodec.swift */; };
@@ -180,6 +179,7 @@
 		FB152845BC386FF009AC698C /* MeasurementSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7C296B0F4353FF7F55201F /* MeasurementSessionCoordinatorTests.swift */; };
 		FB561E368113B7A0244D38F8 /* URLSessionLoadTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991580EB7CBA294988F2D81E /* URLSessionLoadTransportTests.swift */; };
 		FC05B35345DB9D4735EC618D /* CheckCompletoResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE2B092AFA14143DF46F0CA /* CheckCompletoResultUITests.swift */; };
+		FE61EBD94370E23A4926FA12 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F0B5A05B0B5BAC4E41C7A109 /* PrivacyInfo.xcprivacy */; };
 		FFAE69B0936F77A86B83C11A /* NolaggyInfrastructure.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -371,7 +371,6 @@
 		3998CA61AC6C02C3CC88B332 /* GameContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContextTests.swift; sourceTree = "<group>"; };
 		3A73719161EFC233AFF86CC6 /* CheckCompletoResultDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultDomain.swift; sourceTree = "<group>"; };
 		3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiedGameArtwork.swift; sourceTree = "<group>"; };
-		3B5BF17A1FA2D9B52C253FEE /* GameDetailEditorialComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDetailEditorialComponents.swift; sourceTree = "<group>"; };
 		3E0918E16C3535038A933568 /* AppNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
 		3EC930648BB26F9F4CB801FB /* AppLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLocalization.swift; sourceTree = "<group>"; };
 		3F124A151B5515C3A50BBA9E /* LocalInterfaceAddressResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalInterfaceAddressResolver.swift; sourceTree = "<group>"; };
@@ -486,6 +485,7 @@
 		ECD3A5462D81B3554DEFD4D6 /* ResultFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultFeatureView.swift; sourceTree = "<group>"; };
 		EFA895C9D16370FADFC6FC12 /* ConnectionBoosterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBoosterModels.swift; sourceTree = "<group>"; };
 		EFBB3CF9C358156CE862B40D /* DeepCheckEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckEvaluatorTests.swift; sourceTree = "<group>"; };
+		F0B5A05B0B5BAC4E41C7A109 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEditorialModels.swift; sourceTree = "<group>"; };
 		F3DA5AAA0EF9AC0CCFC1B230 /* NolaggyDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyDesign.swift; sourceTree = "<group>"; };
 		F47632D14DA4289BC46ACACA /* RegionalReferenceSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalReferenceSelection.swift; sourceTree = "<group>"; };
@@ -630,6 +630,7 @@
 		30D3E7CAC2B6BF06E72ECCCE /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				F0B5A05B0B5BAC4E41C7A109 /* PrivacyInfo.xcprivacy */,
 				A5813B1DDB81B8497A0414AF /* Brand */,
 				4634F5FF65CD5D5B36364687 /* Fonts */,
 				2B6B13CC11FB27287B74F6FA /* Localizable.strings */,
@@ -672,7 +673,6 @@
 			children = (
 				003E2D229A975C02E82CF843 /* DeepCheckDetailsView.swift */,
 				CF4ED2A1679013D53FBD1080 /* GameDetailComponents.swift */,
-				3B5BF17A1FA2D9B52C253FEE /* GameDetailEditorialComponents.swift */,
 				56D3E11571E026399E1DA00B /* GameDetailView.swift */,
 				C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */,
 				1FF5C41F5D89B27DB786B3AA /* PlatformHealthBannerView.swift */,
@@ -1206,6 +1206,7 @@
 				A97EC851962CE2BE307036AC /* OFL.txt in Resources */,
 				DC3B9CFF5BFF8803524B97B0 /* Oxanium-OFL.txt in Resources */,
 				F27AF560748FAF010DB280BA /* Oxanium-Variable.ttf in Resources */,
+				FE61EBD94370E23A4926FA12 /* PrivacyInfo.xcprivacy in Resources */,
 				538217C85088B8758B6D8AA2 /* Secrets.plist in Resources */,
 				5D4E9528CA5FCAB7F64A541C /* Sora-Variable.ttf in Resources */,
 				12DBA662B5C919A9F5A0A927 /* nolaggy-wordmark-primary.png in Resources */,
@@ -1338,7 +1339,6 @@
 				1BEED0B1831F0F06729281B0 /* DeepCheckFeatureView.swift in Sources */,
 				B22E7128BC8A2F6CA0C5AAEA /* DeepCheckResultView.swift in Sources */,
 				9C21255D8A870D9C8D168DE1 /* GameDetailComponents.swift in Sources */,
-				ABAF1BE232F0D7E3A5EEC3AC /* GameDetailEditorialComponents.swift in Sources */,
 				A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */,
 				86032A36D170BA5A4EBF2A09 /* HistoryFeatureView.swift in Sources */,
 				56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */,
@@ -1575,19 +1575,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = LagCheck;
 				INFOPLIST_KEY_NolaggyPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
 				INFOPLIST_KEY_NolaggySupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LAGCHECK_PRIVACY_POLICY_URL = "";
-				LAGCHECK_SUPPORT_URL = "";
+				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
+				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.nolaggy.app;
+				MARKETING_VERSION = 1.0.0;
+				PRIVACY_MANIFEST_FILE = Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lagcheck.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -1965,19 +1968,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = LagCheck;
 				INFOPLIST_KEY_NolaggyPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
 				INFOPLIST_KEY_NolaggySupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LAGCHECK_PRIVACY_POLICY_URL = "";
-				LAGCHECK_SUPPORT_URL = "";
+				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
+				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.nolaggy.app;
+				MARKETING_VERSION = 1.0.0;
+				PRIVACY_MANIFEST_FILE = Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lagcheck.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

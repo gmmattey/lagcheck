@@ -15,7 +15,6 @@ public struct CheckCompletoResultView: View {
     public let regionFriendlyName: String
     public let destinationKind: RouteDestinationKind
     public let isWiFi: Bool
-    public let natSnapshot: NATTopologySnapshot?
     public let showDetails: () -> Void
     public let showBooster: () -> Void
     public let retry: () -> Void
@@ -31,7 +30,6 @@ public struct CheckCompletoResultView: View {
         regionFriendlyName: String,
         destinationKind: RouteDestinationKind = .regionalReference,
         isWiFi: Bool = true,
-        natSnapshot: NATTopologySnapshot? = nil,
         showDetails: @escaping () -> Void = {},
         showBooster: @escaping () -> Void = {},
         retry: @escaping () -> Void,
@@ -44,7 +42,6 @@ public struct CheckCompletoResultView: View {
         self.regionFriendlyName = regionFriendlyName
         self.destinationKind = destinationKind
         self.isWiFi = isWiFi
-        self.natSnapshot = natSnapshot
         self.showDetails = showDetails
         self.showBooster = showBooster
         self.retry = retry
@@ -54,12 +51,6 @@ public struct CheckCompletoResultView: View {
     public var body: some View {
         let verdict = CheckCompletoResultEvaluator.evaluateVerdict(result: result, profile: profileID)
         let trailSnapshot = CheckCompletoResultEvaluator.evaluateTrail(result: result, profile: profileID)
-        let compatSnapshot = CheckCompletoResultEvaluator.evaluateCompatibility(
-            result: result,
-            natSnapshot: natSnapshot,
-            profile: profileID
-        )
-
         ScrollView {
             VStack(spacing: NLSpacing.lg) {
                 // 1. Contexto compacto no topo
@@ -80,14 +71,7 @@ public struct CheckCompletoResultView: View {
                     regionState: mapTrailNodeState(trailSnapshot.regionState)
                 )
 
-                // 4. Faixa Compacta de Compatibilidade da Sessão
-                SessionCompatibilityStrip(
-                    multiplayer: mapCompatState(compatSnapshot.multiplayer),
-                    calls: mapCompatState(compatSnapshot.calls),
-                    streaming: mapCompatState(compatSnapshot.streaming)
-                )
-
-                // 5. Ações
+                // 4. Ações
                 actionsSection(isValid: result != nil)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
@@ -225,14 +209,6 @@ public struct CheckCompletoResultView: View {
         }
     }
 
-    private func mapCompatState(_ state: SessionCompatibilityState) -> SessionCompatibilityStrip.State {
-        switch state {
-        case .check: return .check
-        case .attention: return .attention
-        case .neutral: return .neutral
-        }
-    }
-
     private func colorForScore(_ score: Int, band: ResultClass) -> Color {
         switch band {
         case .excellent, .great:
@@ -254,7 +230,6 @@ public struct CheckCompletoResultView: View {
         platform: .iphone,
         regionFriendlyName: "São Paulo",
         isWiFi: true,
-        natSnapshot: NATTopologySnapshot(natType: .type2Moderate, cgnatStatus: .notDetected, doubleNATStatus: .notDetected),
         retry: {}
     )
 }
@@ -266,7 +241,6 @@ public struct CheckCompletoResultView: View {
         platform: .playstation,
         regionFriendlyName: "São Paulo",
         isWiFi: true,
-        natSnapshot: NATTopologySnapshot(natType: .type2Moderate, cgnatStatus: .notDetected, doubleNATStatus: .notDetected),
         retry: {}
     )
 }
@@ -278,7 +252,6 @@ public struct CheckCompletoResultView: View {
         platform: .pc,
         regionFriendlyName: "São Paulo",
         isWiFi: true,
-        natSnapshot: NATTopologySnapshot(natType: .type2Moderate, cgnatStatus: .notDetected, doubleNATStatus: .notDetected),
         retry: {}
     )
 }
@@ -290,7 +263,6 @@ public struct CheckCompletoResultView: View {
         platform: .xbox,
         regionFriendlyName: "São Paulo",
         isWiFi: false,
-        natSnapshot: NATTopologySnapshot(natType: .type3Strict, cgnatStatus: .detected, doubleNATStatus: .notDetected),
         retry: {}
     )
 }
@@ -302,7 +274,6 @@ public struct CheckCompletoResultView: View {
         platform: .iphone,
         regionFriendlyName: "São Paulo",
         isWiFi: true,
-        natSnapshot: nil,
         retry: {}
     )
 }

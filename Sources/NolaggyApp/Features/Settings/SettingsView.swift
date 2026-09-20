@@ -143,12 +143,6 @@ struct SettingsView: View {
                     }
                 } header: {
                     sectionHeader("settings.section.preferences")
-                } footer: {
-                    if !regionCandidates.isEmpty {
-                        Text("settings.region.explanation")
-                            .font(NLTypography.footnote)
-                            .foregroundStyle(NLColor.textTertiary)
-                    }
                 }
 
                 Section {
@@ -216,19 +210,14 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func configuredLinkRow(_ title: LocalizedStringKey, symbol: String, url: URL?) -> some View {
-        Group {
-            if let url {
-                Button { openURL(url) } label: { SettingsRow(title: title, symbol: symbol, detail: nil, showsChevron: true) }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(Text("settings.link.opens_browser"))
-            } else {
-                SettingsRow(title: title, symbol: symbol, detail: String(localized: "settings.link_unavailable"), showsChevron: false)
-                    .accessibilityHint(Text("settings.link_unavailable"))
-            }
+        if let url {
+            Button { openURL(url) } label: { SettingsRow(title: title, symbol: symbol, detail: nil, showsChevron: true) }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("settings.link.opens_browser"))
+                .listRowBackground(SettingsListSurface())
+                .listRowSeparator(.hidden)
+                .compactSettingsRow()
         }
-        .listRowBackground(SettingsListSurface())
-            .listRowSeparator(.hidden)
-            .compactSettingsRow()
     }
 
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {

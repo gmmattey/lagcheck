@@ -30,7 +30,7 @@ extension QuickCheckFeatureView {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                NolaggyBackButton(action: back, accessibilityIdentifier: "quick-check-back")
+                NolaggyBackButton(action: back, accessibilityIdentifier: "measurement-back")
             }
         }
     }

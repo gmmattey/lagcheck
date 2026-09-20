@@ -50,7 +50,7 @@ Para transformar esses dados técnicos em valor prático sem complicar o app com
      - A chave **nunca** é commitada em texto plano no repositório git (utiliza `.xcconfig`/variáveis de ambiente locais não versionadas).
      - **Cache & Debounce**: O resultado gerado para uma mesma medição de Deep Check fica em cache em memória durante a sessão. Reabrir a Sheet não reexecuta a chamada externa, prevenindo consumo excessivo de quota.
      - Timeout estrito na requisição HTTP.
-   - **Critério de Saída**: Antes de qualquer release público ou TestFlight aberto externo, a chamada deverá migrar para proxy de borda (ex.: endpoint dedicado no Cloudflare Worker ou similar), mediante formalização de nova decisão de infraestrutura.
+   - **Critério de Saída**: Antes de qualquer release público ou TestFlight aberto externo, a chamada deverá migrar para proxy de borda (ex.: endpoint dedicado no Cloudflare Worker ou similar), mediante formalização de nova decisão de infraestrutura. **Exceção limitada:** a [decisão 45](./45-excecao-temporaria-gemini-release-1.0.0.md) autoriza somente o candidato público `1.0.0` e seu TestFlight interno com a arquitetura client-side atual; ela não vale para TestFlight externo nem releases posteriores.
 2. **Camada de Serviço / Integração**:
    - Cliente REST dedicado em `NolaggyInfrastructure` (`GeminiConnectionBoosterService`) consumindo o endpoint do Google Gemini (`generateContent`).
 3. **Contratos e Isolamento de Módulos**:

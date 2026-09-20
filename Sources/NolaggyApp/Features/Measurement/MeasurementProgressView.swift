@@ -2,7 +2,7 @@ import SwiftUI
 import NolaggyDesign
 import NolaggyDomain
 
-/// Tela ao vivo do Quick Check (doc 01 §7.3): latência atual, gráfico vivo,
+/// Tela ao vivo de medição: latência atual, gráfico vivo,
 /// perda e spikes acumulados. Nenhum valor parcial aqui recebe score ou conclusão.
 extension QuickCheckFeatureView {
     var measurementView: some View {
@@ -26,7 +26,7 @@ extension QuickCheckFeatureView {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                NolaggyBackButton(action: back, accessibilityIdentifier: "quick-check-back")
+                NolaggyBackButton(action: back, accessibilityIdentifier: "measurement-back")
             }
         }
     }

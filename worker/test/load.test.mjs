@@ -98,11 +98,11 @@ test("the Debug catalog payload is signed by the public key embedded in iOS", as
   assert.equal(verify(null, Buffer.from(envelope.payloadBase64, "base64"), publicKey, Buffer.from(envelope.signatureBase64, "base64")), true);
 });
 
-test("the canonical signing input matches the bundled Debug envelope bytes", async () => {
-  const canonicalPayload = await readFile(new URL("../catalog/DebugCatalogPayload.canonical.json", import.meta.url));
+test("the canonical v3 signing input matches the bundled Debug envelope bytes", async () => {
+  const canonicalPayload = Buffer.from(`${JSON.stringify(buildCanonicalCatalog())}\n`);
   const bundledEnvelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
 
-  assert.deepEqual(Buffer.from(bundledEnvelope.payloadBase64, "base64"), canonicalPayload.subarray(0, -1));
+  assert.deepEqual(Buffer.from(bundledEnvelope.payloadBase64, "base64"), canonicalPayload);
 });
 
 test("the schema 2 candidate produces a deterministic external signing request", async () => {

@@ -6,7 +6,8 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
     func testBundledDebugCatalogIsAvailableToTheInfrastructureBundle() throws {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
         let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: Date())
-        XCTAssertEqual(payload.catalogVersion, "debug-2026.09.18.1")
+        XCTAssertEqual(payload.schemaVersion, 3)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.09.19.1")
     }
 
     func testLaunchFallsBackToBaseWhenCacheIsInvalid() async throws {
@@ -33,6 +34,18 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         XCTAssertEqual(loaded.source, .cachedRemote)
     }
 
+    func testLaunchRejectsLegacyCachedCatalogWhenBundledBaseUsesNewerSchema() async throws {
+        let cache = MemoryCache(value: StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date()))
+        let repository = RemoteCatalogRepository(
+            baseEnvelopeData: Data([3]), fetcher: FixedFetcher(data: nil), cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        let loaded = try await repository.loadedCatalogForLaunch()
+        XCTAssertEqual(loaded.payload.catalogVersion, "base-v3")
+        XCTAssertEqual(loaded.source, .bundledBase)
+    }
+
     func testRefreshStoresOnlyValidatedResponseAndRespectsDailyWindow() async throws {
         let cache = MemoryCache()
         let repository = RemoteCatalogRepository(
@@ -52,12 +65,77 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         let calls = await fetcher.calls
         XCTAssertEqual(calls, 0)
     }
+
+    func testRefreshDoesNotDelayMigrationFromLegacyCachedSchema() async throws {
+        let cache = MemoryCache(value: StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date(timeIntervalSince1970: 990)))
+        let fetcher = CountingFetcher(data: Data([3]))
+        let repository = RemoteCatalogRepository(
+            baseEnvelopeData: Data([3]), fetcher: fetcher, cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        await repository.refreshIfDue()
+        let calls = await fetcher.calls
+        let cachedEnvelope = await cache.value?.envelopeData
+        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(cachedEnvelope, Data([3]))
+    }
+
+    func testRefreshFailureDoesNotOverwriteValidatedCache() async throws {
+        let cached = StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date(timeIntervalSince1970: 0))
+        let cache = MemoryCache(value: cached)
+        let repository = RemoteCatalogRepository(
+            baseEnvelopeData: Data([1]), fetcher: FixedFetcher(data: nil), cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        await repository.refreshIfDue()
+
+        let resultingCache = await cache.value
+        XCTAssertEqual(resultingCache, cached)
+    }
+
+    func testInvalidRemoteResponseDoesNotOverwriteValidatedCache() async throws {
+        let cached = StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date(timeIntervalSince1970: 0))
+        let cache = MemoryCache(value: cached)
+        let repository = RemoteCatalogRepository(
+            baseEnvelopeData: Data([1]), fetcher: FixedFetcher(data: Data([9])), cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        await repository.refreshIfDue()
+
+        let resultingCache = await cache.value
+        XCTAssertEqual(resultingCache, cached)
+    }
+
+    func testLaunchThrowsWhenBundledBaseIsInvalid() async {
+        let repository = RemoteCatalogRepository(
+            baseEnvelopeData: Data([9]), fetcher: FixedFetcher(data: nil), cache: MemoryCache(),
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+        )
+
+        do {
+            _ = try await repository.loadedCatalogForLaunch()
+            XCTFail("A base inválida deve impedir a carga do catálogo.")
+        } catch {
+            XCTAssertEqual(error as? RemoteCatalogError, .invalidSignature)
+        }
+    }
 }
 
 private struct FixtureValidator: RemoteCatalogValidating {
     func validate(_ envelopeData: Data, now: Date) throws -> RemoteCatalogPayload {
-        guard envelopeData == Data([1]) || envelopeData == Data([2]) else { throw RemoteCatalogError.invalidSignature }
-        return RemoteCatalogPayload(schemaVersion: 1, catalogVersion: envelopeData == Data([1]) ? "base" : "remote", profiles: [], regions: [], games: [])
+        switch envelopeData {
+        case Data([1]):
+            return RemoteCatalogPayload(schemaVersion: 1, catalogVersion: "base", profiles: [], regions: [], games: [])
+        case Data([2]):
+            return RemoteCatalogPayload(schemaVersion: 1, catalogVersion: "remote", profiles: [], regions: [], games: [])
+        case Data([3]):
+            return RemoteCatalogPayload(schemaVersion: 3, catalogVersion: "base-v3", profiles: [], regions: [], games: [])
+        default:
+            throw RemoteCatalogError.invalidSignature
+        }
     }
 }
 

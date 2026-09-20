@@ -21,6 +21,7 @@ public enum NLSizing {
     public static let compactGameArtworkSide: CGFloat = 72
     public static let compactGameTileWidth: CGFloat = 104
     public static let compactGameTileMinHeight: CGFloat = 72
+    public static let gameDetailHeroHeight: CGFloat = 300
 
     public enum NolaggyScoreRing {
         public static let compact: CGFloat = 96

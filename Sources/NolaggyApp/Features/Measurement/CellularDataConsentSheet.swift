@@ -5,7 +5,6 @@ import NolaggyDesign
 /// Exibida antes do início do Check Completo em conexões de rede móvel (celular).
 struct CellularDataConsentSheet: View {
     let onConfirm: () -> Void
-    let onQuickCheckOnly: () -> Void
     let onCancel: () -> Void
 
     var body: some View {
@@ -47,18 +46,11 @@ struct CellularDataConsentSheet: View {
                 )
                 .accessibilityIdentifier("cellular-consent-confirm")
 
-                PrimaryButton(
-                    title: "deep_check.cellular_consent.quick_check",
-                    style: .secondaryOutline,
-                    action: onQuickCheckOnly
-                )
-                .accessibilityIdentifier("cellular-consent-quick-check")
-
                 Button(action: onCancel) {
                     Text("deep_check.cellular_consent.cancel")
                         .font(NLTypography.callout)
                         .foregroundStyle(NLColor.textSecondary)
-                        .padding(.vertical, NLSpacing.xs)
+                        .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
                 }
                 .accessibilityIdentifier("cellular-consent-cancel")
             }

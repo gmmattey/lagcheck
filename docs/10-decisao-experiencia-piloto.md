@@ -1,6 +1,6 @@
 # Decisão de experiência — piloto Quick Check
 
-**Status:** aprovado para implementação local do piloto  
+**Status:** substituído para jornada e copy de release pela decisão 43; preservado como registro histórico do piloto
 **Data:** 2026-09-08  
 **Decisão de produto:** Marco  
 **Frentes envolvidas:** Renan (design e acessibilidade), Rian (iOS) e Iury (medição e score)
