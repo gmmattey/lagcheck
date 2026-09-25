@@ -499,5 +499,51 @@
 "catalog.empty.generic_gaming_message" = "Tu juego aún no tiene una ruta dedicada, pero puedes medir la ruta regional general para juegos y probar tu conexión.";
 "catalog.empty.generic_gaming_cta" = "Medir Conexión General";
 "catalog.generic_gaming_card.title" = "Conexión General para Juegos";
-"catalog.generic_gaming_card.subtitle" = "Prueba tu red para cualquier juego en línea";
 "home.cta.test_general_connection" = "Medir Conexión General";
+
+/* Dark Competitive UI & Game Readiness (Decisões 50 e 51) */
+"home.hero.ready_for_ranked" = "¿LISTO PARA JUGAR?";
+"home.cta.start_check" = "HACER CHECK";
+"home.quick_rail.title" = "Tus Juegos";
+"home.quick_rail.see_all" = "Ver todos";
+"home.quick_rail.more" = "Más";
+"home.last_check.empty" = "Sin checks recientes";
+
+"game_readiness.verdict.ready.headline" = "● LISTO PARA RANKED";
+"game_readiness.verdict.caution.headline" = "▲ CONDICIONES INESTABLES";
+"game_readiness.verdict.not_ready.headline" = "▲ EVITARÍA RANKED AHORA";
+"game_readiness.verdict.inconclusive.headline" = "— DATOS INSUFICIENTES";
+
+"game_readiness.verdict.ready.stable" = "Tu conexión está estable ahora.";
+"game_readiness.verdict.not_ready.packet_loss" = "Detectamos pérdida de paquetes durante la prueba.";
+"game_readiness.verdict.not_ready.high_latency" = "Latencia demasiado alta para este juego.";
+"game_readiness.verdict.not_ready.severe_spikes" = "Detectamos picos severos de latencia.";
+"game_readiness.verdict.caution.jitter" = "Oscilaciones moderadas de jitter observadas.";
+"game_readiness.verdict.caution.load" = "La conexión osciló bajo uso intenso.";
+"game_readiness.verdict.caution.general" = "Conexión con oscilaciones durante la prueba.";
+"game_readiness.verdict.not_ready.risk" = "Inestabilidad crítica en la conexión.";
+
+"game_readiness.stability.ready_summary" = "No se encontraron oscilaciones relevantes durante la prueba.";
+"game_readiness.stability.caution_summary" = "La conexión osciló durante la medición.";
+"game_readiness.stability.not_ready_summary" = "Inestabilidad severa que afectará tu partida.";
+"game_readiness.stability.inconclusive" = "Muestras insuficientes para evaluar la estabilidad.";
+
+"game_readiness.finding.packet_loss_detected" = "Pérdida de paquetes detectada";
+"game_readiness.finding.no_packet_loss" = "Sin pérdida de paquetes";
+"game_readiness.finding.severe_spikes_detected" = "Picos de latencia";
+"game_readiness.finding.jitter_oscillations" = "Oscilaciones de jitter";
+"game_readiness.finding.route_stable" = "Ruta de reposo normal";
+"game_readiness.finding.load_degradation_detected" = "Degradación bajo uso de red";
+"game_readiness.finding.load_stable" = "Comportamiento estable bajo carga";
+"game_readiness.finding.destination_response_normal" = "Respuesta del destino normal";
+"game_readiness.finding.insufficient_samples" = "Muestras UDP insuficientes";
+
+"game_readiness.cta.retest" = "PROBAR DE NUEVO";
+"game_readiness.cta.understand_connection" = "Entender mi conexión >";
+"game_readiness.cta.understand_problem" = "Entender el problema >";
+"game_readiness.telemetry.ping" = "PING";
+"game_readiness.telemetry.jitter" = "JITTER";
+"game_readiness.telemetry.loss" = "PÉRDIDA";
+"game_readiness.findings.section_title" = "LO QUE ENCONTRAMOS";
+"game_readiness.stability.section_title" = "ESTABILIDAD";
+

@@ -28,6 +28,7 @@ struct QuickCheckFeatureView: View {
     /// manual concorrendo com a barra nativa.
     @State var gamesReturnToHome = false
     @State var showingSettings = false
+    @State var showingHistory = false
     @State var deepCheckDestination: DeepCheckDestination?
     @State var showingRegionalSelection = false
     @State var manualRegionID: String?
@@ -170,8 +171,22 @@ struct QuickCheckFeatureView: View {
                             deleteHistory: deleteHistory,
                             showHistory: {
                                 showingSettings = false
-                                selectedTab = .history
+                                showingHistory = true
                             }
+                        )
+                        .toolbar(.hidden, for: .tabBar)
+                    }
+                    .navigationDestination(isPresented: $showingHistory) {
+                        HistoryView(
+                            entries: history,
+                            gameName: gameName(for:),
+                            retry: retryFromHistory,
+                            returnToHome: { showingHistory = false },
+                            openSettings: {
+                                showingHistory = false
+                                showingSettings = true
+                            },
+                            showsBackHeader: true
                         )
                         .toolbar(.hidden, for: .tabBar)
                     }
@@ -191,7 +206,7 @@ struct QuickCheckFeatureView: View {
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
-                                selectedTab = .history
+                                showingHistory = true
                             }
                         )
                     }
@@ -207,6 +222,20 @@ struct QuickCheckFeatureView: View {
                     .background(NolaggyScreenBackground())
                     .toolbarBackground(.hidden, for: .navigationBar)
                     .toolbarColorScheme(.dark, for: .navigationBar)
+                    .navigationDestination(isPresented: $showingHistory) {
+                        HistoryView(
+                            entries: history,
+                            gameName: gameName(for:),
+                            retry: retryFromHistory,
+                            returnToHome: { showingHistory = false },
+                            openSettings: {
+                                showingHistory = false
+                                showingSettings = true
+                            },
+                            showsBackHeader: true
+                        )
+                        .toolbar(.hidden, for: .tabBar)
+                    }
                     .navigationDestination(item: $selectedGameForDetails) { game in
                         GameDetailView(
                             game: game,
@@ -223,7 +252,7 @@ struct QuickCheckFeatureView: View {
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
-                                selectedTab = .history
+                                showingHistory = true
                             }
                         )
                     }
@@ -232,45 +261,6 @@ struct QuickCheckFeatureView: View {
                 Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
-
-            // Tab 3: Histórico
-            NavigationStack {
-                HistoryView(
-                    entries: history,
-                    gameName: gameName(for:),
-                    retry: retryFromHistory,
-                    returnToHome: { selectedTab = .home },
-                    openSettings: { selectedTab = .settings },
-                    showsBackHeader: false
-                )
-                .background(NolaggyScreenBackground())
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-            }
-            .tabItem {
-                Label(LocalizedStringKey("history.title"), systemImage: "clock.arrow.circlepath")
-            }
-            .tag(AppTab.history)
-
-            // Tab 4: Ajustes
-            NavigationStack {
-                SettingsView(
-                    configuration: appConfiguration,
-                    regionCandidates: regionCandidates,
-                    manualRegionID: manualRegionID,
-                    onSelectRegion: selectRegionPreference,
-                    deleteHistory: deleteHistory,
-                    showHistory: { selectedTab = .history },
-                    showsBackHeader: false
-                )
-                .background(NolaggyScreenBackground())
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-            }
-            .tabItem {
-                Label(LocalizedStringKey("settings.title"), systemImage: "gearshape.fill")
-            }
-            .tag(AppTab.settings)
         }
         .tint(NLColor.accentPrimary)
         .toolbarBackground(NLColor.backgroundRaised.opacity(0.9), for: .tabBar)

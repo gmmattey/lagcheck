@@ -1044,11 +1044,6 @@ struct HomeCatalogView: View {
                 .padding(.horizontal, NLSpacing.md)
                 .padding(.top, NLSpacing.xs)
 
-                if query.isEmpty, let onSelectGenericGaming {
-                    HomeGenericGamingBanner(onSelect: onSelectGenericGaming)
-                        .padding(.horizontal, NLSpacing.md)
-                }
-
                 HomeCatalogFilters(
                     selected: $selectedCategory,
                     categories: CatalogCategory.allCases,

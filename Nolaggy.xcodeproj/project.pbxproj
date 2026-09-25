@@ -42,6 +42,7 @@
 		2E1656B09BB9353C72EE96CB /* MeasurementTransportFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C4698BD3E3684CD23ECD21 /* MeasurementTransportFactory.swift */; };
 		2E95DA40D369FEC32DC296EF /* NLShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F1D6F0F1AE0A1CD9AC2382 /* NLShadow.swift */; };
 		2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */; };
+		AA0000030000000000000002 /* DarkCompetitiveHomeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000030000000000000001 /* DarkCompetitiveHomeComponents.swift */; };
 		31485C5758343ED2AD2BA6F8 /* VerifiedGameArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */; };
 		3159F1B15A26231BCD622738 /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		319EAA0C691585B49D89180C /* LocalInterfaceAddressResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */; };
@@ -492,6 +493,7 @@
 		E5618CA5A9D50A91BA7B6F7E /* MetricRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRow.swift; sourceTree = "<group>"; };
 		E75A304BF9C117BC9BCCD47E /* NolaggyApplicationTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyApplicationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePresentationComponents.swift; sourceTree = "<group>"; };
+		AA0000030000000000000001 /* DarkCompetitiveHomeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkCompetitiveHomeComponents.swift; sourceTree = "<group>"; };
 		E8BD112C975F0E3A22FAA9E4 /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
 		E926065E20E7AD202F458578 /* PlatformSelectorRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSelectorRow.swift; sourceTree = "<group>"; };
 		E92D37962416BF196C9A47F1 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -881,6 +883,7 @@
 			isa = PBXGroup;
 			children = (
 				5CE082E42929EB89C90445FF /* HomeFeatureView.swift */,
+				AA0000030000000000000001 /* DarkCompetitiveHomeComponents.swift */,
 				E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */,
 				146B300E5946A137B1DC8C25 /* NetflixCatalogComponents.swift */,
 			);
@@ -1381,6 +1384,7 @@
 				A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */,
 				86032A36D170BA5A4EBF2A09 /* HistoryFeatureView.swift in Sources */,
 				56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */,
+				AA0000030000000000000002 /* DarkCompetitiveHomeComponents.swift in Sources */,
 				2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */,
 				5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */,
 				1D2E950ED0F95C7AD799D84C /* MeasurementProgressView.swift in Sources */,
