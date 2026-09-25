@@ -31,7 +31,7 @@ extension QuickCheckFeatureView {
 
                     HomeGamesListSection(
                         games: Array(homeGames.prefix(5)),
-                        onSelectGame: { selectedGameForDetails = $0 },
+                        onSelectGame: { selectGame($0) },
                         onSeeAllGames: openGamesFromHome
                     )
                     .padding(.horizontal, NLSpacing.md)
@@ -151,11 +151,16 @@ extension QuickCheckFeatureView {
         return recentTestedItems.first?.game ?? popularGames.first ?? availableGames.first
     }
 
+    func selectGame(_ game: CatalogMeasurementJourney.Game) {
+        analyticsTracker.track(.gameSelected(gameID: game.id))
+        selectedGameForDetails = game
+    }
+
     /// A Home encaminha à escolha explícita de plataforma e vínculo no detalhe
     /// do jogo. A medição começa somente pelo Deep Check daquele contexto.
     func startLagCheckFromCTA() {
         if let target = targetGameForCTA {
-            selectedGameForDetails = target
+            selectGame(target)
         } else {
             openGamesFromHome()
         }
@@ -215,7 +220,7 @@ extension QuickCheckFeatureView {
             onReturnToHome: gamesReturnToHome ? {
                 selectedTab = .home
             } : nil,
-            select: { selectedGameForDetails = $0 }
+            select: { selectGame($0) }
         )
     }
 }

@@ -160,18 +160,18 @@
 "game.unknown" = "Game";
 "history.details_accessibility" = "View measurement details";
 "history.entry_accessibility" = "Fortnite, %@, %@, LagCheck Score %d, %@. View details.";
-"history.quick_check" = "Deep Check";
-"history.deep_check_short" = "Deep Check";
-"history.deep_check" = "Deep Check · score at rest";
+"history.quick_check" = "LagCheck";
+"history.deep_check_short" = "LagCheck";
+"history.deep_check" = "LagCheck · score at rest";
 "history.deep_check_delta" = "Observed difference under load: %+d ms";
-"quick_check.result.deep_check" = "Run Deep Check";
-"deep_check.title" = "Deep Check";
-"deep_check.intro.title" = "Start Deep Check?";
+"quick_check.result.deep_check" = "Start LagCheck";
+"deep_check.title" = "LagCheck";
+"deep_check.intro.title" = "Start LagCheck?";
 "deep_check.intro.message" = "We’ll measure your route at rest and under heavy use. It takes about 30 seconds.";
 "deep_check.intro.wifi" = "On cellular data, we’ll ask for your consent to use up to 10 MB before starting.";
-"deep_check.intro.start" = "Start Deep Check";
+"deep_check.intro.start" = "Start LagCheck";
 "deep_check.intro.not_now" = "Not now";
-"deep_check.wifi.title" = "Deep Check couldn’t start";
+"deep_check.wifi.title" = "Test couldn’t start";
 "deep_check.wifi.message" = "Connect to a network and try again.";
 "deep_check.wifi.action" = "Back";
 "deep_check.phase.rest" = "At rest";
@@ -182,7 +182,7 @@
 "deep_check.phase.load_progress" = "Phase 2 of 2 · under load";
 "deep_check.phase.remaining" = "About %d seconds remaining";
 "deep_check.phase.current_rtt" = "Current ping";
-"deep_check.measurement.title %@" = "Deep Check · %@";
+"deep_check.measurement.title %@" = "LagCheck · %@";
 "deep_check.measurement.context" = "São Paulo · regional reference route · medium confidence";
 "deep_check.graph.rest" = "At rest";
 "deep_check.graph.load" = "Under load";
@@ -228,7 +228,7 @@
 "home.popular" = "Most Popular";
 "home.all_games" = "All games";
 "home.score" = "Score";
-"home.hero.detail" = "Tap for details and to run a Deep Check.";
+"home.hero.detail" = "Tap for details and to test your connection.";
 "home.status.measuring" = "Checking";
 "home.status.measured" = "Measurement available";
 "home.status.inconclusive" = "No result";
@@ -269,7 +269,7 @@
 "network.band.inconclusive.title" = "Inconclusive Wi-Fi signal";
 "network.band.inconclusive.message" = "Unable to verify the local router response.";
 "network.band.action.settings" = "Open Wi-Fi Settings";
-"network.band.action.deep_check" = "Run Deep Check";
+"network.band.action.deep_check" = "Test connection";
 "network.band.action.details" = "View details";
 
 /* Global Test Servers and Continents (Decision 28) */
@@ -407,7 +407,7 @@
 
 /* Deep Check on Wi-Fi and cellular (Decision 36) */
 "deep_check.cellular_consent.title" = "Cellular Data Usage";
-"deep_check.cellular_consent.message" = "Deep Check uses cellular data to evaluate your connection under load.";
+"deep_check.cellular_consent.message" = "The test uses cellular data to evaluate your connection under load.";
 "deep_check.cellular_consent.limit" = "Maximum transfer limit: up to 10 MB (about 15 seconds).";
 "deep_check.cellular_consent.confirm" = "Continue with cellular data";
 "deep_check.cellular_consent.cancel" = "Cancel";
@@ -472,3 +472,29 @@
 "check_completo.action.try_again" = "Try again";
 "check_completo.action.details" = "View details";
 "check_completo.action.improve" = "How to improve";
+
+/* Live Trail Pulse Gauge (Decisão 47) */
+"live_trail.phase.rest.title" = "Stage 1: Baseline Connection";
+"live_trail.phase.load.title" = "Stage 2: Under Pressure";
+"live_trail.status.connecting %@" = "Connecting to %@ route…";
+"live_trail.status.rest.evaluating" = "Evaluating command responsiveness…";
+"live_trail.status.rest.evaluating.detail" = "Measuring response time at rest";
+"live_trail.status.rest.stability" = "Checking route stability…";
+"live_trail.status.rest.stability.detail" = "Ensuring smooth flow with zero stutter";
+"live_trail.status.load.simulating" = "Simulating intense match traffic…";
+"live_trail.status.load.simulating.detail" = "Testing connection holding capacity";
+"live_trail.status.load.resistance" = "Testing resistance under load…";
+"live_trail.status.load.resistance.detail" = "Evaluating impact of active network traffic";
+"live_trail.route.active" = "Active route";
+"live_trail.hint.keep_open" = "Keep the app open during the test";
+
+/* Booster Loading (Decisão 48) */
+"booster.loading.step1.title" = "Reading your network telemetry…";
+"booster.loading.step1.detail" = "Evaluating stability, jitter, and impact under load";
+"booster.loading.step2.title %@" = "Checking %@ requirements…";
+"booster.loading.step2.detail" = "Analyzing latency thresholds and match tolerance";
+"booster.loading.step3.title %@" = "Tailoring practical actions for %@…";
+"booster.loading.step3.detail" = "Formatting router, equipment, and network tips";
+"booster.loading.a11y" = "Generating personalized connection optimization tips with artificial intelligence.";
+
+

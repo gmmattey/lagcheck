@@ -313,6 +313,29 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         XCTAssertTrue(entries.isEmpty, "No partial data should be persisted on network change.")
     }
 
+    func testInsufficientRestUDPResultsInInconclusiveAndDoesNotPersistToHistory() async throws {
+        let history = RecordingDeepHistoryRepository()
+        let coordinator = DeepCheckSessionCoordinator(
+            transport: ScriptedTransport(samples: [received(5, rtt: 30), received(30, rtt: 80)]),
+            loadTransport: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000)),
+            pathObserver: NoChangesObserver(),
+            wifiAvailability: FixedInterfaceAvailability(interface: .wifi),
+            historyRepository: history
+        )
+
+        _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let state = await coordinator.sessionState()
+        guard case let .completed(_, evaluation, _) = state,
+              case .inconclusive = evaluation else {
+            return XCTFail("Expected inconclusive evaluation due to insufficient rest samples, got \(state)")
+        }
+
+        let entries = await history.loadHistory()
+        XCTAssertTrue(entries.isEmpty, "Inconclusive results must never be persisted to history.")
+    }
+
     private func received(_ count: Int, rtt: Double) -> [ProbeSample] {
         (0..<count).map { ProbeSample(sequence: $0, roundTripMilliseconds: rtt, outcome: .received) }
     }

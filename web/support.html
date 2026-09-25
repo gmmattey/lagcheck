@@ -115,28 +115,22 @@
       <!-- Section 2: Measurement Methodology -->
       <section aria-labelledby="method-heading">
         <h2 id="method-heading">
-          <span data-lang="pt">2. Como Funcionam as Medições</span>
-          <span data-lang="en">2. How Measurements Work</span>
+          <span data-lang="pt">2. Como Funciona a Medição</span>
+          <span data-lang="en">2. How the Measurement Works</span>
         </h2>
         <p>
-          <span data-lang="pt">O aplicativo oferece dois tipos de avaliação complementar:</span>
-          <span data-lang="en">The application provides two complementary evaluation modes:</span>
+          <span data-lang="pt">O LagCheck utiliza uma jornada única de medição determinística:</span>
+          <span data-lang="en">LagCheck uses a single, deterministic measurement journey:</span>
         </p>
-        <div class="card-grid card-grid-2" style="margin-top: var(--space-md);">
-          <div class="card">
-            <h3>Quick Check</h3>
-            <p>
-              <span data-lang="pt"><strong>Duração:</strong> ~5 a 8 segundos.<br><strong>Método:</strong> Dispara uma série de sondagens UDP para o destino de referência regional selecionado.<br><strong>Condição:</strong> Requer pelo menos 10 respostas UDP válidas para emitir um diagnóstico. Mede latência básica em repouso, jitter e perda de pacotes.</span>
-              <span data-lang="en"><strong>Duration:</strong> ~5 to 8 seconds.<br><strong>Method:</strong> Dispatches a sequence of UDP probes to the chosen regional reference destination.<br><strong>Condition:</strong> Requires a minimum of 10 valid UDP probe responses to generate a score. Measures baseline latency, jitter, and packet loss.</span>
-            </p>
-          </div>
-          <div class="card">
-            <h3>Deep Check</h3>
-            <p>
-              <span data-lang="pt"><strong>Duração:</strong> ~30 segundos.<br><strong>Requisito obrigatório:</strong> Conexão Wi-Fi ativa.<br><strong>Método:</strong> Executa duas séries independentes: primeiro afere a rota em repouso e, em seguida, afere a rota enquanto realiza uma transferência HTTP controlada (até 10 MB ou 15 segundos) via Cloudflare Worker gratuito.<br><strong>Resultado:</strong> O LagCheck Score principal vem da fase de repouso; o impacto sob carga é apresentado como métrica complementar.</span>
-              <span data-lang="en"><strong>Duration:</strong> ~30 seconds.<br><strong>Mandatory requirement:</strong> Active Wi-Fi connection.<br><strong>Method:</strong> Executes two independent series: measures the baseline route at rest, then measures the route while transferring a controlled HTTP payload (up to 10 MB or 15 seconds) from a free Cloudflare Worker.<br><strong>Result:</strong> The primary LagCheck Score is derived from the rest phase; impact under load is reported as a complementary metric.</span>
-            </p>
-          </div>
+        <div class="card" style="margin-top: var(--space-md);">
+          <h3>
+            <span data-lang="pt">Metodologia do LagCheck</span>
+            <span data-lang="en">LagCheck Methodology</span>
+          </h3>
+          <p>
+            <span data-lang="pt"><strong>Duração:</strong> ~15 a 30 segundos.<br><strong>Compatibilidade:</strong> Conexões Wi-Fi e rede móvel (com consentimento prévio para transferência de dados).<br><strong>Método:</strong> Mede a rota em repouso por sondagens UDP e, em seguida, afere o comportamento da rota sob uma transferência HTTP controlada (até 10 MB ou 15 segundos) via Cloudflare Worker gratuito.<br><strong>Critério:</strong> Requer pelo menos 10 respostas UDP válidas para emitir um diagnóstico determinístico. Sem dados suficientes, o resultado é inconclusivo e nenhum score é atribuído.</span>
+            <span data-lang="en"><strong>Duration:</strong> ~15 to 30 seconds.<br><strong>Compatibility:</strong> Active Wi-Fi or cellular connection (with explicit consent for cellular data transfer).<br><strong>Method:</strong> Measures the baseline route at rest using UDP probes, then measures route response under a controlled HTTP load (up to 10 MB or 15 seconds) from a free Cloudflare Worker.<br><strong>Criteria:</strong> Requires a minimum of 10 valid UDP probe responses to generate a score. If data is insufficient, the result is inconclusive and no score is fabricated.</span>
+          </p>
         </div>
       </section>
 

@@ -160,18 +160,18 @@
 "game.unknown" = "Juego";
 "history.details_accessibility" = "Ver detalles de la medición";
 "history.entry_accessibility" = "Fortnite, %@, %@, LagCheck Score %d, %@. Ver detalles.";
-"history.quick_check" = "Deep Check";
-"history.deep_check_short" = "Deep Check";
-"history.deep_check" = "Deep Check · puntaje en reposo";
+"history.quick_check" = "LagCheck";
+"history.deep_check_short" = "LagCheck";
+"history.deep_check" = "LagCheck · puntaje en reposo";
 "history.deep_check_delta" = "Diferencia observada bajo carga: %+d ms";
-"quick_check.result.deep_check" = "Hacer Deep Check";
-"deep_check.title" = "Deep Check";
-"deep_check.intro.title" = "¿Iniciar Deep Check?";
+"quick_check.result.deep_check" = "Iniciar LagCheck";
+"deep_check.title" = "LagCheck";
+"deep_check.intro.title" = "¿Iniciar LagCheck?";
 "deep_check.intro.message" = "Mediremos tu ruta en reposo y durante un uso intenso. Toma unos 30 segundos.";
 "deep_check.intro.wifi" = "Con datos móviles, pediremos tu consentimiento para usar hasta 10 MB antes de comenzar.";
-"deep_check.intro.start" = "Iniciar Deep Check";
+"deep_check.intro.start" = "Iniciar LagCheck";
 "deep_check.intro.not_now" = "Ahora no";
-"deep_check.wifi.title" = "No se pudo iniciar Deep Check";
+"deep_check.wifi.title" = "No se pudo iniciar la prueba";
 "deep_check.wifi.message" = "Conéctate a una red e inténtalo de nuevo.";
 "deep_check.wifi.action" = "Volver";
 "deep_check.phase.rest" = "Reposo";
@@ -182,7 +182,7 @@
 "deep_check.phase.load_progress" = "Fase 2 de 2 · bajo carga";
 "deep_check.phase.remaining" = "Cerca de %d segundos restantes";
 "deep_check.phase.current_rtt" = "Ping actual";
-"deep_check.measurement.title %@" = "Deep Check · %@";
+"deep_check.measurement.title %@" = "LagCheck · %@";
 "deep_check.measurement.context" = "São Paulo · ruta regional de referencia · confianza media";
 "deep_check.graph.rest" = "Reposo";
 "deep_check.graph.load" = "Bajo carga";
@@ -228,7 +228,7 @@
 "home.popular" = "Más jugados";
 "home.all_games" = "Todos los juegos";
 "home.score" = "Score";
-"home.hero.detail" = "Toca para ver detalles y hacer un Deep Check.";
+"home.hero.detail" = "Toca para ver detalles y probar tu conexión.";
 "home.status.measuring" = "Evaluando";
 "home.status.measured" = "Medición disponible";
 "home.status.inconclusive" = "Sin resultado";
@@ -267,7 +267,7 @@
 "network.band.inconclusive.title" = "Señal Wi-Fi no concluyente";
 "network.band.inconclusive.message" = "No fue posible verificar la respuesta del router local.";
 "network.band.action.settings" = "Ver ajustes de Wi-Fi";
-"network.band.action.deep_check" = "Hacer Deep Check";
+"network.band.action.deep_check" = "Probar conexión";
 "network.band.action.details" = "Ver detalles";
 "settings.continent.americas" = "Américas";
 "settings.continent.europe" = "Europa";
@@ -400,7 +400,7 @@
 
 /* Deep Check en Wi-Fi y red móvil (Decisión 36) */
 "deep_check.cellular_consent.title" = "Uso de datos móviles";
-"deep_check.cellular_consent.message" = "Deep Check usa datos móviles para evaluar tu conexión bajo carga.";
+"deep_check.cellular_consent.message" = "La prueba usa datos móviles para evaluar tu conexión bajo carga.";
 "deep_check.cellular_consent.limit" = "Límite máximo de transferencia: hasta 10 MB (unos 15 segundos).";
 "deep_check.cellular_consent.confirm" = "Continuar con datos móviles";
 "deep_check.cellular_consent.cancel" = "Cancelar";
@@ -465,3 +465,29 @@
 "check_completo.action.try_again" = "Intentar de nuevo";
 "check_completo.action.details" = "Ver detalles";
 "check_completo.action.improve" = "Cómo mejorar";
+
+/* Live Trail Pulse Gauge (Decisão 47) */
+"live_trail.phase.rest.title" = "Etapa 1: Conexión base";
+"live_trail.phase.load.title" = "Etapa 2: Bajo presión";
+"live_trail.status.connecting %@" = "Conectando a la ruta de %@…";
+"live_trail.status.rest.evaluating" = "Evaluando respuesta de comandos…";
+"live_trail.status.rest.evaluating.detail" = "Midiendo el tiempo de respuesta en reposo";
+"live_trail.status.rest.stability" = "Verificando estabilidad de ruta…";
+"live_trail.status.rest.stability.detail" = "Garantizando fluidez continua sin cortes";
+"live_trail.status.load.simulating" = "Simulando partida con tráfico intenso…";
+"live_trail.status.load.simulating.detail" = "Probando la resistencia de tu conexión";
+"live_trail.status.load.resistance" = "Probando resistencia a caídas…";
+"live_trail.status.load.resistance.detail" = "Evaluando el impacto del tráfico en la red";
+"live_trail.route.active" = "Ruta activa";
+"live_trail.hint.keep_open" = "Mantén la app abierta durante la prueba";
+
+/* Booster Loading (Decisão 48) */
+"booster.loading.step1.title" = "Leyendo la telemetría de tu red…";
+"booster.loading.step1.detail" = "Evaluando estabilidad, jitter e impacto bajo carga";
+"booster.loading.step2.title %@" = "Analizando requisitos de %@…";
+"booster.loading.step2.detail" = "Verificando umbrales de latencia y tolerancia de partida";
+"booster.loading.step3.title %@" = "Preparando acciones prácticas para %@…";
+"booster.loading.step3.detail" = "Configurando consejos para router, equipo y conexión";
+"booster.loading.a11y" = "Generando consejos de optimización de conexión con inteligencia artificial.";
+
+

@@ -173,7 +173,7 @@ public struct NolaggyScore: View {
         NolaggyScore(
             outcome: .revealed(score: 88, classification: .great),
             classificationLabel: "Great",
-            accessibilityDescription: "Nolaggy Score 88, Great, looking good to play now."
+            accessibilityDescription: "LagCheck Score 88, Great, looking good to play now."
         )
         NolaggyScore(outcome: .revealed(score: 58, classification: .lagRisk), style: .compact)
     }

@@ -16,12 +16,15 @@ struct DeepCheckFeatureView: View {
     @State private var showingBooster = false
     @State private var boosterCoordinator: ConnectionBoosterCoordinator
     @State private var hasCellularConsent = false
+    @State private var measurementStartTime: Date?
+    @State private var hasTrackedTerminalEvent = false
 
     @State private var activeContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
     /// tela — o Deep Check nunca deve hardcodar ou inferir o jogo sozinho.
     private let gameName: String
     private let historyRepository: any MeasurementHistoryRepository
+    private let analyticsTracker: any AnalyticsTracker
     private let usesFixture: Bool
     private let autoStart: Bool
 
@@ -29,11 +32,13 @@ struct DeepCheckFeatureView: View {
         resolvedContext: ResolvedMeasurementContext,
         gameName: String,
         historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
+        analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker(),
         autoStart: Bool = true
     ) {
         _activeContext = State(initialValue: resolvedContext)
         self.gameName = gameName
         self.historyRepository = historyRepository
+        self.analyticsTracker = analyticsTracker
         self.autoStart = autoStart
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
@@ -231,6 +236,13 @@ struct DeepCheckFeatureView: View {
             retry: restart,
             exit: cancelOrDismiss
         )
+        .onAppear {
+            analyticsTracker.track(.resultViewed(
+                gameID: activeContext.context.gameID,
+                platform: activeContext.context.platform.rawValue,
+                resultClass: result.restResult.resultClass.rawValue
+            ))
+        }
     }
 
     private var inconclusiveResultView: some View {
@@ -245,6 +257,13 @@ struct DeepCheckFeatureView: View {
             retry: restart,
             exit: cancelOrDismiss
         )
+        .onAppear {
+            analyticsTracker.track(.resultViewed(
+                gameID: activeContext.context.gameID,
+                platform: activeContext.context.platform.rawValue,
+                resultClass: "inconclusive"
+            ))
+        }
     }
 
     private var destinationKind: RouteDestinationKind {
@@ -285,6 +304,15 @@ struct DeepCheckFeatureView: View {
                     hasCellularConsent: withConsent || hasCellularConsent
                 )
                 activeContext = session.resolvedContext
+                measurementStartTime = Date()
+                hasTrackedTerminalEvent = false
+                let networkType = activeContext.observedPhoneNetwork?.rawValue ?? "unknown"
+                analyticsTracker.track(.lagcheckStarted(
+                    gameID: activeContext.context.gameID,
+                    platform: activeContext.context.platform.rawValue,
+                    networkType: networkType,
+                    regionID: activeContext.regionID
+                ))
                 await refreshState()
                 await waitForTerminalState()
             } catch DeepCheckSessionError.requiresCellularConsent {
@@ -293,6 +321,16 @@ struct DeepCheckFeatureView: View {
                 presentation = .requiresWiFi
             } catch {
                 presentation = .cancelled
+                if !hasTrackedTerminalEvent {
+                    hasTrackedTerminalEvent = true
+                    analyticsTracker.track(.lagcheckCancelled(
+                        gameID: activeContext.context.gameID,
+                        platform: activeContext.context.platform.rawValue,
+                        networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                        regionID: activeContext.regionID,
+                        reason: "error"
+                    ))
+                }
             }
         }
     }
@@ -315,15 +353,55 @@ struct DeepCheckFeatureView: View {
         case .requiresWiFi: presentation = .requiresWiFi
         case .requiresCellularConsent: presentation = .cellularConsent
         case let .measuring(_, phase): presentation = .measuring(phase)
-        case let .completed(_, .completed(result), availability): presentation = .result(result, availability)
-        case .completed: presentation = .inconclusive
-        case .cancelled: presentation = .cancelled
+        case let .completed(_, .completed(result), availability):
+            presentation = .result(result, availability)
+            if !hasTrackedTerminalEvent {
+                hasTrackedTerminalEvent = true
+                let duration = measurementStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
+                analyticsTracker.track(.lagcheckCompleted(
+                    gameID: activeContext.context.gameID,
+                    platform: activeContext.context.platform.rawValue,
+                    networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                    regionID: activeContext.regionID,
+                    resultClass: result.restResult.resultClass.rawValue,
+                    durationSeconds: duration
+                ))
+            }
+        case .completed:
+            presentation = .inconclusive
+            if !hasTrackedTerminalEvent {
+                hasTrackedTerminalEvent = true
+                analyticsTracker.track(.lagcheckInconclusive(
+                    gameID: activeContext.context.gameID,
+                    platform: activeContext.context.platform.rawValue,
+                    networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                    regionID: activeContext.regionID,
+                    reason: "insufficient_samples"
+                ))
+            }
+        case .cancelled:
+            presentation = .cancelled
+            if !hasTrackedTerminalEvent {
+                hasTrackedTerminalEvent = true
+                analyticsTracker.track(.lagcheckCancelled(
+                    gameID: activeContext.context.gameID,
+                    platform: activeContext.context.platform.rawValue,
+                    networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                    regionID: activeContext.regionID,
+                    reason: "cancelled"
+                ))
+            }
         }
     }
 
     private func restart() {
+        analyticsTracker.track(.retestStarted(
+            gameID: activeContext.context.gameID,
+            platform: activeContext.context.platform.rawValue
+        ))
         samples = []
         restSamples = []
+        hasTrackedTerminalEvent = false
         if autoStart {
             presentation = .measuring(.rest)
             start(withConsent: hasCellularConsent)

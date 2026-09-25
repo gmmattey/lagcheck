@@ -49,6 +49,7 @@ struct QuickCheckFeatureView: View {
     /// plataforma e o vínculo externo declarados, mas nunca reutiliza a rota
     /// histórica: a região é resolvida novamente pelo catálogo atual.
     @State var requestedMeasurementContext: GameContext?
+    @State private var hasTrackedAppOpen = false
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -56,6 +57,7 @@ struct QuickCheckFeatureView: View {
     let usesCatalogFallback: Bool
     let usesUIFixture: Bool
     let appConfiguration: NolaggyAppConfiguration
+    let analyticsTracker: any AnalyticsTracker
 
     /// Jogo efetivamente relevante agora: a escolha explícita do usuário, ou,
     /// só na ausência de qualquer histórico (primeiro uso), o primeiro jogo do
@@ -75,13 +77,15 @@ struct QuickCheckFeatureView: View {
         regionalPreferenceRepository: any RegionalPreferenceRepository = NoopRegionalPreferenceRepository(),
         remoteCatalog: RemoteCatalogPayload? = nil,
         usesCatalogFallback: Bool = false,
-        appConfiguration: NolaggyAppConfiguration = NolaggyAppConfiguration()
+        appConfiguration: NolaggyAppConfiguration = NolaggyAppConfiguration(),
+        analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker()
     ) {
         self.historyRepository = historyRepository
         self.regionalPreferenceRepository = regionalPreferenceRepository
         self.remoteCatalog = remoteCatalog
         self.usesCatalogFallback = usesCatalogFallback
         self.appConfiguration = appConfiguration
+        self.analyticsTracker = analyticsTracker
         let measuringFixture = UITestFixtures.isEnabled("-ui-fixture-measuring")
         let inconclusiveFixture = UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")
         let validResultFixture = UITestFixtures.isEnabled(UITestFixtures.launchArgument)
@@ -175,6 +179,7 @@ struct QuickCheckFeatureView: View {
                             resolvedContext: resolveGameContext(game),
                             supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
+                            analyticsTracker: analyticsTracker,
                             onStartDeepCheck: { platform, externalLink in
                                 if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
                                     openDeepCheck(resolvedContext: resolved, platform: platform)
@@ -206,6 +211,7 @@ struct QuickCheckFeatureView: View {
                             resolvedContext: resolveGameContext(game),
                             supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
+                            analyticsTracker: analyticsTracker,
                             onStartDeepCheck: { platform, externalLink in
                                 if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
                                     openDeepCheck(resolvedContext: resolved, platform: platform)
@@ -290,6 +296,12 @@ struct QuickCheckFeatureView: View {
                 }
             }
         }
+        .task {
+            if !hasTrackedAppOpen {
+                hasTrackedAppOpen = true
+                analyticsTracker.track(.appOpen)
+            }
+        }
         .task { await loadHistory() }
         .task { await loadRegionalPreference() }
         .sheet(isPresented: $showingDetails) {
@@ -303,7 +315,8 @@ struct QuickCheckFeatureView: View {
             DeepCheckFeatureView(
                 resolvedContext: destination.resolvedContext,
                 gameName: destination.gameName,
-                historyRepository: historyRepository
+                historyRepository: historyRepository,
+                analyticsTracker: analyticsTracker
             )
         }
     }
