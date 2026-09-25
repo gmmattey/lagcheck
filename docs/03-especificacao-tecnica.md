@@ -10,17 +10,17 @@
 | --- | --- |
 | App | Nativo para iPhone, iOS 17+, Swift e SwiftUI. |
 | Medição | UDP direto do iPhone para AWS GameLift Ping Beacons. |
-| Quick Check | 15 s, até 30 probes, até 2 probes/s, timeout de 2 s. |
-| Deep Check | Wi-Fi e rede móvel (com consentimento); 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. |
-| Score | Local, determinístico, de 0 a 100. |
-| Catálogo | Cloudflare Worker gratuito; catálogo-base embarcado + `/v1/catalog.json` remoto assinado. |
+| Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. Chamado simplesmente de **Check** na interface. |
+| Veredito Principal | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). Protagonista visual imediato. |
+| Score | Local, determinístico, de 0 a 100 (mantido para detalhes, histórico e telemetria). |
+| Catálogo & Telemetria | Cloudflare Worker gratuito; catálogo `/v1/catalog.json`, carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
 | Assinatura | Ed25519; somente a chave pública vai no app. |
-| Histórico | SwiftData local; 90 dias e máximo de 100 medições por jogo. |
+| Histórico | SwiftData local; 90 dias e máximo de 100 medições por jogo, organizado por títulos e vereditos. |
 | Publicidade | Fora do MVP1; AdMob, UMP e banners ficam para MVP1.1. |
-| Privacidade | Sem SDK de publicidade, sem consentimento UMP e sem telemetria própria no MVP1. |
-| Idiomas | PT-BR e inglês. |
+| Privacidade | Sem SDKs de terceiros (Firebase, Mixpanel, Ads). Telemetria mínima anônima via Worker próprio sem PII/IP. |
+| Idiomas | PT-BR, inglês e espanhol. |
 
-Não entram no MVP1: Android, conta, sincronização, VPN/otimização de rota, banco remoto, analytics próprio, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e qualquer ID ou consentimento de anúncios.
+Não entram no MVP1: Android, conta, sincronização em nuvem, VPN/otimização de rota, banco de dados remoto, analytics de terceiros, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e assistentes de IA no fluxo principal.
 
 ## 2. Organização do código iOS
 
@@ -28,8 +28,8 @@ Não entram no MVP1: Android, conta, sincronização, VPN/otimização de rota, 
 LagCheck/
 ├── App/                 composição, ciclo de vida e dependências
 ├── Features/            Home, Game, Measurement, Result, Details, History, Settings
-├── Domain/              modelos, NGQE, regras, resolvedor de contexto e interpretações
-├── Infrastructure/      UDP, caminho de rede, HTTP load, catálogo e SwiftData
+├── Domain/              modelos, NGQE, regras, resolvedor de contexto, sintomas e GameReadinessEvaluator
+├── Infrastructure/      UDP, caminho de rede, HTTP load, catálogo, telemetria e SwiftData
 ├── Resources/           catálogo-base, traduções, chaves públicas e assets
 └── Tests/               unitários, contratos, integração e UI
 ```
@@ -43,9 +43,18 @@ Os nomes abaixo descrevem contratos Swift; a implementação pode ser `struct`, 
 ```swift
 enum Platform: String, Codable { case iphone, playstation, xbox, pc, nintendo }
 enum NetworkKind: String, Codable { case wifi, cellular, other }
-enum MeasurementKind: String, Codable { case quick, deep }
+enum MeasurementKind: String, Codable { case check } // Nomenclatura unificada
 enum MeasurementConfidence: String, Codable { case veryHigh, high, mediumHigh, medium }
 enum MeasurementStrategy: String, Codable { case gameOfficial, gameInfrastructure, regionGameProxy, genericRegion }
+
+/// Camada semântica de prontidão competitiva (Decisão 50)
+enum GameReadinessVerdict: String, Codable {
+    case ready          // Pronto para jogar (condições compatíveis com gameplay competitivo)
+    case caution        // Condições instáveis / Atenção (jitter, spikes ou impacto sob carga)
+    case notReady       // Evitaria Ranked agora (perda de pacotes, latência alta ou instabilidade severa)
+    case inconclusive   // Inconclusivo (menos de 10 respostas UDP válidas)
+}
+
 enum ResultClass: String, Codable { case excellent, great, unstable, lagRisk, inconclusive, cancelled }
 enum SessionPhase: String { case idle, resolving, measuringIdle, measuringLoad, evaluating, completed, cancelled, inconclusive, failed }
 
@@ -76,7 +85,8 @@ enum ProbeOutcome: String, Codable { case received, timeout, transportError, inv
 | Rota | Método | Uso | Cache |
 | --- | --- | --- | --- |
 | `/v1/catalog.json` | `GET` | Configuração assinada do produto. | Conforme versão/validade do catálogo. |
-| `/v1/load` | `GET` | Carga HTTP do Deep Check, só em Wi-Fi. | `Cache-Control: no-store`; até 10 MB. |
+| `/v1/load` | `GET` | Carga HTTP do Check (Wi-Fi e celular com consentimento). | `Cache-Control: no-store`; até 10 MB. |
+| `/v1/telemetry` | `POST` | Telemetria mínima e anônima de produto (retenção e retestes). | Sem cache; payload JSON enxuto sem PII/IP. |
 
 Enquanto não houver domínio próprio, essas rotas usam a URL `workers.dev` do Worker. A URL fica em configuração de build e pode ser trocada sem modificar os contratos de domínio.
 
@@ -336,20 +346,47 @@ Os vetores BR001–BR012 em `QualityEvaluatorPilotTests` são a evidência execu
 
 “No máximo” define um teto de classe, não uma substituição obrigatória. A classe nominal do score é: 90–100 Excelente, 75–89 Ótimo, 60–74 Instável e 0–59 Risco de lag.
 
-### 7.4 Resultado e interpretação
+### 7.4 Resultado e diagnóstico honesto de sintomas
 
-`ResultInterpreter` recebe métricas, score, guardrails, confiança e estratégia. Ele produz chaves de mensagem localizáveis — não texto livre de backend — para causa e recomendação.
+`ResultInterpreter` recebe métricas, score, guardrails, confiança e estratégia. Ele produz a lista de sintomas objetivos observados para compor o bloco **"O que encontramos"**:
 
-Ordem de causa principal:
+- **Perda de pacotes:** Nenhuma detectada vs. Percentual prejudicial observado;
+- **Estabilidade:** Estável vs. Oscilação / Spikes relevantes;
+- **Comportamento sob carga:** Estável vs. Degradação material sob uso intenso;
+- **Destino testado:** Região amigável e proximidade da referência gamer.
 
-1. perda acima do guardrail;
-2. P50 acima do guardrail;
-3. spikes severos;
-4. jitter acima da faixa de risco;
-5. impacto sob carga relevante;
-6. conexão estável.
+### 7.5 Camada Semântica: `GameReadinessEvaluator` (Decisão 50)
 
-Para console/PC, a interpretação acrescenta a ressalva de representatividade quando a conexão local do equipamento é estimada. Confiança não altera o score; ela qualifica a proximidade entre a rota medida e a experiência do jogo.
+O `GameReadinessEvaluator` atua acima do `QualityResult` e dos sintomas, traduzindo o estado da rede para uma decisão clara de jogo:
+
+```swift
+func evaluateReadiness(quality: QualityResult, profile: GameProfile) -> GameReadinessVerdict {
+    guard quality.validResponsesCount >= 10 else {
+        return .inconclusive
+    }
+    
+    // Critérios restritivos para Ranked/Competitivo
+    if quality.packetLossPercentage > profile.maxAcceptableLoss || quality.p50Milliseconds > profile.notReadyLatencyThreshold {
+        return .notReady
+    }
+    
+    if quality.jitterMilliseconds > profile.cautionJitterThreshold || quality.hasMaterialLoadDegradation || quality.severeSpikesCount > 0 {
+        return .caution
+    }
+    
+    return .ready
+}
+```
+
+> **Revisão de Regra de Produto:** A antiga restrição em `CheckCompletoVerdict` que proibia o texto "Pronto para jogar" é expressamente revisada. O app passa a emitir vereditos diretos baseados em evidência matemática (*"PRONTO PARA JOGAR"*, *"EU EVITARIA RANKED AGORA"*), mantendo a postura de sobriedade e recomendação situacional em vez de promessa infalível de futuro.
+
+### 7.6 Integridade de Diagnóstico de Rede Local (Wi-Fi Probing)
+
+Para evitar falsas acusações contra equipamentos domésticos ou contra a operadora (Decisão 50):
+
+1. **Gateway Local:** `WiFiLocalGatewayProber` não deve assumir ip `.1` por padrão; o gateway deve ser descoberto via interfaces de roteamento do sistema (`sysctl`/`getifaddrs`).
+2. **Medição RTT Local:** O envio de pacotes UDP na porta 53 para o gateway que mede apenas o tempo de retorno da chamada de socket não constitui RTT. Sem resposta do gateway, não há cálculo de latência local do roteador.
+3. **Desacoplamento de RTT Remoto e Banda Wi-Fi:** `WiFiBandEvaluator` é proibido de usar a latência mediana (P50) ou jitter da rota remota de internet (WAN) para inferir se o Wi-Fi opera em 2.4 GHz ou 5 GHz. Oscilações remotas pertencem à rota externa até que um probe local isolado prove o contrário.
 
 ## 8. Persistência com SwiftData
 

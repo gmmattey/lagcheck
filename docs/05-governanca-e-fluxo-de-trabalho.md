@@ -15,11 +15,11 @@ O objetivo não é criar burocracia. É evitar três erros caros: prometer preci
 
 | Pessoa | Frente | Responsabilidade principal | Não decide sozinho |
 | --- | --- | --- | --- |
-| Marco | Produto e integração | Visão, escopo, prioridade, decisão final e coerência entre as frentes | Mudança de marca ou promessa pública sem aprovação do dono do produto |
-| Renan | Design de Produto | Design system, jornada, estados de tela, acessibilidade, assets e QA visual | Regras de score, escopo funcional ou arquitetura de medição |
-| Rian | iOS | Arquitetura SwiftUI, módulos, integração de plataforma, persistência, ads e qualidade de entrega | Semântica das métricas, pesos do score ou alteração de jornada aprovada |
-| Iury | Qualidade de Rede | Métricas, classificação, catálogo de regiões, calibração e validação de resultados | UI, aquisição de usuários, publicidade ou atalhos técnicos fora da medição |
-| Dono do produto | Direção de negócio | Aprova mudanças de escopo, monetização, marca, mercados e promessas ao usuário | — |
+| Marco | Produto e integração | Visão, escopo, prioridade, gatekeeper do MVP P0/P1 da iniciativa *Lagcheck Competitive Redesign + Ready Check* | Mudança de marca ou promessa pública sem aprovação do dono do produto |
+| Renan | Design de Produto | Design system **Dark Competitive UI**, jornada direta, estados, acessibilidade, assets e QA visual | Regras de veredito/score, escopo funcional ou arquitetura de medição |
+| Rian | iOS | Arquitetura SwiftUI, módulos, persistência SwiftData por vereditos/jogos, cliente de telemetria e entrega | Semântica das métricas, calibração de veredito ou alteração de jornada |
+| Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica e rotas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
+| Dono do produto | Direção de negócio | Validação de hipótese de retenção, mudanças de escopo, monetização, marca e autorização de release | — |
 
 Marco é o ponto único de integração. Nenhuma frente abre trabalho que mude outra fronteira sem registrar a decisão e alinhar com Marco.
 
@@ -62,33 +62,33 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 ### 5.1 Design e experiência — Renan
 
 - Nenhuma tela segue para desenvolvimento sem objetivo, fluxo e estados de carregamento, vazio, erro, cancelamento e sucesso necessários.
-- A direção Wordmark Focus é preservada: fundo navy profundo, azul elétrico com parcimônia e sem estética gamer genérica, neon excessivo ou “card soup”.
-- A wordmark `lagcheck` é a marca principal. O símbolo `gg` isolado é reservado a espaços reduzidos e usos aprovados, como App Icon.
-- Tokens são a fonte de verdade. Valor de cor, espaço, raio, tipografia ou sombra solto na tela exige revisão de design.
+- A direção **Dark Competitive UI** é a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite, painéis com borda fina de 1px (sem card soup), tipografia pesada, números monoespaçados e Coral Solar (`#FF5A36`) como acento exclusivo de ação primária.
+- A wordmark `lagcheck` é a marca oficial. O jogo é o protagonista visual, recebendo artwork autoral amplo em destaque na Home.
+- Tokens são a fonte de verdade. Valor de cor, espaço, raio ou tipografia solto na tela exige revisão de design.
 - Marca, ícones e artes vêm de arquivo-fonte aprovado e versionado. Não se redesenha, deforma, recolore ou adiciona efeito ad hoc a um asset.
-- Todo fluxo cumpre contraste adequado, alvo de toque de pelo menos 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor.
-- Score, inconclusivo, limitações da medição e impacto sob carga devem ser compreensíveis sem parecer que o app tem uma certeza que não possui.
+- Todo fluxo cumpre contraste adequado, alvo de toque de pelo menos 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor. O verde (`#22C55E`) é estritamente semântico para condição de prontidão, nunca cor da marca.
+- Veredito da partida (`● PRONTO PARA RANKED`, `▲ EU EVITARIA RANKED AGORA`), limitações e impacto sob carga devem ser imediatos e compreensíveis.
 
 ### 5.2 iOS e entrega — Rian
 
-- O domínio é puro: não importa SwiftUI, Network.framework, SwiftData, URLSession ou SDKs de anúncios.
+- O domínio é puro: `NolaggyDomain` não importa SwiftUI, Network.framework, SwiftData, URLSession ou SDKs de anúncios.
+- O modelo de prontidão `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`) é o contrato semântico principal entregue à UI.
 - Há uma única sessão de medição ativa. O `MeasurementSessionCoordinator` é a autoridade para iniciar, cancelar, invalidar e concluir uma sessão.
 - Mudança relevante de rede, ida para background, cancelamento explícito ou dados insuficientes encerra a sessão. Resultado parcial não entra no histórico.
 - Catálogo remoto só é usado depois de validar assinatura Ed25519, schema, datas e regras de negócio. Tela alguma interpreta JSON remoto diretamente.
-- Ads e consentimento são periféricos: Home e Histórico podem acioná-los; medição, score, resultado e histórico nunca dependem deles.
-- SwiftData guarda somente fatos finais e explicáveis: contexto, região, versão do catálogo e versão do perfil/regra. A retenção é aplicada no repositório, não na UI.
-- Mudança no domínio exige testes determinísticos; integração exige teste de contrato; jornada, consentimento ou anúncio exige validação manual em iPhone. Build verde, sozinho, não é prova de comportamento real.
+- A navegação é simplificada para 2 abas (`Início | Jogos`). Histórico e Ajustes são acessados contextualmente.
+- SwiftData guarda o histórico estruturado por jogos e vereditos de prontidão.
+- Implementa cliente de telemetria anônima enxuto apontando para `POST /v1/telemetry` no Cloudflare Worker existente.
+- Mudança no domínio exige testes determinísticos; integração exige teste de contrato; jornada ou consentimento exige validação manual em iPhone.
 
-### 5.3 Qualidade de rede — Iury
+### 5.3 Qualidade de rede & Borda — Iury
 
-- A classificação usa apenas dados efetivamente medidos. Não há fallback de HTTP/ICMP para fabricar um resultado UDP nem inferência de ping do servidor real do jogo.
-- A região primária só produz score com pelo menos 10 respostas UDP válidas. Abaixo disso o estado é **inconclusivo**, nunca “bom por falta de dados”.
-- Score e classificação são determinísticos e versionados. Mudança de peso, faixa, guardrail ou spike cria uma nova versão de regra e preserva a comparabilidade do histórico.
-- Latência, jitter, perda e estabilidade permanecem visíveis separadamente. O score resume, mas não encobre um indicador crítico.
-- Guardrails prevalecem sobre média favorável quando perda, latência ou instabilidade recorrente forem relevantes.
-- Cada teste registra catálogo, perfil de classificação, região e tipo de estimativa usados. O catálogo nunca muda silenciosamente o significado de uma leitura antiga.
-- Uma região só entra no catálogo após validar beacon, resposta UDP consistente, localização, fallback e teste manual em rede externa. Região indisponível é omitida ou tratada como inconclusiva; não é substituída em silêncio.
-- Deep Check apresenta repouso e carga como séries distintas. O score principal vem do repouso; impacto durante download/uso da rede é uma conclusão complementar.
+- A classificação usa apenas dados efetivamente medidos por UDP. Não há fallback de HTTP/ICMP para fabricar um resultado UDP nem inferência inventada de ping de servidor de jogo.
+- A região primária só produz veredito com pelo menos 10 respostas UDP válidas. Menos que isso resulta estritamente em **inconclusivo**.
+- Regras e perfis de jogo são determinísticos e versionados. Mudança de threshold cria nova versão de regra e preserva compatibilidade do histórico.
+- **Integridade Diagnóstica (Decisão 50):** É proibido presumir gateway `.1` em probes locais; tempo de envio na porta 53 sem resposta não é RTT; e RTT/jitter da rota remota (WAN) nunca deve ser repassado ao `WiFiBandEvaluator` para tentar deduzir 2.4 vs 5 GHz.
+- O relatório de rede reporta sintomas objetivos no bloco **"O que encontramos"**, sem culpar nós de terceiros sem isolamento comprovado.
+- Responsável pelos contratos e schemas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`), mantendo o custo recorrente zero.
 
 ## 6. Fluxo de trabalho
 

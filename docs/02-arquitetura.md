@@ -4,15 +4,16 @@
 **Plataforma inicial:** iPhone (iOS 17 ou superior)  
 **Documento relacionado:** [Documentação funcional](./01-funcional.md)
 
-> **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo remoto será publicado por um Cloudflare Worker no plano gratuito, sem banco de dados.
+> **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo remoto e a telemetria mínima anônima de retenção são servidos por um Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
 > A App Store pode distribuir o app globalmente, mas o catálogo com suporte oficial do MVP começa em Brasil e Estados Unidos.
 > AdMob, UMP e banners não entram no MVP1. A monetização por anúncios é recorte de MVP1.1 e só poderá introduzir biblioteca, IDs, consentimento e gates próprios nessa etapa.
+> **Atualização Decisão 50:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
 
 ## 1. Objetivo arquitetural
 
 O LagCheck deve entregar uma avaliação confiável da experiência de jogo no iPhone com o mínimo de infraestrutura própria. A arquitetura privilegia medição no dispositivo, resultado determinístico, privacidade por padrão e evolução do catálogo sem publicação de uma nova versão.
 
-O princípio central é simples: **o app mede; o catálogo orienta; o motor interpreta; o backend não participa de cada teste**.
+O princípio central é simples: **o app mede; o catálogo orienta; o motor interpreta a prontidão da partida; o backend não arbitra cada teste**.
 
 ```mermaid
 flowchart LR
@@ -20,13 +21,15 @@ flowchart LR
     A --> C[Catálogo remoto]
     A --> P[Destinos de probe gamer]
     A --> H[Histórico local]
+    A -.-> T[Telemetria anônima Worker]
 
     subgraph A[LagCheck no iPhone]
         UI[Experiência e jornadas]
         ORQ[Orquestrador de medição]
-        ENG[Motor de qualidade de jogo]
-        RES[Interpretador de resultado]
-        UI --> ORQ --> ENG --> RES --> UI
+        ENG[Motor de qualidade NGQE]
+        INT[Interpretador de sintomas]
+        RDY[Game Readiness Evaluator]
+        UI --> ORQ --> ENG --> INT --> RDY --> UI
     end
 ```
 
@@ -34,8 +37,8 @@ flowchart LR
 
 | Bloco | Responsabilidade | Não é responsabilidade |
 | --- | --- | --- |
-| App LagCheck | Experiência, coleta, cálculo, explicação e histórico. | Depender de backend para calcular score ou armazenar cada teste. |
-| Catálogo remoto | Cloudflare Worker gratuito que publica jogos, perfis, regiões, limites e flags versionados. | Receber telemetria de probes ou decidir o score de uma sessão. |
+| App LagCheck | Experiência, coleta UDP, cálculo NGQE, diagnóstico e veredito de prontidão. | Depender de backend para calcular score ou arbitrar o veredito. |
+| Catálogo remoto & Telemetria | Cloudflare Worker gratuito que publica `catalog.json`, serve carga em `/v1/load` e recebe telemetria anônima de retenção em `/v1/telemetry`. | Processar dados brutos de rede, PII, IPs ou decidir o resultado de uma sessão. |
 | Destinos de probe | Responder às medições de rede permitidas para uma região. | Conhecer usuário, jogo selecionado ou persistir resultado. |
 
 Não há conta obrigatória, servidor de speed test próprio, VPN, túnel de tráfego, banco remoto de histórico ou LLM no caminho crítico do MVP.
@@ -57,7 +60,7 @@ flowchart TB
 
 ### 3.1 Apresentação e experiência
 
-Contém as superfícies de Home, catálogo editorial de jogos estilo Netflix/Apple Games, seleção de plataforma (`PlatformSelectionSheet`), medição ao vivo com a Trilha de Teste (`MeasurementLiveTrail`), tela de resultado no padrão Apple HIG (`DeepCheckResultView` / `ResultFeatureView` com `RouteTrailSummaryCard`, Grid 2x2 e `InsightBanner`), detalhes técnicos com impacto sob carga (`DeepCheckDetailsView`), histórico e configurações.
+Contém a Home focada em prontidão ("Vai jogar? Faça um Check"), tela de preparação ágil de jogo (`GameDetailView`), fluxo de medição com feedback limpo (`MeasurementProgressView`), tela de resultado orientada a veredito (`GameReadinessResultView` exibindo veredito semântico em 1º lugar, bloco honesto "O que encontramos" e métricas discretas), detalhes técnicos sob demanda (`TechnicalDetailsView` com P50/P95, spikes, dados sob carga e score 0–100), histórico de partidas e menu de configurações acessível por `…`.
 
 Essa camada só apresenta estado pronto para uso. Ela não calcula métricas, escolhe endpoints, interpreta UDP nem aplica regras de classificação.
 
@@ -74,9 +77,10 @@ O **Measurement Session Coordinator** é o dono do ciclo de uma medição. Ele g
 - resolução do contexto de teste a partir de jogo, mercado, plataforma e catálogo;
 - agregação de amostras e validação de sessão;
 - cálculo de P50, P95, P99, jitter, perda, spikes, consistência e comportamento sob carga;
-- aplicação dos pesos, limites e guardrails do perfil;
-- geração do LagCheck Score, classificação, causa principal, recomendação e confiança;
-- comparação de regiões quando esse modo for habilitado pelo catálogo.
+- aplicação dos pesos, limites e guardrails do perfil no motor NGQE;
+- tradução de sintomas pelo `ResultInterpreter` (perda, latência, instabilidade, estresse);
+- avaliação semântica de prontidão de partida pelo `GameReadinessEvaluator`, gerando o `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`);
+- geração do LagCheck Score (0–100) determinístico mantido para detalhes, histórico e telemetria.
 
 O domínio recebe dados de entrada tipados e devolve um resultado completo. Não acessa UI, armazenamento, HTTP, UDP nem estado global do iOS.
 
@@ -84,15 +88,16 @@ O domínio recebe dados de entrada tipados e devolve um resultado completo. Não
 
 Implementa adaptadores para capacidades externas:
 
-- transporte UDP para probes;
-- carga HTTP controlada do Deep Check;
+- transporte UDP para probes de repouso e carga;
+- carga HTTP controlada do Check (Worker `/v1/load`);
 - observação de caminho de rede e mudança entre Wi-Fi/celular;
-- obtenção de idioma e localidade do sistema somente para apresentação e ordenação inicial de mercados publicados; nunca para localizar a pessoa;
-- acesso a armazenamento local;
-- cliente de catálogo remoto e cache;
+- telemetria de produto anônima enviada ao Worker (`/v1/telemetry`) para validação de retenção sem PII/IP;
+- obtenção de idioma e localidade do sistema somente para apresentação;
+- acesso a armazenamento local (SwiftData);
+- cliente de catálogo remoto e validação de assinatura Ed25519;
 - relógio, agendamento e cancelamento de operações.
 
-Esses adaptadores obedecem contratos definidos pelo domínio e pela aplicação. Trocar um destino de probe não pode alterar a regra de score.
+Esses adaptadores obedecem contratos definidos pelo domínio e pela aplicação. Trocar um destino de probe não pode alterar a regra de score ou prontidão.
 
 ### 3.5 Dados locais e catálogo
 
@@ -101,9 +106,9 @@ Há duas famílias de dados:
 | Família | Origem | Uso | Regra de retenção inicial |
 | --- | --- | --- | --- |
 | Configuração de catálogo | Base embarcada no app, atualizada remotamente e com cache local. | Jogos, regiões, perfis, limites, textos parametrizados e flags. | Atualizar no máximo a cada 24 h; usar última versão válida por até 30 dias; depois, voltar à base embarcada. |
-| Dados do jogador | Criados no dispositivo em SwiftData. | Preferências, recentes/favoritos e histórico de resultados. | Permanecem locais por até 90 dias, com máximo de 100 medições por jogo e exclusão manual nas configurações. |
+| Dados do jogador | Criados no dispositivo em SwiftData. | Preferências, último jogo/plataforma e histórico de vereditos. | Permanecem locais por até 90 dias, com máximo de 100 medições por jogo e exclusão manual nas configurações. |
 
-O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede declarado, região, estratégia de medição, confiança, métricas agregadas, score, classificação, causa e versão de catálogo/perfil. Amostras brutas só devem ser persistidas se forem necessárias para detalhes e diagnóstico local; elas não são requisito para sincronização remota no MVP.
+O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede declarado, região, estratégia de medição, confiança, métricas agregadas, veredito de prontidão, score, sintomas e versão de catálogo/perfil. Amostras brutas só devem ser persistidas se forem necessárias para detalhes e diagnóstico local; elas não são requisito para sincronização remota no MVP.
 
 ## 4. Componentes e fronteiras
 
@@ -117,21 +122,25 @@ flowchart LR
     SESS --> LOAD[Adaptador de carga HTTP]
     SESS --> NGQE[NGQE]
     CTX --> CAT[Repositório do catálogo]
-    NGQE --> INT[Interpretador]
-    INT --> HIST[Repositório de histórico]
+    NGQE --> INT[Interpretador de sintomas]
+    INT --> RDY[Game Readiness Evaluator]
+    RDY --> HIST[Repositório de histórico]
+    RDY --> TEL[Telemetria anônima Worker]
 ```
 
 | Componente | Dono | Entrada | Saída |
 | --- | --- | --- | --- |
 | Repositório do catálogo | Dados | Configuração remota/cache | Catálogo válido e versionado ou indisponibilidade explícita. |
 | Resolvedor de contexto | Domínio | Jogo, mercado, plataforma e catálogo | Perfil, regiões, alvo, confiança e regras aplicáveis. |
-| Coordenador de sessão | Aplicação | Contexto resolvido e intenção de Quick/Deep Check | Estado de sessão, cancelamento ou amostras finalizadas. |
+| Coordenador de sessão | Aplicação | Contexto resolvido e intenção de Check | Estado de sessão, cancelamento ou amostras finalizadas. |
 | Observador de rede | Infraestrutura | Estado do caminho de rede | Evento de mudança que invalida a sessão. |
 | Adaptador de probe UDP | Infraestrutura | Alvo e plano de amostragem | Amostras válidas, timeouts ou falha de transporte. |
-| Adaptador de carga HTTP | Infraestrutura | Cenário de carga | Sinal de carga e métricas auxiliares da fase Deep Check. |
-| NGQE | Domínio | Amostras, perfil e regras | Métricas calculadas, score e guardrails aplicados. |
-| Interpretador | Domínio | Resultado do NGQE e confiança | Conclusão, causa e recomendação localizáveis. |
-| Repositório de histórico | Dados | Resultado final | Histórico local por jogo. |
+| Adaptador de carga HTTP | Infraestrutura | Cenário de carga | Sinal de carga e métricas auxiliares. |
+| NGQE | Domínio | Amostras, perfil e regras | Métricas calculadas, score 0–100 e guardrails aplicados. |
+| Interpretador de sintomas | Domínio | Resultado do NGQE e perfil | Diagnóstico honesto de sintomas observados. |
+| Game Readiness Evaluator | Domínio | Diagnóstico de sintomas e perfil do jogo | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). |
+| Repositório de histórico | Dados | Veredito e métricas finais | Histórico local por jogo no SwiftData. |
+| Telemetria de retenção | Infraestrutura | Eventos de ciclo (start, verdict, retest) | Evento anônimo enviado a `/v1/telemetry`. |
 
 ## 5. Fluxos arquiteturais críticos
 
@@ -214,8 +223,9 @@ Os contratos detalhados serão formalizados na especificação técnica. Nesta c
 | `MeasurementTransport` | Entrega amostras, timeouts e erros de transporte sem calcular métricas. |
 | `NetworkPathObserver` | Informa mudança relevante de caminho durante uma sessão; não mistura estados. |
 | `QualityEvaluator` | Produz sempre o mesmo resultado para o mesmo conjunto de amostras e perfil. |
-| `ResultInterpreter` | Traduz resultado técnico em causa/recomendação sem alterar score ou confiança. |
-| `HistoryRepository` | Persiste somente resultados finais e contexto necessário para interpretá-los depois. |
+| `ResultInterpreter` | Traduz resultado técnico em sintomas honestos observados. |
+| `GameReadinessEvaluator` | Arbitra a decisão semântica de prontidão de partida (`GameReadinessVerdict`) a partir dos sintomas e perfil do jogo. |
+| `HistoryRepository` | Persiste somente resultados finais, veredito e contexto necessário para interpretá-los depois. |
 
 O MVP não possui fallback HTTP ou ICMP para um destino UDP bloqueado. Quando o transporte não gera as 10 respostas válidas mínimas, a sessão termina como inconclusiva e mantém a semântica de medição gamer intacta.
 
@@ -226,6 +236,7 @@ O MVP não possui fallback HTTP ou ICMP para um destino UDP bloqueado. Quando o 
 - O catálogo não inclui dados pessoais nem permite texto livre que altere a interpretação técnica.
 - A comunicação com catálogo e serviços auxiliares usa canais seguros; a implementação define autenticação de conteúdo, cache e estratégia de atualização.
 - O aplicativo não tenta descobrir, escanear ou atacar servidores de jogos. Só usa destinos permitidos e configurados no catálogo.
+- A telemetria mínima de produto para validação de retenção (Decisão 50) envia apenas um ID de instalação aleatório e eventos de funil a `/v1/telemetry`, sem endereço IP, amostras de rede brutas ou dados de conta.
 
 ## 8. Evolução sem reescrita
 
@@ -251,11 +262,11 @@ Qualquer monetização, inclusive publicidade prevista para MVP1.1, é uma camad
 
 | Qualidade | Diretriz |
 | --- | --- |
-| Confiabilidade | Sessões são canceladas ou inconclusivas quando os dados não permitem conclusão honesta. |
+| Confiabilidade e Integridade | Sessões são canceladas ou inconclusivas quando os dados não permitem conclusão honesta. Diagnósticos causais exigem medição isolada real; o app nunca acusa o Wi-Fi ou a operadora sem evidência comprovada (Decisão 50). |
 | Desempenho | Cálculo local e incremental; o resultado não espera um backend. |
 | Resiliência | Cache de catálogo válido e recuperação clara de erro de rede. |
-| Testabilidade | NGQE, resolvedor e interpretador são puros/independentes de UI e transportes. |
-| Observabilidade | O MVP não coleta telemetria própria. Produto usa somente dados agregados disponibilizados por App Store Connect e feedback voluntário; qualquer telemetria futura será agregada e sem amostras brutas ou identificadores pessoais por padrão. Esses mesmos dados agregados (sessões, retenção, avaliações) são o critério de saída do MVP1 antes de comprometer escopo do MVP1.1 — ver [Funcional §13.1](./01-funcional.md#131-critério-de-saída-do-mvp1). |
+| Testabilidade | NGQE, resolvedor, interpretador e `GameReadinessEvaluator` são puros/independentes de UI e transportes. |
+| Observabilidade | Telemetria anônima, enxuta e sem PII/IP via Cloudflare Worker existente (`POST /v1/telemetry`) para mensurar retenção e reteste real entre sessões (Decisão 50). |
 | Evolução | Perfis e catálogo versionados; adaptadores substituíveis. |
 | Acessibilidade e idioma | Toda conclusão e estado relevante funciona em PT-BR e inglês; localização não modifica regras de score. |
 

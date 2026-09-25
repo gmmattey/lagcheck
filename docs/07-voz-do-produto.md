@@ -44,73 +44,71 @@ Não fala como operadora de internet, streamer, gamer caricato ou painel técnic
 | “Libere seu poder”, “domine o servidor”, “modo turbo” | Soa publicitário e contradiz a proposta confiável |
 | “Ping do seu jogo” quando a rota é de referência | Induz precisão que a medição não tem |
 
-## 4. Estrutura por estado
+## 4. Estrutura por estado (Ready for Ranked — Decisão 50)
 
-### Resultado saudável
+O veredicto semântico é a manchete de maior hierarquia visual; o score numérico (0–100) e os números isolados deixam de ser protagonistas.
 
-**Estrutura:** conclusão positiva → evidência breve → ação opcional.
+### Pronto para jogar (`.ready`)
 
-> **92 — Excelente**  
-> Pronto para jogar. Sua conexão ficou estável nesta medição.
+**Estrutura:** Veredito afirmativo → resumo contextual de estabilidade → telemetria compacta.
 
-Quando houver detalhe relevante, ele é proporcional:
+> **● PRONTO PARA RANKED**  
+> Sua conexão está estável para Valorant agora.  
+> `28 ms PING · 2 ms JITTER · 0% PERDA`  
+> `Estabilidade ━━━━━━━━━━━━━━━━━━━●`  
+> Nenhuma oscilação relevante foi encontrada durante o teste.
 
-> Encontramos um pico curto que não deve ser perceptível na partida.
+### Evitaria Ranked agora (`.notReady`)
 
-Não usar cautela automática como “não podemos garantir…” depois de toda leitura saudável. A limitação já é contextualizada onde realmente importa, como em estimativas para console/PC e regiões de referência.
+**Estrutura:** Recomendação honesta sobre partida competitiva → sintoma prejudicial observado → telemetria compacta e achados.
 
-### Resultado instável ou com risco
+> **▲ EU EVITARIA RANKED AGORA**  
+> Detectamos perda de pacotes durante o teste.  
+> `41 ms PING · 18 ms JITTER · 3,2% PERDA`  
+> ▲ Perda de pacotes detectada  
+> ▲ Picos de latência  
+> ● Resposta do destino normal
 
-**Estrutura:** impacto provável → causa observada → próxima ação.
+Usamos deliberadamente **“Eu evitaria Ranked agora”** ou **“Condições ruins para Ranked”**, em vez de prometer que uma partida vai necessariamente funcionar ou falhar. Não decretamos o futuro; apontamos o risco concreto no jogo.
 
-> **58 — Risco de lag**  
-> Pode haver lag nesta partida. A perda de pacotes apareceu durante a medição.
+### Atenção / Condições instáveis (`.caution`)
 
-> Vale investigar antes de jogar. Faça um Deep Check para ver se o uso da rede piora a conexão.
+**Estrutura:** Alerta de oscilação → causa de estresse observada → convite para entender o resultado.
 
-O tom aponta risco sem decretar fracasso. “Pode haver” é diferente de “vai travar”.
+> **▲ CONDIÇÕES INSTÁVEIS**  
+> Sua conexão oscilou durante o teste ou piorou sob uso simultâneo da internet.  
+> `Picos de latência detectados · Jitter elevado`
 
-### Inconclusivo, cancelado ou indisponível
+### Inconclusivo, cancelado ou indisponível (`.inconclusive`)
 
-**Estrutura:** limite claro → motivo simples → ação segura.
+**Estrutura:** Limite claro sem emitir veredicto → orientação simples.
 
-> Não conseguimos dados suficientes para avaliar sua conexão. Tente novamente em instantes.
+> **— INCONCLUSIVO**  
+> Não recebemos respostas suficientes para avaliar sua rota com segurança. Tente novamente em instantes.
 
-> A conexão mudou durante a medição. Reinicie o teste para termos um resultado confiável.
+Nunca mostrar score, “pronto para jogar” ou recomendação de partida em um estado inconclusivo.
 
-> Esta região não está disponível agora. Tente novamente mais tarde.
+## 5. Biblioteca de microcopy
 
-Nunca mostrar score, “pronto para jogar” ou conselho de performance em um estado inconclusivo.
-
-### Deep Check
-
-**Estrutura:** explicar o que será comparado → duração/custo relevante → benefício.
-
-> Vamos comparar sua rede em repouso e durante uso intenso. Leva cerca de 30 segundos e usa Wi-Fi.
-
-> Sua conexão piora quando a rede está ocupada. Downloads ou streaming podem causar lag.
-
-Não chamar o achado de “bufferbloat” na mensagem principal. O termo técnico pode aparecer em detalhes, acompanhado de explicação.
-
-### Estimativa para console ou PC
-
-**Estrutura:** o que foi medido → limite honesto → utilidade do resultado.
-
-> Esta é uma estimativa da rota de internet para sua região de jogo. A conexão do seu console ou PC também pode influenciar a partida.
-
-## 5. Biblioteca inicial de microcopy
-
-| Situação | PT-BR | Inglês |
-| --- | --- | --- |
-| Home | Veja como sua rede está para jogar. | See how your network is doing for gaming. |
-| CTA principal | Testar conexão | Check connection |
-| Medindo | Medindo sua conexão com a região selecionada… | Measuring your connection to the selected region… |
-| Resultado saudável | Boa condição para jogar agora. Sua conexão ficou estável nesta medição. | Looking good to play now. Your connection was stable in this check. |
-| Risco | Pode haver lag nesta partida. Esta medição encontrou instabilidade. | You may experience lag in this match. This check found instability. |
-| Inconclusivo | Não conseguimos dados suficientes para avaliar sua conexão. Tente novamente em instantes. | We didn’t get enough data to assess your connection. Try again shortly. |
-| Deep Check antes de iniciar | Vamos comparar sua rede em repouso e durante uso intenso. Leva cerca de 30 segundos. | We’ll compare your network at rest and under load. It takes about 30 seconds. |
-| Rede mudou | A conexão mudou durante a medição. Reinicie o teste. | Your connection changed during this check. Start again. |
-| Histórico vazio | Seus testes aparecerão aqui. | Your checks will appear here. |
+| Situação | PT-BR | Inglês | Espanhol |
+| --- | --- | --- | --- |
+| Home (Headline) | PRONTO PRA JOGAR? | READY TO PLAY? | ¿LISTO PARA JUGAR? |
+| CTA Principal (Check) | FAZER CHECK | RUN CHECK | HACER CHECK |
+| Check em andamento | VERIFICANDO SUA ROTA | CHECKING YOUR ROUTE | COMPROBANDO TU RUTA |
+| Micro-telemetria 1 | Verificando estabilidade… | Checking stability… | Verificando estabilidad… |
+| Micro-telemetria 2 | Procurando perda de pacotes… | Looking for packet loss… | Buscando pérdida de paquetes… |
+| Micro-telemetria 3 | Testando a conexão sob uso… | Testing connection under load… | Probando conexión bajo uso… |
+| Micro-telemetria 4 | Comparando com o perfil do jogo… | Comparing with game profile… | Comparando con el perfil del juego… |
+| Veredito Ready | ● PRONTO PARA RANKED | ● READY FOR RANKED | ● LISTO PARA RANKED |
+| Veredito Not Ready | ▲ EU EVITARIA RANKED AGORA | ▲ I'D AVOID RANKED RIGHT NOW | ▲ EVITARÍA RANKED AHORA |
+| Veredito Caution | ▲ CONDIÇÕES INSTÁVEIS | ▲ UNSTABLE CONDITIONS | ▲ CONDICIONES INESTABLES |
+| Veredito Inconclusivo | — INCONCLUSIVO | — INCONCLUSIVE | — INCONCLUSO |
+| Reteste | TESTAR NOVAMENTE | RETEST | PROBAR DE NUEVO |
+| Entender conexão (Ready) | Entender minha conexão > | Understand my connection > | Entender mi conexión > |
+| Entender problema (Not Ready) | Entender o problema > | Understand the problem > | Entender el problema > |
+| Fallback busca vazia | Não encontrou seu jogo? Fazer Check Geral | Didn’t find your game? Run General Check | ¿No encontraste tu juego? Hacer Check General |
+| Histórico contextual | Último check | Recent check | Último check |
+| Trilho rápido | SEUS JOGOS | YOUR GAMES | TUS JUEGOS |
 
 ## 6. Regras de localização
 

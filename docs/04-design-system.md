@@ -11,53 +11,35 @@ Este documento não altera nem substitui os três documentos funcionais/técnico
 
 > **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
 
-> **Paridade de interface:** o protótipo canônico e a especificação de design adotam a direção editorial nativa Apple Games (ver `docs/21` e `docs/24`). A implementação iPhone busca paridade 1:1 com seus estados nativos (SF Pro, TabView 4 abas, Hero Carousel, Inset Cards 12pt).
+> **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação.
+>
+> **Direção Visual Vigente (Decisão 51 — Dark Competitive UI):** O LagCheck adota a direção visual de **produto gamer competitivo de alta performance**, substituindo a estética de "utilitário de rede / Apple HIG genérico". A experiência é fundamentada em fundo quase preto, superfícies grafite, arte do jogo como protagonista, painéis de borda fina (eliminando o "card soup"), tipografia pesada, números monoespaçados, telemetria viva compacta e Coral Solar exclusivo para ações dominantes.
+>
+> **Iniciativa Unificada:** Essa linguagem integra a entrega *“Lagcheck Competitive Redesign + Ready Check”* (Decisões 50 e 51).
 
-> **Adoção Apple Games Editorial (Decisão 24):** as seções de tipografia, superfícies e componentes deste documento foram atualizadas pela [`24-decisao-adocao-design-system-apple-games.md`](./24-decisao-adocao-design-system-apple-games.md). A tipografia é 100% SF Pro (Oxanium removida) e os raios seguem estritamente a escala Apple HIG.
+## 1. Direção visual: Dark Competitive UI
 
-## 1. Direção visual
+LagCheck fala a linguagem de jogadores competitivos: **impacto, foco, clareza e performance imediata**. Três princípios guiam toda decisão visual:
 
-LagCheck é uma ferramenta de decisão, não um painel de rede. A interface deve parecer **premium, calma e confiável** — mais próxima de um app de saúde/performance de qualidade do que de um HUD gamer. Três princípios guiam toda decisão visual:
-
-1. **Conclusão antes das métricas.** Em qualquer tela de resultado, o olho deve encontrar primeiro o LagCheck Score e a classificação, depois a explicação, e só depois os números. Nenhum layout pode inverter essa ordem.
-2. **O jogo é o protagonista; a rede fica em segundo plano.** Arte de capa dos jogos, nomes e contexto de jogo recebem destaque visual. Indicadores técnicos (latência, jitter, perda) são tratados como conteúdo de apoio, nunca como o elemento mais chamativo da tela.
-3. **Sem estética gamer clichê.** Não há RGB espalhado, gauges/velocímetros, neon, gradientes cyberpunk, excesso de cards empilhados ("card soup") ou molduras agressivas. O azul elétrico é usado como **acento estratégico** — símbolo da marca, ações primárias, estado selecionado, gráfico de latência — nunca como cor de fundo de tela inteira nem em múltiplos elementos simultâneos na mesma vista.
+1. **Veredito antes das métricas:** O jogador descobre instantaneamente se a conexão está pronta para a partida (`● PRONTO PARA RANKED` ou `▲ EU EVITARIA RANKED AGORA`). O score 0–100 e métricas aprofundadas ficam subordinados à decisão.
+2. **O jogo é o protagonista:** O artwork do jogo ocupa o espaço central de prestígio da tela. A rede e a telemetria apoiam a experiência com precisão cirúrgica, sem transformar o app em um painel de NOC.
+3. **Gamer premium, limpo e direto:** Nada de RGB espalhado, gradientes cyberpunk caricatos ou dezenas de cards empilhados. Usamos painéis amplos com borda fina (1px `rgba(255, 255, 255, 0.08)`), tipografia pesada, labels em caixa alta compacta e **Coral Solar** como acento exclusivo de ação primária. O verde é utilizado estritamente com função semântica para indicar condição pronta, nunca como cor corporativa.
 
 ### 1.1 Wordmark e regras da marca
 
-- Marca oficial: **LagCheck** (nunca "Nologgy" ou variações).
-- Wordmark em minúsculas: `lagcheck`.
-- O `gg` do wordmark é substituído pelo **símbolo compacto**: duas argolas entrelaçadas em gradiente azul elétrico, lidas como um infinito e como conexão contínua ("less lag, more play, together always" é o território de mensagem, não um claim a ser impresso no produto).
-- O símbolo compacto (`design-system/assets/brand/symbol-compact.svg`) pode ser usado isoladamente como marca d'água, favicon, ícone de app ou selo, sempre que o texto completo "lagcheck" não couber.
-- **Não usar símbolo ™️ ou ®️** em nenhum artefato de produto desta V1.
-- Área de proteção mínima ao redor do wordmark e do símbolo: altura de uma letra "o" do próprio wordmark (medida no SVG-fonte), em todos os lados.
-- Tamanho mínimo de exibição: wordmark completo não deve ser reproduzido abaixo de 96pt de largura; símbolo compacto isolado não deve ser reproduzido abaixo de 20pt (equivalente ao ícone de notificação iOS).
-- Fundos aprovados: `background.base` (azul-marinho profundo) e branco/neutro claro para materiais de marketing fora do app. Sobre fotografia ou fundos variáveis, usar sempre a versão monocromática (`wordmark-mono-light.svg`), nunca a versão em gradiente colorido.
-- O gradiente do símbolo é fixo (`accent.gradientStart` → `accent.gradientEnd`, ver `tokens/colors.json`). Não recolorir o símbolo com outras cores de marca; variações de contexto usam as versões monocromáticas dedicadas, não um recolorimento ad hoc do gradiente.
-- Nunca distorcer, inclinar, espelhar ou aplicar sombra/contorno adicional ao wordmark ou ao símbolo além do especificado nos SVGs-fonte.
-
-### 1.2 Ativos de marca disponíveis
-
-| Arquivo | Uso |
-| --- | --- |
-| `wordmark-primary.svg` | Wordmark completo, letras em branco-gelo + símbolo em gradiente azul. Uso padrão sobre fundo `background.base`. |
-| `wordmark-mono-dark.svg` | Wordmark inteiro em tinta escura sólida, para fundos claros (materiais de marketing, imprensa). |
-| `wordmark-mono-light.svg` | Wordmark inteiro em branco sólido, para fundos escuros sem o gradiente de marca (contextos de baixo contraste de cor, impressão em 1 cor). |
-| `symbol-compact.svg` | Símbolo `gg`/infinito isolado, gradiente azul, para favicons, selos e uso em espaços reduzidos. |
-| `app-icon-source.svg` | Fonte quadrada (sem arredondamento embutido) do ícone do app: fundo azul-marinho em gradiente + símbolo centralizado. Base para todos os PNGs de `assets/app-icon/`. |
-| `lockup-thumbnail.svg` | Lockup horizontal ícone + wordmark, para thumbnails de listagem (App Store feature, redes sociais, apresentações). |
-
-Todos os SVGs são os vetores oficiais aprovados da marca, sem fonte externa referenciada, sem imagem raster embutida e sem símbolo ™. Cada arquivo contém `viewBox`, `<title>` e `<desc>` para acessibilidade e indexação.
+- Marca oficial: **LagCheck** (sempre com `lagcheck` em minúsculas).
+- O `gg` do wordmark incorpora o símbolo compacto em Coral Solar / Gradiente de performance.
+- Fundos aprovados: Quase preto profundo (`#0B0D10`).
+- Sem símbolo ™ ou ® nesta versão.
 
 ## 2. Modo de cor
 
-**Dark mode é a única experiência da V1.** O app não implementa um tema claro. O ativo oficial `AppBackground` é o fundo único de todas as telas: um gradiente azul-marinho profundo, protegido por uma sobreposição de `background.base` para preservar contraste. Não recriar esse fundo com cores ou gradientes soltos em features. Isso simplifica o contraste do LagCheck Score e reforça a identidade "sala escura, foco no jogo".
+**Dark mode exclusivo.** O fundo de todas as telas é o quase preto absoluto/profundo (`#0B0D10`), complementado por superfícies em grafite (`#15181E`) e painéis de dados em cinza escuro (`#1E232B`).
 
 Consequências práticas para implementação:
-
-- O app força `.preferredColorScheme(.dark)` no root da aplicação SwiftUI.
-- Nenhuma tela deve ler `colorScheme` do sistema para alternar paleta.
-- Todos os tokens de cor em `design-system/tokens/colors.json` já são os valores finais de produção (não existem pares light/dark).
+- O app força `.preferredColorScheme(.dark)` no root SwiftUI.
+- Nenhuma view lê `colorScheme` para alternar para tema claro.
+- Alto contraste e redução de transparência continuam suportados como configurações de acessibilidade.
 - Configurações do sistema como "Aumentar Contraste" e "Reduzir Transparência" continuam suportadas (ver Seção 6) mesmo com um único tema.
 
 ## 3. Paleta
@@ -75,62 +57,47 @@ Ver `design-system/tokens/colors.json` para os valores exatos e a estrutura `cor
 
 Regra de uso: **no máximo uma ocorrência de `accent.primary` em destaque por tela** (ex.: um botão primário OU o símbolo da marca no header, não ambos competindo). Score e gráfico têm paletas próprias e não competem com o acento de marca.
 
-## 4. Cores semânticas do LagCheck Score
+## 4. Cores semânticas e Vereditos da Dark Competitive UI
 
-O score (0–100) e sua classificação textual (Seção 10.5 do funcional) usam sempre a mesma cor semântica, nunca uma escala contínua de matiz (evita leitura tipo "gauge"/semáforo RGB):
+A comunicação de estado baseia-se nos vereditos da partida (`GameReadinessVerdict`), e não em semáforos ou velocímetros coloridos:
 
-| Faixa | Classificação | Token | Cor |
+| Estado / Veredito | Símbolo / Indicador | Token | Aplicação |
 | --- | --- | --- | --- |
-| 90–100 | Excelente | `score.excellent` | Verde calmo (`#3DDC97`) |
-| 75–89 | Ótimo | `score.excellent` | Mesmo token de "Excelente" — ambos comunicam "pronto para jogar" |
-| 60–74 | Instável | `score.unstable` | Âmbar (`#F5B942`) |
-| 0–59 | Risco de lag | `score.lagRisk` | Coral (`#F0525B`) |
-| Inconclusivo / cancelado | — | `score.neutral` | Cinza-azulado (`#6B7690`) |
+| Pronto para Jogar | `● PRONTO PARA RANKED` | `semantic.ready` | Verde semântico sóbrio (`#22C55E`). Comunica condição saudável para partidas competitivas. |
+| Atenção / Instável | `▲ CONDIÇÕES INSTÁVEIS` | `semantic.caution` | Âmbar funcional (`#F59E0B`). Oscilação ou impacto sob carga. |
+| Evitaria Ranked | `▲ EU EVITARIA RANKED AGORA` | `semantic.notReady` | Vermelho técnico (`#EF4444`). Perda de pacotes, latência inadequada ou instabilidade severa. |
+| Inconclusivo | `— INCONCLUSIVO` | `semantic.neutral` | Cinza frio (`#8A93A0`). Dados insuficientes. |
+| Ação Primária | Botões `[ FAZER CHECK ]` e `[ TESTAR NOVAMENTE ]` | `brand.coralSolar` | Coral Solar (`#FF5A36`). Acento exclusivo de ação dominante. |
 
 Regras de aplicação:
-
-- A cor semântica se aplica ao anel/traço do `LagCheckScore`, ao selo de classificação e a ícones de estado relacionados (ex.: ícone de alerta em `InsightBanner` quando a causa é crítica).
-- **Nunca** usar essas cores para decoração fora do contexto de resultado (por exemplo, não usar `score.lagRisk` como cor de erro genérico de formulário — erros de UI usam `text.primary`/`border.strong` com ícone, não a paleta de score).
-- Resultado inconclusivo ou cancelado nunca recebe uma cor de "nota baixa": usa sempre `score.neutral`, reforçando a regra de produto de que inconclusivo não é uma nota ruim.
-- Em `MeasurementPulse` (durante o teste, antes de haver score), usa-se `accent.primary`, nunca uma cor de score — a classificação só existe após o encerramento válido da sessão.
-- Na tela final do piloto, inconclusivo e cancelado não usam `LagCheckScore`: a composição é `StatusMessage` em tom neutro, sem nota, classificação, métricas parciais, insight ou recomendação para jogar. O estado só oferece uma ação segura de recuperação.
+- O verde **não é a cor da marca** e nunca deve colorir botões, banners decorativos ou fundos. Ele existe unicamente como indicador de estado no veredito positivo.
+- O Coral Solar é a assinatura de ação do app e guia o olhar para o próximo passo.
 
 ## 5. Tipografia
 
-Oxanium é a fonte de destaque experimental do LagCheck — títulos, score, categorias e ações — para trazer uma leitura tecnológica com mais presença, sem reproduzir a fonte proprietária de outra marca. O arquivo embarcado é distribuído sob SIL Open Font License 1.1 e sua cópia acompanha o app em `Resources/Fonts/Oxanium-OFL.txt`. SF Pro continua nos textos de leitura e explicações. Ambas as camadas usam Dynamic Type. A escala completa está em `design-system/tokens/typography.json`.
+A tipografia do LagCheck expressa a energia de alta performance gamer através da família SF Pro com tratamentos específicos:
 
-Diretrizes principais:
+- **Headlines:** Títulos pesados e imersivos (`.system(size: 28...34, weight: .bold)`), com tracking levemente comprimido. Sem fontes arredondadas ou visual "fofo".
+- **Números de Telemetria:** Numerais estritamente monoespaçados (`.monospacedDigit()`, `.heavy` ou `.bold`) para exibir RTT (ms), jitter e perda (%), garantindo estabilidade ótica durante o teste ao vivo.
+- **Labels Técnicos:** Caixa alta compacta (Small Caps ou Uppercase com tracking expandido) para tags de telemetria: `PING`, `JITTER`, `PERDA`, `ESTABILIDADE`, `REGIÃO`.
+- **Textos de Apoio e Diagnóstico:** Corpo de leitura limpo em branco quente (`#F4F5F7`) e cinza secundário (`#8A93A0`).
 
-- `scoreDisplay` (64pt, bold, design `.rounded`) é reservado exclusivamente ao número do LagCheck Score. Nenhum outro número do produto usa esse estilo.
-- `headline` carrega a classificação textual ("Excelente", "Risco de lag") sempre imediatamente abaixo do score, nunca antes dele na ordem de leitura/DOM.
-- Textos de causa e recomendação usam `body`; nunca usam ênfase de cor da paleta de score (a cor já está no score/selo — repetir a cor no texto reduz legibilidade e pode falhar contraste).
-- Métricas técnicas (`MetricRow`, `Detalhes`) usam `bodyEmphasis` para o rótulo e `subheadlineSecondary` para o valor, mantendo uma hierarquia discreta e não competindo com o score.
+## 6. Painéis, bordas e eliminação do "Card Soup"
 
-## 6. Espaçamento, grid e raios
+A Dark Competitive UI abandona cartões soltos empilhados com sombras difusas:
+- **Painéis Amplos:** Áreas unificadas com fundo grafite (`#15181E` / `#1E232B`).
+- **Borda Fina:** Traço contínuo e discreto de 1px em `rgba(255, 255, 255, 0.08)`, conferindo acabamento de hardware gamer de alta precisão.
+- **Raio Contínuo:** Cantos em raio moderno e controlado (12pt a 16pt), sem visual excessivamente arredondado.
+- **Hierarquia:** Criada por contraste tonal entre o fundo quase preto (`#0B0D10`) e a superfície dos painéis, dispensando sombras multinível pesadas.
 
-- Espaçamento em base 4pt (`design-system/tokens/spacing.json`). Margem lateral padrão de tela: 16pt (`screenMarginHorizontal`); telas de medição ativa usam 12pt para dar mais área ao `LatencyGraph`.
-- **`resultConclusionToMetrics` (40pt)** é um token dedicado e obrigatório: o espaço vertical entre o bloco de conclusão (score + classificação + frase-resumo) e o bloco de métricas resumidas. Ele existe especificamente para impedir que telas futuras "encolham" essa separação e violem a regra de produto "conclusão antes das métricas".
-- Grid de conteúdo: colunas fluidas de largura mínima 104pt para grids de jogos (`GameTile`), com gutter `cardGap` (12pt). Listas usam pilha única de largura total menos as margens de tela.
-- Raios (`design-system/tokens/radius.json`): cantos suaves e consistentes — `card` (14pt) para conteúdo padrão, `cardLarge` (18pt) para o cartão de resultado e sheets, `pill` para todo botão primário. Não há uso de cantos vivos (raio 0) em superfícies de conteúdo, apenas em divisores/linhas.
+## 7. Motion e Telemetria Viva
 
-## 7. Elevação
+O movimento no LagCheck existe exclusivamente para comunicar medição real de dados:
+- **Pulso de Sinal Ativo:** Durante o Check, uma linha de pulso estilizada (`───╲_╱──╲_╱──`) reage à cadência das amostras UDP.
+- **Micro-telemetria Dinâmica:** Mensagens rotativas em texto calmo no rodapé informam a etapa em execução (*"Verificando estabilidade..."*, *"Procurando perda de pacotes..."*, *"Testando sob uso..."*).
+- **Redução de Movimento:** Quando habilitada no iOS, substitui animações de pulso por indicador estático limpo e cross-fades discretos.
 
-Dark UI não usa sombras pesadas como recurso primário de profundidade. A hierarquia visual vem primeiro de **camadas de superfície** (`background.base` → `raised` → `overlay`) e só secundariamente de sombra sutil + borda de 1pt (`design-system/tokens/shadow.json`, níveis `level0`–`level3`).
-
-- O halo (`glow.scoreAccent`) atrás do `LagCheckScore` é opcional, sempre sutil (24% de opacidade, blur alto) e colorido pela cor semântica do score — nunca um brilho neon saturado.
-- Quando "Reduzir Transparência" está ativo no iOS, sombra e halo são substituídos por uma borda sólida de 1pt (`reduceTransparencyFallback`), sem blur.
-
-## 8. Motion
-
-Ver `design-system/tokens/motion.json` para durações, easings e os padrões nomeados (`measurementPulse`, `scoreReveal`, `latencyGraphLiveUpdate`, `screenTransition`, `sheetPresent`).
-
-Princípios:
-
-- Motion comunica **estado do sistema**, não decoração: o pulso indica "medindo agora", a contagem do score indica "resultado chegando", a curva do gráfico indica "isto aconteceu agora".
-- Nenhuma animação de loop contínuo roda fora de um estado de medição ativa (`MeasurementPulse`). Fora disso, animações são transições pontuais com início e fim claros.
-- **Reduzir Movimento**: cada padrão de motion tem uma `reduceMotionAlternative` explícita no token. A política global é: com "Reduzir Movimento" ativo, nenhuma animação usa escala, translação contínua ou loop — apenas opacidade/cross-fade curtos (≤150ms), exceto transições padrão do próprio sistema iOS (push/pop de navegação, apresentação nativa de sheet), que já respeitam a preferência automaticamente.
-
-## 9. Acessibilidade
+## 8. Acessibilidade
 
 Acessibilidade é requisito de lançamento, não um passe de revisão posterior (alinhado à Seção 9 "Requisitos arquiteturais de qualidade" da arquitetura: *"Toda conclusão e estado relevante funciona em PT-BR e inglês; localização não modifica regras de score"* — o mesmo padrão vale para acessibilidade).
 

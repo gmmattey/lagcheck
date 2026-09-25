@@ -8,7 +8,7 @@ Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a en
 - V1: somente iPhone, iOS 17 ou superior. Android está fora do escopo atual.
 - O app mede a rota do iPhone até uma infraestrutura de referência. Não promete ping real de um jogo sem evidência. Para console ou PC, comunica resultado como estimativa.
 - O score é determinístico, versionado e baseado em medição real. Sem respostas UDP válidas suficientes, o resultado é inconclusivo — nunca uma nota inventada, fallback HTTP/ICMP ou recomendação para jogar.
-- Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check) e `GET /v1/catalog.json` (catálogo remoto assinado em Debug) — ver `docs/12` e `docs/14`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.
+- Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check), `GET /v1/catalog.json` (catálogo remoto assinado em Debug) e `POST /v1/telemetry` (telemetria de produto anônima e mínima para validação de retenção sem PII/IP) — ver `docs/12`, `docs/14` e `docs/50`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.
 - Jogos no catálogo não exibem capa oficial, logo, personagem ou arte licenciada de terceiros. A identidade visual é uma miniatura neutra do LagCheck; o nome localizado do jogo é a identificação primária (`docs/18`).
 - Publicidade não existe no MVP1: nenhum SDK, ID ou espaço reservado de anúncio entra no binário atual. A regra vale para quando o MVP1.1 for autorizado: banner apenas em Home e Histórico; nunca bloqueia medição, score, resultado, histórico ou ação essencial (`docs/01` §11).
 - O app suporta PT-BR e inglês desde a V1.
@@ -70,6 +70,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `47` | Progressão visual imersiva com Pulse Gauge Coral Solar durante a medição | decidido e em implementação |
 | `48` | Experiência visual de carregamento com IA (Dicas de Otimização) | decidido e em implementação |
 | `49` | Medição geral de conexão para jogos (jogo genérico, busca sem resultado e rota regional de referência) | decidido e em implementação |
+| `50` | Reposicionamento do MVP — Ready for Ranked (Jornada direta Home → Jogo → Check → Veredito, `GameReadinessVerdict`, integridade diagnóstica, telemetria mínima remota e foco no P0/P1) | decidido e em implementação |
+| `51` | Direção Visual Dark Competitive UI e Iniciativa Unificada (“Lagcheck Competitive Redesign + Ready Check”: fundo quase preto, jogo protagonista, painéis de borda fina, telemetria viva compacta e Coral Solar de ação) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 
@@ -77,10 +79,10 @@ Se documentos conflitarem, pare antes de codar, aponte a contradição e peça u
 
 ## Time e interação
 
-- **Marco** integra produto, escopo, prioridade e coerência entre as frentes — é o ponto único de integração, não o aprovador final de tudo.
-- **Renan** responde por design de produto, design system, acessibilidade, assets e QA visual.
-- **Rian** responde por iOS, arquitetura SwiftUI, módulos, persistência, ads e entrega.
-- **Iury** responde por qualidade de rede, score, catálogo de regiões, calibração e validação de medições.
+- **Marco** integra produto, escopo, prioridade e coerência entre as frentes — é o ponto único de integração, garantindo que o escopo permaneça estritamente no MVP P0/P1 da iniciativa **“Lagcheck Competitive Redesign + Ready Check”** (Decisões 50 e 51).
+- **Renan** responde por design de produto, design system **Dark Competitive UI**, acessibilidade, assets e QA visual (Home com jogo protagonista, telemetria viva com pulso, resultado verdict-first, eliminação de card soup e Coral Solar de ação).
+- **Rian** responde por iOS, arquitetura SwiftUI, módulos (`NolaggyDomain`, `NolaggyApplication`, etc.), persistência SwiftData, cliente de telemetria anônima e entrega.
+- **Iury** responde por qualidade de rede, vereditos de prontidão (`GameReadinessVerdict`), calibração por perfil, integridade diagnóstica (probes locais, STUN, descarte de falsas acusações à WAN/Wi-Fi) e infraestrutura de borda no Cloudflare Worker (`/v1/catalog.json`, `/v1/load` e `/v1/telemetry`).
 - **Dono do produto** (Luiz — ver contexto do workspace) aprova mudanças de escopo, monetização, marca, mercados e promessas ao usuário; publicação, alteração de preço e serviço pago exigem autorização explícita dele, não só de Marco (`docs/05` §2 e §4.1).
 - Mudança que atravesse mais de uma frente só começa após alinhamento documentado entre os responsáveis e Marco.
 
@@ -94,24 +96,21 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - Use jargão técnico apenas quando ajudar; explique-o se necessário.
 - Nunca prometa “zero lag”, “rede perfeita”, “garantido” ou desempenho futuro.
 - Não seja alarmista, publicitário, cyberpunk ou caricato de gamer.
-- Resultado saudável recebe uma conclusão positiva. Resultado inconclusivo não recebe score nem linguagem positiva.
-- Siga `docs/07-voz-do-produto.md` para qualquer copy em PT-BR ou inglês.
+- Veredito claro e proporcional: `● PRONTO PARA RANKED`, `▲ EU EVITARIA RANKED AGORA`, `▲ CONDIÇÕES INSTÁVEIS` ou `— INCONCLUSIVO`.
+- Siga `docs/07-voz-do-produto.md` para qualquer copy em PT-BR, inglês ou espanhol.
 
 ## Regras técnicas e de qualidade
 
 - Mantenha domínio, aplicação, infraestrutura, design system, features e composição do app separados conforme `docs/02-arquitetura.md`.
-- Regras de score não importam frameworks de UI, rede, persistência ou anúncios.
+- Regras de veredito e score não importam frameworks de UI, rede, persistência ou anúncios.
 - Uma única sessão de medição pode estar ativa. Mudança de rede, background, cancelamento ou dados insuficientes descarta o resultado parcial.
-- Repouso e carga no Deep Check são leituras diferentes: score principal vem do repouso; impacto sob carga é complementar.
-- Catálogo remoto só entra após validar assinatura, schema, validade e regras de negócio. Nenhuma UI interpreta JSON remoto diretamente.
-- Toda alteração de score, thresholds, guardrails, spikes ou catálogo exige versão da regra, vetores de teste e revisão de Iury.
-- Tokens são a fonte de verdade visual. Não introduza cor, tipografia, espaçamento, raio ou sombra soltos.
+- Repouso e carga no Check são leituras complementares: o veredito avalia repouso e penaliza degradações sob carga.
+- Catálogo remoto só entra após validar assinatura Ed25519, schema, validade e regras de negócio. Nenhuma UI interpreta JSON remoto diretamente.
+- Toda alteração de score, veredito, thresholds, guardrails, spikes ou catálogo exige versão da regra, vetores de teste e revisão de Iury.
+- Tokens da **Dark Competitive UI** são a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E`/`#1E232B`), bordas finas de 1px, números monoespaçados e Coral Solar (`#FF5A36`) para ações. Não introduza cores ou espaçamentos soltos.
 - Ativos em `design-system/assets/brand/` e `design-system/assets/app-icon/` são oficiais e aprovados. Não os redesenhe, deforme, recolora ou substitua.
-- O protótipo em `design-system/prototypes/ios-reference/` é canônico. Busque paridade 1:1 de hierarquia, composição, estados, ações e comportamento; não o trate como inspiração nem o substitua por uma interface genérica.
-- Para paridade de tela, `design-system/prototypes/ios-reference/source/Nolaggy iOS Prototype.dc.html` prevalece sobre PNGs complementares. O board PNG legado com Home divergente foi excluído das referências utilizáveis e não deve ser reintroduzido.
-- Divergência do protótipo só é aceita por regra funcional mais específica, precisão/segurança de rede ou acessibilidade iOS. Registre a decisão antes de implementar e preserve o protótipo original em `source/`.
-- Gate aberto (`docs/21`): a direção visual mudou para simplicidade/leveza (remove Oxanium, halo/glow, flip 3D, sombras em múltiplos níveis, "card soup") e substitui os princípios de `docs/04-design-system.md` seções 1–2. Renan ainda não entregou a especificação/tokens revisados nem atualizou o protótipo canônico. Não implemente essa direção em código antes dessa entrega — até lá, o protótipo e os tokens atuais continuam valendo como estão.
-- Estados que não existem no protótipo (por exemplo: inconclusivo, falha/cancelamento, consentimento, vazio e indisponibilidade de Wi-Fi) exigem composição aprovada por Renan antes de implementação.
+- **Iniciativa Unificada (Decisões 50 e 51):** O produto adota a jornada direta `Home → Jogo → Check → Veredito` e a interface **Dark Competitive UI**. A tab bar tem 2 abas (`Início | Jogos`), o veredicto semântico é a manchete de maior hierarquia, e o score numérico (0–100) fica subordinado a "Entender resultado / Detalhes".
+- **Integridade Diagnóstica:** É terminantemente proibido acusar roteador local ou operadora sem evidência comprovada por probe isolado (Decisão 50).
 - Acessibilidade é requisito: contraste, alvo mínimo de 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor.
 
 ## Fluxo de uma alteração

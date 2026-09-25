@@ -5,7 +5,7 @@
 **Sistema mínimo:** iOS 17  
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
-> **Atualização de jornada (2026-09-19):** toda referência a Quick Check como funcionalidade visível, fallback ou etapa da jornada foi substituída pelas decisões 43 e 46. A V1 oferece somente Deep Check; nomes legados podem permanecer apenas na implementação interna de coleta UDP.
+> **Atualização de reposicionamento (Decisão 50 — 2026-09-25):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos), a Conexão Geral atua como fallback em busca sem resultado, e a trilha de rede é honesta ("O que encontramos") sem alegações causais infundadas.
 
 > **Decisão de plataforma:** o LagCheck nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
 >
@@ -15,7 +15,7 @@
 
 LagCheck responde, de forma simples e honesta, a uma pergunta que jogadores fazem antes de entrar em uma partida: **"minha conexão está boa para jogar isso agora?"**
 
-O aplicativo mede a qualidade da rota de rede do dispositivo até regiões de infraestrutura gamer relevantes para o jogo selecionado. Em vez de apresentar um painel técnico de banda larga, transforma a medição em uma conclusão imediata, o **LagCheck Score**, explica qualquer risco de lag e permite investigar quando necessário.
+O aplicativo mede a qualidade da rota de rede do dispositivo até regiões de infraestrutura gamer relevantes para o jogo selecionado. Em vez de apresentar um painel técnico de banda larga ou um score numérico abstrato, transforma a medição em um **Veredito de Prontidão (Game Readiness Verdict)** imediato, explica o que foi encontrado e permite investigar detalhes sob demanda.
 
 LagCheck não promete otimizar rota, acelerar a conexão, substituir uma VPN gamer ou medir o ping exato de um jogo quando não houver um destino oficial que permita isso.
 
@@ -23,24 +23,24 @@ LagCheck não promete otimizar rota, acelerar a conexão, substituir uma VPN gam
 
 Jogadores normalmente descobrem uma conexão ruim no meio da partida. Aplicativos de speed test privilegiam download e upload, métricas que não explicam sozinhas responsividade, picos de latência, instabilidade ou perda de pacotes em jogos.
 
-LagCheck reduz essa incerteza antes da partida. Ele avalia latência, estabilidade e perda para uma região gamer compatível com o jogo, comunica o grau de confiança da estimativa e indica o próximo passo quando a qualidade não for suficiente.
+LagCheck reduz essa incerteza antes da partida. Ele avalia latência, estabilidade e perda sob repouso e sob carga para uma região gamer compatível com o jogo, comunica com clareza o veredicto da partida e indica o que fazer quando a qualidade não for suficiente.
 
 ## 3. Público e contexto de uso
 
-O público primário da V1 são pessoas que usam iPhone, especialmente para títulos mobile competitivos e populares. Elas querem uma resposta rápida, sem precisar entender jargão de rede. A V1 estabelece a experiência e as regras de produto que uma futura versão Android deverá avaliar e adaptar às capacidades da plataforma, sem assumir implementação idêntica.
+O público primário da V1 são pessoas que usam iPhone, especialmente para títulos competitivos e populares. Elas querem uma resposta rápida, sem precisar entender jargão de rede. A V1 estabelece a experiência e as regras de produto que uma futura versão Android deverá avaliar e adaptar às capacidades da plataforma, sem assumir implementação idêntica.
 
 O produto também atende quem joga em PlayStation, Xbox, PC ou Nintendo, desde que trate o resultado como estimativa quando o aparelho testado não for o mesmo que joga. A qualidade da rota de internet pode ser representativa; a conexão local do console ou computador pode não ser.
 
 ## 4. Proposta de valor
 
-Em menos de 30 segundos desde abrir o app, uma pessoa deve conseguir:
+Em menos de 15 a 30 segundos desde abrir o app, uma pessoa deve conseguir:
 
-1. Escolher um jogo e a plataforma em que joga.
-2. Rodar um **Quick Check** de aproximadamente 15 segundos.
-3. Entender se está pronta para jogar, qual o risco de lag e por quê.
-4. Iniciar um **Deep Check** se precisar de um diagnóstico mais completo.
+1. Escolher um jogo (ou manter o último já selecionado).
+2. Tocar em **Check**.
+3. Receber imediatamente o **Veredito da Partida** (*Pronto para jogar*, *Eu evitaria Ranked agora*, etc.).
+4. Opcionalmente, abrir "Entender resultado" para ver o diagnóstico e detalhes técnicos.
 
-O princípio de interface é: **a conclusão vem antes das métricas**. Os detalhes existem para quem quiser aprofundar, sem bloquear a decisão principal.
+O princípio de interface é: **o veredicto vem antes do score e das métricas**. Os detalhes existem para quem quiser aprofundar, sem bloquear a decisão principal.
 
 ## 5. Escopo da V1
 
@@ -77,9 +77,10 @@ Ficam explicitamente fora da V1:
 
 | Conceito | Definição para o usuário |
 | --- | --- |
-| LagCheck Score | Nota resumida da qualidade da conexão para o contexto selecionado. |
-| Quick Check | Checagem curta para decidir se vale jogar agora. |
-| Deep Check | Investigação mais completa de estabilidade e comportamento sob carga. |
+| Veredito de Prontidão (`GameReadinessVerdict`) | Resposta principal imediata sobre se a conexão é recomendada para a partida (*Pronto para jogar*, *Eu evitaria Ranked agora*, *Atenção*, *Inconclusivo*). |
+| Check | Medição de qualidade de rota do jogo (repouso UDP + estresse sob carga controlada). A nomenclatura "Deep" é detalhe interno. |
+| LagCheck Score | Nota técnica de 0 a 100 calculada deterministicamente pelo motor, mantida para histórico, detalhes e telemetria. |
+| O que encontramos | Diagnóstico honesto dos sintomas observados (perda de pacotes, oscilação de estabilidade, impacto sob carga) sem alegações causais infundadas. |
 | Região gamer | Região de infraestrutura usada como referência para avaliar a rota. Não é necessariamente o servidor do jogo. |
 | Confiança | Grau de proximidade entre a medição e a experiência real esperada no jogo. |
 | Spike | Pico pontual de latência que pode causar travadas, atraso ou teleporte no jogo. |
@@ -87,27 +88,29 @@ Ficam explicitamente fora da V1:
 ## 7. Jornada principal
 
 ```text
-Abrir app → escolher jogo → informar plataforma → Quick Check → resultado
-                                                        ├→ testar de novo
-                                                        ├→ ver detalhes
-                                                        └→ Deep Check, se houver risco ou curiosidade
+Primeira vez / Novo jogo:
+Abrir app → Escolher jogo → Confirmar plataforma/vínculo → CHECK → VEREDITO
+                                                                     ├→ Testar novamente
+                                                                     └→ Entender resultado (Diagnóstico + Detalhes Técnicos)
+
+Usuário recorrente:
+Abrir app → Último jogo já selecionado → CHECK → VEREDITO
 ```
 
 Não haverá onboarding longo antes do primeiro teste. Permissões e perguntas aparecem apenas quando forem necessárias para executar ou qualificar a medição.
 
 ### 7.1 Home
 
-Objetivo: levar o usuário rapidamente a um jogo e a uma nova medição.
+Objetivo: responder imediatamente à pergunta "posso jogar agora?" e permitir disparar o Check em um toque.
 
 Conteúdo e comportamento, nesta ordem:
 
-1. **Última medição**, quando houver: jogo, último score e atalho para retestar o mesmo contexto. O jogo não é hardcoded; o texto usa o título localizado vindo do catálogo.
-2. **Escolha de jogo**: busca sob demanda, categorias e vitrine horizontal para trocar de partida.
-3. **Pronto para medir**: jogo selecionado, plataforma, região de referência e ação para iniciar a jornada de Quick Check.
+1. **Estado Atual / Último jogo testado**: exibe o jogo recente, plataforma anterior memorizada e CTA proeminente para iniciar o **Check**.
+2. **Histórico contextual**: link limpo ("Últimos checks ›") levando ao histórico de vereditos do jogo.
+3. **Alternar jogo**: acesso direto à aba Jogos.
+4. **Menu secundário (`…`)**: acesso aos Ajustes, Suporte e Políticas.
 
-O Histórico completo permanece em Configurações. A Home oferece continuidade para quem volta ao mesmo jogo e descoberta para quem quer jogar outra coisa.
-
-A Home não é um dashboard de rede e não mostra download, upload ou uma grade de métricas técnicas como foco principal.
+A Home não é um dashboard técnico, não exibe score 0–100 no topo e não disputa a atenção do usuário com shelves de catálogo concorrentes.
 
 ### 7.2 Seleção do jogo e do contexto
 
@@ -140,72 +143,69 @@ A trilha exibe:
 
 Se a conexão de rede mudar durante o teste (ex.: de Wi-Fi para celular), o teste é cancelado e a leitura parcial descartada, garantindo integridade e confiabilidade.
 
-### 7.4 Tela de Resultado HIG (Decisão 35)
+### 7.4 Tela de Resultado: Veredito em Primeiro Lugar (Decisões 35 e 50)
 
-O resultado segue o padrão **Apple Games Editorial Hub / HIG**, organizando a entrega em 4 seções integradas:
+O resultado é centrado na tomada de decisão imediata do jogador competitivo:
 
-1. **Hero Editorial (Veredito Imediato):**
-   - Pílula semântica no topo: `[ 92 · EXCELENTE ]`.
-   - Veredito verbal em destaque bold: *"Pronto para jogar"*, *"Conexão instável"* ou *"Risco de lag"*.
-   - Explicação concisa da rota.
-   - Linha de contexto: `Fortnite · iPhone · São Paulo (AWS)`.
+1. **Veredito da Partida (Protagonista Visual):**
+   - Veredito verbal em destaque absoluto:
+     - `PRONTO PARA JOGAR`: *"Sua conexão está estável para [Jogo] agora."*
+     - `EU EVITARIA RANKED AGORA`: *"Detectamos perda de pacotes durante o teste."*
+     - `CONDIÇÕES INSTÁVEIS`: *"Oscilação de latência ou perda moderada detectada."*
+     - `INCONCLUSIVO`: *"Dados insuficientes para avaliar com segurança."*
+   - Linha discreta de métricas essenciais logo abaixo:
+     `28 ms · 2 ms jitter · 0% perda` (ou o sintoma prejudicial detectado em destaque).
 
-2. **Atestado da Rota (Trilha Consolidada):**
-   - Card `RouteTrailSummaryCard` consolidando os 3 nós com selos semânticos de integridade (`checkmark.circle.fill` verde, atenção amarela ou alerta vermelho).
+2. **O Que Encontramos (Diagnóstico Honesto):**
+   - Substitui a trilha de rede causal por uma prestação de contas dos sintomas observados, sem assumir a culpa de um nó sem evidência isolada:
+     - `Perda de pacotes`: 🟢 Nenhuma detectada / 🔴 3,2% (Prejudicial)
+     - `Estabilidade`: 🟢 Estável / 🟡 Oscilando
+     - `Sob uso da internet`: 🟢 Estável / ⚠️ Degradação relevante
+     - `Destino testado`: [Cidade] · referência regional
 
-3. **Grid de Métricas 2x2 HIG:**
-   - Quatro cards com curvatura contínua de 12pt e `.monospacedDigit()`:
-     - `Ping (Mediana P50)` (ms);
-     - `Jitter (Variação)` (ms);
-     - `Perda de Pacotes` (%);
-     - `Picos de Latência` (quantidade).
-   - Realce automático de cor na métrica identificada como causa raiz de instabilidade.
+3. **Barra de Ações:**
+   - Botão Primário: **Testar novamente** (reinicia o Check do mesmo jogo).
+   - Botão Secundário: **Entender resultado** (expande diagnóstico detalhado e abre detalhes técnicos com Score 0–100, P50/P95, spikes e dados sob carga).
+   - *Nota de MVP:* Atalhos para "Otimizar Conexão" ou assistentes por IA (Gemini Connection Booster) ficam ocultos na jornada principal até a validação das hipóteses de retenção.
 
-4. **Diagnóstico de Partida (`InsightBanner`):**
-   - Resumo claro sobre a saúde da rede para a partida.
+### 7.5 Unificação do Check e Validação sob Carga (Wi-Fi e Rede Móvel)
 
-5. **Barra de Ações:**
-   - Botão Primário (Coral Solar `#FF6B35`): **Testar novamente**.
-   - Botões Secundários: **Ver Detalhes Técnicos** (abre folha técnica completa com histórico e comparação sob carga) e **Otimizar Conexão** (abre o Gemini Connection Booster).
-
-### 7.5 Unificação do LagCheck e Validação sob Carga (Wi-Fi e Rede Móvel)
-
-A separação artificial entre "Quick Check" e "Deep Check" foi eliminada da experiência do usuário (Decisões 22 e 35), e o Check Completo passa a operar tanto em **Wi-Fi** quanto em **rede móvel** (Decisão 36):
-- **Em Wi-Fi:** Executa rota em repouso por UDP e rota sob carga controlada (até 10 MB via endpoint seguro `/v1/load` do Cloudflare Worker). A trilha exibe "Wi-Fi" (`wifi`) e pode avaliar diagnósticos de frequência Wi-Fi local (2.4 GHz vs 5 GHz).
-- **Em Rede Móvel:** Executa rota em repouso por UDP e rota sob carga controlada com o mesmo limite de 10 MB e até 15 s. Exige **confirmação explícita de uso de dados móveis** antes de iniciar: *"O Check Completo usa dados móveis para avaliar sua conexão sob carga."*, informando o teto de 10 MB. Sem consentimento, permite apenas Quick Check ou cancelar. A trilha exibe "Rede móvel" (`antenna.radiowaves.left.and.right`) e nunca infere nem exibe roteador local, frequência 2.4/5GHz ou gateway.
-- **Trilha Visual HIG (5 Passos):** Durante a medição, a trilha conecta linearmente: `Wi-Fi / Rede móvel` ➔ `Ping` ➔ `Perda` ➔ `Sob carga` ➔ `[Região Amigável]`. Ping e Perda são observados em paralelo em ambas as fases; Sob carga aguarda na fase de repouso e ativa na fase de carga; Região começa na fase 1 e permanece ativa. É **terminantemente proibido** exibir números de ping, gráficos, percentuais, tempo restante, score prévio ou explicações durante a execução.
+A experiência de medição é unificada sob o nome único de **Check** (Decisões 43, 46 e 50):
+- **Em Wi-Fi:** Executa rota em repouso por UDP e rota sob carga controlada (até 10 MB via endpoint seguro `/v1/load` do Cloudflare Worker).
+- **Em Rede Móvel:** Executa rota em repouso por UDP e rota sob carga controlada com o mesmo limite de 10 MB e até 15 s. Exige **confirmação explícita de uso de dados móveis** antes de iniciar (teto de 10 MB). Sem consentimento, a jornada é cancelada sem dados parciais.
+- **Integridade da Execução:** Durante o Check, a interface exibe feedback calmo e contínuo (sem antecipar score, números oscilantes ou explicações prematuras).
 - **Troca de Rede:** Transição Wi-Fi ➔ Rede Móvel ou Rede Móvel ➔ Wi-Fi durante a sessão cancela tudo imediatamente, descarta dados parciais da memória sem persistência e não retoma automaticamente.
-- **Histórico:** O tipo de conexão (`.wifi` ou `.cellular`) é registrado no histórico, e o sistema nunca compara automaticamente resultados Wi-Fi contra móveis como se fossem equivalentes.
-
-Os dados aprofundados sob carga são acessados de forma limpa através de "Ver Detalhes Técnicos", sem poluir visualmente o resultado principal.
-
+- **Integridade Diagnóstica:** O app nunca infere que o Wi-Fi é o culpado com base na latência da rota remota (WAN). Diagnósticos de enlace local exigem medição isolada e confirmada.
 
 ### 7.6 Detalhes da conexão
 
-Esta área atende pessoas que querem evidência técnica sem poluir o resultado principal. Pode mostrar:
+Esta área atende pessoas que querem evidência técnica profunda sem poluir o veredicto principal. Pode mostrar:
 
+- LagCheck Score (0–100) calculado internamente;
 - série temporal da latência;
 - latência mediana (P50), P95 e P99;
-- jitter;
-- perda de pacotes;
+- jitter e perda de pacotes;
 - quantidade e pior spike;
 - região e tipo de destino usado na medição;
 - confiança da estimativa;
-- comparação entre latência em repouso e sob carga, quando houver Deep Check.
+- comparação entre repouso e sob carga.
 
 ### 7.7 Histórico
 
-O histórico é local e organizado por experiência de jogo, não como uma lista genérica de speed tests. Cada jogo mantém no máximo 100 medições e resultados com mais de 90 dias são removidos automaticamente. A pessoa pode apagar todo o histórico nas configurações.
+O histórico é local e organizado por prontidão e títulos de jogos (Decisão 50). Em vez de apresentar uma lista de números e scores abstratos, foca na estabilidade do jogo:
+- Lista os últimos vereditos (Ready, Caution, Not Ready) por jogo e plataforma;
+- Cada jogo mantém no máximo 100 medições e resultados com mais de 90 dias são removidos automaticamente;
+- A pessoa pode apagar todo o histórico nas configurações;
+- Permite disparar um novo Check do jogo a partir de qualquer entrada histórica.
 
-Para cada jogo, o usuário vê o último score, evolução recente e, após dados suficientes, média de sete dias. A visualização permite perceber pioras ou melhoras e iniciar uma nova checagem do mesmo jogo.
+### 7.8 Navegação e abas
 
-### 7.8 Navegação e configurações
-
-O controle no topo da Home e do Histórico abre Configurações como uma tela própria, nunca uma gaveta lateral. Configurações usa a lista agrupada nativa do iPhone, sobre o fundo visual do LagCheck, e concentra o acesso ao Histórico. O Histórico não abre como modal. Nas telas de jornada, a wordmark permanece centralizada e os controles de navegação ocupam a mesma altura.
-
-Configurações mostra o idioma do sistema, permite apagar o histórico local mediante confirmação, identifica a versão instalada e oferece Suporte e Política de privacidade. Os endereços de suporte e privacidade são configurados por ambiente de build e precisam estar públicos e funcionais antes da submissão à App Store. Não há conta no MVP1, portanto apagar histórico não é apresentado como exclusão de conta.
-
-Notificações, publicidade, UMP, ATT e “Opções de privacidade” permanecem fora do MVP1.
+A navegação da V1 é enxuta e focada na ação (Decisão 50):
+- **Tab Bar de 2 abas:**
+  1. **Início:** Estado atual, atalho direto de Check para o último jogo, histórico contextual ("Últimos checks ›") e menu `…` para Ajustes.
+  2. **Jogos:** Catálogo com busca e filtros rápidos. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
+- **Histórico:** Acessível contextualmente na Home e pelo menu de Ajustes.
+- **Ajustes:** Acessível pelo menu `…`, permitindo consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
 
 ## 8. Critérios de confiança e linguagem honesta
 
