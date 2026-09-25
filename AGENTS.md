@@ -69,6 +69,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `46` | Reconciliação: Deep Check único e consentimento móvel | decidido e implementado |
 | `47` | Progressão visual imersiva com Pulse Gauge Coral Solar durante a medição | decidido e em implementação |
 | `48` | Experiência visual de carregamento com IA (Dicas de Otimização) | decidido e em implementação |
+| `49` | Medição geral de conexão para jogos (jogo genérico, busca sem resultado e rota regional de referência) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

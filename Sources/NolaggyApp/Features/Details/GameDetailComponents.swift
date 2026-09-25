@@ -195,11 +195,29 @@ struct GameDetailCinemaHeroBanner: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Artwork full-bleed
-            VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
+            if game.id == GameContext.genericGamingID {
+                ZStack {
+                    NLColor.backgroundRaised
+                    LinearGradient(
+                        colors: [NLColor.accentPrimary.opacity(0.35), NLColor.backgroundRaised],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    Image(systemName: "network")
+                        .font(.system(size: 80, weight: .light))
+                        .foregroundStyle(NLColor.accentPrimary.opacity(0.2))
+                        .offset(x: 90, y: -15)
+                }
                 .frame(maxWidth: .infinity)
                 .frame(height: NLSizing.gameDetailHeroHeight)
                 .clipped()
+            } else {
+                // Artwork full-bleed
+                VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: NLSizing.gameDetailHeroHeight)
+                    .clipped()
+            }
 
             // Gradiente cinematográfico sobre a imagem
             LinearGradient(

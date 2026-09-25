@@ -69,7 +69,11 @@ struct QuickCheckFeatureView: View {
     }
 
     var context: GameContext? {
-        availableGames.first(where: { $0.id == effectiveGameID })?.context
+        if effectiveGameID == GameContext.genericGamingID {
+            let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+            return GameContext.genericGaming(market: market, platform: .iphone, declaredExternalLink: nil)
+        }
+        return availableGames.first(where: { $0.id == effectiveGameID })?.context
     }
 
     init(
@@ -413,11 +417,14 @@ struct QuickCheckFeatureView: View {
     }
 
     func supportedPlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
+        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+        if game.id == GameContext.genericGamingID {
+            return order
+        }
         guard let remoteCatalog,
               let catalogGame = remoteCatalog.games.first(where: { $0.id == game.id }) else {
             return []
         }
-        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
         return order.filter { platform in
             let context = GameContext(
                 gameID: game.id,

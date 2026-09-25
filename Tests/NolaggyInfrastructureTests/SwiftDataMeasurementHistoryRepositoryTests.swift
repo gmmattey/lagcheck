@@ -25,6 +25,33 @@ final class SwiftDataMeasurementHistoryRepositoryTests: XCTestCase {
         XCTAssertTrue(afterDelete.isEmpty)
     }
 
+    func testGenericGamingEntryCanBeSavedAndLoaded() async throws {
+        let repository = try SwiftDataMeasurementHistoryRepository(inMemory: true)
+        let resolved = ResolvedMeasurementContext(
+            context: GameContext.genericGaming(market: "BR", platform: .playstation, declaredExternalLink: .ethernet),
+            catalogVersion: "test-v3",
+            profileID: .battleRoyaleCompetitive,
+            profileRuleVersion: "rule-1",
+            regionID: "sa-east-1",
+            destination: try ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770),
+            strategy: .genericRegion,
+            confidence: .medium
+        )
+        let result = QualityResult(
+            metrics: QualityMetrics(validResponseCount: 30, timeoutCount: 0, invalidResponseCount: 0, p50Milliseconds: 25, p95Milliseconds: 28, p99Milliseconds: 30, jitterMilliseconds: 2, packetLossPercentage: 0, spikeCount: 0, severeSpikeCount: 0, spikeRatePercentage: 0, p95ToP50Ratio: 1.1, worstSpikeMilliseconds: 30, components: nil),
+            rawScore: 98, finalScore: 98, resultClass: .excellent, appliedGuardrails: []
+        )
+        let entry = MeasurementHistoryEntry(completedAt: Date(), resolvedContext: resolved, profileRuleVersion: "rule-1", result: result, primaryCause: .stableConnection)
+
+        try await repository.save(entry)
+        let loaded = try await repository.loadHistory()
+        XCTAssertEqual(loaded.count, 1)
+        XCTAssertEqual(loaded.first?.resolvedContext.context.gameID, GameContext.genericGamingID)
+        XCTAssertEqual(loaded.first?.resolvedContext.context.platform, .playstation)
+        XCTAssertEqual(loaded.first?.resolvedContext.context.declaredExternalLink, .ethernet)
+        XCTAssertEqual(loaded.first?.result.finalScore, 98)
+    }
+
     private func makeEntry(date: Date) -> MeasurementHistoryEntry {
         let context = try! PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone))
         let result = QualityResult(

@@ -715,6 +715,7 @@ struct HomeDecisionCard: View {
     let isMeasuring: Bool
     let onStartCheck: () -> Void
     let onChooseGame: () -> Void
+    var onSelectGenericGaming: (() -> Void)? = nil
     let onOpenHistory: () -> Void
 
     private static let freshnessInterval: TimeInterval = 24 * 60 * 60
@@ -761,6 +762,22 @@ struct HomeDecisionCard: View {
             .disabled(isMeasuring)
             .accessibilityIdentifier("home-decision-primary-action")
 
+            if let onSelectGenericGaming, game?.id != GameContext.genericGamingID {
+                Button(action: onSelectGenericGaming) {
+                    HStack(spacing: NLSpacing.xs) {
+                        Image(systemName: "network")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(LocalizedStringKey("home.cta.test_general_connection"))
+                            .font(NLTypography.bodyEmphasis)
+                    }
+                    .foregroundStyle(NLColor.accentPrimary)
+                    .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
+                    .background(NLColor.accentPrimary.opacity(0.12), in: RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-decision-generic-gaming-action")
+            }
+
             if latestEntry != nil {
                 Button(action: onOpenHistory) {
                     Label("home.decision.history", systemImage: "clock.arrow.circlepath")
@@ -785,9 +802,20 @@ struct HomeDecisionCard: View {
     private var contextHeader: some View {
         HStack(spacing: NLSpacing.sm) {
             if let game {
-                VerifiedGameArtwork(game: game, aspectRatio: 1)
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+                if game.id == GameContext.genericGamingID {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous)
+                            .fill(NLColor.accentPrimary.opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "network")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(NLColor.accentPrimary)
+                    }
+                } else {
+                    VerifiedGameArtwork(game: game, aspectRatio: 1)
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
+                }
             } else {
                 Image(systemName: "gamecontroller")
                     .font(.system(size: 18, weight: .medium))
@@ -992,6 +1020,7 @@ struct HomeCatalogView: View {
     let platformFilterTitle: String
     let platformsTitle: (CatalogMeasurementJourney.Game) -> String
     let onReturnToHome: (() -> Void)?
+    let onSelectGenericGaming: (() -> Void)?
     let select: (CatalogMeasurementJourney.Game) -> Void
 
     private var filteredGames: [CatalogMeasurementJourney.Game] {
@@ -1014,6 +1043,11 @@ struct HomeCatalogView: View {
                 )
                 .padding(.horizontal, NLSpacing.md)
                 .padding(.top, NLSpacing.xs)
+
+                if query.isEmpty, let onSelectGenericGaming {
+                    HomeGenericGamingBanner(onSelect: onSelectGenericGaming)
+                        .padding(.horizontal, NLSpacing.md)
+                }
 
                 HomeCatalogFilters(
                     selected: $selectedCategory,
@@ -1041,8 +1075,11 @@ struct HomeCatalogView: View {
                         .padding(.horizontal, NLSpacing.md)
 
                     if filteredGames.isEmpty {
-                        CatalogEmptyState(isSearching: !query.isEmpty)
-                            .padding(.horizontal, NLSpacing.md)
+                        CatalogEmptyState(
+                            isSearching: !query.isEmpty,
+                            onSelectGenericGaming: onSelectGenericGaming
+                        )
+                        .padding(.horizontal, NLSpacing.md)
                     } else {
                         HomeCatalogList(
                             games: filteredGames,
@@ -1295,24 +1332,89 @@ private struct CatalogRecentTestsSection: View {
     }
 }
 
-private struct CatalogEmptyState: View {
-    let isSearching: Bool
+struct HomeGenericGamingBanner: View {
+    let onSelect: () -> Void
 
     var body: some View {
-        VStack(spacing: NLSpacing.xs) {
-            Image(systemName: "magnifyingglass")
-                .font(NLTypography.navigationIcon)
-                .foregroundStyle(NLColor.textTertiary)
-            Text(LocalizedStringKey("catalog.empty.title"))
-                .font(NLTypography.bodyEmphasis)
+        Button(action: onSelect) {
+            HStack(spacing: NLSpacing.md) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous)
+                        .fill(NLColor.accentPrimary.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "network")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(NLColor.accentPrimary)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("catalog.generic_gaming_card.title"))
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textPrimary)
+                    Text(LocalizedStringKey("catalog.generic_gaming_card.subtitle"))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+
+                Spacer(minLength: NLSpacing.xs)
+
+                Image(systemName: "chevron.right")
+                    .font(NLTypography.footnote.weight(.semibold))
+                    .foregroundStyle(NLColor.textTertiary)
+            }
+            .padding(NLSpacing.cardPadding)
+            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    .stroke(NLColor.borderStrong, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("catalog-generic-gaming-banner")
+    }
+}
+
+private struct CatalogEmptyState: View {
+    let isSearching: Bool
+    var onSelectGenericGaming: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(spacing: NLSpacing.sm) {
+            Image(systemName: isSearching ? "network" : "magnifyingglass")
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundStyle(isSearching ? NLColor.accentPrimary : NLColor.textTertiary)
+                .padding(.bottom, NLSpacing.xxs)
+
+            Text(LocalizedStringKey(isSearching ? "catalog.empty.generic_gaming_title" : "catalog.empty.title"))
+                .font(NLTypography.headline)
                 .foregroundStyle(NLColor.textPrimary)
-            Text(LocalizedStringKey(isSearching ? "catalog.empty.search_message" : "catalog.empty.filter_message"))
+
+            Text(LocalizedStringKey(isSearching ? "catalog.empty.generic_gaming_message" : "catalog.empty.filter_message"))
                 .font(NLTypography.callout)
                 .foregroundStyle(NLColor.textSecondary)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, NLSpacing.sm)
+
+            if isSearching, let onSelectGenericGaming {
+                Button(action: onSelectGenericGaming) {
+                    HStack(spacing: NLSpacing.xs) {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 14, weight: .bold))
+                        Text(LocalizedStringKey("catalog.empty.generic_gaming_cta"))
+                            .font(NLTypography.bodyEmphasis)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, NLSpacing.lg)
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, NLSpacing.xs)
+                .accessibilityIdentifier("catalog-empty-generic-gaming-cta")
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, NLSpacing.lg)
+        .padding(.vertical, NLSpacing.xl)
         .padding(.horizontal, NLSpacing.md)
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous).stroke(NLColor.borderStrong, lineWidth: 1))

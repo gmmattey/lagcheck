@@ -497,4 +497,14 @@
 "booster.loading.step3.detail" = "Formatando ajustes no roteador, equipamento e conexão";
 "booster.loading.a11y" = "Gerando dicas de otimização de conexão com inteligência artificial.";
 
-
+/* Conexão Geral para Jogos (Decisão 49) */
+"generic_gaming.name" = "Conexão Geral para Jogos";
+"generic_gaming.short_name" = "Conexão Geral";
+"generic_gaming.description" = "Mede a estabilidade e a rota regional da sua rede para jogos online em geral.";
+"generic_gaming.route_reference" = "Rota Regional de Jogos · Datacenter de Referência";
+"catalog.empty.generic_gaming_title" = "Jogo não encontrado";
+"catalog.empty.generic_gaming_message" = "Seu jogo ainda não possui rota dedicada, mas você pode medir a rota regional para jogos em geral e testar sua conexão.";
+"catalog.empty.generic_gaming_cta" = "Medir Conexão Geral";
+"catalog.generic_gaming_card.title" = "Conexão Geral para Jogos";
+"catalog.generic_gaming_card.subtitle" = "Teste sua rede para qualquer jogo online";
+"home.cta.test_general_connection" = "Medir Conexão Geral";

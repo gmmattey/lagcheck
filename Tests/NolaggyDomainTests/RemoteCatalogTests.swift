@@ -642,4 +642,41 @@ private extension RemoteCatalogTests {
             assetBaseURL: "https://catalog.example.invalid/"
         )
     }
+
+    func testRemoteCatalogResolvesGenericGamingContextForBrazil() throws {
+        let payload = debugPayload()
+        let context = GameContext.genericGaming(market: "BR", platform: .iphone)
+
+        guard case let .available(resolved) = try RemoteCatalogVerifier.resolve(context, in: payload) else {
+            XCTFail("Deveria resolver generic-gaming como available")
+            return
+        }
+
+        XCTAssertEqual(resolved.context.gameID, GameContext.genericGamingID)
+        XCTAssertEqual(resolved.profileID, QualityProfileID.battleRoyaleCompetitive)
+        XCTAssertEqual(resolved.regionID, "sa-east-1")
+        XCTAssertEqual(resolved.strategy, MeasurementStrategy.genericRegion)
+        XCTAssertEqual(resolved.confidence, MeasurementConfidence.medium)
+        XCTAssertEqual(resolved.precisionKey, "regionalReference")
+        XCTAssertEqual(resolved.destination.host, "gamelift-ping.sa-east-1.api.aws")
+        XCTAssertEqual(resolved.destination.port, 7770)
+    }
+
+    func testRemoteCatalogRegionalSelectionSnapshotForGenericGaming() throws {
+        let payload = debugPayload()
+        let context = GameContext.genericGaming(market: "BR", platform: .playstation, declaredExternalLink: .ethernet)
+
+        let snapshot = try RemoteCatalogVerifier.regionalSelectionSnapshot(context, in: payload)
+        XCTAssertEqual(snapshot.context.gameID, GameContext.genericGamingID)
+        XCTAssertFalse(snapshot.candidates.isEmpty)
+
+        let primaryCandidate = snapshot.candidates.first(where: { $0.regionID == "sa-east-1" })
+        XCTAssertNotNil(primaryCandidate)
+        XCTAssertEqual(primaryCandidate?.priority, 0)
+    }
+
+    func testAllowedPlatformsReturnsAllPlatformsForGenericGaming() {
+        let platforms = RemoteCatalogVerifier.allowedPlatforms(for: GameContext.genericGamingID)
+        XCTAssertEqual(platforms, Set(Platform.allCases))
+    }
 }
