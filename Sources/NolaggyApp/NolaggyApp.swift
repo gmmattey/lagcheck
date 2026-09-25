@@ -29,7 +29,7 @@ struct NolaggyApp: App {
         }
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
-        analyticsTracker = OSLogAnalyticsTracker()
+        analyticsTracker = CloudflareWorkerAnalyticsTracker()
         let base = DebugCatalogBase.envelopeData() ?? Data()
         catalogRepository = RemoteCatalogRepository(
             baseEnvelopeData: base,

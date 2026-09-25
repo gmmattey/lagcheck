@@ -38,6 +38,97 @@ function loadStream() {
 
 const artworkPath = /^\/artwork\/games\/([a-z0-9-]+\.(?:jpg|png))$/;
 
+const ALLOWED_EVENTS = new Set(["app_open", "check_started", "verdict_viewed", "retest_started"]);
+const ALLOWED_PLATFORMS = new Set(["iphone", "playstation", "xbox", "pc"]);
+const ALLOWED_VERDICTS = new Set(["ready", "caution", "not_ready", "inconclusive"]);
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function handleTelemetry(request) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Cache-Control": "no-store"
+      }
+    });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: { "Allow": "POST, OPTIONS", "Cache-Control": "no-store" }
+    });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "invalid_json" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  if (!body || typeof body !== "object") {
+    return Response.json({ error: "invalid_payload" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  const { installationId, event, gameId, platform, verdict } = body;
+
+  if (!installationId || typeof installationId !== "string" || !UUID_REGEX.test(installationId)) {
+    return Response.json({ error: "invalid_installation_id" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  if (!event || typeof event !== "string" || !ALLOWED_EVENTS.has(event)) {
+    return Response.json({ error: "invalid_event" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  if (gameId !== undefined && (typeof gameId !== "string" || gameId.length > 64)) {
+    return Response.json({ error: "invalid_game_id" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  if (platform !== undefined && (typeof platform !== "string" || !ALLOWED_PLATFORMS.has(platform))) {
+    return Response.json({ error: "invalid_platform" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  if (verdict !== undefined && (typeof verdict !== "string" || !ALLOWED_VERDICTS.has(verdict))) {
+    return Response.json({ error: "invalid_verdict" }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+
+  // Telemetria anônima validada com sucesso:
+  // Zero PII: não registra IP, não armazena cookies, não expõe cabeçalhos de cliente.
+  return Response.json({ status: "ok" }, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": "*"
+    }
+  });
+}
+
 export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const assetMatch = url.pathname.match(artworkPath);
@@ -48,6 +139,9 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS) return new Response("Asset binding unavailable", { status: 503, headers: { "Cache-Control": "no-store" } });
     // A URL pública não expõe o diretório interno nem aceita segmentos livres.
     return env.ASSETS.fetch(new Request(new URL(`/games/${assetMatch[1]}`, url), request));
+  }
+  if (url.pathname === "/v1/telemetry") {
+    return handleTelemetry(request);
   }
   if (url.pathname === "/v1/catalog.json") {
     if (request.method !== "GET") {
