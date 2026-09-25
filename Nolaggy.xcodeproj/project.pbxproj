@@ -106,6 +106,7 @@
 		724FCE7A3916D0E09856A23D /* QuickCheckFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */; };
 		72CA5B3EA9DFEEA9C396AE04 /* PlayFabQoSPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8053C55816AED6B3210D6C53 /* PlayFabQoSPayloadCodec.swift */; };
 		79C34226E5137686F046E4E2 /* DeepCheckDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003E2D229A975C02E82CF843 /* DeepCheckDetailsView.swift */; };
+		AA0000040000000000000002 /* TechnicalDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000040000000000000001 /* TechnicalDetailsView.swift */; };
 		79E32362098B69CD80E505A4 /* NolaggyInfrastructure.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7E3F13C78AF62B9C343D1C1D /* CheckCompletoResultDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6651525B32C6ADE84EB6690 /* CheckCompletoResultDomainTests.swift */; };
 		7E8F3EDE329745A0109A6B4F /* NolaggyDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DA5AAA0EF9AC0CCFC1B230 /* NolaggyDesign.swift */; };
@@ -471,6 +472,7 @@
 		C13CEE41EBF8FE561BB153BF /* PilotCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotCatalog.swift; sourceTree = "<group>"; };
 		C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NATTopologyTests.swift; sourceTree = "<group>"; };
 		C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementDetailsView.swift; sourceTree = "<group>"; };
+		AA0000040000000000000001 /* TechnicalDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechnicalDetailsView.swift; sourceTree = "<group>"; };
 		C9E7880A8A3918D259977078 /* SwiftDataMeasurementHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataMeasurementHistoryRepository.swift; sourceTree = "<group>"; };
 		CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePopularityRanking.swift; sourceTree = "<group>"; };
 		CDC26C17EAC2A1936129A8AA /* RemoteCatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalogRepository.swift; sourceTree = "<group>"; };
@@ -701,6 +703,7 @@
 				CF4ED2A1679013D53FBD1080 /* GameDetailComponents.swift */,
 				56D3E11571E026399E1DA00B /* GameDetailView.swift */,
 				C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */,
+				AA0000040000000000000001 /* TechnicalDetailsView.swift */,
 				1FF5C41F5D89B27DB786B3AA /* PlatformHealthBannerView.swift */,
 				E926065E20E7AD202F458578 /* PlatformSelectorRow.swift */,
 			);
@@ -1387,6 +1390,7 @@
 				AA0000030000000000000002 /* DarkCompetitiveHomeComponents.swift in Sources */,
 				2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */,
 				5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */,
+				AA0000040000000000000002 /* TechnicalDetailsView.swift in Sources */,
 				1D2E950ED0F95C7AD799D84C /* MeasurementProgressView.swift in Sources */,
 				40175BF5A5881DBC8F148B9E /* MeasurementStatusView.swift in Sources */,
 				2E1656B09BB9353C72EE96CB /* MeasurementTransportFactory.swift in Sources */,

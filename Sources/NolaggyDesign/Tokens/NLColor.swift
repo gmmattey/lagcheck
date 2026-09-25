@@ -67,7 +67,11 @@ public enum NLColor {
     /// Neutro semântico (#8A93A0) — veredito INCONCLUSIVE
     public static let semanticNeutral = textSecondary
 
-    // Aliases para legado
+    // Aliases para legado e conveniência
+    public static let hairline = borderHairline
+    public static let readyGreen = semanticReady
+    public static let cautionYellow = semanticCaution
+    public static let notReadyRed = semanticNotReady
     public static let scoreExcellent = semanticReady
     public static let scoreExcellentSubtle = semanticReady.opacity(0.16)
     public static let scoreUnstable = semanticCaution

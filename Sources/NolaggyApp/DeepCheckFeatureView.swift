@@ -91,7 +91,12 @@ struct DeepCheckFeatureView: View {
         }
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
-                DeepCheckDetailsView(result: result, resolvedContext: activeContext, gameName: gameName)
+                TechnicalDetailsView(
+                    result: result,
+                    gameName: gameName,
+                    regionName: friendlyRegion,
+                    onDismiss: { showingDetails = false }
+                )
             }
         }
         .sheet(isPresented: $showingBooster) {
