@@ -68,22 +68,16 @@ extension QuickCheckFeatureView {
         guard let remoteCatalog else { return [] }
         let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
         var seen = Set<String>()
-        let catalogGames = Platform.allCases
+        return Platform.allCases
             .flatMap { CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: $0) }
             .filter { seen.insert($0.id).inserted }
-
-        let genericGame = CatalogMeasurementJourney.genericGamingGame(
-            market: market,
-            platform: effectivePlatform ?? .iphone,
-            declaredExternalLink: lastHistoryEntryForEffectiveGame?.resolvedContext.context.declaredExternalLink,
-            localizedName: localizedString("generic_gaming.name")
-        )
-
-        return [genericGame] + catalogGames
     }
 
     var selectedGameName: String {
-        availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—"
+        if effectiveGameID == GameContext.genericGamingID {
+            return localizedString("generic_gaming.name")
+        }
+        return availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—"
     }
 
     /// Plataforma da última medição relevante ou iPhone por padrão.
@@ -171,8 +165,19 @@ extension QuickCheckFeatureView {
 
     /// Jogo alvo para o botão CTA principal: o explicitamente selecionado, ou o último testado, ou o primeiro disponível.
     var targetGameForCTA: CatalogMeasurementJourney.Game? {
-        if let explicitID = selectedGameID, let found = availableGames.first(where: { $0.id == explicitID }) {
-            return found
+        if let explicitID = selectedGameID {
+            if explicitID == GameContext.genericGamingID {
+                let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+                return CatalogMeasurementJourney.genericGamingGame(
+                    market: market,
+                    platform: .iphone,
+                    declaredExternalLink: nil,
+                    localizedName: localizedString("generic_gaming.name")
+                )
+            }
+            if let found = availableGames.first(where: { $0.id == explicitID }) {
+                return found
+            }
         }
         return recentTestedItems.first?.game ?? popularGames.first ?? availableGames.first
     }
@@ -184,10 +189,11 @@ extension QuickCheckFeatureView {
 
     func selectGenericGaming() {
         let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+        let lastEntry = history.first(where: { $0.resolvedContext.context.gameID == GameContext.genericGamingID })
         let game = CatalogMeasurementJourney.genericGamingGame(
             market: market,
-            platform: effectivePlatform ?? .iphone,
-            declaredExternalLink: lastHistoryEntryForEffectiveGame?.resolvedContext.context.declaredExternalLink,
+            platform: lastEntry?.resolvedContext.context.platform ?? .iphone,
+            declaredExternalLink: lastEntry?.resolvedContext.context.declaredExternalLink,
             localizedName: localizedString("generic_gaming.name")
         )
         selectGame(game)

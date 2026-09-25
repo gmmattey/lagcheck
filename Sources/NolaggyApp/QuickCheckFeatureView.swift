@@ -69,7 +69,11 @@ struct QuickCheckFeatureView: View {
     }
 
     var context: GameContext? {
-        availableGames.first(where: { $0.id == effectiveGameID })?.context
+        if effectiveGameID == GameContext.genericGamingID {
+            let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+            return GameContext.genericGaming(market: market, platform: .iphone, declaredExternalLink: nil)
+        }
+        return availableGames.first(where: { $0.id == effectiveGameID })?.context
     }
 
     init(
