@@ -133,6 +133,25 @@ final class WiFiBandEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.confidence, .high)
         XCTAssertFalse(result.diagnostic.isSuspectOrConfirmed24GHz)
     }
+
+    func testCleanGatewayHopInnocentsWiFiEvenWhenWANLoadDeltaIsHigh() {
+        // Integridade Diagnóstica (Decisão 50): Quando o gateway local tem RTT limpo (1.5ms, jitter 0.8ms),
+        // uma alta degradação sob carga remota (bufferbloat da operadora WAN) não deve acusar o Wi-Fi de 2.4 GHz.
+        let telemetry = WiFiLocalTelemetry(
+            gatewayRTTMedianMs: 1.5,
+            gatewayJitterMs: 0.8,
+            tailRatioP95P50: 1.05,
+            loadDeltaP50Ms: 50.0,
+            validSampleCount: 10,
+            plannedSampleCount: 10,
+            isWiFi: true
+        )
+        let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
+
+        XCTAssertEqual(result.diagnostic, WiFiBandDiagnostic.stableWiFi)
+        XCTAssertEqual(result.confidence, WiFiBandAssessmentConfidence.high)
+        XCTAssertFalse(result.diagnostic.isSuspectOrConfirmed24GHz)
+    }
 }
 
 private func XEqual<T: Equatable>(_ a: T?, _ b: T?, file: StaticString = #file, line: UInt = #line) {

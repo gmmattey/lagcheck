@@ -11,13 +11,17 @@ public protocol WiFiLocalGatewayProbing: Sendable {
 }
 
 /// Sonda o primeiro salto (roteador Wi-Fi) para diagnosticar se a oscilação é local (RF) ou externa (WAN).
+/// Segue a Integridade Diagnóstica (Decisões 50 e 51):
+/// - Descobre o gateway padrão real a partir da tabela de rotas do sistema.
+/// - Mede RTT REAL de ida e volta por consulta DNS (porta 53) com validação de Transaction ID.
+/// - NUNCA trata conclusão de envio UDP (contentProcessed) como RTT sem resposta confirmada.
 public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
-    
+
     public init() {}
 
     public func probeLocalGateway(
         sampleCount: Int = 5,
-        timeoutPerSampleSeconds: TimeInterval = 0.5
+        timeoutPerSampleSeconds: TimeInterval = 0.3
     ) async -> WiFiLocalTelemetry {
         // 1. Verifica se a interface primária atual é Wi-Fi
         let isWiFi = await checkIsWiFi()
@@ -29,7 +33,7 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
             )
         }
 
-        // 2. Tenta resolver o IPv4 provável do gateway da interface en0
+        // 2. Resolve o IPv4 real do default gateway
         guard let gatewayAddress = resolveDefaultGatewayIPv4() else {
             return WiFiLocalTelemetry(
                 validSampleCount: 0,
@@ -38,15 +42,16 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
             )
         }
 
-        // 3. Executa a amostragem UDP local com timeout estrito
+        // 3. Executa a amostragem com medição de RTT real de resposta (ida e volta)
         var rtts: [Double] = []
         for _ in 0..<sampleCount {
-            if let rtt = await probeHost(address: gatewayAddress, timeout: timeoutPerSampleSeconds) {
+            if let rtt = await probeHostDNSQuery(address: gatewayAddress, timeout: timeoutPerSampleSeconds) {
                 rtts.append(rtt)
             }
         }
 
         guard !rtts.isEmpty else {
+            // Roteador não respondeu na porta 53: nenhuma amostra inventada!
             return WiFiLocalTelemetry(
                 validSampleCount: 0,
                 plannedSampleCount: sampleCount,
@@ -54,7 +59,7 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
             )
         }
 
-        // 4. Calcula mediana, jitter adjacente e cauda
+        // 4. Calcula mediana, jitter e cauda de RTT real
         let sortedRTTs = rtts.sorted()
         let median: Double
         if sortedRTTs.count % 2 == 1 {
@@ -100,9 +105,114 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
         }
     }
 
-    /// Resolve o endereço IPv4 do gateway da rede sem fio local através de getifaddrs.
+    /// Resolve o endereço IPv4 do gateway padrão utilizando a tabela de rotas do kernel BSD/Darwin.
+    /// Caso não esteja disponível no sandbox, busca a interface Wi-Fi (en0).
     public func resolveDefaultGatewayIPv4() -> String? {
         #if canImport(Darwin)
+        // Tentativa 1: sysctl NET_RT_FLAGS com RTF_GATEWAY
+        if let routingGateway = resolveGatewayFromRoutingTable() {
+            return routingGateway
+        }
+
+        // Tentativa 2: Consulta getifaddrs para en0 com verificação cautelosa
+        return resolveGatewayFromInterfaceFallback()
+        #else
+        return nil
+        #endif
+    }
+
+    #if canImport(Darwin)
+    private static let rtfGatewayFlag: Int32 = 0x2
+    private static let rtaDstFlag: Int32 = 0x1
+    private static let rtaGatewayFlag: Int32 = 0x2
+    private static let rtaNetmaskFlag: Int32 = 0x4
+    private static let rtaGenmaskFlag: Int32 = 0x8
+    private static let rtaIfpFlag: Int32 = 0x10
+    private static let rtaIfaFlag: Int32 = 0x20
+    private static let rtaAuthorFlag: Int32 = 0x40
+    private static let rtaBrdFlag: Int32 = 0x80
+
+    private struct DarwinRtMsgHdr {
+        var rtm_msglen: UInt16
+        var rtm_version: UInt8
+        var rtm_type: UInt8
+        var rtm_index: UInt16
+        var rtm_flags: Int32
+        var rtm_addrs: Int32
+        var rtm_pid: pid_t
+        var rtm_seq: Int32
+        var rtm_errno: Int32
+        var rtm_use: Int32
+        var rtm_inits: UInt32
+    }
+
+    private func resolveGatewayFromRoutingTable() -> String? {
+        var mib: [Int32] = [CTL_NET, PF_ROUTE, 0, AF_INET, NET_RT_FLAGS, Self.rtfGatewayFlag]
+        var len: size_t = 0
+        guard sysctl(&mib, UInt32(mib.count), nil, &len, nil, 0) == 0, len > 0 else {
+            return nil
+        }
+
+        var buffer = [UInt8](repeating: 0, count: len)
+        guard sysctl(&mib, UInt32(mib.count), &buffer, &len, nil, 0) == 0 else {
+            return nil
+        }
+
+        var offset = 0
+        while offset < len {
+            let msgPtr = buffer.withUnsafeBytes { rawBytes -> UnsafePointer<DarwinRtMsgHdr>? in
+                guard offset + MemoryLayout<DarwinRtMsgHdr>.size <= len else { return nil }
+                return rawBytes.baseAddress?.advanced(by: offset).assumingMemoryBound(to: DarwinRtMsgHdr.self)
+            }
+            guard let rtm = msgPtr?.pointee, rtm.rtm_msglen > 0 else { break }
+
+            let msgLen = Int(rtm.rtm_msglen)
+            let addrs = Int(rtm.rtm_addrs)
+
+            if (addrs & Int(Self.rtaGatewayFlag)) != 0 {
+                var sockOffset = offset + MemoryLayout<DarwinRtMsgHdr>.size
+                let rtaBits = [
+                    Self.rtaDstFlag, Self.rtaGatewayFlag, Self.rtaNetmaskFlag,
+                    Self.rtaGenmaskFlag, Self.rtaIfpFlag, Self.rtaIfaFlag,
+                    Self.rtaAuthorFlag, Self.rtaBrdFlag
+                ]
+
+                for bit in rtaBits {
+                    guard (addrs & Int(bit)) != 0 else { continue }
+                    guard sockOffset + MemoryLayout<sockaddr>.size <= offset + msgLen else { break }
+
+                    let saPtr = buffer.withUnsafeBytes { rawBytes -> UnsafePointer<sockaddr>? in
+                        rawBytes.baseAddress?.advanced(by: sockOffset).assumingMemoryBound(to: sockaddr.self)
+                    }
+
+                    if let sa = saPtr?.pointee {
+                        let saLen = sa.sa_len > 0 ? Int(sa.sa_len) : MemoryLayout<sockaddr>.size
+                        let alignedLen = (saLen + 3) & ~3
+
+                        if bit == Self.rtaGatewayFlag && sa.sa_family == UInt8(AF_INET) {
+                            if let sinPtr = saPtr?.withMemoryRebound(to: sockaddr_in.self, capacity: 1, { $0 }) {
+                                var sinAddr = sinPtr.pointee.sin_addr
+                                var ipBuffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+                                if inet_ntop(AF_INET, &sinAddr, &ipBuffer, socklen_t(INET_ADDRSTRLEN)) != nil {
+                                    let gatewayStr = String(cString: ipBuffer)
+                                    if !gatewayStr.isEmpty && gatewayStr != "0.0.0.0" {
+                                        return gatewayStr
+                                    }
+                                }
+                            }
+                        }
+                        sockOffset += alignedLen
+                    } else {
+                        break
+                    }
+                }
+            }
+            offset += msgLen
+        }
+        return nil
+    }
+
+    private func resolveGatewayFromInterfaceFallback() -> String? {
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else {
             return nil
@@ -130,7 +240,7 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
             let hostMask = UInt32(bigEndian: sinMask)
 
             let network = hostAddr & hostMask
-            let gatewayHost = network | 1 // Subnet router padrão RFC 1918 (.1)
+            let gatewayHost = network | 1 // Heurística padrão caso a routing table esteja inacessível
             let gatewayNetworkOrder = gatewayHost.bigEndian
 
             var inAddr = in_addr(s_addr: gatewayNetworkOrder)
@@ -139,19 +249,24 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
                 return String(cString: ipBuffer)
             }
         }
-        #endif
         return nil
     }
+    #endif
 
-    /// Envia datagrama UDP local com tempo de resposta medido monotonicamente e concorrência estrita Swift 6.
-    private func probeHost(address: String, timeout: TimeInterval) async -> Double? {
+    /// Envia query DNS real (porta 53) para o roteador local e aguarda resposta UDP válida (RTT real de ida e volta).
+    /// Se o roteador não responder ou der timeout, retorna `nil` honestamente.
+    private func probeHostDNSQuery(address: String, timeout: TimeInterval) async -> Double? {
         await withCheckedContinuation { continuation in
             let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(address), port: 53)
             let connection = NWConnection(to: endpoint, using: .udp)
-            let queue = DispatchQueue(label: "com.nolaggy.gateway-probe")
+            let queue = DispatchQueue(label: "com.nolaggy.gateway-dns-probe")
 
             let start = ContinuousClock.now
             let isResumed = OSAllocatedUnfairLock(initialState: false)
+
+            // Gera Transaction ID de 16 bits para correlacionar a resposta
+            let txId = UInt16.random(in: 1...0xFFFE)
+            let queryPacket = makeDNSQuery(transactionID: txId)
 
             let timer = DispatchSource.makeTimerSource(queue: queue)
             timer.schedule(deadline: .now() + timeout)
@@ -173,30 +288,53 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
-                    let dummyData = Data([0x00, 0x01, 0x01, 0x00])
-                    connection.send(content: dummyData, completion: .contentProcessed { error in
-                        guard error == nil else { return }
-                        let shouldResume = isResumed.withLock { resumed -> Bool in
-                            if !resumed {
-                                resumed = true
-                                return true
+                    // Envia query DNS
+                    connection.send(content: queryPacket, completion: .contentProcessed { sendError in
+                        guard sendError == nil else {
+                            let shouldResume = isResumed.withLock { resumed -> Bool in
+                                if !resumed { resumed = true; return true }
+                                return false
                             }
-                            return false
+                            if shouldResume {
+                                timer.cancel()
+                                connection.cancel()
+                                continuation.resume(returning: nil)
+                            }
+                            return
                         }
-                        if shouldResume {
-                            let elapsed = ContinuousClock.now - start
-                            let elapsedMs = Double(elapsed.components.seconds) * 1000.0 + Double(elapsed.components.attoseconds) / 1_000_000_000_000_000.0
+
+                        // Aguarda resposta UDP real do roteador com correlation ID
+                        connection.receiveMessage { data, _, _, recvError in
+                            let shouldResume = isResumed.withLock { resumed -> Bool in
+                                if !resumed { resumed = true; return true }
+                                return false
+                            }
+                            guard shouldResume else { return }
+
                             timer.cancel()
                             connection.cancel()
+
+                            guard recvError == nil, let data, data.count >= 2 else {
+                                continuation.resume(returning: nil)
+                                return
+                            }
+
+                            // Valida se o Transaction ID da resposta bate com o enviado
+                            let respTxId = (UInt16(data[0]) << 8) | UInt16(data[1])
+                            guard respTxId == txId else {
+                                continuation.resume(returning: nil)
+                                return
+                            }
+
+                            let elapsed = ContinuousClock.now - start
+                            let elapsedMs = Double(elapsed.components.seconds) * 1000.0 + Double(elapsed.components.attoseconds) / 1_000_000_000_000_000.0
                             continuation.resume(returning: elapsedMs)
                         }
                     })
+
                 case .failed:
                     let shouldResume = isResumed.withLock { resumed -> Bool in
-                        if !resumed {
-                            resumed = true
-                            return true
-                        }
+                        if !resumed { resumed = true; return true }
                         return false
                     }
                     if shouldResume {
@@ -204,6 +342,7 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
                         connection.cancel()
                         continuation.resume(returning: nil)
                     }
+
                 default:
                     break
                 }
@@ -211,5 +350,28 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
 
             connection.start(queue: queue)
         }
+    }
+
+    /// Constrói uma query DNS básica RFC 1035 para "local" ou "a.root-servers.net"
+    private func makeDNSQuery(transactionID: UInt16) -> Data {
+        var data = Data()
+        // Transaction ID (2 bytes)
+        data.append(UInt8(transactionID >> 8))
+        data.append(UInt8(transactionID & 0xFF))
+        // Flags: 0x0100 (Standard query, RD = 1)
+        data.append(contentsOf: [0x01, 0x00])
+        // QDCOUNT: 1 question
+        data.append(contentsOf: [0x00, 0x01])
+        // ANCOUNT, NSCOUNT, ARCOUNT: 0
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        // QNAME: "local" (5 'l' 'o' 'c' 'a' 'l' 0)
+        data.append(0x05)
+        data.append(contentsOf: "local".utf8)
+        data.append(0x00)
+        // QTYPE: A (0x0001)
+        data.append(contentsOf: [0x00, 0x01])
+        // QCLASS: IN (0x0001)
+        data.append(contentsOf: [0x00, 0x01])
+        return data
     }
 }

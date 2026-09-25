@@ -215,6 +215,7 @@ struct DeepCheckFeatureView: View {
             MeasurementLiveTrail(
                 isWiFi: isWiFi,
                 destinationName: friendlyRegion,
+                currentRTT: samples.last?.roundTripMilliseconds,
                 sampleCount: samples.count,
                 isUnderStress: phase == .load,
                 isPhaseRest: phase == .rest,
