@@ -1,9 +1,9 @@
 import Foundation
 
-/// Vereditos canônicos e curtos da tela de resultado do Check Completo (Decisão 35/36).
-/// Sem termos proibidos como "Pronto para jogar" ou "Conexão perfeita".
+/// Vereditos canônicos da tela de resultado do Check Completo (Decisões 35, 36 e 50).
+/// Integrado ao modelo de prontidão competitiva GameReadinessVerdict (Decisão 50).
 public enum CheckCompletoVerdict: String, Codable, CaseIterable, Equatable, Sendable {
-    /// Resultado saudável: sem perda, latência normal e carga estável.
+    /// Resultado saudável: sem perda, latência normal e carga estável (Pronto para jogar).
     case held = "check_completo.verdict.held"
     /// Instabilidade geral observada em repouso (jitter elevado, picos severos ou latência alta).
     case oscillated = "check_completo.verdict.oscillated"
@@ -15,6 +15,17 @@ public enum CheckCompletoVerdict: String, Codable, CaseIterable, Equatable, Send
     case inconclusive = "check_completo.verdict.inconclusive"
 
     public var titleKey: String { rawValue }
+
+    /// Mapeia o veredito legado do Check Completo para a camada semântica unificada de prontidão (Decisão 50).
+    public var readinessVerdict: GameReadinessVerdict {
+        switch self {
+        case .held: return .ready
+        case .oscillated: return .caution
+        case .loadHeavy: return .caution
+        case .deliveryFailed: return .notReady
+        case .inconclusive: return .inconclusive
+        }
+    }
 }
 
 /// Estado ótico dos nós na Trilha Consolidada HIG.

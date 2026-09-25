@@ -59,6 +59,8 @@
 		441F03754BBD8B518F1CFED9 /* RegionalPreferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BA4A153AB6FF4EE8B51F35 /* RegionalPreferenceRepository.swift */; };
 		4549507F612C6F0027C9E482 /* NWConnectionMeasurementTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2512D74F648CC9282836D9A2 /* NWConnectionMeasurementTransportTests.swift */; };
 		4784C662FB21579CB4B0A586 /* QualityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8807C9BC8FED2D1AB0DEBF3 /* QualityEvaluator.swift */; };
+		AA0000010000000000000002 /* GameReadinessDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000010000000000000001 /* GameReadinessDomain.swift */; };
+		AA0000020000000000000002 /* GameReadinessDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000020000000000000001 /* GameReadinessDomainTests.swift */; };
 		485FBB6278D3919E7A14FC22 /* OSLogAnalyticsTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF42C75F9CB79E559A2DF771 /* OSLogAnalyticsTracker.swift */; };
 		48B6290903697F3F3A63A307 /* URLSessionLoadTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B210DEADB7088D5FC2685AE1 /* URLSessionLoadTransport.swift */; };
 		4927E7E2DB4650355748CCE3 /* PlatformSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B00F88D7141C08CB28AB48 /* PlatformSelectionSheet.swift */; };
@@ -482,6 +484,8 @@
 		D73BE1BDFC858FFAE9BDB5AF /* NLSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLSpacing.swift; sourceTree = "<group>"; };
 		D79E99C965A7BE3EBABFA526 /* BoosterComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoosterComponents.swift; sourceTree = "<group>"; };
 		D8807C9BC8FED2D1AB0DEBF3 /* QualityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityEvaluator.swift; sourceTree = "<group>"; };
+		AA0000010000000000000001 /* GameReadinessDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameReadinessDomain.swift; sourceTree = "<group>"; };
+		AA0000020000000000000001 /* GameReadinessDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameReadinessDomainTests.swift; sourceTree = "<group>"; };
 		D8E37AEB674D0FAE3625F4E2 /* CatalogMeasurementJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogMeasurementJourneyTests.swift; sourceTree = "<group>"; };
 		DE6BA5916447AAA14BEA8F30 /* CheckCompletoResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultView.swift; sourceTree = "<group>"; };
 		E18D78F8D75E8AD726116462 /* SessionCompatibilityStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCompatibilityStrip.swift; sourceTree = "<group>"; };
@@ -841,6 +845,7 @@
 				7923005D916B2E192A47BC07 /* RegionalSelectionRuleTests.swift */,
 				BAE9B5B99E085D18410992CC /* RemoteCatalogTests.swift */,
 				0766344F6FD692F9218E5C13 /* ResultInterpreterTests.swift */,
+				AA0000020000000000000001 /* GameReadinessDomainTests.swift */,
 				6D8D320F08D5BE7BA01CDBD0 /* WiFiBandEvaluatorTests.swift */,
 			);
 			name = NolaggyDomainTests;
@@ -943,6 +948,7 @@
 				E8BD112C975F0E3A22FAA9E4 /* GameContext.swift */,
 				F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */,
 				46EB759A6480C1DA7A2D7408 /* GameEditorialRegistry.swift */,
+				AA0000010000000000000001 /* GameReadinessDomain.swift */,
 				CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */,
 				5F59ABE1787BB4E9581AFF31 /* GlobalProbeRegistry.swift */,
 				3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */,
@@ -1264,6 +1270,7 @@
 				A95FC70642D978F9C6ECD07E /* GameContext.swift in Sources */,
 				D28C3DD217EB1604C569D557 /* GameEditorialModels.swift in Sources */,
 				698D5E7225D33A48697B363B /* GameEditorialRegistry.swift in Sources */,
+				AA0000010000000000000002 /* GameReadinessDomain.swift in Sources */,
 				CF9B1F2F39E231D4ED29B509 /* GamePopularityRanking.swift in Sources */,
 				6A61F91AA7E34DC7DE4EE356 /* GlobalProbeRegistry.swift in Sources */,
 				4F90461F45BAD41ECCCC8851 /* MeasurementHistoryEntry.swift in Sources */,
@@ -1462,6 +1469,7 @@
 				C215B369DAFE028817EDD07A /* RegionalSelectionRuleTests.swift in Sources */,
 				229BD86BD3492F93A40C945E /* RemoteCatalogTests.swift in Sources */,
 				8828D96A8DBBBD3BE5AE109E /* ResultInterpreterTests.swift in Sources */,
+				AA0000020000000000000002 /* GameReadinessDomainTests.swift in Sources */,
 				9C6E15C3249B561310F474F3 /* WiFiBandEvaluatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

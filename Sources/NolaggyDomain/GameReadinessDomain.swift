@@ -1,0 +1,337 @@
+import Foundation
+
+/// Veredito semântico e determinístico de prontidão competitiva (Decisões 50 e 51).
+/// Substitui o score numérico como resultado protagonista da jornada.
+public enum GameReadinessVerdict: String, Codable, CaseIterable, Equatable, Sendable {
+    /// Condições observadas compatíveis com partida competitiva sólida (● PRONTO PARA RANKED).
+    case ready = "ready"
+    /// Jitter moderado, oscilações esporádicas ou impacto sob carga (▲ CONDIÇÕES INSTÁVEIS).
+    case caution = "caution"
+    /// Perda de pacotes prejudicial, latência excessiva ou instabilidade severa (▲ EU EVITARIA RANKED AGORA).
+    case notReady = "not_ready"
+    /// Respostas UDP insuficientes (< 10 amostras válidas) para emitir veredito seguro (— INCONCLUSIVO).
+    case inconclusive = "inconclusive"
+
+    public var titleKey: String {
+        switch self {
+        case .ready: return "game_readiness.verdict.ready"
+        case .caution: return "game_readiness.verdict.caution"
+        case .notReady: return "game_readiness.verdict.not_ready"
+        case .inconclusive: return "game_readiness.verdict.inconclusive"
+        }
+    }
+
+    public var defaultHeadline: String {
+        switch self {
+        case .ready: return "PRONTO PARA RANKED"
+        case .caution: return "CONDIÇÕES INSTÁVEIS"
+        case .notReady: return "EU EVITARIA RANKED AGORA"
+        case .inconclusive: return "DADOS INSUFICIENTES"
+        }
+    }
+
+    public var isReady: Bool {
+        self == .ready
+    }
+
+    public var symbolName: String {
+        switch self {
+        case .ready: return "circle.fill"
+        case .caution: return "triangle.fill"
+        case .notReady: return "triangle.fill"
+        case .inconclusive: return "minus"
+        }
+    }
+}
+
+/// Achado de rede honesto para a seção "O que encontramos" (Decisões 50 e 51).
+/// Reporta o sintoma comprovado sem atribuir culpa causal falsa a Wi-Fi ou operadora sem probe isolado.
+public struct NetworkFinding: Codable, Equatable, Hashable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        case packetLoss
+        case latencySpikes
+        case highLatency
+        case highJitter
+        case loadDegradation
+        case normalDestination
+        case stableRoute
+        case insufficientData
+    }
+
+    public enum Severity: String, Codable, Sendable {
+        case positive // Verde
+        case warning  // Âmbar
+        case negative // Vermelho
+        case neutral  // Neutro/Cinza
+    }
+
+    public let kind: Kind
+    public let severity: Severity
+    public let labelKey: String
+    public let detail: String?
+
+    public init(kind: Kind, severity: Severity, labelKey: String, detail: String? = nil) {
+        self.kind = kind
+        self.severity = severity
+        self.labelKey = labelKey
+        self.detail = detail
+    }
+}
+
+/// Avaliação completa de prontidão competitiva para a tela de resultado HIG Dark Competitive.
+public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
+    public let verdict: GameReadinessVerdict
+    public let headlineKey: String
+    public let subtitleKey: String
+    /// Valor normalizado de 0.0 a 1.0 para a barra contínua de estabilidade.
+    public let stabilityRatio: Double
+    public let stabilitySummaryKey: String
+    public let findings: [NetworkFinding]
+    public let pingMs: Double?
+    public let jitterMs: Double?
+    public let packetLossPercentage: Double
+    public let isUnderLoadAffected: Bool
+    public let worstSpikeMs: Double?
+
+    public init(
+        verdict: GameReadinessVerdict,
+        headlineKey: String,
+        subtitleKey: String,
+        stabilityRatio: Double,
+        stabilitySummaryKey: String,
+        findings: [NetworkFinding],
+        pingMs: Double?,
+        jitterMs: Double?,
+        packetLossPercentage: Double,
+        isUnderLoadAffected: Bool,
+        worstSpikeMs: Double? = nil
+    ) {
+        self.verdict = verdict
+        self.headlineKey = headlineKey
+        self.subtitleKey = subtitleKey
+        self.stabilityRatio = stabilityRatio
+        self.stabilitySummaryKey = stabilitySummaryKey
+        self.findings = findings
+        self.pingMs = pingMs
+        self.jitterMs = jitterMs
+        self.packetLossPercentage = packetLossPercentage
+        self.isUnderLoadAffected = isUnderLoadAffected
+        self.worstSpikeMs = worstSpikeMs
+    }
+
+    public static let inconclusive = GameReadinessEvaluation(
+        verdict: .inconclusive,
+        headlineKey: "game_readiness.verdict.inconclusive.headline",
+        subtitleKey: "game_readiness.verdict.inconclusive.subtitle",
+        stabilityRatio: 0.0,
+        stabilitySummaryKey: "game_readiness.stability.inconclusive",
+        findings: [
+            NetworkFinding(
+                kind: .insufficientData,
+                severity: .neutral,
+                labelKey: "game_readiness.finding.insufficient_samples"
+            )
+        ],
+        pingMs: nil,
+        jitterMs: nil,
+        packetLossPercentage: 100.0,
+        isUnderLoadAffected: false,
+        worstSpikeMs: nil
+    )
+}
+
+/// Avaliador determinístico de prontidão de rede para jogos (Decisões 50 e 51).
+/// Executa estritamente sobre evidências de medição UDP e perfil do jogo.
+public enum GameReadinessEvaluator {
+
+    /// Avalia a prontidão a partir de um DeepCheckResult (repouso + impacto de carga opcional).
+    public static func evaluate(
+        deepCheckResult: DeepCheckResult?,
+        profile: QualityProfileID
+    ) -> GameReadinessEvaluation {
+        guard let result = deepCheckResult else {
+            return .inconclusive
+        }
+        return evaluate(
+            qualityResult: result.restResult,
+            loadImpact: result.metrics.loadImpact,
+            profile: profile
+        )
+    }
+
+    /// Avalia a prontidão a partir de QualityResult (repouso) e opcional impacto sob carga.
+    public static func evaluate(
+        qualityResult: QualityResult?,
+        loadImpact: DeepCheckLoadImpact?,
+        profile: QualityProfileID
+    ) -> GameReadinessEvaluation {
+        guard let qualityResult else {
+            return .inconclusive
+        }
+
+        let metrics = qualityResult.metrics
+
+        // Regra Inegociável: Menos de 10 respostas UDP válidas é estritamente inconclusivo.
+        guard metrics.validResponseCount >= 10 else {
+            return .inconclusive
+        }
+
+        let interpretation = ResultInterpreter.interpret(qualityResult, profile: profile)
+        let guardrails = QualityEvaluator.causeGuardrails(for: profile)
+
+        let isLoadMaterial = (loadImpact?.classification == .material)
+        let hasPacketLoss = metrics.packetLossPercentage > 1.0 || interpretation.primaryCauseKey == .packetLoss
+        let hasHighLatency = (metrics.p50Milliseconds ?? 0) > guardrails.latencyGuardrailMilliseconds || interpretation.primaryCauseKey == .highLatency
+        let hasSevereSpikes = metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount || interpretation.primaryCauseKey == .severeSpikes
+        let hasHighJitter = (metrics.jitterMilliseconds ?? 0) >= guardrails.jitterRiskMilliseconds || interpretation.primaryCauseKey == .highJitter
+
+        // 1. Determinação do Veredito
+        let verdict: GameReadinessVerdict
+        let headlineKey: String
+        let subtitleKey: String
+
+        if hasPacketLoss {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.packet_loss"
+        } else if hasHighLatency {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.high_latency"
+        } else if hasSevereSpikes {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.severe_spikes"
+        } else if hasHighJitter {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.jitter"
+        } else if isLoadMaterial {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.load"
+        } else if qualityResult.resultClass == .unstable {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.general"
+        } else if qualityResult.resultClass == .lagRisk {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.risk"
+        } else {
+            verdict = .ready
+            headlineKey = "game_readiness.verdict.ready.headline"
+            subtitleKey = "game_readiness.verdict.ready.stable"
+        }
+
+        // 2. Construção dos Achados ("O Que Encontramos" — sem causalidade falsa)
+        var findings: [NetworkFinding] = []
+
+        // Perda de pacotes
+        if metrics.packetLossPercentage > 1.0 {
+            findings.append(NetworkFinding(
+                kind: .packetLoss,
+                severity: .negative,
+                labelKey: "game_readiness.finding.packet_loss_detected",
+                detail: String(format: "%.1f%%", metrics.packetLossPercentage)
+            ))
+        } else {
+            findings.append(NetworkFinding(
+                kind: .packetLoss,
+                severity: .positive,
+                labelKey: "game_readiness.finding.no_packet_loss",
+                detail: "0%"
+            ))
+        }
+
+        // Estabilidade / Picos de latência
+        if hasSevereSpikes {
+            findings.append(NetworkFinding(
+                kind: .latencySpikes,
+                severity: .negative,
+                labelKey: "game_readiness.finding.severe_spikes_detected",
+                detail: "\(metrics.severeSpikeCount)"
+            ))
+        } else if metrics.spikeCount > 0 || hasHighJitter {
+            findings.append(NetworkFinding(
+                kind: .latencySpikes,
+                severity: .warning,
+                labelKey: "game_readiness.finding.jitter_oscillations",
+                detail: nil
+            ))
+        } else {
+            findings.append(NetworkFinding(
+                kind: .stableRoute,
+                severity: .positive,
+                labelKey: "game_readiness.finding.route_stable",
+                detail: nil
+            ))
+        }
+
+        // Sob uso da rede / Carga
+        if isLoadMaterial {
+            let increase = loadImpact?.increaseMilliseconds ?? 0
+            findings.append(NetworkFinding(
+                kind: .loadDegradation,
+                severity: .warning,
+                labelKey: "game_readiness.finding.load_degradation_detected",
+                detail: String(format: "+%.0f ms", increase)
+            ))
+        } else if loadImpact != nil {
+            findings.append(NetworkFinding(
+                kind: .loadDegradation,
+                severity: .positive,
+                labelKey: "game_readiness.finding.load_stable",
+                detail: nil
+            ))
+        }
+
+        // Destino testado
+        findings.append(NetworkFinding(
+            kind: .normalDestination,
+            severity: .positive,
+            labelKey: "game_readiness.finding.destination_response_normal",
+            detail: nil
+        ))
+
+        // 3. Cálculo da Proporção de Estabilidade (0.0 a 1.0)
+        let consistency = metrics.components?.consistency ?? Double(qualityResult.finalScore)
+        var stabilityRatio = max(0.0, min(1.0, consistency / 100.0))
+        if isLoadMaterial {
+            stabilityRatio = max(0.2, stabilityRatio * 0.8)
+        }
+        if verdict == .notReady {
+            stabilityRatio = min(0.45, stabilityRatio)
+        } else if verdict == .caution {
+            stabilityRatio = min(0.75, max(0.50, stabilityRatio))
+        } else if verdict == .ready {
+            stabilityRatio = max(0.85, stabilityRatio)
+        }
+
+        let stabilitySummaryKey: String
+        switch verdict {
+        case .ready:
+            stabilitySummaryKey = "game_readiness.stability.ready_summary"
+        case .caution:
+            stabilitySummaryKey = "game_readiness.stability.caution_summary"
+        case .notReady:
+            stabilitySummaryKey = "game_readiness.stability.not_ready_summary"
+        case .inconclusive:
+            stabilitySummaryKey = "game_readiness.stability.inconclusive"
+        }
+
+        return GameReadinessEvaluation(
+            verdict: verdict,
+            headlineKey: headlineKey,
+            subtitleKey: subtitleKey,
+            stabilityRatio: stabilityRatio,
+            stabilitySummaryKey: stabilitySummaryKey,
+            findings: findings,
+            pingMs: metrics.p50Milliseconds,
+            jitterMs: metrics.jitterMilliseconds,
+            packetLossPercentage: metrics.packetLossPercentage,
+            isUnderLoadAffected: isLoadMaterial,
+            worstSpikeMs: metrics.worstSpikeMilliseconds
+        )
+    }
+}
