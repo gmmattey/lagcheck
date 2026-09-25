@@ -94,4 +94,25 @@ final class GameContextTests: XCTestCase {
             XCTAssertEqual(error as? CatalogValidationError, .unknownPrimaryRegion)
         }
     }
+
+    func testGenericGamingContextInitializationAndInvariants() throws {
+        let mobileContext = GameContext.genericGaming(market: "BR", platform: .iphone)
+        XCTAssertTrue(mobileContext.isGenericGaming)
+        XCTAssertEqual(mobileContext.gameID, GameContext.genericGamingID)
+        XCTAssertEqual(mobileContext.market, "BR")
+        XCTAssertEqual(mobileContext.platform, .iphone)
+        XCTAssertNil(mobileContext.declaredExternalLink)
+        XCTAssertNoThrow(try mobileContext.validateStructure())
+
+        let consoleContext = GameContext.genericGaming(market: "BR", platform: .playstation, declaredExternalLink: .ethernet)
+        XCTAssertTrue(consoleContext.isGenericGaming)
+        XCTAssertEqual(consoleContext.platform, .playstation)
+        XCTAssertEqual(consoleContext.declaredExternalLink, .ethernet)
+        XCTAssertNoThrow(try consoleContext.validateStructure())
+
+        let invalidMobileContext = GameContext.genericGaming(market: "BR", platform: .iphone, declaredExternalLink: .wifi)
+        XCTAssertThrowsError(try invalidMobileContext.validateStructure()) { error in
+            XCTAssertEqual(error as? CatalogValidationError, .externalEquipmentLinkNotApplicable)
+        }
+    }
 }

@@ -568,6 +568,9 @@ public enum RemoteCatalogVerifier {
         excludingRouteIDs: Set<String>
     ) throws -> RemoteCatalogResolution {
         try context.validateStructure()
+        if context.isGenericGaming {
+            return try resolveGenericGaming(context, in: payload)
+        }
         guard let game = payload.games.first(where: { $0.id == context.gameID }),
               let gameContext = game.contexts.first(where: { $0.market == context.market && $0.platforms.contains(context.platform) }) else {
             throw CatalogValidationError.unsupportedGame
@@ -616,6 +619,41 @@ public enum RemoteCatalogVerifier {
         ))
     }
 
+    private static func resolveGenericGaming(
+        _ context: GameContext,
+        in payload: RemoteCatalogPayload
+    ) throws -> RemoteCatalogResolution {
+        let profileID = QualityProfileID.battleRoyaleCompetitive
+        let ruleVersion = payload.profiles.first(where: { $0.id == profileID.rawValue })?.ruleVersion
+            ?? QualityEvaluator.ruleVersion(for: profileID)
+
+        let preferredRegionID: String
+        switch context.market {
+        case "BR":
+            preferredRegionID = "sa-east-1"
+        case "US":
+            preferredRegionID = "us-east-1"
+        default:
+            preferredRegionID = "sa-east-1"
+        }
+
+        guard let region = payload.regions.first(where: { $0.id == preferredRegionID }) ?? payload.regions.first else {
+            throw RemoteCatalogError.unknownRegion
+        }
+
+        return .available(ResolvedMeasurementContext(
+            context: context,
+            catalogVersion: payload.catalogVersion,
+            profileID: profileID,
+            profileRuleVersion: ruleVersion,
+            regionID: region.id,
+            destination: region.probe,
+            strategy: .genericRegion,
+            confidence: .medium,
+            precisionKey: "regionalReference"
+        ))
+    }
+
     /// Cria o snapshot usado pela regra de seleção somente a partir de um
     /// payload já obtido por `verifyAndDecode`. Não consulta DNS, rede ou UI.
     public static func regionalSelectionSnapshot(
@@ -623,6 +661,9 @@ public enum RemoteCatalogVerifier {
         in verifiedPayload: RemoteCatalogPayload
     ) throws -> RegionalSelectionSnapshot {
         try context.validateStructure()
+        if context.isGenericGaming {
+            return try regionalSelectionSnapshotForGenericGaming(context, in: verifiedPayload)
+        }
         guard let game = verifiedPayload.games.first(where: { $0.id == context.gameID }),
               let gameContext = game.contexts.first(where: { $0.market == context.market && $0.platforms.contains(context.platform) }),
               gameContext.availability == .available,
@@ -683,11 +724,55 @@ public enum RemoteCatalogVerifier {
         )
     }
 
+    private static func regionalSelectionSnapshotForGenericGaming(
+        _ context: GameContext,
+        in verifiedPayload: RemoteCatalogPayload
+    ) throws -> RegionalSelectionSnapshot {
+        let profileID = QualityProfileID.battleRoyaleCompetitive
+        let ruleVersion = verifiedPayload.profiles.first(where: { $0.id == profileID.rawValue })?.ruleVersion
+            ?? QualityEvaluator.ruleVersion(for: profileID)
+
+        guard QualityEvaluator.supports(profile: profileID, ruleVersion: ruleVersion) else {
+            throw RemoteCatalogError.unknownProfile
+        }
+
+        guard !verifiedPayload.regions.isEmpty else {
+            throw RemoteCatalogError.unknownRegion
+        }
+
+        let primaryRegionID = context.market == "BR" ? "sa-east-1" : "us-east-1"
+
+        let candidates = try verifiedPayload.regions.enumerated().map { index, region -> RegionalSelectionCandidate in
+            let priority = region.id == primaryRegionID ? 0 : (index + 1)
+            let resolved = ResolvedMeasurementContext(
+                context: context,
+                catalogVersion: verifiedPayload.catalogVersion,
+                profileID: profileID,
+                profileRuleVersion: ruleVersion,
+                regionID: region.id,
+                destination: region.probe,
+                strategy: .genericRegion,
+                confidence: .medium,
+                precisionKey: "regionalReference"
+            )
+            return try RegionalSelectionCandidate(resolvedContext: resolved, priority: priority)
+        }
+
+        return try RegionalSelectionSnapshot(
+            catalogVersion: verifiedPayload.catalogVersion,
+            context: context,
+            candidates: candidates
+        )
+    }
+
     /// Teto de plataformas do candidato schema 2. A UI só oferece a plataforma
     /// quando o contexto assinado a declara, mas este teto impede que um
     /// envelope Debug publique uma combinação que não pertence ao produto.
     public static func allowedPlatforms(for gameID: String) -> Set<Platform> {
-        schemaTwoAllowedPlatforms[gameID] ?? legacyAllowedPlatforms[gameID] ?? []
+        if gameID == GameContext.genericGamingID {
+            return Set(Platform.allCases)
+        }
+        return schemaTwoAllowedPlatforms[gameID] ?? legacyAllowedPlatforms[gameID] ?? []
     }
 
     /// O envelope schema 1 já publicado é aceito exatamente como foi assinado.

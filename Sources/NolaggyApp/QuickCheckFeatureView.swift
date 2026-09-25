@@ -413,11 +413,14 @@ struct QuickCheckFeatureView: View {
     }
 
     func supportedPlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
+        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+        if game.id == GameContext.genericGamingID {
+            return order
+        }
         guard let remoteCatalog,
               let catalogGame = remoteCatalog.games.first(where: { $0.id == game.id }) else {
             return []
         }
-        let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
         return order.filter { platform in
             let context = GameContext(
                 gameID: game.id,

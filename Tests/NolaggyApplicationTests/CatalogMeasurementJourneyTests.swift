@@ -233,6 +233,23 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
             assetBaseURL: "https://catalog.example/"
         )
     }
+
+    func testGenericGamingGameFactoryBuildsValidJourneyGame() throws {
+        let game = CatalogMeasurementJourney.genericGamingGame(
+            market: "BR",
+            platform: .playstation,
+            declaredExternalLink: .ethernet,
+            localizedName: "Conexão Geral para Jogos"
+        )
+
+        XCTAssertEqual(game.id, GameContext.genericGamingID)
+        XCTAssertEqual(game.name, "Conexão Geral para Jogos")
+        XCTAssertEqual(game.context.market, "BR")
+        XCTAssertEqual(game.context.platform, .playstation)
+        XCTAssertEqual(game.context.declaredExternalLink, .ethernet)
+        XCTAssertEqual(game.profileID, .battleRoyaleCompetitive)
+        XCTAssertNil(game.artwork)
+    }
 }
 
 private struct StubRoutePreflight: GameRoutePreflighting {

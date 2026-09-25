@@ -31,6 +31,27 @@ public enum CatalogMeasurementJourney {
         }
     }
 
+    public static func genericGamingGame(
+        market: String,
+        platform: Platform = .iphone,
+        declaredExternalLink: ExternalEquipmentLink? = nil,
+        localizedName: String = "Conexão Geral"
+    ) -> Game {
+        let context = GameContext.genericGaming(
+            market: market,
+            platform: platform,
+            declaredExternalLink: declaredExternalLink
+        )
+        return Game(
+            id: GameContext.genericGamingID,
+            name: localizedName,
+            context: context,
+            profileID: .battleRoyaleCompetitive,
+            artwork: nil,
+            assetBaseURL: nil
+        )
+    }
+
     public enum Error: Swift.Error, Equatable, Sendable {
         case unavailableContext
     }

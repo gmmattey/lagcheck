@@ -39,6 +39,25 @@ public struct GameContext: Codable, Hashable, Sendable {
     /// Declaração da pessoa sobre um console, PC ou Switch. iPhone não tem este fato.
     public let declaredExternalLink: ExternalEquipmentLink?
 
+    public static let genericGamingID = "generic-gaming"
+
+    public var isGenericGaming: Bool {
+        gameID == Self.genericGamingID
+    }
+
+    public static func genericGaming(
+        market: String = "BR",
+        platform: Platform = .iphone,
+        declaredExternalLink: ExternalEquipmentLink? = nil
+    ) -> GameContext {
+        GameContext(
+            gameID: genericGamingID,
+            market: market,
+            platform: platform,
+            declaredExternalLink: declaredExternalLink
+        )
+    }
+
     public init(
         gameID: String,
         market: String,

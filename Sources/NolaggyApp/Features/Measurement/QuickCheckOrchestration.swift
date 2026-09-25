@@ -122,11 +122,25 @@ extension QuickCheckFeatureView {
         }
         let context: ResolvedMeasurementContext
         if let platform, platform != baseContext.context.platform {
-            guard let game = availableGames.first(where: { $0.id == baseContext.context.gameID }),
-                  let resolved = resolveGameContext(game, platform: platform) else {
-                return
+            if baseContext.context.gameID == GameContext.genericGamingID {
+                let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+                let genericGame = CatalogMeasurementJourney.genericGamingGame(
+                    market: market,
+                    platform: platform,
+                    declaredExternalLink: baseContext.context.declaredExternalLink,
+                    localizedName: AppLocalization.string("generic_gaming.name", comment: "")
+                )
+                guard let resolved = resolveGameContext(genericGame, platform: platform, declaredExternalLink: baseContext.context.declaredExternalLink) else {
+                    return
+                }
+                context = resolved
+            } else {
+                guard let game = availableGames.first(where: { $0.id == baseContext.context.gameID }),
+                      let resolved = resolveGameContext(game, platform: platform) else {
+                    return
+                }
+                context = resolved
             }
-            context = resolved
         } else {
             context = baseContext
         }
@@ -171,14 +185,20 @@ extension QuickCheckFeatureView {
 
     func retryFromHistory(_ entry: MeasurementHistoryEntry) {
         selectedTab = .home
-        // O reteste mantém a jornada única: o detalhe permite confirmar o
-        // contexto antes de iniciar outro Deep Check, nunca uma leitura rápida
-        // autônoma em segundo plano.
+        if entry.resolvedContext.context.gameID == GameContext.genericGamingID {
+            selectGenericGaming()
+            return
+        }
         selectedGameForDetails = availableGames.first { $0.id == entry.resolvedContext.context.gameID }
     }
 
     func gameName(for entry: MeasurementHistoryEntry) -> String { gameName(forGameID: entry.resolvedContext.context.gameID) }
-    func gameName(forGameID gameID: String) -> String { availableGames.first(where: { $0.id == gameID })?.name ?? AppLocalization.string("game.unknown", comment: "") }
+    func gameName(forGameID gameID: String) -> String {
+        if gameID == GameContext.genericGamingID {
+            return AppLocalization.string("generic_gaming.name", comment: "")
+        }
+        return availableGames.first(where: { $0.id == gameID })?.name ?? AppLocalization.string("game.unknown", comment: "")
+    }
 
     func deleteHistory() async throws {
         try await historyRepository.deleteAll()
