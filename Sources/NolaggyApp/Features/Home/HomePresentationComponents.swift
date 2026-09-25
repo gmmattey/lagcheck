@@ -762,7 +762,7 @@ struct HomeDecisionCard: View {
             .disabled(isMeasuring)
             .accessibilityIdentifier("home-decision-primary-action")
 
-            if latestEntry == nil, let onSelectGenericGaming {
+            if let onSelectGenericGaming, game?.id != GameContext.genericGamingID {
                 Button(action: onSelectGenericGaming) {
                     HStack(spacing: NLSpacing.xs) {
                         Image(systemName: "network")
@@ -1044,6 +1044,11 @@ struct HomeCatalogView: View {
                 .padding(.horizontal, NLSpacing.md)
                 .padding(.top, NLSpacing.xs)
 
+                if query.isEmpty, let onSelectGenericGaming {
+                    HomeGenericGamingBanner(onSelect: onSelectGenericGaming)
+                        .padding(.horizontal, NLSpacing.md)
+                }
+
                 HomeCatalogFilters(
                     selected: $selectedCategory,
                     categories: CatalogCategory.allCases,
@@ -1054,11 +1059,6 @@ struct HomeCatalogView: View {
                     selectedPlatforms: $selectedPlatforms,
                     title: platformFilterTitle
                 )
-
-                if query.isEmpty, let onSelectGenericGaming {
-                    HomeGenericGamingBanner(onSelect: onSelectGenericGaming)
-                        .padding(.horizontal, NLSpacing.md)
-                }
 
                 if query.isEmpty, !recentItems.isEmpty {
                     CatalogRecentTestsSection(

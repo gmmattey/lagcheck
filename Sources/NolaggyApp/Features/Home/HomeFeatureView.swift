@@ -67,14 +67,19 @@ extension QuickCheckFeatureView {
     var availableGames: [CatalogMeasurementJourney.Game] {
         guard let remoteCatalog else { return [] }
         let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
-        // O catálogo é descoberto pelo contexto do jogo, não pela plataforma
-        // do telefone. A pessoa usa o iPhone para medir, mas pode jogar em PC
-        // ou console; por isso unimos os títulos disponíveis em cada
-        // plataforma antes de montar a lista.
         var seen = Set<String>()
-        return Platform.allCases
+        let catalogGames = Platform.allCases
             .flatMap { CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: $0) }
             .filter { seen.insert($0.id).inserted }
+
+        let genericGame = CatalogMeasurementJourney.genericGamingGame(
+            market: market,
+            platform: effectivePlatform ?? .iphone,
+            declaredExternalLink: lastHistoryEntryForEffectiveGame?.resolvedContext.context.declaredExternalLink,
+            localizedName: localizedString("generic_gaming.name")
+        )
+
+        return [genericGame] + catalogGames
     }
 
     var selectedGameName: String {
