@@ -9,6 +9,7 @@ struct NolaggyApp: App {
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
     private let catalogRepository: RemoteCatalogRepository
+    private let analyticsTracker: any AnalyticsTracker
     @State private var catalogState: CatalogState
 
     private var currentLanguage: AppLanguage {
@@ -28,6 +29,7 @@ struct NolaggyApp: App {
         }
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
+        analyticsTracker = OSLogAnalyticsTracker()
         let base = DebugCatalogBase.envelopeData() ?? Data()
         catalogRepository = RemoteCatalogRepository(
             baseEnvelopeData: base,
@@ -52,14 +54,16 @@ struct NolaggyApp: App {
                     DeepCheckFeatureView(
                         resolvedContext: try! PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone)),
                         gameName: "Fortnite",
-                        historyRepository: historyRepository
+                        historyRepository: historyRepository,
+                        analyticsTracker: analyticsTracker
                     )
                 } else {
                     QuickCheckFeatureView(
                         historyRepository: historyRepository,
                         regionalPreferenceRepository: regionalPreferenceRepository,
                         remoteCatalog: catalogState.payload,
-                        usesCatalogFallback: catalogState.usesBundledBase
+                        usesCatalogFallback: catalogState.usesBundledBase,
+                        analyticsTracker: analyticsTracker
                     )
                 }
             }

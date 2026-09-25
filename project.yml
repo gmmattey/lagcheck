@@ -89,6 +89,8 @@ targets:
         # publicadas e testadas. Valores vazios aparecem como indisponíveis.
         LAGCHECK_SUPPORT_URL: "https://linka-speedtest.web.app/lagcheck/suporte"
         LAGCHECK_PRIVACY_POLICY_URL: "https://linka-speedtest.web.app/lagcheck/privacidade"
+        INFOPLIST_KEY_LagCheckSupportURL: "$(LAGCHECK_SUPPORT_URL)"
+        INFOPLIST_KEY_LagCheckPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
         INFOPLIST_KEY_NolaggySupportURL: "$(LAGCHECK_SUPPORT_URL)"
         INFOPLIST_KEY_NolaggyPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
         PRIVACY_MANIFEST_FILE: Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy

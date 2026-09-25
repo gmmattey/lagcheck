@@ -19,8 +19,12 @@ struct NolaggyAppConfiguration: Equatable {
     let privacyPolicyURL: URL?
 
     init(bundle: Bundle = .main) {
-        supportURL = Self.secureURL(bundle.object(forInfoDictionaryKey: "NolaggySupportURL") as? String)
-        privacyPolicyURL = Self.secureURL(bundle.object(forInfoDictionaryKey: "NolaggyPrivacyPolicyURL") as? String)
+        let rawSupport = (bundle.object(forInfoDictionaryKey: "LagCheckSupportURL") as? String)
+            ?? (bundle.object(forInfoDictionaryKey: "NolaggySupportURL") as? String)
+        let rawPrivacy = (bundle.object(forInfoDictionaryKey: "LagCheckPrivacyPolicyURL") as? String)
+            ?? (bundle.object(forInfoDictionaryKey: "NolaggyPrivacyPolicyURL") as? String)
+        supportURL = Self.secureURL(rawSupport)
+        privacyPolicyURL = Self.secureURL(rawPrivacy)
     }
 
     init(supportURL: URL?, privacyPolicyURL: URL?) {
@@ -136,7 +140,7 @@ struct NolaggyBackButton: View {
         NolaggyNavigationControl(
             systemImage: "chevron.backward",
             accessibilityLabel: "quick_check.back",
-            accessibilityIdentifier: accessibilityIdentifier ?? "nolaggy-back",
+            accessibilityIdentifier: accessibilityIdentifier ?? "lagcheck-back",
             action: action
         )
     }

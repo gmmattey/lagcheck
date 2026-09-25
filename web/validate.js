@@ -94,7 +94,7 @@ htmlFiles.forEach((file) => {
   const content = fs.readFileSync(path.join(WEB_DIR, file), 'utf-8');
 
   // Wordmark em minúsculas
-  assert(content.includes('alt="nolaggy"'), `${file}: Wordmark usa 'nolaggy' em minúsculas`);
+  assert(content.includes('alt="lagcheck"'), `${file}: Wordmark usa 'lagcheck' em minúsculas`);
 
   // Plataforma iPhone e iOS 17+
   assert(content.includes('iPhone') && content.includes('iOS 17'), `${file}: Especifica iPhone e iOS 17+`);
@@ -139,12 +139,12 @@ privacyRequirements.forEach((req) => {
 // Verificações específicas do Suporte
 const supportContent = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
 const supportRequirements = [
-  { text: 'suporte@nolaggy.app', desc: 'Contato de suporte visível' },
+  { text: 'suporte@lagcheck.app', desc: 'Contato de suporte visível' },
   { text: 'provisório', desc: 'Contato provisório explicitamente identificado' },
-  { text: 'Quick Check', desc: 'Explicação do Quick Check' },
-  { text: 'Deep Check', desc: 'Explicação do Deep Check com exigência de Wi-Fi' },
+  { text: 'Metodologia do LagCheck', desc: 'Explicação da metodologia do LagCheck' },
+  { text: 'consentimento', desc: 'Consentimento de dados em rede móvel' },
   { text: 'Inconclusivo', desc: 'Tratamento honesto de resultado inconclusivo' },
-  { text: '75 – 100', desc: 'Tabela com escala do Nolaggy Score' }
+  { text: '75 – 100', desc: 'Tabela com escala do LagCheck Score' }
 ];
 
 supportRequirements.forEach((req) => {

@@ -63,6 +63,12 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `36` | Check Completo em Wi-Fi e rede móvel com consentimento de dados, trilha visual HIG sem ruído e descarte em troca de rede | decidido e em implementação |
 | `41` | Separação entre vínculo declarado do equipamento externo e rede observada no iPhone | decidido e em implementação |
 | `42` | Home orientada por estado da conexão e ação primária | decidido e em implementação |
+| `43` | Jornada única de Deep Check (substitui Quick Check na experiência visível) | decidido e implementado |
+| `44` | Identidade visual de capas geradas e artes do catálogo | decidido e implementado |
+| `45` | Exceção temporária Gemini Release 1.0.0 | decidido |
+| `46` | Reconciliação: Deep Check único e consentimento móvel | decidido e implementado |
+| `47` | Progressão visual imersiva com Pulse Gauge Coral Solar durante a medição | decidido e em implementação |
+| `48` | Experiência visual de carregamento com IA (Dicas de Otimização) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

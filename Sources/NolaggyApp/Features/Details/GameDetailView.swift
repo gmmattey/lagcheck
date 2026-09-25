@@ -14,6 +14,7 @@ struct GameDetailView: View {
     let resolvedContext: ResolvedMeasurementContext?
     let supportedPlatforms: [Platform]
     var gameHistory: [MeasurementHistoryEntry] = []
+    var analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker()
     let onStartDeepCheck: (Platform, ExternalEquipmentLink?) -> Void
     let onOpenHistory: () -> Void
 
@@ -76,6 +77,7 @@ struct GameDetailView: View {
             selectedPlatform = supportedPlatforms.first ?? .iphone
         }
         .onChange(of: selectedPlatform) { _, platform in
+            analyticsTracker.track(.platformSelected(platform: platform.rawValue))
             if platform == .iphone {
                 selectedExternalLink = nil
             }
@@ -159,6 +161,7 @@ struct GameDetailView: View {
 
     private func startDeepCheck() {
         guard !requiresEquipmentConnection else { return }
+        analyticsTracker.track(.platformSelected(platform: selectedPlatform.rawValue))
         onStartDeepCheck(selectedPlatform, selectedExternalLink)
     }
 }

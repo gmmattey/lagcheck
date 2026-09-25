@@ -10,6 +10,7 @@ extension QuickCheckFeatureView {
     func retest(_ entry: MeasurementHistoryEntry) {
         let previous = entry.resolvedContext.context
         guard availableGames.contains(where: { $0.id == previous.gameID }) else { return }
+        analyticsTracker.track(.retestStarted(gameID: previous.gameID, platform: previous.platform.rawValue))
         selectedGameID = previous.gameID
         requestedMeasurementContext = GameContext(
             gameID: previous.gameID,

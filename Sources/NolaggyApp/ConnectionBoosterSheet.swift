@@ -24,7 +24,7 @@ public struct ConnectionBoosterSheet: View {
                     
                     switch coordinator.state {
                     case .idle, .loading:
-                        BoosterSkeletonView()
+                        BoosterSkeletonView(gameName: request.gameName, platform: request.platform.rawValue.capitalized)
                             .padding(.top, NLSpacing.xs)
                     case let .loaded(advice):
                         contentView(advice)
