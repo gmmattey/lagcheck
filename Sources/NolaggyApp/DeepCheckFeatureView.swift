@@ -243,10 +243,14 @@ struct DeepCheckFeatureView: View {
             exit: cancelOrDismiss
         )
         .onAppear {
+            let evaluation = GameReadinessEvaluator.evaluate(
+                deepCheckResult: result,
+                profile: activeContext.profileID
+            )
             analyticsTracker.track(.resultViewed(
                 gameID: activeContext.context.gameID,
                 platform: activeContext.context.platform.rawValue,
-                resultClass: result.restResult.resultClass.rawValue
+                resultClass: evaluation.verdict.rawValue
             ))
         }
     }
@@ -267,7 +271,7 @@ struct DeepCheckFeatureView: View {
             analyticsTracker.track(.resultViewed(
                 gameID: activeContext.context.gameID,
                 platform: activeContext.context.platform.rawValue,
-                resultClass: "inconclusive"
+                resultClass: GameReadinessVerdict.inconclusive.rawValue
             ))
         }
     }

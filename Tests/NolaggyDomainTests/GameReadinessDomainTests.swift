@@ -143,11 +143,26 @@ final class GameReadinessDomainTests: XCTestCase {
         let readiness = GameReadinessEvaluator.evaluate(qualityResult: nil, loadImpact: nil, profile: .battleRoyaleCompetitive)
         XCTAssertEqual(readiness.verdict, .inconclusive)
         XCTAssertEqual(readiness.stabilityRatio, 0.0)
+        XCTAssertNil(readiness.packetLossPercentage, "Resultado inconclusivo NUNCA deve fabricar perda de pacotes")
+        XCTAssertNil(readiness.pingMs)
+        XCTAssertNil(readiness.jitterMs)
     }
 
     func testNilResultProducesInconclusiveVerdict() {
         let eval = GameReadinessEvaluator.evaluate(deepCheckResult: nil, profile: .battleRoyaleCompetitive)
         XCTAssertEqual(eval.verdict, .inconclusive)
+        XCTAssertNil(eval.packetLossPercentage)
+    }
+
+    func testHighLatencyProducesNotReadyVerdictAndNegativeFinding() throws {
+        // P50 = 120ms (> 80ms guardrail para battleRoyaleCompetitive)
+        let testSamples = samples(count: 30, rtt: 120.0)
+        let eval = try evaluateSamples(testSamples, profile: .battleRoyaleCompetitive)
+
+        XCTAssertEqual(eval.verdict, .notReady)
+        let latencyFinding = eval.findings.first(where: { $0.kind == .highLatency })
+        XCTAssertNotNil(latencyFinding, "Deve gerar achado de alta latência quando P50 excede guardrail")
+        XCTAssertEqual(latencyFinding?.severity, .negative)
     }
 
     // MARK: - Multi-Profile Consistency

@@ -330,7 +330,8 @@ public struct CheckCompletoResultView: View {
         return "\(Int(value.rounded()))"
     }
 
-    private func formattedLoss(_ loss: Double) -> String {
+    private func formattedLoss(_ loss: Double?) -> String {
+        guard let loss else { return "—" }
         if loss <= 0.05 {
             return "0"
         }

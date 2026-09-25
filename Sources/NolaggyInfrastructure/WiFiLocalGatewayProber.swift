@@ -21,7 +21,7 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
 
     public func probeLocalGateway(
         sampleCount: Int = 5,
-        timeoutPerSampleSeconds: TimeInterval = 0.3
+        timeoutPerSampleSeconds: TimeInterval = 0.5
     ) async -> WiFiLocalTelemetry {
         // 1. Verifica se a interface primária atual é Wi-Fi
         let isWiFi = await checkIsWiFi()
@@ -132,6 +132,23 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
     private static let rtaAuthorFlag: Int32 = 0x40
     private static let rtaBrdFlag: Int32 = 0x80
 
+    private struct DarwinRtMetrics {
+        var rmx_locks: UInt32 = 0
+        var rmx_mtu: UInt32 = 0
+        var rmx_hopcount: UInt32 = 0
+        var rmx_expire: Int32 = 0
+        var rmx_recvpipe: UInt32 = 0
+        var rmx_sendpipe: UInt32 = 0
+        var rmx_ssthresh: UInt32 = 0
+        var rmx_rtt: UInt32 = 0
+        var rmx_rttvar: UInt32 = 0
+        var rmx_pksent: UInt32 = 0
+        var rmx_filler0: UInt32 = 0
+        var rmx_filler1: UInt32 = 0
+        var rmx_filler2: UInt32 = 0
+        var rmx_filler3: UInt32 = 0
+    }
+
     private struct DarwinRtMsgHdr {
         var rtm_msglen: UInt16
         var rtm_version: UInt8
@@ -144,9 +161,11 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
         var rtm_errno: Int32
         var rtm_use: Int32
         var rtm_inits: UInt32
+        var rtm_rmx: DarwinRtMetrics
     }
 
     private func resolveGatewayFromRoutingTable() -> String? {
+        let wifiIndex = if_nametoindex("en0")
         var mib: [Int32] = [CTL_NET, PF_ROUTE, 0, AF_INET, NET_RT_FLAGS, Self.rtfGatewayFlag]
         var len: size_t = 0
         guard sysctl(&mib, UInt32(mib.count), nil, &len, nil, 0) == 0, len > 0 else {
@@ -168,6 +187,12 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
 
             let msgLen = Int(rtm.rtm_msglen)
             let addrs = Int(rtm.rtm_addrs)
+
+            // Se o índice de en0 for conhecido, ignora rotas associadas a túneis VPN
+            if wifiIndex > 0 && rtm.rtm_index != 0 && rtm.rtm_index != wifiIndex {
+                offset += msgLen
+                continue
+            }
 
             if (addrs & Int(Self.rtaGatewayFlag)) != 0 {
                 var sockOffset = offset + MemoryLayout<DarwinRtMsgHdr>.size

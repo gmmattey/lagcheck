@@ -43,7 +43,13 @@ const ALLOWED_PLATFORMS = new Set(["iphone", "playstation", "xbox", "pc"]);
 const ALLOWED_VERDICTS = new Set(["ready", "caution", "not_ready", "inconclusive"]);
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-async function handleTelemetry(request) {
+const TELEMETRY_CORS_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store",
+  "Access-Control-Allow-Origin": "*"
+};
+
+async function handleTelemetry(request, env = {}) {
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -119,13 +125,22 @@ async function handleTelemetry(request) {
 
   // Telemetria anônima validada com sucesso:
   // Zero PII: não registra IP, não armazena cookies, não expõe cabeçalhos de cliente.
+  // Suporte a Cloudflare Analytics Engine (gratuito) caso o binding esteja presente no ambiente.
+  if (env.ANALYTICS && typeof env.ANALYTICS.writeDataPoint === "function") {
+    try {
+      env.ANALYTICS.writeDataPoint({
+        blobs: [event, platform || "unknown", verdict || "none", gameId || "general"],
+        doubles: [1],
+        indexes: [installationId]
+      });
+    } catch {
+      // Ignora falha silenciosa no envio ao Analytics Engine para nunca impactar o cliente
+    }
+  }
+
   return Response.json({ status: "ok" }, {
     status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-      "Access-Control-Allow-Origin": "*"
-    }
+    headers: TELEMETRY_CORS_HEADERS
   });
 }
 
@@ -141,7 +156,7 @@ export async function handleRequest(request, env = {}) {
     return env.ASSETS.fetch(new Request(new URL(`/games/${assetMatch[1]}`, url), request));
   }
   if (url.pathname === "/v1/telemetry") {
-    return handleTelemetry(request);
+    return handleTelemetry(request, env);
   }
   if (url.pathname === "/v1/catalog.json") {
     if (request.method !== "GET") {

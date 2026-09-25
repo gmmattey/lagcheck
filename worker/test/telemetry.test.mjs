@@ -78,6 +78,34 @@ test("POST /v1/telemetry succeeds for retest_started event", async () => {
   assert.equal(data.status, "ok");
 });
 
+test("POST /v1/telemetry dispatches data point to env.ANALYTICS when bound", async () => {
+  let capturedDataPoint = null;
+  const mockEnv = {
+    ANALYTICS: {
+      writeDataPoint: (data) => {
+        capturedDataPoint = data;
+      }
+    }
+  };
+  const payload = {
+    installationId: VALID_UUID,
+    event: "verdict_viewed",
+    gameId: "fortnite",
+    platform: "iphone",
+    verdict: "ready"
+  };
+  const response = await handleRequest(new Request("https://example.workers.dev/v1/telemetry", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }), mockEnv);
+
+  assert.equal(response.status, 200);
+  assert.ok(capturedDataPoint);
+  assert.deepEqual(capturedDataPoint.blobs, ["verdict_viewed", "iphone", "ready", "fortnite"]);
+  assert.deepEqual(capturedDataPoint.indexes, [VALID_UUID]);
+});
+
 test("OPTIONS /v1/telemetry responds with CORS preflight headers", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/telemetry", {
     method: "OPTIONS"

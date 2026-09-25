@@ -537,6 +537,7 @@
 
 "game_readiness.finding.packet_loss_detected" = "Packet loss detected";
 "game_readiness.finding.no_packet_loss" = "No packet loss";
+"game_readiness.finding.high_latency_detected" = "Latency above ideal for competitive play";
 "game_readiness.finding.severe_spikes_detected" = "Latency spikes";
 "game_readiness.finding.jitter_oscillations" = "Jitter oscillations";
 "game_readiness.finding.route_stable" = "Normal rest route";

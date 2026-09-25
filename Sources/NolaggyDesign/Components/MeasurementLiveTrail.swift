@@ -384,6 +384,7 @@ public struct CompetitiveSignalPulseView: View {
                     )
                     .shadow(color: NLColor.coralSolar.opacity(isUnderStress ? 0.6 : 0.35), radius: 4, x: 0, y: 0)
             }
+            .clipped()
         }
         .onAppear {
             guard !reduceMotion else { return }
@@ -408,29 +409,25 @@ public struct CompetitiveSignalPulseShape: Shape {
         let height = rect.height
         let midY = height / 2.0
 
-        let step = width / 12.0
-        let shift = (phaseOffset * step * 2).truncatingRemainder(dividingBy: width)
+        let cycleWidth: CGFloat = max(80.0, width / 2.0)
+        let normalizedPhase = phaseOffset.truncatingRemainder(dividingBy: 1.0)
+        let shift = normalizedPhase * cycleWidth
 
-        path.move(to: CGPoint(x: 0, y: midY))
-        path.addLine(to: CGPoint(x: max(0, step * 2 - shift), y: midY))
+        var currentX: CGFloat = -shift
+        path.move(to: CGPoint(x: currentX, y: midY))
 
-        // Primeiro pulso ╲_╱
-        path.addLine(to: CGPoint(x: step * 3 - shift, y: midY + height * 0.3))
-        path.addLine(to: CGPoint(x: step * 3.8 - shift, y: midY - height * 0.45))
-        path.addLine(to: CGPoint(x: step * 4.6 - shift, y: midY + height * 0.35))
-        path.addLine(to: CGPoint(x: step * 5.4 - shift, y: midY))
-
-        // Intermediário
-        path.addLine(to: CGPoint(x: step * 7 - shift, y: midY))
-
-        // Segundo pulso ──╲_╱──
-        path.addLine(to: CGPoint(x: step * 7.8 - shift, y: midY + height * 0.25))
-        path.addLine(to: CGPoint(x: step * 8.5 - shift, y: midY - height * 0.4))
-        path.addLine(to: CGPoint(x: step * 9.2 - shift, y: midY + height * 0.3))
-        path.addLine(to: CGPoint(x: step * 10 - shift, y: midY))
-
-        // Linha final
-        path.addLine(to: CGPoint(x: width, y: midY))
+        while currentX < width + cycleWidth {
+            let start = currentX
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.40, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.48, y: midY + height * 0.22))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.55, y: midY - height * 0.45))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.62, y: midY + height * 0.30))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.70, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.82, y: midY - height * 0.12))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.90, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth, y: midY))
+            currentX += cycleWidth
+        }
 
         return path
     }

@@ -89,7 +89,7 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
     public let findings: [NetworkFinding]
     public let pingMs: Double?
     public let jitterMs: Double?
-    public let packetLossPercentage: Double
+    public let packetLossPercentage: Double?
     public let isUnderLoadAffected: Bool
     public let worstSpikeMs: Double?
 
@@ -102,7 +102,7 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
         findings: [NetworkFinding],
         pingMs: Double?,
         jitterMs: Double?,
-        packetLossPercentage: Double,
+        packetLossPercentage: Double?,
         isUnderLoadAffected: Bool,
         worstSpikeMs: Double? = nil
     ) {
@@ -134,7 +134,7 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
         ],
         pingMs: nil,
         jitterMs: nil,
-        packetLossPercentage: 100.0,
+        packetLossPercentage: nil,
         isUnderLoadAffected: false,
         worstSpikeMs: nil
     )
@@ -241,6 +241,17 @@ public enum GameReadinessEvaluator {
                 severity: .positive,
                 labelKey: "game_readiness.finding.no_packet_loss",
                 detail: "0%"
+            ))
+        }
+
+        // Latência alta acima do guardrail
+        if hasHighLatency {
+            let p50 = metrics.p50Milliseconds ?? 0
+            findings.append(NetworkFinding(
+                kind: .highLatency,
+                severity: .negative,
+                labelKey: "game_readiness.finding.high_latency_detected",
+                detail: String(format: "%.0f ms", p50)
             ))
         }
 

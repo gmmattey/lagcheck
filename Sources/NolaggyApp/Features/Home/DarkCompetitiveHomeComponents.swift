@@ -139,6 +139,7 @@ public struct DarkCompetitiveHeroCard: View {
                         .foregroundStyle(NLColor.textTertiary)
                 }
                 .padding(.vertical, NLSpacing.xs)
+                .frame(minHeight: NLSizing.touchTarget)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -155,42 +156,49 @@ public struct DarkCompetitiveHeroCard: View {
         .accessibilityIdentifier("home-decision-card")
     }
 
+    private var lastReadinessEvaluation: GameReadinessEvaluation? {
+        guard let entry = latestEntry else { return nil }
+        let profile = game?.profileID ?? .battleRoyaleCompetitive
+        return GameReadinessEvaluator.evaluate(
+            qualityResult: entry.result,
+            loadImpact: nil,
+            profile: profile
+        )
+    }
+
     private var lastStatusDotColor: Color {
-        guard let entry = latestEntry else {
+        guard let eval = lastReadinessEvaluation else {
             return NLColor.textTertiary
         }
-        let result = entry.result
-        if result.metrics.validResponseCount < 10 {
-            return NLColor.textSecondary
+        switch eval.verdict {
+        case .ready: return NLColor.semanticReady
+        case .caution: return NLColor.semanticCaution
+        case .notReady: return NLColor.semanticNotReady
+        case .inconclusive: return NLColor.textSecondary
         }
-        if result.metrics.packetLossPercentage > 1.0 || result.resultClass == .lagRisk {
-            return NLColor.semanticNotReady
-        }
-        if result.resultClass == .unstable {
-            return NLColor.semanticCaution
-        }
-        return NLColor.semanticReady
     }
 
     private var lastCheckStatusText: String {
-        guard let entry = latestEntry else {
+        guard let entry = latestEntry, let eval = lastReadinessEvaluation else {
             return AppLocalization.string("home.last_check.empty", comment: "")
         }
-        let result = entry.result
-        if result.metrics.validResponseCount < 10 {
+        if eval.verdict == .inconclusive {
             return AppLocalization.string("check_completo.verdict.inconclusive", comment: "")
         }
         let condition: String
-        if result.metrics.packetLossPercentage > 1.0 || result.resultClass == .lagRisk {
-            condition = AppLocalization.string("home.condition.lag_risk", comment: "")
-        } else if result.resultClass == .unstable {
-            condition = AppLocalization.string("home.condition.unstable", comment: "")
-        } else {
+        switch eval.verdict {
+        case .ready:
             condition = AppLocalization.string("home.condition.excellent", comment: "")
+        case .caution:
+            condition = AppLocalization.string("home.condition.unstable", comment: "")
+        case .notReady:
+            condition = AppLocalization.string("home.condition.lag_risk", comment: "")
+        case .inconclusive:
+            condition = AppLocalization.string("check_completo.verdict.inconclusive", comment: "")
         }
 
         let p50Text: String
-        if let p50 = result.metrics.p50Milliseconds {
+        if let p50 = eval.pingMs {
             p50Text = " · \(Int(p50.rounded())) ms"
         } else {
             p50Text = ""
@@ -244,6 +252,8 @@ public struct DarkCompetitiveQuickRail: View {
                     }
                     .font(NLTypography.caption)
                     .foregroundStyle(NLColor.textSecondary)
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("home-see-all-games")
