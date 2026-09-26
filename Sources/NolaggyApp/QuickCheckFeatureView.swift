@@ -29,6 +29,7 @@ struct QuickCheckFeatureView: View {
     @State var gamesReturnToHome = false
     @State var showingSettings = false
     @State var showingHistory = false
+    @State var showingFavoritesSheet = false
     @State var deepCheckDestination: DeepCheckDestination?
     @State var showingRegionalSelection = false
     @State var manualRegionID: String?
@@ -334,6 +335,35 @@ struct QuickCheckFeatureView: View {
         }
         .sheet(isPresented: $showingCockpit) {
             NetworkCockpitView()
+        }
+        .onOpenURL { url in
+            handleIncomingURL(url)
+        }
+    }
+
+    /// Trata chamadas de deep link externas (ex: do aplicativo Atalhos do iOS ou WiFi Casa).
+    /// Suporta:
+    /// - `lagcheck://quicktest` ou `lagcheck://test`: inicia o teste imediatamente em 1 toque na Home.
+    /// - `lagcheck://network` ou `lagcheck://wifi`: abre a aba de Dados da Rede (Cockpit).
+    /// - `lagcheck://games`: navega para o catálogo de jogos.
+    /// - `lagcheck://home`: navega para a tela inicial.
+    func handleIncomingURL(_ url: URL) {
+        guard let scheme = url.scheme?.lowercased(), scheme == "lagcheck" else { return }
+        let host = url.host?.lowercased() ?? ""
+        let path = url.path.lowercased()
+
+        if host == "quicktest" || host == "test" || host == "check" || path == "/quicktest" || path == "/test" {
+            selectedTab = .home
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                startLagCheckFromCTA()
+            }
+        } else if host == "network" || host == "wifi" || host == "cockpit" || path == "/network" || path == "/wifi" {
+            selectedTab = .network
+        } else if host == "games" || host == "catalog" || path == "/games" {
+            selectedTab = .games
+        } else if host == "home" {
+            selectedTab = .home
         }
     }
 

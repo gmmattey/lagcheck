@@ -25,6 +25,8 @@ public struct CheckCompletoResultView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var activePlatformForTips: Platform? = nil
+    @State private var exportPDFURL: URL? = nil
+    @State private var showingPDFShareSheet: Bool = false
 
     public init(
         result: DeepCheckResult?,
@@ -88,6 +90,28 @@ public struct CheckCompletoResultView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 NolaggyBackButton(action: exit, accessibilityIdentifier: "check-completo-back")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    exportResultPDF(evaluation: evaluation)
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(LocalizedStringKey("common.export_pdf"))
+                            .font(NLTypography.captionStrong)
+                    }
+                    .foregroundStyle(NLColor.accentPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(NLColor.accentPrimarySubtle, in: Capsule())
+                }
+                .accessibilityIdentifier("check-completo-export-pdf")
+            }
+        }
+        .sheet(isPresented: $showingPDFShareSheet) {
+            if let url = exportPDFURL {
+                ShareSheet(items: [url])
             }
         }
     }
@@ -285,16 +309,22 @@ public struct CheckCompletoResultView: View {
         }
     }
 
-    // MARK: - 5.1 Otimização para a Plataforma (Decisão 56)
+    // MARK: - 5.1 Oportunidade de Maior Impacto (Decisão 56 / Ajuste de Produto)
 
     private func platformOptimizationSection(evaluation: GameReadinessEvaluation) -> some View {
         let targetPlatform = activePlatformForTips ?? platform
+        let topOptimization = HighImpactOptimizationEvaluator.evaluateSingleTopOptimization(
+            targetPlatform: targetPlatform,
+            evaluation: evaluation,
+            isWiFi: isWiFi
+        )
 
         return VStack(alignment: .leading, spacing: NLSpacing.sm) {
             HStack {
-                Text(String(format: AppLocalization.string("platform_optimization.title", comment: ""), targetPlatform.displayName.uppercased()))
+                Text(LocalizedStringKey("game_readiness.single_optimization.header"))
                     .font(NLTypography.sectionHeader)
                     .foregroundStyle(NLColor.textTertiary)
+                    .textCase(.uppercase)
 
                 Spacer()
 
@@ -323,107 +353,83 @@ public struct CheckCompletoResultView: View {
                 }
             }
 
-            VStack(spacing: NLSpacing.sm) {
-                // Nível 1: Você mesmo no seu setup
-                optimizationLevelCard(
-                    title: LocalizedStringKey("platform_optimization.level1.title"),
-                    icon: "person.fill.checkmark",
-                    iconColor: NLColor.scoreExcellent,
-                    tip: level1Tip(for: targetPlatform, evaluation: evaluation)
-                )
-
-                // Nível 2: Com a operadora
-                if let tip2 = level2Tip(for: targetPlatform, evaluation: evaluation) {
-                    optimizationLevelCard(
-                        title: LocalizedStringKey("platform_optimization.level2.title"),
-                        icon: "phone.badge.waveform.fill",
-                        iconColor: NLColor.scoreUnstable,
-                        tip: tip2
-                    )
-                }
-
-                // Nível 3: Equipamento / Roteador
-                if let tip3 = level3Tip(for: targetPlatform, evaluation: evaluation) {
-                    optimizationLevelCard(
-                        title: LocalizedStringKey("platform_optimization.level3.title"),
-                        icon: "router.fill",
-                        iconColor: NLColor.coralSolar,
-                        tip: tip3
-                    )
-                }
-            }
+            singleImpactOptimizationCard(optimization: topOptimization)
         }
     }
 
-    private func optimizationLevelCard(
-        title: LocalizedStringKey,
-        icon: String,
-        iconColor: Color,
-        tip: String
-    ) -> some View {
+    private func singleImpactOptimizationCard(optimization: HighImpactOptimization) -> some View {
         HStack(alignment: .top, spacing: NLSpacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(iconColor)
-                .frame(width: 24, height: 24)
-                .background(iconColor.opacity(0.12), in: Circle())
+            Image(systemName: optimization.systemImage)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(optimization.isCritical ? NLColor.coralSolar : NLColor.scoreExcellent)
+                .frame(width: 34, height: 34)
+                .background((optimization.isCritical ? NLColor.coralSolar : NLColor.scoreExcellent).opacity(0.14), in: Circle())
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(NLTypography.captionStrong)
-                    .foregroundStyle(NLColor.textSecondary)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(optimization.title)
+                        .font(NLTypography.headline)
+                        .foregroundStyle(NLColor.textPrimary)
 
-                Text(tip)
+                    Spacer(minLength: 4)
+
+                    Text(optimization.impactBadge.uppercased())
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(optimization.isCritical ? NLColor.coralSolar : NLColor.scoreExcellent)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background((optimization.isCritical ? NLColor.coralSolar : NLColor.scoreExcellent).opacity(0.15), in: Capsule())
+                }
+
+                Text(optimization.instruction)
                     .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textPrimary)
+                    .foregroundStyle(NLColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer(minLength: 0)
         }
         .padding(NLSpacing.md)
         .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
-        .overlay(
+        .overlay {
             RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
-                .stroke(NLColor.borderHairline, lineWidth: 1)
+                .stroke(optimization.isCritical ? NLColor.coralSolar.opacity(0.35) : NLColor.borderHairline, lineWidth: 1)
+        }
+    }
+
+    private func exportResultPDF(evaluation: GameReadinessEvaluation) {
+        let topOpt = HighImpactOptimizationEvaluator.evaluateSingleTopOptimization(
+            targetPlatform: activePlatformForTips ?? platform,
+            evaluation: evaluation,
+            isWiFi: isWiFi
         )
-    }
+        let uiColor: UIColor
+        switch evaluation.verdict {
+        case .ready: uiColor = UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1)
+        case .caution: uiColor = UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1)
+        case .notReady: uiColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)
+        case .inconclusive: uiColor = .lightGray
+        }
 
-    private func level1Tip(for targetPlatform: Platform, evaluation: GameReadinessEvaluation) -> String {
-        let isConsoleOrPC = targetPlatform != .iphone
-        if isConsoleOrPC && isWiFi {
-            return "Conecte o \(targetPlatform.displayName) no cabo de rede Ethernet (Cat6) direto no roteador. O Wi-Fi é a causa número 1 de oscilação em consoles e PC."
-        }
-        if evaluation.findings.contains(where: { $0.kind == .natTopology }) {
-            return "Ative o UPnP no seu roteador ou configure IP estático no \(targetPlatform.displayName) com DMZ para liberar as portas NAT."
-        }
-        if evaluation.findings.contains(where: { $0.kind == .latencySpikes }) {
-            return "Feche downloads em segundo plano, torrents ou streaming na sua rede local enquanto joga."
-        }
-        return "Seu setup local está saudável. Mantenha os downloads pausados na rede durante a partida para garantir a latência mínima."
-    }
+        let scoreStr = result.map { "\($0.restResult.finalScore)" } ?? "—"
+        let bufferbloatGrade = evaluation.findings.contains(where: { $0.kind == .loadDegradation }) ? "Degradado" : "Estável"
 
-    private func level2Tip(for targetPlatform: Platform, evaluation: GameReadinessEvaluation) -> String? {
-        if evaluation.findings.contains(where: { $0.kind == .natTopology }) {
-            return "Sua operadora pode estar roteando você por CGNAT (IP compartilhado). Peça no suporte da operadora: 'Preciso de IP público dinâmico ou IPv6 nativo para jogos online'."
+        if let pdfURL = LagCheckPDFExporter.generateMeasurementResultPDF(
+            gameName: gameName,
+            platformName: (activePlatformForTips ?? platform).displayName,
+            regionName: regionFriendlyName,
+            verdictHeadline: AppLocalization.string(evaluation.headlineKey, comment: ""),
+            verdictColor: uiColor,
+            verdictSubtitle: AppLocalization.string(evaluation.subtitleKey, comment: ""),
+            scoreText: scoreStr,
+            pingMs: evaluation.pingMs,
+            jitterMs: evaluation.jitterMs,
+            lossPercentage: evaluation.packetLossPercentage,
+            bufferbloatGrade: bufferbloatGrade,
+            topOptimization: topOpt.instruction,
+            optimizationSeverity: topOpt.impactBadge
+        ) {
+            self.exportPDFURL = pdfURL
+            self.showingPDFShareSheet = true
         }
-        if evaluation.findings.contains(where: { $0.kind == .packetLoss }) {
-            return "Perda de pacotes na rota externa detectada. Solicite à operadora uma verificação de atenuação de sinal na sua fibra óptica."
-        }
-        if evaluation.findings.contains(where: { $0.kind == .highLatency }) {
-            return "Latência base elevada para a rota do jogo. Consulte se a operadora possui rota direta otimizada para o data center."
-        }
-        return nil
-    }
-
-    private func level3Tip(for targetPlatform: Platform, evaluation: GameReadinessEvaluation) -> String? {
-        if evaluation.findings.contains(where: { $0.kind == .loadDegradation }) {
-            return "Sua conexão sofre oscilação sob uso simultâneo (Bufferbloat). A solução definitiva é um roteador próprio com suporte a SQM (CAKE/FQ-CoDel)."
-        }
-        if evaluation.verdict == .notReady {
-            return "Se o modem da sua operadora for básico, colocá-lo em modo Bridge com um roteador Wi-Fi 6 de boa capacidade estabiliza a rota."
-        }
-        return nil
     }
 
     // MARK: - 6. Ações

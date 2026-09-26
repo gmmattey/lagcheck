@@ -94,6 +94,13 @@ targets:
         INFOPLIST_KEY_NolaggySupportURL: "$(LAGCHECK_SUPPORT_URL)"
         INFOPLIST_KEY_NolaggyPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
         PRIVACY_MANIFEST_FILE: Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy
+    info:
+      path: Sources/NolaggyApp/Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: com.lagcheck.app
+            CFBundleURLSchemes:
+              - lagcheck
   NolaggyDomainTests:
     type: bundle.unit-test
     platform: iOS

@@ -10,6 +10,22 @@ import NolaggyInfrastructure
 extension QuickCheckFeatureView {
     var contextView: some View { discoveryView }
 
+    var favoriteGamesList: [CatalogMeasurementJourney.Game] {
+        let store = FavoriteGamesStore.shared
+        let favIDs = store.favoriteGameIDs
+        let nonGenericGames = availableGames.filter { $0.id != GameContext.genericGamingID }
+        var result: [CatalogMeasurementJourney.Game] = []
+        for id in favIDs {
+            if let g = nonGenericGames.first(where: { $0.id == id }) {
+                result.append(g)
+            }
+        }
+        if result.isEmpty {
+            return Array(nonGenericGames.prefix(4))
+        }
+        return Array(result.prefix(4))
+    }
+
     var discoveryView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
@@ -33,40 +49,30 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, NLSpacing.xxs)
 
-                    // Pílula de Telemetria de Rede Local ao Vivo (Decisões 54 e 56)
-                    LiveNetworkSignalCapsule(signal: liveNetworkSignal, onTap: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = .network
-                        }
-                    })
-                        .padding(.horizontal, NLSpacing.md)
-
-                    // Hero Card Amplo do Jogo Protagonista
-                    DarkCompetitiveHeroCard(
-                        game: targetGameForCTA,
-                        platform: effectivePlatform,
-                        regionFriendlyName: selectedRegionFriendlyName,
-                        latestEntry: lastHistoryEntryForEffectiveGame ?? latestHistoryEntry,
+                    // Hero: Gauge Circular Dinâmico com Ondas Pulsantes
+                    HomeCircularPulseGaugeHero(
+                        selectedGameName: targetGameForCTA?.name,
+                        regionName: selectedRegionFriendlyName.isEmpty ? "São Paulo" : selectedRegionFriendlyName,
                         isMeasuring: presentation == .measuring,
-                        onStartCheck: startLagCheckFromCTA,
-                        onTestGeneralConnection: startGeneralGamingCheckFromCTA,
-                        onOpenHistory: { showingHistory = true }
+                        onStartCheck: startLagCheckFromCTA
                     )
-                    .padding(.horizontal, NLSpacing.md)
+                    .padding(.vertical, NLSpacing.xs)
 
-                    // Trilho Rápido SEUS JOGOS
-                    DarkCompetitiveQuickRail(
-                        games: Array(homeGames.prefix(6)),
-                        selectedGameID: targetGameForCTA?.id,
+                    // Lista de Jogos Favoritos do Jogador (até 4, sem jogo genérico)
+                    HomeFavoriteGamesRail(
+                        favoriteGames: favoriteGamesList,
+                        selectedGameID: selectedGameID,
                         onSelectGame: { game in
-                            selectedGameID = game.id
+                            if selectedGameID == game.id {
+                                selectedGameID = nil
+                            } else {
+                                selectedGameID = game.id
+                            }
                         },
-                        onSelectGenericGaming: {
-                            selectedGameID = GameContext.genericGamingID
-                        },
-                        onSeeAllGames: openGamesFromHome
+                        onManageFavorites: {
+                            showingFavoritesSheet = true
+                        }
                     )
-                    .padding(.horizontal, NLSpacing.md)
                     .padding(.top, NLSpacing.xs)
                     .padding(.bottom, NLSpacing.xl)
                 }
@@ -76,8 +82,8 @@ extension QuickCheckFeatureView {
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
-        .task {
-            await refreshLiveNetworkSignal()
+        .sheet(isPresented: $showingFavoritesSheet) {
+            FavoriteGamesSelectionSheet(allGames: availableGames)
         }
     }
 
@@ -185,23 +191,13 @@ extension QuickCheckFeatureView {
             .filter { seen.insert($0.id).inserted }
     }
 
-    /// Jogo alvo para o botão CTA principal: o explicitamente selecionado, ou o último testado, ou o primeiro disponível.
+    /// Jogo alvo para o botão CTA principal: o explicitamente selecionado pelo jogador.
+    /// Se nil (desmarcado), a Home assume teste direto de Conexão Geral (rota de referência neutra).
     var targetGameForCTA: CatalogMeasurementJourney.Game? {
-        if let explicitID = selectedGameID {
-            if explicitID == GameContext.genericGamingID {
-                let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
-                return CatalogMeasurementJourney.genericGamingGame(
-                    market: market,
-                    platform: .iphone,
-                    declaredExternalLink: nil,
-                    localizedName: localizedString("generic_gaming.name")
-                )
-            }
-            if let found = availableGames.first(where: { $0.id == explicitID }) {
-                return found
-            }
+        guard let explicitID = selectedGameID, explicitID != GameContext.genericGamingID else {
+            return nil
         }
-        return recentTestedItems.first?.game ?? popularGames.first ?? availableGames.first
+        return availableGames.first(where: { $0.id == explicitID })
     }
 
     func selectGame(_ game: CatalogMeasurementJourney.Game) {

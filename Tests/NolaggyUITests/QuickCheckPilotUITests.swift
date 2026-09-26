@@ -249,8 +249,9 @@ final class DeepCheckJourneyUITests: XCTestCase {
         startDeepCheck(app)
         XCTAssertTrue(app.buttons["check-completo-details"].waitForExistence(timeout: 2))
         app.buttons["check-completo-details"].tap()
-        XCTAssertTrue(app.buttons["deep-check-details-back"].waitForExistence(timeout: 2))
-        app.buttons["deep-check-details-back"].tap()
+        let closeDetails = app.buttons["technical-details-close"].exists ? app.buttons["technical-details-close"] : app.buttons["deep-check-details-back"]
+        XCTAssertTrue(closeDetails.waitForExistence(timeout: 2))
+        closeDetails.tap()
         XCTAssertTrue(app.buttons["check-completo-back"].waitForExistence(timeout: 2))
     }
 

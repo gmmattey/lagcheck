@@ -600,3 +600,28 @@
 "platform_optimization.level1.title" = "In your setup (By yourself)";
 "platform_optimization.level2.title" = "With your ISP";
 "platform_optimization.level3.title" = "Hardware & Router";
+
+/* Home Hero Gauge & Favoritos */
+"home.gauge.test_now" = "TEST NOW";
+"home.gauge.measuring" = "MEASURING...";
+"home.favorite_games.title" = "Your Games";
+"home.favorite_games.edit" = "Edit";
+"home.favorite_games.add" = "Add";
+"home.favorite_games.selection_hint" = "Select up to %d of %d favorite games for Home";
+
+/* Otimização de Maior Impacto & Export PDF */
+"game_readiness.single_optimization.header" = "HIGHEST IMPACT OPPORTUNITY";
+"common.export_pdf" = "Export PDF";
+"network_cockpit.export_pdf" = "Export PDF Report";
+"network_cockpit.refresh_live" = "Refresh";
+"network_cockpit.probing" = "Probing...";
+"network_cockpit.use_cases.title" = "GAMING PROFILE READINESS";
+"network_cockpit.use_case.cloud_gaming" = "Cloud Gaming Streaming";
+"network_cockpit.use_case.cloud_gaming_desc" = "Xbox Cloud, GeForce NOW, PS Remote Play";
+"network_cockpit.use_case.voice_chat" = "Multiplayer Audio (Voice Chat)";
+"network_cockpit.use_case.voice_chat_desc" = "Discord, PSN and Xbox Live Party Chat";
+"network_cockpit.use_case.competitive_fps" = "Competitive Multiplayer (FPS/MOBA)";
+"network_cockpit.use_case.competitive_fps_desc" = "CS2, Valorant, Fortnite, Warzone";
+"network_cockpit.use_case.live_stream" = "Live Streaming";
+"network_cockpit.use_case.live_stream_desc" = "Twitch, YouTube Gaming, Kick";
+

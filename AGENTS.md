@@ -76,6 +76,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `53` | Decisão de tipografia: Arquitetura Híbrida de Performance (NoPing benchmark: display pesado, cockpit monoespaçado e eliminação de rounded) | decidido e implementado |
 | `54` | Pílula de telemetria local ao vivo na Home (`LiveNetworkSignalCapsule`), correção do botão duplo de voltar no Histórico e resolução de jogos não listados | decidido e implementado |
 | `55` | Especificação de Melhorias em Diagnóstico, Métricas e Integridade de Rede (Grok: probe gateway local, Wi-Fi 2.4/5GHz confiável, bufferbloat multidimensional, qualidade da amostra, hierarquia de causas, spikes recorrentes, recomendações acionáveis e descarte estrito) | decidido e em implementação |
+| `56` | Jornada Direta em 1 Toque, Cockpit de Rede ("Dados da Rede") e Otimizações de Setup por Plataforma no Resultado | decidido e implementado |
+| `57` | Hero Gauge Pulsante com "Testar Agora", Meus Jogos Favoritos (até 4), Exportação de Relatórios PDF Customizados, Otimização Única de Maior Impacto e Casos de Uso com Ícones | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

@@ -8,20 +8,17 @@ import NolaggyInfrastructure
 /// Cockpit de Rede ("Dados da Rede do Jogador" — Decisão 56).
 /// Reúne todos os parâmetros técnicos da conexão local e de borda WAN que interessam
 /// ao jogador para configurar consoles, PC, abrir portas ou contestar a operadora.
+/// Consome o `SharedNetworkTelemetryService` como fonte única da verdade ao vivo.
 public struct NetworkCockpitView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 
-    @State private var localIP: String? = nil
-    @State private var gatewayIP: String? = nil
-    @State private var gatewayRTTMs: Double? = nil
-    @State private var wifiBand: String = "—"
-    @State private var connectionKindText: String = "Detectando..."
-    @State private var isWiFi: Bool = true
-    @State private var natTopology: NATTopologySnapshot? = nil
-    @State private var isProbing: Bool = true
+    @ObservedObject private var telemetry = SharedNetworkTelemetryService.shared
+
     @State private var showPublicIP: Bool = false
     @State private var copyFeedback: Bool = false
+    @State private var exportPDFURL: URL? = nil
+    @State private var showingPDFShareSheet: Bool = false
 
     public let showsDismissButton: Bool
 
@@ -44,7 +41,7 @@ public struct NetworkCockpitView: View {
     private var content: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: NLSpacing.lg) {
-                // Header e status geral
+                // Header e status geral ao vivo
                 summaryHeader
 
                 // Card 1: Conexão Local e Primeiro Salto
@@ -53,7 +50,10 @@ public struct NetworkCockpitView: View {
                 // Card 2: Borda WAN, NAT e CGNAT
                 wanTopologyCard
 
-                // Card 3: Ações Práticas
+                // Card 3: Prontidão para Casos de Uso Gamer
+                useCasesCard
+
+                // Card 4: Ações Práticas (Exportar PDF e Copiar)
                 actionsCard
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
@@ -78,27 +78,59 @@ public struct NetworkCockpitView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingPDFShareSheet) {
+            if let url = exportPDFURL {
+                ShareSheet(items: [url])
+            }
+        }
         .task {
-            await loadNetworkDiagnostics()
+            await telemetry.refreshTelemetry()
         }
     }
 
-    // MARK: - Summary Header
+    // MARK: - Summary Header Ao Vivo
     private var summaryHeader: some View {
         VStack(spacing: NLSpacing.xs) {
             HStack(spacing: 8) {
                 Circle()
-                    .fill(isWiFi ? NLColor.scoreExcellent : NLColor.accentPrimary)
+                    .fill(telemetry.isWiFi ? NLColor.scoreExcellent : NLColor.accentPrimary)
                     .frame(width: 8, height: 8)
-                Text(connectionKindText)
+
+                Text(telemetry.connectionKindText)
                     .font(NLTypography.headline)
                     .foregroundStyle(NLColor.textPrimary)
+
+                Spacer()
+
+                if telemetry.isProbing {
+                    HStack(spacing: 4) {
+                        ProgressView().scaleEffect(0.7)
+                        Text(LocalizedStringKey("network_cockpit.probing"))
+                            .font(NLTypography.caption)
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
+                } else {
+                    Button(action: {
+                        Task { await telemetry.refreshTelemetry(force: true) }
+                    }) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 11, weight: .bold))
+                            Text(LocalizedStringKey("network_cockpit.refresh_live"))
+                                .font(NLTypography.captionStrong)
+                        }
+                        .foregroundStyle(NLColor.accentPrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(NLColor.accentPrimarySubtle, in: Capsule())
+                    }
+                }
             }
 
             Text(LocalizedStringKey("network_cockpit.subtitle"))
                 .font(NLTypography.footnote)
                 .foregroundStyle(NLColor.textSecondary)
-                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, NLSpacing.xs)
@@ -108,15 +140,15 @@ public struct NetworkCockpitView: View {
     private var localNetworkCard: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
             HStack {
-                Image(systemName: isWiFi ? "wifi" : "antenna.radiowaves.left.and.right")
+                Image(systemName: telemetry.isWiFi ? "wifi" : "antenna.radiowaves.left.and.right")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(NLColor.accentPrimary)
                 Text(LocalizedStringKey("network_cockpit.local_network.title"))
                     .font(NLTypography.captionStrong)
                     .foregroundStyle(NLColor.textPrimary)
                 Spacer()
-                if isWiFi {
-                    Text(wifiBand)
+                if telemetry.isWiFi {
+                    Text(telemetry.wifiBand)
                         .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(NLColor.accentPrimary)
                         .padding(.horizontal, 6)
@@ -129,19 +161,19 @@ public struct NetworkCockpitView: View {
 
             dataRow(
                 label: LocalizedStringKey("network_cockpit.local_ip"),
-                value: localIP ?? "—",
+                value: telemetry.localIP ?? "—",
                 isMonospaced: true,
-                canCopy: localIP != nil
+                canCopy: telemetry.localIP != nil
             )
 
             dataRow(
                 label: LocalizedStringKey("network_cockpit.gateway_ip"),
-                value: gatewayIP ?? "—",
+                value: telemetry.gatewayIP ?? "—",
                 isMonospaced: true,
-                canCopy: gatewayIP != nil
+                canCopy: telemetry.gatewayIP != nil
             )
 
-            if let rtt = gatewayRTTMs {
+            if let rtt = telemetry.gatewayRTTMs {
                 dataRow(
                     label: LocalizedStringKey("network_cockpit.gateway_rtt"),
                     value: "\(Int(round(rtt))) ms",
@@ -150,7 +182,7 @@ public struct NetworkCockpitView: View {
                 )
             }
 
-            if let gw = gatewayIP, isWiFi {
+            if let gw = telemetry.gatewayIP, telemetry.isWiFi {
                 Button(action: {
                     if let url = URL(string: "http://\(gw)") {
                         openURL(url)
@@ -186,7 +218,7 @@ public struct NetworkCockpitView: View {
                     .font(NLTypography.captionStrong)
                     .foregroundStyle(NLColor.textPrimary)
                 Spacer()
-                if isProbing {
+                if telemetry.isProbing {
                     ProgressView()
                         .scaleEffect(0.7)
                 }
@@ -235,7 +267,7 @@ public struct NetworkCockpitView: View {
                     }
                     if showPublicIP {
                         Button(action: {
-                            if let ip = natTopology?.publicIP {
+                            if let ip = telemetry.natTopology?.publicIP {
                                 UIPasteboard.general.string = ip
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             }
@@ -256,9 +288,123 @@ public struct NetworkCockpitView: View {
         )
     }
 
-    // MARK: - Card 3: Ações Práticas
+    // MARK: - Card 3: Prontidão para Casos de Uso Gamer
+    private var useCasesCard: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            HStack {
+                Image(systemName: "gamecontroller.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(NLColor.accentPrimary)
+                Text(LocalizedStringKey("network_cockpit.use_cases.title"))
+                    .font(NLTypography.captionStrong)
+                    .foregroundStyle(NLColor.textPrimary)
+                Spacer()
+            }
+
+            Divider().overlay(NLColor.borderHairline)
+
+            VStack(spacing: NLSpacing.sm) {
+                // Caso 1: Streaming de Jogos (Cloud Gaming)
+                useCaseRow(
+                    icon: "tv.and.mediabox",
+                    title: LocalizedStringKey("network_cockpit.use_case.cloud_gaming"),
+                    subtitle: cloudGamingMotivator,
+                    status: cloudGamingStatus
+                )
+
+                Divider().overlay(NLColor.borderHairline)
+
+                // Caso 2: Áudio Multiplayer (Chat de Voz)
+                useCaseRow(
+                    icon: "headphones",
+                    title: LocalizedStringKey("network_cockpit.use_case.voice_chat"),
+                    subtitle: voiceChatMotivator,
+                    status: voiceChatStatus
+                )
+
+                Divider().overlay(NLColor.borderHairline)
+
+                // Caso 3: Multiplayer Competitivo (FPS/MOBA)
+                useCaseRow(
+                    icon: "target",
+                    title: LocalizedStringKey("network_cockpit.use_case.competitive_fps"),
+                    subtitle: competitiveFPSMotivator,
+                    status: competitiveFPSStatus
+                )
+
+                Divider().overlay(NLColor.borderHairline)
+
+                // Caso 4: Transmissão ao Vivo (Live Stream)
+                useCaseRow(
+                    icon: "antenna.radiowaves.left.and.right",
+                    title: LocalizedStringKey("network_cockpit.use_case.live_stream"),
+                    subtitle: liveStreamMotivator,
+                    status: liveStreamStatus
+                )
+            }
+        }
+        .padding(NLSpacing.md)
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(NLColor.borderHairline, lineWidth: 1)
+        )
+    }
+
+    private func useCaseRow(
+        icon: String,
+        title: LocalizedStringKey,
+        subtitle: String,
+        status: (badge: String, color: Color)
+    ) -> some View {
+        HStack(alignment: .center, spacing: NLSpacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(status.color)
+                .frame(width: 28, height: 28)
+                .background(status.color.opacity(0.12), in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(NLTypography.callout.weight(.semibold))
+                    .foregroundStyle(NLColor.textPrimary)
+
+                Text(subtitle)
+                    .font(NLTypography.caption)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+
+            Text(status.badge)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(status.color)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(status.color.opacity(0.15), in: Capsule())
+        }
+    }
+
+    // MARK: - Card 4: Ações Práticas (Exportar PDF & Copiar)
     private var actionsCard: some View {
         VStack(spacing: NLSpacing.sm) {
+            // Botão Principal: Exportar PDF Customizado
+            Button(action: exportNetworkPDF) {
+                HStack {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(LocalizedStringKey("network_cockpit.export_pdf"))
+                        .font(NLTypography.bodyEmphasis)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 46)
+                .foregroundStyle(.white)
+                .background(NLColor.coralSolar, in: RoundedRectangle(cornerRadius: 10))
+            }
+            .accessibilityIdentifier("cockpit-export-pdf")
+
+            // Botão Secundário: Copiar Relatório Texto
             Button(action: copyReportToClipboard) {
                 HStack {
                     Image(systemName: copyFeedback ? "checkmark" : "doc.on.doc")
@@ -317,9 +463,128 @@ public struct NetworkCockpitView: View {
         }
     }
 
+    // MARK: - Lógicas de Diagnóstico de Casos de Uso
+    private var cloudGamingStatus: (badge: String, color: Color) {
+        let rtt = telemetry.gatewayRTTMs ?? 99
+        let is5G = telemetry.isWiFi && telemetry.wifiBand.contains("5")
+        if rtt <= 4.0 && is5G {
+            return ("EXCELENTE", NLColor.scoreExcellent)
+        } else if rtt <= 10.0 {
+            return ("BOM", NLColor.scoreUnstable)
+        } else {
+            return ("ATENÇÃO", NLColor.coralSolarRed)
+        }
+    }
+
+    private var voiceChatStatus: (badge: String, color: Color) {
+        let rtt = telemetry.gatewayRTTMs ?? 99
+        if rtt <= 8.0 {
+            return ("EXCELENTE", NLColor.scoreExcellent)
+        } else if rtt <= 20.0 {
+            return ("BOM", NLColor.scoreUnstable)
+        } else {
+            return ("INSTÁVEL", NLColor.coralSolarRed)
+        }
+    }
+
+    private var competitiveFPSStatus: (badge: String, color: Color) {
+        let nat = telemetry.natTopology
+        let isStrict = nat?.natType == .type3Strict
+        let hasDoubleNAT = nat?.doubleNATStatus == .suspectOrDetected
+        let rtt = telemetry.gatewayRTTMs ?? 99
+
+        if !isStrict && !hasDoubleNAT && rtt <= 5.0 {
+            return ("EXCELENTE", NLColor.scoreExcellent)
+        } else if !isStrict && rtt <= 15.0 {
+            return ("BOM", NLColor.scoreUnstable)
+        } else {
+            return ("ATENÇÃO", NLColor.coralSolarRed)
+        }
+    }
+
+    private var liveStreamStatus: (badge: String, color: Color) {
+        let rtt = telemetry.gatewayRTTMs ?? 99
+        if rtt <= 6.0 && telemetry.isWiFi && telemetry.wifiBand.contains("5") {
+            return ("EXCELENTE", NLColor.scoreExcellent)
+        } else if rtt <= 15.0 {
+            return ("BOM", NLColor.scoreUnstable)
+        } else {
+            return ("ATENÇÃO", NLColor.coralSolarRed)
+        }
+    }
+
+    private var cloudGamingMotivator: String {
+        guard let rtt = telemetry.gatewayRTTMs else {
+            return "Aguardando leitura de resposta do roteador..."
+        }
+        let rttInt = Int(round(rtt))
+        let is5G = telemetry.isWiFi && telemetry.wifiBand.contains("5")
+        if rtt <= 4.0 && is5G {
+            return "Wi-Fi 5 GHz e gateway veloz (\(rttInt) ms): fluxo sem engasgos"
+        } else if !is5G && telemetry.isWiFi {
+            return "Wi-Fi 2.4 GHz detectado: suscetível a oscilação de vídeo e congelamentos"
+        } else if rtt > 10.0 {
+            return "Alta latência de gateway (\(rttInt) ms): causa atraso perceptível nos comandos"
+        } else {
+            return "Latência aceitável (\(rttInt) ms): recomendável proximidade do roteador"
+        }
+    }
+
+    private var voiceChatMotivator: String {
+        guard let rtt = telemetry.gatewayRTTMs else {
+            return "Aguardando leitura de conexão local..."
+        }
+        let rttInt = Int(round(rtt))
+        if rtt <= 8.0 {
+            return "Latência baixa (\(rttInt) ms): voz clara e instantânea sem cortes"
+        } else if rtt > 20.0 {
+            return "Alta latência no roteador (\(rttInt) ms): voz robótica ou atraso perceptível"
+        } else {
+            return "Latência moderada (\(rttInt) ms): chamadas estáveis com pequeno retardo"
+        }
+    }
+
+    private var competitiveFPSMotivator: String {
+        let nat = telemetry.natTopology
+        let isStrict = nat?.natType == .type3Strict
+        let hasDoubleNAT = nat?.doubleNATStatus == .suspectOrDetected
+        guard let rtt = telemetry.gatewayRTTMs else {
+            return "Aguardando diagnóstico de NAT e rota local..."
+        }
+        let rttInt = Int(round(rtt))
+        if isStrict {
+            return "NAT Tipo 3 (Estrito): bloqueia conexão direta e lobbies com amigos"
+        } else if hasDoubleNAT {
+            return "Duplo NAT detectado: roteadores em cascata aumentam atraso"
+        } else if rtt > 15.0 {
+            return "Alta latência local (\(rttInt) ms): prejudica registro imediato de tiros"
+        } else if rtt <= 5.0 {
+            return "NAT favorável e rota veloz (\(rttInt) ms): pronto para ranqueada"
+        } else {
+            return "Conexão estável (\(rttInt) ms): sem restrições severas de rede"
+        }
+    }
+
+    private var liveStreamMotivator: String {
+        guard let rtt = telemetry.gatewayRTTMs else {
+            return "Aguardando verificação do canal de rede..."
+        }
+        let rttInt = Int(round(rtt))
+        let is5G = telemetry.isWiFi && telemetry.wifiBand.contains("5")
+        if rtt <= 6.0 && is5G {
+            return "Wi-Fi 5 GHz e estabilidade alta: upload contínuo sem queda de frames"
+        } else if !is5G && telemetry.isWiFi {
+            return "Wi-Fi 2.4 GHz: interferência de canal pode derrubar o bitrate da live"
+        } else if rtt > 15.0 {
+            return "Instabilidade no gateway (\(rttInt) ms): risco de buffering na transmissão"
+        } else {
+            return "Estabilidade regular (\(rttInt) ms): evite downloads concorrentes"
+        }
+    }
+
     // MARK: - Propriedades Computadas de Exibição
     private var natTypeDisplay: String {
-        guard let nat = natTopology else { return isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
         switch nat.natType {
         case .type1Open: return "Tipo 1 (Aberto)"
         case .type2Moderate: return "Tipo 2 (Moderado)"
@@ -329,7 +594,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var natTypeColor: Color {
-        guard let nat = natTopology else { return NLColor.textSecondary }
+        guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
         switch nat.natType {
         case .type1Open: return NLColor.scoreExcellent
         case .type2Moderate: return NLColor.scoreUnstable
@@ -339,7 +604,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var cgnatDisplay: String {
-        guard let nat = natTopology else { return isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
         switch nat.cgnatStatus {
         case .notDetected: return "Livre (IP Público Real)"
         case .detected: return "Detectado (RFC 6598)"
@@ -348,7 +613,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var cgnatColor: Color {
-        guard let nat = natTopology else { return NLColor.textSecondary }
+        guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
         switch nat.cgnatStatus {
         case .notDetected: return NLColor.scoreExcellent
         case .detected: return NLColor.coralSolarRed
@@ -357,7 +622,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var doubleNATDisplay: String {
-        guard let nat = natTopology else { return isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
         switch nat.doubleNATStatus {
         case .notDetected: return "Não detectado"
         case .suspectOrDetected: return "Detectado (2 Roteadores)"
@@ -366,7 +631,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var doubleNATColor: Color {
-        guard let nat = natTopology else { return NLColor.textSecondary }
+        guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
         switch nat.doubleNATStatus {
         case .notDetected: return NLColor.scoreExcellent
         case .suspectOrDetected: return NLColor.coralSolarRed
@@ -375,7 +640,7 @@ public struct NetworkCockpitView: View {
     }
 
     private var publicIPDisplay: String {
-        guard let nat = natTopology else { return "—" }
+        guard let nat = telemetry.natTopology else { return "—" }
         if let raw = nat.publicIP, !raw.isEmpty {
             return showPublicIP ? raw : (nat.publicIPMasked ?? maskIP(raw))
         }
@@ -388,55 +653,47 @@ public struct NetworkCockpitView: View {
         return "\(parts[0]).\(parts[1]).•••.•••"
     }
 
-    // MARK: - Ações e Diagnósticos
-    private func loadNetworkDiagnostics() async {
-        isProbing = true
-        let prober = BSDWiFiLocalGatewayProber()
-        localIP = prober.resolveLocalIPv4()
-        gatewayIP = prober.resolveDefaultGatewayIPv4()
+    // MARK: - Ações de Exportação e Cópia
+    private func exportNetworkPDF() {
+        let useCasesList: [(title: String, icon: String, status: String, color: UIColor, note: String)] = [
+            ("Streaming de Jogos (Cloud Gaming)", "tv.and.mediabox", cloudGamingStatus.badge, cloudGamingStatus.color == NLColor.scoreExcellent ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1), "Xbox Cloud Gaming, GeForce NOW, PS Remote Play"),
+            ("Áudio Multiplayer (Chat de Voz)", "headphones", voiceChatStatus.badge, voiceChatStatus.color == NLColor.scoreExcellent ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1), "Discord, Party Chat PSN e Xbox Live sem voz robótica"),
+            ("Multiplayer Competitivo (FPS/MOBA)", "target", competitiveFPSStatus.badge, competitiveFPSStatus.color == NLColor.scoreExcellent ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1), "CS2, Valorant, Fortnite com matchmaking direto sem restrição de NAT"),
+            ("Transmissão ao Vivo (Live Stream)", "antenna.radiowaves.left.and.right", liveStreamStatus.badge, liveStreamStatus.color == NLColor.scoreExcellent ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1), "Twitch, YouTube Gaming com taxa de quadros e bitrate estáveis")
+        ]
 
-        let telemetry = await prober.probeLocalGateway(sampleCount: 3, timeoutPerSampleSeconds: 0.3)
-        gatewayRTTMs = telemetry.gatewayRTTMedianMs
-        isWiFi = telemetry.isWiFi
-
-        if telemetry.isWiFi {
-            let eval = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-            if eval.diagnostic.isSuspectOrConfirmed24GHz {
-                wifiBand = "2.4 GHz"
-                connectionKindText = "Wi-Fi (2.4 GHz)"
-            } else {
-                switch eval.diagnostic {
-                case .confirmed5GHzOrHigher, .stableWiFi:
-                    wifiBand = "5 GHz"
-                    connectionKindText = "Wi-Fi (5 GHz)"
-                case .inconclusive:
-                    wifiBand = "Padrão"
-                    connectionKindText = "Wi-Fi"
-                default:
-                    wifiBand = "Wi-Fi"
-                    connectionKindText = "Wi-Fi"
-                }
-            }
-        } else {
-            connectionKindText = "Dados Móveis (Celular)"
+        if let pdfURL = LagCheckPDFExporter.generateNetworkReportPDF(
+            interfaceName: telemetry.connectionKindText,
+            isWiFi: telemetry.isWiFi,
+            wifiBand: telemetry.wifiBand,
+            localIP: telemetry.localIP,
+            gatewayIP: telemetry.gatewayIP,
+            gatewayRTTMs: telemetry.gatewayRTTMs,
+            natTypeDisplay: natTypeDisplay,
+            cgnatDisplay: cgnatDisplay,
+            doubleNATDisplay: doubleNATDisplay,
+            publicIPDisplay: publicIPDisplay,
+            useCases: useCasesList
+        ) {
+            self.exportPDFURL = pdfURL
+            self.showingPDFShareSheet = true
         }
-
-        // Executa sonda STUN para topologia WAN
-        let stunClient = StunProbeClient()
-        natTopology = await stunClient.probeTopology(localIP: localIP)
-        isProbing = false
     }
 
     private func copyReportToClipboard() {
         let report = """
         [Relatório de Rede — LagCheck]
-        • Interface: \(connectionKindText)
-        • IP Local: \(localIP ?? "—")
-        • Gateway (Roteador): \(gatewayIP ?? "—") (RTT: \(gatewayRTTMs.map { "\(Int(round($0))) ms" } ?? "—"))
+        • Interface: \(telemetry.connectionKindText)
+        • IP Local: \(telemetry.localIP ?? "—")
+        • Gateway (Roteador): \(telemetry.gatewayIP ?? "—") (RTT: \(telemetry.gatewayRTTMs.map { "\(Int(round($0))) ms" } ?? "—"))
         • NAT: \(natTypeDisplay)
         • CGNAT: \(cgnatDisplay)
         • Duplo NAT: \(doubleNATDisplay)
-        • IP Público: \(natTopology?.publicIPMasked ?? "—")
+        • IP Público: \(telemetry.natTopology?.publicIPMasked ?? "—")
+        • Casos de Uso:
+          - Cloud Gaming: \(cloudGamingStatus.badge)
+          - Chat de Voz: \(voiceChatStatus.badge)
+          - FPS Competitivo: \(competitiveFPSStatus.badge)
         • Gerado em: \(Date().formatted(date: .abbreviated, time: .standard))
         """
 
