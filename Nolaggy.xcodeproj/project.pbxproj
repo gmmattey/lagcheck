@@ -130,6 +130,7 @@
 		8A22AAB057A9F942F67FB1B4 /* LiveNetworkSignalCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBBE0C27F4874C8634D27F8 /* LiveNetworkSignalCapsule.swift */; };
 		8ADB1B27F510C7DAB4807F3B /* NLStroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A828FE7884262D4FFBAFE0A /* NLStroke.swift */; };
 		8D4838CE1DA4CF730977E046 /* PlatformHealthBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF5C41F5D89B27DB786B3AA /* PlatformHealthBannerView.swift */; };
+		8E30DDC9A3137FF07777F52A /* LagCheckAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */; };
 		8EC72315F6F2F3183C741E12 /* CatalogMeasurementJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF7BCDF7DEC7C88691EAEC9 /* CatalogMeasurementJourney.swift */; };
 		9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */; };
 		943428C7497403D7D197D225 /* WiFiBandModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */; };
@@ -168,6 +169,7 @@
 		BB9D5A6587B6328E84FFAF61 /* WiFiLocalGatewayProberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A22C4ACEEC14A02D397C633 /* WiFiLocalGatewayProberTests.swift */; };
 		BEBAD90BF05D42CD5A8F5C84 /* RegionalPreReadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371D911C14391E13D433C476 /* RegionalPreReadCoordinator.swift */; };
 		C215B369DAFE028817EDD07A /* RegionalSelectionRuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7923005D916B2E192A47BC07 /* RegionalSelectionRuleTests.swift */; };
+		C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B81108B4688D1528A7E79480 /* AppIntents.framework */; };
 		C43C9EDB8EDC08550E89AB34 /* NLColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E8E0D56C9A8EB9ED3F6F5 /* NLColor.swift */; };
 		C6D0803F17A1238A1A2445F3 /* MeasurementSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA4E720AB8DCA4BDD16D67F /* MeasurementSessionCoordinator.swift */; };
 		C73ED762FBC9DCAC2FBA808C /* FavoriteGamesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D78D92FE77A2278BD2E09DD4 /* FavoriteGamesStoreTests.swift */; };
@@ -374,6 +376,7 @@
 		13D231D06024AFEC9FAAB47A /* GeminiConnectionBoosterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiConnectionBoosterService.swift; sourceTree = "<group>"; };
 		13F21E592F851916179E6133 /* SwiftDataMeasurementHistoryRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataMeasurementHistoryRepositoryTests.swift; sourceTree = "<group>"; };
 		146B300E5946A137B1DC8C25 /* NetflixCatalogComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetflixCatalogComponents.swift; sourceTree = "<group>"; };
+		1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckAppIntents.swift; sourceTree = "<group>"; };
 		17415AB3E8F34E9F2FD78443 /* GatewayProbeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayProbeModels.swift; sourceTree = "<group>"; };
 		197C3B1F5470ADD3CEA8A85D /* QuickCheckBackgroundMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckBackgroundMeasurement.swift; sourceTree = "<group>"; };
 		19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckFeatureView.swift; sourceTree = "<group>"; };
@@ -493,6 +496,7 @@
 		B1906DA4F775756D72F2804C /* Oxanium-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Oxanium-Variable.ttf"; sourceTree = "<group>"; };
 		B210DEADB7088D5FC2685AE1 /* URLSessionLoadTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionLoadTransport.swift; sourceTree = "<group>"; };
 		B225CDDE298069693148DAE1 /* MeasurementHistoryEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistoryEntryTests.swift; sourceTree = "<group>"; };
+		B81108B4688D1528A7E79480 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiBandEvaluator.swift; sourceTree = "<group>"; };
 		BA69002DCF9E055763C29BF3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		BAE9B5B99E085D18410992CC /* RemoteCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalogTests.swift; sourceTree = "<group>"; };
@@ -562,6 +566,7 @@
 				1FF545908A1418ECB0D2E7D0 /* NolaggyDomain.framework in Frameworks */,
 				D7B179426DBEFE4EBFB51412 /* NolaggyApplication.framework in Frameworks */,
 				5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */,
+				C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -611,6 +616,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0066F1B3BC7F9331AC13AD2F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B81108B4688D1528A7E79480 /* AppIntents.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		189A699D6C0A4AB76E8CF34C /* NolaggyApplicationTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -658,6 +671,7 @@
 				1E088D2A263DD1FC232BF8B0 /* UITestFixtures.swift */,
 				3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */,
 				998AE6D78FF15628C1B74561 /* Features */,
+				EE0AEE884A680BBB35813A45 /* Intents */,
 				30D3E7CAC2B6BF06E72ECCCE /* Resources */,
 			);
 			name = NolaggyApp;
@@ -938,6 +952,7 @@
 				A799D60CFDC3C22C4CF316E1 /* NolaggyInfrastructureTests */,
 				9F9283DBEE60D565710F8E44 /* NolaggyUITests */,
 				C808A5B80C66B99A2CC1C39C /* Secrets */,
+				0066F1B3BC7F9331AC13AD2F /* Frameworks */,
 				2A34FF42240A85715507D350 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -993,6 +1008,14 @@
 				ECD3A5462D81B3554DEFD4D6 /* ResultFeatureView.swift */,
 			);
 			path = Result;
+			sourceTree = "<group>";
+		};
+		EE0AEE884A680BBB35813A45 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */,
+			);
+			path = Intents;
 			sourceTree = "<group>";
 		};
 		EF0BCC1088023BF12730D6F2 /* Measurement */ = {
@@ -1466,6 +1489,7 @@
 				B0B1CFC93427072E4DA34ACA /* HomeFavoriteGamesRail.swift in Sources */,
 				56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */,
 				2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */,
+				8E30DDC9A3137FF07777F52A /* LagCheckAppIntents.swift in Sources */,
 				15CE2473993E8B635308E6E0 /* LagCheckPDFExporter.swift in Sources */,
 				5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */,
 				1D2E950ED0F95C7AD799D84C /* MeasurementProgressView.swift in Sources */,

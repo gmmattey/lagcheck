@@ -139,6 +139,7 @@
 "settings.link_unavailable" = "No disponible en esta versión";
 "settings.link.opens_browser" = "Abre en el navegador";
 "settings.link.opens_system_settings" = "Abre los Ajustes del sistema";
+"settings.shortcuts.title" = "Atajos de Siri y Automatizaciones";
 "game_detail.measurement_scope" = "Esta medición evalúa la ruta desde este iPhone hasta una región de referencia.";
 "game_detail.verdict.excellent.title" = "Conexión excelente";
 "game_detail.verdict.great.title" = "Buena conexión para jugar";

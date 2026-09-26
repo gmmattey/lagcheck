@@ -139,6 +139,7 @@
 "settings.link_unavailable" = "Unavailable in this build";
 "settings.link.opens_browser" = "Opens in browser";
 "settings.link.opens_system_settings" = "Opens system Settings";
+"settings.shortcuts.title" = "Siri Shortcuts & Automations";
 "game_detail.measurement_scope" = "This check measures the route from this iPhone to a reference region.";
 "game_detail.verdict.excellent.title" = "Excellent connection";
 "game_detail.verdict.great.title" = "Good connection for playing";

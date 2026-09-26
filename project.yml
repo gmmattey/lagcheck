@@ -67,6 +67,7 @@ targets:
       - target: NolaggyDomain
       - target: NolaggyApplication
       - target: NolaggyInfrastructure
+      - sdk: AppIntents.framework
     sources:
       - path: Sources/NolaggyApp
       # Credencial de desenvolvimento local, ignorada pelo Git. O serviço

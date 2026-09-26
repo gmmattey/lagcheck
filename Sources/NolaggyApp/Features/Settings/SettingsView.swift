@@ -63,6 +63,19 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                     .compactSettingsRow()
                     .accessibilityIdentifier("settings-network-cockpit")
+
+                    Button(action: {
+                        if let url = URL(string: "shortcuts://") {
+                            openURL(url)
+                        }
+                    }) {
+                        SettingsRow(title: "settings.shortcuts.title", symbol: "sparkles", detail: nil, showsChevron: true)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(SettingsListSurface())
+                    .listRowSeparator(.hidden)
+                    .compactSettingsRow()
+                    .accessibilityIdentifier("settings-shortcuts")
                 }
 
                 Section {
