@@ -136,8 +136,8 @@
       badgeClass: "ready",
       verdictPt: "● PRONTO PARA RANKED",
       verdictEn: "● READY FOR RANKED",
-      descPt: "Latência baixa e estável em repouso e sob carga. Respostas UDP consistentes sem bufferbloat.",
-      descEn: "Low, stable latency at rest and under stress. Consistent UDP probe responses with zero bufferbloat.",
+      descPt: "Sua conexão está estável. Sinal verde para partidas ranqueadas.",
+      descEn: "Your connection is stable. Green light for ranked matches.",
       ping: "18 ms",
       jitter: "1.1 ms",
       loss: "0.0%",
@@ -145,15 +145,15 @@
       node1SubEn: "Wi-Fi 5 GHz • Open NAT (Type 2)",
       node2SubPt: "Backbone Fibra • 0% Perda",
       node2SubEn: "Fiber Backbone • 0% Loss",
-      reasoningPt: "<strong>Diagnóstico Técnico:</strong> Durante as rajadas de estresse controladas, a variação de latência (jitter) permaneceu abaixo de 2 ms e não houve descarte de pacotes. A fila do roteador escoa sem atraso. Condição segura para entrar em filas ranqueadas.",
-      reasoningEn: "<strong>Technical Assessment:</strong> Controlled packet bursts produced less than 2 ms latency variation with zero packet drops. Router queue flushes cleanly. Favorable and safe conditions for ranked matchmaking."
+      reasoningPt: "<strong>Diagnóstico Técnico:</strong> Durante o teste sob estresse, a latência permaneceu estável com jitter inferior a 2 ms e zero perda de pacotes. Fila do roteador limpa e sem atraso nos comandos.",
+      reasoningEn: "<strong>Technical Assessment:</strong> Under stress bursts, latency remained stable with jitter under 2 ms and zero packet loss. Router queue flushes cleanly with zero input delay."
     },
     bufferbloat: {
       badgeClass: "warn",
       verdictPt: "▲ EU EVITARIA RANKED AGORA",
-      verdictEn: "▲ AVOID RANKED RIGHT NOW",
-      descPt: "Bufferbloat severo detectado. A rota em repouso parece boa (24 ms), mas quadruplica sob carga (142 ms).",
-      descEn: "Severe bufferbloat detected. Idle ping looks acceptable (24 ms), but spikes fourfold under load (142 ms).",
+      verdictEn: "▲ I'D AVOID RANKED RIGHT NOW",
+      descPt: "Bufferbloat severo detectado. Pause downloads ou ative QoS/SQM no roteador antes de jogar.",
+      descEn: "Severe bufferbloat detected. Pause downloads or enable QoS/SQM on your router before playing.",
       ping: "142 ms",
       jitter: "18.4 ms",
       loss: "1.2%",
@@ -161,15 +161,15 @@
       node1SubEn: "Wi-Fi 2.4 GHz • Local Queue Saturated",
       node2SubPt: "Bufferbloat no Roteador / CPE",
       node2SubEn: "Router Bufferbloat / CPE Saturation",
-      reasoningPt: "<strong>Diagnóstico Técnico:</strong> A medição em repouso deu falsa impressão de estabilidade. Quando o teste injetou tráfego concorrente simulando o jogo, a latência explodiu para 142 ms. Em partida real, qualquer download de fundo causará tiros fantasmas e travamentos.",
-      reasoningEn: "<strong>Technical Assessment:</strong> Idle measurement gave a false impression of stability. Under synthetic load bursts, latency spiked to 142 ms. In a real match, any concurrent streaming or background traffic will trigger hit-reg desync and rubberbanding."
+      reasoningPt: "<strong>Diagnóstico Técnico:</strong> A rota satura quando há downloads concorrentes, provocando congelamentos e tiros não computados. Ative QoS/SQM no roteador ou limite o tráfego da rede doméstica.",
+      reasoningEn: "<strong>Technical Assessment:</strong> The route saturates under concurrent downloads, triggering freezes and unregistered hits. Enable QoS/SQM on your router or limit local network traffic."
     },
     inconclusive: {
       badgeClass: "neutral",
-      verdictPt: "— INCONCLUSIVO (SEM NOTA INVENTADA)",
-      verdictEn: "— INCONCLUSIVE (NO SCORE)",
-      descPt: "Menos de 10 respostas UDP válidas recebidas ou descarte severo de rota. Nenhuma nota foi fabricada.",
-      descEn: "Fewer than 10 valid UDP responses received or critical route drops. No score is fabricated.",
+      verdictPt: "— INCONCLUSIVO",
+      verdictEn: "— INCONCLUSIVE",
+      descPt: "Respostas UDP insuficientes para avaliar a estabilidade da rota com segurança. Tente novamente em instantes.",
+      descEn: "Insufficient UDP responses to safely evaluate route stability. Retest in a few moments.",
       ping: "— ms",
       jitter: "— ms",
       loss: "64.0%",
@@ -177,8 +177,8 @@
       node1SubEn: "Interface Switch / Broken Route",
       node2SubPt: "Respostas UDP Insuficientes",
       node2SubEn: "Insufficient UDP Responses",
-      reasoningPt: "<strong>Princípio de Integridade:</strong> O Lagcheck se recusa a chutar notas ou inventar aproximações por ping HTTP quando a rota não fornece dados UDP matematicamente conclusivos. O teste é descartado para proteger a integridade do jogador.",
-      reasoningEn: "<strong>Scientific Integrity:</strong> Lagcheck refuses to guess scores or substitute HTTP approximations when network probes yield mathematically insufficient UDP samples. The test is safely discarded to protect the player."
+      reasoningPt: "<strong>Diagnóstico Técnico:</strong> O teste não recebeu respostas suficientes para calcular métricas com integridade. O resultado parcial foi descartado para evitar falsos diagnósticos.",
+      reasoningEn: "<strong>Technical Assessment:</strong> The test did not receive sufficient responses to compute reliable metrics. Partial data was discarded to prevent false diagnoses."
     }
   };
 
