@@ -66,6 +66,7 @@ public enum MeasurementCancellationReason: Equatable, Sendable {
     case userInitiated
     case appEnteredBackground
     case networkPathChanged
+    case poorSampleQuality
 }
 
 public enum MeasurementSessionState: Equatable, Sendable {
@@ -93,6 +94,7 @@ public actor MeasurementSessionCoordinator {
     private var activeSession: MeasurementSession?
     private var state: MeasurementSessionState = .idle
     private var partialSamples: [ProbeSample] = []
+    private var allReceivedSamples: [ProbeSample] = []
     private var finalSamples: [ProbeSample] = []
     private var measurementTask: Task<Void, Never>?
     private var pathTask: Task<Void, Never>?
@@ -123,6 +125,7 @@ public actor MeasurementSessionCoordinator {
         let session = MeasurementSession(resolvedContext: resolvedContext)
         activeSession = session
         partialSamples = []
+        allReceivedSamples = []
         finalSamples = []
         state = .measuring(session)
         return session
@@ -216,6 +219,7 @@ public actor MeasurementSessionCoordinator {
         let session = activeSession!
         activeSession = nil
         partialSamples = []
+        allReceivedSamples = []
         finalSamples = []
         measurementTask?.cancel()
         pathTask?.cancel()
@@ -251,14 +255,21 @@ public actor MeasurementSessionCoordinator {
 
     private func record(sample: ProbeSample, for sessionID: UUID) {
         guard activeSession?.id == sessionID else { return }
-        guard sample.isValidResponse else { return }
-        partialSamples.append(sample)
+        allReceivedSamples.append(sample)
+        if sample.isValidResponse {
+            partialSamples.append(sample)
+        }
+        let qualityAssessment = SampleQualityEvaluator.assess(samples: allReceivedSamples)
+        if case .shouldAbort = qualityAssessment.status {
+            cancel(id: sessionID, reason: .poorSampleQuality)
+        }
     }
 
     private func finish(sessionID: UUID, samples: [ProbeSample]) async {
         guard let session = activeSession, session.id == sessionID else { return }
         activeSession = nil
         partialSamples = []
+        allReceivedSamples = []
         finalSamples = samples
         pathTask?.cancel()
         pathTask = nil

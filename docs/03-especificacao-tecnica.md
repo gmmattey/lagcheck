@@ -58,11 +58,52 @@ enum GameReadinessVerdict: String, Codable {
 enum ResultClass: String, Codable { case excellent, great, unstable, lagRisk, inconclusive, cancelled }
 enum SessionPhase: String { case idle, resolving, measuringIdle, measuringLoad, evaluating, completed, cancelled, inconclusive, failed }
 
+/// Resultado isolado de probe no gateway local (Decisão 55)
+enum GatewayProbeOutcome: Codable, Hashable {
+    case stable(rttMilliseconds: Double)
+    case degraded(rttMilliseconds: Double, lossPercentage: Double)
+    case unobservable // Gateway não responde a probes UDP locais
+}
+
+/// Nível de confiança na detecção da banda Wi-Fi (Decisão 55)
+enum WiFiBandConfidence: String, Codable {
+    case high, medium, low, unknown
+}
+
+/// Classificação temporal de picos de latência (Decisão 55)
+enum SpikePattern: Codable, Hashable {
+    case none
+    case isolated(count: Int)
+    case recurring(count: Int, severeCount: Int)
+}
+
+/// Gradação multidimensional de impacto sob carga (Decisão 55)
+enum LoadDegradationTier: String, Codable {
+    case none       // Delta irrelevante ou inexistente
+    case light      // Leve (descritivo)
+    case material   // Material (prejudicial ao competitivo)
+    case severe     // Severo (inviabiliza partidas ranqueadas)
+}
+
+/// Ação recomendada baseada em evidência (Decisão 55)
+struct ActionableRecommendation: Codable, Hashable, Identifiable {
+    var id: String { title }
+    let priority: Int // 1 a 3
+    let title: String
+    let instruction: String
+    let evidenceBadge: String
+}
+
 struct GameContext: Codable, Hashable {
     let gameID: String
     let market: String       // "BR" ou "US"
     let platform: Platform
     let equipmentConnection: NetworkKind? // somente console/PC quando declarado
+    let serverArchitecture: ServerArchitecture? // dedicatedServer vs peerToPeer
+}
+
+enum ServerArchitecture: String, Codable {
+    case dedicatedServer, peerToPeer, hybrid
 }
 
 struct ProbeSample: Codable, Hashable {
@@ -217,6 +258,18 @@ Plano de amostragem:
 
 O timeout de cada probe é 2 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de 10 respostas válidas na região primária, a sessão é `inconclusive` e não recebe LagCheck Score.
 
+#### 5.2.2 Contrato do Probe Isolado de Gateway Local (`en0`) — Decisão 55
+
+Para separar sem falsas acusações o enlace doméstico da rota da operadora, o app executa um ciclo de probes isolados no roteador local quando conectado em Wi-Fi:
+
+| Item | Regra verificável |
+| --- | --- |
+| Descoberta do Gateway | Resolução dinâmica do endereço IPv4/IPv6 do roteador padrão na interface `en0` via tabelas de roteamento BSD (`sysctl` com `NET_RT_DUMP` / `getifaddrs`). É proibido assumir IP fixo `.1`. |
+| Protocolo e Porta | Datagramas UDP curtos para a porta de controle/eco local ou porta de serviço RFC 5389/STUN local do gateway com payload mínimo correlacionado. |
+| Plano de Amostragem | 5 probes consecutivos no início da sessão (intervalo de 50 ms entre disparos; timeout de 200 ms por probe). Total máximo da janela: 1,0 s. |
+| Critério de Sucesso | Pelo menos 3 respostas correlacionadas válidas calculam `rttLocal` e `lossLocal`. RTT $\le 15$ ms e loss $0\%$ $\rightarrow$ `.stable`. RTT $> 15$ ms ou loss $> 0\%$ $\rightarrow$ `.degraded`. |
+| Gateway Não-Responsivo | Se o gateway possuir firewall que descarte UDP local: o resultado é estritamente `.unobservable`. **Não gera erro, não assume falha no Wi-Fi e não acusa o equipamento**. |
+
 ### 5.3 Deep Check e carga controlada (Wi-Fi e Rede Móvel)
 
 Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não usa cache. A transferência é interrompida ao atingir 10 MB ou 15 segundos, o que ocorrer primeiro.
@@ -225,6 +278,15 @@ Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não
 - Cancelamento imediato: ao cancelar por ação do usuário, background ou troca de caminho de rede, tanto a transferência HTTP quanto os sockets UDP são cancelados imediatamente.
 
 O app mantém a série UDP de repouso e a série UDP sob carga estritamente separadas. Falha na transferência HTTP não invalida o resultado em repouso, mas remove a conclusão sobre impacto sob carga e mostra a limitação ao usuário. O tipo de conexão (`.wifi` ou `.cellular`) é persistido no snapshot histórico.
+
+### 5.4 Watchdog de Qualidade da Amostra — `sample-quality-v1` (Decisão 55)
+
+O `SampleQualityEvaluator` monitora os primeiros probes para abortar sessões condenadas sem forçar o usuário a esperar 15 segundos por um resultado nulo:
+
+1. **Aborto Precoce por Conexão Morta:** Se houver 4 timeouts consecutivos dentro dos primeiros 6 probes enviados, a sessão é interrompida imediatamente com estado `inconclusive(poorSampleQuality)`.
+2. **Taxa de Perda Inicial Excessiva:** Se a perda for $\ge 70\%$ nos primeiros 10 probes enviados, a sessão é invalidada de imediato.
+3. **Sequência Tardia de Perdas:** Se em qualquer momento após o décimo probe ocorrer uma sequência ininterrupta de 6 ou mais timeouts, a sessão é encerrada como inconclusiva por desconexão súbita.
+4. **Descarte em Troca de Interface:** Qualquer sinal de transição de interface via `NWPathMonitor` aborta o ciclo imediatamente, zera o buffer de memória e emite `cancelled(networkChanged)`.
 
 ## 6. Métricas
 
@@ -240,37 +302,51 @@ O app mantém a série UDP de repouso e a série UDP sob carga estritamente sepa
 
 Percentis não recebem um RTT artificial para timeout. A perda é sempre reportada separadamente, inclusive quando torna uma medição inconclusiva.
 
-### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v1`
+### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v2` (Decisão 55)
 
-Esta regra classifica apenas o delta observado entre os P50 válidos de repouso e carga. Ela não calcula um segundo LagCheck Score, não altera o score/classe/guardrails de repouso e não infere a qualidade integral da conexão sob carga. Perda, jitter e spikes da carga continuam métricas comparativas separadas.
+Esta regra substitui o corte fixo de +20 ms por uma avaliação multidimensional calibrada de acordo com o perfil de tolerância do jogo (`GameProfile`):
 
-| Entrada | Regra |
-| --- | --- |
-| Elegibilidade | As duas fases precisam ter avaliação UDP válida; se a carga falhar ou tiver menos de 10 respostas válidas, não há impacto nem classificação. |
-| Delta | `P50 carga - P50 repouso`, em milissegundos e sem arredondamento de apresentação. |
-| Descritivo | Delta menor que `+20,0 ms`, inclusive zero ou negativo. O valor continua visível, sem linguagem de impacto material. |
-| Material | Delta maior ou igual a `+20,0 ms`. A interface pode declarar impacto material sob carga, sem reescrever o resultado de repouso. |
-| Snapshot | Persistir `ruleVersion = deep-load-impact-v1` e a classificação calculada junto ao impacto para auditoria histórica. |
+| Perfil | Limiar Material (Delta P50) | Limiar Severo (Delta P50) | Limiar Material (Delta Jitter) | Limiar Severo (Delta Perda) |
+| --- | ---: | ---: | ---: | ---: |
+| `BATTLE_ROYALE_COMPETITIVE` | $\ge +15,0$ ms | $\ge +35,0$ ms | $\ge +10,0$ ms | $\ge +2,0\%$ |
+| `MOBILE_REALTIME` | $\ge +25,0$ ms | $\ge +50,0$ ms | $\ge +15,0$ ms | $\ge +3,0\%$ |
+| `CASUAL_REALTIME` | $\ge +40,0$ ms | $\ge +80,0$ ms | $\ge +20,0$ ms | $\ge +5,0\%$ |
 
-O corte de 20 ms é deliberadamente conservador para o piloto: evita transformar flutuações pequenas entre duas janelas independentes de 15 segundos em um alerta. Ele será recalibrado somente com nova versão, vetores de teste e revisão de Iury; medições históricas mantêm a versão que as classificou.
+#### Classificação de Gradação (`LoadDegradationTier`)
+1. **`.none`:** Delta P50 negativo, zero ou inferior a +5 ms sem degradação de jitter/loss.
+2. **`.light` (Descritivo):** Aumento perceptível de latência mas abaixo do limiar material do perfil.
+3. **`.material`:** Delta P50 $\ge$ limiar material, OU delta de jitter $\ge$ limiar material, OU aumento de $\ge 2$ spikes sob carga.
+4. **`.severe`:** Delta P50 $\ge$ limiar severo, OU perda induzida por carga $\ge$ limiar severo de perda.
 
-Vetores normativos da regra:
+Vetores normativos da regra `deep-load-impact-v2`:
 
-| ID | P50 repouso | P50 carga | Delta bruto | Classificação esperada | Score de repouso |
-| --- | ---: | ---: | ---: | --- | --- |
-| DLI-001 | 30 ms | 30 ms | 0 ms | descritivo | inalterado |
-| DLI-002 | 30 ms | 49,999 ms | +19,999 ms | descritivo | inalterado |
-| DLI-003 | 30 ms | 50 ms | +20 ms | material | inalterado |
-| DLI-004 | 93 ms | 30 ms | -63 ms | descritivo | inalterado |
-| DLI-005 | 30 ms | indisponível ou menos de 10 RTTs válidos | — | sem classificação | inalterado |
+| ID | Perfil | P50 Repouso | P50 Carga | Delta Jitter | Delta Perda | Classificação | Veredito Impactado |
+| --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+| DLI2-01 | Battle Royale | 28 ms | 40 ms | +2 ms | 0% | `.light` | Mantém `.ready` |
+| DLI2-02 | Battle Royale | 28 ms | 45 ms | +4 ms | 0% | `.material` | Modula para `.caution` |
+| DLI2-03 | Battle Royale | 28 ms | 65 ms | +8 ms | 0% | `.severe` | Modula para `.notReady` |
+| DLI2-04 | Battle Royale | 30 ms | 38 ms | +12 ms | 0% | `.material` (via jitter) | Modula para `.caution` |
+| DLI2-05 | Mobile Realtime | 35 ms | 55 ms | +3 ms | 0% | `.light` (tolerância maior) | Mantém `.ready` |
+| DLI2-06 | Casual Realtime | 50 ms | 85 ms | +5 ms | 0% | `.light` (tolerância casual) | Mantém `.ready` |
 
 Critérios de aceitação:
 
-1. O domínio classifica o delta bruto, e não o inteiro/arredondamento mostrado pela interface.
-2. A fronteira é inclusiva: `+20,0 ms` é material; qualquer valor inferior é descritivo.
-3. Resultado, score, classe e guardrails da fase de repouso são idênticos com ou sem materialidade sob carga.
-4. Falha da carga ou série UDP insuficiente não gera classificação parcial nem impacto persistível.
-5. Um snapshot novo contém valor do delta, `ruleVersion` e classificação; um snapshot legado sem esses campos continua decodificável e recebe a regra V1 uma única vez.
+1. O domínio classifica o delta bruto avaliando P50, jitter, perda e spikes sob carga.
+2. Resultado, score, classe e guardrails da fase de repouso permanecem idênticos com ou sem materialidade sob carga.
+3. Falha da carga ou série UDP insuficiente não gera classificação parcial nem impacto persistível.
+4. O snapshot persiste `ruleVersion = deep-load-impact-v2` e o tier calculado.
+
+### 6.2 Classificação Temporal de Spikes — `spike-pattern-v1` (Decisão 55)
+
+Os picos de latência deixam de ser uma contagem indiferenciada e passam a ser categorizados por padrão temporal:
+- **Spike Isolado (`.isolated`):** 1 ou 2 spikes em toda a sessão, sem recorrência em janelas de 5 probes. Não rebaixa o veredito para `.notReady`, sendo tratado como ruído comum de interface de rádio.
+- **Spikes Recorrentes (`.recurring`):** $\ge 3$ spikes totais ou 2 spikes em uma mesma janela deslizante de 5 probes consecutivos. Se houver $\ge 2$ spikes severos recorrentes, o veredito é forçado para `.notReady`.
+
+### 6.3 Métrica de Latência de Cauda ($P95/P50$) e Consistência (Decisão 55)
+
+A dispersão de cauda mede a severidade dos micro-congelamentos:
+$$\text{TailRatio} = \frac{P95}{P50}$$
+- Se $\text{TailRatio} \ge 1.8$ em conexão com P50 aparentemente aceitável ($\le 40$ ms), o sistema registra o sintoma de *"Latência de cauda elevada"* e gera recomendação contra partidas ranqueadas.
 
 ## 7. NGQE: avaliação determinística
 
@@ -348,29 +424,117 @@ Os vetores BR001–BR012 em `QualityEvaluatorPilotTests` são a evidência execu
 
 ### 7.4 Resultado e diagnóstico honesto de sintomas
 
-`ResultInterpreter` recebe métricas, score, guardrails, confiança e estratégia. Ele produz a lista de sintomas objetivos observados para compor o bloco **"O que encontramos"**:
+`ResultInterpreter` recebe métricas, score, guardrails, confiança, estratégia e o probe isolado do gateway. Ele produz a lista de sintomas objetivos para o bloco **"O que encontramos"**, discriminando enlace local de rota remota:
 
-- **Perda de pacotes:** Nenhuma detectada vs. Percentual prejudicial observado;
-- **Estabilidade:** Estável vs. Oscilação / Spikes relevantes;
-- **Comportamento sob carga:** Estável vs. Degradação material sob uso intenso;
+- **Enlace Local (Wi-Fi / Gateway):** Estável (RTT $\le 15$ ms) vs. Degradação local observada vs. Não observável (firewall local);
+- **Perda de pacotes na rota:** Nenhuma detectada vs. Percentual prejudicial observado;
+- **Estabilidade e Spikes:** Estável vs. Picos recorrentes vs. Latência de cauda ($P95/P50 \ge 1.8$);
+- **Comportamento sob carga:** Estável vs. Degradação material/severa (`LoadDegradationTier`);
 - **Destino testado:** Região amigável e proximidade da referência gamer.
 
-### 7.5 Camada Semântica: `GameReadinessEvaluator` (Decisão 50)
+#### 7.4.1 Hierarquia de Causas e Coocorrência (Decisão 55)
 
-O `GameReadinessEvaluator` atua acima do `QualityResult` e dos sintomas, traduzindo o estado da rede para uma decisão clara de jogo:
+Quando múltiplos problemas ocorrem em simultâneo, o avaliador resolve uma causa principal e até 2 sintomas secundários pela ordem de precedência:
+1. **Perda de Pacotes Crítica** ($>1\%$ competitivo ou $>3\%$ casual) $\rightarrow$ *Perda de pacotes na rota*;
+2. **Latência Alta** ($P50 >$ limite do perfil) $\rightarrow$ *Latência incompatível*;
+3. **Picos Severos Recorrentes** ($\ge 2$ recorrentes) $\rightarrow$ *Picos recorrentes de latência*;
+4. **Instabilidade Contínua (Jitter Alto)** $\rightarrow$ *Instabilidade contínua (jitter)*;
+5. **Degradação sob Carga (Bufferbloat Material/Severo)** $\rightarrow$ *Rede saturada sob uso simultâneo*;
+6. **Latência de Cauda Elevada** ($P95/P50 \ge 1.8$) $\rightarrow$ *Instabilidade de cauda (oscilações)*.
+
+- **Regra de Coocorrência:** Se Jitter for alto e Carga for material/severa, o avaliador unifica a causa primária como *"Instabilidade sob uso da internet"*.
+- **Enlace Local:** Se o gateway probe apontar `.degraded`, a causa ganha o qualificador *"Origem: Enlace Wi-Fi local"*. Caso contrário, ganha o qualificador *"Origem: Rota externa / Operadora"*.
+
+#### 7.4.2 Motor de Recomendações Baseadas em Evidência — `EvidenceRecommendationEngine` (Decisão 55)
+
+Gera no máximo de 1 a 3 recomendações diretamente ligadas aos sintomas comprovados:
 
 ```swift
-func evaluateReadiness(quality: QualityResult, profile: GameProfile) -> GameReadinessVerdict {
+func generateRecommendations(evidence: DiagnosticEvidence) -> [ActionableRecommendation] {
+    var recommendations: [ActionableRecommendation] = []
+    
+    if evidence.gatewayOutcome == .degraded {
+        recommendations.append(ActionableRecommendation(
+            priority: 1,
+            title: "Aproxime-se do Roteador",
+            instruction: "O sinal local até o roteador Wi-Fi oscilou. Reduza a distância ou obstáculos.",
+            evidenceBadge: "Wi-Fi Local"
+        ))
+    }
+    
+    if evidence.wifiBand == .twoPointFourGigahertz && (evidence.wifiBandConfidence == .high || evidence.wifiBandConfidence == .medium) {
+        recommendations.append(ActionableRecommendation(
+            priority: 1,
+            title: "Troque para Wi-Fi 5 GHz",
+            instruction: "Redes 2.4 GHz sofrem alta interferência. Conecte-se na frequência 5 GHz.",
+            evidenceBadge: "2.4 GHz Detectado"
+        ))
+    }
+    
+    if evidence.loadTier == .material || evidence.loadTier == .severe {
+        recommendations.append(ActionableRecommendation(
+            priority: 2,
+            title: "Pause Downloads e Streaming",
+            instruction: "A sua conexão sofreu lentidão sob uso intenso da banda.",
+            evidenceBadge: "Saturação sob Carga"
+        ))
+    }
+    
+    if evidence.packetLossPercentage > 1.0 && evidence.gatewayOutcome != .degraded {
+        recommendations.append(ActionableRecommendation(
+            priority: 1,
+            title: "Evite Partidas Ranqueadas",
+            instruction: "A perda de pacotes externa causará teleporte e comandos ignorados.",
+            evidenceBadge: "Rota Externa"
+        ))
+    }
+    
+    return Array(recommendations.sorted(by: { $0.priority < $1.priority }).prefix(3))
+}
+```
+
+### 7.5 Camada Semântica: `GameReadinessEvaluator` — `readiness-v2.0` (Decisão 55)
+
+O avaliador de prontidão competitiva opera com regras estritas, incorporando a margem de segurança de destinos com confiança média (consoles/rotas genéricas) e padrões temporais de spikes:
+
+```swift
+func evaluateReadiness(
+    quality: QualityResult,
+    profile: GameProfile,
+    confidence: MeasurementConfidence,
+    spikePattern: SpikePattern,
+    loadTier: LoadDegradationTier
+) -> GameReadinessVerdict {
     guard quality.validResponsesCount >= 10 else {
         return .inconclusive
     }
     
-    // Critérios restritivos para Ranked/Competitivo
-    if quality.packetLossPercentage > profile.maxAcceptableLoss || quality.p50Milliseconds > profile.notReadyLatencyThreshold {
+    // Margem de segurança de 10% para console/PC ou rota genérica (confiança medium)
+    let marginFactor: Double = (confidence == .medium) ? 0.90 : 1.0
+    let effectiveMaxLoss = profile.maxAcceptableLoss * marginFactor
+    let effectiveMaxP50 = profile.notReadyLatencyThreshold * marginFactor
+    let effectiveCautionJitter = profile.cautionJitterThreshold * marginFactor
+    
+    // Condições que impedem Ranked (.notReady)
+    if quality.packetLossPercentage > effectiveMaxLoss ||
+       quality.p50Milliseconds > effectiveMaxP50 ||
+       loadTier == .severe {
         return .notReady
     }
     
-    if quality.jitterMilliseconds > profile.cautionJitterThreshold || quality.hasMaterialLoadDegradation || quality.severeSpikesCount > 0 {
+    if case .recurring(_, let severeCount) = spikePattern, severeCount >= 2 {
+        return .notReady
+    }
+    
+    // Condições de cautela (.caution)
+    if quality.jitterMilliseconds > effectiveCautionJitter ||
+       loadTier == .material ||
+       quality.severeSpikesCount > 0 ||
+       quality.tailRatio >= 1.8 {
+        return .caution
+    }
+    
+    if case .recurring = spikePattern {
         return .caution
     }
     
@@ -378,15 +542,17 @@ func evaluateReadiness(quality: QualityResult, profile: GameProfile) -> GameRead
 }
 ```
 
-> **Revisão de Regra de Produto:** A antiga restrição em `CheckCompletoVerdict` que proibia o texto "Pronto para jogar" é expressamente revisada. O app passa a emitir vereditos diretos baseados em evidência matemática (*"PRONTO PARA JOGAR"*, *"EU EVITARIA RANKED AGORA"*), mantendo a postura de sobriedade e recomendação situacional em vez de promessa infalível de futuro.
+### 7.6 Integridade de Diagnóstico de Rede Local e Frequência Wi-Fi
 
-### 7.6 Integridade de Diagnóstico de Rede Local (Wi-Fi Probing)
+1. **Gateway Dinâmico:** `WiFiLocalGatewayProber` obtém o IP do gateway via rotas do kernel BSD na interface `en0`. Se o gateway não responder probes UDP, o status é `.unobservable`, e o enlace local é considerado neutro.
+2. **Medição Local Isolada:** Só há RTT local se o pacote UDP ecoar do gateway.
+3. **Banda Wi-Fi:** `WiFiBandDetector` classifica a certeza da frequência em `.high`, `.medium`, `.low`, `.unknown`. Sem confiança alta/média de APIs nativas, o app **não afirma a frequência Wi-Fi** e não sugere troca. Fica expressamente vedado inferir a banda Wi-Fi a partir do P50 da rota remota.
 
-Para evitar falsas acusações contra equipamentos domésticos ou contra a operadora (Decisão 50):
+### 7.7 Topologia de NAT e Relevância Contextual (Decisão 55)
 
-1. **Gateway Local:** `WiFiLocalGatewayProber` não deve assumir ip `.1` por padrão; o gateway deve ser descoberto via interfaces de roteamento do sistema (`sysctl`/`getifaddrs`).
-2. **Medição RTT Local:** O envio de pacotes UDP na porta 53 para o gateway que mede apenas o tempo de retorno da chamada de socket não constitui RTT. Sem resposta do gateway, não há cálculo de latência local do roteador.
-3. **Desacoplamento de RTT Remoto e Banda Wi-Fi:** `WiFiBandEvaluator` é proibido de usar a latência mediana (P50) ou jitter da rota remota de internet (WAN) para inferir se o Wi-Fi opera em 2.4 GHz ou 5 GHz. Oscilações remotas pertencem à rota externa até que um probe local isolado prove o contrário.
+O diagnóstico de NAT (Aberto, Moderado, Restrito ou CGNAT) é executado via STUN leve RFC 5389.
+- **Regra de Exibição:** O resultado de NAT só é visível na tela de resultado ou diagnóstico quando o jogo selecionado possuir arquitetura `peerToPeer` ou `hybrid` (onde o tipo de NAT impede o pareamento).
+- Para jogos com servidores dedicados (`dedicatedServer`, ex: Valorant, Fortnite, LoL, CS2), o diagnóstico de NAT permanece restrito aos detalhes técnicos avançados para não induzir confusão.
 
 ## 8. Persistência com SwiftData
 
@@ -396,7 +562,7 @@ Modelos persistidos:
 | --- | --- |
 | `StoredCatalog` | versão, validade, envelope, data de atualização e origem base/remota. |
 | `GamePreference` | jogo, favorito, última plataforma e data de uso. |
-| `MeasurementRecord` | jogo/contexto, data, score/classe, métricas agregadas, causa, confiança, estratégia, região, versão de catálogo e perfil. |
+| `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v2.0`, `deep-load-impact-v2`, `sample-quality-v1`). |
 | `AppPreference` | idioma escolhido/sistema, estado de privacidade e configurações de apresentação. |
 
 Uma tarefa de manutenção remove registros com mais de 90 dias e conserva no máximo os 100 mais recentes por jogo. A ação “Apagar histórico” remove `MeasurementRecord` e dados derivados de recentes; não toca no catálogo-base.
@@ -414,6 +580,7 @@ Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produt
 | Catálogo indisponível, mas cache válido | `catalogFallback` | Continua com catálogo válido. |
 | Catálogo inválido sem fallback aplicável | `catalogUnavailable` | Explica que a configuração do jogo não está disponível. |
 | Mudança de rede (Wi-Fi ⇄ celular) | `cancelled(networkChanged)` | Cancela na hora, descarta parciais e oferece reinício na rede atual. |
+| Amostra de baixa qualidade (Watchdog) | `inconclusive(poorSampleQuality)` | Aborta precocemente; explica instabilidade extrema da conexão e sugere nova tentativa. |
 | Deep Check em rede celular | Confirmação prévia de dados | Apresenta modal/aviso de consumo (máx 10 MB); permite aceitar, Quick Check ou cancelar. |
 | Menos de 10 RTTs válidos | `inconclusive(insufficientUDPResponses)` | Não dá nota; sugere outra rede. |
 | Falha de carga HTTP | `loadUnavailable` | Exibe resultado de repouso e limitação do Deep Check. |
@@ -423,12 +590,14 @@ Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produt
 
 | Camada | Cobertura mínima |
 | --- | --- |
-| Domínio | Percentis, jitter, perda, spikes, score, guardrails, classe e causa principal para cada perfil. |
+| Domínio | Percentis, jitter, perda, spikes recorrentes/isolados, cauda P95/P50, carga multidimensional (`deep-load-impact-v2`), veredito `readiness-v2.0` com margens de confiança e motor de recomendações. |
+| Watchdog | Invalidação antecipada por timeouts consecutivos ($\ge 4$ em 6 probes) e perda precoce ($\ge 70\%$). |
+| Gateway Prober | Resolução de rota BSD, probe UDP no gateway, classificação stable/degraded e tolerância a gateways firewall (`.unobservable`). |
 | Catálogo | Assinatura válida/inválida, validade, schema, rollback, cache de 24 h e fallback de 30 dias/base. |
 | Transporte | Correlação de payload, timeout, duplicata, resposta tardia e cancelamento imediato de sockets/HTTP. |
-| Sessão | Quick, Deep (Wi-Fi e Celular), consentimento de dados, troca de caminho (Wi-Fi ⇄ celular) com descarte total e carga falha. |
-| Persistência | Registro explícito do tipo de conexão (`.wifi` ou `.cellular`), limites de 90 dias/100 por jogo e apagar histórico. |
-| UI | Trilha HIG de 5 passos sem poluição visual (sem números, percentuais, gráficos ou score preliminar), estados inconclusivo/cancelado e PT-BR/EN/ES. |
+| Sessão | Check (Wi-Fi e Celular), consentimento de dados, troca de caminho (Wi-Fi ⇄ celular) com descarte total e carga falha. |
+| Persistência | Registro de histórico com versões normativas de regras, veredito semântico, causas primárias/secundárias e recomendações. |
+| UI | Dark Competitive UI: Hero Verdict de maior hierarquia, cockpit telemetria compacto, bloco "O que encontramos" e 1 a 3 cards de recomendação. |
 
 ### 11.1 Matriz de Testes Obrigatórios em iPhone Físico (Decisão 36)
 - Wi-Fi: repouso, carga, resultado válido e inconclusivo.

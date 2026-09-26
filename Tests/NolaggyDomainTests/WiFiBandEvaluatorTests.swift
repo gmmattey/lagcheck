@@ -105,17 +105,19 @@ final class WiFiBandEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.confidence, .medium)
     }
 
-    func testSevereLoadDeltaInDeepCheckTriggersSuspected24GHzContention() {
+    func testWANLoadDeltaAloneDoesNotAccuseWiFiContentionWithoutLocalEvidence() {
+        // Decisão 50/55: Carga WAN (bufferbloat) sem evidência isolada no gateway local não acusa Wi-Fi 2.4GHz
         let telemetry = WiFiLocalTelemetry(
-            loadDeltaP50Ms: 42.0, // >= 35ms threshold (airtime starvation)
+            loadDeltaP50Ms: 42.0,
             validSampleCount: 0,
             plannedSampleCount: 0,
             isWiFi: true
         )
         let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
 
-        XCTAssertEqual(result.diagnostic, .suspected24GHzContention)
-        XCTAssertEqual(result.confidence, .medium)
+        XCTAssertNotEqual(result.diagnostic, .suspected24GHzContention)
+        XCTAssertEqual(result.diagnostic, .stableWiFi)
+        XCTAssertEqual(result.confidence, .none)
     }
 
     func testFastCleanLocalHopIsClassifiedAsStableWiFi() {

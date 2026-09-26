@@ -84,19 +84,19 @@ public enum WiFiBandEvaluator {
             }
         }
 
-        // 6. Avaliação complementar sob carga (Deep Check airtime starvation)
-        if let loadDelta = telemetry.loadDeltaP50Ms, loadDelta >= Thresholds.severeLoadDeltaP50MinMs {
+        // 6. Se o enlace local foi medido e não apresentou anomalias de contenção
+        if telemetry.gatewayRTTMedianMs != nil {
             return makeResult(
-                diagnostic: .suspected24GHzContention,
+                diagnostic: .stableWiFi,
                 confidence: .medium,
                 telemetry: telemetry
             )
         }
 
-        // 7. Enlace estável por padrão caso não haja indicativo de contenção
+        // 7. Sem SSID explícito e sem medição local válida, não se afirma frequência com confiança (Decisão 50/55)
         return makeResult(
             diagnostic: .stableWiFi,
-            confidence: .medium,
+            confidence: .none,
             telemetry: telemetry
         )
     }

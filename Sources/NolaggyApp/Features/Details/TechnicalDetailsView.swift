@@ -116,11 +116,11 @@ public struct TechnicalDetailsView: View {
                 .textCase(.uppercase)
 
             HStack(spacing: NLSpacing.md) {
-                percentileColumn(label: "P50 (Mediana)", value: metrics.p50Milliseconds)
+                percentileColumn(labelKey: "technical_details.p50_label", value: metrics.p50Milliseconds)
                 Divider().background(NLColor.borderHairline)
-                percentileColumn(label: "P95 (95% das vezes)", value: metrics.p95Milliseconds)
+                percentileColumn(labelKey: "technical_details.p95_label", value: metrics.p95Milliseconds)
                 Divider().background(NLColor.borderHairline)
-                percentileColumn(label: "P99 (Piores picos)", value: metrics.p99Milliseconds)
+                percentileColumn(labelKey: "technical_details.p99_label", value: metrics.p99Milliseconds)
             }
             .frame(maxWidth: .infinity)
         }
@@ -132,9 +132,9 @@ public struct TechnicalDetailsView: View {
         )
     }
 
-    private func percentileColumn(label: String, value: Double?) -> some View {
+    private func percentileColumn(labelKey: String, value: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label)
+            Text(LocalizedStringKey(labelKey))
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(NLColor.textTertiary)
 
@@ -161,7 +161,7 @@ public struct TechnicalDetailsView: View {
 
             HStack(spacing: NLSpacing.md) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Repouso")
+                    Text(LocalizedStringKey("technical_details.rest_label"))
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(NLColor.textTertiary)
                     Text("\(Int(impact.restP50Milliseconds.rounded())) ms")
@@ -174,7 +174,7 @@ public struct TechnicalDetailsView: View {
                     .foregroundStyle(NLColor.textTertiary)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Sob Carga")
+                    Text(LocalizedStringKey("technical_details.load_label"))
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(NLColor.textTertiary)
                     Text("\(Int(impact.loadP50Milliseconds.rounded())) ms")
@@ -185,7 +185,7 @@ public struct TechnicalDetailsView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Delta P50")
+                    Text(LocalizedStringKey("technical_details.delta_p50_label"))
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(NLColor.textTertiary)
                     Text(String(format: "+%.0f ms", impact.increaseMilliseconds))
@@ -210,7 +210,7 @@ public struct TechnicalDetailsView: View {
                 .textCase(.uppercase)
 
             HStack {
-                Text("Amostras UDP válidas")
+                Text(LocalizedStringKey("technical_details.valid_samples"))
                     .font(NLTypography.footnote)
                     .foregroundStyle(NLColor.textSecondary)
                 Spacer()
@@ -221,7 +221,7 @@ public struct TechnicalDetailsView: View {
             }
 
             HStack {
-                Text("Timeouts")
+                Text(LocalizedStringKey("technical_details.timeouts"))
                     .font(NLTypography.footnote)
                     .foregroundStyle(NLColor.textSecondary)
                 Spacer()
@@ -233,7 +233,7 @@ public struct TechnicalDetailsView: View {
 
             if metrics.spikeCount > 0 {
                 HStack {
-                    Text("Picos de latência detectados")
+                    Text(LocalizedStringKey("technical_details.spikes_detected"))
                         .font(NLTypography.footnote)
                         .foregroundStyle(NLColor.textSecondary)
                     Spacer()

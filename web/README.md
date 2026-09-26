@@ -1,6 +1,6 @@
-# LagCheck — Site Oficial e Landing Page de Alta Performance
+# Lagcheck — Site Oficial e Landing Page de Alta Performance
 
-Este diretório contém o site oficial do **LagCheck**, concebido sob a direção estética **Dark Competitive UI** (Decisões 51, 52 e 53) e estruturado com base no benchmark de mercado do **NoPing**:
+Este diretório contém o site oficial do **Lagcheck**, concebido sob a direção estética **Dark Competitive UI** (Decisões 51, 52 e 53) e estruturado com base no benchmark de mercado do **NoPing**:
 1. **Landing Page de Alta Conversão (`/`):** Hero gamer de alto impacto, simulador interativo de rota e prontidão, comparativo técnico, catálogo de jogos e SEO avançado.
 2. **Página de Suporte (`/support`):** Central de ajuda e resolução de problemas conforme requisitos da Apple App Store.
 3. **Política de Privacidade (`/privacy`):** Termos de privacidade transparentes em total conformidade com o app (SwiftData local, sem contas, sem telemetria intrusiva).
@@ -88,7 +88,7 @@ O script testará:
 
 ## Diretrizes de Marca e Design
 
-- **Marca:** LagCheck.
+- **Marca:** Lagcheck.
 - **Wordmark:** `lagcheck` em minúsculas (Dual-Node Vector + Kinetic Speed Slant).
 - **Estética:** Dark Competitive UI (fundo `#0B0D10`, superfícies grafite `#15181E`/`#1E232B`, bordas finas de 1px e Coral Solar `#FF5A36` de ação).
 - **Acessibilidade:**
@@ -104,4 +104,4 @@ O script testará:
 
 1. **Contato de Suporte:** Como não há endereço de e-mail institucional oficial registrado nos documentos do repositório, foi utilizado `suporte@lagcheck.app` e `privacidade@lagcheck.app`, **claramente identificados visualmente com alertas destacados como "Canal provisório a ser configurado oficialmente antes do lançamento público na App Store"**.
 2. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
-3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `LagCheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.
+3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Lagcheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.

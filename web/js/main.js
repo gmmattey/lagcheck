@@ -98,237 +98,207 @@
     });
 
     // Initialize Interactive Route Simulator if present
-    initSimulator();
+    initAlgorithmDemo();
+    bindAnalyticsTracking();
   }
 
-  // --- Interactive Route & Readiness Simulator ---
-  const GAME_DATA = {
-    valorant: {
-      name: 'Valorant',
-      publisher: 'Riot Games',
-      image: 'assets/games/valorant.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (BR1)', ping: 18, jitter: 1.1, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Rota ultrarrápida direta ao cluster Riot BR1 com jitter imperceptível.', descEn: 'Direct ultra-fast route to Riot BR1 cluster with imperceptible jitter.' },
-        'us-east-1': { location: 'Virgínia (NA-East)', ping: 118, jitter: 3.2, loss: 0.2, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Latência intercontinental elevada para trocas rápidas de tiro.', descEn: 'High cross-border latency for twitch aim and peeking.' },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 186, jitter: 5.4, loss: 0.5, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Distância transatlântica com atraso severo nos registros.', descEn: 'Transatlantic distance with severe bullet registration delay.' }
-      }
+  // --- Analytics & Demand Intent Tracking ---
+  function trackEvent(eventName, eventData = {}) {
+    try {
+      const storageKey = "lagcheck_web_events";
+      const events = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const eventPayload = {
+        event: eventName,
+        data: eventData,
+        timestamp: new Date().toISOString(),
+        lang: document.body.classList.contains("lang-en") ? "en" : "pt"
+      };
+      events.push(eventPayload);
+      if (events.length > 50) events.shift();
+      localStorage.setItem(storageKey, JSON.stringify(events));
+      window.dispatchEvent(new CustomEvent("lagcheck:telemetry", { detail: eventPayload }));
+    } catch (err) {}
+  }
+
+  function bindAnalyticsTracking() {
+    document.querySelectorAll("[data-event]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const eventName = el.getAttribute("data-event");
+        const eventVal = el.getAttribute("data-event-val") || "";
+        trackEvent(eventName, { target: eventVal });
+      });
+    });
+  }
+
+  // --- Demonstrador do Algoritmo de Diagnóstico ---
+  const SCENARIOS = {
+    stable: {
+      badgeClass: "ready",
+      verdictPt: "● PRONTO PARA RANKED",
+      verdictEn: "● READY FOR RANKED",
+      descPt: "Latência baixa e estável em repouso e sob carga. Respostas UDP consistentes sem bufferbloat.",
+      descEn: "Low, stable latency at rest and under stress. Consistent UDP probe responses with zero bufferbloat.",
+      ping: "18 ms",
+      jitter: "1.1 ms",
+      loss: "0.0%",
+      node1SubPt: "Wi-Fi 5 GHz • NAT Aberto (Tipo 2)",
+      node1SubEn: "Wi-Fi 5 GHz • Open NAT (Type 2)",
+      node2SubPt: "Backbone Fibra • 0% Perda",
+      node2SubEn: "Fiber Backbone • 0% Loss",
+      reasoningPt: "<strong>Diagnóstico Técnico:</strong> Durante as rajadas de estresse controladas, a variação de latência (jitter) permaneceu abaixo de 2 ms e não houve descarte de pacotes. A fila do roteador escoa sem atraso. Condição segura para entrar em filas ranqueadas.",
+      reasoningEn: "<strong>Technical Assessment:</strong> Controlled packet bursts produced less than 2 ms latency variation with zero packet drops. Router queue flushes cleanly. Favorable and safe conditions for ranked matchmaking."
     },
-    cs2: {
-      name: 'Counter-Strike 2',
-      publisher: 'Valve',
-      image: 'assets/games/cs2.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (GRU)', ping: 15, jitter: 0.9, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Sub-tick ideal com socket UDP Valve direto sem atraso de interpolação.', descEn: 'Ideal sub-tick with direct Valve UDP socket without interpolation lag.' },
-        'us-east-1': { location: 'Virgínia (US)', ping: 122, jitter: 4.1, loss: 0.4, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Sub-tick penalizado por distância geográfica e rota com saltos extras.', descEn: 'Sub-tick compromised by distance and intermediate WAN hops.' },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 195, jitter: 6.8, loss: 1.0, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Descompasso crítico de tiro e perda esporádica de pacotes.', descEn: 'Critical hit registration desync and sporadic packet loss.' }
-      }
+    bufferbloat: {
+      badgeClass: "warn",
+      verdictPt: "▲ EU EVITARIA RANKED AGORA",
+      verdictEn: "▲ AVOID RANKED RIGHT NOW",
+      descPt: "Bufferbloat severo detectado. A rota em repouso parece boa (24 ms), mas quadruplica sob carga (142 ms).",
+      descEn: "Severe bufferbloat detected. Idle ping looks acceptable (24 ms), but spikes fourfold under load (142 ms).",
+      ping: "142 ms",
+      jitter: "18.4 ms",
+      loss: "1.2%",
+      node1SubPt: "Wi-Fi 2.4 GHz • Fila Local Saturada",
+      node1SubEn: "Wi-Fi 2.4 GHz • Local Queue Saturated",
+      node2SubPt: "Bufferbloat no Roteador / CPE",
+      node2SubEn: "Router Bufferbloat / CPE Saturation",
+      reasoningPt: "<strong>Diagnóstico Técnico:</strong> A medição em repouso deu falsa impressão de estabilidade. Quando o teste injetou tráfego concorrente simulando o jogo, a latência explodiu para 142 ms. Em partida real, qualquer download de fundo causará tiros fantasmas e travamentos.",
+      reasoningEn: "<strong>Technical Assessment:</strong> Idle measurement gave a false impression of stability. Under synthetic load bursts, latency spiked to 142 ms. In a real match, any concurrent streaming or background traffic will trigger hit-reg desync and rubberbanding."
     },
-    lol: {
-      name: 'League of Legends',
-      publisher: 'Riot Games',
-      image: 'assets/games/leagueoflegends.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (BR1)', ping: 17, jitter: 1.0, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Conexão estável para teamfights intensas e combos milimétricos.', descEn: 'Rock-solid connection for chaotic teamfights and precise combos.' },
-        'us-east-1': { location: 'Chicago / Virgínia', ping: 128, jitter: 3.8, loss: 0.1, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Atraso em reações rápidas de Flash e esquivas de skillshots.', descEn: 'Lag on fast Flash reaction timings and skillshot dodges.' },
-        'eu-central-1': { location: 'Frankfurt (EUW)', ping: 190, jitter: 7.2, loss: 0.8, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Atraso de comando perceptível e risco de desconnexão.', descEn: 'Noticeable command delay and disconnect risk.' }
-      }
-    },
-    fortnite: {
-      name: 'Fortnite',
-      publisher: 'Epic Games / AWS',
-      image: 'assets/games/fortnite.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (sa-east-1)', ping: 21, jitter: 1.4, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'AWS GameLift direto com excelente resposta para construção rápida.', descEn: 'Direct AWS GameLift beacon with crisp responsiveness for fast building.' },
-        'us-east-1': { location: 'Virgínia (us-east-1)', ping: 115, jitter: 3.5, loss: 0.1, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Atraso de substituição de paredes e edição de peças.', descEn: 'Delay on wall replacement and piece editing.' },
-        'eu-central-1': { location: 'Frankfurt (eu-central-1)', ping: 182, jitter: 6.0, loss: 0.7, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Inviável para torneios competitivos ou arenas ranqueadas.', descEn: 'Unviable for competitive tournaments or ranked arenas.' }
-      }
-    },
-    eafc: {
-      name: 'EA Sports FC 25',
-      publisher: 'EA Sports',
-      image: 'assets/games/eafc.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (EA Hub)', ping: 19, jitter: 1.2, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Resposta imediata no passe, drible e divididas sem lentidão.', descEn: 'Immediate response in passing, dribbling, and tackles.' },
-        'us-east-1': { location: 'Miami / Virgínia', ping: 120, jitter: 4.5, loss: 0.3, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Sensação pesada de controle nos jogadores e delay de chute.', descEn: 'Heavy player movement feeling and shooting input delay.' },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 192, jitter: 8.0, loss: 1.2, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Descompasso grave de animações e micro-travamentos.', descEn: 'Severe animation desynchronization and micro-stuttering.' }
-      }
-    },
-    warzone: {
-      name: 'CoD Warzone',
-      publisher: 'Activision',
-      image: 'assets/games/warzone.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (Battle.net)', ping: 23, jitter: 1.6, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Bufferbloat estável sob rajadas pesadas de tiros em battle royale.', descEn: 'Bufferbloat held stable under intense battle royale firefights.' },
-        'us-east-1': { location: 'Virgínia (US)', ping: 125, jitter: 4.8, loss: 0.2, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Desvantagem de peeker e perda de cadência em confrontos curtos.', descEn: "Peeker's disadvantage and lost cadence in close quarters." },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 198, jitter: 9.1, loss: 1.5, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Descartes de pacotes frequentes durante transições de mapa.', descEn: 'Frequent packet drops during map transitions.' }
-      }
-    },
-    apex: {
-      name: 'Apex Legends',
-      publisher: 'EA / Respawn',
-      image: 'assets/games/apexlegends.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo (Respawn)', ping: 22, jitter: 1.3, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Movimentação fluida e cálculos de predição física consistentes.', descEn: 'Fluid movement and consistent physics prediction ticks.' },
-        'us-east-1': { location: 'Dallas / Virgínia', ping: 124, jitter: 3.9, loss: 0.2, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Stutter em transições rápidas de slide e tiro.', descEn: 'Stutter on rapid slide-jumping and weapon swaps.' },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 189, jitter: 7.5, loss: 0.9, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Hit-registration inconsistente em alvos em alta velocidade.', descEn: 'Inconsistent hit registration on high-speed targets.' }
-      }
-    },
-    roblox: {
-      name: 'Roblox',
-      publisher: 'Roblox Corp',
-      image: 'assets/games/roblox.jpg',
-      regions: {
-        'sa-east-1': { location: 'São Paulo Edge', ping: 20, jitter: 1.5, loss: 0.0, verdict: 'ready', verdictPt: 'PRONTO PARA RANKED', verdictEn: 'READY FOR RANKED', descPt: 'Sincronização física perfeita nos nós de borda de São Paulo.', descEn: 'Perfect physics sync across São Paulo edge nodes.' },
-        'us-east-1': { location: 'Virgínia Edge', ping: 116, jitter: 3.4, loss: 0.1, verdict: 'warn', verdictPt: 'EU EVITARIA RANKED AGORA', verdictEn: 'AVOID RANKED RIGHT NOW', descPt: 'Atraso moderado em minigames competitivos de precisão.', descEn: 'Moderate latency in competitive precision minigames.' },
-        'eu-central-1': { location: 'Frankfurt (EU)', ping: 185, jitter: 6.2, loss: 0.6, verdict: 'bad', verdictPt: 'CONDIÇÕES INSTÁVEIS', verdictEn: 'UNSTABLE CONDITIONS', descPt: 'Atraso de física e risco de descompasso de personagens.', descEn: 'Physics delay and avatar position desync.' }
-      }
+    inconclusive: {
+      badgeClass: "neutral",
+      verdictPt: "— INCONCLUSIVO (SEM NOTA INVENTADA)",
+      verdictEn: "— INCONCLUSIVE (NO SCORE)",
+      descPt: "Menos de 10 respostas UDP válidas recebidas ou descarte severo de rota. Nenhuma nota foi fabricada.",
+      descEn: "Fewer than 10 valid UDP responses received or critical route drops. No score is fabricated.",
+      ping: "— ms",
+      jitter: "— ms",
+      loss: "64.0%",
+      node1SubPt: "Troca de Interface / Rota Quebrada",
+      node1SubEn: "Interface Switch / Broken Route",
+      node2SubPt: "Respostas UDP Insuficientes",
+      node2SubEn: "Insufficient UDP Responses",
+      reasoningPt: "<strong>Princípio de Integridade:</strong> O Lagcheck se recusa a chutar notas ou inventar aproximações por ping HTTP quando a rota não fornece dados UDP matematicamente conclusivos. O teste é descartado para proteger a integridade do jogador.",
+      reasoningEn: "<strong>Scientific Integrity:</strong> Lagcheck refuses to guess scores or substitute HTTP approximations when network probes yield mathematically insufficient UDP samples. The test is safely discarded to protect the player."
     }
   };
 
-  let currentSelectedGame = 'valorant';
-  let currentSelectedRegion = 'sa-east-1';
+  const GAME_TARGETS = {
+    valorant: { name: "Valorant", image: "assets/games/valorant.jpg", clusterSa: "São Paulo (BR1)", clusterNa: "Virgínia (NA-East)", clusterEu: "Frankfurt (EU)" },
+    cs2: { name: "Counter-Strike 2", image: "assets/games/cs2.jpg", clusterSa: "São Paulo (GRU)", clusterNa: "Virgínia (US)", clusterEu: "Frankfurt (EU)" },
+    lol: { name: "League of Legends", image: "assets/games/leagueoflegends.jpg", clusterSa: "São Paulo (BR1)", clusterNa: "Chicago / Virgínia", clusterEu: "Frankfurt (EUW)" },
+    fortnite: { name: "Fortnite", image: "assets/games/fortnite.jpg", clusterSa: "São Paulo (sa-east-1)", clusterNa: "Virgínia (us-east-1)", clusterEu: "Frankfurt (eu-central-1)" },
+    eafc: { name: "EA Sports FC 25", image: "assets/games/eafc.jpg", clusterSa: "São Paulo (EA Hub)", clusterNa: "Miami / Virgínia", clusterEu: "Frankfurt (EU)" },
+    warzone: { name: "CoD Warzone", image: "assets/games/warzone.jpg", clusterSa: "São Paulo (Battle.net BR)", clusterNa: "Dallas / Virgínia", clusterEu: "Frankfurt (EU)" },
+    apex: { name: "Apex Legends", image: "assets/games/apexlegends.jpg", clusterSa: "São Paulo (Respawn)", clusterNa: "Dallas / Virgínia", clusterEu: "Frankfurt (EU)" },
+    roblox: { name: "Roblox", image: "assets/games/roblox.jpg", clusterSa: "São Paulo Edge", clusterNa: "Virgínia Edge", clusterEu: "Frankfurt (EU)" }
+  };
 
-  function initSimulator() {
-    const chips = document.querySelectorAll('.game-chip-btn');
-    const regionSelect = document.getElementById('sim-region-select');
-    const runBtn = document.getElementById('btn-run-sim');
+  let currentScenarioKey = "stable";
+  let currentTargetGame = "valorant";
+  let currentRegionKey = "sa-east-1";
 
-    if (!chips.length || !runBtn) return;
+  function initAlgorithmDemo() {
+    const scenarioBtns = document.querySelectorAll(".scenario-btn");
+    const chips = document.querySelectorAll(".game-chip-btn");
+    const regionSelect = document.getElementById("sim-region-select");
+
+    if (!scenarioBtns.length) return;
+
+    scenarioBtns.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        scenarioBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentScenarioKey = btn.getAttribute("data-scenario") || "stable";
+        trackEvent("scenario_selected", { scenario: currentScenarioKey });
+        updateDemoDisplay();
+      });
+    });
 
     chips.forEach((chip) => {
-      chip.addEventListener('click', (e) => {
+      chip.addEventListener("click", (e) => {
         e.preventDefault();
-        chips.forEach((c) => c.classList.remove('active'));
-        chip.classList.add('active');
-        currentSelectedGame = chip.getAttribute('data-game') || 'valorant';
-        updateSimulatorDisplay(false);
+        chips.forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentTargetGame = chip.getAttribute("data-game") || "valorant";
+        trackEvent("game_selected", { game: currentTargetGame });
+        updateDemoDisplay();
       });
     });
 
     if (regionSelect) {
-      regionSelect.addEventListener('change', () => {
-        currentSelectedRegion = regionSelect.value;
-        updateSimulatorDisplay(false);
+      regionSelect.addEventListener("change", () => {
+        currentRegionKey = regionSelect.value;
+        trackEvent("region_selected", { region: currentRegionKey });
+        updateDemoDisplay();
       });
     }
 
-    runBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      runSimulationCheck();
+    window.addEventListener("nolaggy:langchange", () => {
+      updateDemoDisplay();
     });
 
-    window.addEventListener('nolaggy:langchange', () => {
-      updateSimulatorDisplay(false);
-    });
-
-    updateSimulatorDisplay(false);
+    updateDemoDisplay();
   }
 
-  function runSimulationCheck() {
-    const runBtn = document.getElementById('btn-run-sim');
-    const nodeBoxes = document.querySelectorAll('.route-node-box');
-    const pingEl = document.getElementById('sim-metric-ping');
-    const jitterEl = document.getElementById('sim-metric-jitter');
-    const lossEl = document.getElementById('sim-metric-loss');
-    const isEn = document.body.classList.contains('lang-en');
+  function updateDemoDisplay() {
+    const scenario = SCENARIOS[currentScenarioKey] || SCENARIOS.stable;
+    const game = GAME_TARGETS[currentTargetGame] || GAME_TARGETS.valorant;
+    const isEn = document.body.classList.contains("lang-en");
 
-    if (!runBtn) return;
+    // Update Node 1 & Node 2 subtitles
+    const node1Sub = document.getElementById("sim-node-1-sub");
+    const node2Sub = document.getElementById("sim-node-2-sub");
+    if (node1Sub) node1Sub.textContent = isEn ? scenario.node1SubEn : scenario.node1SubPt;
+    if (node2Sub) node2Sub.textContent = isEn ? scenario.node2SubEn : scenario.node2SubPt;
 
-    runBtn.disabled = true;
-    runBtn.innerHTML = `
-      <span class="pulse-dot"></span>
-      <span>${isEn ? 'AUDITING ROUTE...' : 'AUDITANDO ROTA...'}</span>
-    `;
-
-    // Step 1: Animate node 1
-    nodeBoxes.forEach((b) => b.classList.remove('active-node'));
-    if (nodeBoxes[0]) nodeBoxes[0].classList.add('active-node');
-
-    setTimeout(() => {
-      // Step 2: Animate node 2
-      if (nodeBoxes[1]) nodeBoxes[1].classList.add('active-node');
-    }, 200);
-
-    setTimeout(() => {
-      // Step 3: Animate node 3
-      if (nodeBoxes[2]) nodeBoxes[2].classList.add('active-node');
-    }, 450);
-
-    setTimeout(() => {
-      updateSimulatorDisplay(true);
-      runBtn.disabled = false;
-      runBtn.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span>${isEn ? 'RUN READY CHECK' : 'FAZER CHECK DE ROTA'}</span>
-      `;
-    }, 700);
-  }
-
-  function updateSimulatorDisplay(animate) {
-    const game = GAME_DATA[currentSelectedGame] || GAME_DATA.valorant;
-    const regData = game.regions[currentSelectedRegion] || game.regions['sa-east-1'];
-    const isEn = document.body.classList.contains('lang-en');
-
-    // Update Node 3 Datacenter label
-    const nodeTarget = document.getElementById('sim-node-target-name');
-    const nodeTargetLoc = document.getElementById('sim-node-target-location');
-    if (nodeTarget) nodeTarget.textContent = `${game.name} Cluster`;
-    if (nodeTargetLoc) nodeTargetLoc.textContent = regData.location;
+    // Update Node 3 Datacenter target
+    const nodeTarget = document.getElementById("sim-node-target-name");
+    const nodeTargetLoc = document.getElementById("sim-node-target-location");
+    if (nodeTarget) nodeTarget.textContent = game.name + " Cluster";
+    if (nodeTargetLoc) {
+      let loc = game.clusterSa;
+      if (currentRegionKey === "us-east-1") loc = game.clusterNa;
+      if (currentRegionKey === "eu-central-1") loc = game.clusterEu;
+      nodeTargetLoc.textContent = loc;
+    }
 
     // Update Verdict Badge
-    const verdictBox = document.getElementById('sim-verdict-box');
-    const verdictTitle = document.getElementById('sim-verdict-title');
-    const verdictDesc = document.getElementById('sim-verdict-desc');
+    const verdictBox = document.getElementById("sim-verdict-box");
+    const verdictTitle = document.getElementById("sim-verdict-title");
+    const verdictDesc = document.getElementById("sim-verdict-desc");
 
     if (verdictBox) {
-      verdictBox.className = `verdict-large-badge ${regData.verdict}`;
+      verdictBox.className = "verdict-large-badge " + scenario.badgeClass;
     }
     if (verdictTitle) {
-      const icon = regData.verdict === 'ready' ? '● ' : '▲ ';
-      verdictTitle.textContent = icon + (isEn ? regData.verdictEn : regData.verdictPt);
+      verdictTitle.textContent = isEn ? scenario.verdictEn : scenario.verdictPt;
     }
     if (verdictDesc) {
-      verdictDesc.textContent = isEn ? regData.descEn : regData.descPt;
+      verdictDesc.textContent = isEn ? scenario.descEn : scenario.descPt;
     }
 
-    // Update Metrics with smooth count-up
-    const pingEl = document.getElementById('sim-metric-ping');
-    const jitterEl = document.getElementById('sim-metric-jitter');
-    const lossEl = document.getElementById('sim-metric-loss');
+    // Update Metrics
+    const pingEl = document.getElementById("sim-metric-ping");
+    const jitterEl = document.getElementById("sim-metric-jitter");
+    const lossEl = document.getElementById("sim-metric-loss");
+    if (pingEl) pingEl.textContent = scenario.ping;
+    if (jitterEl) jitterEl.textContent = scenario.jitter;
+    if (lossEl) lossEl.textContent = scenario.loss;
 
-    if (pingEl) {
-      if (animate) {
-        animateValue(pingEl, 0, regData.ping, 400, ' ms');
-      } else {
-        pingEl.textContent = `${regData.ping} ms`;
-      }
+    // Update Reasoning Card
+    const reasoningBox = document.getElementById("algorithm-reasoning-content");
+    if (reasoningBox) {
+      reasoningBox.innerHTML = isEn ? scenario.reasoningEn : scenario.reasoningPt;
     }
-    if (jitterEl) jitterEl.textContent = `${regData.jitter.toFixed(1)} ms`;
-    if (lossEl) lossEl.textContent = `${regData.loss.toFixed(1)}%`;
 
-    // Also update phone cockpit hero preview
-    const phoneGameName = document.querySelector('.phone-game-name');
-    const phoneGameRegion = document.querySelector('.phone-game-region');
-    const phoneGameImg = document.querySelector('.phone-game-card img');
+    // Sync phone cockpit preview
+    const phoneGameName = document.querySelector(".phone-game-name");
+    const phoneGameRegion = document.querySelector(".phone-game-region");
+    const phoneGameImg = document.querySelector(".phone-game-card img");
     if (phoneGameName) phoneGameName.textContent = game.name;
-    if (phoneGameRegion) phoneGameRegion.textContent = regData.location;
+    if (phoneGameRegion) phoneGameRegion.textContent = nodeTargetLoc ? nodeTargetLoc.textContent : game.clusterSa;
     if (phoneGameImg) phoneGameImg.src = game.image;
-  }
-
-  function animateValue(element, start, end, duration, suffix) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const val = Math.floor(progress * (end - start) + start);
-      element.textContent = `${val}${suffix}`;
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      }
-    };
-    window.requestAnimationFrame(step);
   }
 
   if (document.readyState === 'loading') {

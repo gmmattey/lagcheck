@@ -28,6 +28,17 @@ public enum DeepCheckLoadImpactClassification: String, Codable, Equatable, Senda
 /// Regra determinística e versionada para classificar somente o impacto do
 /// Deep Check. O corte usa o delta bruto de P50, antes de qualquer arredondamento
 /// de apresentação, para que a decisão não varie por locale ou UI.
+/// Nível de degradação sob carga multidimensional (Decisão 55).
+public enum LoadDegradationTier: String, Codable, CaseIterable, Hashable, Sendable {
+    case none
+    case light
+    case material
+    case severe
+}
+
+/// Regra determinística e versionada para classificar somente o impacto do
+/// Deep Check. O corte usa o delta bruto de P50, antes de qualquer arredondamento
+/// de apresentação, para que a decisão não varie por locale ou UI.
 public enum DeepCheckLoadImpactMaterialityRuleV1 {
     public static let version = "deep-load-impact-v1"
     public static let materialIncreaseMilliseconds = 20.0
@@ -37,21 +48,101 @@ public enum DeepCheckLoadImpactMaterialityRuleV1 {
     }
 }
 
-/// Comparação observada entre os P50 das duas fases. Não é score nem classe.
+/// Regra multidimensional e calibrada por perfil para bufferbloat sob carga (Decisão 55).
+public enum DeepCheckLoadImpactMaterialityRuleV2 {
+    public static let version = "deep-load-impact-v2"
+
+    public static func classify(
+        profile: QualityProfileID,
+        deltaP50: Double,
+        deltaJitter: Double,
+        deltaLoss: Double,
+        deltaSpikes: Int
+    ) -> LoadDegradationTier {
+        switch profile {
+        case .battleRoyaleCompetitive:
+            if deltaP50 > 40 || deltaJitter > 20 || deltaLoss > 5.0 || deltaSpikes >= 4 {
+                return .severe
+            }
+            if deltaP50 > 18 || deltaJitter > 8 || deltaLoss > 2.0 || deltaSpikes >= 2 {
+                return .material
+            }
+            if deltaP50 > 8 || deltaJitter > 4 || deltaLoss > 1.0 || deltaSpikes >= 1 {
+                return .light
+            }
+            return .none
+
+        case .mobileRealtime:
+            if deltaP50 > 55 || deltaJitter > 25 || deltaLoss > 7.0 || deltaSpikes >= 5 {
+                return .severe
+            }
+            if deltaP50 > 25 || deltaJitter > 12 || deltaLoss > 3.0 || deltaSpikes >= 2 {
+                return .material
+            }
+            if deltaP50 > 12 || deltaJitter > 6 || deltaLoss > 1.5 || deltaSpikes >= 1 {
+                return .light
+            }
+            return .none
+
+        case .casualRealtime:
+            if deltaP50 > 80 || deltaJitter > 35 || deltaLoss > 10.0 {
+                return .severe
+            }
+            if deltaP50 > 40 || deltaJitter > 18 || deltaLoss > 5.0 {
+                return .material
+            }
+            if deltaP50 > 20 || deltaJitter > 10 || deltaLoss > 2.0 {
+                return .light
+            }
+            return .none
+        }
+    }
+}
+
+/// Comparação observada entre repouso e carga nas métricas multidimensionais. Não é score nem classe.
 public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
     public let restP50Milliseconds: Double
     public let loadP50Milliseconds: Double
     public let increaseMilliseconds: Double
     public let ruleVersion: String
     public let classification: DeepCheckLoadImpactClassification
+    public let tier: LoadDegradationTier
+    public let deltaJitterMilliseconds: Double?
+    public let deltaLossPercentage: Double?
+    public let deltaSpikesCount: Int?
 
-    public init(restP50Milliseconds: Double, loadP50Milliseconds: Double) {
+    public init(
+        restP50Milliseconds: Double,
+        loadP50Milliseconds: Double,
+        tier: LoadDegradationTier = .none,
+        deltaJitterMilliseconds: Double? = nil,
+        deltaLossPercentage: Double? = nil,
+        deltaSpikesCount: Int? = nil,
+        ruleVersion: String = DeepCheckLoadImpactMaterialityRuleV2.version
+    ) {
         self.restP50Milliseconds = restP50Milliseconds
         self.loadP50Milliseconds = loadP50Milliseconds
-        self.increaseMilliseconds = loadP50Milliseconds - restP50Milliseconds
-        self.ruleVersion = DeepCheckLoadImpactMaterialityRuleV1.version
-        self.classification = DeepCheckLoadImpactMaterialityRuleV1.classify(
-            increaseMilliseconds: increaseMilliseconds
+        let increase = loadP50Milliseconds - restP50Milliseconds
+        self.increaseMilliseconds = increase
+        self.ruleVersion = ruleVersion
+        self.tier = tier
+        self.classification = DeepCheckLoadImpactMaterialityRuleV1.classify(increaseMilliseconds: increase)
+        self.deltaJitterMilliseconds = deltaJitterMilliseconds
+        self.deltaLossPercentage = deltaLossPercentage
+        self.deltaSpikesCount = deltaSpikesCount
+    }
+
+    public init(restP50Milliseconds: Double, loadP50Milliseconds: Double) {
+        let increase = loadP50Milliseconds - restP50Milliseconds
+        let tier: LoadDegradationTier = (increase >= DeepCheckLoadImpactMaterialityRuleV1.materialIncreaseMilliseconds) ? .material : .none
+        self.init(
+            restP50Milliseconds: restP50Milliseconds,
+            loadP50Milliseconds: loadP50Milliseconds,
+            tier: tier,
+            deltaJitterMilliseconds: nil,
+            deltaLossPercentage: nil,
+            deltaSpikesCount: nil,
+            ruleVersion: DeepCheckLoadImpactMaterialityRuleV2.version
         )
     }
 
@@ -61,11 +152,12 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         case increaseMilliseconds
         case ruleVersion
         case classification
+        case tier
+        case deltaJitterMilliseconds
+        case deltaLossPercentage
+        case deltaSpikesCount
     }
 
-    /// Snapshots gerados antes da regra não carregavam sua classificação. Eles
-    /// são migrados uma única vez com a versão atual a partir do delta já salvo;
-    /// snapshots novos preservam tanto a versão quanto a classificação gravadas.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         restP50Milliseconds = try container.decode(Double.self, forKey: .restP50Milliseconds)
@@ -73,8 +165,14 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         increaseMilliseconds = try container.decode(Double.self, forKey: .increaseMilliseconds)
         ruleVersion = try container.decodeIfPresent(String.self, forKey: .ruleVersion)
             ?? DeepCheckLoadImpactMaterialityRuleV1.version
-        classification = try container.decodeIfPresent(DeepCheckLoadImpactClassification.self, forKey: .classification)
+        let legacyClassification = try container.decodeIfPresent(DeepCheckLoadImpactClassification.self, forKey: .classification)
             ?? DeepCheckLoadImpactMaterialityRuleV1.classify(increaseMilliseconds: increaseMilliseconds)
+        classification = legacyClassification
+        tier = try container.decodeIfPresent(LoadDegradationTier.self, forKey: .tier)
+            ?? (legacyClassification == .material ? .material : .none)
+        deltaJitterMilliseconds = try container.decodeIfPresent(Double.self, forKey: .deltaJitterMilliseconds)
+        deltaLossPercentage = try container.decodeIfPresent(Double.self, forKey: .deltaLossPercentage)
+        deltaSpikesCount = try container.decodeIfPresent(Int.self, forKey: .deltaSpikesCount)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -84,6 +182,10 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         try container.encode(increaseMilliseconds, forKey: .increaseMilliseconds)
         try container.encode(ruleVersion, forKey: .ruleVersion)
         try container.encode(classification, forKey: .classification)
+        try container.encode(tier, forKey: .tier)
+        try container.encodeIfPresent(deltaJitterMilliseconds, forKey: .deltaJitterMilliseconds)
+        try container.encodeIfPresent(deltaLossPercentage, forKey: .deltaLossPercentage)
+        try container.encodeIfPresent(deltaSpikesCount, forKey: .deltaSpikesCount)
     }
 }
 
@@ -136,6 +238,25 @@ public enum DeepCheckEvaluator {
             )
         }
 
+        let deltaP50 = max(0, loadP50 - restP50)
+        let restJitter = restResult.metrics.jitterMilliseconds ?? 0
+        let loadJitter = loadResult.metrics.jitterMilliseconds ?? 0
+        let deltaJitter = max(0, loadJitter - restJitter)
+        let restLoss = restResult.metrics.packetLossPercentage
+        let loadLoss = loadResult.metrics.packetLossPercentage
+        let deltaLoss = max(0, loadLoss - restLoss)
+        let restSpikes = restResult.metrics.spikeCount
+        let loadSpikes = loadResult.metrics.spikeCount
+        let deltaSpikes = max(0, loadSpikes - restSpikes)
+
+        let tier = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: profile,
+            deltaP50: deltaP50,
+            deltaJitter: deltaJitter,
+            deltaLoss: deltaLoss,
+            deltaSpikes: deltaSpikes
+        )
+
         return .completed(
             DeepCheckResult(
                 restResult: restResult,
@@ -144,7 +265,11 @@ public enum DeepCheckEvaluator {
                     load: loadResult.metrics,
                     loadImpact: DeepCheckLoadImpact(
                         restP50Milliseconds: restP50,
-                        loadP50Milliseconds: loadP50
+                        loadP50Milliseconds: loadP50,
+                        tier: tier,
+                        deltaJitterMilliseconds: deltaJitter,
+                        deltaLossPercentage: deltaLoss,
+                        deltaSpikesCount: deltaSpikes
                     )
                 )
             )

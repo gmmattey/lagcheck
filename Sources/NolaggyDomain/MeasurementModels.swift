@@ -54,6 +54,7 @@ public enum ResultClass: String, Codable, CaseIterable, Hashable, Sendable {
 
 public enum InconclusiveReason: String, Codable, CaseIterable, Hashable, Sendable {
     case insufficientUDPResponses
+    case poorSampleQuality
 }
 
 public enum ScoreGuardrail: String, Codable, CaseIterable, Hashable, Sendable {

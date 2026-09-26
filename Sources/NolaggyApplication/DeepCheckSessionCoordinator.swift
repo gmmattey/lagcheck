@@ -113,6 +113,7 @@ public actor DeepCheckSessionCoordinator {
     private var activePhase: DeepCheckPhase?
     private var activeCellularConsent: Bool = false
     private var partialSamples: [ProbeSample] = []
+    private var allReceivedSamples: [ProbeSample] = []
     private var completedRestSamples: [ProbeSample] = []
     private var executionTask: Task<Void, Never>?
     private var pathTask: Task<Void, Never>?
@@ -201,6 +202,7 @@ public actor DeepCheckSessionCoordinator {
         activeCellularConsent = false
         partialSamples = []
         completedRestSamples = []
+        allReceivedSamples = []
         executionTask?.cancel()
         pathTask?.cancel()
         executionTask = nil
@@ -238,6 +240,7 @@ public actor DeepCheckSessionCoordinator {
         }
         activePhase = .load
         partialSamples = []
+        allReceivedSamples = []
         completedRestSamples = restSamples.filter(\.isValidResponse)
         state = .measuring(session, .load)
 
@@ -263,6 +266,7 @@ public actor DeepCheckSessionCoordinator {
         activeCellularConsent = false
         partialSamples = []
         completedRestSamples = []
+        allReceivedSamples = []
         pathTask?.cancel()
         pathTask = nil
         executionTask = nil
@@ -293,8 +297,15 @@ public actor DeepCheckSessionCoordinator {
     }
 
     private func record(sample: ProbeSample, for sessionID: UUID, phase: DeepCheckPhase) {
-        guard activeSession?.id == sessionID, activePhase == phase, sample.isValidResponse else { return }
-        partialSamples.append(sample)
+        guard activeSession?.id == sessionID, activePhase == phase else { return }
+        allReceivedSamples.append(sample)
+        if sample.isValidResponse {
+            partialSamples.append(sample)
+        }
+        let assessment = SampleQualityEvaluator.assess(samples: allReceivedSamples)
+        if case .shouldAbort = assessment.status {
+            cancel(id: sessionID, reason: .poorSampleQuality)
+        }
     }
 }
 

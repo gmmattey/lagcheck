@@ -545,6 +545,8 @@
 "game_readiness.finding.load_stable" = "Stable behavior under load";
 "game_readiness.finding.destination_response_normal" = "Destination response normal";
 "game_readiness.finding.insufficient_samples" = "Insufficient UDP samples";
+"game_readiness.finding.tail_latency_elevated" = "Elevated tail latency";
+"game_readiness.finding.local_gateway_degraded" = "Local Wi-Fi link fluctuating";
 
 "game_readiness.cta.retest" = "TEST AGAIN";
 "game_readiness.cta.understand_connection" = "Understand my connection >";
@@ -555,3 +557,20 @@
 "game_readiness.findings.section_title" = "WHAT WE FOUND";
 "game_readiness.stability.section_title" = "STABILITY";
 
+/* Technical Details */
+"technical_details.title" = "Technical Details";
+"technical_details.close" = "Close";
+"technical_details.quality_score" = "QUALITY SCORE";
+"technical_details.score_explanation" = "Deterministic score weighted by latency, stability, packet loss, and bufferbloat.";
+"technical_details.percentiles_title" = "LATENCY PERCENTILES";
+"technical_details.p50_label" = "P50 (Median)";
+"technical_details.p95_label" = "P95 (95th percentile)";
+"technical_details.p99_label" = "P99 (Worst spikes)";
+"technical_details.load_impact_title" = "BEHAVIOR UNDER LOAD";
+"technical_details.rest_label" = "Rest";
+"technical_details.load_label" = "Under Load";
+"technical_details.delta_p50_label" = "Delta P50";
+"technical_details.udp_samples_title" = "UDP SAMPLES & PACKETS";
+"technical_details.valid_samples" = "Valid UDP samples";
+"technical_details.timeouts" = "Timeouts";
+"technical_details.spikes_detected" = "Latency spikes detected";

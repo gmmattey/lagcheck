@@ -7,7 +7,7 @@
 > **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo remoto e a telemetria mínima anônima de retenção são servidos por um Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
 > A App Store pode distribuir o app globalmente, mas o catálogo com suporte oficial do MVP começa em Brasil e Estados Unidos.
 > AdMob, UMP e banners não entram no MVP1. A monetização por anúncios é recorte de MVP1.1 e só poderá introduzir biblioteca, IDs, consentimento e gates próprios nessa etapa.
-> **Atualização Decisão 50:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
+> **Atualização Decisões 50 e 55:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`, além de motores dedicados de integridade diagnóstica: `SampleQualityEvaluator`, `LoadImpactEvaluator` multidimensional (`deep-load-impact-v2`), `EvidenceRecommendationEngine` e probe isolado de gateway local (`en0`) para estrita separação entre instabilidade doméstica e rota externa. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
 
 ## 1. Objetivo arquitetural
 
@@ -68,19 +68,27 @@ Essa camada só apresenta estado pronto para uso. Ela não calcula métricas, es
 
 Coordena os casos de uso: carregar catálogo, selecionar contexto de jogo, iniciar/cancelar uma sessão e persistir resultado.
 
-O **Measurement Session Coordinator** é o dono do ciclo de uma medição. Ele garante que só exista uma sessão ativa por vez, reage à mudança de caminho de rede e mantém o resultado parcial separado do resultado final.
+O **Measurement Session Coordinator** é o dono do ciclo de uma medição. Ele:
+- Garante que só exista uma sessão ativa por vez;
+- Dispara o probe isolado de gateway local em Wi-Fi e os probes de rota remota;
+- Monitora a qualidade da amostra via `SampleQualityEvaluator`, abortando precocemente em conexões degradadas;
+- Reage instantaneamente a eventos do `NetworkPathObserver` (troca Wi-Fi ⇄ Celular), cancelando os sockets e descartando dados parciais da memória;
+- Mantém o resultado parcial em repouso estritamente separado da fase sob carga.
 
 ### 3.3 Domínio de qualidade de jogo
 
 É o núcleo determinístico, independente de tela, transporte ou fornecedor de endpoint. Inclui:
 
-- resolução do contexto de teste a partir de jogo, mercado, plataforma e catálogo;
-- agregação de amostras e validação de sessão;
-- cálculo de P50, P95, P99, jitter, perda, spikes, consistência e comportamento sob carga;
-- aplicação dos pesos, limites e guardrails do perfil no motor NGQE;
-- tradução de sintomas pelo `ResultInterpreter` (perda, latência, instabilidade, estresse);
-- avaliação semântica de prontidão de partida pelo `GameReadinessEvaluator`, gerando o `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`);
-- geração do LagCheck Score (0–100) determinístico mantido para detalhes, histórico e telemetria.
+- Resolução do contexto de teste a partir de jogo, mercado, plataforma e catálogo;
+- Agregação de amostras e watchdog de qualidade (`SampleQualityEvaluator`);
+- Cálculo de P50, P95, P99, jitter, perda, spikes e latência de cauda ($P95/P50$);
+- Classificação de spikes: isolados vs. recorrentes;
+- Avaliação multidimensional sob carga (`LoadImpactEvaluator` com regra `deep-load-impact-v2`);
+- Aplicação de pesos, limites e guardrails do perfil no motor NGQE;
+- Hierarquia e coocorrência de causas pelo `ResultInterpreter` (causa primária e sintomas secundários);
+- Motor de recomendações determinísticas (`EvidenceRecommendationEngine`, gerando de 1 a 3 ações práticas);
+- Avaliação semântica de prontidão pelo `GameReadinessEvaluator` (`readiness-v2.0`), considerando confiança de rota;
+- Geração do LagCheck Score (0–100) determinístico mantido para detalhes, histórico e telemetria.
 
 O domínio recebe dados de entrada tipados e devolve um resultado completo. Não acessa UI, armazenamento, HTTP, UDP nem estado global do iOS.
 
@@ -88,14 +96,16 @@ O domínio recebe dados de entrada tipados e devolve um resultado completo. Não
 
 Implementa adaptadores para capacidades externas:
 
-- transporte UDP para probes de repouso e carga;
-- carga HTTP controlada do Check (Worker `/v1/load`);
-- observação de caminho de rede e mudança entre Wi-Fi/celular;
-- telemetria de produto anônima enviada ao Worker (`/v1/telemetry`) para validação de retenção sem PII/IP;
-- obtenção de idioma e localidade do sistema somente para apresentação;
-- acesso a armazenamento local (SwiftData);
-- cliente de catálogo remoto e validação de assinatura Ed25519;
-- relógio, agendamento e cancelamento de operações.
+- Descoberta dinâmica de gateway local via rotas do sistema operacional (`sysctl`/`getifaddrs` na `en0`), sem assumir IP `.1`;
+- Transporte UDP para probes no gateway local (5 probes, 200 ms timeout) e detecção de estado observável/não-observável;
+- Transporte UDP para probes remotos em destinos AWS GameLift, Azure PlayFab ou Valve;
+- Carga HTTP controlada do Check (Worker `/v1/load`, teto de 10 MB);
+- Diagnóstico de banda Wi-Fi com níveis de confiança (`WiFiBandDetector`: `.high`, `.medium`, `.low`, `.unknown`);
+- Cliente leve de STUN RFC 5389 para detecção de topologia de NAT;
+- Observação contínua de caminho de rede via `NWPathMonitor` para descarte imediato em transição de interface;
+- Telemetria de produto anônima enviada ao Worker (`/v1/telemetry`) para validação de retenção sem PII/IP;
+- Acesso a armazenamento local (SwiftData);
+- Cliente de catálogo remoto e validação de assinatura Ed25519.
 
 Esses adaptadores obedecem contratos definidos pelo domínio e pela aplicação. Trocar um destino de probe não pode alterar a regra de score ou prontidão.
 
@@ -108,7 +118,7 @@ Há duas famílias de dados:
 | Configuração de catálogo | Base embarcada no app, atualizada remotamente e com cache local. | Jogos, regiões, perfis, limites, textos parametrizados e flags. | Atualizar no máximo a cada 24 h; usar última versão válida por até 30 dias; depois, voltar à base embarcada. |
 | Dados do jogador | Criados no dispositivo em SwiftData. | Preferências, último jogo/plataforma e histórico de vereditos. | Permanecem locais por até 90 dias, com máximo de 100 medições por jogo e exclusão manual nas configurações. |
 
-O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede declarado, região, estratégia de medição, confiança, métricas agregadas, veredito de prontidão, score, sintomas e versão de catálogo/perfil. Amostras brutas só devem ser persistidas se forem necessárias para detalhes e diagnóstico local; elas não são requisito para sincronização remota no MVP.
+O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede (`.wifi` ou `.cellular`), gateway probe result (`.stable`, `.degraded`, `.unobservable`), região, estratégia de medição, confiança, métricas agregadas, veredito de prontidão, score, causa primária, causas secundárias, recomendações geradas e versão das regras (`readiness-v2.0`, `deep-load-impact-v2`).
 
 ## 4. Componentes e fronteiras
 
@@ -118,12 +128,16 @@ flowchart LR
     USE --> CTX[Resolvedor de contexto]
     USE --> SESS[Coordenador de sessão]
     SESS --> PATH[Observador de rede]
+    SESS --> GW[Probe Gateway Local]
     SESS --> PROBE[Adaptador de probe UDP]
     SESS --> LOAD[Adaptador de carga HTTP]
+    SESS --> QUAL[Sample Quality Watchdog]
     SESS --> NGQE[NGQE]
     CTX --> CAT[Repositório do catálogo]
-    NGQE --> INT[Interpretador de sintomas]
-    INT --> RDY[Game Readiness Evaluator]
+    NGQE --> LOADIMP[Avaliador de Carga Multidimensional]
+    LOADIMP --> INT[Interpretador de Causas e Coocorrência]
+    INT --> REC[Motor de Recomendações]
+    REC --> RDY[Game Readiness Evaluator]
     RDY --> HIST[Repositório de histórico]
     RDY --> TEL[Telemetria anônima Worker]
 ```
@@ -133,13 +147,17 @@ flowchart LR
 | Repositório do catálogo | Dados | Configuração remota/cache | Catálogo válido e versionado ou indisponibilidade explícita. |
 | Resolvedor de contexto | Domínio | Jogo, mercado, plataforma e catálogo | Perfil, regiões, alvo, confiança e regras aplicáveis. |
 | Coordenador de sessão | Aplicação | Contexto resolvido e intenção de Check | Estado de sessão, cancelamento ou amostras finalizadas. |
-| Observador de rede | Infraestrutura | Estado do caminho de rede | Evento de mudança que invalida a sessão. |
+| Observador de rede | Infraestrutura | Estado do caminho de rede | Evento de mudança de interface que descarta a sessão. |
+| Probe Gateway Local | Infraestrutura | Gateway dinâmico resolvido | RTT/loss local ou marcação de `.unobservable`. |
 | Adaptador de probe UDP | Infraestrutura | Alvo e plano de amostragem | Amostras válidas, timeouts ou falha de transporte. |
-| Adaptador de carga HTTP | Infraestrutura | Cenário de carga | Sinal de carga e métricas auxiliares. |
+| Adaptador de carga HTTP | Infraestrutura | Cenário de carga | Sinal de carga e métricas de transferência. |
+| Watchdog de qualidade | Domínio | Amostras iniciais de UDP | Confirmação de qualidade ou abort precoce. |
 | NGQE | Domínio | Amostras, perfil e regras | Métricas calculadas, score 0–100 e guardrails aplicados. |
-| Interpretador de sintomas | Domínio | Resultado do NGQE e perfil | Diagnóstico honesto de sintomas observados. |
-| Game Readiness Evaluator | Domínio | Diagnóstico de sintomas e perfil do jogo | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). |
-| Repositório de histórico | Dados | Veredito e métricas finais | Histórico local por jogo no SwiftData. |
+| Avaliador de carga | Domínio | Amostras de repouso e carga | Classificação de materialidade (`deep-load-impact-v2`). |
+| Interpretador de causas | Domínio | Métricas, delta de carga e probe local | Causa primária e sintomas secundários objetivos. |
+| Motor de recomendações | Domínio | Causa primária e sintomas confirmados | 1 a 3 ações práticas ordenadas por impacto. |
+| Game Readiness Evaluator | Domínio | Métricas, sintomas, perfil e confiança | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). |
+| Repositório de histórico | Dados | Veredito, regras e métricas | Histórico local por jogo no SwiftData. |
 | Telemetria de retenção | Infraestrutura | Eventos de ciclo (start, verdict, retest) | Evento anônimo enviado a `/v1/telemetry`. |
 
 ## 5. Fluxos arquiteturais críticos

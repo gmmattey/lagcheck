@@ -17,8 +17,71 @@ final class DeepCheckEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.metrics.loadImpact?.restP50Milliseconds, 30)
         XCTAssertEqual(result.metrics.loadImpact?.loadP50Milliseconds, 93)
         XCTAssertEqual(result.metrics.loadImpact?.increaseMilliseconds, 63)
-        XCTAssertEqual(result.metrics.loadImpact?.ruleVersion, "deep-load-impact-v1")
+        XCTAssertEqual(result.metrics.loadImpact?.ruleVersion, "deep-load-impact-v2")
         XCTAssertEqual(result.metrics.loadImpact?.classification, .material)
+        XCTAssertEqual(result.metrics.loadImpact?.tier, .severe)
+    }
+
+    func testDeepLoadImpactRuleV2TestVectors() {
+        // DLI2-01: battleRoyale none
+        let tier1 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 5,
+            deltaJitter: 2,
+            deltaLoss: 0,
+            deltaSpikes: 0
+        )
+        XCTAssertEqual(tier1, .none)
+
+        // DLI2-02: battleRoyale light
+        let tier2 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 12,
+            deltaJitter: 5,
+            deltaLoss: 0,
+            deltaSpikes: 0
+        )
+        XCTAssertEqual(tier2, .light)
+
+        // DLI2-03: battleRoyale material via deltaP50
+        let tier3 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 22,
+            deltaJitter: 6,
+            deltaLoss: 0,
+            deltaSpikes: 0
+        )
+        XCTAssertEqual(tier3, .material)
+
+        // DLI2-04: battleRoyale material via deltaJitter
+        let tier4 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 10,
+            deltaJitter: 10,
+            deltaLoss: 0,
+            deltaSpikes: 0
+        )
+        XCTAssertEqual(tier4, .material)
+
+        // DLI2-05: battleRoyale material via deltaLoss
+        let tier5 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 10,
+            deltaJitter: 2,
+            deltaLoss: 2.5,
+            deltaSpikes: 0
+        )
+        XCTAssertEqual(tier5, .material)
+
+        // DLI2-06: battleRoyale severe
+        let tier6 = DeepCheckLoadImpactMaterialityRuleV2.classify(
+            profile: .battleRoyaleCompetitive,
+            deltaP50: 45,
+            deltaJitter: 25,
+            deltaLoss: 6.0,
+            deltaSpikes: 4
+        )
+        XCTAssertEqual(tier6, .severe)
     }
 
     func testFailedLoadKeepsCompletedRestWithoutImpact() throws {

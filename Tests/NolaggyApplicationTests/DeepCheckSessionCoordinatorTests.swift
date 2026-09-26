@@ -135,6 +135,29 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         XCTAssertEqual(state, .cancelled(session, .networkPathChanged))
     }
 
+    func testPoorSampleQualityAbortsDeepCheckEarly() async throws {
+        let coordinator = makeCoordinator(
+            transport: ProgressTransport(samples: [
+                [
+                    ProbeSample(sequence: 0, roundTripMilliseconds: 25, outcome: .received),
+                    ProbeSample(sequence: 1, outcome: .timeout),
+                    ProbeSample(sequence: 2, outcome: .timeout),
+                    ProbeSample(sequence: 3, outcome: .timeout),
+                    ProbeSample(sequence: 4, outcome: .timeout),
+                    ProbeSample(sequence: 5, outcome: .timeout),
+                ],
+                []
+            ])
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await Task.sleep(for: .milliseconds(50))
+
+        let activeSession = await coordinator.currentSession()
+        let state = await coordinator.sessionState()
+        XCTAssertNil(activeSession)
+        XCTAssertEqual(state, .cancelled(session, .poorSampleQuality))
+    }
+
     func testExposesSeparateRestSeriesDuringLoadAndClearsThemOnCancellation() async throws {
         let coordinator = makeCoordinator(
             transport: ProgressTransport(

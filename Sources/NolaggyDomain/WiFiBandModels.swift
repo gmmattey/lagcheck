@@ -67,6 +67,22 @@ public struct WiFiLocalTelemetry: Codable, Hashable, Sendable {
         self.detectedSSID = detectedSSID
         self.isWiFi = isWiFi
     }
+
+    /// Avaliação objetiva do estado do gateway local segundo a Decisão 55.
+    public var gatewayOutcome: GatewayProbeOutcome {
+        guard isWiFi, plannedSampleCount > 0 else {
+            return .unobservable
+        }
+        guard validSampleCount > 0, let median = gatewayRTTMedianMs else {
+            return .unobservable
+        }
+        let loss = Double(plannedSampleCount - validSampleCount) / Double(plannedSampleCount) * 100.0
+        let jitter = gatewayJitterMs ?? 0
+        if median > 15.0 || loss > 0.0 || jitter > 10.0 {
+            return .degraded(rttMilliseconds: median, lossPercentage: loss)
+        }
+        return .stable(rttMilliseconds: median)
+    }
 }
 
 /// Resultado interpretado da análise de frequência Wi-Fi, contendo chaves de localização e telemetria.

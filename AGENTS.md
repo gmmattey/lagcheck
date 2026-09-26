@@ -75,6 +75,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `52` | Decisão de marca: Dual-Node Vector e Wordmark Kinetic Speed Slant (substitui Pulse Gauge, alinhamento com NoPing benchmark e Dark Competitive UI) | decidido e em implementação |
 | `53` | Decisão de tipografia: Arquitetura Híbrida de Performance (NoPing benchmark: display pesado, cockpit monoespaçado e eliminação de rounded) | decidido e implementado |
 | `54` | Pílula de telemetria local ao vivo na Home (`LiveNetworkSignalCapsule`), correção do botão duplo de voltar no Histórico e resolução de jogos não listados | decidido e implementado |
+| `55` | Especificação de Melhorias em Diagnóstico, Métricas e Integridade de Rede (Grok: probe gateway local, Wi-Fi 2.4/5GHz confiável, bufferbloat multidimensional, qualidade da amostra, hierarquia de causas, spikes recorrentes, recomendações acionáveis e descarte estrito) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

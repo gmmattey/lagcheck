@@ -143,14 +143,18 @@ const supportContent = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-
 const supportRequirements = [
   { text: 'suporte@lagcheck.app', desc: 'Contato de suporte visível' },
   { text: 'provisório', desc: 'Contato provisório explicitamente identificado' },
-  { text: 'Metodologia do LagCheck', desc: 'Explicação da metodologia do LagCheck' },
+  { testFn: (c) => c.includes('Metodologia do Lagcheck') || c.includes('Metodologia do LagCheck'), desc: 'Explicação da metodologia do Lagcheck' },
   { text: 'consentimento', desc: 'Consentimento de dados em rede móvel' },
   { text: 'Inconclusivo', desc: 'Tratamento honesto de resultado inconclusivo' },
-  { text: '75 – 100', desc: 'Tabela com escala do LagCheck Score' }
+  { text: '75 – 100', desc: 'Tabela com escala do Lagcheck Score' }
 ];
 
 supportRequirements.forEach((req) => {
-  assert(supportContent.includes(req.text), `support.html: ${req.desc}`);
+  if (req.testFn) {
+    assert(req.testFn(supportContent), `support.html: ${req.desc}`);
+  } else {
+    assert(supportContent.includes(req.text), `support.html: ${req.desc}`);
+  }
 });
 
 console.log('\n--- 5. Teste de Servidor HTTP Local ---');

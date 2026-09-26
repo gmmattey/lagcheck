@@ -176,4 +176,155 @@ final class GameReadinessDomainTests: XCTestCase {
             XCTAssertEqual(eval.verdict, .ready, "Perfil \(profile.rawValue) falhou para amostra saudável")
         }
     }
+
+    // MARK: - Decisão 55 (readiness-v2.0) Tests
+
+    func testMediumConfidenceSafetyMarginAppliesTenPercentTighterThresholds() {
+        // P50 = 95ms para battleRoyaleCompetitive (guardrail padrão é 100ms)
+        let testSamples = samples(count: 30, rtt: 95.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        // Com alta confiança: 95ms <= 100ms -> .ready
+        let readyEval = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            confidence: .high
+        )
+        XCTAssertEqual(readyEval.verdict, .ready)
+
+        // Com média confiança (Console/PC / rota genérica): threshold = 100 * 0.9 = 90ms. 95ms > 90ms -> .notReady
+        let mediumEval = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            confidence: .medium
+        )
+        XCTAssertEqual(mediumEval.verdict, .notReady)
+    }
+
+    func testRecurringSevereSpikesTriggersNotReady() {
+        let testSamples = samples(count: 30, rtt: 25.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let pattern = SpikePattern.recurring(count: 2, severeCount: 2)
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            spikePattern: pattern
+        )
+        XCTAssertEqual(readiness.verdict, .notReady)
+    }
+
+    func testDegradedGatewayTriggersCautionAndFinding() {
+        let testSamples = samples(count: 30, rtt: 25.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            gatewayOutcome: .degraded(rttMilliseconds: 25.0, lossPercentage: 5.0)
+        )
+        XCTAssertEqual(readiness.verdict, .caution)
+        let gatewayFinding = readiness.findings.first { $0.kind == .localGateway }
+        XCTAssertNotNil(gatewayFinding)
+        XCTAssertEqual(gatewayFinding?.severity, .negative)
+    }
+
+    func testSevereLoadTierTriggersNotReady() {
+        let testSamples = samples(count: 30, rtt: 25.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let loadImpact = DeepCheckLoadImpact(
+            restP50Milliseconds: 25.0,
+            loadP50Milliseconds: 80.0,
+            tier: .severe
+        )
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: loadImpact,
+            profile: .battleRoyaleCompetitive
+        )
+        XCTAssertEqual(readiness.verdict, .notReady)
+        let loadFinding = readiness.findings.first { $0.kind == .loadDegradation }
+        XCTAssertEqual(loadFinding?.severity, .negative)
+    }
+
+    func testNATTopologyRelevanceByServerArchitecture() {
+        let testSamples = samples(count: 30, rtt: 25.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let nat = NATTopologySnapshot(
+            natType: .type3Strict,
+            cgnatStatus: .notDetected,
+            doubleNATStatus: .notDetected,
+            publicIPMasked: "192.0.2.1"
+        )
+
+        // Jogo P2P: achado de NAT é exibido
+        let p2pEval = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            serverArchitecture: .peerToPeer,
+            natSnapshot: nat
+        )
+        XCTAssertTrue(p2pEval.findings.contains(where: { $0.kind == .natTopology }))
+
+        // Jogo com servidor dedicado: achado de NAT NÃO é exibido
+        let dedicatedEval = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive,
+            serverArchitecture: .dedicatedServer,
+            natSnapshot: nat
+        )
+        XCTAssertFalse(dedicatedEval.findings.contains(where: { $0.kind == .natTopology }))
+    }
+
+    func testFastFiberConnectionWithNormalVarianceEvaluatesToReady() {
+        // Simula conexão rápida de fibra (captura real: p50 = 13ms, p95 = 24ms, jitter = 6ms)
+        var testSamples = (0..<20).map { ProbeSample(sequence: $0, roundTripMilliseconds: 13.0, outcome: .received) }
+        testSamples += (20..<28).map { ProbeSample(sequence: $0, roundTripMilliseconds: 15.0, outcome: .received) }
+        testSamples.append(ProbeSample(sequence: 28, roundTripMilliseconds: 24.0, outcome: .received))
+        testSamples.append(ProbeSample(sequence: 29, roundTripMilliseconds: 24.0, outcome: .received))
+
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive
+        )
+
+        XCTAssertEqual(readiness.verdict, .ready, "Conexão de 13ms com delta de apenas 11ms deve ser PRONTO PARA RANKED")
+        XCTAssertEqual(readiness.headlineKey, "game_readiness.verdict.ready.headline")
+        XCTAssertFalse(readiness.findings.contains(where: { $0.labelKey == "game_readiness.finding.tail_latency_elevated" }))
+    }
+
+    func testElevatedTailLatencyWithHighDeltaDemotesToCaution() {
+        // P50 = 35ms, mas P95 = 75ms (delta = 40ms >= 20ms, ratio = 2.14 >= 1.8, P95 = 75 > 45ms)
+        var testSamples = (0..<26).map { ProbeSample(sequence: $0, roundTripMilliseconds: 35.0, outcome: .received) }
+        testSamples += (26..<30).map { ProbeSample(sequence: $0, roundTripMilliseconds: 75.0, outcome: .received) }
+
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive
+        )
+
+        XCTAssertEqual(readiness.verdict, .caution)
+        XCTAssertTrue(readiness.findings.contains(where: { $0.labelKey == "game_readiness.finding.tail_latency_elevated" }))
+    }
 }

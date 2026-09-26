@@ -5,7 +5,7 @@
 **Sistema mínimo:** iOS 17  
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
-> **Atualização de reposicionamento (Decisão 50 — 2026-09-25):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos), a Conexão Geral atua como fallback em busca sem resultado, e a trilha de rede é honesta ("O que encontramos") sem alegações causais infundadas.
+> **Atualização de reposicionamento (Decisões 50 e 55 — 2026-09-26):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos), a Conexão Geral atua como fallback em busca sem resultado, e a integridade diagnóstica (Decisão 55) separa com probe isolado enlace local (Wi-Fi/gateway) da rota externa (WAN), avalia bufferbloat multidimensionalmente por perfil, classifica spikes recorrentes, descarta sessões na troca de interface e entrega de 1 a 3 recomendações acionáveis baseadas estritamente em evidência.
 
 > **Decisão de plataforma:** o LagCheck nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
 >
@@ -207,31 +207,78 @@ A navegação da V1 é enxuta e focada na ação (Decisão 50):
 - **Histórico:** Acessível contextualmente na Home e pelo menu de Ajustes.
 - **Ajustes:** Acessível pelo menu `…`, permitindo consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
 
-## 8. Critérios de confiança e linguagem honesta
+## 8. Critérios de confiança e modulação da linguagem
 
-LagCheck deve explicitar internamente o tipo de alvo medido e traduzir isso em confiança proporcional. A UI normal usa linguagem simples; detalhes técnicos ficam na tela de detalhes.
+LagCheck explicita internamente o tipo de alvo medido e o vínculo do equipamento, modulando o rigor do veredito e a linguagem de apresentação.
 
-| Nível | Situação | Confiança | Como comunicar |
+| Nível | Situação | Confiança | Impacto no Veredito e Apresentação |
 | --- | --- | --- | --- |
-| A — jogo oficial | Há endpoint oficial do fabricante para medir latência. | Muito alta | Latência medida para o jogo. |
-| B — infraestrutura do jogo | Há infraestrutura específica e uso legítimo/documentado para medição. | Alta | Estimativa de alta confiança para o jogo. |
-| C — proxy regional gamer | O jogo opera na região e a medição usa infraestrutura gamer regional. | Média/alta | Latência regional estimada para o jogo. |
-| D — região genérica | Não há informação confiável sobre a hospedagem do jogo. | Média | Qualidade estimada para jogar na região. |
+| A — jogo oficial | Endpoint oficial do jogo no iPhone. | Muito alta | Linguagem direta: *"Latência medida para [Jogo]"*. Veredito com thresholds nominais. |
+| B — infraestrutura do jogo | Infraestrutura oficial dedicada (AWS GameLift, Azure PlayFab, Valve A2S). | Alta | Linguagem confiante: *"Estimativa de alta confiança para [Jogo]"*. |
+| C — proxy regional gamer | Região gamer compatível; destino de referência no iPhone. | Média/alta | Linguagem regional: *"Latência regional estimada para [Jogo]"*. |
+| D — região genérica / console | Equipamento externo (console/PC) ou rota genérica de referência. | Média | **Veredito mais conservador:** exige margem de segurança de +10% nos limites para emitir `PRONTO PARA RANKED`. Copy cautelosa: *"Estimativa da rota de internet para console/PC"*. |
 
 O app jamais afirma "seu ping no Fortnite é 24 ms" se não mediu um destino oficial ou específico do Fortnite. Nesses casos, usa expressões como **"latência regional: 26 ms"** ou **"estimativa para Fortnite: 24–31 ms"**.
 
-## 9. Métricas e interpretação
+## 9. Métricas, Diagnóstico Honesto e Recomendações Baseadas em Evidência (Decisão 55)
 
-O motor calcula métricas de rede, mas a tela principal mostra somente as que ajudam a decisão:
+O motor calcula métricas de rede no dispositivo e as transforma em um diagnóstico honesto em **"O que encontramos"**, uma causa primária coerente e até 3 recomendações diretamente acionáveis.
 
-- latência;
-- jitter;
-- perda de pacotes;
-- spikes.
+### 9.1 Separação com Evidência Isolada: Enlace Local vs Rota Externa
+1. **Probe Local de Gateway:** O app descobre dinamicamente o gateway padrão na interface Wi-Fi (`en0`) via tabela de rotas do sistema operacional. Nunca assume IP fixo `.1`.
+2. **Medição Local:** Dispara 5 datagramas UDP com timeout curto (200 ms). Se o gateway responder, calcula RTT, jitter e loss locais. Se não responder (firewall doméstico fechado para UDP local), classifica o enlace local como **"não observável"** (`unobservable`), sem inventar dados nem presumir falha.
+3. **Regra de Causalidade:**
+   - Só classifica o problema como **"Instabilidade no Wi-Fi/roteador doméstico"** quando o RTT local estiver elevado (>15 ms) ou houver perda/jitter local comprovado pelo probe.
+   - Caso o gateway responda estável (ou seja não observável) e o destino gamer apresente oscilação, o problema é classificado com precisão como **"Instabilidade na rota externa / operadora"**.
 
-O score também considera percentis, frequência e gravidade dos spikes, consistência e, no Deep Check, a degradação sob carga. A fórmula e os limites por perfil são decisões de produto configuráveis; o resultado precisa permanecer determinístico e reproduzível para as mesmas amostras e perfil.
+### 9.2 Diagnóstico de Frequência Wi-Fi (2.4 GHz vs 5 GHz)
+- A identificação da frequência Wi-Fi é classificada em 4 níveis de confiança: `.high`, `.medium`, `.low` e `.unknown`.
+- **Integridade:** Se o nível for `.low` ou `.unknown`, o app **não afirma a banda** nem gera recomendações de troca. É expressamente proibido usar a latência de servidores remotos para inferir se o Wi-Fi é 2.4 GHz ou 5 GHz.
+- Se for confirmado 2.4 GHz com confiança `.high` ou `.medium` em jogos competitivos, gera finding informativo e recomendação prioritária de troca para 5 GHz.
 
-Cada resultado deve conter uma causa principal, quando identificável, e uma recomendação compreensível. Exemplos de causas: perda de pacotes, latência alta, jitter elevado, picos severos ou bufferbloat/saturação sob carga.
+### 9.3 Bufferbloat e Impacto sob Carga Multidimensional por Perfil
+A sensibilidade ao estresse de rede (`deep-load-impact-v2`) deixa de usar um corte único e passa a ser proporcional à tolerância do jogo:
+- `BATTLE_ROYALE_COMPETITIVE` (ex: Fortnite, COD Mobile, Free Fire): Delta P50 material $\ge 15$ ms; severo $\ge 35$ ms.
+- `MOBILE_REALTIME` (ex: Brawl Stars, Wild Rift): Delta P50 material $\ge 25$ ms; severo $\ge 50$ ms.
+- `CASUAL_REALTIME` (ex: Roblox, Minecraft): Delta P50 material $\ge 40$ ms; severo $\ge 80$ ms.
+Além da mediana P50, a avaliação detecta:
+- Jitter sob carga ($> 10$ ms de aumento = material);
+- Perda sob carga ($> 2\%$ de perda induzida = severo);
+- Spikes induzidos por saturação de buffer.
+
+### 9.4 Spikes Recorrentes vs Isolados e Latência de Cauda
+- **Spike Isolado:** 1 a 2 eventos pontuais (ex: scan periódico de Wi-Fi do sistema). Informa no diagnóstico sem rebaixar severamente o veredito.
+- **Spikes Recorrentes:** $\ge 3$ spikes durante o teste ou 2 spikes em uma janela de 5 probes. Trata como falha crítica de estabilidade para partidas ranqueadas.
+- **Latência de Cauda ($P95/P50$):** Razão $P95/P50 \ge 1.8$ em conexões com P50 aparentemente aceitável sinaliza instabilidade de cauda, alertando que o jogo pode sofrer micro-congelamentos inesperados.
+
+### 9.5 Qualidade da Amostra e Invalidação Precoce
+- Exige um mínimo absoluto de 10 respostas UDP válidas.
+- **Interrupção Precoce:** Se houver 4 timeouts consecutivos nos primeiros 6 probes ou taxa de perda inicial $\ge 70\%$, a sessão é interrompida como `inconclusive(poorSampleQuality)` em vez de forçar o usuário a esperar 15 segundos para receber um erro previsível.
+
+### 9.6 Hierarquia de Causas e Coocorrência
+Quando múltiplos problemas ocorrem em simultâneo, o app seleciona uma **causa principal** e até duas **secundárias**:
+1. Perda de pacotes crítica ($>1\%$ em competitivo);
+2. Latência incompatível com o perfil;
+3. Picos severos recorrentes de latência;
+4. Instabilidade contínua (jitter elevado);
+5. Rede saturada sob uso simultâneo (Bufferbloat);
+6. Latência de cauda elevada ($P95/P50 \ge 1.8$).
+- **Regra de Coocorrência:** Jitter alto associado a degradação sob carga é consolidado como *"Instabilidade sob uso da internet"*.
+
+### 9.7 Matriz de Recomendações Baseadas em Evidência
+O LagCheck não exibe dicas genéricas. Apresenta de 1 a 3 ações diretamente ligadas às causas confirmadas:
+
+| Evidência Comprovada | Recomendação Prioritária (Voz Direta HIG) |
+|---|---|
+| Wi-Fi 2.4 GHz confirmado com alta confiança | **Conecte-se à rede Wi-Fi 5 GHz** para evitar interferências. |
+| Degradação severa sob carga (Bufferbloat) | **Pause downloads e streaming** em outros aparelhos durante a partida. |
+| Perda de pacotes local comprovada no Gateway | **Aproxime-se do roteador** ou reinicie seu equipamento Wi-Fi. |
+| Perda de pacotes remota (Gateway estável) | **Instabilidade na rota da operadora.** Evite partidas ranqueadas agora. |
+| Spikes recorrentes com enlace local limpo | **Verifique fontes de interferência** próximas ao celular ou roteador. |
+| NAT Restrito em jogo P2P / Co-op | **Habilite UPnP no roteador** para evitar falhas de pareamento. |
+
+### 9.8 Topologia de NAT Relevante por Jogo
+A informação de NAT (Aberto, Moderado, Restrito ou CGNAT) obtida via STUN leve (RFC 5389) **só é exibida na interface** quando o jogo selecionado possuir arquitetura dependente de NAT (P2P/Co-op). Em jogos com servidores dedicados (Valorant, Fortnite, LoL, etc.), o status de NAT permanece oculto para não gerar alarme falso.
 
 ## 10. Catálogo de jogos e regiões
 

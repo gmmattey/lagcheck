@@ -114,17 +114,11 @@ public struct CheckCompletoResultView: View {
 
     private func verdictHero(evaluation: GameReadinessEvaluation) -> some View {
         VStack(spacing: NLSpacing.xs) {
-            HStack(spacing: 8) {
-                Image(systemName: evaluation.verdict.symbolName)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(colorForVerdict(evaluation.verdict))
-
-                Text(LocalizedStringKey(evaluation.headlineKey))
-                    .font(.system(size: 24, weight: .heavy, design: .default))
-                    .foregroundStyle(colorForVerdict(evaluation.verdict))
-                    .accessibilityIdentifier("check-completo-verdict")
-            }
-            .padding(.vertical, 4)
+            Text(LocalizedStringKey(evaluation.headlineKey))
+                .font(.system(size: 24, weight: .heavy, design: .default))
+                .foregroundStyle(colorForVerdict(evaluation.verdict))
+                .accessibilityIdentifier("check-completo-verdict")
+                .padding(.vertical, 4)
 
             Text(LocalizedStringKey(evaluation.subtitleKey))
                 .font(NLTypography.body)

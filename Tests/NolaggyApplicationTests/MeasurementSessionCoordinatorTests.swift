@@ -201,6 +201,29 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
         XCTAssertTrue(saved.isEmpty)
     }
 
+    func testPoorSampleQualityAbortsSessionEarly() async throws {
+        let streamingTransport = StreamingTransport(samples: [
+            ProbeSample(sequence: 0, roundTripMilliseconds: 25, outcome: .received),
+            ProbeSample(sequence: 1, outcome: .timeout),
+            ProbeSample(sequence: 2, outcome: .timeout),
+            ProbeSample(sequence: 3, outcome: .timeout),
+            ProbeSample(sequence: 4, outcome: .timeout),
+            ProbeSample(sequence: 5, outcome: .timeout),
+        ])
+        let coordinator = MeasurementSessionCoordinator(
+            transport: streamingTransport,
+            pathObserver: NoChangesObserver()
+        )
+        let session = try await coordinator.startQuickCheck(
+            resolvedContext: try PilotCatalog.pilotBase.resolve(pilotContext),
+            plan: pilotPlan
+        )
+        try await Task.sleep(for: .milliseconds(50))
+
+        let state = await coordinator.sessionState()
+        XCTAssertEqual(state, MeasurementSessionState.cancelled(session, .poorSampleQuality))
+    }
+
     private var pilotContext: GameContext {
         GameContext(gameID: "fortnite", market: "BR", platform: .iphone)
     }
@@ -259,6 +282,21 @@ private struct DelayedTransport: MeasurementTransport {
     ) async -> [ProbeSample] {
         try? await Task.sleep(for: .seconds(1))
         return []
+    }
+}
+
+private struct StreamingTransport: MeasurementTransport {
+    let samples: [ProbeSample]
+
+    func collect(
+        session: MeasurementSession,
+        plan: QuickCheckPlan,
+        onSample: @escaping @Sendable (ProbeSample) async -> Void
+    ) async -> [ProbeSample] {
+        for sample in samples {
+            await onSample(sample)
+        }
+        return samples
     }
 }
 

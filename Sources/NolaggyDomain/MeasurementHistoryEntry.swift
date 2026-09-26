@@ -13,6 +13,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
     /// Em Quick Check este campo permanece nulo.
     public let deepCheck: DeepCheckResult?
     public let primaryCause: ResultPrimaryCauseKey
+    public let readinessVerdict: GameReadinessVerdict?
+    public let readinessRuleVersion: String?
 
     public init(
         id: UUID = UUID(),
@@ -22,7 +24,9 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         profileRuleVersion: String,
         result: QualityResult,
         deepCheck: DeepCheckResult? = nil,
-        primaryCause: ResultPrimaryCauseKey
+        primaryCause: ResultPrimaryCauseKey,
+        readinessVerdict: GameReadinessVerdict? = nil,
+        readinessRuleVersion: String? = GameReadinessEvaluator.version
     ) {
         self.id = id
         self.completedAt = completedAt
@@ -32,6 +36,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         self.result = result
         self.deepCheck = deepCheck
         self.primaryCause = primaryCause
+        self.readinessVerdict = readinessVerdict
+        self.readinessRuleVersion = readinessRuleVersion
     }
 
     public static func completedQuickCheck(
@@ -39,12 +45,20 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         result: QualityResult,
         completedAt: Date = Date()
     ) -> MeasurementHistoryEntry {
-        MeasurementHistoryEntry(
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: result,
+            loadImpact: nil,
+            profile: resolvedContext.profileID,
+            confidence: resolvedContext.confidence
+        )
+        return MeasurementHistoryEntry(
             completedAt: completedAt,
             resolvedContext: resolvedContext,
             profileRuleVersion: resolvedContext.profileRuleVersion,
             result: result,
-            primaryCause: ResultInterpreter.interpret(result, profile: resolvedContext.profileID).primaryCauseKey
+            primaryCause: ResultInterpreter.interpret(result, profile: resolvedContext.profileID).primaryCauseKey,
+            readinessVerdict: readiness.verdict,
+            readinessRuleVersion: GameReadinessEvaluator.version
         )
     }
 
@@ -55,14 +69,24 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         result: DeepCheckResult,
         completedAt: Date = Date()
     ) -> MeasurementHistoryEntry {
-        MeasurementHistoryEntry(
+        let readiness = GameReadinessEvaluator.evaluate(
+            deepCheckResult: result,
+            profile: resolvedContext.profileID
+        )
+        return MeasurementHistoryEntry(
             completedAt: completedAt,
             kind: .deep,
             resolvedContext: resolvedContext,
             profileRuleVersion: resolvedContext.profileRuleVersion,
             result: result.restResult,
             deepCheck: result,
-            primaryCause: ResultInterpreter.interpret(result.restResult, profile: resolvedContext.profileID).primaryCauseKey
+            primaryCause: ResultInterpreter.interpret(
+                result.restResult,
+                profile: resolvedContext.profileID,
+                loadTier: result.metrics.loadImpact?.tier
+            ).primaryCauseKey,
+            readinessVerdict: readiness.verdict,
+            readinessRuleVersion: GameReadinessEvaluator.version
         )
     }
 }

@@ -55,6 +55,8 @@ public struct NetworkFinding: Codable, Equatable, Hashable, Sendable {
         case loadDegradation
         case normalDestination
         case stableRoute
+        case localGateway
+        case natTopology
         case insufficientData
     }
 
@@ -140,9 +142,10 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
     )
 }
 
-/// Avaliador determinístico de prontidão de rede para jogos (Decisões 50 e 51).
+/// Avaliador determinístico de prontidão de rede para jogos (Decisões 50, 51 e 55).
 /// Executa estritamente sobre evidências de medição UDP e perfil do jogo.
 public enum GameReadinessEvaluator {
+    public static let version = "readiness-v2.0"
 
     /// Avalia a prontidão a partir de um DeepCheckResult (repouso + impacto de carga opcional).
     public static func evaluate(
@@ -163,7 +166,12 @@ public enum GameReadinessEvaluator {
     public static func evaluate(
         qualityResult: QualityResult?,
         loadImpact: DeepCheckLoadImpact?,
-        profile: QualityProfileID
+        profile: QualityProfileID,
+        confidence: MeasurementConfidence = .high,
+        spikePattern: SpikePattern? = nil,
+        gatewayOutcome: GatewayProbeOutcome = .unobservable,
+        serverArchitecture: GameServerArchitecture = .dedicatedServer,
+        natSnapshot: NATTopologySnapshot? = nil
     ) -> GameReadinessEvaluation {
         guard let qualityResult else {
             return .inconclusive
@@ -176,16 +184,47 @@ public enum GameReadinessEvaluator {
             return .inconclusive
         }
 
-        let interpretation = ResultInterpreter.interpret(qualityResult, profile: profile)
+        let interpretation = ResultInterpreter.interpret(
+            qualityResult,
+            profile: profile,
+            loadTier: loadImpact?.tier,
+            gatewayOutcome: gatewayOutcome,
+            spikePattern: spikePattern,
+            serverArchitecture: serverArchitecture
+        )
         let guardrails = QualityEvaluator.causeGuardrails(for: profile)
 
-        let isLoadMaterial = (loadImpact?.classification == .material)
-        let hasPacketLoss = metrics.packetLossPercentage > 1.0 || interpretation.primaryCauseKey == .packetLoss
-        let hasHighLatency = (metrics.p50Milliseconds ?? 0) > guardrails.latencyGuardrailMilliseconds || interpretation.primaryCauseKey == .highLatency
-        let hasSevereSpikes = metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount || interpretation.primaryCauseKey == .severeSpikes
-        let hasHighJitter = (metrics.jitterMilliseconds ?? 0) >= guardrails.jitterRiskMilliseconds || interpretation.primaryCauseKey == .highJitter
+        // Margem de segurança de 10% para console/PC ou rota genérica (confiança medium) (Decisão 55)
+        let marginFactor: Double = (confidence == .medium) ? 0.90 : 1.0
+        let effectiveMaxLoss = guardrails.lossGuardrailPercentage * marginFactor
+        let effectiveMaxP50 = guardrails.latencyGuardrailMilliseconds * marginFactor
+        let effectiveCautionJitter = guardrails.jitterRiskMilliseconds * marginFactor
 
-        // 1. Determinação do Veredito
+        let isLoadSevere = (loadImpact?.tier == .severe)
+        let isLoadMaterial = (loadImpact?.tier == .material || loadImpact?.classification == .material)
+        let hasPacketLoss = metrics.packetLossPercentage > effectiveMaxLoss || interpretation.primaryCauseKey == .packetLoss
+        let hasHighLatency = (metrics.p50Milliseconds ?? 0) > effectiveMaxP50 || interpretation.primaryCauseKey == .highLatency
+
+        let recurringSevereSpikes: Bool
+        if let pattern = spikePattern {
+            recurringSevereSpikes = pattern.severeCount >= 2 && pattern.isRecurring
+        } else {
+            recurringSevereSpikes = metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount
+        }
+
+        let hasSevereSpikes = recurringSevereSpikes || metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount || interpretation.primaryCauseKey == .severeSpikes
+        let hasHighJitter = (metrics.jitterMilliseconds ?? 0) >= effectiveCautionJitter || interpretation.primaryCauseKey == .highJitter
+        let hasRecurringSpikes = spikePattern?.isRecurring ?? false
+
+        // Latência de cauda (P95 vs P50):
+        // Só é clinicamente relevante se houver dispersão relativa (>= 1.8) E absoluta significativa (delta >= 20ms e p95 > 45ms),
+        // evitando falsos positivos em conexões ultrarrápidas de fibra (ex: 13ms p50 -> 24ms p95, delta de apenas 11ms).
+        let p50Value = metrics.p50Milliseconds ?? 0
+        let p95Value = metrics.p95Milliseconds ?? 0
+        let isTailLatencyHigh = (metrics.p95ToP50Ratio ?? 0) >= 1.8 && (p95Value - p50Value) >= 20.0 && p95Value > 45.0
+        let isGatewayDegraded = gatewayOutcome.isDegraded
+
+        // 1. Determinação do Veredito (readiness-v2.0)
         let verdict: GameReadinessVerdict
         let headlineKey: String
         let subtitleKey: String
@@ -198,10 +237,18 @@ public enum GameReadinessEvaluator {
             verdict = .notReady
             headlineKey = "game_readiness.verdict.not_ready.headline"
             subtitleKey = "game_readiness.verdict.not_ready.high_latency"
-        } else if hasSevereSpikes {
+        } else if recurringSevereSpikes || hasSevereSpikes {
             verdict = .notReady
             headlineKey = "game_readiness.verdict.not_ready.headline"
             subtitleKey = "game_readiness.verdict.not_ready.severe_spikes"
+        } else if isLoadSevere {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.load"
+        } else if qualityResult.resultClass == .lagRisk {
+            verdict = .notReady
+            headlineKey = "game_readiness.verdict.not_ready.headline"
+            subtitleKey = "game_readiness.verdict.not_ready.risk"
         } else if hasHighJitter {
             verdict = .caution
             headlineKey = "game_readiness.verdict.caution.headline"
@@ -210,14 +257,22 @@ public enum GameReadinessEvaluator {
             verdict = .caution
             headlineKey = "game_readiness.verdict.caution.headline"
             subtitleKey = "game_readiness.verdict.caution.load"
+        } else if hasRecurringSpikes {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.spikes"
+        } else if isTailLatencyHigh {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.jitter"
+        } else if isGatewayDegraded {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.general"
         } else if qualityResult.resultClass == .unstable {
             verdict = .caution
             headlineKey = "game_readiness.verdict.caution.headline"
             subtitleKey = "game_readiness.verdict.caution.general"
-        } else if qualityResult.resultClass == .lagRisk {
-            verdict = .notReady
-            headlineKey = "game_readiness.verdict.not_ready.headline"
-            subtitleKey = "game_readiness.verdict.not_ready.risk"
         } else {
             verdict = .ready
             headlineKey = "game_readiness.verdict.ready.headline"
@@ -226,6 +281,16 @@ public enum GameReadinessEvaluator {
 
         // 2. Construção dos Achados ("O Que Encontramos" — sem causalidade falsa)
         var findings: [NetworkFinding] = []
+
+        // Enlace Wi-Fi Local (se houver degradação comprovada no primeiro salto)
+        if isGatewayDegraded {
+            findings.append(NetworkFinding(
+                kind: .localGateway,
+                severity: .negative,
+                labelKey: "game_readiness.finding.local_gateway_degraded",
+                detail: "Wi-Fi"
+            ))
+        }
 
         // Perda de pacotes
         if metrics.packetLossPercentage > 1.0 {
@@ -263,6 +328,13 @@ public enum GameReadinessEvaluator {
                 labelKey: "game_readiness.finding.severe_spikes_detected",
                 detail: "\(metrics.severeSpikeCount)"
             ))
+        } else if isTailLatencyHigh {
+            findings.append(NetworkFinding(
+                kind: .latencySpikes,
+                severity: .warning,
+                labelKey: "game_readiness.finding.tail_latency_elevated",
+                detail: String(format: "%.1fx", metrics.p95ToP50Ratio ?? 0)
+            ))
         } else if metrics.spikeCount > 0 || hasHighJitter {
             findings.append(NetworkFinding(
                 kind: .latencySpikes,
@@ -280,7 +352,15 @@ public enum GameReadinessEvaluator {
         }
 
         // Sob uso da rede / Carga
-        if isLoadMaterial {
+        if isLoadSevere {
+            let increase = loadImpact?.increaseMilliseconds ?? 0
+            findings.append(NetworkFinding(
+                kind: .loadDegradation,
+                severity: .negative,
+                labelKey: "game_readiness.finding.load_degradation_detected",
+                detail: String(format: "+%.0f ms", increase)
+            ))
+        } else if isLoadMaterial {
             let increase = loadImpact?.increaseMilliseconds ?? 0
             findings.append(NetworkFinding(
                 kind: .loadDegradation,
@@ -294,6 +374,16 @@ public enum GameReadinessEvaluator {
                 severity: .positive,
                 labelKey: "game_readiness.finding.load_stable",
                 detail: nil
+            ))
+        }
+
+        // Topologia NAT (contextualizada por arquitetura de jogo) (Decisão 55)
+        if (serverArchitecture == .peerToPeer || serverArchitecture == .hybrid), let nat = natSnapshot {
+            findings.append(NetworkFinding(
+                kind: .natTopology,
+                severity: nat.natType.isMultiplayerRestricted ? .negative : .positive,
+                labelKey: nat.natType.titleKey,
+                detail: nat.natType.shortLabel
             ))
         }
 

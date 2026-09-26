@@ -545,6 +545,8 @@
 "game_readiness.finding.load_stable" = "Comportamento sob carga estável";
 "game_readiness.finding.destination_response_normal" = "Resposta do destino normal";
 "game_readiness.finding.insufficient_samples" = "Amostras UDP insuficientes";
+"game_readiness.finding.tail_latency_elevated" = "Latência de cauda elevada";
+"game_readiness.finding.local_gateway_degraded" = "Enlace Wi-Fi local oscilando";
 
 "game_readiness.cta.retest" = "TESTAR NOVAMENTE";
 "game_readiness.cta.understand_connection" = "Entender minha conexão >";
@@ -555,3 +557,20 @@
 "game_readiness.findings.section_title" = "O QUE ENCONTRAMOS";
 "game_readiness.stability.section_title" = "ESTABILIDADE";
 
+/* Detalhes Técnicos */
+"technical_details.title" = "Detalhes Técnicos";
+"technical_details.close" = "Fechar";
+"technical_details.quality_score" = "SCORE DE QUALIDADE";
+"technical_details.score_explanation" = "Score determinístico ponderado por latência, estabilidade, perda e bufferbloat.";
+"technical_details.percentiles_title" = "PERCENTIS DE LATÊNCIA";
+"technical_details.p50_label" = "P50 (Mediana)";
+"technical_details.p95_label" = "P95 (95% das vezes)";
+"technical_details.p99_label" = "P99 (Piores picos)";
+"technical_details.load_impact_title" = "COMPORTAMENTO SOB CARGA";
+"technical_details.rest_label" = "Repouso";
+"technical_details.load_label" = "Sob Carga";
+"technical_details.delta_p50_label" = "Delta P50";
+"technical_details.udp_samples_title" = "AMOSTRAS UDP E PACOTES";
+"technical_details.valid_samples" = "Amostras UDP válidas";
+"technical_details.timeouts" = "Timeouts";
+"technical_details.spikes_detected" = "Picos de latência detectados";
