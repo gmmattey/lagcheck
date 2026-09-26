@@ -62,6 +62,7 @@ public struct NATTopologySnapshot: Codable, Hashable, Sendable {
     public let externalPort: UInt16?
     public let serverHost: String
     public let checkedAt: Date
+    public let publicIP: String?
 
     public init(
         natType: NATType,
@@ -71,7 +72,8 @@ public struct NATTopologySnapshot: Codable, Hashable, Sendable {
         localIPMasked: String? = nil,
         externalPort: UInt16? = nil,
         serverHost: String = "stun.l.google.com",
-        checkedAt: Date = Date()
+        checkedAt: Date = Date(),
+        publicIP: String? = nil
     ) {
         self.natType = natType
         self.cgnatStatus = cgnatStatus
@@ -81,6 +83,7 @@ public struct NATTopologySnapshot: Codable, Hashable, Sendable {
         self.externalPort = externalPort
         self.serverHost = serverHost
         self.checkedAt = checkedAt
+        self.publicIP = publicIP
     }
 
     public static let inconclusive = NATTopologySnapshot(
@@ -132,7 +135,8 @@ public enum NATTopologyEvaluator {
             doubleNATStatus: doubleNATStatus,
             publicIPMasked: maskIP(publicIP),
             localIPMasked: localIP.map(maskIP),
-            externalPort: externalPort
+            externalPort: externalPort,
+            publicIP: publicIP
         )
     }
 

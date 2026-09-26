@@ -76,7 +76,7 @@ final class WiFiBandEvaluatorTests: XCTestCase {
     func testHighLocalJitterTriggersSuspected24GHzContention() {
         let telemetry = WiFiLocalTelemetry(
             gatewayRTTMedianMs: 12.0,
-            gatewayJitterMs: 18.5, // > 15ms threshold
+            gatewayJitterMs: 24.0, // > 22ms threshold
             tailRatioP95P50: 1.2,
             validSampleCount: 10,
             plannedSampleCount: 10,
@@ -92,9 +92,9 @@ final class WiFiBandEvaluatorTests: XCTestCase {
 
     func testAsymmetricTailRatioTriggersSuspected24GHzContention() {
         let telemetry = WiFiLocalTelemetry(
-            gatewayRTTMedianMs: 8.0,
+            gatewayRTTMedianMs: 22.0,
             gatewayJitterMs: 6.0,
-            tailRatioP95P50: 1.6, // >= 1.45 threshold
+            tailRatioP95P50: 1.8, // >= 1.6 threshold e >= 20ms RTT
             validSampleCount: 10,
             plannedSampleCount: 10,
             isWiFi: true

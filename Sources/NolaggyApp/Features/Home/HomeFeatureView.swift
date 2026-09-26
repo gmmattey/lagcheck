@@ -14,7 +14,9 @@ extension QuickCheckFeatureView {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
                 // Topo minimalista: wordmark lagcheck à esquerda e menu … à direita
-                NolaggyAppHeader(openSettings: { showingSettings = true })
+                NolaggyAppHeader(
+                    openSettings: { showingSettings = true }
+                )
                     .padding(.horizontal, NLSpacing.md)
                     .padding(.top, NLSpacing.xs)
 
@@ -31,8 +33,12 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, NLSpacing.xxs)
 
-                    // Pílula de Telemetria de Rede Local ao Vivo (Decisão 54)
-                    LiveNetworkSignalCapsule(signal: liveNetworkSignal)
+                    // Pílula de Telemetria de Rede Local ao Vivo (Decisões 54 e 56)
+                    LiveNetworkSignalCapsule(signal: liveNetworkSignal, onTap: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = .network
+                        }
+                    })
                         .padding(.horizontal, NLSpacing.md)
 
                     // Hero Card Amplo do Jogo Protagonista
@@ -96,9 +102,9 @@ extension QuickCheckFeatureView {
         return availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—"
     }
 
-    /// Plataforma da última medição relevante ou iPhone por padrão.
+    /// Plataforma configurada pelo usuário, ou da última medição relevante, ou iPhone por padrão.
     var effectivePlatform: Platform? {
-        lastHistoryEntryForEffectiveGame?.resolvedContext.context.platform ?? .iphone
+        preferredGamingPlatform ?? lastHistoryEntryForEffectiveGame?.resolvedContext.context.platform ?? .iphone
     }
 
     /// A Home fala primeiro da última observação real, sem atribuir um score
@@ -215,26 +221,18 @@ extension QuickCheckFeatureView {
         selectGame(game)
     }
 
-    /// A Home encaminha à escolha explícita de plataforma e vínculo no detalhe
-    /// do jogo. A medição começa somente pelo Deep Check daquele contexto.
+    /// A Home dispara o Deep Check direto em 1 toque (Decisão 56).
     func startLagCheckFromCTA() {
         if let target = targetGameForCTA {
-            selectGame(target)
+            startCheckDirectly(for: target)
         } else {
-            openGamesFromHome()
+            startGeneralGamingCheckDirectly()
         }
     }
 
-    /// Inicia diretamente a verificação da rota regional de referência sem amarrar a um jogo específico (Decisões 49 e 54).
+    /// Inicia diretamente a medição da rota neutra de referência em 1 toque (Decisões 49, 54 e 56).
     func startGeneralGamingCheckFromCTA() {
-        let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
-        let genericGame = CatalogMeasurementJourney.genericGamingGame(
-            market: market,
-            platform: .iphone,
-            declaredExternalLink: nil,
-            localizedName: localizedString("generic_gaming.name")
-        )
-        selectGame(genericGame)
+        startGeneralGamingCheckDirectly()
     }
 
     /// Abre o catálogo como continuação da Home. A aba mantém sua identidade
@@ -341,9 +339,11 @@ extension QuickCheckFeatureView {
                 selectedTab = .home
             } : nil,
             onSelectGenericGaming: {
-                selectGenericGaming()
+                startGeneralGamingCheckDirectly()
             },
-            select: { selectGame($0) }
+            select: { game in
+                startCheckDirectly(for: game)
+            }
         )
     }
 }

@@ -10,6 +10,7 @@ enum AppDestination: Hashable {
 enum AppTab: String, Hashable, CaseIterable {
     case home
     case games
+    case network
 }
 
 struct NolaggyAppConfiguration: Equatable {
@@ -43,21 +44,38 @@ struct NolaggyAppConfiguration: Equatable {
 struct NolaggyAppHeader: View {
     let openSettings: () -> Void
     let openSearch: (() -> Void)?
+    let openNetworkCockpit: (() -> Void)?
 
-    init(openSettings: @escaping () -> Void, openSearch: (() -> Void)? = nil) {
+    init(
+        openSettings: @escaping () -> Void,
+        openSearch: (() -> Void)? = nil,
+        openNetworkCockpit: (() -> Void)? = nil
+    ) {
         self.openSettings = openSettings
         self.openSearch = openSearch
+        self.openNetworkCockpit = openNetworkCockpit
     }
 
     var body: some View {
-        HStack(spacing: NLSpacing.md) {
+        HStack(spacing: NLSpacing.sm) {
             Image("WordmarkPrimary", bundle: .main)
                 .resizable()
                 .renderingMode(.original)
                 .scaledToFit()
                 .frame(width: 110, height: 30)
                 .accessibilityLabel(Text("LagCheck"))
+
             Spacer()
+
+            if let openNetworkCockpit {
+                NolaggyNavigationControl(
+                    systemImage: "network",
+                    accessibilityLabel: "network_cockpit.title",
+                    accessibilityIdentifier: "navigation-network-cockpit-open",
+                    action: openNetworkCockpit
+                )
+            }
+
             if let openSearch {
                 NolaggyHeaderActionGroup(openSettings: openSettings, openSearch: openSearch)
             } else {

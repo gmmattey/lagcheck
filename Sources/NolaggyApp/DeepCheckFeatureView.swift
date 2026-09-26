@@ -64,6 +64,7 @@ struct DeepCheckFeatureView: View {
                     cellularConsentView
                 case let .measuring(phase):
                     measuring(phase)
+                        .id("deep-check-measuring-view")
                 case let .result(result, availability):
                     resultView(result, availability: availability)
                 case .inconclusive:

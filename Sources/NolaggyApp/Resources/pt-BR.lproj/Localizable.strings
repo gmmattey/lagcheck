@@ -117,6 +117,7 @@
 "history.trend.stable" = "Estável";
 "navigation.home" = "Início";
 "navigation.games" = "Jogos";
+"navigation.network" = "Rede";
 "navigation.open_menu" = "Abrir menu";
 "navigation.open_settings" = "Abrir configurações";
 "navigation.menu" = "Menu principal";
@@ -516,10 +517,10 @@
 "home.quick_rail.more" = "Mais";
 "home.last_check.empty" = "Nenhum check recente";
 
-"game_readiness.verdict.ready.headline" = "● PRONTO PARA RANKED";
-"game_readiness.verdict.caution.headline" = "▲ CONDIÇÕES INSTÁVEIS";
-"game_readiness.verdict.not_ready.headline" = "▲ EU EVITARIA RANKED AGORA";
-"game_readiness.verdict.inconclusive.headline" = "— DADOS INSUFICIENTES";
+"game_readiness.verdict.ready.headline" = "PRONTO PARA RANKED";
+"game_readiness.verdict.caution.headline" = "CONDIÇÕES INSTÁVEIS";
+"game_readiness.verdict.not_ready.headline" = "EU EVITARIA RANKED AGORA";
+"game_readiness.verdict.inconclusive.headline" = "DADOS INSUFICIENTES";
 
 "game_readiness.verdict.ready.stable" = "Sua conexão está estável agora.";
 "game_readiness.verdict.not_ready.packet_loss" = "Detectamos perda de pacotes durante o teste.";
@@ -574,3 +575,28 @@
 "technical_details.valid_samples" = "Amostras UDP válidas";
 "technical_details.timeouts" = "Timeouts";
 "technical_details.spikes_detected" = "Picos de latência detectados";
+
+/* Cockpit de Rede */
+"network_cockpit.title" = "Dados da Rede";
+"network_cockpit.subtitle" = "Parâmetros da sua conexão local e rota para configuração de partidas";
+"network_cockpit.local_network.title" = "REDE LOCAL & PRIMEIRO SALTO";
+"network_cockpit.local_ip" = "IP Local (iPhone)";
+"network_cockpit.gateway_ip" = "Gateway (Roteador)";
+"network_cockpit.gateway_rtt" = "Latência do Roteador";
+"network_cockpit.access_router" = "Abrir Configuração do Roteador";
+"network_cockpit.wan.title" = "BORDA WAN & TOPOLOGIA DE NAT";
+"network_cockpit.nat_type" = "Tipo de NAT";
+"network_cockpit.cgnat_status" = "CGNAT (IP Compartilhado)";
+"network_cockpit.double_nat" = "Duplo NAT";
+"network_cockpit.public_ip" = "IP Público";
+"network_cockpit.copy_report" = "Copiar Relatório de Rede";
+"network_cockpit.copied" = "Copiado para a área de transferência!";
+"network_cockpit.copy_hint" = "Envie este relatório ao suporte técnico ou use para configurar portas no console.";
+
+/* Plataforma & Otimizações */
+"settings.platform.title" = "Plataforma Principal";
+"settings.platform.none" = "Padrão / Não definida";
+"platform_optimization.title" = "OTIMIZAÇÃO PARA %@";
+"platform_optimization.level1.title" = "No seu setup (Você mesmo)";
+"platform_optimization.level2.title" = "Com sua operadora";
+"platform_optimization.level3.title" = "Equipamento & Roteador";

@@ -51,7 +51,13 @@ struct QuickCheckFeatureView: View {
     /// histórica: a região é resolvida novamente pelo catálogo atual.
     @State var requestedMeasurementContext: GameContext?
     @State var liveNetworkSignal: LiveNetworkSignal = LiveNetworkSignal()
+    @State var showingCockpit = false
+    @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @State private var hasTrackedAppOpen = false
+
+    var preferredGamingPlatform: Platform? {
+        Platform(rawValue: userPreferredPlatformRaw)
+    }
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -262,6 +268,18 @@ struct QuickCheckFeatureView: View {
                 Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
+
+            // Tab 3: Rede (Cockpit de Rede nativo)
+            NavigationStack {
+                NetworkCockpitView(showsDismissButton: false)
+                    .background(NolaggyScreenBackground())
+                    .toolbarBackground(.hidden, for: .navigationBar)
+                    .toolbarColorScheme(.dark, for: .navigationBar)
+            }
+            .tabItem {
+                Label(LocalizedStringKey("navigation.network"), systemImage: "network")
+            }
+            .tag(AppTab.network)
         }
         .tint(NLColor.accentPrimary)
         .toolbarBackground(NLColor.backgroundRaised.opacity(0.9), for: .tabBar)
@@ -314,6 +332,9 @@ struct QuickCheckFeatureView: View {
                 analyticsTracker: analyticsTracker
             )
         }
+        .sheet(isPresented: $showingCockpit) {
+            NetworkCockpitView()
+        }
     }
 
     @ViewBuilder
@@ -335,7 +356,9 @@ struct QuickCheckFeatureView: View {
     @ViewBuilder
     func header(title: LocalizedStringKey?, showsBack: Bool, showsSearch: Bool = false) -> some View {
         if !showsBack {
-                NolaggyAppHeader(openSettings: { showingSettings = true })
+            NolaggyAppHeader(
+                openSettings: { showingSettings = true }
+            )
         } else {
             NolaggyBackHeader(action: back, accessibilityIdentifier: "measurement-back")
         }
@@ -435,6 +458,31 @@ struct QuickCheckFeatureView: View {
             }
             return false
         }
+    }
+
+    /// Inicia a medição de 1 toque diretamente para o jogo alvo sem abrir modal intermediário (Decisão 56).
+    func startCheckDirectly(for game: CatalogMeasurementJourney.Game) {
+        analyticsTracker.track(.gameSelected(gameID: game.id))
+        let targetPlatform = preferredGamingPlatform ?? .iphone
+        let resolved = resolveGameContext(game, platform: targetPlatform)
+            ?? resolveGameContext(game, platform: .iphone)
+        if let resolved {
+            openDeepCheck(resolvedContext: resolved)
+        } else {
+            selectedGameForDetails = game
+        }
+    }
+
+    /// Inicia a medição de 1 toque diretamente da rota genérica de referência (Decisão 56).
+    func startGeneralGamingCheckDirectly() {
+        let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+        let genericGame = CatalogMeasurementJourney.genericGamingGame(
+            market: market,
+            platform: preferredGamingPlatform ?? .iphone,
+            declaredExternalLink: nil,
+            localizedName: AppLocalization.string("generic_gaming.name", comment: "")
+        )
+        startCheckDirectly(for: genericGame)
     }
 }
 

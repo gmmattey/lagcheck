@@ -36,10 +36,10 @@ public enum GameReadinessVerdict: String, Codable, CaseIterable, Equatable, Send
 
     public var symbolName: String {
         switch self {
-        case .ready: return "circle.fill"
-        case .caution: return "triangle.fill"
-        case .notReady: return "triangle.fill"
-        case .inconclusive: return "minus"
+        case .ready: return "checkmark.circle.fill"
+        case .caution: return "exclamationmark.triangle.fill"
+        case .notReady: return "xmark.octagon.fill"
+        case .inconclusive: return "minus.circle.fill"
         }
     }
 }

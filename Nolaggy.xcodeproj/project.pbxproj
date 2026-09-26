@@ -23,6 +23,7 @@
 		14D580DA43A17472A575DFAD /* QuickCheckBackgroundMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197C3B1F5470ADD3CEA8A85D /* QuickCheckBackgroundMeasurement.swift */; };
 		15C5D9FF47231DAB6EBB2191 /* PlatformSelectorRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E926065E20E7AD202F458578 /* PlatformSelectorRow.swift */; };
 		1698E48A2D09D3801D6D9145 /* GameRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B3B0410DEC3C02FE49B97FC /* GameRowView.swift */; };
+		16D4A0F395234D9766F8D6EF /* NetworkCockpitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1DE147F0E1C7607D29CD0F6 /* NetworkCockpitView.swift */; };
 		18A49CCD4B49EF685F73C9D9 /* AppNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0918E16C3535038A933568 /* AppNavigation.swift */; };
 		1953A84AFB930326E6AAF9EA /* NolaggyScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EC443D5349C88AA5AFD64A /* NolaggyScore.swift */; };
 		19E3590D6C3ACC4C59102541 /* RegionalSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70B5F324554E44A25BEC38DE /* RegionalSelection.swift */; };
@@ -503,6 +504,7 @@
 		CFEC0FE1DACCD7AB8A0BE3CF /* NLRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLRadius.swift; sourceTree = "<group>"; };
 		D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleQualityEvaluator.swift; sourceTree = "<group>"; };
 		D1B00F88D7141C08CB28AB48 /* PlatformSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSelectionSheet.swift; sourceTree = "<group>"; };
+		D1DE147F0E1C7607D29CD0F6 /* NetworkCockpitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkCockpitView.swift; sourceTree = "<group>"; };
 		D661513CE969B148D76911DF /* QuickCheckPilotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckPilotUITests.swift; sourceTree = "<group>"; };
 		D6651525B32C6ADE84EB6690 /* CheckCompletoResultDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultDomainTests.swift; sourceTree = "<group>"; };
 		D73BE1BDFC858FFAE9BDB5AF /* NLSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLSpacing.swift; sourceTree = "<group>"; };
@@ -717,6 +719,14 @@
 			path = History;
 			sourceTree = "<group>";
 		};
+		8858785602E70808453E18B3 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				D1DE147F0E1C7607D29CD0F6 /* NetworkCockpitView.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
 		88936D62442F4FF9F0D36A51 /* Details */ = {
 			isa = PBXGroup;
 			children = (
@@ -767,6 +777,7 @@
 			isa = PBXGroup;
 			children = (
 				88936D62442F4FF9F0D36A51 /* Details */,
+				8858785602E70808453E18B3 /* Diagnostics */,
 				690B5E309E0C40B3DC42DD84 /* History */,
 				D576C2E1F8E9A78A380175D8 /* Home */,
 				EF0BCC1088023BF12730D6F2 /* Measurement */,
@@ -1430,6 +1441,7 @@
 				40175BF5A5881DBC8F148B9E /* MeasurementStatusView.swift in Sources */,
 				2E1656B09BB9353C72EE96CB /* MeasurementTransportFactory.swift in Sources */,
 				093D55AB9DD9198D73989FD0 /* NetflixCatalogComponents.swift in Sources */,
+				16D4A0F395234D9766F8D6EF /* NetworkCockpitView.swift in Sources */,
 				CCDBF68C61A41115E49738E3 /* NolaggyApp.swift in Sources */,
 				8D4838CE1DA4CF730977E046 /* PlatformHealthBannerView.swift in Sources */,
 				4927E7E2DB4650355748CCE3 /* PlatformSelectionSheet.swift in Sources */,

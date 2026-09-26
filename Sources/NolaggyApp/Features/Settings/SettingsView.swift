@@ -30,8 +30,17 @@ struct SettingsView: View {
 
     @Environment(\.openURL) private var openURL
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
+    @AppStorage("user_default_platform") private var defaultPlatformRaw: String = ""
     @State private var showingDeleteConfirmation = false
     @State private var deletionFailed = false
+    @State private var showingCockpit = false
+
+    private var selectedPlatformDisplayName: String {
+        guard let p = Platform(rawValue: defaultPlatformRaw) else {
+            return AppLocalization.string("settings.platform.none", comment: "")
+        }
+        return p.displayName
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -45,6 +54,55 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                     .compactSettingsRow()
                     .accessibilityIdentifier("settings-history")
+
+                    Button(action: { showingCockpit = true }) {
+                        SettingsRow(title: "network_cockpit.title", symbol: "network", detail: nil, showsChevron: true)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(SettingsListSurface())
+                    .listRowSeparator(.hidden)
+                    .compactSettingsRow()
+                    .accessibilityIdentifier("settings-network-cockpit")
+                }
+
+                Section {
+                    Menu {
+                        Button {
+                            defaultPlatformRaw = ""
+                        } label: {
+                            if defaultPlatformRaw.isEmpty {
+                                Label(AppLocalization.string("settings.platform.none", comment: ""), systemImage: "checkmark")
+                            } else {
+                                Text(AppLocalization.string("settings.platform.none", comment: ""))
+                            }
+                        }
+
+                        Divider()
+
+                        ForEach(Platform.allCases, id: \.self) { platform in
+                            Button {
+                                defaultPlatformRaw = platform.rawValue
+                            } label: {
+                                if defaultPlatformRaw == platform.rawValue {
+                                    Label(platform.displayName, systemImage: "checkmark")
+                                } else {
+                                    Text(platform.displayName)
+                                }
+                            }
+                        }
+                    } label: {
+                        SettingsRow(
+                            title: "settings.platform.title",
+                            symbol: "gamecontroller",
+                            detail: selectedPlatformDisplayName,
+                            showsChevron: true
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(SettingsListSurface())
+                    .listRowSeparator(.hidden)
+                    .compactSettingsRow()
+                    .accessibilityIdentifier("settings-platform")
                 }
 
                 Section {
@@ -193,6 +251,9 @@ struct SettingsView: View {
         .alert("settings.delete_history.error.title", isPresented: $deletionFailed) {
             Button("settings.delete_history.error.action", role: .cancel) {}
         } message: { Text("settings.delete_history.error.message") }
+        .sheet(isPresented: $showingCockpit) {
+            NetworkCockpitView()
+        }
     }
 
     private var versionDescription: String {

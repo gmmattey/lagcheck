@@ -276,6 +276,40 @@ public struct BSDWiFiLocalGatewayProber: WiFiLocalGatewayProbing {
         }
         return nil
     }
+
+    /// Resolve o endereço IPv4 local do dispositivo na interface ativa (priorizando Wi-Fi en0 sobre celular).
+    public func resolveLocalIPv4() -> String? {
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return nil }
+        defer { freeifaddrs(ifaddr) }
+
+        var wifiIP: String?
+        var cellularIP: String?
+
+        for ptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
+            let flags = Int32(ptr.pointee.ifa_flags)
+            let isUp = (flags & IFF_UP) == IFF_UP
+            let isRunning = (flags & IFF_RUNNING) == IFF_RUNNING
+            let isLoopback = (flags & IFF_LOOPBACK) == IFF_LOOPBACK
+            guard isUp, isRunning, !isLoopback else { continue }
+
+            let name = String(cString: ptr.pointee.ifa_name)
+            guard let addr = ptr.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET) else { continue }
+
+            var inAddr = addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr }
+            var ipBuffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+            if inet_ntop(AF_INET, &inAddr, &ipBuffer, socklen_t(INET_ADDRSTRLEN)) != nil {
+                let ipStr = String(cString: ipBuffer)
+                if name == "en0" {
+                    wifiIP = ipStr
+                    break // Wi-Fi é prioridade absoluta quando ativo
+                } else if name.hasPrefix("pdp_ip") && cellularIP == nil {
+                    cellularIP = ipStr
+                }
+            }
+        }
+        return wifiIP ?? cellularIP
+    }
     #endif
 
     /// Envia query DNS real (porta 53) para o roteador local e aguarda resposta UDP válida (RTT real de ida e volta).

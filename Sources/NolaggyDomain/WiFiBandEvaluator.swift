@@ -4,11 +4,11 @@ import Foundation
 public enum WiFiBandEvaluator {
 
     public struct Thresholds: Sendable {
-        public static let fastGatewayMedianRTTMaxMs: Double = 2.5
-        public static let fastGatewayJitterMaxMs: Double = 1.5
-        public static let highJitterContentionMs: Double = 15.0
-        public static let minimumGatewayRTTForContentionMs: Double = 6.0
-        public static let tailRatioContentionMin: Double = 1.45
+        public static let fastGatewayMedianRTTMaxMs: Double = 15.0
+        public static let fastGatewayJitterMaxMs: Double = 8.0
+        public static let highJitterContentionMs: Double = 22.0
+        public static let minimumGatewayRTTForContentionMs: Double = 20.0
+        public static let tailRatioContentionMin: Double = 1.6
         public static let severeLoadDeltaP50MinMs: Double = 35.0
         public static let minimumSamplesRequired: Int = 3
     }

@@ -115,6 +115,7 @@ public struct MeasurementLiveTrail: View {
                 .foregroundStyle(NLColor.textPrimary)
                 .multilineTextAlignment(.center)
         }
+        .frame(minHeight: 52, alignment: .center)
     }
 
     // MARK: - Hero Pulse Gauge Coral Solar
@@ -178,6 +179,7 @@ public struct MeasurementLiveTrail: View {
                             .font(.system(size: 26, weight: .black, design: .default))
                             .monospacedDigit()
                             .foregroundStyle(NLColor.textPrimary)
+
                         Text("ms")
                             .font(NLTypography.captionStrong)
                             .foregroundStyle(NLColor.coralSolar)
@@ -204,6 +206,7 @@ public struct MeasurementLiveTrail: View {
                 .font(NLTypography.headline)
                 .foregroundStyle(NLColor.textPrimary)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
                 .contentTransition(.opacity)
                 .animation(.easeInOut(duration: 0.25), value: dynamicStatusTitle)
 
@@ -211,9 +214,11 @@ public struct MeasurementLiveTrail: View {
                 .font(NLTypography.footnote)
                 .foregroundStyle(NLColor.textSecondary)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
                 .contentTransition(.opacity)
                 .animation(.easeInOut(duration: 0.25), value: dynamicStatusDetail)
         }
+        .frame(minHeight: 56, alignment: .center)
         .padding(.horizontal, NLSpacing.md)
     }
 
@@ -287,18 +292,21 @@ public struct MeasurementLiveTrail: View {
             }
             .frame(height: 6)
 
-            HStack {
+            HStack(alignment: .center) {
                 Text(title)
                     .font(NLTypography.caption.weight(isActive ? .semibold : .regular))
                     .foregroundStyle(isActive ? NLColor.textPrimary : NLColor.textTertiary)
-                Spacer()
-                if isDone {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(NLColor.scoreExcellent)
-                }
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(NLColor.scoreExcellent)
+                    .opacity(isDone ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: isDone)
             }
+            .frame(height: 18)
         }
+        .frame(height: 30)
     }
 
     // MARK: - Rodapé Editorial da Rota

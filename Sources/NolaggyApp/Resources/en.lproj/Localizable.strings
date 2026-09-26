@@ -117,6 +117,7 @@
 "history.trend.stable" = "Stable";
 "navigation.home" = "Home";
 "navigation.games" = "Games";
+"navigation.network" = "Network";
 "navigation.open_menu" = "Open menu";
 "navigation.open_settings" = "Open settings";
 "navigation.menu" = "Main menu";
@@ -516,10 +517,10 @@
 "home.quick_rail.more" = "More";
 "home.last_check.empty" = "No recent check";
 
-"game_readiness.verdict.ready.headline" = "● READY FOR RANKED";
-"game_readiness.verdict.caution.headline" = "▲ UNSTABLE CONDITIONS";
-"game_readiness.verdict.not_ready.headline" = "▲ I'D AVOID RANKED NOW";
-"game_readiness.verdict.inconclusive.headline" = "— INSUFFICIENT DATA";
+"game_readiness.verdict.ready.headline" = "READY FOR RANKED";
+"game_readiness.verdict.caution.headline" = "UNSTABLE CONDITIONS";
+"game_readiness.verdict.not_ready.headline" = "I'D AVOID RANKED NOW";
+"game_readiness.verdict.inconclusive.headline" = "INSUFFICIENT DATA";
 
 "game_readiness.verdict.ready.stable" = "Your connection is stable right now.";
 "game_readiness.verdict.not_ready.packet_loss" = "We detected packet loss during the test.";
@@ -574,3 +575,28 @@
 "technical_details.valid_samples" = "Valid UDP samples";
 "technical_details.timeouts" = "Timeouts";
 "technical_details.spikes_detected" = "Latency spikes detected";
+
+/* Cockpit de Rede */
+"network_cockpit.title" = "Network Data";
+"network_cockpit.subtitle" = "Local connection parameters and route diagnostics for match setup";
+"network_cockpit.local_network.title" = "LOCAL NETWORK & FIRST HOP";
+"network_cockpit.local_ip" = "Local IP (iPhone)";
+"network_cockpit.gateway_ip" = "Gateway (Router)";
+"network_cockpit.gateway_rtt" = "Router Latency";
+"network_cockpit.access_router" = "Open Router Settings";
+"network_cockpit.wan.title" = "WAN EDGE & NAT TOPOLOGY";
+"network_cockpit.nat_type" = "NAT Type";
+"network_cockpit.cgnat_status" = "CGNAT (Shared IP)";
+"network_cockpit.double_nat" = "Double NAT";
+"network_cockpit.public_ip" = "Public IP";
+"network_cockpit.copy_report" = "Copy Network Report";
+"network_cockpit.copied" = "Copied to clipboard!";
+"network_cockpit.copy_hint" = "Send this report to tech support or use it to configure port forwarding.";
+
+/* Plataforma & Otimizações */
+"settings.platform.title" = "Main Platform";
+"settings.platform.none" = "Default / Undefined";
+"platform_optimization.title" = "OPTIMIZATION FOR %@";
+"platform_optimization.level1.title" = "In your setup (By yourself)";
+"platform_optimization.level2.title" = "With your ISP";
+"platform_optimization.level3.title" = "Hardware & Router";

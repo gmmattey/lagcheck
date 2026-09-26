@@ -34,12 +34,30 @@ public struct LiveNetworkSignal: Equatable, Sendable {
 /// e a conectividade com a rota regional sem drenar bateria ou consumir dados móveis.
 public struct LiveNetworkSignalCapsule: View {
     let signal: LiveNetworkSignal
+    let onTap: (() -> Void)?
 
-    public init(signal: LiveNetworkSignal) {
+    public init(signal: LiveNetworkSignal, onTap: (() -> Void)? = nil) {
         self.signal = signal
+        self.onTap = onTap
     }
 
     public var body: some View {
+        Group {
+            if let onTap {
+                Button(action: onTap) {
+                    content
+                }
+                .buttonStyle(.plain)
+            } else {
+                content
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityIdentifier("live-network-signal-capsule")
+    }
+
+    private var content: some View {
         HStack(spacing: NLSpacing.xs) {
             // Dot pulsante semântico
             Circle()
@@ -66,6 +84,12 @@ public struct LiveNetworkSignalCapsule: View {
             .foregroundStyle(NLColor.textSecondary)
 
             Spacer(minLength: 0)
+
+            if onTap != nil {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(NLColor.textTertiary)
+            }
         }
         .padding(.horizontal, NLSpacing.sm)
         .frame(height: 32)
@@ -74,9 +98,6 @@ public struct LiveNetworkSignalCapsule: View {
             Capsule()
                 .stroke(NLColor.borderHairline, lineWidth: 1)
         )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityDescription)
-        .accessibilityIdentifier("live-network-signal-capsule")
     }
 
     private var dotColor: Color {
