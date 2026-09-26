@@ -2,6 +2,7 @@ import SwiftUI
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
+import NolaggyInfrastructure
 
 /// Estado e composição da Home (Nova Jornada de Produto).
 /// A Home agora é focada, calma e não executa testes automáticos em segundo plano.
@@ -29,6 +30,10 @@ extension QuickCheckFeatureView {
                         .tracking(NLTypography.heroTracking)
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, NLSpacing.xxs)
+
+                    // Pílula de Telemetria de Rede Local ao Vivo (Decisão 54)
+                    LiveNetworkSignalCapsule(signal: liveNetworkSignal)
+                        .padding(.horizontal, NLSpacing.md)
 
                     // Hero Card Amplo do Jogo Protagonista
                     DarkCompetitiveHeroCard(
@@ -61,6 +66,9 @@ extension QuickCheckFeatureView {
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
+        .task {
+            await refreshLiveNetworkSignal()
+        }
     }
 
     var catalogUnavailable: some View {
@@ -240,6 +248,55 @@ extension QuickCheckFeatureView {
     private func gameScoreLatencyText(for game: CatalogMeasurementJourney.Game) -> String? {
         guard case let .completed(result)? = evaluatedScores[game.id], let latency = result.metrics.p50Milliseconds else { return nil }
         return "\(Int(latency.rounded())) ms"
+    }
+
+    /// Atualiza pontualmente a telemetria passiva da rede local e status da rota para exibição na Home (Decisão 54).
+    /// Não realiza sondagem contínua e não consome dados móveis nem bateria.
+    func refreshLiveNetworkSignal() async {
+        let availability = NWPathWiFiAvailability()
+        let interface = await availability.currentInterface()
+        let regionalName = selectedRegionFriendlyName.isEmpty ? "São Paulo" : selectedRegionFriendlyName
+
+        switch interface {
+        case .none:
+            liveNetworkSignal = LiveNetworkSignal(
+                connection: .offline,
+                regionalRouteName: regionalName,
+                isRegionalRouteOperational: false
+            )
+        case .cellular:
+            liveNetworkSignal = LiveNetworkSignal(
+                connection: .cellular(technology: "Móvel"),
+                regionalRouteName: regionalName,
+                isRegionalRouteOperational: true
+            )
+        case .wifi:
+            let prober = BSDWiFiLocalGatewayProber()
+            let telemetry = await prober.probeLocalGateway(sampleCount: 1, timeoutPerSampleSeconds: 0.3)
+            let bandResult = WiFiBandEvaluator.evaluate(telemetry: telemetry)
+            let band: LiveNetworkSignal.WiFiBand
+            switch bandResult.diagnostic {
+            case .confirmed5GHzOrHigher:
+                band = .fiveGHz
+            case .confirmed24GHz, .suspected24GHzContention:
+                band = .twoPointFourGHz
+            case .stableWiFi:
+                band = .fiveGHz
+            case .inconclusive:
+                band = .standard
+            }
+            liveNetworkSignal = LiveNetworkSignal(
+                connection: .wifi(band: band, gatewayRTTMs: telemetry.gatewayRTTMedianMs),
+                regionalRouteName: regionalName,
+                isRegionalRouteOperational: true
+            )
+        case .other:
+            liveNetworkSignal = LiveNetworkSignal(
+                connection: .wifi(band: .standard, gatewayRTTMs: nil),
+                regionalRouteName: regionalName,
+                isRegionalRouteOperational: true
+            )
+        }
     }
 
     // MARK: - Catálogo de Jogos (Aba Jogos)
