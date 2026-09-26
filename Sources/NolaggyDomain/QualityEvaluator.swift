@@ -104,6 +104,26 @@ public enum QualityEvaluator {
             consistency: consistency,
             stability: min(components.spikes, consistency)
         )
+        // Cálculo de pacotes fora de ordem (Out-of-Order / Reordering RFC 4737)
+        let receivedSamplesWithOrder = samples.filter { $0.isValidResponse && $0.arrivalIndex != nil }
+            .sorted(by: { ($0.arrivalIndex ?? 0) < ($1.arrivalIndex ?? 0) })
+        let outOfOrderCount: Int
+        if !receivedSamplesWithOrder.isEmpty {
+            var count = 0
+            var maxSeq = -1
+            for sample in receivedSamplesWithOrder {
+                if maxSeq >= 0 && sample.sequence < maxSeq {
+                    count += 1
+                } else {
+                    maxSeq = max(maxSeq, sample.sequence)
+                }
+            }
+            outOfOrderCount = count
+        } else {
+            outOfOrderCount = 0
+        }
+        let outOfOrderRate = validRTTs.isEmpty ? 0.0 : (Double(outOfOrderCount) / Double(validRTTs.count) * 100.0)
+
         let metrics = QualityMetrics(
             validResponseCount: validRTTs.count,
             timeoutCount: timeoutCount,
@@ -118,6 +138,8 @@ public enum QualityEvaluator {
             spikeRatePercentage: spikeRate,
             p95ToP50Ratio: ratio,
             worstSpikeMilliseconds: validRTTs.max(),
+            outOfOrderCount: outOfOrderCount,
+            outOfOrderRatePercentage: outOfOrderRate,
             components: completedComponents
         )
         let rawScore = Int((

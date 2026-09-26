@@ -105,4 +105,24 @@ final class EvidenceRecommendationEngineTests: XCTestCase {
 
         XCTAssertLessThanOrEqual(recommendations.count, 3)
     }
+
+    func testOutOfOrderPacketsYieldsRouteInstabilityRecommendation() {
+        let evidence = DiagnosticEvidence(
+            gatewayOutcome: .stable(rttMilliseconds: 1.5),
+            outOfOrderCount: 3
+        )
+        let recommendations = EvidenceRecommendationEngine.generateRecommendations(evidence: evidence)
+
+        let rec = recommendations.first { $0.title == "Instabilidade de Rota na Operadora" }
+        XCTAssertNotNil(rec)
+        XCTAssertEqual(rec?.evidenceBadge, "Rota Desordenada")
+    }
+
+    func testGameEditorialRegistryServerArchitecture() {
+        XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "minecraft"), .hybrid)
+        XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "roblox"), .hybrid)
+        XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "ea-sports-fc-mobile"), .hybrid)
+        XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "fortnite"), .dedicatedServer)
+        XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "valorant"), .dedicatedServer)
+    }
 }

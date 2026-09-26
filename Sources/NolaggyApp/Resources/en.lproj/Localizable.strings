@@ -248,16 +248,19 @@
 "quick_check.result.cause.high_latency" = "High latency";
 "quick_check.result.cause.severe_spikes" = "Severe spikes";
 "quick_check.result.cause.high_jitter" = "High jitter";
+"quick_check.result.cause.out_of_order" = "Out-of-order packets";
 "quick_check.result.explanation.stable_connection" = "Your connection was stable in this measurement.";
 "quick_check.result.explanation.packet_loss" = "Packet loss appeared during the measurement.";
 "quick_check.result.explanation.high_latency" = "The route latency was high during the measurement.";
 "quick_check.result.explanation.severe_spikes" = "The route had severe latency spikes during the measurement.";
 "quick_check.result.explanation.high_jitter" = "Latency varied significantly during the measurement.";
+"quick_check.result.explanation.out_of_order" = "Packets were delivered out of order during the measurement.";
 "quick_check.result.insight.stable_connection" = "The route remained consistent during the measurement.";
 "quick_check.result.insight.packet_loss" = "Packet loss may affect your match.";
 "quick_check.result.insight.high_latency" = "High latency may delay your actions in the match.";
 "quick_check.result.insight.severe_spikes" = "Severe spikes may cause stutters during the match.";
 "quick_check.result.insight.high_jitter" = "Route variation may make the match unstable.";
+"quick_check.result.insight.out_of_order" = "Out-of-order packet delivery may cause micro-stutters during matches.";
 
 /* Wi-Fi Band Diagnostics (Decision 27) */
 "network.band.confirmed_24.title" = "Connected to 2.4 GHz Wi-Fi";
@@ -529,6 +532,7 @@
 "game_readiness.verdict.not_ready.severe_spikes" = "We detected severe latency spikes.";
 "game_readiness.verdict.caution.jitter" = "Moderate jitter oscillations observed.";
 "game_readiness.verdict.caution.load" = "Connection oscillated under heavy use.";
+"game_readiness.verdict.caution.out_of_order" = "Out-of-order packets detected on the route.";
 "game_readiness.verdict.caution.general" = "Connection oscillated during the test.";
 "game_readiness.verdict.not_ready.risk" = "Critical connection instability.";
 
@@ -543,6 +547,7 @@
 "game_readiness.finding.severe_spikes_detected" = "Latency spikes";
 "game_readiness.finding.jitter_oscillations" = "Jitter oscillations";
 "game_readiness.finding.route_stable" = "Normal rest route";
+"game_readiness.finding.out_of_order_detected" = "Out-of-order packets on route";
 "game_readiness.finding.load_degradation_detected" = "Network load degradation";
 "game_readiness.finding.load_stable" = "Stable behavior under load";
 "game_readiness.finding.destination_response_normal" = "Destination response normal";

@@ -33,6 +33,7 @@ public struct DiagnosticEvidence: Equatable, Sendable {
     public let tailRatio: Double?
     public let natType: NATType?
     public let serverArchitecture: GameServerArchitecture
+    public let outOfOrderCount: Int
 
     public init(
         gatewayOutcome: GatewayProbeOutcome = .unobservable,
@@ -43,7 +44,8 @@ public struct DiagnosticEvidence: Equatable, Sendable {
         spikePattern: SpikePattern? = nil,
         tailRatio: Double? = nil,
         natType: NATType? = nil,
-        serverArchitecture: GameServerArchitecture = .dedicatedServer
+        serverArchitecture: GameServerArchitecture = .dedicatedServer,
+        outOfOrderCount: Int = 0
     ) {
         self.gatewayOutcome = gatewayOutcome
         self.wifiBand = wifiBand
@@ -54,6 +56,7 @@ public struct DiagnosticEvidence: Equatable, Sendable {
         self.tailRatio = tailRatio
         self.natType = natType
         self.serverArchitecture = serverArchitecture
+        self.outOfOrderCount = outOfOrderCount
     }
 }
 
@@ -120,6 +123,16 @@ public enum EvidenceRecommendationEngine {
                 title: "Habilite UPnP no Roteador",
                 instruction: "O seu tipo de NAT está restrito, impedindo o pareamento com outros jogadores.",
                 evidenceBadge: "NAT Restrito"
+            ))
+        }
+
+        // 7. Pacotes fora de ordem na rota externa
+        if evidence.outOfOrderCount >= 2 && !evidence.gatewayOutcome.isDegraded {
+            recommendations.append(ActionableRecommendation(
+                priority: 2,
+                title: "Instabilidade de Rota na Operadora",
+                instruction: "Pacotes foram entregues fora de ordem pelo seu provedor (roteamento multipath instável), o que pode causar micro-travamentos.",
+                evidenceBadge: "Rota Desordenada"
             ))
         }
 

@@ -45,18 +45,20 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         result: QualityResult,
         completedAt: Date = Date()
     ) -> MeasurementHistoryEntry {
+        let arch = GameEditorialRegistry.serverArchitecture(for: resolvedContext.context.gameID)
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: result,
             loadImpact: nil,
             profile: resolvedContext.profileID,
-            confidence: resolvedContext.confidence
+            confidence: resolvedContext.confidence,
+            serverArchitecture: arch
         )
         return MeasurementHistoryEntry(
             completedAt: completedAt,
             resolvedContext: resolvedContext,
             profileRuleVersion: resolvedContext.profileRuleVersion,
             result: result,
-            primaryCause: ResultInterpreter.interpret(result, profile: resolvedContext.profileID).primaryCauseKey,
+            primaryCause: ResultInterpreter.interpret(result, profile: resolvedContext.profileID, serverArchitecture: arch).primaryCauseKey,
             readinessVerdict: readiness.verdict,
             readinessRuleVersion: GameReadinessEvaluator.version
         )
@@ -69,9 +71,13 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         result: DeepCheckResult,
         completedAt: Date = Date()
     ) -> MeasurementHistoryEntry {
+        let arch = GameEditorialRegistry.serverArchitecture(for: resolvedContext.context.gameID)
         let readiness = GameReadinessEvaluator.evaluate(
-            deepCheckResult: result,
-            profile: resolvedContext.profileID
+            qualityResult: result.restResult,
+            loadImpact: result.metrics.loadImpact,
+            profile: resolvedContext.profileID,
+            confidence: resolvedContext.confidence,
+            serverArchitecture: arch
         )
         return MeasurementHistoryEntry(
             completedAt: completedAt,
@@ -83,7 +89,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
             primaryCause: ResultInterpreter.interpret(
                 result.restResult,
                 profile: resolvedContext.profileID,
-                loadTier: result.metrics.loadImpact?.tier
+                loadTier: result.metrics.loadImpact?.tier,
+                serverArchitecture: arch
             ).primaryCauseKey,
             readinessVerdict: readiness.verdict,
             readinessRuleVersion: GameReadinessEvaluator.version

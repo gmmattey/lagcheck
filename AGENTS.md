@@ -78,6 +78,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `55` | Especificação de Melhorias em Diagnóstico, Métricas e Integridade de Rede (Grok: probe gateway local, Wi-Fi 2.4/5GHz confiável, bufferbloat multidimensional, qualidade da amostra, hierarquia de causas, spikes recorrentes, recomendações acionáveis e descarte estrito) | decidido e em implementação |
 | `56` | Jornada Direta em 1 Toque, Cockpit de Rede ("Dados da Rede") e Otimizações de Setup por Plataforma no Resultado | decidido e implementado |
 | `57` | Hero Gauge Pulsante com "Testar Agora", Meus Jogos Favoritos (até 4), Exportação de Relatórios PDF Customizados, Otimização Única de Maior Impacto e Casos de Uso com Ícones | decidido e implementado |
+| `58` | Incorporação do Relatório de Pesquisa: Detecção de Pacotes Fora de Ordem (RFC 4737), Modulação `.caution`, Mapeamento de Arquitetura de Servidores (`GameServerArchitecture`) e Recomendações de Peering | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

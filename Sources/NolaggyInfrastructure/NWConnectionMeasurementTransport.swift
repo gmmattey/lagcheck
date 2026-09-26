@@ -234,6 +234,7 @@ final class ProbeLedger: @unchecked Sendable {
     private let lock = NSLock()
     private var probes: [Int: PendingProbe]
     private var invalidResponseCount = 0
+    private var receivedCount = 0
     private let isCorrelatedResponse: @Sendable (_ request: Data, _ response: Data) -> Bool
 
     init(
@@ -287,10 +288,14 @@ final class ProbeLedger: @unchecked Sendable {
                 return nil
             }
 
+            let arrival = receivedCount
+            receivedCount += 1
+
             let sample = ProbeSample(
                 sequence: match.key,
                 roundTripMilliseconds: Double(receivedAt - sentAt) / 1_000_000,
-                outcome: .received
+                outcome: .received,
+                arrivalIndex: arrival
             )
             probe.result = sample
             probes[match.key] = probe

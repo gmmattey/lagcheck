@@ -25,6 +25,7 @@ public enum ResultPrimaryCauseKey: String, Codable, CaseIterable, Hashable, Send
     case loadDegradation = "quick_check.result.cause.load_degradation"
     case loadInstability = "quick_check.result.cause.load_instability"
     case tailLatency = "quick_check.result.cause.tail_latency"
+    case outOfOrder = "quick_check.result.cause.out_of_order"
 }
 
 /// Qualificador de origem da causa identificada (Decisão 55).
@@ -44,6 +45,7 @@ public enum ResultExplanationKey: String, Codable, CaseIterable, Hashable, Senda
     case loadDegradation = "quick_check.result.explanation.load_degradation"
     case loadInstability = "quick_check.result.explanation.load_instability"
     case tailLatency = "quick_check.result.explanation.tail_latency"
+    case outOfOrder = "quick_check.result.explanation.out_of_order"
 }
 
 /// Insight complementar do resultado, exibido depois das métricas quando a UI o suportar.
@@ -56,6 +58,7 @@ public enum ResultInsightKey: String, Codable, CaseIterable, Hashable, Sendable 
     case loadDegradation = "quick_check.result.insight.load_degradation"
     case loadInstability = "quick_check.result.insight.load_instability"
     case tailLatency = "quick_check.result.insight.tail_latency"
+    case outOfOrder = "quick_check.result.insight.out_of_order"
 }
 
 public struct ResultInterpretation: Equatable, Sendable {
@@ -133,7 +136,8 @@ public enum ResultInterpreter {
             spikePattern: spikePattern,
             tailRatio: result.metrics.p95ToP50Ratio,
             natType: natType,
-            serverArchitecture: serverArchitecture
+            serverArchitecture: serverArchitecture,
+            outOfOrderCount: result.metrics.outOfOrderCount
         )
         let recommendations = EvidenceRecommendationEngine.generateRecommendations(evidence: evidence)
 
@@ -198,6 +202,7 @@ private extension ResultInterpreter {
         let isJitter = (metrics.jitterMilliseconds ?? 0) > guardrails.jitterRiskMilliseconds
         let isLoad = (loadTier == .material || loadTier == .severe)
         let isTail = (metrics.p95ToP50Ratio ?? 0) >= 1.8
+        let isOutOfOrder = metrics.outOfOrderCount >= 2 || metrics.outOfOrderRatePercentage >= 5.0
 
         // Regra de coocorrência (Decisão 55): Jitter alto + Carga material/severa = Instabilidade sob uso da internet
         if isJitter && isLoad {
@@ -205,11 +210,13 @@ private extension ResultInterpreter {
             if isLoss { causes.append(.packetLoss) }
             if isLatency { causes.append(.highLatency) }
             if isSevereSpikes { causes.append(.severeSpikes) }
+            if isOutOfOrder { causes.append(.outOfOrder) }
         } else {
             if isLoss { causes.append(.packetLoss) }
             if isLatency { causes.append(.highLatency) }
             if isSevereSpikes { causes.append(.severeSpikes) }
             if isJitter { causes.append(.highJitter) }
+            if isOutOfOrder { causes.append(.outOfOrder) }
             if isLoad { causes.append(.loadDegradation) }
         }
 
@@ -243,6 +250,7 @@ private extension ResultInterpreter {
         case .loadDegradation: .loadDegradation
         case .loadInstability: .loadInstability
         case .tailLatency: .tailLatency
+        case .outOfOrder: .outOfOrder
         }
     }
 
@@ -256,6 +264,7 @@ private extension ResultInterpreter {
         case .loadDegradation: .loadDegradation
         case .loadInstability: .loadInstability
         case .tailLatency: .tailLatency
+        case .outOfOrder: .outOfOrder
         }
     }
 }

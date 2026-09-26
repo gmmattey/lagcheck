@@ -248,16 +248,19 @@
 "quick_check.result.cause.high_latency" = "Latencia alta";
 "quick_check.result.cause.severe_spikes" = "Picos intensos";
 "quick_check.result.cause.high_jitter" = "Jitter alto";
+"quick_check.result.cause.out_of_order" = "Paquetes desordenados";
 "quick_check.result.explanation.stable_connection" = "Tu conexión se mantuvo estable en esta medición.";
 "quick_check.result.explanation.packet_loss" = "Se detectó pérdida de paquetes durante la medición.";
 "quick_check.result.explanation.high_latency" = "La latencia de la ruta fue alta durante la medición.";
 "quick_check.result.explanation.severe_spikes" = "La ruta presentó picos intensos de latencia durante la medición.";
 "quick_check.result.explanation.high_jitter" = "La latencia varió considerablemente durante la medición.";
+"quick_check.result.explanation.out_of_order" = "Se entregaron paquetes fuera de orden durante la medición.";
 "quick_check.result.insight.stable_connection" = "La ruta se mantuvo consistente durante la medición.";
 "quick_check.result.insight.packet_loss" = "La pérdida de paquetes puede perjudicar tu partida.";
 "quick_check.result.insight.high_latency" = "La latencia alta puede retrasar tus acciones en la partida.";
 "quick_check.result.insight.severe_spikes" = "Los picos intensos pueden provocar congelamientos durante la partida.";
 "quick_check.result.insight.high_jitter" = "La oscilación de la ruta puede hacer que la partida sea inestable.";
+"quick_check.result.insight.out_of_order" = "La entrega de paquetes desordenados puede causar micro-tirones durante la partida.";
 "network.band.confirmed_24.title" = "Conectado a Wi-Fi 2.4 GHz";
 "network.band.confirmed_24.message" = "Esta frecuencia ofrece mayor alcance, pero sufre más interferencias durante las partidas. Si tu router cuenta con red de 5 GHz o Wi-Fi 6, conéctate a ella para reducir oscilaciones.";
 "network.band.confirmed_5.title" = "Wi-Fi 5 GHz detectado";
@@ -522,6 +525,7 @@
 "game_readiness.verdict.not_ready.severe_spikes" = "Detectamos picos severos de latencia.";
 "game_readiness.verdict.caution.jitter" = "Oscilaciones moderadas de jitter observadas.";
 "game_readiness.verdict.caution.load" = "La conexión osciló bajo uso intenso.";
+"game_readiness.verdict.caution.out_of_order" = "Detectamos paquetes desordenados en la ruta externa.";
 "game_readiness.verdict.caution.general" = "Conexión con oscilaciones durante la prueba.";
 "game_readiness.verdict.not_ready.risk" = "Inestabilidad crítica en la conexión.";
 
@@ -536,6 +540,7 @@
 "game_readiness.finding.severe_spikes_detected" = "Picos de latencia";
 "game_readiness.finding.jitter_oscillations" = "Oscilaciones de jitter";
 "game_readiness.finding.route_stable" = "Ruta de reposo normal";
+"game_readiness.finding.out_of_order_detected" = "Paquetes desordenados en la ruta";
 "game_readiness.finding.load_degradation_detected" = "Degradación bajo uso de red";
 "game_readiness.finding.load_stable" = "Comportamiento estable bajo carga";
 "game_readiness.finding.destination_response_normal" = "Respuesta del destino normal";

@@ -327,4 +327,38 @@ final class GameReadinessDomainTests: XCTestCase {
         XCTAssertEqual(readiness.verdict, .caution)
         XCTAssertTrue(readiness.findings.contains(where: { $0.labelKey == "game_readiness.finding.tail_latency_elevated" }))
     }
+
+    func testOutOfOrderPacketsDemotesToCautionAndGeneratesFinding() {
+        // 30 amostras saudáveis (25ms), mas com 3 pacotes recebidos fora de ordem
+        // sequences: 0, 1, 3, 2, 4, 5, 7, 6, 8, ...
+        var testSamples: [ProbeSample] = []
+        var arrival = 0
+        for seq in 0..<30 {
+            let actualSeq: Int
+            if seq == 2 { actualSeq = 3 }
+            else if seq == 3 { actualSeq = 2 }
+            else if seq == 6 { actualSeq = 7 }
+            else if seq == 7 { actualSeq = 6 }
+            else { actualSeq = seq }
+
+            testSamples.append(ProbeSample(sequence: actualSeq, roundTripMilliseconds: 25.0, outcome: .received, arrivalIndex: arrival))
+            arrival += 1
+        }
+
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        XCTAssertEqual(qualityResult.metrics.outOfOrderCount, 2)
+        XCTAssertGreaterThan(qualityResult.metrics.outOfOrderRatePercentage, 0.0)
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive
+        )
+
+        XCTAssertEqual(readiness.verdict, .caution)
+        XCTAssertEqual(readiness.subtitleKey, "game_readiness.verdict.caution.out_of_order")
+        XCTAssertTrue(readiness.findings.contains(where: { $0.kind == .outOfOrderPackets }))
+    }
 }

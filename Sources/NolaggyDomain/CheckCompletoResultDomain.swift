@@ -128,7 +128,7 @@ public enum CheckCompletoResultEvaluator {
 
         // 3. Instabilidade na rota observada (latência alta, jitter ou picos severos)
         switch interpretation.primaryCauseKey {
-        case .highLatency, .highJitter, .severeSpikes, .loadDegradation, .loadInstability, .tailLatency:
+        case .highLatency, .highJitter, .severeSpikes, .loadDegradation, .loadInstability, .tailLatency, .outOfOrder:
             return .oscillated
         case .stableConnection:
             return .held

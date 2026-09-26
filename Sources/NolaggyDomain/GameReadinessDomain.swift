@@ -52,6 +52,7 @@ public struct NetworkFinding: Codable, Equatable, Hashable, Sendable {
         case latencySpikes
         case highLatency
         case highJitter
+        case outOfOrderPackets
         case loadDegradation
         case normalDestination
         case stableRoute
@@ -215,6 +216,7 @@ public enum GameReadinessEvaluator {
         let hasSevereSpikes = recurringSevereSpikes || metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount || interpretation.primaryCauseKey == .severeSpikes
         let hasHighJitter = (metrics.jitterMilliseconds ?? 0) >= effectiveCautionJitter || interpretation.primaryCauseKey == .highJitter
         let hasRecurringSpikes = spikePattern?.isRecurring ?? false
+        let hasOutOfOrder = metrics.outOfOrderCount >= 2 || metrics.outOfOrderRatePercentage >= 5.0
 
         // Latência de cauda (P95 vs P50):
         // Só é clinicamente relevante se houver dispersão relativa (>= 1.8) E absoluta significativa (delta >= 20ms e p95 > 45ms),
@@ -253,6 +255,10 @@ public enum GameReadinessEvaluator {
             verdict = .caution
             headlineKey = "game_readiness.verdict.caution.headline"
             subtitleKey = "game_readiness.verdict.caution.jitter"
+        } else if hasOutOfOrder {
+            verdict = .caution
+            headlineKey = "game_readiness.verdict.caution.headline"
+            subtitleKey = "game_readiness.verdict.caution.out_of_order"
         } else if isLoadMaterial {
             verdict = .caution
             headlineKey = "game_readiness.verdict.caution.headline"
@@ -348,6 +354,16 @@ public enum GameReadinessEvaluator {
                 severity: .positive,
                 labelKey: "game_readiness.finding.route_stable",
                 detail: nil
+            ))
+        }
+
+        // Pacotes fora de ordem na rota
+        if metrics.outOfOrderCount > 0 {
+            findings.append(NetworkFinding(
+                kind: .outOfOrderPackets,
+                severity: metrics.outOfOrderRatePercentage >= 10.0 ? .negative : .warning,
+                labelKey: "game_readiness.finding.out_of_order_detected",
+                detail: "\(metrics.outOfOrderCount)"
             ))
         }
 

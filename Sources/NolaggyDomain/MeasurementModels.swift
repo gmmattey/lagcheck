@@ -12,11 +12,25 @@ public struct ProbeSample: Codable, Hashable, Sendable {
     public let sequence: Int
     public let roundTripMilliseconds: Double?
     public let outcome: ProbeOutcome
+    public let arrivalIndex: Int?
 
-    public init(sequence: Int, roundTripMilliseconds: Double? = nil, outcome: ProbeOutcome) {
+    public init(sequence: Int, roundTripMilliseconds: Double? = nil, outcome: ProbeOutcome, arrivalIndex: Int? = nil) {
         self.sequence = sequence
         self.roundTripMilliseconds = roundTripMilliseconds
         self.outcome = outcome
+        self.arrivalIndex = arrivalIndex
+    }
+
+    public static func == (lhs: ProbeSample, rhs: ProbeSample) -> Bool {
+        lhs.sequence == rhs.sequence &&
+        lhs.roundTripMilliseconds == rhs.roundTripMilliseconds &&
+        lhs.outcome == rhs.outcome
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(sequence)
+        hasher.combine(roundTripMilliseconds)
+        hasher.combine(outcome)
     }
 
     public var isValidResponse: Bool {
@@ -97,13 +111,17 @@ public struct QualityMetrics: Codable, Equatable, Sendable {
     public let p95ToP50Ratio: Double?
     /// Maior RTT válido observado. É preservado para explicar a cauda sem inventar amostras.
     public let worstSpikeMilliseconds: Double?
+    public let outOfOrderCount: Int
+    public let outOfOrderRatePercentage: Double
     public let components: QualityComponents?
 
     public init(
         validResponseCount: Int, timeoutCount: Int, invalidResponseCount: Int,
         p50Milliseconds: Double?, p95Milliseconds: Double?, p99Milliseconds: Double?, jitterMilliseconds: Double?,
         packetLossPercentage: Double, spikeCount: Int, severeSpikeCount: Int, spikeRatePercentage: Double,
-        p95ToP50Ratio: Double?, worstSpikeMilliseconds: Double? = nil, components: QualityComponents?
+        p95ToP50Ratio: Double?, worstSpikeMilliseconds: Double? = nil,
+        outOfOrderCount: Int = 0, outOfOrderRatePercentage: Double = 0.0,
+        components: QualityComponents?
     ) {
         self.validResponseCount = validResponseCount
         self.timeoutCount = timeoutCount
@@ -118,6 +136,8 @@ public struct QualityMetrics: Codable, Equatable, Sendable {
         self.spikeRatePercentage = spikeRatePercentage
         self.p95ToP50Ratio = p95ToP50Ratio
         self.worstSpikeMilliseconds = worstSpikeMilliseconds
+        self.outOfOrderCount = outOfOrderCount
+        self.outOfOrderRatePercentage = outOfOrderRatePercentage
         self.components = components
     }
 }

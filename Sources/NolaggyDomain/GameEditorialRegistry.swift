@@ -8,6 +8,15 @@ public enum GameEditorialRegistry {
         allEditorials[gameID.lowercased()]
     }
 
+    public static func serverArchitecture(for gameID: String) -> GameServerArchitecture {
+        switch gameID.lowercased() {
+        case "minecraft", "ea-sports-fc-mobile", "roblox":
+            return .hybrid
+        default:
+            return .dedicatedServer
+        }
+    }
+
     public static let allEditorials: [String: RemoteCatalogGameEditorial] = [
         "fortnite": RemoteCatalogGameEditorial(
             summary: [
