@@ -202,19 +202,13 @@ extension QuickCheckFeatureView {
 
     func selectGame(_ game: CatalogMeasurementJourney.Game) {
         analyticsTracker.track(.gameSelected(gameID: game.id))
-        selectedGameForDetails = game
+        selectedGameID = game.id
+        startCheckDirectly(for: game)
     }
 
     func selectGenericGaming() {
-        let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
-        let lastEntry = history.first(where: { $0.resolvedContext.context.gameID == GameContext.genericGamingID })
-        let game = CatalogMeasurementJourney.genericGamingGame(
-            market: market,
-            platform: lastEntry?.resolvedContext.context.platform ?? .iphone,
-            declaredExternalLink: lastEntry?.resolvedContext.context.declaredExternalLink,
-            localizedName: localizedString("generic_gaming.name")
-        )
-        selectGame(game)
+        selectedGameID = nil
+        startGeneralGamingCheckDirectly()
     }
 
     /// A Home dispara o Deep Check direto em 1 toque (Decisão 56).
@@ -338,6 +332,7 @@ extension QuickCheckFeatureView {
                 startGeneralGamingCheckDirectly()
             },
             select: { game in
+                selectedGameID = game.id
                 startCheckDirectly(for: game)
             }
         )

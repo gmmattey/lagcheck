@@ -444,19 +444,64 @@ struct QuickCheckFeatureView: View {
 
     func resolveGameContext(
         _ game: CatalogMeasurementJourney.Game,
-        platform: Platform = .iphone,
+        platform: Platform? = nil,
         declaredExternalLink: ExternalEquipmentLink? = nil
     ) -> ResolvedMeasurementContext? {
         guard let remoteCatalog else { return nil }
-        let selectedGameContext = GameContext(
-            gameID: game.id,
-            market: game.context.market,
-            platform: platform,
-            declaredExternalLink: platform == .iphone ? nil : declaredExternalLink
-        )
-        if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(selectedGameContext, in: remoteCatalog) {
-            return resolved
+
+        // 1. Se uma plataforma específica foi solicitada, tenta ela primeiro
+        if let platform {
+            let context = GameContext(
+                gameID: game.id,
+                market: game.context.market,
+                platform: platform,
+                declaredExternalLink: platform == .iphone ? nil : declaredExternalLink
+            )
+            if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: remoteCatalog) {
+                return resolved
+            }
         }
+
+        // 2. Determina a melhor plataforma suportada automaticamente sem perguntar ao jogador:
+        //    a) Preferência de plataforma global do jogador (se configurada)
+        //    b) iPhone (se suportado pelo jogo)
+        //    c) Plataforma nativa do game.context
+        //    d) Qualquer plataforma suportada pelo catálogo (ex: PlayStation ou PC para Warzone/Valorant)
+        var candidates: [Platform] = []
+        if let preferred = preferredGamingPlatform {
+            candidates.append(preferred)
+        }
+        candidates.append(.iphone)
+        candidates.append(game.context.platform)
+        candidates.append(contentsOf: supportedPlatforms(for: game))
+
+        for candidate in candidates {
+            let context = GameContext(
+                gameID: game.id,
+                market: game.context.market,
+                platform: candidate,
+                declaredExternalLink: candidate == .iphone ? nil : declaredExternalLink
+            )
+            if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: remoteCatalog) {
+                return resolved
+            }
+        }
+
+        // 3. Fallback de resiliência: se o jogo existe no catálogo, usa o primeiro contexto disponível
+        if let catalogGame = remoteCatalog.games.first(where: { $0.id == game.id }),
+           let firstContext = catalogGame.contexts.first(where: { $0.market == game.context.market && $0.availability == .available }),
+           let fallbackPlatform = firstContext.platforms.first {
+            let context = GameContext(
+                gameID: game.id,
+                market: game.context.market,
+                platform: fallbackPlatform,
+                declaredExternalLink: fallbackPlatform == .iphone ? nil : declaredExternalLink
+            )
+            if case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: remoteCatalog) {
+                return resolved
+            }
+        }
+
         return nil
     }
 
@@ -493,13 +538,10 @@ struct QuickCheckFeatureView: View {
     /// Inicia a medição de 1 toque diretamente para o jogo alvo sem abrir modal intermediário (Decisão 56).
     func startCheckDirectly(for game: CatalogMeasurementJourney.Game) {
         analyticsTracker.track(.gameSelected(gameID: game.id))
-        let targetPlatform = preferredGamingPlatform ?? .iphone
-        let resolved = resolveGameContext(game, platform: targetPlatform)
-            ?? resolveGameContext(game, platform: .iphone)
-        if let resolved {
+        if let resolved = resolveGameContext(game) {
             openDeepCheck(resolvedContext: resolved)
         } else {
-            selectedGameForDetails = game
+            startGeneralGamingCheckDirectly()
         }
     }
 

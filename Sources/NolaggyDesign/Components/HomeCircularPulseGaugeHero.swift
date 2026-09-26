@@ -12,8 +12,8 @@ public struct HomeCircularPulseGaugeHero: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isPulsing: Bool = false
 
-    private let pulseDiameter: CGFloat = 175
-    private let strokeWidth: CGFloat = NLSizing.measurementPulseStrokeWidth
+    private let pulseDiameter: CGFloat = 216
+    private let strokeWidth: CGFloat = 8
 
     public init(
         selectedGameName: String?,
@@ -39,7 +39,7 @@ public struct HomeCircularPulseGaugeHero: View {
                                 lineWidth: 1.5
                             )
                             .frame(width: pulseDiameter, height: pulseDiameter)
-                            .scaleEffect(isPulsing ? 1.38 : 1.0)
+                            .scaleEffect(isPulsing ? 1.32 : 1.0)
                             .opacity(isPulsing ? 0.0 : 0.45)
                             .animation(
                                 .easeOut(duration: isMeasuring ? 1.2 : 2.0)
@@ -87,54 +87,54 @@ public struct HomeCircularPulseGaugeHero: View {
                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                     onStartCheck()
                 }) {
-                    VStack(spacing: 4) {
+                    VStack(spacing: 6) {
                         if isMeasuring {
                             ProgressView()
                                 .progressViewStyle(.circular)
                                 .tint(NLColor.accentPrimary)
-                                .scaleEffect(1.2)
-                                .padding(.bottom, 2)
+                                .scaleEffect(1.3)
+                                .padding(.bottom, 4)
 
                             Text(LocalizedStringKey("home.gauge.measuring"))
-                                .font(NLTypography.subheadline.weight(.heavy))
+                                .font(NLTypography.headline.weight(.heavy))
                                 .foregroundStyle(NLColor.textPrimary)
                                 .tracking(0.6)
                         } else {
                             // Texto Dominante "TESTAR AGORA"
                             Text(LocalizedStringKey("home.gauge.test_now"))
-                                .font(.system(size: 17, weight: .heavy, design: .default))
+                                .font(.system(size: 21, weight: .heavy, design: .default))
                                 .foregroundStyle(NLColor.textPrimary)
-                                .tracking(0.8)
+                                .tracking(1.0)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.85)
 
                             // Subtítulo do Contexto (Jogo selecionado ou Conexão Geral)
                             if let game = selectedGameName, !game.isEmpty {
                                 Text(game.uppercased())
-                                    .font(NLTypography.captionStrong)
+                                    .font(.system(size: 13, weight: .bold, design: .default))
                                     .foregroundStyle(NLColor.accentPrimary)
                                     .lineLimit(1)
-                                    .padding(.horizontal, 8)
+                                    .padding(.horizontal, 10)
                             } else {
                                 Text(LocalizedStringKey("generic_gaming.short_name"))
-                                    .font(NLTypography.captionStrong)
+                                    .font(.system(size: 13, weight: .bold, design: .default))
                                     .foregroundStyle(NLColor.textSecondary)
                                     .lineLimit(1)
-                                    .padding(.horizontal, 8)
+                                    .padding(.horizontal, 10)
                             }
 
                             // Rota / Região de referência sutil
-                            HStack(spacing: 3) {
+                            HStack(spacing: 4) {
                                 Circle()
                                     .fill(NLColor.semanticReady)
-                                    .frame(width: 4, height: 4)
+                                    .frame(width: 5, height: 5)
                                 Text(regionName)
-                                    .font(.system(size: 10, weight: .medium))
+                                    .font(.system(size: 11, weight: .medium))
                                     .foregroundStyle(NLColor.textTertiary)
                             }
                         }
                     }
-                    .frame(width: pulseDiameter - 48, height: pulseDiameter - 48)
+                    .frame(width: pulseDiameter - 40, height: pulseDiameter - 40)
                     .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -142,7 +142,7 @@ public struct HomeCircularPulseGaugeHero: View {
                 .accessibilityIdentifier("home-cta-start-lagcheck")
                 .accessibilityLabel(Text(LocalizedStringKey("home.gauge.test_now")))
             }
-            .frame(width: pulseDiameter + 48, height: pulseDiameter + 48)
+            .frame(width: pulseDiameter + 56, height: pulseDiameter + 56)
             .onAppear {
                 isPulsing = true
             }

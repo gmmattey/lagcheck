@@ -186,10 +186,16 @@ extension QuickCheckFeatureView {
     func retryFromHistory(_ entry: MeasurementHistoryEntry) {
         selectedTab = .home
         if entry.resolvedContext.context.gameID == GameContext.genericGamingID {
-            selectGenericGaming()
+            selectedGameID = nil
+            startGeneralGamingCheckDirectly()
             return
         }
-        selectedGameForDetails = availableGames.first { $0.id == entry.resolvedContext.context.gameID }
+        selectedGameID = entry.resolvedContext.context.gameID
+        if let game = availableGames.first(where: { $0.id == entry.resolvedContext.context.gameID }) {
+            startCheckDirectly(for: game)
+        } else {
+            startGeneralGamingCheckDirectly()
+        }
     }
 
     func gameName(for entry: MeasurementHistoryEntry) -> String { gameName(forGameID: entry.resolvedContext.context.gameID) }
