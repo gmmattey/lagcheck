@@ -80,7 +80,7 @@ public struct CheckCompletoResultView: View {
                 platformOptimizationSection(evaluation: evaluation)
 
                 // 6. Ações
-                actionsSection(verdict: evaluation.verdict)
+                actionsSection(evaluation: evaluation)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.md)
@@ -90,23 +90,6 @@ public struct CheckCompletoResultView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 NolaggyBackButton(action: exit, accessibilityIdentifier: "check-completo-back")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: {
-                    exportResultPDF(evaluation: evaluation)
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(LocalizedStringKey("common.export_pdf"))
-                            .font(NLTypography.captionStrong)
-                    }
-                    .foregroundStyle(NLColor.accentPrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(NLColor.accentPrimarySubtle, in: Capsule())
-                }
-                .accessibilityIdentifier("check-completo-export-pdf")
             }
         }
         .sheet(isPresented: $showingPDFShareSheet) {
@@ -434,7 +417,7 @@ public struct CheckCompletoResultView: View {
 
     // MARK: - 6. Ações
 
-    private func actionsSection(verdict: GameReadinessVerdict) -> some View {
+    private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
         VStack(spacing: NLSpacing.sm) {
             // Ação Primária Coral Solar: [ TESTAR NOVAMENTE ]
             Button(action: retry) {
@@ -450,7 +433,7 @@ public struct CheckCompletoResultView: View {
 
             // Ação Secundária: Entender minha conexão / Ver detalhes técnicos
             Button(action: showDetails) {
-                Text(LocalizedStringKey(verdict == .ready ? "game_readiness.cta.understand_connection" : "game_readiness.cta.understand_problem"))
+                Text(LocalizedStringKey(evaluation.verdict == .ready ? "game_readiness.cta.understand_connection" : "game_readiness.cta.understand_problem"))
                     .font(NLTypography.callout.weight(.semibold))
                     .foregroundStyle(NLColor.textSecondary)
                     .frame(maxWidth: .infinity)
@@ -458,8 +441,23 @@ public struct CheckCompletoResultView: View {
             }
             .accessibilityIdentifier("check-completo-details")
 
+            // Exportar é uma ação secundária do resultado, não uma ação de navegação.
+            // Fora da toolbar, ela não disputa a área superior com o único retorno.
+            Button(action: { exportResultPDF(evaluation: evaluation) }) {
+                Label {
+                    Text(LocalizedStringKey("common.export_pdf"))
+                        .font(NLTypography.callout.weight(.semibold))
+                } icon: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .foregroundStyle(NLColor.accentPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: NLSizing.touchTarget)
+            }
+            .accessibilityIdentifier("check-completo-export-pdf")
+
             // Se instável e booster disponível, link discreto
-            if verdict == .caution || verdict == .notReady {
+            if evaluation.verdict == .caution || evaluation.verdict == .notReady {
                 Button(action: showBooster) {
                     Text(LocalizedStringKey("booster.cta.button"))
                         .font(NLTypography.footnote.weight(.medium))

@@ -46,6 +46,14 @@ final class CheckCompletoResultUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["check-completo-details"].exists)
 
+        // Retorno é a única ação da barra; exportar PDF vive no conteúdo para
+        // não colidir visualmente com a navegação em iPhones compactos.
+        let back = app.buttons["check-completo-back"]
+        let export = app.buttons["check-completo-export-pdf"]
+        XCTAssertTrue(back.exists)
+        XCTAssertTrue(export.exists)
+        XCTAssertGreaterThan(export.frame.minY, back.frame.maxY)
+
         saveScreenshot(named: "check_completo_valid_pt_br")
     }
 
