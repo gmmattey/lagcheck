@@ -1,8 +1,9 @@
-# LagCheck — Site Estático Local (Suporte e Privacidade)
+# LagCheck — Site Oficial e Landing Page de Alta Performance
 
-Este diretório contém a página web estática local do **LagCheck**, construída especificamente para atender aos requisitos de publicação da Apple App Store:
-1. **Página de Suporte** publicamente acessível (`/support`).
-2. **Política de Privacidade** publicamente acessível (`/privacy`).
+Este diretório contém o site oficial do **LagCheck**, concebido sob a direção estética **Dark Competitive UI** (Decisões 51, 52 e 53) e estruturado com base no benchmark de mercado do **NoPing**:
+1. **Landing Page de Alta Conversão (`/`):** Hero gamer de alto impacto, simulador interativo de rota e prontidão, comparativo técnico, catálogo de jogos e SEO avançado.
+2. **Página de Suporte (`/support`):** Central de ajuda e resolução de problemas conforme requisitos da Apple App Store.
+3. **Política de Privacidade (`/privacy`):** Termos de privacidade transparentes em total conformidade com o app (SwiftData local, sem contas, sem telemetria intrusiva).
 
 ---
 
@@ -11,25 +12,28 @@ Este diretório contém a página web estática local do **LagCheck**, construí
 ```
 web/
 ├── assets/
-│   └── brand/                    # Cópias 1:1 dos ativos oficiais em design-system/assets/brand/
-│       ├── app-icon-source.svg
-│       ├── lockup-thumbnail.svg
-│       ├── symbol-compact.svg
-│       ├── wordmark-mono-dark.svg
-│       ├── wordmark-mono-light.svg
-│       └── wordmark-primary.svg
+│   ├── brand/                    # Cópias 1:1 dos ativos oficiais em design-system/assets/brand/
+│   │   ├── app-icon-source.svg
+│   │   ├── lockup-thumbnail.svg
+│   │   ├── symbol-compact.svg
+│   │   ├── wordmark-mono-dark.svg
+│   │   ├── wordmark-mono-light.svg
+│   │   └── wordmark-primary.svg
+│   └── games/                    # Artes dos títulos competitivos em assets/games/
 ├── css/
-│   └── style.css                 # Estilização dark mode baseada nos tokens de design-system/tokens/
+│   └── style.css                 # Dark Competitive UI, animações de pulso e tokens oficiais
 ├── js/
-│   └── main.js                   # Controle de alternância de idioma (PT-BR / EN) e persistência
-├── index.html                    # Home curta com resumo, âncoras #support e #privacy e links de navegação
+│   └── main.js                   # Controle bilíngue (PT/EN) e simulador interativo de rota
+├── index.html                    # Site oficial gamer inspirado no NoPing com SEO completo
 ├── support.html                  # Central de suporte e resolução de problemas
 ├── support/
 │   └── index.html                # Rota direta /support/ para servidores estáticos
 ├── privacy.html                  # Política de privacidade completa em conformidade com o app
 ├── privacy/
 │   └── index.html                # Rota direta /privacy/ para servidores estáticos
-├── validate.js                   # Script de validação automática sem dependências externas
+├── robots.txt                    # Diretrizes para indexação de motores de busca
+├── sitemap.xml                   # Mapa do site com hreflang para SEO internacional
+├── validate.js                   # Suite de testes com 81 validações automatizadas
 └── README.md                     # Este guia de execução e contexto
 ```
 
@@ -72,25 +76,25 @@ node web/validate.js
 ```
 
 O script testará:
-1. Existência e integridade de todos os arquivos obrigatórios.
+1. Existência e integridade de todos os arquivos obrigatórios (incluindo `robots.txt` e `sitemap.xml`).
 2. Comparação byte-a-byte dos ativos vetoriais da marca.
 3. Uso estrito dos tokens de cor e layout de `design-system/tokens/`.
 4. Paridade de blocos bilíngues (PT-BR e EN).
 5. Conformidade com todas as regras de privacidade (SwiftData, 90 dias, 100 registros, ausência de AdMob/UMP nesta entrega, compromisso de revisão futura).
 6. Conformidade com regras de suporte (contato provisório visível, produto iPhone iOS 17+, explicação de rota vs ping de servidor de jogo).
-7. Subida de servidor HTTP local temporário e teste de 200 OK em todas as rotas.
+7. Subida de servidor HTTP local temporário e teste de 200 OK em todas as rotas (incluindo SEO).
 
 ---
 
 ## Diretrizes de Marca e Design
 
 - **Marca:** LagCheck.
-- **Wordmark:** `nolaggy` em minúsculas com o símbolo duplo-g estilizado em gradiente azul elétrico.
-- **Estética:** Dark mode premium, sério e calmo. Sem elementos cyberpunk ou gamer estereotipado.
+- **Wordmark:** `lagcheck` em minúsculas (Dual-Node Vector + Kinetic Speed Slant).
+- **Estética:** Dark Competitive UI (fundo `#0B0D10`, superfícies grafite `#15181E`/`#1E232B`, bordas finas de 1px e Coral Solar `#FF5A36` de ação).
 - **Acessibilidade:**
   - Contraste WCAG AAA/AA em todas as superfícies.
   - Alvos de toque com área mínima de 44x44 pt.
-  - Foco visível (`:focus-visible`) com anel azul.
+  - Foco visível (`:focus-visible`) com anel Coral Solar.
   - Skip link acessível no topo de cada página.
   - Respeito à preferência de sistema `prefers-reduced-motion`.
 

@@ -40,6 +40,8 @@ const requiredFiles = [
   'assets/brand/wordmark-mono-dark.svg',
   'assets/brand/wordmark-mono-light.svg',
   'assets/brand/wordmark-primary.svg',
+  'robots.txt',
+  'sitemap.xml',
   'README.md'
 ];
 
@@ -167,7 +169,9 @@ const server = http.createServer((req, res) => {
       '.html': 'text/html; charset=utf-8',
       '.css': 'text/css; charset=utf-8',
       '.js': 'application/javascript; charset=utf-8',
-      '.svg': 'image/svg+xml'
+      '.svg': 'image/svg+xml',
+      '.xml': 'application/xml; charset=utf-8',
+      '.txt': 'text/plain; charset=utf-8'
     };
     res.writeHead(200, { 'Content-Type': contentTypes[ext] || 'application/octet-stream' });
     res.end(fs.readFileSync(filePath));
@@ -193,7 +197,9 @@ server.listen(0, '127.0.0.1', async () => {
     '/css/style.css',
     '/js/main.js',
     '/assets/brand/wordmark-primary.svg',
-    '/assets/brand/symbol-compact.svg'
+    '/assets/brand/symbol-compact.svg',
+    '/robots.txt',
+    '/sitemap.xml'
   ];
 
   for (const route of routesToTest) {

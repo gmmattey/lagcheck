@@ -3,10 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LagCheck — Suporte e Privacidade</title>
-  <meta name="description" content="Página oficial de suporte e política de privacidade do LagCheck para iPhone (iOS 17+). Medição determinística de rota gamer sem promessas falsas.">
+  <title>LagCheck — Teste de Ping e Conexão para Jogos Online | Ready for Ranked</title>
+  <meta name="description" content="Descubra se sua conexão está pronta para a ranqueada. Teste determinístico de ping, jitter sob carga e perda de pacotes para Valorant, CS2, LoL, Fortnite no iPhone (iOS 17+).">
+  <meta name="keywords" content="lagcheck, teste de ping, ping gamer, ping valorant, ping cs2, ping lol, perda de pacote, jitter, noping alternativa, ready for ranked, conexao jogos">
+  <link rel="canonical" href="https://lagcheck.app/">
+  <link rel="alternate" hreflang="pt-BR" href="https://lagcheck.app/">
+  <link rel="alternate" hreflang="en" href="https://lagcheck.app/?lang=en">
+  <link rel="alternate" hreflang="x-default" href="https://lagcheck.app/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://lagcheck.app/">
+  <meta property="og:title" content="LagCheck — Teste de Ping e Conexão para Jogos Online | Ready for Ranked">
+  <meta property="og:description" content="Sua conexão aguenta a ranqueada? Teste determinístico de rota, jitter e perda de pacotes para seus jogos favoritos no iPhone.">
+  <meta property="og:image" content="https://lagcheck.app/assets/brand/app-icon-source.svg">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:site_name" content="LagCheck">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://lagcheck.app/">
+  <meta name="twitter:title" content="LagCheck — Teste de Ping e Conexão para Jogos Online">
+  <meta name="twitter:description" content="Descubra se sua conexão está pronta para a ranqueada. Sem promessas falsas de ping, sem contas.">
+  <meta name="twitter:image" content="https://lagcheck.app/assets/brand/app-icon-source.svg">
+
   <link rel="icon" type="image/svg+xml" href="assets/brand/symbol-compact.svg">
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Structured Data JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "LagCheck",
+        "operatingSystem": "iOS 17.0+",
+        "applicationCategory": "UtilitiesApplication, GameApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "BRL"
+        },
+        "description": "App para iPhone que diagnostica a qualidade real da conexão e rota para jogos online antes de iniciar partidas ranqueadas."
+      },
+      {
+        "@type": "Organization",
+        "name": "LagCheck",
+        "url": "https://lagcheck.app/",
+        "logo": "https://lagcheck.app/assets/brand/wordmark-primary.svg"
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "O LagCheck diminui o ping como uma VPN?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Não. O LagCheck não é uma VPN e não faz falsas promessas de ping zero. Ele é uma ferramenta de diagnóstico de rede de alta precisão que afere a integridade da rota do iPhone até a infraestrutura oficial do jogo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Qual a diferença entre o LagCheck e um Speedtest comum?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Medidores comuns de velocidade avaliam banda (download/upload de arquivos HTTP pesados). Jogos exigem pacotes UDP pequenos em alta frequência com baixo jitter. O LagCheck simula o comportamento real de jogos em repouso e sob carga."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Para quais aparelhos o LagCheck está disponível?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "O LagCheck foi desenvolvido nativamente para iPhone e requer iOS 17 ou superior."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="lang-pt">
   <!-- Skip Link for Accessibility -->
@@ -17,15 +96,31 @@
 
   <!-- Site Header -->
   <header class="site-header" role="banner">
-    <div class="container header-inner">
+    <div class="container-wide header-inner">
       <a href="index.html" class="brand-link" aria-label="LagCheck Home">
-        <img src="assets/brand/wordmark-primary.svg" alt="lagcheck" class="brand-wordmark" width="138" height="28">
+        <img src="assets/brand/wordmark-primary.svg" alt="lagcheck" class="brand-wordmark" width="144" height="28">
       </a>
 
       <nav class="nav-group" role="navigation" aria-label="Navegação principal">
-        <a href="index.html" class="nav-link active">
-          <span data-lang="pt">Início</span>
-          <span data-lang="en">Home</span>
+        <a href="#simulator" class="nav-link">
+          <span data-lang="pt">Simulador</span>
+          <span data-lang="en">Simulator</span>
+        </a>
+        <a href="#features" class="nav-link">
+          <span data-lang="pt">Recursos</span>
+          <span data-lang="en">Features</span>
+        </a>
+        <a href="#comparison" class="nav-link">
+          <span data-lang="pt">Comparativo</span>
+          <span data-lang="en">Comparison</span>
+        </a>
+        <a href="#games" class="nav-link">
+          <span data-lang="pt">Jogos</span>
+          <span data-lang="en">Games</span>
+        </a>
+        <a href="#faq" class="nav-link">
+          <span data-lang="pt">FAQ</span>
+          <span data-lang="en">FAQ</span>
         </a>
         <a href="support.html" class="nav-link">
           <span data-lang="pt">Suporte</span>
@@ -41,52 +136,141 @@
           <span class="lang-badge lang-badge-pt active" aria-hidden="true">PT</span>
           <span class="lang-badge lang-badge-en" aria-hidden="true">EN</span>
         </button>
+
+        <a href="#download" class="btn-header-cta">
+          <span data-lang="pt">Baixar App</span>
+          <span data-lang="en">Get App</span>
+        </a>
       </nav>
     </div>
   </header>
 
   <!-- Main Content -->
   <main id="main-content" role="main">
-    <!-- Hero Section -->
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="container">
-        <div class="hero-pill">
-          <span data-lang="pt">iPhone • Requer iOS 17 ou superior</span>
-          <span data-lang="en">iPhone • Requires iOS 17 or later</span>
+    <!-- Hero Section (Dark Competitive UI) -->
+    <section class="hero-competitive" aria-labelledby="hero-title">
+      <div class="container-wide hero-grid">
+        <div class="hero-text-col">
+          <div class="live-pill">
+            <span class="pulse-dot green" aria-hidden="true"></span>
+            <span data-lang="pt">READY FOR RANKED • iOS 17+</span>
+            <span data-lang="en">READY FOR RANKED • iOS 17+</span>
+          </div>
+
+          <h1 id="hero-title" class="hero-headline">
+            <span data-lang="pt">Sua conexão aguenta a ranqueada? <span class="text-gradient-coral">Descubra antes</span> de perder pontos.</span>
+            <span data-lang="en">Can your network handle ranked? <span class="text-gradient-coral">Find out before</span> losing LP.</span>
+          </h1>
+
+          <p class="hero-subhead">
+            <span data-lang="pt">O teste de rota determinístico para iPhone. Sem falsas promessas de ping, sem VPNs milagrosas e sem fallback HTTP — medição real de latência UDP, jitter sob carga e perda de pacotes direto aos servidores de referência dos seus jogos.</span>
+            <span data-lang="en">The deterministic route check for iPhone. No false ping claims, no VPN snake oil, and no generic HTTP fallbacks — real measurement of UDP latency, bufferbloat jitter, and packet loss directly to your games' reference servers.</span>
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="#download" class="btn-primary-coral">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.87-.92.04-2.02.62-2.67 1.37-.58.66-1.09 1.73-.96 2.76 1.03.08 2.08-.53 2.71-1.26z"/>
+              </svg>
+              <span data-lang="pt">Baixar na App Store</span>
+              <span data-lang="en">Download on App Store</span>
+            </a>
+            <a href="#simulator" class="btn-ghost-competitive">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span data-lang="pt">Testar Rota Online</span>
+              <span data-lang="en">Test Route Online</span>
+            </a>
+          </div>
+
+          <div class="trust-badges-row">
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-lang="pt">Nativo para iPhone (iOS 17+)</span>
+              <span data-lang="en">Native for iPhone (iOS 17+)</span>
+            </div>
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-lang="pt">Sem contas ou cadastro</span>
+              <span data-lang="en">No account or login</span>
+            </div>
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-lang="pt">Clusters AWS, Azure e Valve</span>
+              <span data-lang="en">AWS, Azure &amp; Valve Clusters</span>
+            </div>
+          </div>
         </div>
 
-        <h1 id="hero-title" class="hero-title">
-          <span data-lang="pt">Entenda a qualidade da sua conexão antes de jogar.</span>
-          <span data-lang="en">Know your connection quality before you play.</span>
-        </h1>
+        <!-- Phone Cockpit Mockup (Dark Competitive UI) -->
+        <div class="mockup-container" aria-label="Visualização do App LagCheck">
+          <div class="iphone-cockpit">
+            <div class="iphone-screen">
+              <div class="dynamic-island" aria-hidden="true"></div>
 
-        <p class="hero-description lead">
-          <span data-lang="pt">O LagCheck mede a rota da sua rede do iPhone até infraestruturas de referência gamer. Diagnóstico determinístico, sem contas, sem telemetria própria e sem falsas promessas de ping.</span>
-          <span data-lang="en">LagCheck measures your iPhone network route to reference gaming infrastructure. Deterministic diagnostics, no user accounts, no proprietary telemetry, and no false ping claims.</span>
-        </p>
+              <div class="phone-app-topbar">
+                <img src="assets/brand/wordmark-primary.svg" alt="lagcheck" width="96" height="18">
+                <div class="phone-signal-capsule">
+                  <span class="pulse-dot green" style="width:6px;height:6px;" aria-hidden="true"></span>
+                  <span>Wi-Fi 5 GHz</span>
+                </div>
+              </div>
 
-        <div class="hero-actions">
-          <a href="#support" class="btn btn-primary">
-            <span data-lang="pt">Central de Suporte</span>
-            <span data-lang="en">Support Center</span>
-          </a>
-          <a href="#privacy" class="btn btn-secondary">
-            <span data-lang="pt">Política de Privacidade</span>
-            <span data-lang="en">Privacy Policy</span>
-          </a>
+              <div class="phone-game-card">
+                <img src="assets/games/valorant.jpg" alt="Valorant Cover" width="300" height="130">
+                <div class="phone-game-card-content">
+                  <span class="phone-game-label">SELEÇÃO COMPETITIVA</span>
+                  <div class="phone-game-name">Valorant</div>
+                  <div class="phone-game-region">São Paulo (BR1)</div>
+                </div>
+              </div>
+
+              <div class="verdict-hero-badge" id="hero-phone-verdict">
+                <span class="pulse-dot green" aria-hidden="true"></span>
+                <span>● PRONTO PARA RANKED</span>
+              </div>
+
+              <div class="phone-metrics-grid">
+                <div class="metric-cell">
+                  <div class="metric-val">18 ms</div>
+                  <div class="metric-lbl">PING</div>
+                </div>
+                <div class="metric-cell">
+                  <div class="metric-val">1.1 ms</div>
+                  <div class="metric-lbl">JITTER</div>
+                </div>
+                <div class="metric-cell">
+                  <div class="metric-val">0.0%</div>
+                  <div class="metric-lbl">PERDA</div>
+                </div>
+              </div>
+
+              <div class="phone-action-btn">
+                <span data-lang="pt">CHECK COMPLETO CONFIRMADO</span>
+                <span data-lang="en">FULL CHECK CONFIRMED</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Scope & Transparency Notice -->
+    <!-- Scope & Transparency Notice (Conformidade Rigorosa de Produto) -->
     <section class="section" style="padding-top: 0;" aria-label="Aviso de Escopo">
-      <div class="container">
-        <div class="alert-banner info">
-          <div class="alert-title">
+      <div class="container-wide">
+        <div class="alert-banner info" style="background: rgba(21, 24, 30, 0.95); border: 1px solid var(--comp-border-hairline); border-left: 4px solid var(--comp-coral);">
+          <div class="alert-title" style="color: #FFFFFF; font-weight: 800;">
             <span data-lang="pt">Transparência e limites de medição</span>
             <span data-lang="en">Transparency &amp; measurement boundaries</span>
           </div>
-          <p class="alert-desc">
+          <p class="alert-desc" style="color: #9FA7B8; margin-top: 6px;">
             <span data-lang="pt">O LagCheck avalia a rota de rede a partir do seu iPhone até destinos regionais de referência. O app não promete o ping real de servidores de jogos específicos e comunica medições de console ou PC como estimativas da sua rota de internet.</span>
             <span data-lang="en">LagCheck tests the network route from your iPhone to regional reference targets. It does not promise exact in-game ping for specific game servers and communicates console or PC evaluations as route estimates.</span>
           </p>
@@ -94,219 +278,833 @@
       </div>
     </section>
 
-    <!-- Feature Pillars -->
-    <section class="section" aria-labelledby="features-title">
-      <div class="container">
-        <div class="section-header text-center">
-          <h2 id="features-title">
-            <span data-lang="pt">Diagnóstico transparente e seguro</span>
-            <span data-lang="en">Transparent, secure diagnostics</span>
-          </h2>
-          <p>
-            <span data-lang="pt">Projetado com base em evidências técnicas reais e respeito absoluto à sua privacidade.</span>
-            <span data-lang="en">Engineered using real technical evidence and uncompromising respect for user privacy.</span>
-          </p>
-        </div>
-
-        <div class="card-grid card-grid-3">
-          <div class="card">
-            <h3>
-              <span data-lang="pt">Medição em Duas Fases</span>
-              <span data-lang="en">Two-Phase Measurement</span>
-            </h3>
-            <p>
-              <span data-lang="pt">O teste afere a rota em repouso e sob carga controlada em Wi-Fi ou rede móvel, entregando um veredito claro antes da partida sem reescrever o score principal.</span>
-              <span data-lang="en">Tests the network route at rest and under controlled load on Wi-Fi or cellular, delivering a clear verdict before your match without rewriting the baseline score.</span>
-            </p>
-          </div>
-
-          <div class="card">
-            <h3>
-              <span data-lang="pt">Score Determinístico</span>
-              <span data-lang="en">Deterministic Score</span>
-            </h3>
-            <p>
-              <span data-lang="pt">Baseado em amostras UDP reais. Se houver menos de 10 respostas válidas ou interrupção de rede, o resultado é inconclusivo — sem notas inventadas ou conselhos vazios.</span>
-              <span data-lang="en">Driven by real UDP samples. If fewer than 10 valid responses return or the network drops, the result is inconclusive — no fabricated scores or hollow promises.</span>
-            </p>
-          </div>
-
-          <div class="card">
-            <h3>
-              <span data-lang="pt">Privacidade no Aparelho</span>
-              <span data-lang="en">On-Device Privacy</span>
-            </h3>
-            <p>
-              <span data-lang="pt">Sem criação de contas, sem coleta de dados pessoais e sem telemetria de uso. O histórico local reside apenas no seu iPhone via SwiftData e expira em 90 dias.</span>
-              <span data-lang="en">No accounts, no personal data harvesting, and no behavioral telemetry. Local history resides strictly on your iPhone via SwiftData and expires in 90 days.</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Support Section Anchor -->
-    <section id="support" class="section" aria-labelledby="support-summary-title">
-      <div class="container">
-        <div class="section-header">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm);">
-            <h2 id="support-summary-title" style="margin-bottom: 0;">
-              <span data-lang="pt">Central de Suporte</span>
-              <span data-lang="en">Support Center</span>
-            </h2>
-            <a href="support.html" class="nav-link" style="color: var(--blue-300); padding: 0;">
-              <span data-lang="pt">Ver página completa de suporte →</span>
-              <span data-lang="en">View complete support page →</span>
-            </a>
-          </div>
-          <p style="margin-top: var(--space-xs);">
-            <span data-lang="pt">Dúvidas frequentes sobre compatibilidade, medição e diagnóstico do LagCheck.</span>
-            <span data-lang="en">Frequently asked questions regarding compatibility, measurements, and diagnostics.</span>
-          </p>
-        </div>
-
-        <div style="margin-bottom: var(--space-xl);">
-          <details>
-            <summary>
-              <span data-lang="pt">Quais aparelhos são compatíveis com o LagCheck?</span>
-              <span data-lang="en">Which devices are compatible with LagCheck?</span>
-            </summary>
-            <div class="details-content">
-              <span data-lang="pt">O LagCheck foi desenvolvido exclusivamente para iPhone com iOS 17 ou superior. O app utiliza APIs modernas de observação de rede e transporte UDP do ecossistema iOS.</span>
-              <span data-lang="en">LagCheck is developed exclusively for iPhone running iOS 17 or later, leveraging modern iOS network observation and UDP transport APIs.</span>
-            </div>
-          </details>
-
-          <details>
-            <summary>
-              <span data-lang="pt">O LagCheck funciona em Wi-Fi e rede móvel?</span>
-              <span data-lang="en">Does LagCheck work on Wi-Fi and cellular?</span>
-            </summary>
-            <div class="details-content">
-              <span data-lang="pt">Sim. O LagCheck avalia sua conexão tanto em redes Wi-Fi quanto em redes móveis (4G/5G). Em rede móvel, o app solicita seu consentimento prévio antes de qualquer transferência controlada sob carga (até 10 MB).</span>
-              <span data-lang="en">Yes. LagCheck tests your connection on both Wi-Fi and cellular (4G/5G). On cellular networks, the app requests explicit consent before any controlled load transfer (up to 10 MB).</span>
-            </div>
-          </details>
-
-          <details>
-            <summary>
-              <span data-lang="pt">O que significa um resultado "Inconclusivo"?</span>
-              <span data-lang="en">What does an "Inconclusive" result mean?</span>
-            </summary>
-            <div class="details-content">
-              <span data-lang="pt">Um resultado inconclusivo acontece quando menos de 10 pacotes UDP válidos puderam ser confirmados, ou quando a rota de rede mudou durante o teste (ex.: alternância de Wi-Fi para dados móveis). O LagCheck nunca inventa um score sem dados suficientes.</span>
-              <span data-lang="en">An inconclusive result occurs when fewer than 10 valid UDP probe packets could be verified, or when network conditions shifted during the test. LagCheck never generates a score without sufficient evidence.</span>
-            </div>
-          </details>
-        </div>
-
-        <!-- Contact Box with Visible Provisional Notice -->
-        <div class="contact-box">
-          <div class="contact-info">
-            <span class="badge badge-provisional" style="margin-bottom: var(--space-xs);">
-              <span data-lang="pt">Canal em configuração</span>
-              <span data-lang="en">Channel in setup</span>
+    <!-- Interactive Ready Check & Route Simulator (Inspirado no NoPing) -->
+    <section id="simulator" class="simulator-section" aria-labelledby="simulator-title">
+      <div class="container-wide">
+        <div class="simulator-box">
+          <div class="section-head">
+            <span class="section-tag">
+              <span data-lang="pt">SIMULADOR INTERATIVO DE ROTA</span>
+              <span data-lang="en">INTERACTIVE ROUTE SIMULATOR</span>
             </span>
-            <h3 style="margin-bottom: var(--space-xs);">
-              <span data-lang="pt">Precisa de assistência técnica?</span>
-              <span data-lang="en">Need technical assistance?</span>
-            </h3>
-            <p style="font-size: 0.9375rem; margin-bottom: var(--space-sm);">
-              <span data-lang="pt">Caso encontre comportamentos inesperados no app, entre em contato através do canal de suporte abaixo. Informe seu modelo de iPhone, versão do iOS e tipo de conexão.</span>
-              <span data-lang="en">If you encounter unexpected app behavior, contact our support team below. Please include your iPhone model, iOS version, and network connection type.</span>
-            </p>
-            <div>
-              <a href="mailto:suporte@lagcheck.app" class="contact-email">suporte@lagcheck.app</a>
-            </div>
-            <p style="font-size: 0.8125rem; color: var(--amber-500); margin-top: var(--space-xs); margin-bottom: 0;">
-              <span data-lang="pt">* Aviso App Store: E-mail provisório de suporte a ser configurado oficialmente antes da disponibilização pública na loja.</span>
-              <span data-lang="en">* App Store notice: Provisional support email address to be officially configured prior to public store release.</span>
+            <h2 id="simulator-title" class="section-title">
+              <span data-lang="pt">Simule a rota do seu jogo favorito</span>
+              <span data-lang="en">Simulate your favorite game's route</span>
+            </h2>
+            <p class="section-subtitle">
+              <span data-lang="pt">Escolha um título competitivo e veja em tempo real como o LagCheck avalia o caminho entre o seu iPhone e o cluster do jogo.</span>
+              <span data-lang="en">Select a competitive game and watch how LagCheck evaluates the route between your iPhone and the game's datacenter.</span>
             </p>
           </div>
-          <div>
-            <a href="support.html" class="btn btn-secondary">
-              <span data-lang="pt">Instruções de Suporte</span>
-              <span data-lang="en">Support Guide</span>
-            </a>
+
+          <!-- Game Selector Chips -->
+          <span class="game-selector-label">
+            <span data-lang="pt">Selecione o Jogo:</span>
+            <span data-lang="en">Select Game:</span>
+          </span>
+          <div class="game-chips-grid" role="tablist" aria-label="Seletor de jogos">
+            <button type="button" class="game-chip-btn active" data-game="valorant" role="tab" aria-selected="true">
+              <img src="assets/games/valorant.jpg" alt="Valorant" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">Valorant</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="cs2" role="tab" aria-selected="false">
+              <img src="assets/games/cs2.jpg" alt="CS2" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">CS2</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="lol" role="tab" aria-selected="false">
+              <img src="assets/games/leagueoflegends.jpg" alt="LoL" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">LoL</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="fortnite" role="tab" aria-selected="false">
+              <img src="assets/games/fortnite.jpg" alt="Fortnite" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">Fortnite</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="eafc" role="tab" aria-selected="false">
+              <img src="assets/games/eafc.jpg" alt="EA Sports FC" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">EA FC 25</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="warzone" role="tab" aria-selected="false">
+              <img src="assets/games/warzone.jpg" alt="Warzone" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">Warzone</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="apex" role="tab" aria-selected="false">
+              <img src="assets/games/apexlegends.jpg" alt="Apex Legends" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">Apex</span>
+            </button>
+            <button type="button" class="game-chip-btn" data-game="roblox" role="tab" aria-selected="false">
+              <img src="assets/games/roblox.jpg" alt="Roblox" class="game-chip-thumb" width="44" height="44">
+              <span class="game-chip-title">Roblox</span>
+            </button>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="sim-controls-bar">
+            <div class="region-selector-group">
+              <label for="sim-region-select" class="region-label">
+                <span data-lang="pt">Região do Servidor:</span>
+                <span data-lang="en">Server Region:</span>
+              </label>
+              <select id="sim-region-select" class="region-select-input">
+                <option value="sa-east-1">São Paulo (América do Sul - sa-east-1)</option>
+                <option value="us-east-1">Virgínia (América do Norte - us-east-1)</option>
+                <option value="eu-central-1">Frankfurt (Europa - eu-central-1)</option>
+              </select>
+            </div>
+
+            <button type="button" id="btn-run-sim" class="btn-run-sim">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span data-lang="pt">FAZER CHECK DE ROTA</span>
+              <span data-lang="en">RUN READY CHECK</span>
+            </button>
+          </div>
+
+          <!-- Route Flow Visualizer -->
+          <div class="route-trail-card">
+            <div class="route-nodes-flow">
+              <div class="route-node-box active-node">
+                <span class="node-badge">NÓ 01</span>
+                <div class="node-title">iPhone (Local)</div>
+                <div class="node-subtitle">Wi-Fi 5 GHz • NAT Tipo 2</div>
+              </div>
+              <div class="route-node-box">
+                <span class="node-badge">NÓ 02</span>
+                <div class="node-title">Backbone / Provedor</div>
+                <div class="node-subtitle">ASN Fibra • 0% Perda</div>
+              </div>
+              <div class="route-node-box">
+                <span class="node-badge">NÓ 03</span>
+                <div class="node-title" id="sim-node-target-name">Valorant Cluster</div>
+                <div class="node-subtitle" id="sim-node-target-location">São Paulo (BR1)</div>
+              </div>
+            </div>
+
+            <!-- Output Display Panel -->
+            <div class="sim-results-panel">
+              <div class="verdict-large-badge ready" id="sim-verdict-box">
+                <div class="verdict-title-text" id="sim-verdict-title">● PRONTO PARA RANKED</div>
+                <div class="verdict-desc-text" id="sim-verdict-desc">
+                  <span data-lang="pt">Rota ultrarrápida direta ao cluster Riot BR1 com jitter imperceptível.</span>
+                  <span data-lang="en">Direct ultra-fast route to Riot BR1 cluster with imperceptible jitter.</span>
+                </div>
+              </div>
+
+              <div class="sim-metrics-bar">
+                <div class="sim-metric-card">
+                  <div class="num" id="sim-metric-ping">18 ms</div>
+                  <div class="lbl">LATÊNCIA UDP</div>
+                </div>
+                <div class="sim-metric-card">
+                  <div class="num" id="sim-metric-jitter">1.1 ms</div>
+                  <div class="lbl">JITTER REAL</div>
+                </div>
+                <div class="sim-metric-card">
+                  <div class="num" id="sim-metric-loss">0.0%</div>
+                  <div class="lbl">PERDA DE PACOTES</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Privacy Section Anchor -->
-    <section id="privacy" class="section" aria-labelledby="privacy-summary-title">
-      <div class="container">
-        <div class="section-header">
-          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm);">
-            <h2 id="privacy-summary-title" style="margin-bottom: 0;">
-              <span data-lang="pt">Política de Privacidade</span>
-              <span data-lang="en">Privacy Policy</span>
-            </h2>
-            <a href="privacy.html" class="nav-link" style="color: var(--blue-300); padding: 0;">
-              <span data-lang="pt">Ler política completa →</span>
-              <span data-lang="en">Read full policy →</span>
+    <!-- Feature Pillars (Tecnologia Sem Ilusão) -->
+    <section id="features" class="features-competitive" aria-labelledby="features-title">
+      <div class="container-wide">
+        <div class="section-head">
+          <span class="section-tag">
+            <span data-lang="pt">ENGENHARIA DETERMINÍSTICA</span>
+            <span data-lang="en">DETERMINISTIC ENGINEERING</span>
+          </span>
+          <h2 id="features-title" class="section-title">
+            <span data-lang="pt">Os 4 Pilares da Verdade de Rede</span>
+            <span data-lang="en">The 4 Pillars of Network Truth</span>
+          </h2>
+          <p class="section-subtitle">
+            <span data-lang="pt">Criado para quem leva a partida a sério. Sem velocímetros inflados e sem promessas vazias.</span>
+            <span data-lang="en">Built for players who take competitive matches seriously. No inflated speed tests, no empty claims.</span>
+          </p>
+        </div>
+
+        <div class="competitive-cards-grid">
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Veredito "Ready for Ranked"</span>
+              <span data-lang="en">"Ready for Ranked" Verdict</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Chega de calcular mentalmente se seu ping oscilante aguenta um clutch. O LagCheck traduz a telemetria em vereditos semânticos imediatos: Pronto para Ranked, Evitaria Ranked Agora ou Condições Instáveis.</span>
+              <span data-lang="en">Stop guessing whether your fluctuating ping will hold up during a clutch. LagCheck translates complex telemetry into instant semantic verdicts: Ready for Ranked, Avoid Ranked Now, or Unstable Conditions.</span>
+            </p>
+          </div>
+
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Medição Dual-Phase (Carga Real)</span>
+              <span data-lang="en">Dual-Phase Stress Test</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Medições em repouso mentem. O LagCheck estressa a conexão com rajadas controladas para revelar bufferbloat oculto e picos de jitter que surgem quando outra pessoa da casa abre uma live ou download.</span>
+              <span data-lang="en">Idle tests lie. LagCheck stresses your route with controlled packet bursts to expose hidden bufferbloat and jitter spikes that happen when someone else at home starts streaming or downloading.</span>
+            </p>
+          </div>
+
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Auditoria Wi-Fi e NAT RFC 5389</span>
+              <span data-lang="en">Wi-Fi &amp; NAT RFC 5389 Audit</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Identifica se seu iPhone está conectado em 2.4 GHz poluído em vez de 5 GHz e diagnostica tipo de NAT (Aberto, Moderado, Estrito) e CGNAT para evitar problemas graves de matchmaking e voz.</span>
+              <span data-lang="en">Detects whether your iPhone is trapped on congested 2.4 GHz instead of 5 GHz, while auditing NAT types (Open, Moderate, Strict) and CGNAT via STUN RFC 5389 to prevent matchmaking blocks.</span>
+            </p>
+          </div>
+
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Sockets UDP Globais Reais</span>
+              <span data-lang="en">Real Global UDP Sockets</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Em vez de pingar servidores genéricos de provedores de internet, nos conectamos aos mesmos datacenters e protocolos usados pelos jogos: AWS GameLift, Azure PlayFab QoS e Valve A2S_INFO.</span>
+              <span data-lang="en">Instead of pinging nearby ISP caches, we test against the exact gaming datacenters and protocols used in production: AWS GameLift, Azure PlayFab QoS, and Valve A2S_INFO.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Matrix Section (Inspirado no NoPing Benchmark) -->
+    <section id="comparison" class="comparison-section" aria-labelledby="comparison-title">
+      <div class="container-wide">
+        <div class="section-head">
+          <span class="section-tag">
+            <span data-lang="pt">POR QUE O LAGCHECK?</span>
+            <span data-lang="en">WHY LAGCHECK?</span>
+          </span>
+          <h2 id="comparison-title" class="section-title">
+            <span data-lang="pt">Medidores de Banda vs LagCheck vs VPNs</span>
+            <span data-lang="en">Bandwidth Speedtests vs LagCheck vs VPNs</span>
+          </h2>
+          <p class="section-subtitle">
+            <span data-lang="pt">Entenda por que medir velocidade contratada não diz se você vai perder pontos na ranqueada.</span>
+            <span data-lang="en">Understand why measuring Mbps download doesn't tell you if you will lose match points.</span>
+          </p>
+        </div>
+
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span data-lang="pt">Critério de Avaliação</span>
+                  <span data-lang="en">Evaluation Criteria</span>
+                </th>
+                <th scope="col" class="col-lagcheck">
+                  <span>LagCheck</span>
+                  <span class="badge-winner">
+                    <span data-lang="pt">DIAGNÓSTICO REAL</span>
+                    <span data-lang="en">REAL DIAGNOSTIC</span>
+                  </span>
+                </th>
+                <th scope="col">
+                  <span data-lang="pt">Speedtest Tradicional</span>
+                  <span data-lang="en">Traditional Speedtest</span>
+                </th>
+                <th scope="col">
+                  <span data-lang="pt">VPNs Convencionais</span>
+                  <span data-lang="en">Typical Gaming VPNs</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>
+                    <span data-lang="pt">Protocolo de Medição</span>
+                    <span data-lang="en">Measurement Protocol</span>
+                  </strong>
+                </td>
+                <td class="col-lagcheck">
+                  <span class="status-badge yes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span data-lang="pt">UDP Real de Jogos (Tick Rate)</span>
+                    <span data-lang="en">Real Game UDP (Tick Rate)</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Download HTTP/TCP contínuo</span>
+                    <span data-lang="en">Heavy HTTP/TCP download</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge warning">
+                    <span data-lang="pt">Túnel WireGuard/OpenVPN</span>
+                    <span data-lang="en">WireGuard/OpenVPN tunnel</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span data-lang="pt">Estresse sob Carga (Bufferbloat)</span>
+                    <span data-lang="en">Stress Test (Bufferbloat)</span>
+                  </strong>
+                </td>
+                <td class="col-lagcheck">
+                  <span class="status-badge yes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span data-lang="pt">Sim (Repouso vs Rajadas)</span>
+                    <span data-lang="en">Yes (Idle vs Stress Bursts)</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Apenas média estática</span>
+                    <span data-lang="en">Static average only</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Não realiza</span>
+                    <span data-lang="en">Does not test</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span data-lang="pt">Topologia Wi-Fi e NAT</span>
+                    <span data-lang="en">Wi-Fi &amp; NAT Topology</span>
+                  </strong>
+                </td>
+                <td class="col-lagcheck">
+                  <span class="status-badge yes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span data-lang="pt">2.4/5GHz + NAT 1/2/3 + CGNAT</span>
+                    <span data-lang="en">2.4/5GHz + NAT 1/2/3 + CGNAT</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Nenhuma</span>
+                    <span data-lang="en">None</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge warning">
+                    <span data-lang="pt">Mascaramento de IP</span>
+                    <span data-lang="en">IP masking only</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span data-lang="pt">Veredito Competitivo</span>
+                    <span data-lang="en">Competitive Verdict</span>
+                  </strong>
+                </td>
+                <td class="col-lagcheck">
+                  <span class="status-badge yes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span data-lang="pt">Pronto para Ranked claro</span>
+                    <span data-lang="en">Clear Ready for Ranked</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Números soltos em Mbps</span>
+                    <span data-lang="en">Raw Mbps numbers</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge no">
+                    <span data-lang="pt">Promessas de "Ping 0"</span>
+                    <span data-lang="en">Unrealistic "0 Ping" claims</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>
+                    <span data-lang="pt">Privacidade e Anúncios</span>
+                    <span data-lang="en">Privacy &amp; Ads</span>
+                  </strong>
+                </td>
+                <td class="col-lagcheck">
+                  <span class="status-badge yes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span data-lang="pt">Zero contas, SwiftData local</span>
+                    <span data-lang="en">No accounts, local SwiftData</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge warning">
+                    <span data-lang="pt">Dezenas de anúncios e cookies</span>
+                    <span data-lang="en">Heavy ads and tracking</span>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge warning">
+                    <span data-lang="pt">Assinatura mensal cara</span>
+                    <span data-lang="en">Expensive monthly subscription</span>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Games Showcase Gallery -->
+    <section id="games" class="games-showcase-section" aria-labelledby="games-title">
+      <div class="container-wide">
+        <div class="section-head">
+          <span class="section-tag">
+            <span data-lang="pt">JOGOS SUPORTADOS</span>
+            <span data-lang="en">SUPPORTED TITLES</span>
+          </span>
+          <h2 id="games-title" class="section-title">
+            <span data-lang="pt">Calibrado para seus jogos competitivos</span>
+            <span data-lang="en">Calibrated for your competitive games</span>
+          </h2>
+          <p class="section-subtitle">
+            <span data-lang="pt">Rotas mapeadas para os principais ecossistemas de esports no Brasil e no mundo.</span>
+            <span data-lang="en">Mapped routes to the leading esports ecosystems in South America and globally.</span>
+          </p>
+        </div>
+
+        <div class="games-grid">
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/valorant.jpg" alt="Valorant" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">Valorant</h3>
+                <span class="game-pub">Riot Games</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo (BR1)</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Competitivo</span>
+                <strong>&lt; 25 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/cs2.jpg" alt="Counter-Strike 2" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">Counter-Strike 2</h3>
+                <span class="game-pub">Valve</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo (GRU)</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Sub-tick</span>
+                <strong>&lt; 20 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/leagueoflegends.jpg" alt="League of Legends" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">League of Legends</h3>
+                <span class="game-pub">Riot Games</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo (BR1)</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Teamfight</span>
+                <strong>&lt; 25 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/fortnite.jpg" alt="Fortnite" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">Fortnite</h3>
+                <span class="game-pub">Epic / AWS</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>AWS sa-east-1</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Construção</span>
+                <strong>&lt; 30 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/eafc.jpg" alt="EA Sports FC 25" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">EA Sports FC 25</h3>
+                <span class="game-pub">EA Sports</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo Hub</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Drible</span>
+                <strong>&lt; 25 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/warzone.jpg" alt="CoD Warzone" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">CoD Warzone</h3>
+                <span class="game-pub">Activision</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Battle.net BR</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo BR Gunfight</span>
+                <strong>&lt; 35 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/apexlegends.jpg" alt="Apex Legends" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">Apex Legends</h3>
+                <span class="game-pub">Respawn / EA</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo Datacenter</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Predição</span>
+                <strong>&lt; 30 ms</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-card-showcase">
+            <div class="game-card-cover">
+              <img src="assets/games/roblox.jpg" alt="Roblox" loading="lazy" width="280" height="140">
+            </div>
+            <div class="game-card-body">
+              <div class="game-title-row">
+                <h3 class="game-title">Roblox</h3>
+                <span class="game-pub">Roblox Corp</span>
+              </div>
+              <div class="game-server-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>São Paulo Edge</span>
+              </div>
+              <div class="game-target-ping">
+                <span>Alvo Sincronia</span>
+                <strong>&lt; 30 ms</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works (3 Passos Rápidos) -->
+    <section class="how-it-works-section" aria-labelledby="how-it-works-title">
+      <div class="container-wide">
+        <div class="section-head">
+          <span class="section-tag">
+            <span data-lang="pt">JORNADA DIRETA</span>
+            <span data-lang="en">DIRECT JOURNEY</span>
+          </span>
+          <h2 id="how-it-works-title" class="section-title">
+            <span data-lang="pt">Como Funciona em 3 Passos</span>
+            <span data-lang="en">How It Works in 3 Steps</span>
+          </h2>
+          <p class="section-subtitle">
+            <span data-lang="pt">Do toque no ícone ao veredito de prontidão em menos de 10 segundos.</span>
+            <span data-lang="en">From opening the app to your readiness verdict in under 10 seconds.</span>
+          </p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <h3 class="step-title">
+              <span data-lang="pt">Abra e Escolha o Jogo</span>
+              <span data-lang="en">Open &amp; Pick Game</span>
+            </h3>
+            <p class="step-desc">
+              <span data-lang="pt">Selecione o título que você vai disputar hoje ou deixe o último jogo ativo na Home como protagonista.</span>
+              <span data-lang="en">Select the title you are competing in today, or keep your most played game ready on Home.</span>
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <h3 class="step-title">
+              <span data-lang="pt">Ready Check em 1 Toque</span>
+              <span data-lang="en">1-Tap Ready Check</span>
+            </h3>
+            <p class="step-desc">
+              <span data-lang="pt">O app envia rajadas UDP em repouso e sob carga controlada, mapeando jitter, perda de pacotes e topologia de NAT.</span>
+              <span data-lang="en">The app fires UDP bursts at rest and under controlled load, diagnosing jitter, packet loss, and NAT topology.</span>
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <h3 class="step-title">
+              <span data-lang="pt">Veredito Semântico Real</span>
+              <span data-lang="en">Real Semantic Verdict</span>
+            </h3>
+            <p class="step-desc">
+              <span data-lang="pt">Receba a resposta imediata: Pronto para Ranked ou Evite Jogar Agora. Sem desculpas e sem surpresas na partida.</span>
+              <span data-lang="en">Get the final answer instantly: Ready for Ranked or Avoid Playing Now. No surprises once the match begins.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section (Accessible Accordion com JSON-LD) -->
+    <section id="faq" class="faq-section" aria-labelledby="faq-title">
+      <div class="container-wide">
+        <div class="section-head">
+          <span class="section-tag">
+            <span data-lang="pt">TIRA-DÚVIDAS</span>
+            <span data-lang="en">FREQUENTLY ASKED QUESTIONS</span>
+          </span>
+          <h2 id="faq-title" class="section-title">
+            <span data-lang="pt">Perguntas Frequentes</span>
+            <span data-lang="en">Frequently Asked Questions</span>
+          </h2>
+          <p class="section-subtitle">
+            <span data-lang="pt">Respostas diretas sobre como o LagCheck protege sua partida.</span>
+            <span data-lang="en">Straightforward answers on how LagCheck guards your competitive match.</span>
+          </p>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary class="faq-question">
+              <span class="faq-question-text">
+                <span data-lang="pt">O LagCheck diminui meu ping ou funciona como uma VPN?</span>
+                <span data-lang="en">Does LagCheck lower my ping or act like a VPN?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt"><strong>Não.</strong> O LagCheck é uma ferramenta de diagnóstico e auditoria de rota, e <em>não</em> uma VPN. Nós não prometemos o ping real nem vendemos a ilusão de "ping zero". O app mostra a condição honesta e real da sua rede para você não iniciar partidas ranqueadas quando sua rota ou Wi-Fi estiverem instáveis.</span>
+                <span data-lang="en"><strong>No.</strong> LagCheck is a diagnostic and route auditing tool, <em>not</em> a VPN. We do not claim zero ping or promise exact in-game ping. The app provides honest telemetry so you never start a ranked match with an unstable route or jittery Wi-Fi.</span>
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">
+                <span data-lang="pt">Por que o LagCheck é mais preciso para jogos que um Speedtest comum?</span>
+                <span data-lang="en">Why is LagCheck more accurate for gaming than a normal Speedtest?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt">Medidores de velocidade tradicionais testam banda larga através de downloads pesados via HTTP/TCP em servidores locais de operadoras. Jogos online exigem rajadas de pequenos pacotes UDP com baixíssimo jitter e zero tolerância a bufferbloat. O LagCheck reproduz o comportamento real do tráfego gamer em repouso e sob carga.</span>
+                <span data-lang="en">Traditional speedtests measure bandwidth by downloading big files over HTTP/TCP against nearby ISP servers. Competitive online games require small UDP packet bursts with ultralow jitter and zero bufferbloat. LagCheck simulates real gaming traffic both at rest and under stress.</span>
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">
+                <span data-lang="pt">O aplicativo é gratuito? Tem anúncios?</span>
+                <span data-lang="en">Is the app free? Does it have ads?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt">Sim, o LagCheck é 100% gratuito. No MVP atual, não há nenhum SDK de publicidade, login ou coleta de dados invasiva. Seu histórico de testes fica guardado exclusivamente no seu aparelho via SwiftData por até 90 dias.</span>
+                <span data-lang="en">Yes, LagCheck is 100% free. In our current MVP, there are no advertising SDKs, no accounts, and no invasive trackers. Your diagnostic history is kept locally on your iPhone via SwiftData for up to 90 days.</span>
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">
+                <span data-lang="pt">Quais dispositivos são compatíveis?</span>
+                <span data-lang="en">Which devices are compatible?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt">O LagCheck foi concebido especificamente para iPhone e requer iOS 17 ou superior para utilizar os recursos de sockets UDP avançados e SwiftData.</span>
+                <span data-lang="en">LagCheck is designed specifically for iPhone and requires iOS 17 or later to leverage high-precision UDP sockets and native SwiftData storage.</span>
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">
+                <span data-lang="pt">O app funciona em Wi-Fi e dados móveis (4G/5G)?</span>
+                <span data-lang="en">Does the app work on Wi-Fi and mobile data (4G/5G)?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt">Sim. Em Wi-Fi, o app audita a frequência (2.4 GHz vs 5 GHz) e topologia local. Em rede móvel, o teste sob estresse exige consentimento explícito para preservar sua franquia de dados.</span>
+                <span data-lang="en">Yes. On Wi-Fi, the app audits frequency (2.4 GHz vs 5 GHz) and local topology. On mobile networks, stress testing requires explicit consent to protect your data plan.</span>
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Conversion CTA Banner -->
+    <section id="download" class="cta-banner-section" aria-labelledby="cta-banner-title">
+      <div class="container-wide">
+        <div class="cta-banner-card">
+          <h2 id="cta-banner-title" class="cta-banner-title">
+            <span data-lang="pt">Nunca mais perca ranqueada por lag oculto.</span>
+            <span data-lang="en">Never lose ranked points to hidden lag again.</span>
+          </h2>
+          <p class="cta-banner-subtitle">
+            <span data-lang="pt">Baixe o LagCheck gratuitamente no seu iPhone e garanta que sua conexão está pronta antes do matchmaking.</span>
+            <span data-lang="en">Download LagCheck for free on your iPhone and ensure your connection is rock-solid before queueing.</span>
+          </p>
+          <div class="cta-banner-buttons">
+            <a href="https://apps.apple.com" class="btn-primary-coral" target="_blank" rel="noopener">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.87-.92.04-2.02.62-2.67 1.37-.58.66-1.09 1.73-.96 2.76 1.03.08 2.08-.53 2.71-1.26z"/>
+              </svg>
+              <span data-lang="pt">Baixar Grátis na App Store</span>
+              <span data-lang="en">Free on App Store</span>
             </a>
           </div>
-          <p style="margin-top: var(--space-xs);">
-            <span data-lang="pt">Compromisso público com a proteção dos seus dados e transparência operacional.</span>
-            <span data-lang="en">Our public commitment to user data protection and operational transparency.</span>
-          </p>
-        </div>
-
-        <div class="card-grid card-grid-2" style="margin-bottom: var(--space-lg);">
-          <div class="card">
-            <h3>
-              <span data-lang="pt">Zero Cadastro e Zero Telemetria</span>
-              <span data-lang="en">Zero Accounts &amp; Zero Telemetry</span>
-            </h3>
-            <p>
-              <span data-lang="pt">O LagCheck não solicita nome, e-mail, telefone ou cadastro. O app opera sem SDKs de telemetria de navegação ou análise comportamental.</span>
-              <span data-lang="en">LagCheck requires no registration, name, email, or credentials. The app does not operate behavioral tracking or analytics SDKs.</span>
-            </p>
-          </div>
-
-          <div class="card">
-            <h3>
-              <span data-lang="pt">Histórico Local Temporário</span>
-              <span data-lang="en">Temporary Local History</span>
-            </h3>
-            <p>
-              <span data-lang="pt">Medições ficam salvas apenas no seu iPhone (SwiftData) com métricas agregadas (P50, perda, spikes). Registros expiram após 90 dias ou limite de 100 por jogo.</span>
-              <span data-lang="en">Measurements reside solely on your iPhone (SwiftData) as aggregated metrics (P50, loss, spikes). Records automatically expire after 90 days or 100 entries per game.</span>
-            </p>
-          </div>
-        </div>
-
-        <div class="alert-banner info">
-          <div class="alert-title">
-            <span data-lang="pt">Declaração de Publicidade e Revisão de Política</span>
-            <span data-lang="en">Advertising Declaration &amp; Policy Review Notice</span>
-          </div>
-          <p class="alert-desc">
-            <span data-lang="pt">Na presente entrega, nenhuma rede de publicidade (Google AdMob) e nenhuma ferramenta de consentimento (Google UMP) está integrada ou ativa no aplicativo. Esta política de privacidade será formalmente revisada e atualizada antes de qualquer eventual integração futura de publicidade, UMP ou catálogo remoto.</span>
-            <span data-lang="en">In this current release, no advertising networks (Google AdMob) and no consent management platforms (Google UMP) are integrated or active. This privacy policy will be formally reviewed and updated prior to any future integration of advertising, UMP, or remote catalogs.</span>
-          </p>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Site Footer -->
+  <!-- Competitive Footer -->
   <footer class="site-footer" role="contentinfo">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <img src="assets/brand/wordmark-mono-light.svg" alt="lagcheck" class="brand-wordmark" width="118" height="24">
-        <p class="footer-legal">
-          <span data-lang="pt">LagCheck para iPhone (iOS 17+). Diagnóstico determinístico de conexão para jogos.</span>
-          <span data-lang="en">LagCheck for iPhone (iOS 17+). Deterministic gaming connection diagnostics.</span>
-        </p>
+    <div class="container-wide">
+      <div class="footer-top-grid">
+        <div class="footer-brand-col">
+          <a href="index.html" aria-label="LagCheck Home">
+            <img src="assets/brand/wordmark-primary.svg" alt="lagcheck" width="132" height="26">
+          </a>
+          <p>
+            <span data-lang="pt">O teste determinístico de prontidão de rede para competidores no iPhone. Desenvolvido para iOS 17+.</span>
+            <span data-lang="en">The deterministic route quality check for competitive players on iPhone. Engineered for iOS 17+.</span>
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">
+            <span data-lang="pt">Navegação</span>
+            <span data-lang="en">Navigation</span>
+          </div>
+          <ul class="footer-links-list">
+            <li><a href="#simulator"><span data-lang="pt">Simulador</span><span data-lang="en">Simulator</span></a></li>
+            <li><a href="#features"><span data-lang="pt">Recursos</span><span data-lang="en">Features</span></a></li>
+            <li><a href="#comparison"><span data-lang="pt">Comparativo</span><span data-lang="en">Comparison</span></a></li>
+            <li><a href="#games"><span data-lang="pt">Jogos</span><span data-lang="en">Games</span></a></li>
+            <li><a href="#faq"><span data-lang="pt">Perguntas Frequentes</span><span data-lang="en">FAQ</span></a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col-title">
+            <span data-lang="pt">Transparência &amp; Suporte</span>
+            <span data-lang="en">Transparency &amp; Support</span>
+          </div>
+          <ul class="footer-links-list">
+            <li><a href="support.html"><span data-lang="pt">Central de Suporte</span><span data-lang="en">Support Center</span></a></li>
+            <li><a href="privacy.html"><span data-lang="pt">Política de Privacidade</span><span data-lang="en">Privacy Policy</span></a></li>
+            <li><a href="mailto:suporte@lagcheck.app">suporte@lagcheck.app</a></li>
+          </ul>
+        </div>
       </div>
 
-      <ul class="footer-links">
-        <li><a href="index.html"><span data-lang="pt">Início</span><span data-lang="en">Home</span></a></li>
-        <li><a href="support.html"><span data-lang="pt">Suporte</span><span data-lang="en">Support</span></a></li>
-        <li><a href="privacy.html"><span data-lang="pt">Privacidade</span><span data-lang="en">Privacy</span></a></li>
-      </ul>
+      <div class="footer-bottom-bar">
+        <div class="footer-disclaimer">
+          <span data-lang="pt">LagCheck é um produto independente da Buildea. Todos os nomes de jogos, logos e marcas registradas citados (como Valorant, CS2, League of Legends, Fortnite, EA Sports FC, Warzone, Apex Legends e Roblox) pertencem aos seus respectivos desenvolvedores e publishers. O app comunica resultados de PC ou console como estimativas da sua rota de internet e não promete o ping real de servidores de jogos específicos.</span>
+          <span data-lang="en">LagCheck is an independent product by Buildea. All game titles, logos, and trademarks referenced (including Valorant, CS2, League of Legends, Fortnite, EA Sports FC, Warzone, Apex Legends, and Roblox) belong to their respective developers and publishers. The app communicates console or PC evaluations as internet route estimates and does not promise exact in-game ping for specific game servers.</span>
+        </div>
+        <div>
+          <span>&copy; 2026 LagCheck • Buildea.</span>
+        </div>
+      </div>
     </div>
   </footer>
 
