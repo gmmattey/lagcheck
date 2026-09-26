@@ -141,7 +141,7 @@ privacyRequirements.forEach((req) => {
 // Verificações específicas do Suporte
 const supportContent = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
 const supportRequirements = [
-  { text: 'suporte@lagcheck.app', desc: 'Contato de suporte visível' },
+  { text: 'suporte@signallq.com', desc: 'Contato de suporte visível' },
   { text: 'provisório', desc: 'Contato provisório explicitamente identificado' },
   { testFn: (c) => c.includes('Metodologia do Lagcheck') || c.includes('Metodologia do LagCheck'), desc: 'Explicação da metodologia do Lagcheck' },
   { text: 'consentimento', desc: 'Consentimento de dados em rede móvel' },

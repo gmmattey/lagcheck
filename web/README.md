@@ -102,6 +102,6 @@ O script testará:
 
 ## Suposições e Decisões Tomadas
 
-1. **Contato de Suporte:** Como não há endereço de e-mail institucional oficial registrado nos documentos do repositório, foi utilizado `suporte@lagcheck.app` e `privacidade@lagcheck.app`, **claramente identificados visualmente com alertas destacados como "Canal provisório a ser configurado oficialmente antes do lançamento público na App Store"**.
+1. **Contato de Suporte:** O canal de suporte oficial definido é `suporte@signallq.com`, com alertas de canal de atendimento direto para conformidade com a App Store.
 2. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
 3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Lagcheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.
