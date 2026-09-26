@@ -520,13 +520,13 @@ public struct NetworkCockpitView: View {
         let rttInt = Int(round(rtt))
         let is5G = telemetry.isWiFi && telemetry.wifiBand.contains("5")
         if rtt <= 4.0 && is5G {
-            return "Wi-Fi 5 GHz e gateway veloz (\(rttInt) ms): fluxo sem engasgos"
+            return "Wi-Fi 5 GHz e gateway veloz (\(rttInt) ms) para streaming contínuo sem engasgos."
         } else if !is5G && telemetry.isWiFi {
-            return "Wi-Fi 2.4 GHz detectado: suscetível a oscilação de vídeo e congelamentos"
+            return "Mude para o Wi-Fi 5 GHz para evitar pixelização e travadas no streaming."
         } else if rtt > 10.0 {
-            return "Alta latência de gateway (\(rttInt) ms): causa atraso perceptível nos comandos"
+            return "Latência local elevada (\(rttInt) ms): aproxime-se do roteador para reduzir o atraso nos comandos."
         } else {
-            return "Latência aceitável (\(rttInt) ms): recomendável proximidade do roteador"
+            return "Latência aceitável (\(rttInt) ms): mantenha proximidade do roteador."
         }
     }
 
@@ -536,11 +536,11 @@ public struct NetworkCockpitView: View {
         }
         let rttInt = Int(round(rtt))
         if rtt <= 8.0 {
-            return "Latência baixa (\(rttInt) ms): voz clara e instantânea sem cortes"
+            return "Latência baixa (\(rttInt) ms): áudio claro e sem cortes no chat de voz."
         } else if rtt > 20.0 {
-            return "Alta latência no roteador (\(rttInt) ms): voz robótica ou atraso perceptível"
+            return "Alta latência no roteador (\(rttInt) ms): conecte via cabo para evitar voz robótica ou atraso."
         } else {
-            return "Latência moderada (\(rttInt) ms): chamadas estáveis com pequeno retardo"
+            return "Latência moderada (\(rttInt) ms): chamadas estáveis com pequeno retardo."
         }
     }
 
@@ -553,15 +553,15 @@ public struct NetworkCockpitView: View {
         }
         let rttInt = Int(round(rtt))
         if isStrict {
-            return "NAT Tipo 3 (Estrito): bloqueia conexão direta e lobbies com amigos"
+            return "NAT Tipo 3: habilite UPnP no roteador para liberar matchmaking e salas com amigos."
         } else if hasDoubleNAT {
-            return "Duplo NAT detectado: roteadores em cascata aumentam atraso"
+            return "Duplo NAT detectado: coloque o modem da operadora em modo bridge."
         } else if rtt > 15.0 {
-            return "Alta latência local (\(rttInt) ms): prejudica registro imediato de tiros"
+            return "Latência local elevada (\(rttInt) ms): use cabo ou Wi-Fi 5 GHz para garantir registro imediato de tiros."
         } else if rtt <= 5.0 {
-            return "NAT favorável e rota veloz (\(rttInt) ms): pronto para ranqueada"
+            return "NAT favorável e rota veloz (\(rttInt) ms): sinal verde para ranqueada."
         } else {
-            return "Conexão estável (\(rttInt) ms): sem restrições severas de rede"
+            return "Conexão estável (\(rttInt) ms): sem restrições severas de rede."
         }
     }
 
@@ -572,13 +572,13 @@ public struct NetworkCockpitView: View {
         let rttInt = Int(round(rtt))
         let is5G = telemetry.isWiFi && telemetry.wifiBand.contains("5")
         if rtt <= 6.0 && is5G {
-            return "Wi-Fi 5 GHz e estabilidade alta: upload contínuo sem queda de frames"
+            return "Wi-Fi 5 GHz e estabilidade alta: upload contínuo sem perda de quadros."
         } else if !is5G && telemetry.isWiFi {
-            return "Wi-Fi 2.4 GHz: interferência de canal pode derrubar o bitrate da live"
+            return "Wi-Fi 2.4 GHz: use cabo Ethernet para evitar quedas no bitrate da live."
         } else if rtt > 15.0 {
-            return "Instabilidade no gateway (\(rttInt) ms): risco de buffering na transmissão"
+            return "Instabilidade no gateway (\(rttInt) ms): risco de buffering na transmissão."
         } else {
-            return "Estabilidade regular (\(rttInt) ms): evite downloads concorrentes"
+            return "Estabilidade regular (\(rttInt) ms): pause downloads pesados durante a transmissão."
         }
     }
 

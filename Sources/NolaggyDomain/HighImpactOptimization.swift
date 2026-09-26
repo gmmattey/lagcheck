@@ -40,7 +40,7 @@ public enum HighImpactOptimizationEvaluator {
                 title: "Conectar via Cabo Ethernet (Cat6)",
                 impactBadge: "Maior Impacto",
                 systemImage: "cable.connector",
-                instruction: "O Wi-Fi é a causa número 1 de oscilação em \(targetPlatform.displayName). Ligar o cabo de rede direto no roteador elimina o jitter e quedas locais.",
+                instruction: "Ligue o cabo de rede direto no roteador para eliminar o jitter e oscilações locais em \(targetPlatform.displayName).",
                 isCritical: true
             )
         }
@@ -50,7 +50,7 @@ public enum HighImpactOptimizationEvaluator {
                 title: "Migrar para Wi-Fi 5 GHz",
                 impactBadge: "Maior Impacto",
                 systemImage: "wifi.exclamationmark",
-                instruction: "Frequência 2.4 GHz ou sinal instável detectado. Conecte à rede 5 GHz do roteador ou aproxime-se para estabilizar o jitter de entrada.",
+                instruction: "Conecte-se na frequência 5 GHz do roteador ou aproxime-se para estabilizar o sinal de entrada.",
                 isCritical: true
             )
         }
@@ -61,7 +61,7 @@ public enum HighImpactOptimizationEvaluator {
                 title: "Ativar SQM / Pausar Downloads",
                 impactBadge: "Bufferbloat Detectado",
                 systemImage: "arrow.triangle.2.circlepath",
-                instruction: "A rota satura quando há downloads concorrentes. Ative QoS SQM (CAKE ou FQ-CoDel) no roteador ou pause torrents e streams na sua rede durante a partida.",
+                instruction: "Ative QoS SQM (CAKE ou FQ-CoDel) no roteador ou pause downloads pesados na sua rede durante a partida.",
                 isCritical: true
             )
         }
@@ -69,10 +69,10 @@ public enum HighImpactOptimizationEvaluator {
         // 3. Perda de Pacotes na Rota WAN
         if evaluation.findings.contains(where: { $0.kind == .packetLoss }) {
             return HighImpactOptimization(
-                title: "Verificar Fibra com a Operadora",
+                title: "Verificar Rota com a Operadora",
                 impactBadge: "Perda na Rota",
                 systemImage: "phone.badge.waveform.fill",
-                instruction: "Perda de pacotes detectada no trajeto externo da operadora. Solicite ao suporte técnico uma medição de potência óptica e atenuação da sua linha.",
+                instruction: "Exporte o relatório em PDF e solicite à sua operadora uma verificação de atenuação e estabilidade da linha.",
                 isCritical: true
             )
         }
@@ -80,10 +80,10 @@ public enum HighImpactOptimizationEvaluator {
         // 4. NAT Restrito / CGNAT
         if evaluation.findings.contains(where: { $0.kind == .natTopology }) {
             return HighImpactOptimization(
-                title: "Liberar Portas UPnP / IP Público",
+                title: "Habilitar UPnP / IP Público",
                 impactBadge: "NAT Restrito",
                 systemImage: "lock.shield",
-                instruction: "Sua conexão está sob CGNAT ou NAT Tipo 3. Ative UPnP no modem ou solicite à operadora um IP público dinâmico para matchmaking sem bloqueios.",
+                instruction: "Ative UPnP no roteador ou solicite à operadora um IP público dinâmico para matchmaking sem bloqueios.",
                 isCritical: false
             )
         }
@@ -94,7 +94,7 @@ public enum HighImpactOptimizationEvaluator {
                 title: "Fechar Aplicações Concorrentes",
                 impactBadge: "Oscilação",
                 systemImage: "exclamationmark.triangle.fill",
-                instruction: "Picos esporádicos foram observados. Feche atualizações em segundo plano do Windows/PlayStation/Xbox e backups automáticos de nuvem.",
+                instruction: "Feche atualizações em segundo plano e sincronizações de nuvem que possam disputar a conexão.",
                 isCritical: false
             )
         }
@@ -102,8 +102,8 @@ public enum HighImpactOptimizationEvaluator {
         // 6. Conexão Saudável (Ready)
         if evaluation.verdict == .ready {
             let desc = isConsoleOrPC
-                ? "Conexão de elite com latência mínima. Se ainda não estiver em cabo Ethernet, conectar garante imunidade contra oscilações de vizinhos."
-                : "Rota de baixíssima latência e jitter controlado. Mantenha os downloads pausados na rede local para assegurar a melhor precisão em partida."
+                ? "Conexão sólida com latência mínima. Usar cabo Ethernet garante estabilidade máxima contra oscilações externas."
+                : "Rota de baixa latência e jitter controlado. Mantenha os downloads pausados na rede para assegurar precisão em partida."
             return HighImpactOptimization(
                 title: "Setup de Alta Performance",
                 impactBadge: "Recomendação Pró",
@@ -118,7 +118,7 @@ public enum HighImpactOptimizationEvaluator {
             title: "Reiniciar Equipamento de Borda",
             impactBadge: "Recomendado",
             systemImage: "power",
-            instruction: "Reiniciar modem e roteador limpa buffers de memória e restabelece uma rota limpa com o concentrador da sua operadora.",
+            instruction: "Reinicie o modem e o roteador para limpar tabelas de estado e restabelecer uma rota limpa com a operadora.",
             isCritical: false
         )
     }

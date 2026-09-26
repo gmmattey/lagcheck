@@ -232,7 +232,7 @@ struct DeepCheckResultView: View {
     private func insightColor(for cause: ResultPrimaryCauseKey) -> Color {
         switch cause {
         case .stableConnection: return NLColor.scoreExcellent
-        case .highLatency, .highJitter, .loadDegradation, .tailLatency: return NLColor.scoreUnstable
+        case .highLatency, .highJitter, .loadDegradation, .tailLatency, .outOfOrder: return NLColor.scoreUnstable
         case .packetLoss, .severeSpikes, .loadInstability: return NLColor.coralSolarRed
         }
     }
@@ -240,7 +240,7 @@ struct DeepCheckResultView: View {
     private func insightTone(for cause: ResultPrimaryCauseKey) -> InsightBanner.Tone {
         switch cause {
         case .stableConnection: return .positive
-        case .highLatency, .highJitter, .loadDegradation, .tailLatency: return .tip
+        case .highLatency, .highJitter, .loadDegradation, .tailLatency, .outOfOrder: return .tip
         case .packetLoss, .severeSpikes, .loadInstability: return .risk
         }
     }
@@ -248,7 +248,7 @@ struct DeepCheckResultView: View {
     private func insightIcon(for cause: ResultPrimaryCauseKey) -> Image {
         switch cause {
         case .stableConnection: return Image(systemName: "checkmark.shield.fill")
-        case .highLatency, .highJitter, .loadDegradation, .tailLatency: return Image(systemName: "info.circle.fill")
+        case .highLatency, .highJitter, .loadDegradation, .tailLatency, .outOfOrder: return Image(systemName: "info.circle.fill")
         case .packetLoss, .severeSpikes, .loadInstability: return Image(systemName: "exclamationmark.triangle.fill")
         }
     }

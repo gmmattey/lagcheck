@@ -222,21 +222,21 @@ extension QuickCheckFeatureView {
     func insightTone(for cause: ResultPrimaryCauseKey) -> InsightBanner.Tone {
         switch cause {
         case .stableConnection: .positive
-        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency: .risk
+        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency, .outOfOrder: .risk
         }
     }
 
     func insightIcon(for cause: ResultPrimaryCauseKey) -> Image {
         switch cause {
         case .stableConnection: Image(systemName: "checkmark.circle")
-        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency: Image(systemName: "exclamationmark.triangle")
+        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency, .outOfOrder: Image(systemName: "exclamationmark.triangle")
         }
     }
 
     func insightColor(for cause: ResultPrimaryCauseKey) -> Color {
         switch cause {
         case .stableConnection: NLColor.scoreExcellent
-        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency: NLColor.scoreLagRisk
+        case .packetLoss, .highLatency, .severeSpikes, .highJitter, .loadDegradation, .loadInstability, .tailLatency, .outOfOrder: NLColor.scoreLagRisk
         }
     }
 }

@@ -70,7 +70,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 1,
                 title: "Aproxime-se do Roteador",
-                instruction: "O sinal local até o roteador Wi-Fi oscilou. Reduza a distância ou obstáculos físicos.",
+                instruction: "Reduza a distância física ou obstáculos para eliminar a oscilação do sinal local.",
                 evidenceBadge: "Wi-Fi Local"
             ))
         }
@@ -81,7 +81,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 1,
                 title: "Troque para Wi-Fi 5 GHz",
-                instruction: "Redes 2.4 GHz sofrem alta interferência de canais vizinhos. Conecte-se na frequência 5 GHz.",
+                instruction: "Conecte-se na frequência 5 GHz para escapar da interferência de canais vizinhos.",
                 evidenceBadge: "2.4 GHz Detectado"
             ))
         }
@@ -91,7 +91,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 1,
                 title: "Evite Partidas Ranqueadas",
-                instruction: "Instabilidade na rota da operadora causará teleporte e comandos ignorados.",
+                instruction: "A rota externa da operadora apresenta perda de pacotes e causará travamentos.",
                 evidenceBadge: "Rota Externa"
             ))
         }
@@ -101,7 +101,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 2,
                 title: "Pause Downloads e Streaming",
-                instruction: "A sua conexão sofreu perda de fluidez sob tráfego simultâneo na rede local.",
+                instruction: "Limite o uso simultâneo da internet para impedir picos de latência na partida.",
                 evidenceBadge: "Saturação sob Carga"
             ))
         }
@@ -111,7 +111,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 2,
                 title: "Verifique Interferências Locais",
-                instruction: "Picos repetitivos podem ser gerados por dispositivos Bluetooth ou micro-ondas próximos.",
+                instruction: "Afaste dispositivos sem fio e fontes de interferência eletromagnética do roteador.",
                 evidenceBadge: "Picos Recorrentes"
             ))
         }
@@ -121,7 +121,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 2,
                 title: "Habilite UPnP no Roteador",
-                instruction: "O seu tipo de NAT está restrito, impedindo o pareamento com outros jogadores.",
+                instruction: "Libere as portas automáticas no roteador para normalizar a conexão em partidas multiplayer.",
                 evidenceBadge: "NAT Restrito"
             ))
         }
@@ -131,7 +131,7 @@ public enum EvidenceRecommendationEngine {
             recommendations.append(ActionableRecommendation(
                 priority: 2,
                 title: "Instabilidade de Rota na Operadora",
-                instruction: "Pacotes foram entregues fora de ordem pelo seu provedor (roteamento multipath instável), o que pode causar micro-travamentos.",
+                instruction: "Contate seu provedor para verificar o roteamento caso os micro-travamentos persistam.",
                 evidenceBadge: "Rota Desordenada"
             ))
         }
