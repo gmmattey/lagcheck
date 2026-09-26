@@ -74,6 +74,7 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `51` | Direção Visual Dark Competitive UI e Iniciativa Unificada (“Lagcheck Competitive Redesign + Ready Check”: fundo quase preto, jogo protagonista, painéis de borda fina, telemetria viva compacta e Coral Solar de ação) | decidido e em implementação |
 | `52` | Decisão de marca: Dual-Node Vector e Wordmark Kinetic Speed Slant (substitui Pulse Gauge, alinhamento com NoPing benchmark e Dark Competitive UI) | decidido e em implementação |
 | `53` | Decisão de tipografia: Arquitetura Híbrida de Performance (NoPing benchmark: display pesado, cockpit monoespaçado e eliminação de rounded) | decidido e implementado |
+| `54` | Pílula de telemetria local ao vivo na Home (`LiveNetworkSignalCapsule`), correção do botão duplo de voltar no Histórico e resolução de jogos não listados | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

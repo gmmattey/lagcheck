@@ -63,6 +63,7 @@ struct HistoryView: View {
         .background(NolaggyScreenBackground())
         .navigationTitle(Text("history.title"))
         .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
+        .navigationBarBackButtonHidden(showsBackHeader)
         .toolbar {
             if showsBackHeader {
                 ToolbarItem(placement: .topBarLeading) {

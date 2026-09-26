@@ -50,6 +50,7 @@ struct QuickCheckFeatureView: View {
     /// plataforma e o vínculo externo declarados, mas nunca reutiliza a rota
     /// histórica: a região é resolvida novamente pelo catálogo atual.
     @State var requestedMeasurementContext: GameContext?
+    @State var liveNetworkSignal: LiveNetworkSignal = LiveNetworkSignal()
     @State private var hasTrackedAppOpen = false
 
     let historyRepository: any MeasurementHistoryRepository
