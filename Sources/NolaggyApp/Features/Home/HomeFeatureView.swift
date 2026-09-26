@@ -43,6 +43,7 @@ extension QuickCheckFeatureView {
                         latestEntry: lastHistoryEntryForEffectiveGame ?? latestHistoryEntry,
                         isMeasuring: presentation == .measuring,
                         onStartCheck: startLagCheckFromCTA,
+                        onTestGeneralConnection: startGeneralGamingCheckFromCTA,
                         onOpenHistory: { showingHistory = true }
                     )
                     .padding(.horizontal, NLSpacing.md)
@@ -53,6 +54,9 @@ extension QuickCheckFeatureView {
                         selectedGameID: targetGameForCTA?.id,
                         onSelectGame: { game in
                             selectedGameID = game.id
+                        },
+                        onSelectGenericGaming: {
+                            selectedGameID = GameContext.genericGamingID
                         },
                         onSeeAllGames: openGamesFromHome
                     )
@@ -219,6 +223,18 @@ extension QuickCheckFeatureView {
         } else {
             openGamesFromHome()
         }
+    }
+
+    /// Inicia diretamente a verificação da rota regional de referência sem amarrar a um jogo específico (Decisões 49 e 54).
+    func startGeneralGamingCheckFromCTA() {
+        let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+        let genericGame = CatalogMeasurementJourney.genericGamingGame(
+            market: market,
+            platform: .iphone,
+            declaredExternalLink: nil,
+            localizedName: localizedString("generic_gaming.name")
+        )
+        selectGame(genericGame)
     }
 
     /// Abre o catálogo como continuação da Home. A aba mantém sua identidade

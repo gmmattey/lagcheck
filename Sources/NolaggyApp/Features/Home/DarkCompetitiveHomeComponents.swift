@@ -16,6 +16,7 @@ public struct DarkCompetitiveHeroCard: View {
     let latestEntry: MeasurementHistoryEntry?
     let isMeasuring: Bool
     let onStartCheck: () -> Void
+    let onTestGeneralConnection: (() -> Void)?
     let onOpenHistory: () -> Void
 
     public init(
@@ -25,6 +26,7 @@ public struct DarkCompetitiveHeroCard: View {
         latestEntry: MeasurementHistoryEntry?,
         isMeasuring: Bool,
         onStartCheck: @escaping () -> Void,
+        onTestGeneralConnection: (() -> Void)? = nil,
         onOpenHistory: @escaping () -> Void
     ) {
         self.game = game
@@ -33,6 +35,7 @@ public struct DarkCompetitiveHeroCard: View {
         self.latestEntry = latestEntry
         self.isMeasuring = isMeasuring
         self.onStartCheck = onStartCheck
+        self.onTestGeneralConnection = onTestGeneralConnection
         self.onOpenHistory = onOpenHistory
     }
 
@@ -41,7 +44,20 @@ public struct DarkCompetitiveHeroCard: View {
             // Artwork do jogo protagonista
             if let game {
                 ZStack(alignment: .bottomLeading) {
-                    VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
+                    if game.id == GameContext.genericGamingID {
+                        ZStack {
+                            NLColor.panel
+                            VStack(spacing: NLSpacing.xs) {
+                                Image(systemName: "network")
+                                    .font(.system(size: 40, weight: .semibold))
+                                    .foregroundStyle(NLColor.coralSolar)
+                                Text(LocalizedStringKey("generic_gaming.route_reference"))
+                                    .font(NLTypography.caption)
+                                    .foregroundStyle(NLColor.textSecondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, NLSpacing.md)
+                            }
+                        }
                         .frame(maxWidth: .infinity)
                         .frame(height: 180)
                         .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
@@ -49,6 +65,16 @@ public struct DarkCompetitiveHeroCard: View {
                             RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
                                 .stroke(NLColor.borderHairline, lineWidth: 1)
                         )
+                    } else {
+                        VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                                    .stroke(NLColor.borderHairline, lineWidth: 1)
+                            )
+                    }
 
                     // Gradiente escuro na base para legibilidade
                     LinearGradient(
@@ -95,16 +121,13 @@ public struct DarkCompetitiveHeroCard: View {
                 )
             }
 
-            // Botão Dominante de Ação Coral Solar [ FAZER CHECK ]
+            // Botão Dominante de Ação Coral Solar [ FAZER CHECK ] (Sem ⚡)
             Button(action: onStartCheck) {
                 HStack(spacing: NLSpacing.xs) {
                     if isMeasuring {
                         ProgressView()
                             .progressViewStyle(.circular)
                             .tint(.white)
-                    } else {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 15, weight: .bold))
                     }
                     Text(LocalizedStringKey("home.cta.start_check"))
                         .font(NLTypography.ctaButton)
@@ -120,6 +143,29 @@ public struct DarkCompetitiveHeroCard: View {
             .buttonStyle(.plain)
             .disabled(isMeasuring)
             .accessibilityIdentifier("home-decision-primary-action")
+
+            // Ação Direta para Verificar Conexão Geral (Sem Selecionar Jogo)
+            if let onTestGeneralConnection, game?.id != GameContext.genericGamingID {
+                Button(action: onTestGeneralConnection) {
+                    HStack(spacing: NLSpacing.xs) {
+                        Image(systemName: "network")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(LocalizedStringKey("home.cta.test_general_connection"))
+                            .font(NLTypography.ctaButton)
+                            .tracking(NLTypography.ctaTracking)
+                    }
+                    .foregroundStyle(NLColor.coralSolar)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
+                            .stroke(NLColor.borderHairline, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(isMeasuring)
+                .accessibilityIdentifier("home-decision-generic-gaming-action")
+            }
 
             // Linha única discreta com dot de status do último check
             Button(action: onOpenHistory) {
@@ -221,17 +267,20 @@ public struct DarkCompetitiveQuickRail: View {
     let games: [CatalogMeasurementJourney.Game]
     let selectedGameID: String?
     let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
+    let onSelectGenericGaming: (() -> Void)?
     let onSeeAllGames: () -> Void
 
     public init(
         games: [CatalogMeasurementJourney.Game],
         selectedGameID: String?,
         onSelectGame: @escaping (CatalogMeasurementJourney.Game) -> Void,
+        onSelectGenericGaming: (() -> Void)? = nil,
         onSeeAllGames: @escaping () -> Void
     ) {
         self.games = games
         self.selectedGameID = selectedGameID
         self.onSelectGame = onSelectGame
+        self.onSelectGenericGaming = onSelectGenericGaming
         self.onSeeAllGames = onSeeAllGames
     }
 
@@ -261,6 +310,38 @@ public struct DarkCompetitiveQuickRail: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: NLSpacing.sm) {
+                    // Card fixo para Conexão Geral (Sem Selecionar Jogo)
+                    if let onSelectGenericGaming {
+                        let isGenericSelected = (selectedGameID == GameContext.genericGamingID)
+                        Button(action: onSelectGenericGaming) {
+                            VStack(spacing: NLSpacing.xxs) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                                        .fill(isGenericSelected ? NLColor.coralSolar.opacity(0.15) : NLColor.panel)
+                                        .frame(width: 72, height: 72)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
+                                                .stroke(
+                                                    isGenericSelected ? NLColor.coralSolar : NLColor.borderHairline,
+                                                    lineWidth: isGenericSelected ? 2 : 1
+                                                )
+                                        )
+                                    Image(systemName: "network")
+                                        .font(.system(size: 26, weight: .bold))
+                                        .foregroundStyle(isGenericSelected ? NLColor.coralSolar : NLColor.textSecondary)
+                                }
+
+                                Text(LocalizedStringKey("generic_gaming.short_name"))
+                                    .font(NLTypography.captionStrong)
+                                    .foregroundStyle(isGenericSelected ? NLColor.textPrimary : NLColor.textSecondary)
+                                    .lineLimit(1)
+                                    .frame(width: 72)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("home-quick-rail-generic-gaming")
+                    }
+
                     ForEach(games) { game in
                         let isSelected = (game.id == selectedGameID)
                         Button {
