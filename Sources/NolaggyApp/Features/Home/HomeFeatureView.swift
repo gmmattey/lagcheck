@@ -12,51 +12,55 @@ extension QuickCheckFeatureView {
     var discoveryView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                // Topo minimalista: wordmark lagcheck à esquerda e menu … à direita
+                NolaggyAppHeader(openSettings: { showingSettings = true })
+                    .padding(.horizontal, NLSpacing.md)
+                    .padding(.top, NLSpacing.xs)
+
                 if remoteCatalog == nil {
                     catalogUnavailable
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, NLSpacing.lg)
                 } else {
-                    HomeDecisionCard(
-                        game: gameForLatestHistoryEntry,
-                        platform: latestHistoryEntry?.resolvedContext.context.platform,
-                        latestEntry: latestHistoryEntry,
+                    // Headline imersiva
+                    Text(LocalizedStringKey("home.hero.ready_for_ranked"))
+                        .font(NLTypography.competitiveHero)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .tracking(NLTypography.heroTracking)
+                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.top, NLSpacing.xxs)
+
+                    // Hero Card Amplo do Jogo Protagonista
+                    DarkCompetitiveHeroCard(
+                        game: targetGameForCTA,
+                        platform: effectivePlatform,
+                        regionFriendlyName: selectedRegionFriendlyName,
+                        latestEntry: lastHistoryEntryForEffectiveGame ?? latestHistoryEntry,
                         isMeasuring: presentation == .measuring,
                         onStartCheck: startLagCheckFromCTA,
-                        onChooseGame: openGamesFromHome,
-                        onSelectGenericGaming: { selectGenericGaming() },
-                        onOpenHistory: { selectedTab = .history }
+                        onOpenHistory: { showingHistory = true }
                     )
                     .padding(.horizontal, NLSpacing.md)
-                    .padding(.top, NLSpacing.xs)
 
-                    HomeGamesListSection(
-                        games: Array(homeGames.prefix(5)),
-                        onSelectGame: { selectGame($0) },
+                    // Trilho Rápido SEUS JOGOS
+                    DarkCompetitiveQuickRail(
+                        games: Array(homeGames.prefix(6)),
+                        selectedGameID: targetGameForCTA?.id,
+                        onSelectGame: { game in
+                            selectedGameID = game.id
+                        },
                         onSeeAllGames: openGamesFromHome
                     )
                     .padding(.horizontal, NLSpacing.md)
+                    .padding(.top, NLSpacing.xs)
                     .padding(.bottom, NLSpacing.xl)
                 }
             }
         }
         .scrollContentBackground(.hidden)
-        // Mantém a última linha acima da tab bar em telas compactas e com
-        // Dynamic Type; o conteúdo não pode terminar sob um controle do sistema.
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
-        .navigationTitle(localizedString("navigation.home"))
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HomeRefreshButton(
-                    refreshAccessibilityLabel: localizedString("home.last_tested"),
-                    isMeasuring: presentation == .measuring,
-                    refresh: {
-                        startLagCheckFromCTA()
-                    }
-                )
-            }
-        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     var catalogUnavailable: some View {

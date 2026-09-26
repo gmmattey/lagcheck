@@ -58,7 +58,7 @@ public struct MeasurementPulse: View {
                 VStack(spacing: NLSpacing.xxs) {
                     if let currentRTT {
                         Text(currentRTT)
-                            .font(.system(size: currentRTTFontSize, weight: .bold, design: .rounded))
+                            .font(.system(size: currentRTTFontSize, weight: .heavy, design: .default).monospacedDigit())
                             .foregroundStyle(NLColor.textPrimary)
                             .contentTransition(.numericText(countsDown: false))
                             .animation(.smooth(duration: 0.25), value: currentRTT)

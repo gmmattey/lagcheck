@@ -260,13 +260,10 @@ private struct HistoryGameRow: View {
     }
 
     private var resultText: String {
-        entry.isInconclusive
-            ? AppLocalization.string("history.inconclusive", comment: "")
-            : String(
-                format: AppLocalization.string("history.score %@ %@", comment: ""),
-                String(entry.result.finalScore),
-                AppLocalization.string(classificationKey, comment: "")
-            )
+        if entry.isInconclusive {
+            return AppLocalization.string("history.inconclusive", comment: "")
+        }
+        return entry.readinessVerdict.defaultHeadline
     }
 
     private var contextText: String {
@@ -274,20 +271,11 @@ private struct HistoryGameRow: View {
     }
 
     private var scoreColor: Color {
-        switch entry.result.resultClass {
-        case .excellent: NLColor.scoreExcellent
-        case .great: NLColor.accentPrimary
-        case .unstable: NLColor.scoreUnstable
-        case .lagRisk: NLColor.scoreLagRisk
-        }
-    }
-
-    private var classificationKey: String {
-        switch entry.result.resultClass {
-        case .excellent: "quick_check.result.headline.excellent"
-        case .great: "quick_check.result.headline.great"
-        case .unstable: "quick_check.result.headline.unstable"
-        case .lagRisk: "quick_check.result.headline.lag_risk"
+        switch entry.readinessVerdict {
+        case .ready: NLColor.readyGreen
+        case .caution: NLColor.cautionYellow
+        case .notReady: NLColor.notReadyRed
+        case .inconclusive: NLColor.textSecondary
         }
     }
 }
@@ -298,16 +286,13 @@ private struct HistoryTimelineRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: NLSpacing.sm) {
             Circle()
-                .fill(entry.isInconclusive ? NLColor.textTertiary : NLColor.accentPrimary)
+                .fill(timelineDotColor)
                 .frame(width: 7, height: 7)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: NLSpacing.xs) {
                 Text(entry.isInconclusive
                     ? AppLocalization.string("history.inconclusive", comment: "")
-                    : String(
-                        format: AppLocalization.string("history.score %@", comment: ""),
-                        String(entry.result.finalScore)
-                    ))
+                    : "\(entry.readinessVerdict.defaultHeadline) · \(entry.result.finalScore)")
                     .font(NLTypography.bodyEmphasis)
                     .foregroundStyle(NLColor.textPrimary)
                 Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
@@ -329,6 +314,15 @@ private struct HistoryTimelineRow: View {
                 String(entry.result.finalScore),
                 entry.completedAt.formatted(date: .abbreviated, time: .shortened)
             ))
+    }
+
+    private var timelineDotColor: Color {
+        switch entry.readinessVerdict {
+        case .ready: NLColor.readyGreen
+        case .caution: NLColor.cautionYellow
+        case .notReady: NLColor.notReadyRed
+        case .inconclusive: NLColor.textTertiary
+        }
     }
 }
 
@@ -432,6 +426,15 @@ private extension MeasurementHistoryEntry {
     /// de evidência. Snapshots antigos preservam um `QualityResult`, então a
     /// apresentação precisa reconhecer esse estado pelo fato medido.
     var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
+
+    var readinessVerdict: GameReadinessVerdict {
+        if isInconclusive { return .inconclusive }
+        return GameReadinessEvaluator.evaluate(
+            qualityResult: result,
+            loadImpact: deepCheck?.metrics.loadImpact,
+            profile: resolvedContext.profileID
+        ).verdict
+    }
 
     var historyPhoneNetwork: HistoryPhoneNetwork {
         guard resolvedContext.hasCompleteConnectionFacts else { return .unrecorded }

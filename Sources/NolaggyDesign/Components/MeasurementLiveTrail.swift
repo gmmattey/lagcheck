@@ -24,6 +24,7 @@ public enum MeasurementStressLocation: String, Sendable {
 public struct MeasurementLiveTrail: View {
     private let isWiFi: Bool
     private let destinationName: String
+    private let currentRTT: Double?
     private let isPhaseRest: Bool
     private let isDestinationResponding: Bool
     private let sampleCount: Int
@@ -49,6 +50,7 @@ public struct MeasurementLiveTrail: View {
     ) {
         self.isWiFi = isWiFi
         self.destinationName = destinationName
+        self.currentRTT = currentRTT
         self.isPhaseRest = isPhaseRest ?? (!isUnderStress)
         self.isDestinationResponding = (sampleCount > 0) || (currentRTT != nil)
         self.sampleCount = sampleCount
@@ -116,63 +118,83 @@ public struct MeasurementLiveTrail: View {
     }
 
     // MARK: - Hero Pulse Gauge Coral Solar
+    @ViewBuilder
     private var pulseGaugeHero: some View {
-        ZStack {
-            // Ondas concêntricas animadas
-            if !reduceMotion {
-                ForEach(0..<3, id: \.self) { index in
+        VStack(spacing: 8) {
+            ZStack {
+                // Ondas concêntricas animadas
+                if !reduceMotion {
+                    ForEach(0..<3, id: \.self) { index in
+                        Circle()
+                            .stroke(NLColor.accentPrimary.opacity(waveAnimation ? 0.0 : 0.45), lineWidth: 1.5)
+                            .scaleEffect(waveAnimation ? 2.1 + CGFloat(index) * 0.25 : 1.0)
+                            .opacity(waveAnimation ? 0.0 : 0.8)
+                            .animation(
+                                .easeOut(duration: isUnderStress ? 1.5 : 2.0)
+                                    .repeatForever(autoreverses: false)
+                                    .delay(Double(index) * 0.45),
+                                value: waveAnimation
+                            )
+                    }
+                } else {
+                    // Modo Acessibilidade (sem movimento): Anéis suaves estáticos
                     Circle()
-                        .stroke(NLColor.accentPrimary.opacity(waveAnimation ? 0.0 : 0.45), lineWidth: 1.5)
-                        .scaleEffect(waveAnimation ? 2.1 + CGFloat(index) * 0.25 : 1.0)
-                        .opacity(waveAnimation ? 0.0 : 0.8)
-                        .animation(
-                            .easeOut(duration: isUnderStress ? 1.5 : 2.0)
-                                .repeatForever(autoreverses: false)
-                                .delay(Double(index) * 0.45),
-                            value: waveAnimation
+                        .stroke(NLColor.accentPrimary.opacity(0.18), lineWidth: 1.5)
+                        .scaleEffect(1.35)
+                    Circle()
+                        .stroke(NLColor.accentPrimary.opacity(0.08), lineWidth: 1.0)
+                        .scaleEffect(1.7)
+                }
+
+                // Halo sutil de iluminação Coral Solar
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                NLColor.accentPrimary.opacity(isUnderStress ? 0.32 : 0.22),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 90
                         )
-                }
-            } else {
-                // Modo Acessibilidade (sem movimento): Anéis suaves estáticos
-                Circle()
-                    .stroke(NLColor.accentPrimary.opacity(0.18), lineWidth: 1.5)
-                    .scaleEffect(1.35)
-                Circle()
-                    .stroke(NLColor.accentPrimary.opacity(0.08), lineWidth: 1.0)
-                    .scaleEffect(1.7)
-            }
-
-            // Halo sutil de iluminação Coral Solar
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            NLColor.accentPrimary.opacity(isUnderStress ? 0.32 : 0.22),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 20,
-                        endRadius: 90
                     )
-                )
-                .frame(width: 170, height: 170)
+                    .frame(width: 170, height: 170)
 
-            // Núcleo central elevado
-            Circle()
-                .fill(NLColor.backgroundRaised)
-                .frame(width: 84, height: 84)
-                .overlay {
-                    Circle()
-                        .stroke(NLColor.accentPrimary.opacity(0.5), lineWidth: 1.5)
+                // Núcleo central elevado
+                Circle()
+                    .fill(NLColor.surface)
+                    .frame(width: 88, height: 88)
+                    .overlay {
+                        Circle()
+                            .stroke(NLColor.hairline, lineWidth: 1)
+                    }
+                    .shadow(color: NLColor.accentPrimary.opacity(0.25), radius: 14, x: 0, y: 0)
+
+                // RTT ao vivo monoespaçado ou ícone de rádio
+                if let currentRTT {
+                    VStack(spacing: 0) {
+                        Text("\(Int(currentRTT.rounded()))")
+                            .font(.system(size: 26, weight: .black, design: .default))
+                            .monospacedDigit()
+                            .foregroundStyle(NLColor.textPrimary)
+                        Text("ms")
+                            .font(NLTypography.captionStrong)
+                            .foregroundStyle(NLColor.coralSolar)
+                    }
+                } else {
+                    Image(systemName: "dot.radiowaves.left.and.right")
+                        .font(.system(size: 32, weight: .semibold))
+                        .foregroundStyle(NLColor.accentPrimary)
                 }
-                .shadow(color: NLColor.accentPrimary.opacity(0.25), radius: 14, x: 0, y: 0)
+            }
+            .frame(width: 200, height: 200)
 
-            // Ícone do sinal / conexão no centro
-            Image(systemName: "dot.radiowaves.left.and.right")
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(NLColor.accentPrimary)
+            // Linha de pulso competitivo ao vivo ───╲_╱──╲_╱──
+            CompetitiveSignalPulseView(isUnderStress: isUnderStress)
+                .frame(width: 200, height: 24)
+                .padding(.top, 4)
         }
-        .frame(width: 200, height: 200)
     }
 
     // MARK: - Mensagem Contextual da Partida (Voz do Jogo)
@@ -327,5 +349,86 @@ public struct MeasurementLiveTrail: View {
 
     private var accessibilityDescription: String {
         "\(dynamicStatusTitle). \(isPhaseRest ? "Etapa 1 de 2" : "Etapa 2 de 2"). Rota ativa: \(isWiFi ? "Wi-Fi" : "Rede móvel") para \(destinationName)."
+    }
+}
+
+// MARK: - Linha de Pulso Competitivo (Decisões 50 e 51)
+
+/// Linha de pulso viva estilo telemetria e esportes competitivos (───╲_╱──╲_╱──).
+public struct CompetitiveSignalPulseView: View {
+    public let isUnderStress: Bool
+
+    @State private var phaseOffset: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    public init(isUnderStress: Bool = false) {
+        self.isUnderStress = isUnderStress
+    }
+
+    public var body: some View {
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
+
+            ZStack {
+                // Linha de base sutil
+                Rectangle()
+                    .fill(NLColor.hairline)
+                    .frame(height: 1)
+
+                // Pulso ativo com gradiente Coral Solar
+                CompetitiveSignalPulseShape(phaseOffset: phaseOffset)
+                    .stroke(
+                        NLColor.coralSolarHorizontalGradient,
+                        style: StrokeStyle(lineWidth: isUnderStress ? 2.5 : 1.8, lineCap: .round, lineJoin: .round)
+                    )
+                    .shadow(color: NLColor.coralSolar.opacity(isUnderStress ? 0.6 : 0.35), radius: 4, x: 0, y: 0)
+            }
+            .clipped()
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.linear(duration: isUnderStress ? 1.0 : 1.6).repeatForever(autoreverses: false)) {
+                phaseOffset = 1.0
+            }
+        }
+    }
+}
+
+public struct CompetitiveSignalPulseShape: Shape {
+    public var phaseOffset: CGFloat
+
+    public var animatableData: CGFloat {
+        get { phaseOffset }
+        set { phaseOffset = newValue }
+    }
+
+    public func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.width
+        let height = rect.height
+        let midY = height / 2.0
+
+        let cycleWidth: CGFloat = max(80.0, width / 2.0)
+        let normalizedPhase = phaseOffset.truncatingRemainder(dividingBy: 1.0)
+        let shift = normalizedPhase * cycleWidth
+
+        var currentX: CGFloat = -shift
+        path.move(to: CGPoint(x: currentX, y: midY))
+
+        while currentX < width + cycleWidth {
+            let start = currentX
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.40, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.48, y: midY + height * 0.22))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.55, y: midY - height * 0.45))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.62, y: midY + height * 0.30))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.70, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.82, y: midY - height * 0.12))
+            path.addLine(to: CGPoint(x: start + cycleWidth * 0.90, y: midY))
+            path.addLine(to: CGPoint(x: start + cycleWidth, y: midY))
+            currentX += cycleWidth
+        }
+
+        return path
     }
 }

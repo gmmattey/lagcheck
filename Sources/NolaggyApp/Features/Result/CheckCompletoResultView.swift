@@ -3,10 +3,13 @@ import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
-/// Tela de Resultado Canônica do Check Completo do LagCheck para iPhone (iOS 17+).
-/// Apresenta veredito rápido, objetivo e com personalidade, sem termos de aplicativo genérico.
-/// Composta por Contexto compacto, Hero de Veredito, Trilha Consolidada HIG,
-/// Faixa de Compatibilidade da Sessão e Barra de Ações balanceadas.
+/// Tela de Resultado Canônica HIG Dark Competitive do LagCheck para iPhone (iOS 17+).
+/// Adota a iniciativa unificada (Decisões 50 e 51):
+/// - Veredito semântico protagonista (● PRONTO PARA RANKED / ▲ EU EVITARIA RANKED AGORA)
+/// - Telemetria compacta em card de 3 colunas (PING / JITTER / PERDA)
+/// - Barra de estabilidade contínua
+/// - Checklist honesto "O que encontramos" sem acusações causais falsas
+/// - Ação primária Coral Solar e link secundário para detalhes técnicos profundos
 public struct CheckCompletoResultView: View {
     public let result: DeepCheckResult?
     public let profileID: QualityProfileID
@@ -49,35 +52,34 @@ public struct CheckCompletoResultView: View {
     }
 
     public var body: some View {
-        let verdict = CheckCompletoResultEvaluator.evaluateVerdict(result: result, profile: profileID)
-        let trailSnapshot = CheckCompletoResultEvaluator.evaluateTrail(result: result, profile: profileID)
+        let evaluation = GameReadinessEvaluator.evaluate(deepCheckResult: result, profile: profileID)
+
         ScrollView {
             VStack(spacing: NLSpacing.lg) {
-                // 1. Contexto compacto no topo
+                // 1. Contexto compacto
                 contextHeader
 
-                // 2. Hero de Resultado (Score + Veredito sem parágrafo descritivo)
-                heroSection(verdict: verdict)
+                // 2. Veredito Protagonista (Verdict-First)
+                verdictHero(evaluation: evaluation)
 
-                // 3. Trilha Consolidada HIG (5 nós verticais)
-                ConsolidatedRouteTrailView(
-                    isWiFi: isWiFi,
-                    regionName: regionFriendlyName,
-                    destinationKind: destinationKind,
-                    networkState: mapTrailNodeState(trailSnapshot.networkState),
-                    responseState: mapTrailNodeState(trailSnapshot.responseState),
-                    deliveryState: mapTrailNodeState(trailSnapshot.deliveryState),
-                    loadState: mapTrailNodeState(trailSnapshot.loadState),
-                    regionState: mapTrailNodeState(trailSnapshot.regionState)
-                )
+                // 3. Telemetria Compacta (Ping, Jitter, Perda)
+                compactTelemetryRow(evaluation: evaluation)
 
-                // 4. Ações
-                actionsSection(isValid: result != nil)
+                // 4. Barra de Estabilidade Contínua
+                stabilitySection(evaluation: evaluation)
+
+                // 5. Checklist honesto "O que encontramos"
+                if !evaluation.findings.isEmpty {
+                    findingsSection(findings: evaluation.findings)
+                }
+
+                // 6. Ações
+                actionsSection(verdict: evaluation.verdict)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.vertical, NLSpacing.lg)
+            .padding(.vertical, NLSpacing.md)
         }
-        .background(NLColor.backgroundBase.ignoresSafeArea())
+        .background(NLColor.deep.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -108,217 +110,258 @@ public struct CheckCompletoResultView: View {
         .accessibilityElement(children: .combine)
     }
 
-    // MARK: - 2. Hero de Resultado
+    // MARK: - 2. Veredito Protagonista
 
-    @ViewBuilder
-    private func heroSection(verdict: CheckCompletoVerdict) -> some View {
+    private func verdictHero(evaluation: GameReadinessEvaluation) -> some View {
         VStack(spacing: NLSpacing.xs) {
-            if let result {
-                // Score destacado apenas quando medição for válida
-                let score = result.restResult.finalScore
-                let scoreColor = colorForScore(score, band: result.restResult.resultClass)
+            HStack(spacing: 8) {
+                Image(systemName: evaluation.verdict.symbolName)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(colorForVerdict(evaluation.verdict))
 
-                Text("\(score)")
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(scoreColor)
-                    .accessibilityIdentifier("check-completo-score")
+                Text(LocalizedStringKey(evaluation.headlineKey))
+                    .font(.system(size: 24, weight: .heavy, design: .default))
+                    .foregroundStyle(colorForVerdict(evaluation.verdict))
+                    .accessibilityIdentifier("check-completo-verdict")
             }
+            .padding(.vertical, 4)
 
-            // Veredito curto e objetivo (sem parágrafo explicativo abaixo)
-            Text(LocalizedStringKey(verdict.titleKey))
-                .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundStyle(NLColor.textPrimary)
+            Text(LocalizedStringKey(evaluation.subtitleKey))
+                .font(NLTypography.body)
+                .foregroundStyle(NLColor.textSecondary)
                 .multilineTextAlignment(.center)
-                .accessibilityIdentifier("check-completo-verdict")
+                .padding(.horizontal, NLSpacing.sm)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, NLSpacing.xs)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(heroAccessibilityLabel(verdict: verdict))
     }
 
-    private func heroAccessibilityLabel(verdict: CheckCompletoVerdict) -> String {
-        let verdictLocalized = AppLocalization.string(verdict.titleKey, comment: "")
-        if let result {
-            return String(
-                localized: "quick_check.result.score_accessibility",
-                defaultValue: "LagCheck Score %d, %@"
+    // MARK: - 3. Telemetria Compacta (3 Colunas)
+
+    private func compactTelemetryRow(evaluation: GameReadinessEvaluation) -> some View {
+        HStack(spacing: 0) {
+            telemetryColumn(
+                label: LocalizedStringKey("game_readiness.telemetry.ping"),
+                value: formattedMs(evaluation.pingMs),
+                unit: "ms"
             )
-            .replacingOccurrences(of: "%d", with: "\(result.restResult.finalScore)")
-            .replacingOccurrences(of: "%@", with: verdictLocalized)
-        } else {
-            return verdictLocalized
+
+            dividerLine
+
+            telemetryColumn(
+                label: LocalizedStringKey("game_readiness.telemetry.jitter"),
+                value: formattedMs(evaluation.jitterMs),
+                unit: "ms"
+            )
+
+            dividerLine
+
+            telemetryColumn(
+                label: LocalizedStringKey("game_readiness.telemetry.loss"),
+                value: formattedLoss(evaluation.packetLossPercentage),
+                unit: "%"
+            )
+        }
+        .padding(.vertical, NLSpacing.md)
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                .stroke(NLColor.hairline, lineWidth: 1)
         }
     }
 
-    // MARK: - 5. Ações
+    private func telemetryColumn(label: LocalizedStringKey, value: String, unit: String) -> some View {
+        VStack(spacing: 4) {
+            Text(label)
+                .font(NLTypography.captionStrong)
+                .foregroundStyle(NLColor.textTertiary)
+                .textCase(.uppercase)
 
-    private func actionsSection(isValid: Bool) -> some View {
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 22, weight: .bold, design: .default))
+                    .monospacedDigit()
+                    .foregroundStyle(NLColor.textPrimary)
+
+                if value != "—" {
+                    Text(unit)
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var dividerLine: some View {
+        Rectangle()
+            .fill(NLColor.hairline)
+            .frame(width: 1, height: 32)
+    }
+
+    // MARK: - 4. Barra de Estabilidade Contínua
+
+    private func stabilitySection(evaluation: GameReadinessEvaluation) -> some View {
+        VStack(alignment: .leading, spacing: NLSpacing.xs) {
+            HStack {
+                Text(LocalizedStringKey("game_readiness.stability.section_title"))
+                    .font(NLTypography.captionStrong)
+                    .foregroundStyle(NLColor.textTertiary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                Text(LocalizedStringKey(evaluation.stabilitySummaryKey))
+                    .font(NLTypography.caption)
+                    .foregroundStyle(NLColor.textSecondary)
+            }
+
+            // Gauge Contínuo
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(NLColor.panel)
+                        .frame(height: 6)
+
+                    Capsule()
+                        .fill(colorForVerdict(evaluation.verdict))
+                        .frame(width: max(proxy.size.width * CGFloat(evaluation.stabilityRatio), 8), height: 6)
+                        .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.8), value: evaluation.stabilityRatio)
+                }
+            }
+            .frame(height: 6)
+        }
+        .padding(.horizontal, NLSpacing.xs)
+    }
+
+    // MARK: - 5. Checklist "O Que Encontramos"
+
+    private func findingsSection(findings: [NetworkFinding]) -> some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            Text(LocalizedStringKey("game_readiness.findings.section_title"))
+                .font(NLTypography.sectionHeader)
+                .foregroundStyle(NLColor.textTertiary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 0) {
+                ForEach(Array(findings.enumerated()), id: \.offset) { index, finding in
+                    HStack(spacing: NLSpacing.sm) {
+                        Image(systemName: iconForFindingSeverity(finding.severity))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(colorForFindingSeverity(finding.severity))
+                            .frame(width: 20)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(LocalizedStringKey(finding.labelKey))
+                                .font(NLTypography.callout.weight(.medium))
+                                .foregroundStyle(NLColor.textPrimary)
+
+                            if let detail = finding.detail {
+                                Text(detail)
+                                    .font(NLTypography.caption)
+                                    .foregroundStyle(NLColor.textSecondary)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, NLSpacing.sm)
+                    .padding(.horizontal, NLSpacing.md)
+
+                    if index < findings.count - 1 {
+                        Divider()
+                            .overlay(NLColor.hairline)
+                            .padding(.leading, 44)
+                    }
+                }
+            }
+            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    .stroke(NLColor.hairline, lineWidth: 1)
+            }
+        }
+    }
+
+    // MARK: - 6. Ações
+
+    private func actionsSection(verdict: GameReadinessVerdict) -> some View {
         VStack(spacing: NLSpacing.sm) {
-            // Ação Primária Coral Solar: "Testar de novo" ou "Tentar de novo"
-            PrimaryButton(
-                title: isValid ? "check_completo.action.retest" : "check_completo.action.try_again",
-                action: retry
-            )
+            // Ação Primária Coral Solar: [ TESTAR NOVAMENTE ]
+            Button(action: retry) {
+                Text(LocalizedStringKey("game_readiness.cta.retest"))
+                    .font(NLTypography.headline.weight(.heavy))
+                    .tracking(0.5)
+                    .foregroundStyle(NLColor.deep)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .background(NLColor.coralSolar, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
+            }
             .accessibilityIdentifier("check-completo-primary-action")
 
-            // Ações Secundárias Discretas (exibidas somente com resultado válido)
-            if isValid {
-                HStack(spacing: NLSpacing.sm) {
-                    secondaryActionButton(
-                        titleKey: "check_completo.action.details",
-                        identifier: "check-completo-details",
-                        action: showDetails
-                    )
+            // Ação Secundária: Entender minha conexão / Ver detalhes técnicos
+            Button(action: showDetails) {
+                Text(LocalizedStringKey(verdict == .ready ? "game_readiness.cta.understand_connection" : "game_readiness.cta.understand_problem"))
+                    .font(NLTypography.callout.weight(.semibold))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: NLSizing.touchTarget)
+            }
+            .accessibilityIdentifier("check-completo-details")
 
-                    secondaryActionButton(
-                        titleKey: "check_completo.action.improve",
-                        identifier: "check-completo-improve",
-                        action: showBooster
-                    )
+            // Se instável e booster disponível, link discreto
+            if verdict == .caution || verdict == .notReady {
+                Button(action: showBooster) {
+                    Text(LocalizedStringKey("booster.cta.button"))
+                        .font(NLTypography.footnote.weight(.medium))
+                        .foregroundStyle(NLColor.textTertiary)
+                        .padding(.vertical, 4)
                 }
+                .accessibilityIdentifier("check-completo-improve")
             }
         }
         .padding(.top, NLSpacing.xs)
     }
 
-    private func secondaryActionButton(titleKey: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(LocalizedStringKey(titleKey))
-                .font(NLTypography.callout.weight(.semibold))
-                .foregroundStyle(NLColor.textPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: NLSizing.touchTarget)
-                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
-                        .stroke(NLColor.borderSubtle, lineWidth: 0.5)
-                }
-        }
-        .accessibilityIdentifier(identifier)
+    // MARK: - Helpers & Formatação
+
+    private func formattedMs(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        return "\(Int(value.rounded()))"
     }
 
-    // MARK: - Mapeadores de Estado
+    private func formattedLoss(_ loss: Double?) -> String {
+        guard let loss else { return "—" }
+        if loss <= 0.05 {
+            return "0"
+        }
+        return String(format: "%.1f", loss)
+    }
 
-    private func mapTrailNodeState(_ state: ConsolidatedTrailNodeState) -> ConsolidatedRouteTrailView.NodeState {
-        switch state {
-        case .check: return .check
-        case .attention: return .attention
-        case .neutral: return .neutral
+    private func colorForVerdict(_ verdict: GameReadinessVerdict) -> Color {
+        switch verdict {
+        case .ready: return NLColor.readyGreen
+        case .caution: return NLColor.cautionYellow
+        case .notReady: return NLColor.notReadyRed
+        case .inconclusive: return NLColor.textTertiary
         }
     }
 
-    private func colorForScore(_ score: Int, band: ResultClass) -> Color {
-        switch band {
-        case .excellent, .great:
-            return NLColor.scoreExcellent
-        case .unstable:
-            return NLColor.scoreUnstable
-        case .lagRisk:
-            return NLColor.coralSolarRed
+    private func colorForFindingSeverity(_ severity: NetworkFinding.Severity) -> Color {
+        switch severity {
+        case .positive: return NLColor.readyGreen
+        case .warning: return NLColor.cautionYellow
+        case .negative: return NLColor.notReadyRed
+        case .neutral: return NLColor.textTertiary
         }
     }
-}
 
-// MARK: - Previews Canônicos dos 5 Estados
-
-#Preview("1. Saudável · A rota segurou") {
-    CheckCompletoResultView(
-        result: makePreviewResult(score: 92, band: .excellent, p50: 22.0, loss: 0.0, loadDelta: 4.0),
-        gameName: "Fortnite",
-        platform: .iphone,
-        regionFriendlyName: "São Paulo",
-        isWiFi: true,
-        retry: {}
-    )
-}
-
-#Preview("2. Rota oscilou · Instabilidade geral") {
-    CheckCompletoResultView(
-        result: makePreviewResult(score: 74, band: .unstable, p50: 85.0, loss: 0.0, jitter: 24.0, loadDelta: 8.0),
-        gameName: "Fortnite",
-        platform: .playstation,
-        regionFriendlyName: "São Paulo",
-        isWiFi: true,
-        retry: {}
-    )
-}
-
-#Preview("3. Carga pesou · Impacto sob carga") {
-    CheckCompletoResultView(
-        result: makePreviewResult(score: 61, band: .unstable, p50: 28.0, loss: 0.0, loadDelta: 42.0),
-        gameName: "Roblox",
-        platform: .pc,
-        regionFriendlyName: "São Paulo",
-        isWiFi: true,
-        retry: {}
-    )
-}
-
-#Preview("4. Entrega falhou · Perda relevante") {
-    CheckCompletoResultView(
-        result: makePreviewResult(score: 48, band: .lagRisk, p50: 35.0, loss: 12.0, loadDelta: 6.0),
-        gameName: "Minecraft",
-        platform: .xbox,
-        regionFriendlyName: "São Paulo",
-        isWiFi: false,
-        retry: {}
-    )
-}
-
-#Preview("5. Inconclusivo · Medição incompleta") {
-    CheckCompletoResultView(
-        result: nil,
-        gameName: "Fortnite",
-        platform: .iphone,
-        regionFriendlyName: "São Paulo",
-        isWiFi: true,
-        retry: {}
-    )
-}
-
-// MARK: - Preview Fixture Helper
-
-private func makePreviewResult(
-    score: Int,
-    band: ResultClass,
-    p50: Double,
-    loss: Double = 0.0,
-    jitter: Double = 2.0,
-    loadDelta: Double = 5.0
-) -> DeepCheckResult {
-    let validCount = Int((30.0 * (1.0 - (loss / 100.0))).rounded())
-    let timeoutCount = Int((30.0 * (loss / 100.0)).rounded())
-    let restMetrics = QualityMetrics(
-        validResponseCount: validCount,
-        timeoutCount: timeoutCount,
-        invalidResponseCount: 0,
-        p50Milliseconds: p50,
-        p95Milliseconds: p50 + 10,
-        p99Milliseconds: p50 + 15,
-        jitterMilliseconds: jitter,
-        packetLossPercentage: loss,
-        spikeCount: 0,
-        severeSpikeCount: 0,
-        spikeRatePercentage: 0,
-        p95ToP50Ratio: 1.2,
-        worstSpikeMilliseconds: p50 + 20,
-        components: nil
-    )
-    let restResult = QualityResult(
-        metrics: restMetrics,
-        rawScore: score,
-        finalScore: score,
-        resultClass: band,
-        appliedGuardrails: []
-    )
-    let loadImpact = DeepCheckLoadImpact(
-        restP50Milliseconds: p50,
-        loadP50Milliseconds: p50 + loadDelta
-    )
-    return DeepCheckResult(
-        restResult: restResult,
-        metrics: DeepCheckMetrics(rest: restMetrics, load: restMetrics, loadImpact: loadImpact)
-    )
+    private func iconForFindingSeverity(_ severity: NetworkFinding.Severity) -> String {
+        switch severity {
+        case .positive: return "checkmark.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .negative: return "xmark.circle.fill"
+        case .neutral: return "info.circle.fill"
+        }
+    }
 }

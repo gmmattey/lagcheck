@@ -12,6 +12,7 @@ extension QuickCheckFeatureView {
             MeasurementLiveTrail(
                 isWiFi: selectedRegionalContext?.observedPhoneNetwork == .wifi,
                 destinationName: selectedRegionFriendlyName,
+                currentRTT: partialSamples.last?.roundTripMilliseconds,
                 sampleCount: partialSamples.count,
                 isUnderStress: false,
                 isPhaseRest: true,

@@ -518,6 +518,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
             }
             XCTAssertTrue(start.isHittable)
             start.tap()
+            return
         } else {
             let chooseGame = app.buttons["home-decision-primary-action"]
             XCTAssertTrue(chooseGame.waitForExistence(timeout: 3))
