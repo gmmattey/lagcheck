@@ -46,10 +46,10 @@ public struct DarkCompetitiveHeroCard: View {
                 ZStack(alignment: .bottomLeading) {
                     if game.id == GameContext.genericGamingID {
                         ZStack {
-                            NLColor.panel
+                            NLColor.surface
                             VStack(spacing: NLSpacing.xs) {
                                 Image(systemName: "network")
-                                    .font(.system(size: 40, weight: .semibold))
+                                    .font(.system(size: 44, weight: .semibold))
                                     .foregroundStyle(NLColor.coralSolar)
                                 Text(LocalizedStringKey("generic_gaming.route_reference"))
                                     .font(NLTypography.caption)
@@ -59,31 +59,31 @@ public struct DarkCompetitiveHeroCard: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .frame(height: 180)
-                        .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous))
                         .overlay(
-                            RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                            RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous)
                                 .stroke(NLColor.borderHairline, lineWidth: 1)
                         )
                     } else {
                         VerifiedGameArtwork(game: game, aspectRatio: 16 / 9)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                                RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous)
                                     .stroke(NLColor.borderHairline, lineWidth: 1)
                             )
                     }
 
                     // Gradiente escuro na base para legibilidade
                     LinearGradient(
-                        colors: [.clear, NLColor.surface.opacity(0.85), NLColor.surface],
+                        colors: [.clear, NLColor.deep.opacity(0.85), NLColor.deep],
                         startPoint: .center,
                         endPoint: .bottom
                     )
-                    .frame(height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                    .frame(height: 90)
+                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(game.name.uppercased())
@@ -113,10 +113,10 @@ public struct DarkCompetitiveHeroCard: View {
                         .foregroundStyle(NLColor.textSecondary)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 140)
-                .background(NLColor.panel, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                .frame(height: 160)
+                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous)
                         .stroke(NLColor.borderHairline, lineWidth: 1)
                 )
             }
@@ -184,7 +184,7 @@ public struct DarkCompetitiveHeroCard: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(NLColor.textTertiary)
                 }
-                .padding(.vertical, NLSpacing.xs)
+                .padding(.horizontal, NLSpacing.xxs)
                 .frame(minHeight: NLSizing.touchTarget)
                 .contentShape(Rectangle())
             }
@@ -192,12 +192,6 @@ public struct DarkCompetitiveHeroCard: View {
             .accessibilityLabel(Text(LocalizedStringKey("history.title")))
             .accessibilityIdentifier("home-decision-history")
         }
-        .padding(NLSpacing.cardPadding)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: NLRadius.cardLarge, style: .continuous)
-                .stroke(NLColor.borderHairline, lineWidth: 1)
-        )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("home-decision-card")
     }
