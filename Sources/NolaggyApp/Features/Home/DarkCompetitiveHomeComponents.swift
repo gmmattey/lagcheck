@@ -47,10 +47,15 @@ public struct DarkCompetitiveHeroCard: View {
                     if game.id == GameContext.genericGamingID {
                         ZStack {
                             NLColor.surface
+                            LinearGradient(
+                                colors: [NLColor.panel, NLColor.surface],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                             VStack(spacing: NLSpacing.xs) {
-                                Image(systemName: "network")
-                                    .font(.system(size: 44, weight: .semibold))
-                                    .foregroundStyle(NLColor.coralSolar)
+                                Image(systemName: "gamecontroller.fill")
+                                    .font(.system(size: 44, weight: .medium))
+                                    .foregroundStyle(NLColor.textSecondary)
                                 Text(LocalizedStringKey("generic_gaming.route_reference"))
                                     .font(NLTypography.caption)
                                     .foregroundStyle(NLColor.textSecondary)
@@ -147,20 +152,16 @@ public struct DarkCompetitiveHeroCard: View {
             // Ação Direta para Verificar Conexão Geral (Sem Selecionar Jogo)
             if let onTestGeneralConnection, game?.id != GameContext.genericGamingID {
                 Button(action: onTestGeneralConnection) {
-                    HStack(spacing: NLSpacing.xs) {
-                        Image(systemName: "network")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text(LocalizedStringKey("home.cta.test_general_connection"))
-                            .font(NLTypography.ctaButton)
-                            .tracking(NLTypography.ctaTracking)
-                    }
-                    .foregroundStyle(NLColor.coralSolar)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
-                            .stroke(NLColor.borderHairline, lineWidth: 1)
-                    )
+                    Text(LocalizedStringKey("home.cta.test_general_connection"))
+                        .font(NLTypography.ctaButton)
+                        .tracking(NLTypography.ctaTracking)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
+                                .stroke(NLColor.borderHairline, lineWidth: 1)
+                        )
                 }
                 .buttonStyle(.plain)
                 .disabled(isMeasuring)
@@ -311,7 +312,7 @@ public struct DarkCompetitiveQuickRail: View {
                             VStack(spacing: NLSpacing.xxs) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
-                                        .fill(isGenericSelected ? NLColor.coralSolar.opacity(0.15) : NLColor.panel)
+                                        .fill(isGenericSelected ? NLColor.controlOverlay : NLColor.panel)
                                         .frame(width: 72, height: 72)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
@@ -320,9 +321,9 @@ public struct DarkCompetitiveQuickRail: View {
                                                     lineWidth: isGenericSelected ? 2 : 1
                                                 )
                                         )
-                                    Image(systemName: "network")
-                                        .font(.system(size: 26, weight: .bold))
-                                        .foregroundStyle(isGenericSelected ? NLColor.coralSolar : NLColor.textSecondary)
+                                    Image(systemName: "gamecontroller.fill")
+                                        .font(.system(size: 24, weight: .semibold))
+                                        .foregroundStyle(isGenericSelected ? NLColor.textPrimary : NLColor.textSecondary)
                                 }
 
                                 Text(LocalizedStringKey("generic_gaming.short_name"))
