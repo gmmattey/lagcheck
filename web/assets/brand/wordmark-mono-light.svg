@@ -1,13 +1,40 @@
-<svg viewBox="0 0 540 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wm-light-title wm-light-desc">
+<svg viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wm-light-title wm-light-desc">
   <title id="wm-light-title">LagCheck Wordmark Monocromático Claro</title>
-  <desc id="wm-light-desc">Wordmark LagCheck para fundos escuros em branco sólido.</desc>
-  <g transform="translate(60, 60)">
-    <path d="M -22 22 A 32 32 0 1 1 22 22" fill="none" stroke="#2C2C2E" stroke-width="8" stroke-linecap="round" />
-    <path d="M -22 22 A 32 32 0 1 1 16 26" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" />
-    <path d="M -10 1 L -2 9 L 14 -7" fill="none" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" />
+  <desc id="wm-light-desc">Wordmark LagCheck para superfícies escuras em tinta branca sólida.</desc>
+  <g transform="translate(85, 75) scale(0.25)" fill="#F4F5F7">
+    <path d="M 0 -240 L -200 130 L -145 140 L -125 100 L 0 -130 Z" />
+    <path d="M 0 -240 L 0 -130 L 105 -25 L 105 -85 Z" />
+    <path d="M -200 130 L -235 200 L -180 145 L -145 140 Z" />
+    <path d="M -180 145 L -155 220 L -125 100 Z" />
+    <g transform="rotate(180)">
+      <path d="M 0 -240 L -200 130 L -145 140 L -125 100 L 0 -130 Z" />
+      <path d="M 0 -240 L 0 -130 L 105 -25 L 105 -85 Z" />
+      <path d="M -200 130 L -235 200 L -180 145 L -145 140 Z" />
+      <path d="M -180 145 L -155 220 L -125 100 Z" />
+    </g>
   </g>
-  <g transform="translate(130, 72)" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" font-size="46" letter-spacing="-1.2">
-    <text x="0" y="0" font-weight="700" fill="#FFFFFF">Lag</text>
-    <text x="76" y="0" font-weight="700" fill="#FFFFFF">Check</text>
+  <g transform="translate(180, 100) skewX(-14)" fill="#F4F5F7" fill-rule="evenodd">
+    <path d="M 0 0 L 0 -50 L 12 -62 L 22 -62 L 22 0 Z" />
+    <g transform="translate(30, 0)">
+      <path d="M 12 -46 L 40 -46 L 52 -34 L 52 0 L 34 0 L 34 -8 L 12 -8 L 0 -20 L 0 -34 Z M 18 -22 L 34 -22 L 34 -32 L 18 -32 Z" />
+    </g>
+    <g transform="translate(90, 0)">
+      <path d="M 12 -46 L 40 -46 L 52 -34 L 52 10 L 40 22 L 8 22 L 8 10 L 34 10 L 34 0 L 12 0 L 0 -12 L 0 -34 Z M 18 -14 L 34 -14 L 34 -32 L 18 -32 Z" />
+    </g>
+    <g transform="translate(152, 0)">
+      <path d="M 48 -34 L 36 -46 L 12 -46 L 0 -34 L 0 -12 L 12 0 L 36 0 L 48 -12 L 32 -12 L 26 -6 L 22 -6 L 16 -12 L 16 -34 L 22 -40 L 26 -40 L 32 -34 Z" />
+    </g>
+    <g transform="translate(208, 0)">
+      <path d="M 0 0 L 0 -50 L 12 -62 L 22 -62 L 22 -32 L 32 -46 L 42 -46 L 52 -36 L 52 0 L 32 0 L 32 -28 L 26 -34 L 22 -34 L 22 0 Z" />
+    </g>
+    <g transform="translate(268, 0)">
+      <path d="M 0 -34 L 12 -46 L 38 -46 L 50 -34 L 50 -20 L 18 -20 L 18 -12 L 24 -6 L 36 -6 L 46 -14 L 46 0 L 38 0 L 12 0 L 0 -12 Z M 18 -32 L 32 -32 L 32 -26 L 18 -26 Z" />
+    </g>
+    <g transform="translate(326, 0)">
+      <path d="M 48 -34 L 36 -46 L 12 -46 L 0 -34 L 0 -12 L 12 0 L 36 0 L 48 -12 L 32 -12 L 26 -6 L 22 -6 L 16 -12 L 16 -34 L 22 -40 L 26 -40 L 32 -34 Z" />
+    </g>
+    <g transform="translate(382, 0)">
+      <path d="M 0 0 L 0 -50 L 12 -62 L 22 -62 L 22 -24 L 36 -46 L 58 -46 L 30 -18 L 60 0 L 36 0 L 18 -16 L 22 0 Z" />
+    </g>
   </g>
 </svg>

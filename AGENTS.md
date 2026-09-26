@@ -72,6 +72,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `49` | Medição geral de conexão para jogos (jogo genérico, busca sem resultado e rota regional de referência) | decidido e em implementação |
 | `50` | Reposicionamento do MVP — Ready for Ranked (Jornada direta Home → Jogo → Check → Veredito, `GameReadinessVerdict`, integridade diagnóstica, telemetria mínima remota e foco no P0/P1) | decidido e em implementação |
 | `51` | Direção Visual Dark Competitive UI e Iniciativa Unificada (“Lagcheck Competitive Redesign + Ready Check”: fundo quase preto, jogo protagonista, painéis de borda fina, telemetria viva compacta e Coral Solar de ação) | decidido e em implementação |
+| `52` | Decisão de marca: Dual-Node Vector e Wordmark Kinetic Speed Slant (substitui Pulse Gauge, alinhamento com NoPing benchmark e Dark Competitive UI) | decidido e em implementação |
+| `53` | Decisão de tipografia: Arquitetura Híbrida de Performance (NoPing benchmark: display pesado, cockpit monoespaçado e eliminação de rounded) | decidido e implementado |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

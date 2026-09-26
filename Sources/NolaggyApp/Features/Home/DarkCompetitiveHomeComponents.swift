@@ -107,8 +107,8 @@ public struct DarkCompetitiveHeroCard: View {
                             .font(.system(size: 15, weight: .bold))
                     }
                     Text(LocalizedStringKey("home.cta.start_check"))
-                        .font(NLTypography.bodyEmphasis)
-                        .tracking(0.5)
+                        .font(NLTypography.ctaButton)
+                        .tracking(NLTypography.ctaTracking)
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, minHeight: 52)
@@ -129,7 +129,7 @@ public struct DarkCompetitiveHeroCard: View {
                         .frame(width: 8, height: 8)
 
                     Text(lastCheckStatusText)
-                        .font(NLTypography.caption)
+                        .font(NLTypography.statusLine)
                         .foregroundStyle(NLColor.textSecondary)
 
                     Spacer()

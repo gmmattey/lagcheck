@@ -35,7 +35,7 @@ extension QuickCheckFeatureView {
                     // Pílula semântica com o Score e Classificação
                     HStack(spacing: NLSpacing.xs) {
                         Text("\(interpretation.score)")
-                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                            .font(.system(size: 17, weight: .heavy, design: .default))
                             .monospacedDigit()
                         Text("·")
                             .font(.system(size: 15, weight: .bold))
@@ -51,7 +51,7 @@ extension QuickCheckFeatureView {
 
                     // Conclusão assertiva
                     Text(localized(interpretation.conclusionKey.rawValue))
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .font(NLTypography.verdictHeadline)
                         .foregroundStyle(NLColor.textPrimary)
                         .multilineTextAlignment(.center)
 
@@ -163,17 +163,18 @@ extension QuickCheckFeatureView {
         VStack(alignment: .leading, spacing: NLSpacing.xxs) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .monospacedDigit()
+                    .font(NLTypography.metricsNumberLarge)
                     .foregroundStyle(isCause ? causeColor : NLColor.textPrimary)
                 if let unit {
                     Text(unit)
-                        .font(NLTypography.caption)
+                        .font(NLTypography.caption.weight(.bold))
                         .foregroundStyle(isCause ? causeColor : NLColor.textTertiary)
                 }
             }
             Text(title)
-                .font(NLTypography.caption)
+                .font(NLTypography.metricsLabel)
+                .tracking(NLTypography.metricsLabelTracking)
+                .textCase(.uppercase)
                 .foregroundStyle(NLColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

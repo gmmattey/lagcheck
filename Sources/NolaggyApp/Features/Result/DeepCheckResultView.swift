@@ -43,7 +43,7 @@ struct DeepCheckResultView: View {
                     // Pílula semântica: [ 92 · EXCELENTE ]
                     HStack(spacing: NLSpacing.xs) {
                         Text("\(interpretation.score)")
-                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                            .font(.system(size: 17, weight: .heavy, design: .default))
                             .monospacedDigit()
                         Text("·")
                             .font(.system(size: 15, weight: .bold))
@@ -59,7 +59,7 @@ struct DeepCheckResultView: View {
 
                     // Veredito verbal em destaque
                     Text(localizedKey(interpretation.conclusionKey.rawValue))
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(NLTypography.verdictHeadline)
                         .foregroundStyle(NLColor.textPrimary)
                         .multilineTextAlignment(.center)
 
@@ -181,17 +181,18 @@ struct DeepCheckResultView: View {
         VStack(alignment: .leading, spacing: NLSpacing.xxs) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .monospacedDigit()
+                    .font(NLTypography.metricsNumberLarge)
                     .foregroundStyle(isCause ? causeColor : NLColor.textPrimary)
                 if let unit {
                     Text(unit)
-                        .font(NLTypography.caption)
+                        .font(NLTypography.caption.weight(.bold))
                         .foregroundStyle(isCause ? causeColor : NLColor.textTertiary)
                 }
             }
             Text(LocalizedStringKey(title))
-                .font(NLTypography.caption)
+                .font(NLTypography.metricsLabel)
+                .tracking(NLTypography.metricsLabelTracking)
+                .textCase(.uppercase)
                 .foregroundStyle(NLColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
