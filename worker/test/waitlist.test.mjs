@@ -113,3 +113,44 @@ test("POST /v1/waitlist rejects missing email", async () => {
   const data = await response.json();
   assert.equal(data.error, "missing_email");
 });
+
+test("POST /v1/waitlist dispatches to env.DISCORD_WEBHOOK_URL when set", async () => {
+  let webhookPayload = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    if (url === "https://discord.com/api/webhooks/test") {
+      webhookPayload = JSON.parse(options.body);
+      return new Response("ok", { status: 204 });
+    }
+    return originalFetch(url, options);
+  };
+
+  try {
+    const mockEnv = {
+      DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/test"
+    };
+    const response = await handleRequest(new Request("https://example.workers.dev/v1/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "ranked.gamer@buildea.com",
+        platform: "ios",
+        source: "hero_form",
+        utm: { source: "google", campaign: "ranked_intent" }
+      })
+    }), mockEnv);
+
+    assert.equal(response.status, 200);
+    assert.ok(webhookPayload);
+    assert.equal(webhookPayload.username, "Lagcheck Beta");
+    assert.ok(webhookPayload.embeds && webhookPayload.embeds.length > 0);
+    const embed = webhookPayload.embeds[0];
+    assert.equal(embed.title, "🎮 Novo inscrito na Waitlist!");
+    const emailField = embed.fields.find(f => f.name.includes("E-mail"));
+    assert.ok(emailField.value.includes("ranked.gamer@buildea.com"));
+    const platformField = embed.fields.find(f => f.name.includes("Plataforma"));
+    assert.ok(platformField.value.includes("iOS (TestFlight)"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -222,8 +222,81 @@ async function handleWaitlist(request, env = {}) {
       if (cleanUtm) record.utm = cleanUtm;
       if (typeof cleanLaunchNotice === "boolean") record.launchNotice = cleanLaunchNotice;
       await env.WAITLIST_KV.put(`lead:${cleanEmail}`, JSON.stringify(record));
+    } catch (err) {
+      console.error("KV put error:", err);
+    }
+  }
+
+  // Notificação via Webhook Discord em tempo real
+  if (env.DISCORD_WEBHOOK_URL) {
+    try {
+      const platformLabels = {
+        ios: "🍏 iOS (TestFlight)",
+        android: "🤖 Android (Play Beta)",
+        both: "🍏 iOS + 🤖 Android"
+      };
+      const platformText = platformLabels[cleanPlatform] || cleanPlatform || "Não especificada";
+      let utmDesc = "";
+      if (cleanUtm && typeof cleanUtm === "object") {
+        utmDesc = Object.entries(cleanUtm).map(([k, v]) => `• **${k}**: \`${v}\``).join("\n");
+      }
+
+      const embedFields = [
+        { name: "📧 E-mail", value: `\`${cleanEmail}\``, inline: false },
+        { name: "📱 Plataforma", value: platformText, inline: true },
+        { name: "🌐 Origem", value: `\`${cleanSource}\``, inline: true }
+      ];
+      if (utmDesc) {
+        embedFields.push({ name: "📊 Parâmetros UTM", value: utmDesc, inline: false });
+      }
+      if (typeof cleanLaunchNotice === "boolean") {
+        embedFields.push({ name: "🔔 Notificar Lançamento", value: cleanLaunchNotice ? "Sim" : "Não", inline: true });
+      }
+      embedFields.push({ name: "⏰ Horário (UTC)", value: timestamp, inline: false });
+
+      await fetch(env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: "Lagcheck Beta",
+          avatar_url: "https://lagcheck.signallq.com/assets/lagcheck-wordmark-light.svg",
+          embeds: [
+            {
+              title: "🎮 Novo inscrito na Waitlist!",
+              description: "Um novo jogador acabou de solicitar acesso antecipado.",
+              color: 0x7c3aed,
+              fields: embedFields,
+              footer: { text: "Lagcheck • Ready for Ranked" }
+            }
+          ]
+        })
+      });
     } catch {
-      // Ignora falha de KV para manter resiliência de borda
+      // Ignora falha para não travar a resposta do usuário
+    }
+  }
+
+  // Notificação via Telegram em tempo real (opcional)
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    try {
+      const platformLabels = {
+        ios: "iOS (TestFlight)",
+        android: "Android (Play Beta)",
+        both: "iOS + Android"
+      };
+      const platformText = platformLabels[cleanPlatform] || cleanPlatform || "Não especificada";
+      const message = `🎮 *Novo inscrito na Waitlist do Lagcheck!*\n\n📧 *E-mail:* \`${cleanEmail}\`\n📱 *Plataforma:* ${platformText}\n🌐 *Origem:* ${cleanSource}\n⏰ *Data:* ${timestamp}`;
+      await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: env.TELEGRAM_CHAT_ID,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      });
+    } catch {
+      // Ignora falha de envio silenciosamente
     }
   }
 
