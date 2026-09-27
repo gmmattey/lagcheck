@@ -137,10 +137,10 @@ console.log('\n--- 5. Verificação das Páginas Auxiliares de Suporte e Privaci
 const supportHtml = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
 const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy.html'), 'utf-8');
 
-assert(supportHtml.includes('suporte@lagcheck.app'), 'Suporte: E-mail suporte@lagcheck.app presente');
+assert(supportHtml.includes('suporte@signallq.com'), 'Suporte: E-mail suporte@signallq.com presente');
 assert(supportHtml.includes('TestFlight'), 'Suporte: Menção a TestFlight');
 assert(supportHtml.includes('Play Beta'), 'Suporte: Menção a Play Beta');
-assert(privacyHtml.includes('suporte@lagcheck.app'), 'Privacidade: E-mail suporte@lagcheck.app presente');
+assert(privacyHtml.includes('suporte@signallq.com'), 'Privacidade: E-mail suporte@signallq.com presente');
 assert(privacyHtml.includes('Armazenamento local'), 'Privacidade: Seção de armazenamento local');
 
 console.log('\n--- 6. Teste de Servidor HTTP Local (Rotas Estáticas) ---');

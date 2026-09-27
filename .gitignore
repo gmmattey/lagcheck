@@ -11,5 +11,4 @@ Secrets/
 *.xcconfig
 .build/
 .wrangler/
-
-
+.vercel/
