@@ -29,9 +29,9 @@ public enum WiFiBandDiagnostic: Codable, Hashable, Sendable {
 
     public var isSuspectOrConfirmed24GHz: Bool {
         switch self {
-        case .confirmed24GHz, .suspected24GHzContention:
+        case .confirmed24GHz:
             return true
-        case .confirmed5GHzOrHigher, .stableWiFi, .inconclusive:
+        case .confirmed5GHzOrHigher, .suspected24GHzContention, .stableWiFi, .inconclusive:
             return false
         }
     }

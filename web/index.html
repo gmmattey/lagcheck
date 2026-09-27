@@ -137,9 +137,9 @@
           <span class="lang-badge lang-badge-en" aria-hidden="true">EN</span>
         </button>
 
-        <a href="#download" class="btn-header-cta">
-          <span data-lang="pt">Baixar App</span>
-          <span data-lang="en">Get App</span>
+        <a href="#waitlist" class="btn-header-cta">
+          <span data-lang="pt">Receber Convite</span>
+          <span data-lang="en">Get Invite</span>
         </a>
       </nav>
     </div>
@@ -153,8 +153,8 @@
         <div class="hero-text-col">
           <div class="live-pill">
             <span class="pulse-dot green" aria-hidden="true"></span>
-            <span data-lang="pt">READY FOR RANKED • iOS 17+</span>
-            <span data-lang="en">READY FOR RANKED • iOS 17+</span>
+            <span data-lang="pt">LANÇAMENTO EM BREVE • iOS 17+ (TESTFLIGHT)</span>
+            <span data-lang="en">LAUNCHING SOON • iOS 17+ (TESTFLIGHT)</span>
           </div>
 
           <h1 id="hero-title" class="hero-headline">
@@ -163,24 +163,43 @@
           </h1>
 
           <p class="hero-subhead">
-            <span data-lang="pt">O teste de rota determinístico para iPhone. Sem falsas promessas de ping, sem VPNs milagrosas e sem fallback HTTP — medição real de latência UDP, jitter sob carga e perda de pacotes direto aos servidores de referência dos seus jogos.</span>
-            <span data-lang="en">The deterministic route check for iPhone. No false ping claims, no VPN snake oil, and no generic HTTP fallbacks — real measurement of UDP latency, bufferbloat jitter, and packet loss directly to your games' reference servers.</span>
+            <span data-lang="pt">O teste de rota determinístico para iPhone. Lançamento em breve para iOS 17+. Sem falsas promessas de ping, sem VPNs milagrosas e sem fallback HTTP — medição real de latência UDP, jitter sob estresse e perda de pacotes direto aos servidores de referência dos seus jogos.</span>
+            <span data-lang="en">The deterministic route check for iPhone. Coming soon to iOS 17+. No false ping claims, no VPN snake oil, and no generic HTTP fallbacks — real measurement of UDP latency, bufferbloat jitter, and packet loss directly to your games' reference servers.</span>
           </p>
 
-          <div class="hero-cta-group">
-            <a href="#download" class="btn-primary-coral" data-event="hero_appstore_click">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.87-.92.04-2.02.62-2.67 1.37-.58.66-1.09 1.73-.96 2.76 1.03.08 2.08-.53 2.71-1.26z"/>
-              </svg>
-              <span data-lang="pt">Baixar na App Store</span>
-              <span data-lang="en">Download on App Store</span>
-            </a>
+          <div class="waitlist-form-container" id="hero-waitlist">
+            <form class="waitlist-form" data-source="hero_waitlist" novalidate>
+              <div class="waitlist-input-group">
+                <input type="email" id="hero-email-input" class="waitlist-input" placeholder="seu-email@exemplo.com" required autocomplete="email" aria-label="E-mail para convite">
+                <button type="submit" class="waitlist-submit-btn" data-event="hero_waitlist_submit">
+                  <span data-lang="pt">Receber Convite</span>
+                  <span data-lang="en">Get Invite</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+              </div>
+              <div class="waitlist-feedback" aria-live="polite"></div>
+              <p class="waitlist-disclaimer">
+                <span data-lang="pt">⚡ Acesso antecipado exclusivo via TestFlight. Sem spam, sem contas e sem anúncios.</span>
+                <span data-lang="en">⚡ Exclusive early access via TestFlight. Zero spam, zero accounts, zero ads.</span>
+              </p>
+            </form>
+          </div>
+
+          <div class="hero-cta-group" style="margin-bottom: 28px;">
             <a href="#simulator" class="btn-ghost-competitive" data-event="hero_demo_click">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
               <span data-lang="pt">Ver Como Funciona</span>
               <span data-lang="en">See How It Works</span>
+            </a>
+            <a href="#features" class="btn-ghost-competitive" data-event="hero_features_click">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              </svg>
+              <span data-lang="pt">Conhecer Recursos</span>
+              <span data-lang="en">Explore Features</span>
             </a>
           </div>
 
@@ -196,15 +215,15 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span data-lang="pt">Sem contas ou cadastro</span>
-              <span data-lang="en">No account or login</span>
+              <span data-lang="pt">Convite via Apple TestFlight</span>
+              <span data-lang="en">Apple TestFlight Invite</span>
             </div>
             <div class="trust-badge-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span data-lang="pt">Clusters AWS, Azure e Valve</span>
-              <span data-lang="en">AWS, Azure &amp; Valve Clusters</span>
+              <span data-lang="pt">Sem contas ou cadastro</span>
+              <span data-lang="en">No account or login</span>
             </div>
           </div>
         </div>
@@ -458,12 +477,12 @@
             <span data-lang="en">DETERMINISTIC ENGINEERING</span>
           </span>
           <h2 id="features-title" class="section-title">
-            <span data-lang="pt">Os 4 Pilares da Verdade de Rede</span>
-            <span data-lang="en">The 4 Pillars of Network Truth</span>
+            <span data-lang="pt">Os Pilares da Verdade de Rede</span>
+            <span data-lang="en">The Pillars of Network Truth</span>
           </h2>
           <p class="section-subtitle">
-            <span data-lang="pt">Criado para quem leva a partida a sério. Sem velocímetros inflados e sem promessas vazias.</span>
-            <span data-lang="en">Built for players who take competitive matches seriously. No inflated speed tests, no empty claims.</span>
+            <span data-lang="pt">Criado para quem leva a partida a sério. Sem velocímetros inflados, sem notas inventadas e sem promessas vazias.</span>
+            <span data-lang="en">Built for players who take competitive matches seriously. No inflated speed tests, no fake scores, and no empty claims.</span>
           </p>
         </div>
 
@@ -503,6 +522,44 @@
           <div class="comp-card">
             <div class="comp-card-icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+                <line x1="4" y1="4" x2="9" y2="9"></line>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Detecção Out-of-Order (RFC 4737)</span>
+              <span data-lang="en">Out-of-Order Packet Check (RFC 4737)</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Pacotes que chegam fora de ordem causam micro-stutters e tiros que não registram. O algoritmo rastreia o número de sequência e aponta reordenação antes de custar seu elo.</span>
+              <span data-lang="en">Packets arriving out of order trigger micro-stutters and ghost bullets. Our algorithm audits sequence numbers to identify packet reordering before it costs your match.</span>
+            </p>
+          </div>
+
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h3 class="comp-card-title">
+              <span data-lang="pt">Cockpit &amp; Probe Gateway Local</span>
+              <span data-lang="en">Cockpit &amp; Local Gateway Probe</span>
+            </h3>
+            <p class="comp-card-text">
+              <span data-lang="pt">Integridade diagnóstica rigorosa: probe isolado até o roteador local para separar engasgos de Wi-Fi doméstico da latência de trânsito do provedor de internet.</span>
+              <span data-lang="en">Strict diagnostic integrity: isolated probes to the local gateway separate home Wi-Fi congestion from true ISP backbone latency.</span>
+            </p>
+          </div>
+
+          <div class="comp-card">
+            <div class="comp-card-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
                 <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
                 <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
@@ -522,19 +579,17 @@
           <div class="comp-card">
             <div class="comp-card-icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </div>
             <h3 class="comp-card-title">
-              <span data-lang="pt">Sockets UDP Globais Reais</span>
-              <span data-lang="en">Real Global UDP Sockets</span>
+              <span data-lang="pt">Otimizações &amp; Voice Chat</span>
+              <span data-lang="en">Setup Tips &amp; Voice Chat Check</span>
             </h3>
             <p class="comp-card-text">
-              <span data-lang="pt">Em vez de pingar servidores genéricos de provedores de internet, nos conectamos aos mesmos datacenters e protocolos usados pelos jogos: AWS GameLift, Azure PlayFab QoS e Valve A2S_INFO.</span>
-              <span data-lang="en">Instead of pinging nearby ISP caches, we test against the exact gaming datacenters and protocols used in production: AWS GameLift, Azure PlayFab QoS, and Valve A2S_INFO.</span>
+              <span data-lang="pt">Recomendações acionáveis de maior impacto por plataforma (iPhone, PC, PlayStation, Xbox) e avaliação de estabilidade para squads no Discord e chat in-game.</span>
+              <span data-lang="en">High-impact actionable setup tips per platform (iPhone, PC, PlayStation, Xbox) and voice chat stability evaluation for Discord and in-game comms.</span>
             </p>
           </div>
         </div>
@@ -1052,6 +1107,22 @@
           <details class="faq-item">
             <summary class="faq-question">
               <span class="faq-question-text">
+                <span data-lang="pt">Quando o Lagcheck será lançado para iPhone e como recebo meu convite?</span>
+                <span data-lang="en">When will Lagcheck launch on iPhone and how do I get an invite?</span>
+              </span>
+              <svg class="faq-icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="faq-answer">
+              <p>
+                <span data-lang="pt">O lançamento oficial na App Store será em breve para iPhone (iOS 17+). Estamos liberando acesso antecipado controlado através do Apple TestFlight. Basta cadastrar seu e-mail no formulário do site para receber o link de convite assim que novas vagas forem liberadas.</span>
+                <span data-lang="en">The official App Store release will happen soon for iPhone (iOS 17+). We are currently rolling out controlled early access via Apple TestFlight. Simply enter your email in the form above to receive an invite link as new slots open.</span>
+              </p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">
                 <span data-lang="pt">O app funciona em Wi-Fi e dados móveis (4G/5G)?</span>
                 <span data-lang="en">Does the app work on Wi-Fi and mobile data (4G/5G)?</span>
               </span>
@@ -1068,26 +1139,40 @@
       </div>
     </section>
 
-    <!-- Bottom Conversion CTA Banner -->
-    <section id="download" class="cta-banner-section" aria-labelledby="cta-banner-title">
-      <div class="container-wide">
+    <!-- Bottom Conversion CTA Banner / Waitlist -->
+    <section id="waitlist" class="cta-banner-section" aria-labelledby="cta-banner-title">
+      <div id="download" class="container-wide">
         <div class="cta-banner-card">
+          <div class="launch-badge-pulse" style="margin-bottom: 16px;">
+            <span class="pulse-dot green" aria-hidden="true"></span>
+            <span data-lang="pt">LANÇAMENTO EM BREVE NO iOS 17+</span>
+            <span data-lang="en">LAUNCHING SOON ON iOS 17+</span>
+          </div>
           <h2 id="cta-banner-title" class="cta-banner-title">
-            <span data-lang="pt">Saiba se sua conexão aguenta a ranqueada antes de entrar na fila.</span>
-            <span data-lang="en">Know if your connection is ready for ranked before queueing up.</span>
+            <span data-lang="pt">Garanta seu acesso antecipado antes da próxima temporada.</span>
+            <span data-lang="en">Secure your early access before the next ranked season.</span>
           </h2>
           <p class="cta-banner-subtitle">
-            <span data-lang="pt">Baixe o Lagcheck gratuitamente no seu iPhone e verifique latência UDP, jitter sob carga e perda de pacotes em menos de 10 segundos.</span>
-            <span data-lang="en">Download Lagcheck for free on your iPhone and verify UDP latency, jitter under load, and packet loss in under 10 seconds.</span>
+            <span data-lang="pt">O Lagcheck está em fase final de preparação para iPhone (iOS 17+). Cadastre seu e-mail para receber o convite do TestFlight assim que abrirmos as vagas.</span>
+            <span data-lang="en">Lagcheck is in final preparation for iPhone (iOS 17+). Enter your email to receive your TestFlight invite as soon as slots open.</span>
           </p>
-          <div class="cta-banner-buttons">
-            <a href="https://apps.apple.com" class="btn-primary-coral" target="_blank" rel="noopener" data-event="footer_appstore_click">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.87-.92.04-2.02.62-2.67 1.37-.58.66-1.09 1.73-.96 2.76 1.03.08 2.08-.53 2.71-1.26z"/>
-              </svg>
-              <span data-lang="pt">Baixar Grátis na App Store</span>
-              <span data-lang="en">Free on App Store</span>
-            </a>
+
+          <div class="waitlist-form-container">
+            <form class="waitlist-form" data-source="footer_waitlist" novalidate>
+              <div class="waitlist-input-group">
+                <input type="email" id="footer-email-input" class="waitlist-input" placeholder="seu-email@exemplo.com" required autocomplete="email" aria-label="E-mail para convite">
+                <button type="submit" class="waitlist-submit-btn" data-event="footer_waitlist_submit">
+                  <span data-lang="pt">Quero meu Convite</span>
+                  <span data-lang="en">Get My Invite</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+              </div>
+              <div class="waitlist-feedback" aria-live="polite"></div>
+              <p class="waitlist-disclaimer">
+                <span data-lang="pt">🔒 Zero spam. Usaremos seu e-mail exclusivamente para enviar o link do TestFlight.</span>
+                <span data-lang="en">🔒 Zero spam. Your email will be used strictly to send your TestFlight link.</span>
+              </p>
+            </form>
           </div>
         </div>
       </div>

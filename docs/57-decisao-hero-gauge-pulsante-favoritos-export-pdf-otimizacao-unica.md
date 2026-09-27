@@ -22,7 +22,7 @@ Durante auditoria de usabilidade e integridade da experiência na Home e no Cock
 
 ### 2.1 Fonte Única da Verdade para Rede Local (`SharedNetworkTelemetryService`)
 - Criado o serviço centralizado `SharedNetworkTelemetryService` em `NolaggyInfrastructure`.
-- Centraliza as medições de gateway RTT (3 amostras determinísticas), identificação de banda Wi-Fi (5 GHz vs 2.4 GHz) e topologia STUN (NAT Tipo 1/2/3, CGNAT RFC 6598, Duplo NAT).
+- Centraliza as medições de gateway RTT (3 amostras determinísticas), o estado explícito de frequência Wi-Fi não confirmada quando não houver fonte pública válida, e topologia STUN (NAT Tipo 1/2/3, CGNAT RFC 6598, Duplo NAT).
 - Tanto o Cockpit de Rede quanto qualquer leitura do app consultam o mesmo estado compartilhado `@MainActor`. No Cockpit, há indicação pulsante ao vivo com atualização manual e automática sob demanda.
 
 ### 2.2 Novo Hero da Home: Gauge Circular Dinâmico com Ondas Pulsantes
@@ -52,7 +52,7 @@ Durante auditoria de usabilidade e integridade da experiência na Home e no Cock
 - Criado o `HighImpactOptimizationEvaluator`.
 - Substitui a lista de 3 níveis por **1 único card destacado** ("OPORTUNIDADE DE MAIOR IMPACTO"):
   1. Cabo Ethernet Cat6 se console/PC em Wi-Fi (eliminação de até 80% do jitter).
-  2. Wi-Fi 5 GHz se contenção local ou 2.4 GHz detectado.
+  2. Ajuste de Wi-Fi somente quando a condição local estiver isoladamente observada; a troca de banda exige confirmação real da frequência.
   3. SQM (Smart Queue Management) / pausa de downloads se saturação de bufferbloat sob carga.
   4. Suporte técnico para atenuação de fibra se perda de pacotes na rota WAN.
   5. Liberação de portas UPnP / IP público se NAT estrito ou CGNAT.
@@ -62,10 +62,10 @@ Durante auditoria de usabilidade e integridade da experiência na Home e no Cock
 - Seção "PRONTIDÃO PARA PERFIS DE USO GAMER" no `NetworkCockpitView`:
   - **Não exibe meras descrições conceituais dos apps** (ex: "Discord, Party Chat...").
   - **Exibe o motivador causal exato observado**:
-    - **Streaming de Jogos (Cloud Gaming):** aponta latência do roteador (ms) ou Wi-Fi 2.4 GHz detectado com risco de congelamento de vídeo.
+    - **Streaming de Jogos (Cloud Gaming):** aponta apenas latência local observada; não presume frequência Wi-Fi.
     - **Áudio Multiplayer (Chat de Voz):** aponta latência de gateway (ms) e clareza versus voz robótica/cortes.
     - **Multiplayer Competitivo (FPS/MOBA):** aponta bloqueio por NAT Tipo 3 (Estrito), duplicidade de roteador (Duplo NAT) ou latência de registro de disparos.
-    - **Transmissão ao Vivo (Live Stream):** aponta estabilidade em 5 GHz versus interferência de 2.4 GHz derrubando o bitrate da live.
+    - **Transmissão ao Vivo (Live Stream):** aponta somente condição local observada; não atribui bitrate a uma banda Wi-Fi não confirmada.
 
 ### 2.8 Seleção e Desmarcação Dinâmica de Jogos na Home
 - Toque no mesmo jogo da barra de favoritos desmarca a seleção (`selectedGameID = nil`).
@@ -99,4 +99,3 @@ Durante auditoria de usabilidade e integridade da experiência na Home e no Cock
 - `Tests/NolaggyDomainTests/HighImpactOptimizationTests.swift` (novo: 100% aprovado)
 - `Tests/NolaggyApplicationTests/FavoriteGamesStoreTests.swift` (novo: 100% aprovado)
 - `Tests/NolaggyUITests/QuickCheckPilotUITests.swift` (atualizado: 100% aprovado)
-

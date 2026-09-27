@@ -36,7 +36,7 @@ Adicionalmente:
 ### 2.3 Cockpit de Rede ("Dados da Rede do Jogador" no Menu Principal)
 - O Cockpit de Rede é promovido a **aba primária no menu de navegação principal** (`Home > Jogos > Rede` via `AppTab.network`), além de ser acessível com um toque na **Pílula de Telemetria ao Vivo** (`LiveNetworkSignalCapsule`) da Home e também nas Configurações.
 - Reúne dados consolidados:
-  - Salto Local: Interface (Wi-Fi 2.4/5GHz vs Celular), IP local, IP do Gateway, Latência do Gateway (ping local em ms).
+  - Salto Local: Interface (Wi-Fi ou celular), IP local, IP do Gateway e latência do Gateway observada. A frequência Wi-Fi só aparece se uma fonte pública válida do sistema a confirmar; no candidato atual ela permanece não confirmada.
   - Borda WAN: Tipo de NAT (Aberto, Moderado, Estrito, Duplo NAT), status de CGNAT, suporte a IPv6, IP Público completo (com botão de revelação/cópia) e DNS ativo.
   - Ferramenta de Suporte: Botão "Copiar Relatório de Rede" formatado para compartilhamento com suporte técnico ou Discord.
 

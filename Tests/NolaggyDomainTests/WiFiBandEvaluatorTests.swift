@@ -15,7 +15,7 @@ final class WiFiBandEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.confidence, .none)
     }
 
-    func testExplicit5GHzSSIDReturnsConfirmed5GHzWithHighConfidence() {
+    func testExplicit5GHzSSIDDoesNotClaimFrequency() {
         let testSSIDs = ["MinhaCasa_5G", "Apartamento-5GHz", "Roteador 5_GHz", "Office_WiFi6", "Studio_6E", "Gaming_WiFi7"]
         for ssid in testSSIDs {
             let telemetry = WiFiLocalTelemetry(
@@ -23,13 +23,13 @@ final class WiFiBandEvaluatorTests: XCTestCase {
                 isWiFi: true
             )
             let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-            XCTAssertEqual(result.diagnostic, .confirmed5GHzOrHigher(ssid: ssid), "Falha para SSID: \(ssid)")
-            XCTAssertEqual(result.confidence, .high)
+            XCTAssertNotEqual(result.diagnostic, .confirmed5GHzOrHigher(ssid: ssid), "SSID não confirma a rádio para: \(ssid)")
+            XCTAssertEqual(result.confidence, .none)
             XCTAssertFalse(result.diagnostic.isSuspectOrConfirmed24GHz)
         }
     }
 
-    func testExplicit24GHzSSIDReturnsConfirmed24GHzWithHighConfidence() {
+    func testExplicit24GHzSSIDDoesNotClaimFrequency() {
         let testSSIDs = ["MinhaCasa_2.4G", "Apartamento-2.4GHz", "Roteador_2G", "Home_2_4GHz"]
         for ssid in testSSIDs {
             let telemetry = WiFiLocalTelemetry(
@@ -37,10 +37,9 @@ final class WiFiBandEvaluatorTests: XCTestCase {
                 isWiFi: true
             )
             let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-            XCTAssertEqual(result.diagnostic, .confirmed24GHz(ssid: ssid), "Falha para SSID: \(ssid)")
-            XCTAssertEqual(result.confidence, .high)
-            XCTAssertTrue(result.diagnostic.isSuspectOrConfirmed24GHz)
-            XEqual(result.actionKey, "network.band.action.settings")
+            XCTAssertNotEqual(result.diagnostic, .confirmed24GHz(ssid: ssid), "SSID não confirma a rádio para: \(ssid)")
+            XCTAssertEqual(result.confidence, .none)
+            XCTAssertFalse(result.diagnostic.isSuspectOrConfirmed24GHz)
         }
     }
 
@@ -86,7 +85,7 @@ final class WiFiBandEvaluatorTests: XCTestCase {
 
         XCTAssertEqual(result.diagnostic, .suspected24GHzContention)
         XCTAssertEqual(result.confidence, .medium)
-        XCTAssertTrue(result.diagnostic.isSuspectOrConfirmed24GHz)
+        XCTAssertFalse(result.diagnostic.isSuspectOrConfirmed24GHz)
         XCTAssertEqual(result.actionKey, "network.band.action.deep_check")
     }
 

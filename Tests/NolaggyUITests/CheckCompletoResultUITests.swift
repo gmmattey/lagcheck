@@ -25,10 +25,10 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].exists)
         let verdictLabel = app.staticTexts["check-completo-verdict"].label
         let validVerdicts = [
-            "● PRONTO PARA RANKED",
-            "▲ CONDIÇÕES INSTÁVEIS",
-            "▲ EU EVITARIA RANKED AGORA",
-            "— DADOS INSUFICIENTES"
+            "PRONTO PARA RANKED",
+            "CONDIÇÕES INSTÁVEIS",
+            "EU EVITARIA RANKED AGORA",
+            "DADOS INSUFICIENTES"
         ]
         XCTAssertTrue(validVerdicts.contains(verdictLabel), "Veredito inesperado: \(verdictLabel)")
 
@@ -46,12 +46,12 @@ final class CheckCompletoResultUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["check-completo-details"].exists)
 
-        // Retorno é a única ação da barra; exportar PDF vive no conteúdo para
-        // não colidir visualmente com a navegação em iPhones compactos.
+        // A jornada completa mantém uma única affordance de retorno na barra.
         let back = app.buttons["check-completo-back"]
         let export = app.buttons["check-completo-export-pdf"]
         XCTAssertTrue(back.exists)
         XCTAssertTrue(export.exists)
+        XCTAssertEqual(app.buttons.matching(identifier: "check-completo-back").count, 1)
         XCTAssertGreaterThan(export.frame.minY, back.frame.maxY)
 
         saveScreenshot(named: "check_completo_valid_pt_br")
@@ -76,10 +76,10 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].exists)
         let verdictLabel = app.staticTexts["check-completo-verdict"].label
         let validEnglishVerdicts = [
-            "● READY FOR RANKED",
-            "▲ UNSTABLE CONDITIONS",
-            "▲ AVOID RANKED FOR NOW",
-            "— INSUFFICIENT DATA"
+            "READY FOR RANKED",
+            "UNSTABLE CONDITIONS",
+            "AVOID RANKED FOR NOW",
+            "INSUFFICIENT DATA"
         ]
         XCTAssertTrue(validEnglishVerdicts.contains(verdictLabel), "Unexpected English verdict: \(verdictLabel)")
 
@@ -110,7 +110,7 @@ final class CheckCompletoResultUITests: XCTestCase {
 
         // 1. Inconclusive semantic verdict
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["check-completo-verdict"].label, "— DADOS INSUFICIENTES")
+        XCTAssertEqual(app.staticTexts["check-completo-verdict"].label, "DADOS INSUFICIENTES")
 
         // 2. Score must NOT exist
         XCTAssertFalse(app.staticTexts["check-completo-score"].exists)

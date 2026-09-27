@@ -18,7 +18,6 @@ public final class SharedNetworkTelemetryService: ObservableObject {
     @Published public private(set) var natTopology: NATTopologySnapshot? = nil
     @Published public private(set) var isProbing: Bool = false
     @Published public private(set) var lastUpdated: Date? = nil
-
     private var activeProbeTask: Task<Void, Never>? = nil
 
     public init() {}
@@ -32,39 +31,16 @@ public final class SharedNetworkTelemetryService: ObservableObject {
 
         let task = Task { @MainActor in
             self.isProbing = true
-            let prober = BSDWiFiLocalGatewayProber()
-            let local = prober.resolveLocalIPv4()
-            let gw = prober.resolveDefaultGatewayIPv4()
+            let snapshot = await LocalNetworkTelemetrySnapshot.capture()
+            let telemetry = snapshot.telemetry
+            let presentation = LocalNetworkTelemetryPresentation(snapshot: snapshot)
+            let local = snapshot.localIP
             self.localIP = local
-            self.gatewayIP = gw
-
-            let telemetry = await prober.probeLocalGateway(sampleCount: 3, timeoutPerSampleSeconds: 0.3)
+            self.gatewayIP = snapshot.gatewayIP
             self.gatewayRTTMs = telemetry.gatewayRTTMedianMs
             self.isWiFi = telemetry.isWiFi
-
-            if telemetry.isWiFi {
-                let eval = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-                if eval.diagnostic.isSuspectOrConfirmed24GHz {
-                    self.wifiBand = "2.4 GHz"
-                    self.connectionKindText = "Wi-Fi (2.4 GHz)"
-                } else {
-                    switch eval.diagnostic {
-                    case .confirmed5GHzOrHigher, .stableWiFi:
-                        self.wifiBand = "5 GHz"
-                        self.connectionKindText = "Wi-Fi (5 GHz)"
-                    case .inconclusive:
-                        self.wifiBand = "Padrão"
-                        self.connectionKindText = "Wi-Fi"
-                    default:
-                        self.wifiBand = "Wi-Fi"
-                        self.connectionKindText = "Wi-Fi"
-                    }
-                }
-            } else {
-                self.wifiBand = "—"
-                self.connectionKindText = "Dados Móveis (Celular)"
-            }
-
+            self.wifiBand = presentation.wifiBand
+            self.connectionKindText = presentation.connectionKind
             // Aferição de Topologia WAN via STUN
             let stunClient = StunProbeClient()
             self.natTopology = await stunClient.probeTopology(localIP: local)
@@ -77,4 +53,5 @@ public final class SharedNetworkTelemetryService: ObservableObject {
         await task.value
         self.activeProbeTask = nil
     }
+
 }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lagcheck — Política de Privacidade / Privacy Policy</title>
-  <meta name="description" content="Política de privacidade oficial do Lagcheck para iPhone (iOS 17+). Processamento local, sem contas, sem telemetria própria e transparência operacional.">
+  <meta name="description" content="Política de privacidade oficial do LagCheck para iPhone (iOS 17+): processamento local, sem contas e telemetria mínima transparente.">
   <link rel="canonical" href="https://lagcheck.signallq.com/privacy/">
   <link rel="icon" type="image/svg+xml" href="../assets/brand/symbol-compact.svg">
   <link rel="stylesheet" href="../css/style.css">
@@ -59,9 +59,9 @@
           <span class="lang-badge lang-badge-en" aria-hidden="true">EN</span>
         </button>
 
-        <a href="../index.html#download" class="btn-header-cta">
-          <span data-lang="pt">Baixar App</span>
-          <span data-lang="en">Get App</span>
+        <a href="../index.html#waitlist" class="btn-header-cta">
+          <span data-lang="pt">Receber Convite</span>
+          <span data-lang="en">Get Invite</span>
         </a>
       </nav>
     </div>
@@ -141,17 +141,21 @@
             <span data-lang="pt">Para cumprir essa finalidade, a arquitetura do produto funciona <strong>sem contas</strong> de usuário e <strong>não exige nem coleta contas de usuário, senhas, endereços de e-mail, nomes, números de telefone ou identificadores pessoais</strong>. Você pode abrir o aplicativo e executar diagnósticos de conexão sem qualquer barreira de cadastro.</span>
             <span data-lang="en">To achieve this purpose, the product architecture operates without accounts and <strong>neither requires nor collects user accounts, passwords, email addresses, names, phone numbers, or personal credentials</strong>. You can open the app and run connection tests immediately without any sign-up obstacle.</span>
           </p>
+          <p>
+            <span data-lang="pt"><strong>Cadastro Voluntário no Website (Acesso Antecipado / TestFlight):</strong> No site oficial, disponibilizamos um formulário estritamente opcional para jogadores que desejarem receber um convite antecipado no Apple TestFlight e aviso de lançamento para iPhone (iOS 17+). O endereço de e-mail fornecido é utilizado exclusivamente para essa comunicação de lançamento, armazenado com segurança e nunca comercializado ou compartilhado com redes de publicidade de terceiros.</span>
+            <span data-lang="en"><strong>Voluntary Website Registration (Early Access / TestFlight):</strong> On the official website, we provide a strictly optional form for players who wish to receive an early Apple TestFlight invite and launch notification for iPhone (iOS 17+). The submitted email address is used solely for this pre-launch communication, stored securely, and never commercialized or shared with third-party advertising networks.</span>
+          </p>
         </section>
 
-        <!-- Section 2: Zero Proprietary Telemetry -->
+        <!-- Section 2: Minimal Product Telemetry -->
         <section class="policy-panel" aria-labelledby="telemetry-heading">
           <h2 id="telemetry-heading">
-            <span data-lang="pt">2. Ausência de Telemetria Própria e de Rastreamento</span>
-            <span data-lang="en">2. Zero Proprietary Telemetry &amp; User Tracking</span>
+            <span data-lang="pt">2. Telemetria Mínima e Ausência de Rastreamento</span>
+            <span data-lang="en">2. Minimal Telemetry and No Tracking</span>
           </h2>
           <p>
-            <span data-lang="pt">O Lagcheck opera <strong>sem telemetria própria</strong> invasiva e <strong>não possui telemetria própria</strong> para perfilamento comportamental. O aplicativo não monitora sua navegação dentro do app, não registra quais telas você visualiza, não realiza gravação de sessões e não mantém servidores próprios para armazenar o perfil de usuários.</span>
-            <span data-lang="en">Lagcheck operates without intrusive telemetry and <strong>operates with zero proprietary telemetry</strong> for behavioral profiling. The application does not monitor your in-app navigation, does not record which screens you open, does not perform session recording, and does not operate backend servers to profile user behavior.</span>
+            <span data-lang="pt">O LagCheck envia telemetria mínima para medir retorno e reteste: um UUID aleatório por instalação e os eventos <em>app_open</em>, <em>check_started</em>, <em>verdict_viewed</em> e <em>retest_started</em>. Quando aplicável, o evento inclui jogo, plataforma e classe de veredito. Não envia IP, SSID, BSSID, endereço de gateway, métricas brutas, localização, conta, IDFA ou conteúdo de rede.</span>
+            <span data-lang="en">LagCheck sends minimal telemetry to measure return and retest: one random UUID per installation and the <em>app_open</em>, <em>check_started</em>, <em>verdict_viewed</em>, and <em>retest_started</em> events. When applicable, an event includes game, platform, and verdict class. It does not send IP address, SSID, BSSID, gateway address, raw metrics, location, account data, IDFA, or network content.</span>
           </p>
           <p>
             <span data-lang="pt">O aplicativo não solicita permissão de rastreamento via <em>App Tracking Transparency</em> (ATT) da Apple, pois não realiza rastreamento entre aplicativos ou sites de terceiros.</span>
@@ -215,7 +219,7 @@
             <li><span data-lang="pt"><strong>Requisito de Wi-Fi:</strong> O Deep Check exige Wi-Fi ativo para isolar o comportamento do roteador local. O teste não é executado em dados móveis celulares.</span><span data-lang="en"><strong>Wi-Fi Requirement:</strong> Deep Check requires an active Wi-Fi connection to isolate local router behavior. It is not conducted over mobile cellular data.</span></li>
             <li><span data-lang="pt"><strong>Carga HTTP Controlada:</strong> Para gerar a condição de carga durante a segunda fase da medição, o app realiza uma requisição HTTP <strong>GET /v1/load</strong> a um serviço <em>Cloudflare Worker</em> gratuito e minimalista (<code>https://nolaggy-deep-check.buildealabs.workers.dev/v1/load</code>).</span><span data-lang="en"><strong>Controlled HTTP Load:</strong> To create the load condition during the second phase, the app issues an HTTP <strong>GET /v1/load</strong> request to a free, minimal <em>Cloudflare Worker</em> (<code>https://nolaggy-deep-check.buildealabs.workers.dev/v1/load</code>).</span></li>
             <li><span data-lang="pt"><strong>Sem Identificação:</strong> O endpoint devolve apenas um fluxo de bytes sintéticos sem conteúdo de produto, com cabeçalho <strong>Cache-Control: no-store</strong>. A transferência é interrompida pelo app ao atingir 10 MB ou 15 segundos.</span><span data-lang="en"><strong>Zero Identification:</strong> The endpoint returns a synthetic stream of bytes with <strong>Cache-Control: no-store</strong>. The transfer is automatically cancelled by the app upon reaching 10 MB or 15 seconds.</span></li>
-            <li><span data-lang="pt"><strong>Sem Banco, Analytics ou Rastreamento:</strong> O Worker não possui banco de dados, não armazena registros de usuário, não processa autenticação, não define cookies, não utiliza beacons e <strong>não identifica</strong> a pessoa, o aparelho, o jogo ou a sessão.</span><span data-lang="en"><strong>No Database, Analytics, or Tracking:</strong> The Worker has no database, stores no user records, requires no authentication, issues no cookies, sets no beacons, and <strong>does not identify</strong> the person, device, game, or session.</span></li>
+            <li><span data-lang="pt"><strong>Telemetria mínima:</strong> O Worker recebe os eventos descritos na seção 2 e usa o UUID aleatório para medir retorno da mesma instalação. Não usa conta, cookies, IDFA, IP, SSID, BSSID ou conteúdo de rede.</span><span data-lang="en"><strong>Minimal telemetry:</strong> The Worker receives the events described in section 2 and uses the random UUID to measure return from the same installation. It does not use an account, cookies, IDFA, IP address, SSID, BSSID, or network content.</span></li>
           </ul>
         </section>
 
@@ -246,15 +250,20 @@
           </ol>
         </section>
 
+        <section class="policy-panel" aria-labelledby="ai-heading">
+          <h2 id="ai-heading"><span data-lang="pt">7. Dicas com IA</span><span data-lang="en">7. AI-powered tips</span></h2>
+          <p><span data-lang="pt">Quando a ação opcional de Dicas de Otimização estiver habilitada, o app envia ao Gemini o jogo, a plataforma, o tipo de rede, métricas agregadas do Check, efeito sob carga, diagnóstico disponível e idioma para gerar a resposta. A ação não altera score ou veredito; se falhar, não há recomendação inventada. Esta integração é limitada ao TestFlight interno e ao candidato 1.0.0 conforme a Decisão 45.</span><span data-lang="en">When the optional Optimization Tips action is enabled, the app sends Gemini the game, platform, network type, aggregated Check metrics, load effect, available diagnostics, and language to generate a response. The action does not change the score or verdict; if it fails, no substitute recommendation is invented. This integration is limited to internal TestFlight and the 1.0.0 candidate under Decision 45.</span></p>
+        </section>
+
         <!-- Section 7: User Rights & Data Deletion -->
         <section class="policy-panel" aria-labelledby="rights-heading">
           <h2 id="rights-heading">
-            <span data-lang="pt">7. Direitos do Usuário e Exclusão Definitiva de Dados</span>
-            <span data-lang="en">7. User Rights &amp; Permanent Data Deletion</span>
+            <span data-lang="pt">8. Direitos do Usuário e Exclusão Definitiva de Dados</span>
+            <span data-lang="en">8. User Rights &amp; Permanent Data Deletion</span>
           </h2>
           <p>
-            <span data-lang="pt">Como todas as métricas residem estritamente no armazenamento local do seu iPhone (SwiftData) e nenhum dado é transmitido para servidores proprietários, você tem controle total e soberano sobre os seus dados:</span>
-            <span data-lang="en">Because all measurement metrics reside strictly in your iPhone's local storage (SwiftData) and zero data is transmitted to proprietary servers, you retain complete physical sovereignty over your information:</span>
+            <span data-lang="pt">As métricas detalhadas e o histórico residem no seu iPhone. A telemetria mínima descrita na seção 2 não contém a série bruta de medição nem identificadores de rede; você pode limpar o histórico local pelo app e interromper a telemetria desinstalando o app.</span>
+            <span data-lang="en">Detailed metrics and history reside on your iPhone. The minimal telemetry described in section 2 contains neither the raw measurement series nor network identifiers; you can clear local history in the app and stop telemetry by uninstalling the app.</span>
           </p>
           <ul style="margin-left: 20px; color: #9FA7B8; line-height: 1.6;">
             <li><span data-lang="pt"><strong>Exclusão individual:</strong> Você pode consultar ou limpar medições diretamente pela interface do aplicativo.</span><span data-lang="en"><strong>Individual Deletion:</strong> You can review or clear measurements directly within the application interface.</span></li>

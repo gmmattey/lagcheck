@@ -153,7 +153,7 @@ Nas primeiras 48 horas, o time acompanha:
 - comportamento do catálogo remoto e fallback;
 - avaliações que indiquem problema recorrente de promessa ou compreensão.
 
-O LagCheck não coleta telemetria própria no MVP1. A observação usa dados agregados do App Store Connect e feedback voluntário, respeitando a documentação funcional.
+O LagCheck usa a telemetria mínima autorizada em `POST /v1/telemetry` para observar retorno e reteste: UUID aleatório por instalação e eventos de produto permitidos, sem IP, SSID, BSSID, amostras brutas, IDFA ou localização. A política pública e App Privacy precisam declarar exatamente o que o archive candidato transmite; ver `docs/62`.
 
 ## 7. Correção urgente e rollback
 

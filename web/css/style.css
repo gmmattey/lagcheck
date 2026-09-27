@@ -1771,7 +1771,7 @@ body {
 
 @media (min-width: 1024px) {
   .competitive-cards-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -2405,4 +2405,137 @@ details.faq-item[open] summary::after {
   max-width: 700px;
   line-height: 1.5;
   color: #555E70;
+}
+
+/* ==========================================================================
+   Waitlist & Early Access Capture Styles (Decisão 61)
+   ========================================================================== */
+.waitlist-form-container {
+  max-width: 540px;
+  width: 100%;
+  margin: 18px 0 28px;
+}
+
+.waitlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.waitlist-input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.waitlist-input {
+  flex: 1 1 280px;
+  background: #10141B;
+  border: 1px solid var(--comp-border-hairline);
+  color: #FFFFFF;
+  font-family: var(--comp-font-display);
+  font-size: 0.96rem;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.waitlist-input:focus {
+  border-color: var(--comp-coral);
+  box-shadow: 0 0 0 2px var(--comp-coral-subtle);
+}
+
+.waitlist-input::placeholder {
+  color: #656E82;
+}
+
+.waitlist-submit-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--comp-coral-gradient);
+  color: #FFFFFF;
+  font-family: var(--comp-font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 14px 26px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 90, 54, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  min-height: 52px;
+}
+
+.waitlist-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(255, 90, 54, 0.6);
+}
+
+.waitlist-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.waitlist-feedback {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  display: none;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.waitlist-feedback.active {
+  display: flex;
+}
+
+.waitlist-feedback.success {
+  background: rgba(61, 220, 151, 0.12);
+  border: 1px solid rgba(61, 220, 151, 0.35);
+  color: var(--comp-ready);
+}
+
+.waitlist-feedback.error {
+  background: rgba(255, 90, 54, 0.12);
+  border: 1px solid rgba(255, 90, 54, 0.35);
+  color: #FF8F75;
+}
+
+.waitlist-disclaimer {
+  font-size: 0.82rem;
+  color: #727D96;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.launch-badge-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 90, 54, 0.14);
+  border: 1px solid rgba(255, 90, 54, 0.35);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #FFA08A;
+}
+
+.cta-banner-card .waitlist-form-container {
+  margin: 24px auto 0;
+  max-width: 580px;
 }

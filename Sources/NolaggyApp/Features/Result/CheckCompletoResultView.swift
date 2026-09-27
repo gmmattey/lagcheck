@@ -86,12 +86,6 @@ public struct CheckCompletoResultView: View {
             .padding(.vertical, NLSpacing.md)
         }
         .background(NLColor.deep.ignoresSafeArea())
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NolaggyBackButton(action: exit, accessibilityIdentifier: "check-completo-back")
-            }
-        }
         .sheet(isPresented: $showingPDFShareSheet) {
             if let url = exportPDFURL {
                 ShareSheet(items: [url])

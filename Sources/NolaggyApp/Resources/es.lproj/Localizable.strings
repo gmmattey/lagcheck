@@ -614,15 +614,25 @@
 "network_cockpit.export_pdf" = "Exportar Informe PDF";
 "network_cockpit.refresh_live" = "Actualizar";
 "network_cockpit.probing" = "Midiendo...";
-"network_cockpit.use_cases.title" = "PREPARACIÓN PARA PERFILES GAMER";
-"network_cockpit.use_case.cloud_gaming" = "Streaming de Juegos (Cloud Gaming)";
+"network_cockpit.use_cases.title" = "CASOS DE USO";
+"network_cockpit.use_case.claude_gaming" = "Claude Gaming";
 "network_cockpit.use_case.cloud_gaming_desc" = "Xbox Cloud, GeForce NOW, PS Remote Play";
-"network_cockpit.use_case.voice_chat" = "Audio Multijugador (Chat de Voz)";
+"network_cockpit.use_case.voice_chat" = "Chat de Voz";
 "network_cockpit.use_case.voice_chat_desc" = "Discord, Party Chat PSN y Xbox Live";
-"network_cockpit.use_case.competitive_fps" = "Multijugador Competitivo (FPS/MOBA)";
+"network_cockpit.use_case.multiplayer" = "Multiplayer";
 "network_cockpit.use_case.competitive_fps_desc" = "CS2, Valorant, Fortnite, Warzone";
-"network_cockpit.use_case.live_stream" = "Transmisión en Vivo (Live Stream)";
+"network_cockpit.use_case.live_stream" = "Live Stream";
 "network_cockpit.use_case.live_stream_desc" = "Twitch, YouTube Gaming, Kick";
-
-
-
+"network_cockpit.use_case.view_reason" = "Ver motivo";
+"network_cockpit.use_case.status.favorable" = "FAVORABLE";
+"network_cockpit.use_case.status.attention" = "ATENCIÓN";
+"network_cockpit.use_case.status.not_assessed" = "SIN EVALUAR";
+"network_cockpit.use_case.reason.not_assessed" = "Aún no hay suficientes lecturas locales para evaluar este caso de uso.";
+"network_cockpit.use_case.reason.5ghz_low_rtt" = "Banda Wi-Fi de 5 GHz confirmada y latencia local de %d ms.";
+"network_cockpit.use_case.reason.2_4ghz_confirmed" = "Banda Wi-Fi de 2,4 GHz confirmada en esta lectura local.";
+"network_cockpit.use_case.reason.low_local_rtt" = "Latencia local observada de %d ms.";
+"network_cockpit.use_case.reason.high_local_rtt" = "Latencia local observada de %d ms.";
+"network_cockpit.use_case.reason.strict_nat" = "NAT Tipo 3 (estricto) observado en la topología local.";
+"network_cockpit.use_case.reason.double_nat" = "Se observó una señal de doble NAT en la topología local.";
+"network_cockpit.use_case.reason.favorable_nat_low_rtt" = "NAT sin bloqueo estricto observado y latencia local de %d ms.";
+"network_cockpit.use_case.scope_limit" = "Esta lectura evalúa condiciones locales observadas en el iPhone. No mide la ruta a un servicio, servidor o partida.";

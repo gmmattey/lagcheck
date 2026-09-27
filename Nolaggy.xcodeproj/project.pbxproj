@@ -18,6 +18,7 @@
 		0A4C605E9957777880970097 /* TechnicalDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6B7FC2B825EC02960FAFE1B /* TechnicalDetailsView.swift */; };
 		0CDAEFB99EB8F911469C727B /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0DF69D27ABB3BDF18DA0CE47 /* InsightBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3124C8561614308016F7B9B1 /* InsightBanner.swift */; };
+		11D780947F9529A39D9336A2 /* VoiceChatSuitabilityEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51857D2532B9BEBBEA2241E1 /* VoiceChatSuitabilityEvaluatorTests.swift */; };
 		12306FB0BD4FF320844C769E /* RemoteCatalogRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD54F5C987DD50A505752296 /* RemoteCatalogRepositoryTests.swift */; };
 		12DBA662B5C919A9F5A0A927 /* nolaggy-wordmark-primary.png in Resources */ = {isa = PBXBuildFile; fileRef = AE83D0A346A8CA7FACA86F0F /* nolaggy-wordmark-primary.png */; };
 		14D580DA43A17472A575DFAD /* QuickCheckBackgroundMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197C3B1F5470ADD3CEA8A85D /* QuickCheckBackgroundMeasurement.swift */; };
@@ -54,6 +55,7 @@
 		319EAA0C691585B49D89180C /* LocalInterfaceAddressResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */; };
 		35245537BBB3687D50D12555 /* SampleQualityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */; };
 		352D086ED7B18C8038490D24 /* MeasurementPulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE867574BCC1C67171FECFF0 /* MeasurementPulse.swift */; };
+		35F4353CA22B4C05AECFFF61 /* VoiceChatSuitabilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */; };
 		36BFBADA18930D99184BB71D /* MeasurementHistorySummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */; };
 		3799BCBBCB822AE535C0E4D1 /* MeasurementHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB88BE6374E5B27EE81215E /* MeasurementHistoryRepository.swift */; };
 		37D401813372231FA91C49F2 /* InMemoryAnalyticsTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD10F339F713470FFB0C9F7 /* InMemoryAnalyticsTracker.swift */; };
@@ -87,6 +89,7 @@
 		5586208A1B34CA1350627917 /* WiFiBandEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */; };
 		55C9C17FC6EBE357DA258F44 /* QuickCheckPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFC6D20535012498B729CF4 /* QuickCheckPresentation.swift */; };
 		56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE082E42929EB89C90445FF /* HomeFeatureView.swift */; };
+		5AA3A7E594F9F954733DB0BA /* LocalNetworkTelemetryPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */; };
 		5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */; };
 		5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
 		5D39130A37CAE895380D5078 /* StunPacketCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF979416006BDD9E02DBC9D /* StunPacketCodec.swift */; };
@@ -130,6 +133,7 @@
 		8A22AAB057A9F942F67FB1B4 /* LiveNetworkSignalCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBBE0C27F4874C8634D27F8 /* LiveNetworkSignalCapsule.swift */; };
 		8ADB1B27F510C7DAB4807F3B /* NLStroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A828FE7884262D4FFBAFE0A /* NLStroke.swift */; };
 		8D4838CE1DA4CF730977E046 /* PlatformHealthBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF5C41F5D89B27DB786B3AA /* PlatformHealthBannerView.swift */; };
+		8E22464D9315F771E7F5FC7B /* LocalNetworkTelemetrySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */; };
 		8E30DDC9A3137FF07777F52A /* LagCheckAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */; };
 		8EC72315F6F2F3183C741E12 /* CatalogMeasurementJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF7BCDF7DEC7C88691EAEC9 /* CatalogMeasurementJourney.swift */; };
 		9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */; };
@@ -395,6 +399,7 @@
 		2A828FE7884262D4FFBAFE0A /* NLStroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLStroke.swift; sourceTree = "<group>"; };
 		2B99EB7D33E547A006A994B1 /* NolaggyDomainTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyDomainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistorySummaryTests.swift; sourceTree = "<group>"; };
+		2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluator.swift; sourceTree = "<group>"; };
 		3124C8561614308016F7B9B1 /* InsightBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBanner.swift; sourceTree = "<group>"; };
 		3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistoryEntry.swift; sourceTree = "<group>"; };
 		358ED40007E3A2430F10F44B /* SampleQualityEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleQualityEvaluatorTests.swift; sourceTree = "<group>"; };
@@ -424,6 +429,7 @@
 		4DE8E3E60F92BDE3E4698B26 /* StunPacketCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StunPacketCodecTests.swift; sourceTree = "<group>"; };
 		4EFC6D20535012498B729CF4 /* QuickCheckPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckPresentation.swift; sourceTree = "<group>"; };
 		51691B9C7D5F278315F11757 /* NolaggyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyApp.swift; sourceTree = "<group>"; };
+		51857D2532B9BEBBEA2241E1 /* VoiceChatSuitabilityEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluatorTests.swift; sourceTree = "<group>"; };
 		5265FA2DEC99B49E357332D7 /* UserDefaultsRegionalPreferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsRegionalPreferenceRepository.swift; sourceTree = "<group>"; };
 		53020A17F9893FFE79C96464 /* MeasurementHistorySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistorySummary.swift; sourceTree = "<group>"; };
 		54072B3FEE951DD276E836EF /* QualityEvaluatorExpandedProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityEvaluatorExpandedProfileTests.swift; sourceTree = "<group>"; };
@@ -522,6 +528,7 @@
 		CF7C296B0F4353FF7F55201F /* MeasurementSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		CFEC0FE1DACCD7AB8A0BE3CF /* NLRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLRadius.swift; sourceTree = "<group>"; };
 		D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleQualityEvaluator.swift; sourceTree = "<group>"; };
+		D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkTelemetrySnapshot.swift; sourceTree = "<group>"; };
 		D1B00F88D7141C08CB28AB48 /* PlatformSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSelectionSheet.swift; sourceTree = "<group>"; };
 		D1DE147F0E1C7607D29CD0F6 /* NetworkCockpitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkCockpitView.swift; sourceTree = "<group>"; };
 		D661513CE969B148D76911DF /* QuickCheckPilotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckPilotUITests.swift; sourceTree = "<group>"; };
@@ -552,6 +559,7 @@
 		F47632D14DA4289BC46ACACA /* RegionalReferenceSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalReferenceSelection.swift; sourceTree = "<group>"; };
 		F51D4F39F3D3AA8985862D7D /* RegionalSelectionFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalSelectionFeatureView.swift; sourceTree = "<group>"; };
 		F6B75694BACD36BAE2C1ECDD /* RemoteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalog.swift; sourceTree = "<group>"; };
+		F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkTelemetryPresentationTests.swift; sourceTree = "<group>"; };
 		F9BA4A153AB6FF4EE8B51F35 /* RegionalPreferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalPreferenceRepository.swift; sourceTree = "<group>"; };
 		FD54F5C987DD50A505752296 /* RemoteCatalogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalogRepositoryTests.swift; sourceTree = "<group>"; };
 		FEB69FBF1D0E5521EB0D5760 /* LatencyGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatencyGraph.swift; sourceTree = "<group>"; };
@@ -779,6 +787,7 @@
 			isa = PBXGroup;
 			children = (
 				13D231D06024AFEC9FAAB47A /* GeminiConnectionBoosterService.swift */,
+				D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */,
 				7FEEA3DAE618704096C022F6 /* NWConnectionMeasurementTransport.swift */,
 				7D2F5111525A65687306D837 /* NWPathMonitorNetworkPathObserver.swift */,
 				883900BA98624962E85880C9 /* NWPathWiFiAvailability.swift */,
@@ -874,6 +883,7 @@
 				AB628B7DAF2EDF87A3860B94 /* CloudflareWorkerAnalyticsTrackerTests.swift */,
 				81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */,
 				1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */,
+				F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */,
 				2512D74F648CC9282836D9A2 /* NWConnectionMeasurementTransportTests.swift */,
 				0C373FEDFBAADE3C4FE8F32F /* NWPathMonitorNetworkPathObserverTests.swift */,
 				7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */,
@@ -925,6 +935,7 @@
 				0766344F6FD692F9218E5C13 /* ResultInterpreterTests.swift */,
 				358ED40007E3A2430F10F44B /* SampleQualityEvaluatorTests.swift */,
 				953719393B07FB850A0EE224 /* SpikePatternEvaluatorTests.swift */,
+				51857D2532B9BEBBEA2241E1 /* VoiceChatSuitabilityEvaluatorTests.swift */,
 				6D8D320F08D5BE7BA01CDBD0 /* WiFiBandEvaluatorTests.swift */,
 			);
 			name = NolaggyDomainTests;
@@ -1057,6 +1068,7 @@
 				A1D773920777506583CB756C /* ResultInterpreter.swift */,
 				D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */,
 				774F31FC6FBC0149A0EECCC6 /* SpikePatternEvaluator.swift */,
+				2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */,
 				B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */,
 				599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */,
 			);
@@ -1384,6 +1396,7 @@
 				544FF69D0DBE40A8BD78FD58 /* ResultInterpreter.swift in Sources */,
 				35245537BBB3687D50D12555 /* SampleQualityEvaluator.swift in Sources */,
 				2AFA4A5ED0013FE4B3055553 /* SpikePatternEvaluator.swift in Sources */,
+				35F4353CA22B4C05AECFFF61 /* VoiceChatSuitabilityEvaluator.swift in Sources */,
 				5586208A1B34CA1350627917 /* WiFiBandEvaluator.swift in Sources */,
 				943428C7497403D7D197D225 /* WiFiBandModels.swift in Sources */,
 			);
@@ -1445,6 +1458,7 @@
 				88337ACA4D50D53D2EC11302 /* CloudflareWorkerAnalyticsTrackerTests.swift in Sources */,
 				0254A05ECE5678A17B9BF55B /* DirectPlatformHealthClientTests.swift in Sources */,
 				319EAA0C691585B49D89180C /* LocalInterfaceAddressResolverTests.swift in Sources */,
+				5AA3A7E594F9F954733DB0BA /* LocalNetworkTelemetryPresentationTests.swift in Sources */,
 				4549507F612C6F0027C9E482 /* NWConnectionMeasurementTransportTests.swift in Sources */,
 				6A3CC6E9F35C65C5271150AE /* NWPathMonitorNetworkPathObserverTests.swift in Sources */,
 				9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */,
@@ -1544,6 +1558,7 @@
 				DE28FB2BA0E67FE882F52CA9 /* GeminiConnectionBoosterService.swift in Sources */,
 				37D401813372231FA91C49F2 /* InMemoryAnalyticsTracker.swift in Sources */,
 				B60332E3D4F48D170A4C4BCF /* LocalInterfaceAddressResolver.swift in Sources */,
+				8E22464D9315F771E7F5FC7B /* LocalNetworkTelemetrySnapshot.swift in Sources */,
 				AA52E19F400A96A9695F1308 /* NWConnectionMeasurementTransport.swift in Sources */,
 				6467AD1AC621ECB35BB5EA4E /* NWPathMonitorNetworkPathObserver.swift in Sources */,
 				F1FEB417E30B079469E02C0F /* NWPathWiFiAvailability.swift in Sources */,
@@ -1588,6 +1603,7 @@
 				8828D96A8DBBBD3BE5AE109E /* ResultInterpreterTests.swift in Sources */,
 				E6C95B9D46C4B02D179E4407 /* SampleQualityEvaluatorTests.swift in Sources */,
 				D18F71E13FF2580D020A99A3 /* SpikePatternEvaluatorTests.swift in Sources */,
+				11D780947F9529A39D9336A2 /* VoiceChatSuitabilityEvaluatorTests.swift in Sources */,
 				9C6E15C3249B561310F474F3 /* WiFiBandEvaluatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1741,6 +1757,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/NolaggyApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LagCheck;
+				INFOPLIST_KEY_CFBundleName = LagCheck;
 				INFOPLIST_KEY_LagCheckPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
 				INFOPLIST_KEY_LagCheckSupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_NolaggyPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
@@ -2137,6 +2154,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sources/NolaggyApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LagCheck;
+				INFOPLIST_KEY_CFBundleName = LagCheck;
 				INFOPLIST_KEY_LagCheckPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
 				INFOPLIST_KEY_LagCheckSupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_NolaggyPrivacyPolicyURL = "$(LAGCHECK_PRIVACY_POLICY_URL)";
