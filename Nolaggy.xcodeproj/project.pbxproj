@@ -89,6 +89,7 @@
 		5586208A1B34CA1350627917 /* WiFiBandEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */; };
 		55C9C17FC6EBE357DA258F44 /* QuickCheckPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFC6D20535012498B729CF4 /* QuickCheckPresentation.swift */; };
 		56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE082E42929EB89C90445FF /* HomeFeatureView.swift */; };
+		5989D54CC62B8EA9C36678C6 /* GamePlatformIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AD364C529AA1D089506792 /* GamePlatformIcons.swift */; };
 		5AA3A7E594F9F954733DB0BA /* LocalNetworkTelemetryPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */; };
 		5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */; };
 		5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
@@ -184,6 +185,7 @@
 		CC0466885DE1262D7D45CB4E /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AE1AE666CEDDDE12136E51 /* PrimaryButton.swift */; };
 		CC6238492CB91C446F80FB0B /* ConnectionBoosterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF132BEA5BD9E406F3901912 /* ConnectionBoosterCoordinator.swift */; };
 		CCDBF68C61A41115E49738E3 /* NolaggyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51691B9C7D5F278315F11757 /* NolaggyApp.swift */; };
+		CD0F77981D281A6EFA9CC5A1 /* SocialBrandIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */; };
 		CF9B1F2F39E231D4ED29B509 /* GamePopularityRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */; };
 		D049C169E9F3608DD624A912 /* PlayFabQoSPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370FDD9C9EEB8EC25A40B21F /* PlayFabQoSPayloadCodecTests.swift */; };
 		D18F71E13FF2580D020A99A3 /* SpikePatternEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953719393B07FB850A0EE224 /* SpikePatternEvaluatorTests.swift */; };
@@ -464,6 +466,7 @@
 		7FEEA3DAE618704096C022F6 /* NWConnectionMeasurementTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWConnectionMeasurementTransport.swift; sourceTree = "<group>"; };
 		8053C55816AED6B3210D6C53 /* PlayFabQoSPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayFabQoSPayloadCodec.swift; sourceTree = "<group>"; };
 		81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectPlatformHealthClientTests.swift; sourceTree = "<group>"; };
+		83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialBrandIcons.swift; sourceTree = "<group>"; };
 		840852A30063DBC03846AAFF /* EvidenceRecommendationEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceRecommendationEngineTests.swift; sourceTree = "<group>"; };
 		84A5BCCF9EE4CA9B389923E2 /* MeasurementProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementProgressView.swift; sourceTree = "<group>"; };
 		85A851C4F84E48F3540D70CD /* ConsolidatedRouteTrailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsolidatedRouteTrailView.swift; sourceTree = "<group>"; };
@@ -504,6 +507,7 @@
 		B1906DA4F775756D72F2804C /* Oxanium-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Oxanium-Variable.ttf"; sourceTree = "<group>"; };
 		B210DEADB7088D5FC2685AE1 /* URLSessionLoadTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionLoadTransport.swift; sourceTree = "<group>"; };
 		B225CDDE298069693148DAE1 /* MeasurementHistoryEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistoryEntryTests.swift; sourceTree = "<group>"; };
+		B2AD364C529AA1D089506792 /* GamePlatformIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePlatformIcons.swift; sourceTree = "<group>"; };
 		B81108B4688D1528A7E79480 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiBandEvaluator.swift; sourceTree = "<group>"; };
 		BA69002DCF9E055763C29BF3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -856,6 +860,7 @@
 				F47632D14DA4289BC46ACACA /* RegionalReferenceSelection.swift */,
 				115FA61E76B2519DC9E7DD8C /* RouteTrailSummaryCard.swift */,
 				E18D78F8D75E8AD726116462 /* SessionCompatibilityStrip.swift */,
+				83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */,
 				425D7BFA6B03FC6C630C90EF /* StatusMessage.swift */,
 			);
 			path = Components;
@@ -975,6 +980,7 @@
 			isa = PBXGroup;
 			children = (
 				C13B733DC0854BF2E87705DA /* DarkCompetitiveHomeComponents.swift */,
+				B2AD364C529AA1D089506792 /* GamePlatformIcons.swift */,
 				C95B5295CB31E3A118DA692E /* HomeFavoriteGamesRail.swift */,
 				5CE082E42929EB89C90445FF /* HomeFeatureView.swift */,
 				E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */,
@@ -1450,6 +1456,7 @@
 				536E70C0EB750D1148FA835C /* RegionalReferenceSelection.swift in Sources */,
 				5DFE90D94E4736A49578A44A /* RouteTrailSummaryCard.swift in Sources */,
 				555FF320ED5DF3A6F5CC1756 /* SessionCompatibilityStrip.swift in Sources */,
+				CD0F77981D281A6EFA9CC5A1 /* SocialBrandIcons.swift in Sources */,
 				1F0A5127374963A36C133F4C /* StatusMessage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1502,6 +1509,7 @@
 				B22E7128BC8A2F6CA0C5AAEA /* DeepCheckResultView.swift in Sources */,
 				9C21255D8A870D9C8D168DE1 /* GameDetailComponents.swift in Sources */,
 				A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */,
+				5989D54CC62B8EA9C36678C6 /* GamePlatformIcons.swift in Sources */,
 				86032A36D170BA5A4EBF2A09 /* HistoryFeatureView.swift in Sources */,
 				B0B1CFC93427072E4DA34ACA /* HomeFavoriteGamesRail.swift in Sources */,
 				56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */,

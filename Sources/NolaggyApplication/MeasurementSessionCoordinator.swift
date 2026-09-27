@@ -15,12 +15,18 @@ public struct MeasurementSession: Equatable, Sendable {
     /// Somente para fakes de teste que não precisam resolver um catálogo real.
     public init(id: UUID = UUID(), context: GameContext) {
         self.id = id
+        let destination: ProbeDestination
+        if let dest = try? ProbeDestination(host: "127.0.0.1", port: 7770) {
+            destination = dest
+        } else {
+            preconditionFailure("Fallback probe destination should always be valid.")
+        }
         self.resolvedContext = ResolvedMeasurementContext(
             context: context,
             catalogVersion: "test",
             profileID: .battleRoyaleCompetitive,
             regionID: "test-region",
-            destination: try! ProbeDestination(host: "example.invalid", port: 7770),
+            destination: destination,
             strategy: .genericRegion,
             confidence: .medium
         )

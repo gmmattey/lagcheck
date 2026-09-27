@@ -42,6 +42,7 @@ struct VerifiedGameArtwork: View {
             ("palworld", "GamePalworld"),
             ("eafc", "GameEaFc"),
             ("pubg", "GamePubg"),
+            ("callofduty", "GameCodm"),
             ("codm", "GameCodm"),
             ("wildrift", "GameWildRift")
         ]

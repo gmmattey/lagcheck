@@ -80,6 +80,9 @@ struct HistoryView: View {
         .sheet(isPresented: $showingClearConfirmation) {
             deleteConfirmationSheet
         }
+        .sheet(item: $selectedEntryForDetails) { entry in
+            MeasurementDetailsView(entry: entry, samples: [])
+        }
     }
 
     // MARK: - Grupo por Jogo
@@ -101,10 +104,20 @@ struct HistoryView: View {
                         .foregroundStyle(NLColor.textPrimary)
                         .lineLimit(1)
 
-                    Text(verbatim: "\(group.latest.resolvedContext.context.platform.displayName) · última plataforma")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(NLColor.textTertiary)
-                        .lineLimit(1)
+                    HStack(spacing: 5) {
+                        Image(systemName: iconName(for: group.latest.resolvedContext.context.platform))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(NLColor.textSecondary)
+
+                        Text(verbatim: "·")
+                            .font(.system(size: 10))
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        Text(LocalizedStringKey("history.last_platform"))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
+                    .lineLimit(1)
                 }
 
                 Spacer()
@@ -135,12 +148,11 @@ struct HistoryView: View {
         Button(action: {
             selectedEntryForDetails = entry
         }) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .center, spacing: 10) {
                 Text(symbolForEntry(entry))
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(colorForEntry(entry))
                     .frame(width: 15, alignment: .leading)
-                    .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(verdictTitleForEntry(entry))
@@ -159,6 +171,18 @@ struct HistoryView: View {
                 }
 
                 Spacer()
+
+                // Ícone da plataforma correspondente ao teste
+                Image(systemName: iconName(for: entry.resolvedContext.context.platform))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(width: 28, height: 28)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(NLColor.borderHairline, lineWidth: 1)
+                    )
+                    .accessibilityLabel(entry.resolvedContext.context.platform.displayName)
             }
             .padding(.vertical, 11)
             .frame(minHeight: 66)
@@ -271,29 +295,52 @@ struct HistoryView: View {
     }
 
     // MARK: - Helpers
+    private func iconName(for platform: Platform) -> String {
+        switch platform {
+        case .iphone: return "iphone"
+        case .playstation: return "playstation.logo"
+        case .xbox: return "xbox.logo"
+        case .pc: return "display"
+        case .nintendo: return "gamecontroller.fill"
+        }
+    }
+
     private func symbolForEntry(_ entry: MeasurementHistoryEntry) -> String {
         if entry.isInconclusive { return "—" }
-        switch entry.result.resultClass {
-        case .excellent, .great: return "●"
-        case .unstable, .lagRisk: return "▲"
+        switch entry.readinessVerdict {
+        case .ready: return "●"
+        case .caution, .notReady: return "▲"
+        case .inconclusive, .none: return "—"
         }
     }
 
     private func colorForEntry(_ entry: MeasurementHistoryEntry) -> Color {
         if entry.isInconclusive { return NLColor.textTertiary }
-        switch entry.result.resultClass {
-        case .excellent, .great: return NLColor.semanticReady
-        case .unstable, .lagRisk: return NLColor.coralSolar
+        switch entry.readinessVerdict {
+        case .ready: return NLColor.semanticReady
+        case .caution: return NLColor.semanticCaution
+        case .notReady: return NLColor.semanticNotReady
+        case .inconclusive, .none: return NLColor.textTertiary
         }
     }
 
     private func verdictTitleForEntry(_ entry: MeasurementHistoryEntry) -> String {
-        if entry.isInconclusive { return AppLocalization.string("Inconclusivo", comment: "") }
-        switch entry.result.resultClass {
-        case .excellent, .great: return AppLocalization.string("Pronto para Ranked", comment: "")
-        case .unstable: return AppLocalization.string("Condições Instáveis", comment: "")
-        case .lagRisk: return AppLocalization.string("Eu evitaria Ranked agora", comment: "")
+        if entry.isInconclusive {
+            return AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: "")
         }
+        if let verdict = entry.readinessVerdict {
+            switch verdict {
+            case .ready:
+                return AppLocalization.string("game_readiness.verdict.ready.headline", comment: "")
+            case .caution:
+                return AppLocalization.string("game_readiness.verdict.caution.headline", comment: "")
+            case .notReady:
+                return AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: "")
+            case .inconclusive:
+                return AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: "")
+            }
+        }
+        return AppLocalization.string("game_readiness.verdict.ready.headline", comment: "")
     }
 
     private func formatPing(_ entry: MeasurementHistoryEntry) -> String {

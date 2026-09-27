@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 
 /// Representa a oportunidade de otimização única de maior impacto para o jogador.
 public struct HighImpactOptimization: Equatable, Sendable {
@@ -113,12 +112,12 @@ public enum HighImpactOptimizationEvaluator {
             )
         }
 
-        // Fallback genérico para instabilidade
+        // Fallback genérico para instabilidade sem culpar operadora sem prova
         return HighImpactOptimization(
-            title: "Reiniciar Equipamento de Borda",
+            title: "Reiniciar Equipamento de Rede",
             impactBadge: "Recomendado",
             systemImage: "power",
-            instruction: "Reinicie o modem e o roteador para limpar tabelas de estado e restabelecer uma rota limpa com a operadora.",
+            instruction: "Reinicie o roteador ou reconecte à rede para renovar a concessão de IP e limpar tabelas de estado da conexão local.",
             isCritical: false
         )
     }

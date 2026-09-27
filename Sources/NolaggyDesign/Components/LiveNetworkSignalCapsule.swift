@@ -19,7 +19,7 @@ public struct LiveNetworkSignal: Equatable, Sendable {
     public let isRegionalRouteOperational: Bool
 
     public init(
-        connection: ConnectionKind = .wifi(band: .fiveGHz, gatewayRTTMs: 2.0),
+        connection: ConnectionKind = .wifi(band: .standard, gatewayRTTMs: nil),
         regionalRouteName: String = "São Paulo",
         isRegionalRouteOperational: Bool = true
     ) {

@@ -78,25 +78,21 @@ public enum LagCheckDiscordCardExporter {
             // 4. Veredito Central Gigante
             let verdictText: String
             let verdictColor: UIColor
-            let discordGamerQuote: String
+            let discordGamerQuote = gamerQuote(for: verdict)
 
             switch verdict {
             case .ready:
                 verdictText = "● PRONTO PARA RANKED"
                 verdictColor = UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1.0)
-                discordGamerQuote = "“Rota 100% lisa. Se perder no ranked hoje a culpa é sua.”"
             case .caution:
                 verdictText = "▲ INSTÁVEL: PODE TER DELAY"
                 verdictColor = UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)
-                discordGamerQuote = "“Oscilação detectada. Joga por sua conta e risco, vai ter micro-teleporte.”"
             case .notReady:
                 verdictText = "■ EVITE JOGAR RANKED AGORA"
                 verdictColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
-                discordGamerQuote = "“Nem me chama pra jogar hoje. A rota da operadora tá um lixo completo.”"
             case .inconclusive:
                 verdictText = "— RESULTADO INCONCLUSIVO"
                 verdictColor = UIColor.lightGray
-                discordGamerQuote = "“Amostras insuficientes na rota de rede. Verifique seu sinal.”"
             }
 
             // Desenhar Badge do Veredito
@@ -186,4 +182,18 @@ public enum LagCheckDiscordCardExporter {
             return nil
         }
     }
+
+    public static func gamerQuote(for verdict: GameReadinessVerdict) -> String {
+        switch verdict {
+        case .ready:
+            return "“Rota 100% lisa. Se perder no ranked hoje a culpa é sua.”"
+        case .caution:
+            return "“Oscilação detectada. Joga por sua conta e risco, vai ter micro-teleporte.”"
+        case .notReady:
+            return "“Nem me chama pra jogar hoje. A conexão tá instável demais pro ranked.”"
+        case .inconclusive:
+            return "“Amostras insuficientes na rota de rede. Verifique seu sinal.”"
+        }
+    }
 }
+

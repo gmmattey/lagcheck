@@ -1,4 +1,5 @@
 import SwiftUI
+import Network
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
@@ -21,7 +22,7 @@ struct QuickCheckFeatureView: View {
     @State var history: [MeasurementHistoryEntry] = []
     @State var showingDetails = false
     @State var destination: AppDestination = .home
-    @State var selectedTab: AppTab = .home
+    @State var selectedTab: AppTab = ProcessInfo.processInfo.arguments.contains("-ui-fixture-games-tab") ? .games : .home
     /// A aba Jogos continua sendo um destino principal da tab bar. Quando a
     /// própria Home a abre como próximo passo, porém, oferecemos retorno
     /// explícito à Home sem criar uma segunda NavigationStack ou uma barra
@@ -288,6 +289,11 @@ struct QuickCheckFeatureView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task { @MainActor in
+                    await refreshLiveNetworkSignal()
+                }
+            }
             guard phase == .background else { return }
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
@@ -310,6 +316,28 @@ struct QuickCheckFeatureView: View {
         }
         .task { await loadHistory() }
         .task { await loadRegionalPreference() }
+        .task {
+            if ProcessInfo.processInfo.arguments.contains("-ui-fixture-games-tab") {
+                selectedTab = .games
+            }
+        }
+        .task {
+            // Monitora o caminho de rede continuamente e reage a trocas (Wi-Fi, Celular, Offline)
+            let stream = AsyncStream<Void> { continuation in
+                let monitor = NWPathMonitor()
+                let queue = DispatchQueue(label: "com.nolaggy.live-network-signal")
+                monitor.pathUpdateHandler = { _ in
+                    continuation.yield()
+                }
+                continuation.onTermination = { @Sendable _ in
+                    monitor.cancel()
+                }
+                monitor.start(queue: queue)
+            }
+            for await _ in stream {
+                await refreshLiveNetworkSignal()
+            }
+        }
         .sheet(isPresented: $showingDetails) {
             if let completedEntry {
                 NavigationStack {

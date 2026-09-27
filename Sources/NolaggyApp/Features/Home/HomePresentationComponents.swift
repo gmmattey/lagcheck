@@ -1038,6 +1038,15 @@ struct HomeCatalogView: View {
         }
     }
 
+    private func effectivePlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
+        let p = platformsForGame(game)
+        if !p.isEmpty { return p }
+        let allowed = RemoteCatalogVerifier.allowedPlatforms(for: game.id)
+        let canonicalOrder: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
+        let filtered = canonicalOrder.filter { allowed.contains($0) }
+        return filtered.isEmpty ? [.iphone] : filtered
+    }
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
@@ -1060,11 +1069,10 @@ struct HomeCatalogView: View {
                     Spacer()
 
                     Image("WordmarkPrimary")
-                        .renderingMode(.template)
                         .resizable()
+                        .renderingMode(.original)
                         .scaledToFit()
-                        .foregroundStyle(NLColor.textPrimary)
-                        .frame(height: 18)
+                        .frame(height: 22)
                         .accessibilityLabel("LagCheck")
 
                     Spacer()
@@ -1155,12 +1163,14 @@ struct HomeCatalogView: View {
                                             Text(game.name)
                                                 .font(.system(size: 12, weight: .bold))
                                                 .foregroundStyle(NLColor.textPrimary)
-                                                .lineLimit(1)
-                                                .padding(.top, 8)
+                                                .lineLimit(2)
+                                                .multilineTextAlignment(.leading)
+                                                .frame(height: 30, alignment: .topLeading)
+                                                .padding(.top, 6)
                                                 .padding(.horizontal, 2)
                                         }
-                                        .padding(EdgeInsets(top: 6, leading: 6, bottom: 9, trailing: 6))
-                                        .frame(width: 93)
+                                        .padding(EdgeInsets(top: 6, leading: 6, bottom: 8, trailing: 6))
+                                        .frame(width: 95)
                                         .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 13, style: .continuous)
@@ -1177,7 +1187,7 @@ struct HomeCatalogView: View {
 
                 // Seção: Usados recentemente (quando sem busca)
                 if query.isEmpty, let firstRecent = recentItems.first {
-                    VStack(alignment: .leading, spacing: 11) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(LocalizedStringKey("games.recent"))
                             .font(NLTypography.captionMonoUppercase)
                             .foregroundStyle(NLColor.textTertiary)
@@ -1185,19 +1195,49 @@ struct HomeCatalogView: View {
                         Button {
                             sheetGame = firstRecent.game
                         } label: {
-                            HStack {
-                                Text(firstRecent.game.name)
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundStyle(NLColor.textPrimary)
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(firstRecent.game.name)
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundStyle(NLColor.textPrimary)
+                                        .lineLimit(1)
+
+                                    let recentPlatforms = effectivePlatforms(for: firstRecent.game)
+                                    HStack(spacing: 6) {
+                                        GamePlatformIconsRow(
+                                            platforms: recentPlatforms,
+                                            spacing: 6,
+                                            iconSize: 11,
+                                            foregroundColor: NLColor.textTertiary
+                                        )
+
+                                        if recentPlatforms.count == 1, let single = recentPlatforms.first {
+                                            Text(single.displayName)
+                                                .font(NLTypography.monospaceMetrics)
+                                                .foregroundStyle(NLColor.textTertiary)
+                                        }
+                                    }
+                                }
 
                                 Spacer()
 
-                                Text(verbatim: "\(platformsTitle(firstRecent.game)) · agora")
-                                    .font(.system(size: 11, design: .monospaced))
-                                    .foregroundStyle(NLColor.textTertiary)
+                                HStack(spacing: 4) {
+                                    Text(verbatim: "agora")
+                                        .font(NLTypography.monospaceSubtitle)
+                                        .foregroundStyle(NLColor.textTertiary)
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundStyle(NLColor.textTertiary)
+                                }
                             }
-                            .frame(minHeight: 38)
-                            .contentShape(Rectangle())
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 14)
+                            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(NLColor.borderStrong, lineWidth: 1)
+                            )
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("catalog-recent-item")
@@ -1230,16 +1270,27 @@ struct HomeCatalogView: View {
                                                     .stroke(NLColor.borderStrong, lineWidth: 1)
                                             )
 
-                                        VStack(alignment: .leading, spacing: 4) {
+                                        VStack(alignment: .leading, spacing: 5) {
                                             Text(game.name)
                                                 .font(.system(size: 16, weight: .bold))
                                                 .foregroundStyle(NLColor.textPrimary)
                                                 .lineLimit(1)
 
-                                            Text(platformsTitle(game))
-                                                .font(NLTypography.monospaceMetrics)
-                                                .foregroundStyle(NLColor.textTertiary)
-                                                .lineLimit(1)
+                                            let platforms = effectivePlatforms(for: game)
+                                            HStack(spacing: 6) {
+                                                GamePlatformIconsRow(
+                                                    platforms: platforms,
+                                                    spacing: 6,
+                                                    iconSize: 11,
+                                                    foregroundColor: NLColor.textTertiary
+                                                )
+
+                                                if platforms.count == 1, let single = platforms.first {
+                                                    Text(single.displayName)
+                                                        .font(NLTypography.monospaceMetrics)
+                                                        .foregroundStyle(NLColor.textTertiary)
+                                                }
+                                            }
                                         }
 
                                         Spacer()

@@ -712,6 +712,7 @@
 "details.note.meta %d" = "%d s de teste · regra de score v1";
 "history.clear" = "Limpar";
 "history.game_last_platform %@" = "%@ · última plataforma";
+"history.last_platform" = "última plataforma";
 "history.local_note" = "Histórico salvo neste dispositivo · até 100 checks por jogo";
 "history.empty.title" = "Nenhum check ainda";
 "history.empty.copy" = "Faça seu primeiro teste na Home";
@@ -756,7 +757,6 @@
 "check.alert.network_changed.title" = "A conexão mudou.";
 "check.alert.network_changed.message" = "O teste foi cancelado.";
 "check.alert.retry" = "Tentar novamente";
-"result.kicker" = "Resultado do Check";
 "result.details_button" = "Ver detalhes";
 "result.retest_button" = "Testar novamente";
 "result.weight_card.title" = "O que mais pesou";
@@ -774,6 +774,9 @@
 "history.sheet.delete_message" = "Esta ação não pode ser desfeita.";
 "common.cancel" = "Cancelar";
 "history.sheet.delete_confirm" = "Apagar";
-"common.done" = "Concluído";
 "catalog.generic_gaming_card.subtitle" = "Rota regional neutra de referência";
+"network.offline" = "Sem conexão";
+"network.cellular" = "Rede móvel";
+"network.connected" = "Conectado";
+"common.done" = "Concluído";
 

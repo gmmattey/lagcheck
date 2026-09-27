@@ -7,12 +7,32 @@ import NolaggyDomain
 extension QuickCheckFeatureView {
     var measurementView: some View {
         VStack(spacing: NLSpacing.lg) {
+            // Header in-view canônico com botão único de retorno e contexto do jogo
+            HStack {
+                Button(action: back) {
+                    Image(systemName: "chevron.backward")
+                        .font(NLTypography.navigationIcon)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityIdentifier("measurement-back")
+
+                Spacer()
+
+                Text(selectedGameName)
+                    .font(NLTypography.monospaceMetrics)
+                    .foregroundStyle(NLColor.textTertiary)
+            }
+            .frame(height: 52)
+
             Spacer(minLength: NLSpacing.xs)
 
             MeasurementLiveTrail(
                 isWiFi: selectedRegionalContext?.observedPhoneNetwork == .wifi,
                 destinationName: selectedRegionFriendlyName,
                 currentRTT: partialSamples.last?.roundTripMilliseconds,
+                progress: min(1.0, max(0.04, Double(partialSamples.count) / 30.0)),
                 sampleCount: partialSamples.count,
                 isUnderStress: false,
                 isPhaseRest: true,
@@ -24,12 +44,8 @@ extension QuickCheckFeatureView {
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
         .toolbar(.hidden, for: .tabBar)
+        .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                NolaggyBackButton(action: back, accessibilityIdentifier: "measurement-back")
-            }
-        }
     }
 
     var observedMetrics: ObservedMeasurementMetrics {
@@ -58,13 +74,13 @@ struct ObservedMeasurementMetrics {
         return "\(lossCount)"
     }
 
-    var spikes: String {
-        guard !rtts.isEmpty else { return "—" }
-        let sorted = rtts.sorted()
-        let position = Double(sorted.count - 1) * 0.5
-        let lower = Int(position.rounded(.down))
-        let upper = Int(position.rounded(.up))
-        let p50 = sorted[lower] + (sorted[upper] - sorted[lower]) * (position - Double(lower))
-        return String(rtts.filter { $0 > p50 + 30 && $0 >= 80 }.count)
+    var hasSpike: Bool {
+        guard rtts.count >= 2, let maxRTT = rtts.max(), let minRTT = rtts.min() else { return false }
+        return (maxRTT - minRTT) > 40
+    }
+
+    var spikeCount: Int {
+        guard rtts.count >= 2, let minRTT = rtts.min() else { return 0 }
+        return rtts.filter { ($0 - minRTT) > 40 }.count
     }
 }

@@ -712,6 +712,7 @@
 "details.note.meta %d" = "%d s test duration · score rule v1";
 "history.clear" = "Clear";
 "history.game_last_platform %@" = "%@ · last platform";
+"history.last_platform" = "last platform";
 "history.local_note" = "History saved on this device · up to 100 checks per game";
 "history.empty.title" = "No checks yet";
 "history.empty.copy" = "Run your first check from Home";
@@ -756,7 +757,6 @@
 "check.alert.network_changed.title" = "Connection changed.";
 "check.alert.network_changed.message" = "The test was cancelled.";
 "check.alert.retry" = "Try again";
-"result.kicker" = "Check Result";
 "result.details_button" = "View details";
 "result.retest_button" = "Test again";
 "result.weight_card.title" = "Main impact";
@@ -776,4 +776,7 @@
 "history.sheet.delete_confirm" = "Delete";
 "common.done" = "Done";
 "catalog.generic_gaming_card.subtitle" = "Neutral regional reference route";
+"network.offline" = "No connection";
+"network.cellular" = "Cellular";
+"network.connected" = "Connected";
 

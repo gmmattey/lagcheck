@@ -45,24 +45,96 @@ extension QuickCheckFeatureView {
     }
 
     var currentHomeSubtitle: String {
-        let platformName = effectivePlatform?.displayName ?? "PlayStation"
-        return "\(platformName) · Wi-Fi"
+        let platformName = effectivePlatform?.displayName ?? Platform.iphone.displayName
+        let networkName: String
+        switch liveNetworkSignal.connection {
+        case .offline:
+            networkName = localizedString("network.offline")
+        case .cellular:
+            networkName = localizedString("network.cellular")
+        case .wifi(let band, _):
+            networkName = (band == .fiveGHz) ? "Wi-Fi 5 GHz" : "Wi-Fi"
+        }
+        return "\(platformName) · \(networkName)"
+    }
+
+    var liveSignalDotColor: Color {
+        switch liveNetworkSignal.connection {
+        case .offline:
+            return NLColor.semanticNotReady
+        case .cellular:
+            return NLColor.semanticReady
+        case .wifi(let band, let gatewayRTTMs):
+            if band == .twoPointFourGHz || (gatewayRTTMs != nil && gatewayRTTMs! > 50) {
+                return NLColor.semanticCaution
+            }
+            return NLColor.semanticReady
+        }
     }
 
     var liveSignalSummaryText: String {
-        let wifiText = (selectedRegionalContext?.observedPhoneNetwork == .cellular) ? "5G" : "Wi-Fi 5 GHz"
-        if let rtt = liveNetworkSignal.gatewayRTTMs {
-            return "\(wifiText) · \(Int(rtt.rounded())) ms"
-        } else {
-            return "\(wifiText) · 18 ms"
+        switch liveNetworkSignal.connection {
+        case .offline:
+            return localizedString("network.offline")
+        case .cellular(let tech):
+            return "\(localizedString("network.cellular")) · \(tech)"
+        case .wifi(let band, let gatewayRTTMs):
+            let bandText = (band == .fiveGHz) ? "Wi-Fi 5 GHz" : "Wi-Fi"
+            if let rtt = gatewayRTTMs {
+                return "\(bandText) · \(Int(rtt.rounded())) ms"
+            } else {
+                return "\(bandText) · \(localizedString("network.connected"))"
+            }
         }
     }
 
     func latestResultSummaryText(_ entry: MeasurementHistoryEntry) -> String {
         if entry.isInconclusive {
-            return localizedString("history.inconclusive")
+            return localizedString("game_readiness.verdict.inconclusive.headline")
         }
-        return localizedString("verdict.ready_for_ranked")
+        if let verdict = entry.readinessVerdict {
+            switch verdict {
+            case .ready:
+                return localizedString("game_readiness.verdict.ready.headline")
+            case .caution:
+                return localizedString("game_readiness.verdict.caution.headline")
+            case .notReady:
+                return localizedString("game_readiness.verdict.not_ready.headline")
+            case .inconclusive:
+                return localizedString("game_readiness.verdict.inconclusive.headline")
+            }
+        }
+        return localizedString("game_readiness.verdict.inconclusive.headline")
+    }
+
+    func latestResultSymbol(_ entry: MeasurementHistoryEntry) -> String {
+        if entry.isInconclusive {
+            return "—"
+        }
+        switch entry.readinessVerdict {
+        case .ready:
+            return "●"
+        case .caution, .notReady:
+            return "▲"
+        case .inconclusive, .none:
+            return "—"
+        }
+    }
+
+    func latestResultColor(_ entry: MeasurementHistoryEntry) -> Color {
+        if entry.isInconclusive {
+            return NLColor.textSecondary
+        }
+        switch entry.readinessVerdict {
+        case .ready:
+            return NLColor.semanticReady
+        case .caution:
+            return NLColor.semanticCaution
+        case .notReady:
+            return NLColor.semanticNotReady
+        case .inconclusive, .none:
+            return NLColor.textSecondary
+        }
     }
 
     func relativeTimeString(for date: Date) -> String {
@@ -91,11 +163,11 @@ extension QuickCheckFeatureView {
                         Spacer()
                         HStack(spacing: 7) {
                             Circle()
-                                .fill(NLColor.semanticReady)
+                                .fill(liveSignalDotColor)
                                 .frame(width: 6, height: 6)
                                 .overlay {
                                     Circle()
-                                        .stroke(NLColor.semanticReady.opacity(0.18), lineWidth: 3)
+                                        .stroke(liveSignalDotColor.opacity(0.18), lineWidth: 3)
                                 }
                             Text(liveSignalSummaryText)
                                 .font(NLTypography.monospaceSubtitle)
@@ -173,8 +245,8 @@ extension QuickCheckFeatureView {
                                 showingDetails = true
                             } label: {
                                 HStack(spacing: 4) {
-                                    Text(verbatim: latest.isInconclusive ? "—" : "●")
-                                        .foregroundStyle(latest.isInconclusive ? NLColor.textSecondary : NLColor.semanticReady)
+                                    Text(verbatim: latestResultSymbol(latest))
+                                        .foregroundStyle(latestResultColor(latest))
                                         .fontWeight(.heavy)
                                     Text(latestResultSummaryText(latest))
                                         .fontWeight(.semibold)

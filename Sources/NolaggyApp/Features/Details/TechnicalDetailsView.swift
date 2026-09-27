@@ -86,10 +86,14 @@ public struct TechnicalDetailsView: View {
 
     // MARK: - 1. Veredito Compacto
     private func compactVerdictSection(result: DeepCheckResult) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(verbatim: "● \(result.restResult.resultClass.rawValue.capitalized)")
+        let classification = result.restResult.resultClass
+        let symbol = classificationSymbol(for: classification)
+        let label = localizedClassification(for: classification).uppercased()
+
+        return VStack(alignment: .leading, spacing: 5) {
+            Text(verbatim: "\(symbol) \(label)")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(colorForClass(result.restResult.resultClass))
+                .foregroundStyle(colorForClass(classification))
 
             Text(verbatim: "\(gameName) · \(regionName) · \(Date().formatted(date: .abbreviated, time: .shortened))")
                 .font(NLTypography.monospaceMetrics)
@@ -102,6 +106,26 @@ public struct TechnicalDetailsView: View {
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .stroke(NLColor.borderStrong, lineWidth: 1)
         )
+    }
+
+    private func classificationSymbol(for classification: ResultClass) -> String {
+        switch classification {
+        case .excellent, .great: return "●"
+        case .unstable, .lagRisk: return "▲"
+        }
+    }
+
+    private func localizedClassification(for classification: ResultClass) -> String {
+        switch classification {
+        case .excellent:
+            return AppLocalization.string("score.classification.excellent", comment: "")
+        case .great:
+            return AppLocalization.string("score.classification.great", comment: "")
+        case .unstable:
+            return AppLocalization.string("score.classification.unstable", comment: "")
+        case .lagRisk:
+            return AppLocalization.string("score.classification.lag_risk", comment: "")
+        }
     }
 
     // MARK: - 2. Score e Grade 2x2
@@ -157,71 +181,50 @@ public struct TechnicalDetailsView: View {
     }
 
     // MARK: - 3. Gráfico de Latência
+    @ViewBuilder
     private func latencyChartSection(result: DeepCheckResult) -> some View {
-        VStack(alignment: .leading, spacing: 11) {
-            Text(LocalizedStringKey("technical_details.percentiles_title"))
-                .font(NLTypography.captionMonoUppercase)
-                .foregroundStyle(NLColor.textTertiary)
+        let restMetrics = result.metrics.rest
+        let loadMetrics = result.metrics.load
 
-            VStack(spacing: 8) {
-                ZStack {
-                    // Metade sob carga mais escura
-                    GeometryReader { proxy in
+        if let p50Rest = restMetrics.p50Milliseconds {
+            let p95Rest = restMetrics.p95Milliseconds ?? p50Rest
+            let p50Load = loadMetrics?.p50Milliseconds ?? p50Rest
+            let p95Load = loadMetrics?.p95Milliseconds ?? p95Rest
+            let p99Load = loadMetrics?.p99Milliseconds ?? p95Load
+            let hasSpike = (restMetrics.spikeCount > 0) || ((loadMetrics?.spikeCount ?? 0) > 0)
+
+            VStack(alignment: .leading, spacing: 11) {
+                Text(LocalizedStringKey("technical_details.percentiles_title"))
+                    .font(NLTypography.captionMonoUppercase)
+                    .foregroundStyle(NLColor.textTertiary)
+
+                VStack(spacing: 8) {
+                    PercentileChartView(
+                        p50Rest: p50Rest,
+                        p95Rest: p95Rest,
+                        p50Load: p50Load,
+                        p95Load: p95Load,
+                        p99Load: p99Load,
+                        hasSpike: hasSpike
+                    )
+                    .frame(height: 118)
+                    .background(NLColor.surface)
+                    .overlay(
                         Rectangle()
-                            .fill(NLColor.borderStrong.opacity(0.35))
-                            .frame(width: proxy.size.width * 0.5)
-                            .offset(x: proxy.size.width * 0.5)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
 
-                        // Linhas de grade
-                        Path { path in
-                            let h = proxy.size.height
-                            path.move(to: CGPoint(x: 0, y: h * 0.25))
-                            path.addLine(to: CGPoint(x: proxy.size.width, y: h * 0.25))
-                            path.move(to: CGPoint(x: 0, y: h * 0.5))
-                            path.addLine(to: CGPoint(x: proxy.size.width, y: h * 0.5))
-                            path.move(to: CGPoint(x: 0, y: h * 0.75))
-                            path.addLine(to: CGPoint(x: proxy.size.width, y: h * 0.75))
-                        }
-                        .stroke(NLColor.borderStrong.opacity(0.5), lineWidth: 1)
+                    HStack {
+                        Text(LocalizedStringKey("deep_check.graph.rest"))
+                            .font(NLTypography.monospaceMetrics)
+                            .foregroundStyle(NLColor.textTertiary)
 
-                        // Traçado de linha
-                        Path { path in
-                            let w = proxy.size.width
-                            let h = proxy.size.height
-                            path.move(to: CGPoint(x: 0, y: h * 0.7))
-                            path.addLine(to: CGPoint(x: w * 0.2, y: h * 0.65))
-                            path.addLine(to: CGPoint(x: w * 0.4, y: h * 0.68))
-                            path.addLine(to: CGPoint(x: w * 0.6, y: h * 0.62))
-                            path.addLine(to: CGPoint(x: w * 0.75, y: h * 0.35)) // pico
-                            path.addLine(to: CGPoint(x: w * 0.85, y: h * 0.60))
-                            path.addLine(to: CGPoint(x: w, y: h * 0.63))
-                        }
-                        .stroke(NLColor.semanticReady, lineWidth: 2)
+                        Spacer()
 
-                        // Spike dot
-                        Circle()
-                            .fill(NLColor.coralSolar)
-                            .frame(width: 7, height: 7)
-                            .position(x: proxy.size.width * 0.75, y: proxy.size.height * 0.35)
+                        Text(LocalizedStringKey("deep_check.graph.load"))
+                            .font(NLTypography.monospaceMetrics)
+                            .foregroundStyle(NLColor.textTertiary)
                     }
-                }
-                .frame(height: 118)
-                .background(NLColor.surface)
-                .overlay(
-                    Rectangle()
-                        .stroke(NLColor.borderStrong, lineWidth: 1)
-                )
-
-                HStack {
-                    Text(LocalizedStringKey("deep_check.graph.rest"))
-                        .font(NLTypography.monospaceMetrics)
-                        .foregroundStyle(NLColor.textTertiary)
-
-                    Spacer()
-
-                    Text(LocalizedStringKey("deep_check.graph.load"))
-                        .font(NLTypography.monospaceMetrics)
-                        .foregroundStyle(NLColor.textTertiary)
                 }
             }
         }
@@ -282,14 +285,22 @@ public struct TechnicalDetailsView: View {
 
     // MARK: - 5. O Que Encontramos
     private func findingsSection(result: DeepCheckResult) -> some View {
-        VStack(alignment: .leading, spacing: 11) {
+        let jitter = result.restResult.metrics.jitterMilliseconds ?? 0
+        let jitterText = jitter <= 5.0 ? "Jitter estável (\(Int(jitter.rounded())) ms)." : "Jitter observado de \(Int(jitter.rounded())) ms."
+        let loadImpact = result.metrics.loadImpact?.increaseMilliseconds ?? 0
+        let loadInt = Int(loadImpact.rounded())
+        let loadText = loadImpact <= 15.0
+            ? (loadInt == 0 ? "Sem degradação relevante sob carga (+0 ms)." : "Degradação mínima sob carga (+\(loadInt) ms).")
+            : "Aumento de latência de +\(loadInt) ms sob carga."
+
+        return VStack(alignment: .leading, spacing: 11) {
             Text(LocalizedStringKey("technical_details.findings_title"))
                 .font(NLTypography.captionMonoUppercase)
                 .foregroundStyle(NLColor.textTertiary)
 
             VStack(spacing: 0) {
-                findingRow(title: "Estabilidade", detail: "Jitter baixo durante a medição.", isLast: false)
-                findingRow(title: "Comportamento sob carga", detail: "Sem degradação relevante na rota externa.", isLast: false)
+                findingRow(title: "Estabilidade", detail: jitterText, isLast: false)
+                findingRow(title: "Comportamento sob carga", detail: loadText, isLast: false)
                 findingRow(title: "Destino testado", detail: "\(regionName) · rota regional de referência.", isLast: true)
             }
             .padding(.horizontal, NLSpacing.md)
@@ -376,7 +387,70 @@ public struct TechnicalDetailsView: View {
     private func colorForClass(_ classification: ResultClass) -> Color {
         switch classification {
         case .excellent, .great: return NLColor.semanticReady
-        case .unstable, .lagRisk: return NLColor.coralSolar
+        case .unstable: return NLColor.scoreUnstable
+        case .lagRisk: return NLColor.coralSolar
+        }
+    }
+}
+
+struct PercentileChartView: View {
+    let p50Rest: Double
+    let p95Rest: Double
+    let p50Load: Double
+    let p95Load: Double
+    let p99Load: Double
+    let hasSpike: Bool
+
+    var body: some View {
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = proxy.size.height
+            let maxVal = max(100.0, max(p99Load, p95Rest) * 1.25)
+
+            let yRestP50 = h * (1.0 - CGFloat(min(1.0, max(0.05, p50Rest / maxVal))))
+            let yRestP95 = h * (1.0 - CGFloat(min(1.0, max(0.05, p95Rest / maxVal))))
+            let yLoadP50 = h * (1.0 - CGFloat(min(1.0, max(0.05, p50Load / maxVal))))
+            let yLoadP95 = h * (1.0 - CGFloat(min(1.0, max(0.05, p95Load / maxVal))))
+            let yLoadP99 = h * (1.0 - CGFloat(min(1.0, max(0.05, p99Load / maxVal))))
+
+            ZStack(alignment: .leading) {
+                // Metade sob carga mais escura
+                Rectangle()
+                    .fill(NLColor.borderStrong.opacity(0.35))
+                    .frame(width: w * 0.5)
+                    .offset(x: w * 0.5)
+
+                // Linhas de grade
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: h * 0.25))
+                    path.addLine(to: CGPoint(x: w, y: h * 0.25))
+                    path.move(to: CGPoint(x: 0, y: h * 0.5))
+                    path.addLine(to: CGPoint(x: w, y: h * 0.5))
+                    path.move(to: CGPoint(x: 0, y: h * 0.75))
+                    path.addLine(to: CGPoint(x: w, y: h * 0.75))
+                }
+                .stroke(NLColor.borderStrong.opacity(0.5), lineWidth: 1)
+
+                // Curva de percentis calculada
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: yRestP50))
+                    path.addLine(to: CGPoint(x: w * 0.25, y: yRestP50))
+                    path.addLine(to: CGPoint(x: w * 0.45, y: yRestP95))
+                    path.addLine(to: CGPoint(x: w * 0.55, y: yLoadP50))
+                    path.addLine(to: CGPoint(x: w * 0.75, y: yLoadP99))
+                    path.addLine(to: CGPoint(x: w * 0.88, y: yLoadP95))
+                    path.addLine(to: CGPoint(x: w, y: yLoadP50))
+                }
+                .stroke(NLColor.semanticReady, lineWidth: 2)
+
+                // Spike dot real
+                if hasSpike {
+                    Circle()
+                        .fill(NLColor.coralSolar)
+                        .frame(width: 7, height: 7)
+                        .position(x: w * 0.75, y: yLoadP99)
+                }
+            }
         }
     }
 }

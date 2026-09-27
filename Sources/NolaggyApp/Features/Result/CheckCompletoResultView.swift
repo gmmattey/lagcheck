@@ -25,10 +25,29 @@ public struct CheckCompletoResultView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var activePlatformForTips: Platform? = nil
-    @State private var exportPDFURL: URL? = nil
-    @State private var showingPDFShareSheet: Bool = false
-    @State private var discordCardURL: URL? = nil
-    @State private var showingDiscordShareSheet: Bool = false
+
+    private enum ShareDestination: Identifiable {
+        case discord(items: [Any])
+        case whatsApp(items: [Any])
+        case pdf(items: [Any])
+
+        var id: String {
+            switch self {
+            case .discord: return "discord"
+            case .whatsApp: return "whatsApp"
+            case .pdf: return "pdf"
+            }
+        }
+
+        var items: [Any] {
+            switch self {
+            case .discord(let items), .whatsApp(let items), .pdf(let items):
+                return items
+            }
+        }
+    }
+
+    @State private var activeShareDestination: ShareDestination? = nil
 
     public init(
         result: DeepCheckResult?,
@@ -177,15 +196,8 @@ public struct CheckCompletoResultView: View {
         .background(NLColor.deep.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showingPDFShareSheet) {
-            if let url = exportPDFURL {
-                ShareSheet(items: [url])
-            }
-        }
-        .sheet(isPresented: $showingDiscordShareSheet) {
-            if let url = discordCardURL {
-                ShareSheet(items: [url])
-            }
+        .sheet(item: $activeShareDestination) { destination in
+            ShareSheet(items: destination.items)
         }
     }
 
@@ -471,12 +483,11 @@ public struct CheckCompletoResultView: View {
             topOptimization: topOpt.instruction,
             optimizationSeverity: topOpt.impactBadge
         ) {
-            self.exportPDFURL = pdfURL
-            self.showingPDFShareSheet = true
+            self.activeShareDestination = .pdf(items: [pdfURL])
         }
     }
 
-    private func exportDiscordCard(evaluation: GameReadinessEvaluation) {
+    private func shareToDiscord(evaluation: GameReadinessEvaluation) {
         if let cardURL = LagCheckDiscordCardExporter.generateDiscordShareCard(
             gameName: gameName,
             regionName: regionFriendlyName,
@@ -486,8 +497,46 @@ public struct CheckCompletoResultView: View {
             packetLossPercentage: evaluation.packetLossPercentage,
             isWiFi: isWiFi
         ) {
-            self.discordCardURL = cardURL
-            self.showingDiscordShareSheet = true
+            let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
+            let shareText = "🎮 LagCheck · \(gameName)\n\(quote)\nhttps://lagcheck.app"
+            if let image = UIImage(contentsOfFile: cardURL.path) {
+                UIPasteboard.general.image = image
+                self.activeShareDestination = .discord(items: [image, shareText])
+            } else {
+                self.activeShareDestination = .discord(items: [cardURL, shareText])
+            }
+        }
+    }
+
+    private func shareToWhatsApp(evaluation: GameReadinessEvaluation) {
+        if let cardURL = LagCheckDiscordCardExporter.generateDiscordShareCard(
+            gameName: gameName,
+            regionName: regionFriendlyName,
+            verdict: evaluation.verdict,
+            pingMs: evaluation.pingMs,
+            jitterMs: evaluation.jitterMs,
+            packetLossPercentage: evaluation.packetLossPercentage,
+            isWiFi: isWiFi
+        ) {
+            let pingStr = evaluation.pingMs.map { "\(Int(round($0))) ms" } ?? "—"
+            let jitterStr = evaluation.jitterMs.map { String(format: "%.1f ms", $0) } ?? "—"
+            let lossStr = evaluation.packetLossPercentage.map { String(format: "%.1f%%", $0) } ?? "—"
+            let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
+
+            let whatsappText = """
+            🎮 *LagCheck — \(gameName)*
+            *Veredito:* \(AppLocalization.string(evaluation.headlineKey, comment: ""))
+            ⏱ *Ping:* \(pingStr) | *Jitter:* \(jitterStr) | *Perda:* \(lossStr)
+            \(quote)
+            https://lagcheck.app
+            """
+
+            if let image = UIImage(contentsOfFile: cardURL.path) {
+                UIPasteboard.general.image = image
+                self.activeShareDestination = .whatsApp(items: [image, whatsappText])
+            } else {
+                self.activeShareDestination = .whatsApp(items: [cardURL, whatsappText])
+            }
         }
     }
 
@@ -522,34 +571,62 @@ public struct CheckCompletoResultView: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier("check-completo-primary-action")
 
-            // Ações Utilitárias Compactas (Discord / PDF)
-            HStack(spacing: 12) {
-                Button(action: { exportDiscordCard(evaluation: evaluation) }) {
+            // Ações Utilitárias Compactas: Discord, Zap e PDF separados
+            HStack(spacing: 8) {
+                // Botão Discord com ícone oficial
+                Button(action: { shareToDiscord(evaluation: evaluation) }) {
                     HStack(spacing: 6) {
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .font(.system(size: 13, weight: .medium))
-                        Text(verbatim: "Discord / Zap")
-                            .font(.system(size: 12, weight: .medium))
+                        DiscordLogo(size: 15)
+                        Text(verbatim: "Discord")
+                            .font(.system(size: 12, weight: .bold))
                     }
-                    .foregroundStyle(NLColor.textSecondary)
+                    .foregroundStyle(Color(red: 88/255, green: 101/255, blue: 242/255))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 38)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .frame(height: 40)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-discord-share")
 
+                // Botão Zap (WhatsApp) com ícone oficial
+                Button(action: { shareToWhatsApp(evaluation: evaluation) }) {
+                    HStack(spacing: 6) {
+                        WhatsAppLogo(size: 15)
+                        Text(verbatim: "Zap")
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundStyle(Color(red: 37/255, green: 211/255, blue: 102/255))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("check-completo-whatsapp-share")
+
+                // Botão PDF
                 Button(action: { exportResultPDF(evaluation: evaluation) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "doc.text.fill")
                             .font(.system(size: 13, weight: .medium))
-                        Text(LocalizedStringKey("common.export_pdf"))
-                            .font(.system(size: 12, weight: .medium))
+                        Text(verbatim: "PDF")
+                            .font(.system(size: 12, weight: .bold))
                     }
                     .foregroundStyle(NLColor.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 38)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .frame(height: 40)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-export-pdf")

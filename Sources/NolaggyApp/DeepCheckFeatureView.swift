@@ -18,6 +18,7 @@ struct DeepCheckFeatureView: View {
     @State private var hasCellularConsent = false
     @State private var measurementStartTime: Date?
     @State private var hasTrackedTerminalEvent = false
+    @State private var displayProgress: Double = 0.04
 
     @State private var activeContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
@@ -218,6 +219,7 @@ struct DeepCheckFeatureView: View {
                 isWiFi: isWiFi,
                 destinationName: friendlyRegion,
                 currentRTT: samples.last?.roundTripMilliseconds,
+                progress: displayProgress,
                 sampleCount: samples.count,
                 isUnderStress: phase == .load,
                 isPhaseRest: phase == .rest,
@@ -398,8 +400,39 @@ struct DeepCheckFeatureView: View {
                 restSamples = progress.restSamples
             }
             await refreshState()
-            guard case .measuring = presentation else { return }
+            updateDisplayProgress()
+            guard case .measuring = presentation else {
+                displayProgress = 1.0
+                return
+            }
             try? await Task.sleep(for: .milliseconds(100))
+        }
+    }
+
+    private func updateDisplayProgress() {
+        let count = Double(samples.count)
+        let maxPerPhase = 30.0
+        let target: Double
+        let cap: Double
+
+        switch presentation {
+        case .measuring(.rest):
+            target = min(0.48, max(0.04, (count / maxPerPhase) * 0.48))
+            cap = 0.49
+        case .measuring(.load):
+            target = min(0.97, max(0.50, 0.50 + (count / maxPerPhase) * 0.47))
+            cap = 0.98
+        case .result, .inconclusive:
+            displayProgress = 1.0
+            return
+        default:
+            return
+        }
+
+        if displayProgress < target {
+            displayProgress = min(target, displayProgress + max(0.008, (target - displayProgress) * 0.35))
+        } else if displayProgress < cap {
+            displayProgress = min(cap, displayProgress + 0.0018)
         }
     }
 
