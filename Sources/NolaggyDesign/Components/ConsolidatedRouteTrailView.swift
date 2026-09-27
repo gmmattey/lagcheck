@@ -87,9 +87,9 @@ public struct ConsolidatedRouteTrailView: View {
             )
         }
         .padding(NLSpacing.cardPadding)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
                 .stroke(NLColor.borderSubtle, lineWidth: 0.5)
         }
     }

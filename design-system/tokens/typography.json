@@ -1,96 +1,28 @@
 {
-  "$schema": "nolaggy/tokens/typography",
-  "description": "Escala tipográfica nativa do Nolaggy, baseada estritamente no SF Pro da Apple. Alinhada ao Apple Human Interface Guidelines e à linha editorial Apple Games. Respeita Dynamic Type em 100% dos textos.",
-  "fontFamily": {
-    "primary": { "value": "-apple-system (SF Pro Text / SF Pro Display via SwiftUI system font)" }
-  },
-  "styles": {
-    "scoreDisplay": {
-      "textStyle": "largeTitle",
-      "swiftUIFont": ".system(size: 64, weight: .bold, design: .default)",
-      "dynamicTypeScaling": true,
-      "usage": "Número do Nolaggy Score no anel de pontuação e no resultado principal."
-    },
-    "displayTitle": {
-      "textStyle": "largeTitle",
-      "swiftUIFont": ".system(size: 34, weight: .bold)",
-      "dynamicTypeScaling": true,
-      "usage": "Título canônico das telas raiz (Início, Jogos, Histórico, Ajustes) — Large Title limpo."
-    },
-    "headline": {
-      "textStyle": "title2",
-      "swiftUIFont": ".system(size: 22, weight: .bold)",
-      "dynamicTypeScaling": true,
-      "usage": "Classificação textual do resultado ('Conexão excelente', 'Oscilação detectada'), títulos de seção."
-    },
-    "subheadline": {
-      "textStyle": "title3",
-      "swiftUIFont": ".system(size: 20, weight: .semibold)",
-      "dynamicTypeScaling": true,
-      "usage": "Nome do jogo em destaque nos cards editoriais e telas de detalhe."
-    },
-    "bodyEmphasis": {
-      "textStyle": "headline",
-      "swiftUIFont": ".system(size: 17, weight: .semibold)",
-      "dynamicTypeScaling": true,
-      "usage": "Rótulo de métricas destacadas, texto de ações primárias."
+  "$schema": "lagcheck/tokens/typography",
+  "description": "Pilhas tipográficas do LagCheck Design System definidas em colors_and_type.css e DESIGN.md. Display arredondada para títulos e vereditos; Corpo nativo Apple para leitura e controles; Técnica monoespaçada para métricas e telemetria.",
+  "fontFamilies": {
+    "display": {
+      "css": "ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif",
+      "swiftUI": ".system(..., design: .rounded)",
+      "usage": "Vereditos, nomes de jogo, score e títulos de grande impacto."
     },
     "body": {
-      "textStyle": "body",
-      "swiftUIFont": ".body",
-      "dynamicTypeScaling": true,
-      "usage": "Texto corrido, explicações contextuais de rota e veredito."
+      "css": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "swiftUI": ".system(..., design: .default)",
+      "usage": "Texto de leitura, botões de controle, parágrafos explicativos."
     },
-    "callout": {
-      "textStyle": "callout",
-      "swiftUIFont": ".callout",
-      "dynamicTypeScaling": true,
-      "usage": "Banners de insight, checklists de recomendação."
-    },
-    "contextDisclosure": {
-      "textStyle": "caption",
-      "swiftUIFont": ".caption",
-      "dynamicTypeScaling": true,
-      "usage": "Nota curta de contexto (ex.: 'Rota regional São Paulo · sa-east-1')."
-    },
-    "subheadlineSecondary": {
-      "textStyle": "subheadline",
-      "swiftUIFont": ".subheadline",
-      "dynamicTypeScaling": true,
-      "usage": "Texto secundário sob títulos, valores numéricos de latência/jitter."
-    },
-    "footnote": {
-      "textStyle": "footnote",
-      "swiftUIFont": ".footnote",
-      "dynamicTypeScaling": true,
-      "usage": "Metadados: região, horário, protocolo e notas de medição."
-    },
-    "caption": {
-      "textStyle": "caption",
-      "swiftUIFont": ".caption",
-      "dynamicTypeScaling": true,
-      "usage": "Rótulos compactos e legendas secundárias."
-    },
-    "captionStrong": {
-      "textStyle": "caption2",
-      "swiftUIFont": ".system(size: 12, weight: .semibold)",
-      "dynamicTypeScaling": true,
-      "usage": "Tags de plataforma, badges de status ('Pronto para Partida', '18ms')."
+    "mono": {
+      "css": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "swiftUI": ".system(..., design: .monospaced) / .monospacedDigit()",
+      "usage": "Rota, métricas observadas, tempo, ping/jitter/perda e contexto de rede."
     }
   },
-  "lineHeight": {
-    "tight": { "value": 1.1, "usage": "scoreDisplay" },
-    "snug": { "value": 1.2, "usage": "headline, displayTitle" },
-    "normal": { "value": 1.35, "usage": "body, callout" },
-    "relaxed": { "value": 1.5, "usage": "explicações longas em Detalhes" }
-  },
-  "letterSpacing": {
-    "default": { "value": "0" },
-    "caps": { "value": "0.04em", "usage": "captionStrong quando renderizado em versalete (ex.: badges de plataforma)." }
-  },
-  "accessibility": {
-    "dynamicTypeSupport": "Todos os estilos usam text styles nativos do sistema e escalam automaticamente com Dynamic Type, incluindo AX1–AX5.",
-    "minimumScaleFactorPolicy": "Não usar minimumScaleFactor em textos de decisão (score, classificação, ações). É permitido em rótulos curtos de badge quando o truncamento comprometeria a leitura, nunca abaixo de 0.8.",
-    "maxDynamicTypeGuard": "scoreDisplay e headline usam .dynamicTypeSize(...DynamicTypeSize.accessibility3) como teto de layout, trocando para composição vertical acima disso para não quebrar o layout do resultado."
+  "tracking": {
+    "displayTight": -0.8,
+    "displaySnug": -0.5,
+    "default": 0,
+    "monoWide": 1.2,
+    "monoExtraWide": 1.5
   }
 }

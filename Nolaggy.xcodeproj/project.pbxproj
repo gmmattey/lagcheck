@@ -109,6 +109,7 @@
 		6A61F91AA7E34DC7DE4EE356 /* GlobalProbeRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F59ABE1787BB4E9581AFF31 /* GlobalProbeRegistry.swift */; };
 		6DCCA911D6938126898DD8CB /* AnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2352C11B8B90DB278A8D6FD1 /* AnalyticsTests.swift */; };
 		6EEF7A4B6B6A0E44D03A5E3E /* RegionalSelectionFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51D4F39F3D3AA8985862D7D /* RegionalSelectionFeatureView.swift */; };
+		6F718CB0A80D4EDA2B415848 /* LagCheckDiscordCardExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C000E4988E40024D26E2A /* LagCheckDiscordCardExporter.swift */; };
 		6FB60E66B116C5594C665C34 /* RemoteCatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC26C17EAC2A1936129A8AA /* RemoteCatalogRepository.swift */; };
 		6FBF975C2B8D7ED661A7FADB /* DeepCheckSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12FC95A6691DD0F7B1DABD3E /* DeepCheckSessionCoordinator.swift */; };
 		70272764501390996F619C70 /* NolaggyDesign.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E32F5C986CB613D2B21ED68 /* NolaggyDesign.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -436,6 +437,7 @@
 		56D3E11571E026399E1DA00B /* GameDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDetailView.swift; sourceTree = "<group>"; };
 		599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiBandModels.swift; sourceTree = "<group>"; };
 		5AE9827F20DE833BFFD97A19 /* VocabularyGuardrail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyGuardrail.swift; sourceTree = "<group>"; };
+		5C9C000E4988E40024D26E2A /* LagCheckDiscordCardExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckDiscordCardExporter.swift; sourceTree = "<group>"; };
 		5CE082E42929EB89C90445FF /* HomeFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFeatureView.swift; sourceTree = "<group>"; };
 		5D3808948A9F1315C4A2A29F /* MeasurementLiveTrail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementLiveTrail.swift; sourceTree = "<group>"; };
 		5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NolaggyInfrastructure.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -672,6 +674,7 @@
 				9C7612D2FB84BDDF747887D8 /* ConnectionBoosterSheet.swift */,
 				138A6AC1F43869E0471AA92C /* DeepCheckFeatureView.swift */,
 				8E8315C93542EEF83E273FEF /* Info.plist */,
+				5C9C000E4988E40024D26E2A /* LagCheckDiscordCardExporter.swift */,
 				EA4CFF2FC2849653DE99298A /* LagCheckPDFExporter.swift */,
 				51691B9C7D5F278315F11757 /* NolaggyApp.swift */,
 				19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */,
@@ -1504,6 +1507,7 @@
 				56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */,
 				2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */,
 				8E30DDC9A3137FF07777F52A /* LagCheckAppIntents.swift in Sources */,
+				6F718CB0A80D4EDA2B415848 /* LagCheckDiscordCardExporter.swift in Sources */,
 				15CE2473993E8B635308E6E0 /* LagCheckPDFExporter.swift in Sources */,
 				5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */,
 				1D2E950ED0F95C7AD799D84C /* MeasurementProgressView.swift in Sources */,

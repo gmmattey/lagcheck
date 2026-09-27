@@ -235,12 +235,12 @@ struct GameDetailCinemaHeroBanner: View {
             // O título basta para orientar a escolha sem introduzir metadados
             // de terceiros antes de sua auditoria.
             Text(game.name)
-                .font(.system(.title, design: .default, weight: .black))
+                .font(NLTypography.displayTitle)
                 .foregroundStyle(.white)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.bottom, NLSpacing.md)
+                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                .padding(.bottom, NLSpacing.md)
         }
     }
 }
@@ -418,10 +418,6 @@ struct GameDetailExclusiveHistoryCard: View {
     private func formattedDate(_ date: Date) -> String {
         date.formatted(.relative(presentation: .named))
     }
-}
-
-private extension MeasurementHistoryEntry {
-    var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
 }
 
 /// Acordeão com observações verificáveis da conexão e da plataforma.

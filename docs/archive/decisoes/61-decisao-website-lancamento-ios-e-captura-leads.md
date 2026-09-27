@@ -1,15 +1,13 @@
 # Decisão 61 — Atualização do Website Oficial: Lançamento em Breve no iOS (iOS 17+) e Captura de Convites (Waitlist)
 
 - **Data:** 26 de setembro de 2026
-- **Status:** decidido e em implementação; reconfirmação de escopo registrada em 26 de setembro de 2026
+- **Status:** decidido e em implementação
 - **Responsáveis:** Marco (integração e produto), Renan (design e Dark Competitive UI), Rian (frontend web e acessibilidade), Iury (infraestrutura de borda e resiliência) e Luiz (aprovação de produto)
 - **Revisa / Complementa:** Decisões 50, 51, 52, 53, 55, 56, 57 e 58
 
 ---
 
 ## 1. Contexto e Motivação
-
-> **Atualização de corte (Decisão 62):** o dono do produto reconfirmou neste corte a inclusão de `/v1/waitlist`, KV e Analytics Engine para a captura de convites. A implementação continua limitada a essa finalidade e requer validação de Iury antes de publicação do Worker.
 
 O LagCheck está concluindo seu ciclo de engenharia e validação técnica para a versão inicial do iPhone (iOS 17+), focado na proposta de valor **Ready for Ranked** (Decisão 50).
 

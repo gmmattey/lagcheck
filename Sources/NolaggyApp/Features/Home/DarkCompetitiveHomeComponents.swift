@@ -126,7 +126,7 @@ public struct DarkCompetitiveHeroCard: View {
                 )
             }
 
-            // Botão Dominante de Ação Coral Solar [ FAZER CHECK ] (Sem ⚡)
+            // Botão Dominante de Ação Roxo Gamer [ FAZER CHECK ] (Sem ⚡)
             Button(action: onStartCheck) {
                 HStack(spacing: NLSpacing.xs) {
                     if isMeasuring {
@@ -139,10 +139,16 @@ public struct DarkCompetitiveHeroCard: View {
                         .tracking(NLTypography.ctaTracking)
                 }
                 .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, minHeight: 52)
+                .frame(maxWidth: .infinity, minHeight: NLSizing.primaryButtonHeight)
                 .background(
-                    isMeasuring ? NLColor.coralSolar.opacity(0.6) : NLColor.coralSolar,
-                    in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
+                    isMeasuring ? NLColor.accentPrimary.opacity(0.6) : NLColor.accentPrimary,
+                    in: RoundedRectangle(cornerRadius: NLRadius.lg, style: .continuous)
+                )
+                .shadow(
+                    color: isMeasuring ? Color.clear : NLShadow.actionColor,
+                    radius: NLShadow.actionRadius,
+                    x: 0,
+                    y: NLShadow.actionYOffset
                 )
             }
             .buttonStyle(.plain)
@@ -317,7 +323,7 @@ public struct DarkCompetitiveQuickRail: View {
                                         .overlay(
                                             RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
                                                 .stroke(
-                                                    isGenericSelected ? NLColor.coralSolar : NLColor.borderHairline,
+                                                    isGenericSelected ? NLColor.accentPrimary : NLColor.borderHairline,
                                                     lineWidth: isGenericSelected ? 2 : 1
                                                 )
                                         )
@@ -349,7 +355,7 @@ public struct DarkCompetitiveQuickRail: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
                                             .stroke(
-                                                isSelected ? NLColor.coralSolar : NLColor.borderHairline,
+                                                isSelected ? NLColor.accentPrimary : NLColor.borderHairline,
                                                 lineWidth: isSelected ? 2 : 1
                                             )
                                     )
@@ -378,7 +384,7 @@ public struct DarkCompetitiveQuickRail: View {
                                     )
                                 Image(systemName: "plus")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundStyle(NLColor.coralSolar)
+                                    .foregroundStyle(NLColor.accentPrimary)
                             }
 
                             Text(LocalizedStringKey("home.quick_rail.more"))

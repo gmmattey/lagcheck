@@ -54,6 +54,7 @@ struct QuickCheckFeatureView: View {
     @State var liveNetworkSignal: LiveNetworkSignal = LiveNetworkSignal()
     @State var showingCockpit = false
     @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
+    @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
     @State private var hasTrackedAppOpen = false
 
     var preferredGamingPlatform: Platform? {
@@ -180,9 +181,11 @@ struct QuickCheckFeatureView: View {
                             showHistory: {
                                 showingSettings = false
                                 showingHistory = true
+                            },
+                            onDismiss: {
+                                showingSettings = false
                             }
                         )
-                        .toolbar(.hidden, for: .tabBar)
                     }
                     .navigationDestination(isPresented: $showingHistory) {
                         HistoryView(
@@ -194,9 +197,9 @@ struct QuickCheckFeatureView: View {
                                 showingHistory = false
                                 showingSettings = true
                             },
-                            showsBackHeader: true
+                            showsBackHeader: true,
+                            deleteHistory: deleteHistory
                         )
-                        .toolbar(.hidden, for: .tabBar)
                     }
                     .navigationDestination(item: $selectedGameForDetails) { game in
                         GameDetailView(
@@ -240,7 +243,8 @@ struct QuickCheckFeatureView: View {
                                 showingHistory = false
                                 showingSettings = true
                             },
-                            showsBackHeader: true
+                            showsBackHeader: true,
+                            deleteHistory: deleteHistory
                         )
                         .toolbar(.hidden, for: .tabBar)
                     }
@@ -269,18 +273,6 @@ struct QuickCheckFeatureView: View {
                 Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
-
-            // Tab 3: Rede (Cockpit de Rede nativo)
-            NavigationStack {
-                NetworkCockpitView(showsDismissButton: false)
-                    .background(NolaggyScreenBackground())
-                    .toolbarBackground(.hidden, for: .navigationBar)
-                    .toolbarColorScheme(.dark, for: .navigationBar)
-            }
-            .tabItem {
-                Label(LocalizedStringKey("navigation.network"), systemImage: "network")
-            }
-            .tag(AppTab.network)
         }
         .tint(NLColor.accentPrimary)
         .toolbarBackground(NLColor.backgroundRaised.opacity(0.9), for: .tabBar)
@@ -358,11 +350,9 @@ struct QuickCheckFeatureView: View {
                 try? await Task.sleep(nanoseconds: 100_000_000)
                 startLagCheckFromCTA()
             }
-        } else if host == "network" || host == "wifi" || host == "cockpit" || path == "/network" || path == "/wifi" {
-            selectedTab = .network
         } else if host == "games" || host == "catalog" || path == "/games" {
             selectedTab = .games
-        } else if host == "home" {
+        } else if host == "home" || host == "network" || host == "wifi" || host == "cockpit" {
             selectedTab = .home
         }
     }
@@ -536,9 +526,9 @@ struct QuickCheckFeatureView: View {
     }
 
     /// Inicia a medição de 1 toque diretamente para o jogo alvo sem abrir modal intermediário (Decisão 56).
-    func startCheckDirectly(for game: CatalogMeasurementJourney.Game) {
+    func startCheckDirectly(for game: CatalogMeasurementJourney.Game, platform: Platform? = nil, declaredExternalLink: ExternalEquipmentLink? = nil) {
         analyticsTracker.track(.gameSelected(gameID: game.id))
-        if let resolved = resolveGameContext(game) {
+        if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: declaredExternalLink) {
             openDeepCheck(resolvedContext: resolved)
         } else {
             startGeneralGamingCheckDirectly()

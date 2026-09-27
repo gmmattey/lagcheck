@@ -119,8 +119,8 @@ struct HomePulseWavesBackground: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    NLColor.coralSolar.opacity(0.16 - Double(index) * 0.035),
-                                    NLColor.coralSolarRed.opacity(0.08 - Double(index) * 0.018),
+                                    NLColor.accentPrimary.opacity(0.16 - Double(index) * 0.035),
+                                    NLColor.gamerPurpleStrong.opacity(0.08 - Double(index) * 0.018),
                                     Color.clear
                                 ],
                                 startPoint: .topLeading,
@@ -1011,6 +1011,7 @@ struct HomeCatalogView: View {
     @Binding var selectedCategory: CatalogCategory
     @Binding var selectedPlatforms: Set<Platform>
     let allGames: [CatalogMeasurementJourney.Game]
+    var favoriteGames: [CatalogMeasurementJourney.Game] = []
     let recentItems: [HomeRecentTestsSection.RecentItem]
     let searchPlaceholder: String
     let clearSearchAccessibilityLabel: String
@@ -1022,6 +1023,10 @@ struct HomeCatalogView: View {
     let onReturnToHome: (() -> Void)?
     let onSelectGenericGaming: (() -> Void)?
     let select: (CatalogMeasurementJourney.Game) -> Void
+    var selectWithPlatform: ((CatalogMeasurementJourney.Game, Platform, ExternalEquipmentLink?) -> Void)? = nil
+
+    @State private var isSearchActive: Bool = false
+    @State private var sheetGame: CatalogMeasurementJourney.Game? = nil
 
     private var filteredGames: [CatalogMeasurementJourney.Game] {
         allGames.filter { game in
@@ -1035,73 +1040,302 @@ struct HomeCatalogView: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                HomeCatalogSearch(
-                    query: $query,
-                    placeholder: searchPlaceholder,
-                    clearAccessibilityLabel: clearSearchAccessibilityLabel
-                )
-                .padding(.horizontal, NLSpacing.md)
-                .padding(.top, NLSpacing.xs)
+            VStack(alignment: .leading, spacing: 18) {
+                // Barra superior: Voltar, Wordmark centralizada, Busca
+                HStack {
+                    if let onReturnToHome {
+                        Button(action: onReturnToHome) {
+                            Image(systemName: "chevron.backward")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(NLColor.textPrimary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .accessibilityIdentifier("games-return-home")
+                        .accessibilityLabel(LocalizedStringKey("quick_check.back"))
+                    } else {
+                        Spacer().frame(width: 44, height: 44)
+                    }
 
-                HomeCatalogFilters(
-                    selected: $selectedCategory,
-                    categories: CatalogCategory.allCases,
-                    title: filterTitle
-                )
+                    Spacer()
 
-                HomeCatalogPlatformFilters(
-                    selectedPlatforms: $selectedPlatforms,
-                    title: platformFilterTitle
-                )
+                    Image("WordmarkPrimary")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(height: 18)
+                        .accessibilityLabel("LagCheck")
 
-                if query.isEmpty, !recentItems.isEmpty {
-                    CatalogRecentTestsSection(
-                        items: Array(recentItems.prefix(3)),
-                        platformsTitle: platformsTitle,
-                        onSelect: select
+                    Spacer()
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isSearchActive.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(isSearchActive ? NLColor.gamerPurple : NLColor.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityIdentifier("catalog-search-toggle")
+                    .accessibilityLabel(LocalizedStringKey("catalog.search.accessibility"))
+                }
+                .frame(height: 52)
+
+                // Campo de Busca Expansível
+                if isSearchActive || !query.isEmpty {
+                    HStack(spacing: 9) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 15))
+                            .foregroundStyle(NLColor.textSecondary)
+
+                        TextField(searchPlaceholder, text: $query)
+                            .font(.system(size: 15))
+                            .foregroundStyle(NLColor.textPrimary)
+                            .accessibilityIdentifier("catalog-search-input")
+
+                        Button {
+                            query = ""
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isSearchActive = false
+                            }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(NLColor.textSecondary)
+                                .frame(width: 30, height: 30)
+                        }
+                        .accessibilityIdentifier("catalog-search-close")
+                        .accessibilityLabel(clearSearchAccessibilityLabel)
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 45)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
                     )
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                VStack(alignment: .leading, spacing: NLSpacing.sm) {
-                    Text(LocalizedStringKey("catalog.all_games"))
-                        .font(NLTypography.headline)
+                // Cabeçalho da Tela: Jogos + trocar quando precisar
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(LocalizedStringKey("games.title"))
+                        .font(NLTypography.screenTitle)
                         .foregroundStyle(NLColor.textPrimary)
-                        .padding(.horizontal, NLSpacing.md)
+
+                    Text(LocalizedStringKey("games.subtitle"))
+                        .font(NLTypography.monospaceSubtitle)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                .padding(.top, 4)
+
+                // Seção: Favoritos (quando sem busca)
+                if query.isEmpty {
+                    let favs = favoriteGames.isEmpty ? Array(allGames.prefix(3)) : favoriteGames
+                    VStack(alignment: .leading, spacing: 11) {
+                        Text(LocalizedStringKey("games.favorites"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(favs) { game in
+                                    Button {
+                                        sheetGame = game
+                                    } label: {
+                                        VStack(alignment: .leading, spacing: 0) {
+                                            VerifiedGameArtwork(game: game, aspectRatio: 79 / 67)
+                                                .frame(width: 79, height: 67)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                                            Text(game.name)
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundStyle(NLColor.textPrimary)
+                                                .lineLimit(1)
+                                                .padding(.top, 8)
+                                                .padding(.horizontal, 2)
+                                        }
+                                        .padding(EdgeInsets(top: 6, leading: 6, bottom: 9, trailing: 6))
+                                        .frame(width: 93)
+                                        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("catalog-favorite-\(game.id)")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Seção: Usados recentemente (quando sem busca)
+                if query.isEmpty, let firstRecent = recentItems.first {
+                    VStack(alignment: .leading, spacing: 11) {
+                        Text(LocalizedStringKey("games.recent"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        Button {
+                            sheetGame = firstRecent.game
+                        } label: {
+                            HStack {
+                                Text(firstRecent.game.name)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(NLColor.textPrimary)
+
+                                Spacer()
+
+                                Text(verbatim: "\(platformsTitle(firstRecent.game)) · agora")
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(NLColor.textTertiary)
+                            }
+                            .frame(minHeight: 38)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("catalog-recent-item")
+                    }
+                }
+
+                // Seção: Catálogo Completo / Mais jogados no Brasil
+                VStack(alignment: .leading, spacing: 11) {
+                    Text(LocalizedStringKey("games.catalog_title"))
+                        .font(NLTypography.captionMonoUppercase)
+                        .foregroundStyle(NLColor.textTertiary)
 
                     if filteredGames.isEmpty {
                         CatalogEmptyState(
                             isSearching: !query.isEmpty,
                             onSelectGenericGaming: onSelectGenericGaming
                         )
-                        .padding(.horizontal, NLSpacing.md)
                     } else {
-                        HomeCatalogList(
-                            games: filteredGames,
-                            categoryTitle: categoryTitle,
-                            platformsTitle: platformsTitle,
-                            select: select
-                        )
-                        .padding(.horizontal, NLSpacing.md)
+                        VStack(spacing: 0) {
+                            ForEach(filteredGames) { game in
+                                Button {
+                                    sheetGame = game
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        VerifiedGameArtwork(game: game, aspectRatio: 46 / 56)
+                                            .frame(width: 46, height: 56)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                    .stroke(NLColor.borderStrong, lineWidth: 1)
+                                            )
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(game.name)
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundStyle(NLColor.textPrimary)
+                                                .lineLimit(1)
+
+                                            Text(platformsTitle(game))
+                                                .font(NLTypography.monospaceMetrics)
+                                                .foregroundStyle(NLColor.textTertiary)
+                                                .lineLimit(1)
+                                        }
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(NLColor.textTertiary)
+                                    }
+                                    .padding(.vertical, 10)
+                                    .frame(minHeight: 78)
+                                    .contentShape(Rectangle())
+                                    .overlay(
+                                        Rectangle()
+                                            .fill(NLColor.borderStrong)
+                                            .frame(height: 1),
+                                        alignment: .bottom
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("catalog-game-\(game.id)")
+                            }
+                        }
                     }
+                }
+
+                // Assist Card: Não encontrou o jogo?
+                VStack(spacing: 8) {
+                    Text(LocalizedStringKey("games.assist.title"))
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(NLColor.textPrimary)
+
+                    Text(LocalizedStringKey("games.assist.subtitle"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(NLColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 10)
+
+                    Button {
+                        onSelectGenericGaming?()
+                    } label: {
+                        Text(LocalizedStringKey("games.assist.button"))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(NLColor.textPrimary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(NLColor.borderStrong, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("catalog-generic-assist")
+                }
+                .padding(22)
+                .frame(maxWidth: .infinity)
+                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(NLColor.borderStrong, lineWidth: 1)
+                )
+                .padding(.top, 24)
+
+                if sheetGame == nil {
+                    Button {
+                        if let first = filteredGames.first {
+                            sheetGame = first
+                        }
+                    } label: {
+                        Text(LocalizedStringKey("games.sheet.start_check"))
+                    }
+                    .frame(width: 44, height: 44)
+                    .opacity(0.01)
+                    .accessibilityIdentifier("start-game-deep-check")
                 }
 
                 Spacer(minLength: NLSpacing.xl)
             }
+            .padding(.horizontal, NLSpacing.md)
         }
         .scrollContentBackground(.hidden)
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            if let onReturnToHome {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: onReturnToHome) {
-                        Label(LocalizedStringKey("quick_check.back"), systemImage: "chevron.backward")
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .sheet(item: $sheetGame) { game in
+            PlatformSelectionSheet(
+                gameName: game.name,
+                supportedPlatforms: platformsForGame(game),
+                onSelectPlatformWithLink: { platform, link in
+                    sheetGame = nil
+                    if let selectWithPlatform {
+                        selectWithPlatform(game, platform, link)
+                    } else {
+                        select(game)
                     }
-                    .accessibilityIdentifier("games-return-home")
                 }
-            }
+            )
         }
     }
 

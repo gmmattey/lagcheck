@@ -15,13 +15,15 @@ O objetivo não é criar burocracia. É evitar três erros caros: prometer preci
 
 | Pessoa | Frente | Responsabilidade principal | Não decide sozinho |
 | --- | --- | --- | --- |
-| Marco | Produto e integração | Visão, escopo, prioridade, gatekeeper do MVP P0/P1 da iniciativa *Lagcheck Competitive Redesign + Ready Check* | Mudança de marca ou promessa pública sem aprovação do dono do produto |
+| Marco | Produto e integração | Visão, escopo, prioridade, orquestrador de entrada e gatekeeper do MVP P0/P1 (*Lagcheck Competitive Redesign + Ready Check*) | Mudança de marca ou promessa pública sem aprovação do dono do produto |
 | Renan | Design de Produto | Design system **Dark Competitive UI**, jornada direta, estados, acessibilidade, assets e QA visual | Regras de veredito/score, escopo funcional ou arquitetura de medição |
 | Rian | iOS | Arquitetura SwiftUI, módulos, persistência SwiftData por vereditos/jogos, cliente de telemetria e entrega | Semântica das métricas, calibração de veredito ou alteração de jornada |
 | Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica e rotas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
-| Dono do produto | Direção de negócio | Validação de hipótese de retenção, mudanças de escopo, monetização, marca e autorização de release | — |
+| Breno | QA & Reliability | Validação independente, suites de testes, análise estática, regressão e validação em hardware físico (iPhone com iOS 17+) | Aprovação de escopo de produto ou dispensa de testes obrigatórios |
+| Camillo | Arquitetura Transversal | Principal Engineer Buildea, conduz o Gate Arquitetural Obrigatório em APIs, persistência estrutural, contratos com Workers ou motor UDP | Não altera código rotineiro nem decide escopo funcional de produto |
+| Dono do produto | Direção de negócio | Validação de hipótese de retenção, mudanças de escopo, monetização, marca e autorização de release (Luiz) | — |
 
-Marco é o ponto único de integração. Nenhuma frente abre trabalho que mude outra fronteira sem registrar a decisão e alinhar com Marco.
+Marco é o ponto único de integração e interlocutor primário com o dono do produto (Luiz). Nenhuma frente abre trabalho que mude outra fronteira sem registrar a decisão e alinhar com Marco. Mudanças sistêmicas acionam o Gate Arquitetural de Camillo.
 
 ## 3. Princípios que não são negociáveis
 
@@ -90,26 +92,58 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - O relatório de rede reporta sintomas objetivos no bloco **"O que encontramos"**, sem culpar nós de terceiros sem isolamento comprovado.
 - Responsável pelos contratos e schemas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`), mantendo o custo recorrente zero.
 
-## 6. Fluxo de trabalho
+### 5.4 QA & Confiabilidade — Breno (em conjunto com Renan em UI)
 
+- Breno atua com independência do desenvolvedor que codificou a solução.
+- Tenta provar falhas na implementação antes de liberar qualquer entrega.
+- Valida proporcionalmente: testes de unidade (`swift test`), análise estática, build limpo no Xcode, regressão e validação em hardware físico (iPhone com iOS 17+).
+- Testa cenários adversos de rede: perda de pacotes, oscilação de jitter, descarte por background, cancelamento gracioso e inexistência de vazamento de memória.
+- Breno não escreve o código do fix que está revisando, preservando a imparcialidade do QA.
+
+### 5.5 Arquitetura Transversal — Camillo
+
+- Camillo não executa tarefas rotineiras de desenvolvimento do LagCheck; atua como arquiteto sênior transversal da Buildea.
+- Conduz o **Gate Arquitetural Obrigatório** sempre que houver:
+  1. Alteração de contratos ou rotas do Cloudflare Worker (`/v1/*`);
+  2. Modificação ou criação de APIs e protocolos de rede;
+  3. Mudanças na persistência SwiftData com impacto estrutural ou migração de schema;
+  4. Alteração de responsabilidade ou contratos entre módulos (`NolaggyDomain`, `NolaggyApplication`, etc.);
+  5. Mudança estrutural no motor central de medição UDP;
+  6. Integração cross-repo ou requisitos de segurança/privacidade com impacto sistêmico.
+- Elabora ou revisa o `.agents/architecture-plan.md` antes do início da implementação técnica.
+
+## 6. Fluxo de trabalho e Pistas de Execução (Lanes)
+
+Em conformidade com a Decisão 63 e [`.agents/WORKFLOW.md`](../.agents/WORKFLOW.md), o LagCheck opera com 5 modalidades de fluxo:
+
+### 6.1 Exploração
+Discussão de ideias, análises de viabilidade ou propostas de negócio com o Luiz. Marco conduz, analisa produto e impacto. **Nenhum código é alterado.**
+
+### 6.2 Fast lane (Mudanças locais e cosméticas)
+Para copy, micro-ajuste visual de componente, bug isolado ou refatoração simples sem alteração de contrato:
 ```text
-Ideia
-  → triagem de produto
-  → decisão registrada
-  → especificação pronta
-  → execução isolada
-  → revisão entre frentes
-  → validação
-  → aceite e atualização documental
+Marco enquadra → Rian / Iury / Renan implementa → Renan/Breno valida
 ```
 
-### 6.1 Triagem de produto
+### 6.3 Full flow comum (Features regulares)
+Para novas features ou ajustes contidos em módulos existentes:
+```text
+Marco define aceite → Renan desenha UI → Rian / Iury implementa → Breno valida → Marco confere aceite
+```
 
-Marco recebe a demanda e registra em linguagem simples: problema, pessoa afetada, resultado esperado, restrições e o que explicitamente fica fora. Se for apenas exploração, a conversa para aqui até haver decisão.
+### 6.4 Full flow sistêmica (Gate de Camillo)
+Para mudanças que tocam APIs, persistência, Worker, motor central ou contratos:
+```text
+Marco define requisitos → Camillo cria Architecture Plan → Rian / Iury implementa → Breno valida → Camillo confere aderência → Marco confere aceite
+```
 
-### 6.2 Decisão registrada
+### 6.5 Hot lane (Incidentes críticos)
+Para build quebrado ou medição inoperante:
+```text
+Fix cirúrgico por Rian/Iury → Breno valida caminho crítico → Restaurar build/release
+```
 
-Antes de iniciar, a frente dona registra a decisão no documento correto:
+### 6.6 Fontes de verdade e Documento Único de Decisões
 
 | Assunto | Fonte de verdade |
 | --- | --- |
@@ -117,11 +151,14 @@ Antes de iniciar, a frente dona registra a decisão no documento correto:
 | Limites de módulos, serviços e integração | `docs/02-arquitetura.md` |
 | Contratos, algoritmos, endpoints e critérios de validação | `docs/03-especificacao-tecnica.md` |
 | Tokens, componentes, brand e comportamento visual | `docs/04-design-system.md`, `design-system/` e `design-system/prototypes/ios-reference/` |
-| Regras de colaboração e gates | este documento |
+| Regras de colaboração, workflow e gates | este documento e `.agents/WORKFLOW.md` |
+| **Decisões registradas (08 a 63+) e novas deliberações** | **`docs/DECISOES.md` (documento único vivo de decisões)** |
+
+> **Regra do Documento Único:** Todas as decisões pontuais e históricas do produto vivem unificadas em [`docs/DECISOES.md`](DECISOES.md). Novas decisões são adicionadas cronologicamente ao final desse arquivo, sem fragmentação em arquivos isolados. Arquivos históricos individuais originais estão arquivados em `docs/archive/decisoes/`.
 
 Se uma mudança contradiz um documento anterior, a contradição precisa ser resolvida antes da implementação. Não se “corrige depois no código”.
 
-### 6.3 Definition of Ready
+### 6.7 Definition of Ready
 
 Uma tarefa está pronta para execução quando possui, no mínimo:
 

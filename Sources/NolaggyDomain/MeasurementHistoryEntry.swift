@@ -96,4 +96,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
             readinessRuleVersion: GameReadinessEvaluator.version
         )
     }
+
+    public var isInconclusive: Bool {
+        result.metrics.validResponseCount < 10 || readinessVerdict == .inconclusive
+    }
 }

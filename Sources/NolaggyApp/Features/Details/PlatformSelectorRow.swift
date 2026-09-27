@@ -35,7 +35,7 @@ struct PlatformSelectorRow: View {
                         .overlay {
                             RoundedRectangle(cornerRadius: NLRadius.controlSmall)
                                 .stroke(
-                                    isSelected ? NLColor.coralSolar.opacity(0.8) : NLColor.borderSubtle,
+                                    isSelected ? NLColor.accentPrimary.opacity(0.8) : NLColor.borderSubtle,
                                     lineWidth: isSelected ? 1.5 : NLStroke.hairline
                                 )
                         }

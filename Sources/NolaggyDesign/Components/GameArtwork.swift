@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Identidade visual neutra do jogo. Nunca imita ou incorpora IP de terceiros.
+/// Identidade visual neutra do jogo. Nunca imita ou incorpora IP de terceiros (DESIGN.md / Decisão 18).
+/// Usa raio de 8px (NLRadius.sm) e insígnia neutra em Roxo Gamer.
 public struct GameArtwork: View {
     private let image: Image?
     private let sourceRecordID: String?
@@ -22,96 +23,74 @@ public struct GameArtwork: View {
     public var body: some View {
         GeometryReader { proxy in
             ZStack {
-                if let img = resolvedImage {
-                    img
+                if let image {
+                    image
                         .resizable()
                         .scaledToFill()
                         .frame(width: proxy.size.width, height: proxy.size.height)
                         .clipped()
                         .accessibilityHidden(true)
                 } else {
-                    fallback
-                        .frame(width: proxy.size.width, height: proxy.size.height)
+                    competitiveBadge(size: proxy.size)
                 }
             }
         }
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium))
+        .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(title))
     }
 
-    private var resolvedImage: Image? {
-        if let image { return image }
-        let lower = title.lowercased()
-        let assetName: String?
-        if lower.contains("fortnite") {
-            assetName = "GameFortnite"
-        } else if lower.contains("wild rift") {
-            assetName = "GameWildRift"
-        } else if lower.contains("league") || lower.contains("lol") {
-            assetName = "GameLeagueOfLegends"
-        } else if lower.contains("warzone") {
-            assetName = "GameWarzone"
-        } else if lower.contains("call of duty") || lower.contains("cod") {
-            assetName = "GameCodm"
-        } else if lower.contains("roblox") {
-            assetName = "GameRoblox"
-        } else if lower.contains("free fire") {
-            assetName = "GameFreeFire"
-        } else if lower.contains("brawl stars") {
-            assetName = "GameBrawlStars"
-        } else if lower.contains("pubg") {
-            assetName = "GamePubg"
-        } else if lower.contains("minecraft") {
-            assetName = "GameMinecraft"
-        } else if lower.contains("valorant") {
-            assetName = "GameValorant"
-        } else if lower.contains("counter-strike") || lower.contains("cs2") || lower.contains("cs:go") || lower.contains("counter strike") {
-            assetName = "GameCs2"
-        } else if lower.contains("ea sports") || lower.contains("fifa") || lower.contains("eafc") || lower.contains("fc 2") {
-            assetName = "GameEaFc"
-        } else if lower.contains("rocket league") {
-            assetName = "GameRocketLeague"
-        } else if lower.contains("apex") {
-            assetName = "GameApexLegends"
-        } else if lower.contains("rainbow six") || lower.contains("rainbow 6") || lower.contains("r6") {
-            assetName = "GameRainbowSix"
-        } else if lower.contains("rust") {
-            assetName = "GameRust"
-        } else if lower.contains("palworld") {
-            assetName = "GamePalworld"
-        } else if lower.contains("blood strike") || lower.contains("bloodstrike") {
-            assetName = "GameBloodStrike"
-        } else if lower.contains("dota") {
-            assetName = "GameDota2"
-        } else {
-            assetName = nil
-        }
-
-        if let assetName, let uiImage = UIImage(named: assetName, in: Bundle.main, compatibleWith: nil) {
-            return Image(uiImage: uiImage)
-        }
-        return nil
-    }
-
-    private var fallback: some View {
+    private func competitiveBadge(size: CGSize) -> some View {
         ZStack {
-            NLColor.backgroundRaised
-            LinearGradient(
-                colors: [NLColor.backgroundOverlay, NLColor.backgroundRaised],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            Image(systemName: "gamecontroller")
-                .font(.system(size: NLSizing.iconMedium, weight: .medium))
-                .foregroundStyle(NLColor.textTertiary)
-                .accessibilityHidden(true)
+            RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [NLColor.panel, NLColor.surface],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            VStack(spacing: 2) {
+                Text(gameBadgeMonogram)
+                    .font(.system(size: max(14, size.width * 0.28), weight: .black, design: .monospaced))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .tracking(1.0)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(verbatim: "ROUTE")
+                    .font(.system(size: max(7, size.width * 0.11), weight: .bold, design: .monospaced))
+                    .foregroundStyle(NLColor.gamerPurple)
+                    .tracking(1.2)
+            }
         }
         .overlay {
-            RoundedRectangle(cornerRadius: NLRadius.card)
-                .stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline)
+            RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous)
+                .stroke(NLColor.borderHairline, lineWidth: 1)
         }
+    }
+
+    private var gameBadgeMonogram: String {
+        let clean = title.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if clean.contains("FORTNITE") { return "FN" }
+        if clean.contains("COUNTER") || clean.contains("CS") { return "CS2" }
+        if clean.contains("VALORANT") { return "VAL" }
+        if clean.contains("LEAGUE") || clean.contains("LOL") { return "LOL" }
+        if clean.contains("WARZONE") || clean.contains("COD") { return "COD" }
+        if clean.contains("ROBLOX") { return "RBX" }
+        if clean.contains("FREE FIRE") { return "FF" }
+        if clean.contains("ROCKET") { return "RL" }
+        if clean.contains("APEX") { return "APEX" }
+        if clean.contains("RAINBOW") || clean.contains("R6") { return "R6" }
+        if clean.contains("DOTA") { return "DOTA" }
+        if clean.contains("EA SPORTS") || clean.contains("FC") { return "EAFC" }
+        let words = clean.split(separator: " ")
+        if words.count >= 2 {
+            return String(words[0].prefix(1) + words[1].prefix(1))
+        }
+        return String(clean.prefix(3))
     }
 }
 

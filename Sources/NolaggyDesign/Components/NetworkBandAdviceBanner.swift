@@ -73,7 +73,7 @@ public struct NetworkBandAdviceBanner: View {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 10, weight: .bold))
                         }
-                        .foregroundStyle(NLColor.coralSolar)
+                        .foregroundStyle(NLColor.textLink)
                         .padding(.top, NLSpacing.xxs)
                         .frame(minHeight: NLSizing.touchTarget, alignment: .leading)
                     }
@@ -97,7 +97,7 @@ public struct NetworkBandAdviceBanner: View {
         case .positive:
             return NLColor.scoreExcellent
         case .neutral:
-            return NLColor.coralSolar
+            return NLColor.accentPrimary
         }
     }
 }

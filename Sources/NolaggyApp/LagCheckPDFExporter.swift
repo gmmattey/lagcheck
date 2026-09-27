@@ -132,12 +132,17 @@ public enum LagCheckPDFExporter {
     // MARK: - Métodos Auxiliares de Desenho Vetorial
 
     private static func drawHeader(ctx: CGContext, title: String, subtitle: String, currentY: inout CGFloat, pageWidth: CGFloat) {
-        // Marca LagCheck "lagcheck" com visual esportivo
-        let brandAttrs: [NSAttributedString.Key: Any] = [
+        // Marca LagCheck: "lag" em branco, "check" em Roxo Gamer (#7C3AED)
+        let lagAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 24, weight: .black),
-            .foregroundColor: UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1) // Coral Solar
+            .foregroundColor: UIColor.white
         ]
-        let brandStr = NSAttributedString(string: "lagcheck", attributes: brandAttrs)
+        let checkAttrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 24, weight: .black),
+            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
+        ]
+        let brandStr = NSMutableAttributedString(string: "lag", attributes: lagAttrs)
+        brandStr.append(NSAttributedString(string: "check", attributes: checkAttrs))
         brandStr.draw(at: CGPoint(x: 40, y: currentY))
 
         // Badge Diagnostic Suite à direita
@@ -184,7 +189,7 @@ public enum LagCheckPDFExporter {
 
         // Fundo do Card (#15181E)
         ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
-        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 10)
+        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
 
@@ -197,7 +202,7 @@ public enum LagCheckPDFExporter {
         // Título do Card
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1)
+            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
         ]
         NSAttributedString(string: title, attributes: titleAttrs).draw(at: CGPoint(x: 54, y: currentY + 14))
 
@@ -236,7 +241,7 @@ public enum LagCheckPDFExporter {
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
         ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
-        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 10)
+        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
         ctx.setStrokeColor(UIColor(white: 1.0, alpha: 0.08).cgColor)
@@ -244,7 +249,7 @@ public enum LagCheckPDFExporter {
 
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1)
+            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
         ]
         NSAttributedString(string: "3. PRONTIDÃO PARA PERFIS DE USO GAMER", attributes: titleAttrs).draw(at: CGPoint(x: 54, y: currentY + 14))
 
@@ -289,7 +294,7 @@ public enum LagCheckPDFExporter {
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
         ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
-        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 12)
+        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
 
@@ -345,7 +350,7 @@ public enum LagCheckPDFExporter {
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
         ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
-        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 10)
+        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
         ctx.setStrokeColor(UIColor(white: 1.0, alpha: 0.08).cgColor)
@@ -397,7 +402,7 @@ public enum LagCheckPDFExporter {
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
         ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
-        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 10)
+        let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
         ctx.setStrokeColor(UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 0.25).cgColor)

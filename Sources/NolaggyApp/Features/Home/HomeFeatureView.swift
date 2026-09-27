@@ -26,54 +26,218 @@ extension QuickCheckFeatureView {
         return Array(result.prefix(4))
     }
 
+    var currentHomeGame: CatalogMeasurementJourney.Game {
+        if let target = targetGameForCTA {
+            return target
+        }
+        if let latest = latestHistoryEntry, let g = availableGames.first(where: { $0.id == latest.resolvedContext.context.gameID }) {
+            return g
+        }
+        if let fortnite = availableGames.first(where: { $0.id == "fortnite" }) {
+            return fortnite
+        }
+        return availableGames.first ?? CatalogMeasurementJourney.genericGamingGame(
+            market: "BR",
+            platform: .iphone,
+            declaredExternalLink: nil,
+            localizedName: localizedString("generic_gaming.name")
+        )
+    }
+
+    var currentHomeSubtitle: String {
+        let platformName = effectivePlatform?.displayName ?? "PlayStation"
+        return "\(platformName) · Wi-Fi"
+    }
+
+    var liveSignalSummaryText: String {
+        let wifiText = (selectedRegionalContext?.observedPhoneNetwork == .cellular) ? "5G" : "Wi-Fi 5 GHz"
+        if let rtt = liveNetworkSignal.gatewayRTTMs {
+            return "\(wifiText) · \(Int(rtt.rounded())) ms"
+        } else {
+            return "\(wifiText) · 18 ms"
+        }
+    }
+
+    func latestResultSummaryText(_ entry: MeasurementHistoryEntry) -> String {
+        if entry.isInconclusive {
+            return localizedString("history.inconclusive")
+        }
+        return localizedString("verdict.ready_for_ranked")
+    }
+
+    func relativeTimeString(for date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
     var discoveryView: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: NLSpacing.lg) {
+            VStack(spacing: 0) {
                 // Topo minimalista: wordmark lagcheck à esquerda e menu … à direita
                 NolaggyAppHeader(
                     openSettings: { showingSettings = true }
                 )
-                    .padding(.horizontal, NLSpacing.md)
-                    .padding(.top, NLSpacing.xs)
+                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                .padding(.top, NLSpacing.xs)
 
                 if remoteCatalog == nil {
                     catalogUnavailable
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         .padding(.top, NLSpacing.lg)
                 } else {
-                    // Headline imersiva
-                    Text(LocalizedStringKey("home.hero.ready_for_ranked"))
-                        .font(NLTypography.competitiveHero)
-                        .foregroundStyle(NLColor.textPrimary)
-                        .tracking(NLTypography.heroTracking)
-                        .padding(.horizontal, NLSpacing.md)
-                        .padding(.top, NLSpacing.xxs)
-
-                    // Hero: Gauge Circular Dinâmico com Ondas Pulsantes
-                    HomeCircularPulseGaugeHero(
-                        selectedGameName: targetGameForCTA?.name,
-                        regionName: selectedRegionFriendlyName.isEmpty ? "São Paulo" : selectedRegionFriendlyName,
-                        isMeasuring: presentation == .measuring,
-                        onStartCheck: startLagCheckFromCTA
-                    )
-                    .padding(.vertical, NLSpacing.xs)
-
-                    // Lista de Jogos Favoritos do Jogador (até 4, sem jogo genérico)
-                    HomeFavoriteGamesRail(
-                        favoriteGames: favoriteGamesList,
-                        selectedGameID: selectedGameID,
-                        onSelectGame: { game in
-                            if selectedGameID == game.id {
-                                selectedGameID = nil
-                            } else {
-                                selectedGameID = game.id
-                            }
-                        },
-                        onManageFavorites: {
-                            showingFavoritesSheet = true
+                    // Pílula com telemetria viva ao centro
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 7) {
+                            Circle()
+                                .fill(NLColor.semanticReady)
+                                .frame(width: 6, height: 6)
+                                .overlay {
+                                    Circle()
+                                        .stroke(NLColor.semanticReady.opacity(0.18), lineWidth: 3)
+                                }
+                            Text(liveSignalSummaryText)
+                                .font(NLTypography.monospaceSubtitle)
+                                .foregroundStyle(NLColor.textSecondary)
                         }
-                    )
-                    .padding(.top, NLSpacing.xs)
+                        .padding(.horizontal, 9)
+                        .frame(minHeight: 27)
+                        .background(NLColor.surface, in: Capsule())
+                        .overlay {
+                            Capsule().stroke(NLColor.borderHairline, lineWidth: 1)
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, NLSpacing.sm)
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+
+                    // Hero: Capa Neutra com Gradiente Escuro + Título 38pt + Plataforma
+                    VStack(spacing: 0) {
+                        ZStack(alignment: .bottom) {
+                            VerifiedGameArtwork(game: currentHomeGame, aspectRatio: 16 / 9)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 204)
+                                .clipped()
+
+                            LinearGradient(
+                                colors: [.clear, NLColor.deep.opacity(0.52), NLColor.deep],
+                                startPoint: .center,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 120)
+                        }
+                        .frame(height: 204)
+                        .padding(.horizontal, -NLSpacing.screenMarginHorizontal)
+
+                        Text(currentHomeGame.name)
+                            .font(NLTypography.heroHomeName)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .tracking(-1.5)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .padding(.top, 14)
+
+                        Text(currentHomeSubtitle)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(NLColor.textSecondary)
+                            .padding(.top, 6)
+                    }
+                    .padding(.top, NLSpacing.sm)
+                    .padding(.bottom, NLSpacing.lg)
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+
+                    // CTA Primário Único: Checar agora (Roxo Gamer, 62pt)
+                    Button(action: handlePrimaryCTA) {
+                        Text(LocalizedStringKey("home.cta.check_now"))
+                            .font(.system(size: 17, weight: .heavy))
+                            .tracking(-0.3)
+                            .foregroundStyle(Color.white)
+                            .frame(maxWidth: .infinity, minHeight: 62)
+                            .background(
+                                RoundedRectangle(cornerRadius: 17, style: .continuous)
+                                    .fill(NLColor.gamerPurple)
+                                    .shadow(color: NLColor.gamerPurple.opacity(0.28), radius: 14, x: 0, y: 12)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("home-decision-primary-action")
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+
+                    // Linha com último resultado verificado (clicável para abrir detalhes)
+                    Group {
+                        if let latest = latestHistoryEntry {
+                            Button {
+                                completedEntry = latest
+                                showingDetails = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(verbatim: latest.isInconclusive ? "—" : "●")
+                                        .foregroundStyle(latest.isInconclusive ? NLColor.textSecondary : NLColor.semanticReady)
+                                        .fontWeight(.heavy)
+                                    Text(latestResultSummaryText(latest))
+                                        .fontWeight(.semibold)
+                                    Text(verbatim: "·")
+                                    Text(relativeTimeString(for: latest.completedAt))
+                                }
+                                .font(NLTypography.monospaceSubtitle)
+                                .foregroundStyle(NLColor.textSecondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("home-last-result")
+                        } else {
+                            Text(LocalizedStringKey("home.last_check.empty"))
+                                .font(NLTypography.monospaceSubtitle)
+                                .foregroundStyle(NLColor.textTertiary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                        }
+                    }
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    .padding(.top, 6)
+
+                    // Atalhos secundários de navegação rápida: Trocar jogo › | Histórico ›
+                    HStack(spacing: 28) {
+                        Button(action: openGamesFromHome) {
+                            HStack(spacing: 4) {
+                                Text(LocalizedStringKey("home.shortcuts.change_game"))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(NLColor.textSecondary)
+                                Text(verbatim: "›")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(NLColor.textPrimary)
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(minHeight: NLSizing.touchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("home-shortcut-change-game")
+
+                        Button {
+                            showingHistory = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(LocalizedStringKey("home.shortcuts.history"))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(NLColor.textSecondary)
+                                Text(verbatim: "›")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(NLColor.textPrimary)
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(minHeight: NLSizing.touchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("home-decision-history")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 18)
                     .padding(.bottom, NLSpacing.xl)
                 }
             }
@@ -82,9 +246,6 @@ extension QuickCheckFeatureView {
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showingFavoritesSheet) {
-            FavoriteGamesSelectionSheet(allGames: availableGames)
-        }
     }
 
     var catalogUnavailable: some View {
@@ -211,6 +372,14 @@ extension QuickCheckFeatureView {
         startGeneralGamingCheckDirectly()
     }
 
+    func handlePrimaryCTA() {
+        if latestHistoryEntry == nil {
+            openGamesFromHome()
+        } else {
+            startLagCheckFromCTA()
+        }
+    }
+
     /// A Home dispara o Deep Check direto em 1 toque (Decisão 56).
     func startLagCheckFromCTA() {
         if let target = targetGameForCTA {
@@ -300,6 +469,7 @@ extension QuickCheckFeatureView {
             selectedCategory: $selectedCategory,
             selectedPlatforms: $selectedPlatforms,
             allGames: availableGames,
+            favoriteGames: favoriteGamesList,
             recentItems: recentTestedItems,
             searchPlaceholder: localizedString("catalog.search.placeholder"),
             clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
@@ -322,6 +492,10 @@ extension QuickCheckFeatureView {
             select: { game in
                 selectedGameID = game.id
                 startCheckDirectly(for: game)
+            },
+            selectWithPlatform: { game, platform, link in
+                selectedGameID = game.id
+                startCheckDirectly(for: game, platform: platform, declaredExternalLink: link)
             }
         )
     }

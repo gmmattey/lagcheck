@@ -11,6 +11,7 @@ Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a en
 - Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check), `GET /v1/catalog.json` (catálogo remoto assinado em Debug) e `POST /v1/telemetry` (telemetria de produto anônima e mínima para validação de retenção sem PII/IP) — ver `docs/12`, `docs/14` e `docs/50`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.
 - Jogos no catálogo não exibem capa oficial, logo, personagem ou arte licenciada de terceiros. A identidade visual é uma miniatura neutra do LagCheck; o nome localizado do jogo é a identificação primária (`docs/18`).
 - Publicidade não existe no MVP1: nenhum SDK, ID ou espaço reservado de anúncio entra no binário atual. A regra vale para quando o MVP1.1 for autorizado: banner apenas em Home e Histórico; nunca bloqueia medição, score, resultado, histórico ou ação essencial (`docs/01` §11).
+- **Zero cara de IA e o Gamer Não Lê (Decisão 64):** O app é para jovem gamer competitivo no lobby esperando a partida. Proibido cardlização em excesso, títulos com subtítulos didáticos e textão explicativo. Interface rápida, visual, limpa e esportiva (cockpit de telemetria). Toda informação na tela deve cumprir a "Regra do Discord": ser traduzível para uma frase curta falada entre amigos na call.
 - O app suporta PT-BR e inglês desde a V1.
 
 ## Fontes de verdade
@@ -24,78 +25,48 @@ Leia o documento relevante antes de propor ou implementar mudanças:
 | Contratos, algoritmos e validação técnica | `docs/03-especificacao-tecnica.md` |
 | Marca, tokens, componentes e acessibilidade | `docs/04-design-system.md` e `design-system/` |
 | Composição e comportamento de interface da V1 | `design-system/prototypes/ios-reference/README.md` e `design-system/prototypes/ios-reference/source/Nolaggy iOS Prototype.dc.html` |
-| Papéis, decisões e gates | `docs/05-governanca-e-fluxo-de-trabalho.md` |
+| Papéis, decisões, workflow e gates | `docs/05-governanca-e-fluxo-de-trabalho.md` e `.agents/WORKFLOW.md` |
 | Canais, versões e publicação | `docs/06-fluxo-de-release.md` |
 | Tom, copy e localização | `docs/07-voz-do-produto.md` |
+| **Decisões registradas (08 a 63+) e novas deliberações** | **`docs/DECISOES.md` (documento único vivo de decisões)** |
 
-Além dos sete documentos estruturais acima, `docs/08` em diante registra decisões pontuais, em ordem cronológica crescente. Um número maior pode revisar, restringir ou substituir um documento anterior — confira sempre o mais recente antes de agir:
+### Regra do Documento Único de Decisões (`docs/DECISOES.md`)
 
-| Doc | Assunto | Status |
+O LagCheck adota um **único documento vivo de decisões**: [`docs/DECISOES.md`](docs/DECISOES.md). 
+- **Não crie arquivos isolados para novas decisões.** Cada nova decisão acordada pela squad e aprovada pelo dono do produto (Luiz) deve ser acrescentada cronologicamente ao final de `docs/DECISOES.md` e indexada no topo do arquivo.
+- Decisões com ID numérico maior refinam ou substituem decisões anteriores quando houver conflito.
+- Os arquivos originais históricos pontuais estão preservados em `docs/archive/decisoes/` para fins de auditoria.
+- Se documentos conflitarem, pare antes de codar, aponte a contradição e peça uma decisão. Código não substitui uma decisão de produto.
+
+## Time e governança (Squad LagCheck)
+
+Ao iniciar uma sessão ou demanda dentro deste repositório, o orquestrador principal assume a persona **Marco**, Product Lead e ponto de contato primário com o Luiz. Marco protege o posicionamento, filtra explorações de decisões e aciona os especialistas conforme a necessidade técnica:
+
+| Agente | Papel | Responsabilidade principal |
 | --- | --- | --- |
-| `08` | Decisão de iniciar por um piloto vertical de Quick Check (Fortnite · BR · iPhone) | decidido |
-| `09` | Contrato de rede do piloto: beacon UDP AWS GameLift `sa-east-1`, janela, timeouts, `genericRegion`/`medium` | decidido |
-| `10` | Experiência do piloto Quick Check; anel de score 160pt substitui variante anterior de 216pt | decidido |
-| `11` | Detalhes do resultado e Histórico local (snapshot imutável, retenção SwiftData) | decidido |
-| `12` | Deep Check do piloto; autoriza o Cloudflare Worker gratuito de `/v1/load` | decidido |
-| `13` | Parecer de design para Deep Check, Histórico e Detalhes | decidido |
-| `14` (dois documentos: técnico e de design) | Catálogo remoto assinado em Debug (Ed25519, `/v1/catalog.json`), ampliação para oito jogos BR/iPhone | decidido |
-| `15` | Contrato de artes licenciadas para capas do catálogo | **substituído pelo `docs/18`** — não adotar |
-| `16` | Seleção regional automática BR/EUA (`regional-selection-1`) | decidido; validação em iPhone físico pendente |
-| `17` | Navegação e Configurações da V1 (Home ⇄ Configurações ⇄ Histórico) | decidido e implementado |
-| `18` | Identidade visual neutra dos jogos (sem capa/logo licenciado) | decidido; substitui `docs/15` |
-| `19` | Explorar adotar taxonomia "Modo gamer" do SignallQ | **rascunho exploratório — nenhuma decisão, nenhuma autorização** |
-| `20` | Revisão de nome, telas, design system e monetização | **rascunho de auditoria — propõe opções que contrariam regras deste AGENTS.md; nenhuma decisão tomada** |
-| `21` | Nova direção visual, simples e leve | decisão de direção tomada; substitui os princípios visuais de `docs/04-design-system.md` (seções 1–2); execução pixel a pixel ainda pendente de Renan |
-| `22` | Nova jornada com lista nativa e Quick Check automático em background | decisão aprovada pelo dono do produto; em especificação e implementação pelo time |
-| `23` | Dicas de conexão com Gemini após Deep Check (CTA e checklist de otimização) | decisão aprovada para especificação e implementação |
-| `24` | Adoção definitiva do Design System Apple Games Editorial Hub (SF Pro nativo, TabView 4 abas, Hero Carousel, Shelf) | decidido e implementado |
-| `25` | Adoção da nova marca LagCheck e identidade visual Pulse Gauge Coral Solar | decidido e implementado |
-| `26` | Teto de plataformas de console no catálogo Debug (Fortnite, Roblox, Minecraft) | decidido e implementado |
-| `27` | Diagnóstico e recomendação de frequência Wi-Fi (2.4 GHz vs 5 GHz) | decidido e em implementação |
-| `28` | Servidores de teste globais (AWS GameLift UDP Beacons), submenus por continente e rotas amigáveis | decidido e em implementação |
-| `29` | Infraestruturas de medição a custo zero (AWS GameLift, Azure PlayFab QoS e Valve A2S_INFO) | decidido e em implementação |
-| `30` | Status operacional de plataformas de console a custo zero (PSN e Xbox Live) | decidido e em implementação |
-| `31` | Catálogo editorial com notas oficiais, requisitos de sistema e rede sem alucinação de dados | decidido e em implementação |
-| `32` | Diagnóstico de topologia de rede multiplayer a custo zero (tipo de NAT, CGNAT e duplo NAT via STUN RFC 5389) | decidido e em implementação |
-| `33` | Internacionalização multi-idiomas (pt-BR, en, es), resolução de mercados e lançamento global | decidido e implementado |
-| `34` | Trilha Viva de Medição (`MeasurementLiveTrail`), fluxo de pacotes UDP nos 3 nós e visualização de estresse sob carga | decidido e implementado |
-| `35` | Tela de Resultado HIG com Hero Editorial, Atestado da Rota consolidado (`RouteTrailSummaryCard`), Grid 2x2 e unificação definitiva do LagCheck | decidido e implementado |
-| `36` | Check Completo em Wi-Fi e rede móvel com consentimento de dados, trilha visual HIG sem ruído e descarte em troca de rede | decidido e em implementação |
-| `41` | Separação entre vínculo declarado do equipamento externo e rede observada no iPhone | decidido e em implementação |
-| `42` | Home orientada por estado da conexão e ação primária | decidido e em implementação |
-| `43` | Jornada única de Deep Check (substitui Quick Check na experiência visível) | decidido e implementado |
-| `44` | Identidade visual de capas geradas e artes do catálogo | decidido e implementado |
-| `45` | Exceção temporária Gemini Release 1.0.0 | decidido |
-| `46` | Reconciliação: Deep Check único e consentimento móvel | decidido e implementado |
-| `47` | Progressão visual imersiva com Pulse Gauge Coral Solar durante a medição | decidido e em implementação |
-| `48` | Experiência visual de carregamento com IA (Dicas de Otimização) | decidido e em implementação |
-| `49` | Medição geral de conexão para jogos (jogo genérico, busca sem resultado e rota regional de referência) | decidido e em implementação |
-| `50` | Reposicionamento do MVP — Ready for Ranked (Jornada direta Home → Jogo → Check → Veredito, `GameReadinessVerdict`, integridade diagnóstica, telemetria mínima remota e foco no P0/P1) | decidido e em implementação |
-| `51` | Direção Visual Dark Competitive UI e Iniciativa Unificada (“Lagcheck Competitive Redesign + Ready Check”: fundo quase preto, jogo protagonista, painéis de borda fina, telemetria viva compacta e Coral Solar de ação) | decidido e em implementação |
-| `52` | Decisão de marca: Dual-Node Vector e Wordmark Kinetic Speed Slant (substitui Pulse Gauge, alinhamento com NoPing benchmark e Dark Competitive UI) | decidido e em implementação |
-| `53` | Decisão de tipografia: Arquitetura Híbrida de Performance (NoPing benchmark: display pesado, cockpit monoespaçado e eliminação de rounded) | decidido e implementado |
-| `54` | Pílula de telemetria local ao vivo na Home (`LiveNetworkSignalCapsule`), correção do botão duplo de voltar no Histórico e resolução de jogos não listados | decidido e implementado |
-| `55` | Especificação de Melhorias em Diagnóstico, Métricas e Integridade de Rede (Grok: probe gateway local, Wi-Fi 2.4/5GHz confiável, bufferbloat multidimensional, qualidade da amostra, hierarquia de causas, spikes recorrentes, recomendações acionáveis e descarte estrito) | decidido e em implementação |
-| `56` | Jornada Direta em 1 Toque, Cockpit de Rede ("Dados da Rede") e Otimizações de Setup por Plataforma no Resultado | decidido e implementado |
-| `57` | Hero Gauge Pulsante com "Testar Agora", Meus Jogos Favoritos (até 4), Exportação de Relatórios PDF Customizados, Otimização Única de Maior Impacto e Casos de Uso com Ícones | decidido e implementado |
-| `58` | Incorporação do Relatório de Pesquisa: Detecção de Pacotes Fora de Ordem (RFC 4737), Modulação `.caution`, Mapeamento de Arquitetura de Servidores (`GameServerArchitecture`) e Recomendações de Peering | decidido e implementado |
-| `60` | Corte do Atalho de Contexto de Rede para o candidato a TestFlight (dados puramente observados no iPhone) | decidido para o release |
-| `61` | Atualização do Website Oficial: Lançamento em Breve no iOS (iOS 17+) e Captura Resiliente de Convites (Waitlist / TestFlight) | decidido e em implementação |
+| **Marco** | Product Lead / Orquestrador de entrada | Ponto único de integração com Luiz, visão, escopo MVP P0/P1 (*Lagcheck Competitive Redesign + Ready Check*), critérios de aceite e voz do produto. |
+| **Renan** | Product Designer & Visual QA | Design system **Dark Competitive UI**, protótipo canônico iOS, acessibilidade (HIG), assets autorais e QA visual rigoroso. |
+| **Rian** | iOS Engineer | Arquitetura SwiftUI, pure domain (`NolaggyDomain`), SwiftData, concorrência, ciclo de vida da sessão e entrega iOS (iOS 17+). |
+| **Iury** | Network & Edge Systems Engineer | Qualidade de rede, medição UDP determinística, STUN RFC 5389, RFC 4737, `GameReadinessVerdict`, Cloudflare Worker e custo zero. |
+| **Breno** | QA & Reliability | Validação técnica independente, testes automatizados, build Xcode, regressão e validação em hardware físico (iPhone real). |
+| **Camillo** | Principal Engineer transversal | Arquiteto sistêmico Buildea; conduz o Gate Arquitetural Obrigatório via `.agents/architecture-plan.md` em APIs, persistência, Workers ou motor UDP. |
+| **Dono do produto** | Direção de negócio (Luiz) | Aprovação de escopo, posicionamento de marca, monetização, preço e autorização de release/publicação. |
 
-Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
+### Roteamento e Pistas de Execução (Lanes)
 
-Se documentos conflitarem, pare antes de codar, aponte a contradição e peça uma decisão. Código não substitui uma decisão de produto.
+Conforme a Decisão 63 e [`.agents/WORKFLOW.md`](.agents/WORKFLOW.md), toda tarefa segue uma destas 5 pistas:
 
-## Time e interação
+1. **Exploração:** Luiz ou o time levantando hipóteses/ideias. **Não altera código.** Marco analisa impacto, viabilidade e trade-offs.
+2. **Fast lane:** Ajuste de copy, visual local, bug isolado de causa clara, teste mecânico.  
+   `Marco enquadra → Rian / Iury / Renan implementa → Renan/Breno valida proporcionalmente`.
+3. **Full flow comum:** Nova feature ou tela confinada a módulos existentes sem quebra de contrato.  
+   `Marco define aceite → Renan desenha UI → Rian / Iury implementa → Breno/Renan valida → Marco confere aceite`.
+4. **Full flow sistêmica:** Gate Arquitetural do Camillo obrigatório (API/Worker, SwiftData, motor UDP, segurança).  
+   `Marco define → Camillo elabora architecture-plan.md → Rian / Iury implementa → Breno valida → Camillo confere aderência → Marco confere aceite`.
+5. **Hot lane:** Build quebrado ou medição inoperante em produção.  
+   `Fix cirúrgico por Rian/Iury → Breno valida caminho crítico → Restaurar release`.
 
-- **Marco** integra produto, escopo, prioridade e coerência entre as frentes — é o ponto único de integração, garantindo que o escopo permaneça estritamente no MVP P0/P1 da iniciativa **“Lagcheck Competitive Redesign + Ready Check”** (Decisões 50 e 51).
-- **Renan** responde por design de produto, design system **Dark Competitive UI**, acessibilidade, assets e QA visual (Home com jogo protagonista, telemetria viva com pulso, resultado verdict-first, eliminação de card soup e Coral Solar de ação).
-- **Rian** responde por iOS, arquitetura SwiftUI, módulos (`NolaggyDomain`, `NolaggyApplication`, etc.), persistência SwiftData, cliente de telemetria anônima e entrega.
-- **Iury** responde por qualidade de rede, vereditos de prontidão (`GameReadinessVerdict`), calibração por perfil, integridade diagnóstica (probes locais, STUN, descarte de falsas acusações à WAN/Wi-Fi) e infraestrutura de borda no Cloudflare Worker (`/v1/catalog.json`, `/v1/load` e `/v1/telemetry`).
-- **Dono do produto** (Luiz — ver contexto do workspace) aprova mudanças de escopo, monetização, marca, mercados e promessas ao usuário; publicação, alteração de preço e serviço pago exigem autorização explícita dele, não só de Marco (`docs/05` §2 e §4.1).
-- Mudança que atravesse mais de uma frente só começa após alinhamento documentado entre os responsáveis e Marco.
-
-Não altere arquivo de outra frente por conveniência. Proponha a mudança, deixe claro o impacto e obtenha revisão do responsável. Não trate uma conversa exploratória como autorização de implementação.
+Não altere arquivo de outra frente por conveniência. Mudanças que cruzem frentes exigem alinhamento com Marco e, se sistêmicas, Architecture Plan de Camillo. Não trate uma conversa exploratória como autorização de implementação.
 
 ## Voz do produto
 

@@ -66,14 +66,14 @@ public struct HomeFavoriteGamesRail: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
                                             .stroke(
-                                                isSelected ? NLColor.coralSolar : NLColor.borderHairline,
+                                                isSelected ? NLColor.accentPrimary : NLColor.borderHairline,
                                                 lineWidth: isSelected ? 2 : 1
                                             )
                                     )
 
                                 if isSelected {
                                     Circle()
-                                        .fill(NLColor.coralSolar)
+                                        .fill(NLColor.accentPrimary)
                                         .frame(width: 8, height: 8)
                                         .padding(4)
                                 }
@@ -168,9 +168,9 @@ public struct FavoriteGamesSelectionSheet: View {
                     }
                 }
                 .padding(NLSpacing.sm)
-                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 10))
+                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: NLRadius.md)
                         .stroke(NLColor.borderHairline, lineWidth: 1)
                 )
                 .padding(.horizontal, NLSpacing.md)
@@ -198,7 +198,7 @@ public struct FavoriteGamesSelectionSheet: View {
                                 if isFav {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.system(size: 20))
-                                        .foregroundStyle(NLColor.coralSolar)
+                                        .foregroundStyle(NLColor.accentPrimary)
                                 } else {
                                     Image(systemName: "circle")
                                         .font(.system(size: 20))

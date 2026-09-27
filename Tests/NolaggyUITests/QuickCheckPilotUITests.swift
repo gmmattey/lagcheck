@@ -100,21 +100,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
     }
 
     @MainActor
-    func testPlatformFilterCombinesWithTheExistingCategoryFilter() {
-        let app = XCUIApplication()
-        app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-        app.launchWithSystemLanguage()
-
-        app.buttons["Games"].tap()
-        XCTAssertTrue(app.buttons["catalog-platform-pc"].waitForExistence(timeout: 3))
-        app.buttons["catalog-platform-pc"].tap()
-
-        XCTAssertTrue(app.buttons["catalog-game-cs2"].waitForExistence(timeout: 2))
-        XCTAssertFalse(app.buttons["catalog-game-call-of-duty-mobile"].exists)
-
-        app.buttons["Battle Royale"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-cs2"].exists)
-        XCTAssertFalse(app.buttons["catalog-game-dota2"].exists)
+    func testPlatformFilterCombinesWithTheExistingCategoryFilter() throws {
+        throw XCTSkip("Substituído pelo catálogo Dark Competitive de 1 toque (Mockup 02) com favoritos e busca.")
     }
 
     @MainActor
@@ -236,8 +223,9 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         startDeepCheck(app)
         XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts["check-completo-score"].exists)
         XCTAssertTrue(app.buttons["check-completo-details"].exists)
+        app.buttons["check-completo-details"].tap()
+        XCTAssertTrue(app.staticTexts["check-completo-score"].waitForExistence(timeout: 2))
     }
 
     @MainActor

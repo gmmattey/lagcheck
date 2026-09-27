@@ -1,102 +1,66 @@
 {
-  "$schema": "nolaggy/tokens/colors",
-  "description": "Tokens semânticos de cor do Nolaggy. V1 é dark-mode-only: os valores 'value' já são os finais usados em produção. Não referencie hex fora deste arquivo.",
+  "$schema": "lagcheck/tokens/colors",
+  "description": "Tokens semânticos de cor do LagCheck Design System. Escuro, técnico e calmo: Roxo Gamer para ação, seleção, foco e progresso; Coral Solar para atenção e ações destrutivas.",
   "core": {
-    "navy": {
-      "950": { "value": "#040A16" },
-      "900": { "value": "#050B18" },
-      "800": { "value": "#0A1730" },
-      "700": { "value": "#101E3D" },
-      "600": { "value": "#182A4E" },
-      "500": { "value": "#22375F" }
+    "background": {
+      "deep": { "value": "#0B0D10", "oklch": "oklch(0.158 0.011 260)", "usage": "Fundo quase-preto padrão de todas as telas." },
+      "stage": { "value": "#060709", "oklch": "oklch(0.09 0.009 260)", "usage": "Fundo de palco/canvas." },
+      "surface": { "value": "#15181E", "oklch": "oklch(0.205 0.012 260)", "usage": "Superfície grafite de cards, listas e containers." },
+      "surfaceRaised": { "value": "#1E232B", "oklch": "oklch(0.23 0.014 260)", "usage": "Superfície elevada, painéis e bottom sheet." },
+      "overlay": { "value": "rgba(255, 255, 255, 0.06)", "usage": "Camada de controle e campos sobre superfícies escuras." }
     },
-    "blue": {
-      "100": { "value": "#D6EFFF" },
-      "200": { "value": "#AEEBFF" },
-      "300": { "value": "#7FD8FF" },
-      "400": { "value": "#4FA0FF" },
-      "500": { "value": "#2E7CFF" },
-      "600": { "value": "#1A5CFF" },
-      "700": { "value": "#0A3FDB" },
-      "800": { "value": "#0031B8" },
-      "900": { "value": "#061642" }
+    "text": {
+      "primary": { "value": "#F4F5F7", "oklch": "oklch(0.955 0.006 260)", "usage": "Texto primário de alto contraste." },
+      "secondary": { "value": "#8A93A0", "oklch": "oklch(0.675 0.014 260)", "usage": "Texto secundário e legendas." },
+      "tertiary": { "value": "#555E6C", "usage": "Texto terciário, chevrons e metadados discretos." },
+      "disabled": { "value": "#373E48", "usage": "Texto e ícones desabilitados." },
+      "onAccent": { "value": "#FFFFFF", "usage": "Texto sobre botões de destaque Roxo Gamer e Coral Solar." }
     },
-    "neutral": {
-      "0": { "value": "#FFFFFF" },
-      "50": { "value": "#F5F8FF" },
-      "200": { "value": "#C7D0E4" },
-      "400": { "value": "#AAB4CC" },
-      "600": { "value": "#6B7690" },
-      "700": { "value": "#4A5470" },
-      "800": { "value": "#2A3C63" },
-      "900": { "value": "#1C2A4A" }
+    "border": {
+      "hairline": { "value": "rgba(255, 255, 255, 0.08)", "usage": "Divisores de 1px e contornos finos de cards." },
+      "subtle": { "value": "rgba(255, 255, 255, 0.10)", "oklch": "oklch(0.302 0.014 260)", "usage": "Bordas de separação e contêineres." },
+      "strong": { "value": "rgba(255, 255, 255, 0.16)", "usage": "Bordas de botões secundários." },
+      "focus": { "value": "#7C3AED", "usage": "Anel de foco e seleção em Roxo Gamer." }
     },
-    "green": {
-      "400": { "value": "#63E6B4" },
-      "500": { "value": "#3DDC97" },
-      "700": { "value": "#1E8F63" }
-    },
-    "amber": {
-      "400": { "value": "#F7C665" },
-      "500": { "value": "#F5B942" },
-      "700": { "value": "#B8791E" }
+    "gamerPurple": {
+      "deep": { "value": "#5B21B6" },
+      "primary": { "value": "#7C3AED", "oklch": "oklch(0.585 0.214 299)", "usage": "Roxo Gamer assinatura para CTAs primários, seleção, foco e progresso." },
+      "strong": { "value": "#6D28D9", "usage": "Estado pressed/active do Roxo Gamer." },
+      "light": { "value": "#A78BFA", "oklch": "oklch(0.65 0.205 299)", "usage": "Hover/destaque claro em gradientes do ícone." },
+      "subtle": { "value": "rgba(124, 58, 237, 0.15)", "usage": "Preenchimento de seleção e badges." }
     },
     "coralSolar": {
+      "primary": { "value": "#FF5A36", "oklch": "oklch(0.684 0.196 35)", "usage": "Coral Solar — reservado estritamente para atenção, erro ou ações destrutivas." },
       "red": { "value": "#FF3823" },
-      "primary": { "value": "#FF6B35" },
       "amber": { "value": "#FFAB2E" },
-      "strong": { "value": "#EB4D26" }
+      "strong": { "value": "#EB4D26" },
+      "subtle": { "value": "rgba(255, 90, 54, 0.15)", "usage": "Badge de alerta crítico e aviso." }
+    },
+    "semantic": {
+      "good": { "value": "#22C55E", "oklch": "oklch(0.76 0.15 150)", "usage": "Verde para veredito favorável e dot de telemetria saudável." },
+      "warning": { "value": "#F59E0B", "oklch": "oklch(0.76 0.15 80)", "usage": "Âmbar para oscilação ou instabilidade moderada." },
+      "danger": { "value": "#FF5A36", "usage": "Coral Solar para ações destrutivas (ex.: Apagar Histórico) e falha crítica." },
+      "inconclusive": { "value": "#8A93A0", "usage": "Neutro para resultado inconclusivo ou sem medição." }
     }
   },
   "semantic": {
-    "background": {
-      "base": { "value": "#000000", "usage": "Fundo padrão de todas as telas (Apple True Black Dark Mode)." },
-      "raised": { "value": "#1C1C1E", "usage": "Cards de sistema, listas agrupadas Inset Grouped, barra de navegação e tab bar (#1C1C1E)." },
-      "overlay": { "value": "#2C2C2E", "usage": "Camada terciária: controles, segmented picker, search bar e containers internos (#2C2C2E)." },
-      "scrim": { "value": "rgba(0,0,0,0.80)", "usage": "Fundo escurecido de modais e sheets sobre o conteúdo com blur nativo." }
+    "action": {
+      "primary": "{core.gamerPurple.primary}",
+      "primaryPressed": "{core.gamerPurple.strong}",
+      "primaryHover": "{core.gamerPurple.light}",
+      "primarySubtle": "{core.gamerPurple.subtle}",
+      "destructive": "{core.coralSolar.primary}",
+      "destructivePressed": "{core.coralSolar.strong}"
     },
-    "border": {
-      "subtle": { "value": "rgba(84,84,88,0.35)", "usage": "Divisores e separadores de lista nativos do iOS (0.5pt)." },
-      "strong": { "value": "rgba(255,255,255,0.10)", "usage": "Contorno sutil de cards e botões secundários." },
-      "focus": { "value": "#FF6B35", "usage": "Anel de foco de teclado/VoiceOver e estados 'selected' em Coral Solar." }
+    "selection": {
+      "border": "{core.gamerPurple.primary}",
+      "fill": "{core.gamerPurple.subtle}"
     },
-    "text": {
-      "primary": { "value": "#FFFFFF", "usage": "Títulos, score, conteúdo principal." },
-      "secondary": { "value": "#8E8E93", "usage": "Subtítulos, legendas, corpo secundário e metadados." },
-      "tertiary": { "value": "#636366", "usage": "Ícones secundários de navegação, chevrons e datas." },
-      "disabled": { "value": "#48484A", "usage": "Texto e ícones desabilitados." },
-      "onAccent": { "value": "#FFFFFF", "usage": "Texto sobre botões de destaque primário." },
-      "link": { "value": "#FF6B35", "usage": "Ações textuais e botões interativos em Coral Solar." }
-    },
-    "accent": {
-      "primary": { "value": "#FF6B35", "usage": "Coral Solar — cor de destaque da marca para botões primários, itens selecionados, tabs ativas." },
-      "primaryStrong": { "value": "#EB4D26", "usage": "Estado pressed/active do accent primário Coral Solar." },
-      "primarySubtle": { "value": "rgba(255,107,53,0.15)", "usage": "Preenchimento suave de seleção e badges em Coral Solar." },
-      "gradientStart": { "value": "#FF3823", "usage": "Início do gradiente Coral Solar (vermelho vivo)." },
-      "gradientMiddle": { "value": "#FF6B35", "usage": "Meio do gradiente Coral Solar (laranja vibrante)." },
-      "gradientEnd": { "value": "#FFAB2E", "usage": "Fim do gradiente Coral Solar (âmbar solar)." }
-    },
-    "score": {
-      "excellent": { "value": "#34C759", "label": "Excelente / Ótimo", "range": "75–100" },
-      "excellentSubtle": { "value": "rgba(52,199,89,0.16)" },
-      "unstable": { "value": "#FFD60A", "label": "Instável / Atenção", "range": "60–74" },
-      "unstableSubtle": { "value": "rgba(255,214,10,0.16)" },
-      "lagRisk": { "value": "#FF453A", "label": "Risco de lag", "range": "0–59" },
-      "lagRiskSubtle": { "value": "rgba(255,69,58,0.16)" },
-      "neutral": { "value": "#8E8E93", "label": "Inconclusivo / cancelado", "range": "n/a — sem nota" },
-      "neutralSubtle": { "value": "rgba(142,142,147,0.16)" }
-    },
-    "graph": {
-      "line": { "value": "#FF6B35", "usage": "Linha principal do LatencyGraph em Coral Solar." },
-      "fillTop": { "value": "rgba(255,107,53,0.25)", "usage": "Topo do gradiente de preenchimento sob a linha." },
-      "fillBottom": { "value": "rgba(255,107,53,0.0)", "usage": "Base do gradiente de preenchimento sob a linha." },
-      "spike": { "value": "#FFD60A", "usage": "Marcador de spike." },
-      "spikeSevere": { "value": "#FF453A", "usage": "Marcador de spike severo." },
-      "gridLine": { "value": "rgba(84,84,88,0.35)", "usage": "Linhas de grade discretas." }
-    },
-    "surfaceAd": {
-      "background": { "value": "{core.navy.800}", "usage": "Fundo do BannerAdSlot, discreto e nunca competindo com o conteúdo." },
-      "label": { "value": "{core.neutral.600}", "usage": "Rótulo 'Anúncio' / 'Ad', sempre visível e nunca disfarçado." }
+    "verdict": {
+      "ready": "{core.semantic.good}",
+      "caution": "{core.semantic.warning}",
+      "notReady": "{core.coralSolar.primary}",
+      "inconclusive": "{core.semantic.inconclusive}"
     }
   }
 }

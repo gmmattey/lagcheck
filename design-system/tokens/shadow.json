@@ -1,31 +1,16 @@
 {
-  "$schema": "nolaggy/tokens/shadow",
-  "description": "Elevação semântica para dark UI nativa do iOS (Apple HIG). Elimina halos decorativos, néon e 'card soup'. A separação ocorre por contraste de superfície (#000000, #1C1C1E, #2C2C2E) e divisores sutis.",
+  "$schema": "lagcheck/tokens/shadow",
+  "description": "Elevação semântica do LagCheck Design System. Elevação só aparece em menu, toast, CTA e sheet.",
   "elevation": {
-    "level0": {
-      "usage": "Plano de fundo base da aplicação.",
-      "shadow": null,
-      "border": null
+    "action": {
+      "usage": "Sombra de ação para o botão primário (CTA) em Roxo Gamer.",
+      "shadow": "0 12px 28px rgba(124, 58, 237, 0.26)",
+      "oklch": "0 12px 28px oklch(.35 .11 299 / .26)"
     },
-    "level1": {
-      "usage": "Cards de sistema, listas agrupadas Inset Grouped (#1C1C1E).",
-      "shadow": { "color": "rgba(0,0,0,0.20)", "x": 0, "y": 1, "blur": 4, "spread": 0 },
-      "border": "1px solid rgba(255,255,255,0.05)"
-    },
-    "level2": {
-      "usage": "Hero Cards editoriais em destaque, botões flutuantes.",
-      "shadow": { "color": "rgba(0,0,0,0.35)", "x": 0, "y": 4, "blur": 16, "spread": 0 },
-      "border": "1px solid rgba(255,255,255,0.10)"
-    },
-    "level3": {
-      "usage": "Bottom sheets modais (ConnectionBoosterSheet, Deep Check).",
-      "shadow": { "color": "rgba(0,0,0,0.60)", "x": 0, "y": -4, "blur": 32, "spread": 0 },
-      "border": "1px solid rgba(255,255,255,0.10)"
+    "float": {
+      "usage": "Elevação para menus, toasts e bottom sheet.",
+      "shadow": "0 16px 34px rgba(0, 0, 0, 0.42)",
+      "oklch": "0 16px 34px oklch(0 0 0 / .42)"
     }
-  },
-  "reduceTransparencyFallback": {
-    "usage": "Quando 'Reduzir Transparência' está ativo no iOS, sombras tornam-se nulas e a hierarquia é 100% suportada pelo contraste nativo de superfícies.",
-    "shadow": null,
-    "border": "1px solid rgba(84,84,88,0.35)"
   }
 }

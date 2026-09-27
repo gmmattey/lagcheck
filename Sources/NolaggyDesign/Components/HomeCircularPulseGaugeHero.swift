@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Hero da Home do LagCheck — Gauge circular com estética direta do MeasurementPulse (da medição).
-/// Apresenta trilho fino nativo, arco Coral Solar com pulso interno (pulseCore) e ondas dinâmicas.
+/// Apresenta trilho fino nativo, arco em Roxo Gamer com pulso interno (pulseCore) e ondas dinâmicas.
 /// No centro: ação "TESTAR AGORA". Se nenhum jogo estiver selecionado, exibe "CONEXÃO GERAL".
 public struct HomeCircularPulseGaugeHero: View {
     public let selectedGameName: String?
@@ -55,7 +55,7 @@ public struct HomeCircularPulseGaugeHero: View {
                     .stroke(NLColor.borderSubtle, lineWidth: strokeWidth)
                     .frame(width: pulseDiameter, height: pulseDiameter)
 
-                // Arco Ativo Coral Solar (mesmo estilo e acabamento de MeasurementPulse)
+                // Arco Ativo Roxo Gamer (mesmo estilo e acabamento de MeasurementPulse)
                 Circle()
                     .trim(from: 0, to: isMeasuring ? 0.85 : 0.66)
                     .stroke(
@@ -102,7 +102,7 @@ public struct HomeCircularPulseGaugeHero: View {
                         } else {
                             // Texto Dominante "TESTAR AGORA"
                             Text(LocalizedStringKey("home.gauge.test_now"))
-                                .font(.system(size: 21, weight: .heavy, design: .default))
+                                .font(.system(size: 21, weight: .heavy, design: .rounded))
                                 .foregroundStyle(NLColor.textPrimary)
                                 .tracking(1.0)
                                 .lineLimit(1)
@@ -111,13 +111,13 @@ public struct HomeCircularPulseGaugeHero: View {
                             // Subtítulo do Contexto (Jogo selecionado ou Conexão Geral)
                             if let game = selectedGameName, !game.isEmpty {
                                 Text(game.uppercased())
-                                    .font(.system(size: 13, weight: .bold, design: .default))
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
                                     .foregroundStyle(NLColor.accentPrimary)
                                     .lineLimit(1)
                                     .padding(.horizontal, 10)
                             } else {
                                 Text(LocalizedStringKey("generic_gaming.short_name"))
-                                    .font(.system(size: 13, weight: .bold, design: .default))
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
                                     .foregroundStyle(NLColor.textSecondary)
                                     .lineLimit(1)
                                     .padding(.horizontal, 10)
@@ -129,7 +129,7 @@ public struct HomeCircularPulseGaugeHero: View {
                                     .fill(NLColor.semanticReady)
                                     .frame(width: 5, height: 5)
                                 Text(regionName)
-                                    .font(.system(size: 11, weight: .medium))
+                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                                     .foregroundStyle(NLColor.textTertiary)
                             }
                         }

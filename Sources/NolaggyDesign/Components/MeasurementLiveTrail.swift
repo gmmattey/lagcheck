@@ -7,33 +7,21 @@ public enum MeasurementStressLocation: String, Sendable {
     case externalRoute
 }
 
-/// Experiência Visual Imersiva de Medição do LagCheck (Decisão 47).
-/// Substitui o checklist de auditoria técnica de 5 nós por uma apresentação
-/// editorial centrada no jogador com o Pulse Gauge Coral Solar:
-///
-/// 1. Topo Editorial: Jogo e Fase atual do teste.
-/// 2. Hero Pulse Gauge: Radar de ondas concêntricas fluidas em Coral Solar.
-/// 3. Voz do Jogo: Microcopy calmo e contextual (sem termos áridos de telecomunicações).
-/// 4. Barra de Etapas da Partida: Indicador fluido de 2 tempos (Conexão base e Sob pressão).
-/// 5. Rodapé Editorial da Rota: Síntese minimalista da origem e destino ativos.
-///
-/// Diretrizes estritas:
-/// - Zero ruído técnico: sem números oscilantes de milissegundos pulando.
-/// - Suporte total a `accessibilityReduceMotion` (ondas contínuas viram anéis suaves estáticos).
-/// - Toda a animação é alimentada pela telemetria real de `sampleCount` e fase.
+/// Experiência Visual Canônica de Medição do LagCheck (Mockup 03 · Dark Competitive UI).
+/// Rota de telemetria em 3 nós com pacotes em trânsito em Roxo Gamer, status de alta legibilidade,
+/// barra de progresso contínua e sem números oscilantes de ping.
 public struct MeasurementLiveTrail: View {
     private let isWiFi: Bool
     private let destinationName: String
     private let currentRTT: Double?
     private let isPhaseRest: Bool
-    private let isDestinationResponding: Bool
     private let sampleCount: Int
     private let isUnderStress: Bool
     private let phaseTitle: LocalizedStringKey
     private let phaseSubtitle: LocalizedStringKey?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var waveAnimation: Bool = false
+    @State private var packetOffset: CGFloat = 0.0
 
     public init(
         isWiFi: Bool = true,
@@ -52,7 +40,6 @@ public struct MeasurementLiveTrail: View {
         self.destinationName = destinationName
         self.currentRTT = currentRTT
         self.isPhaseRest = isPhaseRest ?? (!isUnderStress)
-        self.isDestinationResponding = (sampleCount > 0) || (currentRTT != nil)
         self.sampleCount = sampleCount
         self.isUnderStress = isUnderStress
         self.phaseTitle = phaseTitle
@@ -60,383 +47,156 @@ public struct MeasurementLiveTrail: View {
     }
 
     public var body: some View {
-        VStack(spacing: NLSpacing.xl) {
-            headerSection
+        VStack(spacing: 0) {
+            // Trilha de Rota com 3 nós e pacotes viajando
+            routeView
+                .padding(.top, NLSpacing.md)
+                .padding(.bottom, 48)
 
-            Spacer(minLength: NLSpacing.xs)
-
-            pulseGaugeHero
-
-            Spacer(minLength: NLSpacing.xs)
-
-            contextualStatusSection
-
-            stepProgressSection
-
-            routeFooterCard
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityDescription)
-        .onAppear {
-            if !reduceMotion {
-                withAnimation(.easeInOut(duration: isUnderStress ? 1.4 : 1.8).repeatForever(autoreverses: false)) {
-                    waveAnimation = true
-                }
-            }
-        }
-        .onChange(of: reduceMotion) { _, isReduced in
-            if isReduced {
-                waveAnimation = false
-            } else {
-                withAnimation(.easeInOut(duration: isUnderStress ? 1.4 : 1.8).repeatForever(autoreverses: false)) {
-                    waveAnimation = true
-                }
-            }
-        }
-    }
-
-    // MARK: - Header Editorial
-    private var headerSection: some View {
-        VStack(spacing: NLSpacing.xxs) {
-            if let phaseSubtitle {
-                Text(phaseSubtitle)
-                    .font(NLTypography.caption.weight(.bold))
-                    .foregroundStyle(NLColor.accentPrimary)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(NLColor.accentPrimarySubtle, in: Capsule())
-            }
-
-            Text(isPhaseRest
-                ? String(localized: "live_trail.phase.rest.title", defaultValue: "Etapa 1: Conexão base")
-                : String(localized: "live_trail.phase.load.title", defaultValue: "Etapa 2: Conexão sob pressão"))
-                .font(NLTypography.headline)
+            // Cópia de Status do Check (25pt display bold)
+            Text(isPhaseRest ? LocalizedStringKey("check.status.rest") : LocalizedStringKey("check.status.load"))
+                .font(NLTypography.statusCopy)
                 .foregroundStyle(NLColor.textPrimary)
                 .multilineTextAlignment(.center)
-        }
-        .frame(minHeight: 52, alignment: .center)
-    }
+                .accessibilityIdentifier("check-status")
 
-    // MARK: - Hero Pulse Gauge Coral Solar
-    @ViewBuilder
-    private var pulseGaugeHero: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                // Ondas concêntricas animadas
-                if !reduceMotion {
-                    ForEach(0..<3, id: \.self) { index in
-                        Circle()
-                            .stroke(NLColor.accentPrimary.opacity(waveAnimation ? 0.0 : 0.45), lineWidth: 1.5)
-                            .scaleEffect(waveAnimation ? 2.1 + CGFloat(index) * 0.25 : 1.0)
-                            .opacity(waveAnimation ? 0.0 : 0.8)
-                            .animation(
-                                .easeOut(duration: isUnderStress ? 1.5 : 2.0)
-                                    .repeatForever(autoreverses: false)
-                                    .delay(Double(index) * 0.45),
-                                value: waveAnimation
-                            )
-                    }
-                } else {
-                    // Modo Acessibilidade (sem movimento): Anéis suaves estáticos
-                    Circle()
-                        .stroke(NLColor.accentPrimary.opacity(0.18), lineWidth: 1.5)
-                        .scaleEffect(1.35)
-                    Circle()
-                        .stroke(NLColor.accentPrimary.opacity(0.08), lineWidth: 1.0)
-                        .scaleEffect(1.7)
-                }
-
-                // Halo sutil de iluminação Coral Solar
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                NLColor.accentPrimary.opacity(isUnderStress ? 0.32 : 0.22),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 20,
-                            endRadius: 90
-                        )
-                    )
-                    .frame(width: 170, height: 170)
-
-                // Núcleo central elevado
-                Circle()
-                    .fill(NLColor.surface)
-                    .frame(width: 88, height: 88)
-                    .overlay {
-                        Circle()
-                            .stroke(NLColor.hairline, lineWidth: 1)
-                    }
-                    .shadow(color: NLColor.accentPrimary.opacity(0.25), radius: 14, x: 0, y: 0)
-
-                // RTT ao vivo monoespaçado ou ícone de rádio
-                if let currentRTT {
-                    VStack(spacing: 0) {
-                        Text("\(Int(currentRTT.rounded()))")
-                            .font(.system(size: 26, weight: .black, design: .default))
-                            .monospacedDigit()
-                            .foregroundStyle(NLColor.textPrimary)
-
-                        Text("ms")
-                            .font(NLTypography.captionStrong)
-                            .foregroundStyle(NLColor.coralSolar)
-                    }
-                } else {
-                    Image(systemName: "dot.radiowaves.left.and.right")
-                        .font(.system(size: 32, weight: .semibold))
-                        .foregroundStyle(NLColor.accentPrimary)
-                }
-            }
-            .frame(width: 200, height: 200)
-
-            // Linha de pulso competitivo ao vivo ───╲_╱──╲_╱──
-            CompetitiveSignalPulseView(isUnderStress: isUnderStress)
-                .frame(width: 200, height: 24)
-                .padding(.top, 4)
-        }
-    }
-
-    // MARK: - Mensagem Contextual da Partida (Voz do Jogo)
-    private var contextualStatusSection: some View {
-        VStack(spacing: NLSpacing.xxs) {
-            Text(dynamicStatusTitle)
-                .font(NLTypography.headline)
-                .foregroundStyle(NLColor.textPrimary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.25), value: dynamicStatusTitle)
-
-            Text(dynamicStatusDetail)
-                .font(NLTypography.footnote)
+            // Subtítulo de Apoio
+            Text(isPhaseRest ? LocalizedStringKey("check.detail.rest") : LocalizedStringKey("check.detail.load"))
+                .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(NLColor.textSecondary)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .contentTransition(.opacity)
-                .animation(.easeInOut(duration: 0.25), value: dynamicStatusDetail)
-        }
-        .frame(minHeight: 56, alignment: .center)
-        .padding(.horizontal, NLSpacing.md)
-    }
+                .padding(.top, 11)
+                .accessibilityIdentifier("check-detail")
 
-    private var dynamicStatusTitle: String {
-        if sampleCount == 0 {
-            return String(localized: "live_trail.status.connecting \(destinationName)")
-        }
-        if isPhaseRest {
-            return sampleCount < 15
-                ? String(localized: "live_trail.status.rest.evaluating")
-                : String(localized: "live_trail.status.rest.stability")
-        } else {
-            return sampleCount < 15
-                ? String(localized: "live_trail.status.load.simulating")
-                : String(localized: "live_trail.status.load.resistance")
-        }
-    }
-
-    private var dynamicStatusDetail: String {
-        if sampleCount == 0 {
-            return String(localized: "live_trail.hint.keep_open")
-        }
-        if isPhaseRest {
-            return sampleCount < 15
-                ? String(localized: "live_trail.status.rest.evaluating.detail")
-                : String(localized: "live_trail.status.rest.stability.detail")
-        } else {
-            return sampleCount < 15
-                ? String(localized: "live_trail.status.load.simulating.detail")
-                : String(localized: "live_trail.status.load.resistance.detail")
-        }
-    }
-
-    // MARK: - Barra de Etapas da Partida (2 Fases)
-    private var stepProgressSection: some View {
-        VStack(spacing: NLSpacing.xs) {
-            HStack(spacing: NLSpacing.sm) {
-                // Etapa 1: Repouso
-                stepBar(
-                    title: String(localized: "live_trail.phase.rest.title", defaultValue: "Conexão base"),
-                    progress: isPhaseRest ? min(Double(sampleCount) / 30.0, 1.0) : 1.0,
-                    isActive: isPhaseRest,
-                    isDone: !isPhaseRest
-                )
-
-                // Etapa 2: Carga
-                stepBar(
-                    title: String(localized: "live_trail.phase.load.title", defaultValue: "Sob pressão"),
-                    progress: !isPhaseRest ? min(Double(sampleCount) / 30.0, 1.0) : 0.0,
-                    isActive: !isPhaseRest,
-                    isDone: false
-                )
-            }
-        }
-        .padding(.horizontal, NLSpacing.xs)
-    }
-
-    private func stepBar(title: String, progress: Double, isActive: Bool, isDone: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+            // Barra de Progresso Contínua (4px altura)
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(NLColor.backgroundRaised)
-                        .frame(height: 6)
+                        .fill(NLColor.surface)
+                        .frame(height: 4)
 
                     Capsule()
-                        .fill(isDone ? NLColor.scoreExcellent : NLColor.accentPrimary)
-                        .frame(width: proxy.size.width * max(progress, 0.02), height: 6)
-                        .animation(.smooth(duration: 0.35), value: progress)
+                        .fill(NLColor.gamerPurple)
+                        .frame(width: proxy.size.width * (isPhaseRest ? 0.45 : 0.85), height: 4)
+                        .animation(.easeInOut(duration: 0.6), value: isPhaseRest)
                 }
             }
-            .frame(height: 6)
+            .frame(height: 4)
+            .padding(.top, 38)
+            .padding(.horizontal, NLSpacing.sm)
 
-            HStack(alignment: .center) {
-                Text(title)
-                    .font(NLTypography.caption.weight(isActive ? .semibold : .regular))
-                    .foregroundStyle(isActive ? NLColor.textPrimary : NLColor.textTertiary)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(NLColor.scoreExcellent)
-                    .opacity(isDone ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.2), value: isDone)
-            }
-            .frame(height: 18)
-        }
-        .frame(height: 30)
-    }
-
-    // MARK: - Rodapé Editorial da Rota
-    private var routeFooterCard: some View {
-        HStack(spacing: NLSpacing.xs) {
-            HStack(spacing: 6) {
-                Image(systemName: isWiFi ? "wifi" : "antenna.radiowaves.left.and.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(NLColor.textPrimary)
-                Text(isWiFi
-                    ? String(localized: "live_trail.node.wifi", defaultValue: "Wi-Fi")
-                    : String(localized: "live_trail.node.cellular", defaultValue: "Rede móvel"))
-                    .font(NLTypography.caption.weight(.medium))
-                    .foregroundStyle(NLColor.textPrimary)
-            }
-
-            Image(systemName: "arrow.right")
-                .font(.system(size: 10, weight: .bold))
+            // Kicker de Fase (11pt mono)
+            Text(isPhaseRest ? LocalizedStringKey("check.phase.rest") : LocalizedStringKey("check.phase.load"))
+                .font(NLTypography.monospaceMetrics)
                 .foregroundStyle(NLColor.textTertiary)
-
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(NLColor.textPrimary)
-                Text(destinationName)
-                    .font(NLTypography.caption.weight(.medium))
-                    .foregroundStyle(NLColor.textPrimary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            Text(String(localized: "live_trail.route.active", defaultValue: "Rota ativa"))
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(NLColor.scoreExcellent)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(NLColor.scoreExcellent.opacity(0.12), in: Capsule())
+                .padding(.top, 14)
+                .accessibilityIdentifier("phase")
         }
-        .padding(.horizontal, NLSpacing.cardPadding)
-        .padding(.vertical, NLSpacing.sm)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(NLColor.borderSubtle, lineWidth: 0.5)
-        }
-    }
-
-    private var accessibilityDescription: String {
-        "\(dynamicStatusTitle). \(isPhaseRest ? "Etapa 1 de 2" : "Etapa 2 de 2"). Rota ativa: \(isWiFi ? "Wi-Fi" : "Rede móvel") para \(destinationName)."
-    }
-}
-
-// MARK: - Linha de Pulso Competitivo (Decisões 50 e 51)
-
-/// Linha de pulso viva estilo telemetria e esportes competitivos (───╲_╱──╲_╱──).
-public struct CompetitiveSignalPulseView: View {
-    public let isUnderStress: Bool
-
-    @State private var phaseOffset: CGFloat = 0
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    public init(isUnderStress: Bool = false) {
-        self.isUnderStress = isUnderStress
-    }
-
-    public var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let height = proxy.size.height
-
-            ZStack {
-                // Linha de base sutil
-                Rectangle()
-                    .fill(NLColor.hairline)
-                    .frame(height: 1)
-
-                // Pulso ativo com gradiente Coral Solar
-                CompetitiveSignalPulseShape(phaseOffset: phaseOffset)
-                    .stroke(
-                        NLColor.coralSolarHorizontalGradient,
-                        style: StrokeStyle(lineWidth: isUnderStress ? 2.5 : 1.8, lineCap: .round, lineJoin: .round)
-                    )
-                    .shadow(color: NLColor.coralSolar.opacity(isUnderStress ? 0.6 : 0.35), radius: 4, x: 0, y: 0)
-            }
-            .clipped()
-        }
+        .padding(.horizontal, NLSpacing.md)
+        .accessibilityElement(children: .combine)
         .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.linear(duration: isUnderStress ? 1.0 : 1.6).repeatForever(autoreverses: false)) {
-                phaseOffset = 1.0
+            if !reduceMotion {
+                withAnimation(.linear(duration: 2.2).repeatForever(autoreverses: false)) {
+                    packetOffset = 1.0
+                }
             }
         }
     }
-}
 
-public struct CompetitiveSignalPulseShape: Shape {
-    public var phaseOffset: CGFloat
+    // MARK: - 3-Node Route View
+    private var routeView: some View {
+        ZStack {
+            // Linha horizontal conectando os nós
+            GeometryReader { proxy in
+                Path { path in
+                    let y: CGFloat = 25
+                    let startX = proxy.size.width * 0.16
+                    let endX = proxy.size.width * 0.84
+                    path.move(to: CGPoint(x: startX, y: y))
+                    path.addLine(to: CGPoint(x: endX, y: y))
+                }
+                .stroke(NLColor.borderStrong, lineWidth: 1)
 
-    public var animatableData: CGFloat {
-        get { phaseOffset }
-        set { phaseOffset = newValue }
+                // Pacotes de dados viajando na linha
+                if !reduceMotion {
+                    let startX = proxy.size.width * 0.18
+                    let totalDistance = proxy.size.width * 0.64
+                    ForEach(0..<3, id: \.self) { index in
+                        let delay = Double(index) * 0.33
+                        let fraction = (packetOffset + delay).truncatingRemainder(dividingBy: 1.0)
+                        Circle()
+                            .fill(NLColor.gamerPurple)
+                            .frame(width: 7, height: 7)
+                            .position(x: startX + totalDistance * fraction, y: 25)
+                            .opacity(fraction < 0.1 ? fraction * 10 : (fraction > 0.9 ? (1.0 - fraction) * 10 : 0.85))
+                    }
+                }
+            }
+            .frame(height: 52)
+
+            // Os 3 nós alinhados
+            HStack(alignment: .top, spacing: 0) {
+                // Nó 1: iPhone
+                nodeItem(
+                    badge: "IP",
+                    title: LocalizedStringKey("check.node.iphone"),
+                    isFinished: true,
+                    isCurrent: false
+                )
+                .frame(maxWidth: .infinity)
+
+                // Nó 2: Rede local (Wi-Fi / Móvel)
+                nodeItem(
+                    badge: isWiFi ? "Wi" : "4G",
+                    title: isWiFi ? LocalizedStringKey("check.node.wifi") : LocalizedStringKey("check.node.cellular"),
+                    isFinished: !isPhaseRest,
+                    isCurrent: isPhaseRest
+                )
+                .frame(maxWidth: .infinity)
+
+                // Nó 3: Região Gamer (Destino)
+                nodeItem(
+                    badge: regionBadgeText,
+                    title: LocalizedStringKey("check.node.gamer_region \(destinationName)"),
+                    isFinished: false,
+                    isCurrent: !isPhaseRest
+                )
+                .frame(maxWidth: .infinity)
+            }
+        }
     }
 
-    public func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let width = rect.width
-        let height = rect.height
-        let midY = height / 2.0
-
-        let cycleWidth: CGFloat = max(80.0, width / 2.0)
-        let normalizedPhase = phaseOffset.truncatingRemainder(dividingBy: 1.0)
-        let shift = normalizedPhase * cycleWidth
-
-        var currentX: CGFloat = -shift
-        path.move(to: CGPoint(x: currentX, y: midY))
-
-        while currentX < width + cycleWidth {
-            let start = currentX
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.40, y: midY))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.48, y: midY + height * 0.22))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.55, y: midY - height * 0.45))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.62, y: midY + height * 0.30))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.70, y: midY))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.82, y: midY - height * 0.12))
-            path.addLine(to: CGPoint(x: start + cycleWidth * 0.90, y: midY))
-            path.addLine(to: CGPoint(x: start + cycleWidth, y: midY))
-            currentX += cycleWidth
+    private var regionBadgeText: String {
+        let trimmed = destinationName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.localizedCaseInsensitiveContains("paulo") {
+            return "SP"
         }
+        let initials = trimmed.split(separator: " ").compactMap { $0.first }.prefix(2)
+        return initials.isEmpty ? "RG" : String(initials).uppercased()
+    }
 
-        return path
+    private func nodeItem(badge: String, title: LocalizedStringKey, isFinished: Bool, isCurrent: Bool) -> some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(NLColor.surface)
+                    .frame(width: 51, height: 51)
+                    .overlay(
+                        Circle()
+                            .stroke(isCurrent ? NLColor.gamerPurple : (isFinished ? NLColor.gamerPurple.opacity(0.8) : NLColor.borderStrong), lineWidth: 1.5)
+                    )
+                    .shadow(color: isCurrent ? NLColor.gamerPurple.opacity(0.25) : Color.clear, radius: 6, x: 0, y: 0)
+
+                Text(verbatim: badge)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(isCurrent ? NLColor.textPrimary : NLColor.textSecondary)
+            }
+
+            Text(title)
+                .font(NLTypography.monospaceSubtitle)
+                .foregroundStyle(NLColor.textTertiary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
     }
 }

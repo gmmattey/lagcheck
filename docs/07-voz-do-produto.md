@@ -21,6 +21,16 @@ Não fala como operadora de internet, streamer, gamer caricato ou painel técnic
 7. **Use frases curtas e verbos ativos.** Prefira “Tente novamente” a “Uma nova tentativa poderá ser realizada”.
 8. **Mantenha a mesma personalidade nos três idiomas.** Inglês e espanhol não são tradução palavra por palavra; precisam manter a mesma clareza, sobriedade e confiança.
 
+### 2.1 Diretriz Inegociável: Zero Cara de IA e o Gamer Não Lê (Decisão 64)
+
+- **O Gamer NÃO LÊ:** O jogador competitivo está no lobby com a call do Discord aberta. Ele tem pressa, adrenalina e zero paciência para parágrafos explicativos.
+- **Proibição de Cardlização em Excesso:** Nada de interface com 10 cards flutuantes empilhados parecendo dashboard corporativo ou gerado por prompt de IA. A interface é um cockpit esportivo contínuo, limpo e escuro.
+- **Proibição de Textão e Floreios:** É proibido blocos didáticos, duplas de título com subtítulo longo, ou introduções com "Dicas gentis para melhorar sua experiência".
+- **A Regra do Discord:** Qualquer status, aviso ou alerta na tela precisa poder ser dito em uma frase curta pelo jogador para os amigos na call:
+  - *Certo:* "Minha rota pro Valorant tá lisa" ou "Meu boneco vai ficar voltando no tempo (micro-teleporte)".
+  - *Errado:* "Foi detectada uma modulação adversa na rota primária decorrente de oscilações no enlace local".
+- **Visual, Rápido e na Veia:** Bateu o olho, entendeu em 1 segundo. Métricas profundas ficam guardadas sob demanda em "Dados da Rede".
+
 ## 3. Vocabulário
 
 ### Preferir

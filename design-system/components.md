@@ -224,20 +224,21 @@ public protocol PlatformSelectorOption: Identifiable, Equatable {
 Ação principal única de cada tela. Nunca duas instâncias `.primary` competindo na mesma tela.
 
 **Anatomia**
-- Fundo pílula (`radius.button`), altura `primaryButton.height` (52pt).
-- Rótulo, `bodyEmphasis`, cor `text.onAccent`.
-- Ícone opcional à esquerda/direita, `icon.sm`, gap `primaryButton.iconGap`.
+- Fundo retangular arredondado (`radius.button` / 17px), altura `primaryButton.height` (58pt), min-width 220pt.
+- Rótulo, `NLTypography.ctaButton` (16pt, weight 800/heavy, tracking -0.2px), cor `text.onAccent` (#FFFFFF).
+- Ícone opcional à esquerda/direita, `icon.sm`, gap `primaryButton.iconGap` (8px).
+- Sombra de ação primária Roxo Gamer (`shadow.action`: 0 12px 14px rgba(124, 58, 237, 0.35)).
 - Spinner opcional substituindo o rótulo em `.loading`.
 
 **Variantes**
 | Variante | Uso |
 | --- | --- |
-| `.filled` | Ação principal padrão (ex.: "Iniciar Quick Check") — fundo `accent.primary` |
-| `.filledCritical` | Ação principal em contexto de risco (ex.: "Fazer Deep Check" quando priorizado por indício de problema) — mesmo peso visual, ícone de urgência, ainda dentro da paleta neutra + `accent.primary` (não usa `score.lagRisk` como fundo de botão) |
-| `.secondaryOutline` | Ação secundária na mesma tela (ex.: "Testar novamente" ao lado de "Ver detalhes") — traço `border.strong`, fundo transparente |
+| `.filled` | Ação principal padrão (ex.: "FAZER CHECK", "TESTAR NOVAMENTE") — fundo Roxo Gamer (`accent.primary` / `#7C3AED`) com sombra de ação |
+| `.filledCritical` | Ação principal de atenção crítica ou ação destrutiva — fundo Coral Solar (`coralSolar` / `#FF5A36`), estritamente restrito a situações de risco/erro/atenção |
+| `.secondaryOutline` | Ação secundária na mesma tela — traço `border.subtle`, fundo transparente ou `surface` |
 
 **Estados**
-- `.enabled`, `.pressed` (leve escurecimento + spring), `.disabled` (opacidade reduzida, `text.disabled`), `.loading` (não interativo, spinner, rótulo com `accessibilityLabel` preservado).
+- `.enabled`, `.pressed` (0.98 scale + curva Bézier canônica `(0.2, 0, 0, 1)`), `.disabled` (opacidade 0.45, `text.disabled`), `.loading` (não interativo, spinner).
 
 **API SwiftUI pretendida**
 ```swift

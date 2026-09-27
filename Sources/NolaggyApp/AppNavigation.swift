@@ -10,7 +10,6 @@ enum AppDestination: Hashable {
 enum AppTab: String, Hashable, CaseIterable {
     case home
     case games
-    case network
 }
 
 struct NolaggyAppConfiguration: Equatable {
@@ -81,7 +80,7 @@ struct NolaggyAppHeader: View {
             } else {
                 NolaggyNavigationControl(
                     systemImage: "ellipsis",
-                    accessibilityLabel: "navigation.open_settings",
+                    accessibilityLabel: "settings.title",
                     accessibilityIdentifier: "navigation-settings-open",
                     action: openSettings
                 )
@@ -176,6 +175,89 @@ struct NolaggyBackHeader: View {
     }
 }
 
+/// Cabeçalho canônico das telas nomeadas (Jogos, Detalhes, Histórico, Ajustes).
+/// A barra de ações superior (52 pt) mantém os controles de retorno e ações secundárias;
+/// o título fica logo abaixo, alinhado à esquerda, sem colisão com o chevron.
+struct NolaggyNamedScreenHeader<Trailing: View>: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey? = nil
+    var leadingAction: (() -> Void)? = nil
+    var leadingAccessibilityIdentifier: String = "screen-back"
+    @ViewBuilder var trailing: () -> Trailing
+
+    init(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey? = nil,
+        leadingAction: (() -> Void)? = nil,
+        leadingAccessibilityIdentifier: String = "screen-back",
+        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.leadingAction = leadingAction
+        self.leadingAccessibilityIdentifier = leadingAccessibilityIdentifier
+        self.trailing = trailing
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 0) {
+                if let leadingAction {
+                    Button(action: leadingAction) {
+                        Image(systemName: "chevron.backward")
+                            .font(NLTypography.navigationIcon)
+                            .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .accessibilityLabel(Text("quick_check.back"))
+                    .accessibilityIdentifier(leadingAccessibilityIdentifier)
+                } else {
+                    Spacer().frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                }
+
+                Spacer()
+
+                trailing()
+            }
+            .frame(height: 52)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(NLTypography.screenTitle)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .tracking(-0.8)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(NLTypography.monospaceSubtitle)
+                        .foregroundStyle(NLColor.textSecondary)
+                }
+            }
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+    }
+}
+
+extension NolaggyNamedScreenHeader where Trailing == EmptyView {
+    init(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey? = nil,
+        leadingAction: (() -> Void)? = nil,
+        leadingAccessibilityIdentifier: String = "screen-back"
+    ) {
+        self.init(
+            title: title,
+            subtitle: subtitle,
+            leadingAction: leadingAction,
+            leadingAccessibilityIdentifier: leadingAccessibilityIdentifier,
+            trailing: { EmptyView() }
+        )
+    }
+}
+
 /// Controle de navegação único: menu e retorno ocupam o mesmo alvo de 44 pt.
 /// No iOS 26 usa o vidro do próprio sistema; em versões anteriores preserva o
 /// botão de barra nativo, sem cápsula ou fundo desenhado pelo app.
@@ -212,11 +294,7 @@ private struct NolaggyNavigationControl: View {
 /// recriada com cores soltas em features individuais.
 struct NolaggyScreenBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [NLColor.backgroundBase, NLColor.backgroundOverlay],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        NLColor.deep
             .ignoresSafeArea()
             .accessibilityHidden(true)
     }

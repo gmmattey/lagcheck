@@ -215,9 +215,9 @@ public struct NetworkCockpitView: View {
             }
         }
         .padding(NLSpacing.md)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 12))
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: NLRadius.card)
                 .stroke(NLColor.borderHairline, lineWidth: 1)
         )
     }
@@ -296,9 +296,9 @@ public struct NetworkCockpitView: View {
             }
         }
         .padding(NLSpacing.md)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 12))
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: NLRadius.card)
                 .stroke(NLColor.borderHairline, lineWidth: 1)
         )
     }
@@ -328,9 +328,9 @@ public struct NetworkCockpitView: View {
             }
         }
         .padding(NLSpacing.md)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 12))
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: NLRadius.card)
                 .stroke(NLColor.borderHairline, lineWidth: 1)
         )
     }
@@ -411,9 +411,9 @@ public struct NetworkCockpitView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .foregroundStyle(NLColor.textPrimary)
-                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 10))
+                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.button))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: NLRadius.button)
                         .stroke(NLColor.borderHairline, lineWidth: 1)
                 )
             }

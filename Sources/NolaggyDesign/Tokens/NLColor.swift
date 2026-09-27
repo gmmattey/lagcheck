@@ -1,14 +1,18 @@
 import SwiftUI
 
-/// Tokens de cor oficiais do LagCheck — Dark Competitive UI (Decisões 50 e 51).
-/// Fundo profundo quase preto, superfícies grafite, bordas finas e Coral Solar exclusivo para ação primária.
+/// Tokens de cor oficiais do LagCheck Design System.
+/// Fundo profundo quase preto, superfícies grafite, bordas finas de 1px.
+/// Roxo Gamer (#7C3AED) é reservado para ação, seleção, foco e progresso.
+/// Coral Solar (#FF5A36) é reservado estritamente para atenção, erro ou ações destrutivas.
 public enum NLColor {
-    // MARK: - Dark Competitive Background Surfaces (Decisão 51)
-    /// Fundo profundo quase preto (#0B0D10)
+    // MARK: - Dark Surfaces (DESIGN.md / colors_and_type.css)
+    /// Fundo profundo quase preto (#0B0D10 / oklch(0.158 0.011 260))
     public static let deep = Color(red: 11 / 255, green: 13 / 255, blue: 16 / 255)
-    /// Superfície grafite para cards e contêineres (#15181E)
+    /// Palco de canvas profundo (#060709 / oklch(0.09 0.009 260))
+    public static let stage = Color(red: 6 / 255, green: 7 / 255, blue: 9 / 255)
+    /// Superfície grafite para cards e contêineres (#15181E / oklch(0.205 0.012 260))
     public static let surface = Color(red: 21 / 255, green: 24 / 255, blue: 30 / 255)
-    /// Painéis escuros elevados (#1E232B)
+    /// Painéis e superfícies elevadas (#1E232B / oklch(0.23 0.014 260))
     public static let panel = Color(red: 30 / 255, green: 35 / 255, blue: 43 / 255)
 
     // Aliases para compatibilidade de componentes existentes
@@ -18,29 +22,48 @@ public enum NLColor {
     public static let controlOverlay = Color.white.opacity(0.06)
     public static let settingsSurface = surface
 
-    // MARK: - Hairline Borders (1px contínuo, Decisão 51)
+    // MARK: - Hairline Borders (1px contínuo, DESIGN.md)
     public static let borderHairline = Color.white.opacity(0.08)
-    public static let borderSubtle = Color.white.opacity(0.08)
-    public static let borderStrong = Color.white.opacity(0.14)
-    public static let borderFocus = coralSolar
+    public static let borderSubtle = Color.white.opacity(0.10)
+    public static let borderStrong = Color.white.opacity(0.16)
+    public static let borderFocus = gamerPurple
 
     // MARK: - Dark Competitive Typography Colors
-    /// Texto primário de alto contraste (#F4F5F7)
+    /// Texto primário de alto contraste (#F4F5F7 / oklch(0.955 0.006 260))
     public static let textPrimary = Color(red: 244 / 255, green: 245 / 255, blue: 247 / 255)
-    /// Texto secundário neutro (#8A93A0)
+    /// Texto secundário neutro (#8A93A0 / oklch(0.675 0.014 260))
     public static let textSecondary = Color(red: 138 / 255, green: 147 / 255, blue: 160 / 255)
     /// Texto terciário / labels auxiliares (#555E6C)
     public static let textTertiary = Color(red: 85 / 255, green: 94 / 255, blue: 108 / 255)
     public static let textDisabled = Color(red: 55 / 255, green: 62 / 255, blue: 72 / 255)
     public static let textOnAccent = Color.white
-    public static let textLink = coralSolar
+    public static let textLink = gamerPurple
 
-    // MARK: - Coral Solar Action Accent (Decisões 25 e 51)
-    /// Coral Solar assinatura (#FF5A36) — ÚNICA cor de ação primária
+    // MARK: - Roxo Gamer: Ação, Seleção, Foco e Progresso (#7C3AED / oklch(0.585 0.214 299))
+    /// Roxo Gamer assinatura (#7C3AED) — cor oficial de ação primária, seleção e foco
+    public static let gamerPurple = Color(red: 124 / 255, green: 58 / 255, blue: 237 / 255)
+    public static let gamerPurpleStrong = Color(red: 109 / 255, green: 40 / 255, blue: 217 / 255)
+    public static let gamerPurpleLight = Color(red: 167 / 255, green: 139 / 255, blue: 250 / 255)
+    public static let gamerPurpleDeep = Color(red: 91 / 255, green: 33 / 255, blue: 182 / 255)
+
+    public static let gamerPurpleGradient = LinearGradient(
+        colors: [gamerPurpleDeep, gamerPurple, gamerPurpleLight],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    public static let accentPrimary = gamerPurple
+    public static let accentPrimaryStrong = gamerPurpleStrong
+    public static let accentPrimaryHover = gamerPurpleLight
+    public static let accentPrimarySubtle = gamerPurple.opacity(0.15)
+
+    // MARK: - Coral Solar: Atenção, Erro ou Ações Destrutivas (#FF5A36 / oklch(0.684 0.196 35))
+    /// Coral Solar (#FF5A36) — reservado estritamente para atenção, erro ou ações destrutivas
     public static let coralSolar = Color(red: 255 / 255, green: 90 / 255, blue: 54 / 255)
     public static let coralSolarRed = Color(red: 255 / 255, green: 56 / 255, blue: 35 / 255)
     public static let coralSolarAmber = Color(red: 255 / 255, green: 171 / 255, blue: 46 / 255)
     public static let coralSolarStrong = Color(red: 235 / 255, green: 77 / 255, blue: 38 / 255)
+    public static let attention = coralSolar
 
     public static let coralSolarGradient = LinearGradient(
         colors: [coralSolarRed, coralSolar, coralSolarAmber],
@@ -53,17 +76,13 @@ public enum NLColor {
         endPoint: .trailing
     )
 
-    public static let accentPrimary = coralSolar
-    public static let accentPrimaryStrong = coralSolarStrong
-    public static let accentPrimarySubtle = coralSolar.opacity(0.15)
-
-    // MARK: - Semantic Verdict Colors (Decisão 51 — Verde RESTobserver ao veredito .ready)
-    /// Verde semântico (#22C55E) — restrito ao veredito READY (NUNCA cor de ação)
+    // MARK: - Semantic Verdict Colors (DESIGN.md)
+    /// Verde semântico (#22C55E / oklch(0.76 0.15 150)) — restrito ao veredito READY / favorável
     public static let semanticReady = Color(red: 34 / 255, green: 197 / 255, blue: 94 / 255)
-    /// Âmbar semântico (#F59E0B) — veredito CAUTION / Atenção
+    /// Âmbar semântico (#F59E0B / oklch(0.76 0.15 80)) — veredito CAUTION / Atenção
     public static let semanticCaution = Color(red: 245 / 255, green: 158 / 255, blue: 11 / 255)
-    /// Vermelho semântico (#EF4444) — veredito NOT READY / Evitar partida
-    public static let semanticNotReady = Color(red: 239 / 255, green: 68 / 255, blue: 68 / 255)
+    /// Vermelho/Coral semântico (#FF5A36 / oklch(0.684 0.196 35)) — veredito NOT READY / Evitar partida
+    public static let semanticNotReady = coralSolar
     /// Neutro semântico (#8A93A0) — veredito INCONCLUSIVE
     public static let semanticNeutral = textSecondary
 
@@ -76,8 +95,8 @@ public enum NLColor {
     public static let scoreExcellentSubtle = semanticReady.opacity(0.16)
     public static let scoreUnstable = semanticCaution
     public static let scoreUnstableSubtle = semanticCaution.opacity(0.16)
-    public static let scoreLagRisk = semanticNotReady
-    public static let scoreLagRiskSubtle = semanticNotReady.opacity(0.16)
+    public static let scoreLagRisk = coralSolar
+    public static let scoreLagRiskSubtle = coralSolar.opacity(0.16)
     public static let scoreNeutral = textSecondary
     public static let scoreNeutralSubtle = textSecondary.opacity(0.16)
 }

@@ -96,9 +96,9 @@ public struct RouteTrailSummaryCard: View {
                 )
             }
             .padding(NLSpacing.cardPadding)
-            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
                     .stroke(NLColor.borderSubtle, lineWidth: 0.5)
             }
         }
@@ -109,10 +109,10 @@ public struct RouteTrailSummaryCard: View {
     private func summaryNode(icon: String, title: String, detail: String, isHealthy: Bool, statusBadge: String) -> some View {
         HStack(spacing: NLSpacing.sm) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous)
                     .fill(NLColor.backgroundOverlay)
                     .frame(width: 36, height: 36)
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous)
                     .stroke(isHealthy ? NLColor.scoreExcellent.opacity(0.4) : NLColor.coralSolarRed.opacity(0.4), lineWidth: 1.0)
                     .frame(width: 36, height: 36)
                 Image(systemName: icon)

@@ -1,11 +1,16 @@
 import Foundation
 
+/// Dimensões semânticas oficiais do LagCheck Design System (DESIGN.md).
+/// Controles usam no mínimo 44 px e CTA principal 56–62 px (58 px padrão).
 public enum NLSizing {
+    /// Alvo mínimo de toque (44px)
     public static let touchTarget: CGFloat = 44
+    /// Altura padrão do botão primário CTA (58px, faixa 56–62px do DESIGN.md)
+    public static let primaryButtonHeight: CGFloat = 58
+    public static let primaryButtonMinWidth: CGFloat = 200
+
     public static let iconSmall: CGFloat = 20
     public static let iconMedium: CGFloat = 24
-    public static let primaryButtonHeight: CGFloat = 52
-    public static let primaryButtonMinWidth: CGFloat = 200
     public static let contextGameCoverHeight: CGFloat = 120
     public static let navigationControlSide: CGFloat = touchTarget
     public static let metricRowHeight: CGFloat = 56
@@ -14,7 +19,7 @@ public enum NLSizing {
     public static let statusMessageMinHeight: CGFloat = 48
     public static let measurementPulseDiameter: CGFloat = 220
     public static let measurementPulseStrokeWidth: CGFloat = 6
-    public static let detailsGraphHeight: CGFloat = 180
+    public static let detailsGraphHeight: CGFloat = 100
     public static let historyCardMinHeight: CGFloat = 96
     public static let emptyStateMinHeight: CGFloat = 180
     public static let failureStateIconSide: CGFloat = 64

@@ -1,0 +1,9 @@
+/* Módulos reutilizáveis do kit aplicado LagCheck. */
+.lc-live-chip{display:inline-flex;align-items:center;gap:7px;min-height:27px;padding:0 9px;border:1px solid var(--lc-border);border-radius:var(--lc-radius-pill);color:var(--lc-muted);font:11px var(--lc-font-mono)}
+.lc-live-chip i{width:6px;height:6px;border-radius:50%;background:var(--lc-good);box-shadow:0 0 0 3px oklch(.76 .15 150/.11)}
+.lc-cta{width:100%;min-height:58px;border:0;border-radius:var(--lc-radius-lg);background:var(--lc-accent);color:var(--lc-on-accent);font:800 16px var(--lc-font-body);box-shadow:var(--lc-shadow-action);cursor:pointer}
+.lc-cta:hover{background:var(--lc-accent-hover)}.lc-cta:active{transform:scale(.98)}
+.lc-evidence{padding:14px;border:1px solid var(--lc-border);border-radius:var(--lc-radius-md);background:var(--lc-surface)}
+.lc-evidence small{display:block;color:var(--lc-muted);font:10px var(--lc-font-mono);letter-spacing:.08em}.lc-evidence strong{display:block;margin-top:5px}
+.lc-game-row{display:flex;align-items:center;gap:12px;min-height:72px;border-bottom:1px solid var(--lc-border)}
+.lc-game-row img{width:42px;height:52px;border-radius:var(--lc-radius-sm);object-fit:cover}.lc-game-row span{flex:1}.lc-game-row small{display:block;color:var(--lc-muted);font:11px var(--lc-font-mono)}

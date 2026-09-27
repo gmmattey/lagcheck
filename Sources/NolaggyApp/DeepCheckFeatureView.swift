@@ -77,13 +77,6 @@ struct DeepCheckFeatureView: View {
             .navigationBarBackButtonHidden(true)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                if isResultPresentation {
-                    ToolbarItem(placement: .topBarLeading) {
-                        NolaggyBackButton(action: cancelOrDismiss, accessibilityIdentifier: "check-completo-back")
-                    }
-                }
-            }
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -290,22 +283,57 @@ struct DeepCheckFeatureView: View {
     }
 
     private func terminal(kind: StatusMessage.Kind) -> some View {
-        VStack(spacing: NLSpacing.xl) {
+        VStack(spacing: 0) {
             titleHeader
             Spacer()
-            StatusMessage(
-                kind: kind,
-                message: kind == .inconclusive ? "deep_check.inconclusive.message" : "deep_check.cancelled.message",
-                actionTitle: "deep_check.result.retry",
-                action: restart
-            )
+            VStack(spacing: 12) {
+                Text(LocalizedStringKey("check.alert.network_changed.title"))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text(LocalizedStringKey("check.alert.network_changed.message"))
+                    .font(.system(size: 14))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 12)
+
+                Button(action: restart) {
+                    Text(LocalizedStringKey("check.alert.retry"))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .padding(.horizontal, 19)
+                        .frame(height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("retry-check")
+            }
             Spacer()
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
     }
 
     private var titleHeader: some View {
-        NolaggyBackHeader(action: cancelOrDismiss, accessibilityIdentifier: "deep-check-back")
+        HStack {
+            Button(action: cancelOrDismiss) {
+                Text(LocalizedStringKey("check.cancel"))
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(minHeight: 44)
+            }
+            .accessibilityIdentifier("deep-check-back")
+
+            Spacer()
+
+            Text(gameName)
+                .font(NLTypography.monospaceMetrics)
+                .foregroundStyle(NLColor.textTertiary)
+        }
+        .frame(height: 52)
     }
 
     private var isResultPresentation: Bool {

@@ -1,76 +1,13 @@
 {
-  "$schema": "nolaggy/tokens/sizing",
-  "description": "Dimensões fixas de componentes e alvos de toque. Alvos interativos nunca ficam abaixo de 44x44pt (HIG).",
-  "touchTarget": {
-    "minimum": { "value": 44, "usage": "Alvo mínimo de toque para qualquer elemento interativo (HIG)." }
-  },
-  "icon": {
-    "xs": { "value": 16 },
-    "sm": { "value": 20 },
-    "md": { "value": 24 },
-    "lg": { "value": 32 },
-    "xl": { "value": 48 }
-  },
-  "primaryButton": {
-    "height": { "value": 52 },
-    "minWidth": { "value": 200 },
-    "iconGap": { "value": "{spacing.scale.xs}" }
-  },
-  "nolaggyScore": {
-    "ring": {
-      "sm": { "value": 96, "usage": "Card de histórico, atalho 'Testar de novo'." },
-      "md": { "value": 160, "usage": "Resultado do Quick Check." },
-      "lg": { "value": 216, "usage": "Resultado do Deep Check (score de repouso em destaque)." }
-    },
-    "ringStrokeWidth": {
-      "sm": { "value": 8 },
-      "md": { "value": 12 },
-      "lg": { "value": 14 }
-    }
-  },
-  "measurementPulse": {
-    "diameter": { "value": 220, "usage": "Indicador central durante Quick/Deep Check." },
-    "strokeWidth": { "value": 6 }
-  },
-  "latencyGraph": {
-    "heightCompact": { "value": 100, "usage": "Gráfico vivo durante o Quick Check; preserva a altura do protótipo iOS canônico." },
-    "heightExpanded": { "value": 220, "usage": "Gráfico na tela de Detalhes." },
-    "pointRadius": { "value": 3 },
-    "spikeMarkerRadius": { "value": 5 }
-  },
-  "gameTile": {
-    "artworkAspectRatio": "3:4",
-    "widthCompact": { "value": 104, "usage": "Carrossel de jogos recentes/favoritos na Home." },
-    "widthGrid": { "value": "flexible (colunas adaptativas, mínimo 104pt)", "usage": "Grid de busca/categoria." },
-    "heightRow": { "value": 72, "usage": "Variante de linha (lista de resultados de busca)." }
-  },
-  "platformSelector": {
-    "chipHeight": { "value": 44 },
-    "chipMinWidth": { "value": 88 },
-    "iconSize": { "value": "{icon.md}" }
-  },
-  "metricRow": {
-    "height": { "value": 56 },
-    "iconSize": { "value": "{icon.sm}" }
-  },
-  "insightBanner": {
-    "minHeight": { "value": 64 },
-    "iconSize": { "value": "{icon.md}" }
-  },
-  "statusMessage": {
-    "minHeight": { "value": 48 },
-    "iconSize": { "value": "{icon.sm}" }
-  },
-  "emptyState": {
-    "illustrationSize": { "value": 120 }
-  },
-  "bannerAdSlot": {
-    "heightStandard": { "value": 50, "usage": "Banner padrão 320x50 / adaptativo compacto." },
-    "heightLarge": { "value": 90, "usage": "Banner adaptativo em telas largas/iPad-like width classes, quando aplicável." },
-    "cornerInset": { "value": "{radius.semantic.adSlot}" }
-  },
-  "appIcon": {
-    "masterPx": { "value": 1024 },
-    "cornerRadiusNote": "O canto é aplicado pelo próprio iOS (superellipse); o PNG master e o SVG-fonte são entregues quadrados, sem arredondamento embutido."
+  "$schema": "lagcheck/tokens/sizing",
+  "description": "Dimensões semânticas do LagCheck Design System. Controles usam no mínimo 44px e CTA principal 56–62px (58px padrão).",
+  "sizes": {
+    "touchTarget": 44,
+    "primaryButtonHeight": 58,
+    "primaryButtonMinWidth": 200,
+    "liveChipHeight": 27,
+    "gameArtworkCorner": 8,
+    "detailsGraphHeight": 100,
+    "metricRowHeight": 56
   }
 }

@@ -46,4 +46,31 @@ final class LocalizationSmokeUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Juegos"].exists)
         XCTAssertFalse(app.buttons["Início"].exists)
     }
+
+    @MainActor
+    func testSettingsScreenShowsLocalizedTitleAndNoTechnicalKeysLeaking() {
+        let app = XCUIApplication()
+        app.launchArguments += [
+            "-AppleLanguages", "(pt-BR)",
+            "-AppleLocale", "pt_BR",
+            "-app_selected_language", "pt-BR",
+            "-ui-fixture-confirmed-region"
+        ]
+        app.launch()
+
+        let settingsBtn = app.buttons["navigation-settings-open"]
+        XCTAssertTrue(settingsBtn.waitForExistence(timeout: 3))
+        settingsBtn.tap()
+
+        // Verify "Ajustes" title exists and "navigation.settings" does not leak
+        XCTAssertTrue(app.staticTexts["Ajustes"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["navigation.settings"].exists)
+
+        // Capture screenshot of settings screen for visual verification
+        let screenshot = app.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
 }
+

@@ -1,10 +1,11 @@
 import SwiftUI
+import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
-/// Histórico local organizado pela pergunta que importa para quem joga: como
-/// cada jogo evoluiu. A lista não mistura medições de contextos diferentes;
-/// detalhes e comparações sempre ficam dentro de um contexto imutável.
+/// Histórico local do LagCheck (Mockup 06 · Dark Competitive UI).
+/// Agrupado por jogo, com veredito semântico, métricas monoespaçadas,
+/// confirmação de exclusão em bottom sheet e estados de carregamento/vazio.
 struct HistoryView: View {
     let entries: [MeasurementHistoryEntry]
     let gameName: (MeasurementHistoryEntry) -> String
@@ -12,500 +13,312 @@ struct HistoryView: View {
     let returnToHome: () -> Void
     let openSettings: () -> Void
     var showsBackHeader: Bool = true
+    var deleteHistory: (() async throws -> Void)? = nil
 
-    @State private var filter: HistoryConnectionFilter = .all
+    @State private var showingClearConfirmation: Bool = false
+    @State private var selectedEntryForDetails: MeasurementHistoryEntry? = nil
 
-    private var filteredEntries: [MeasurementHistoryEntry] {
-        entries.filter { filter.includes($0.historyPhoneNetwork) }
-    }
-
-    private var games: [HistoryGame] {
-        Dictionary(grouping: filteredEntries, by: { $0.resolvedContext.context.gameID })
-            .compactMap { gameID, entries in
-                guard let latest = entries.max(by: { $0.completedAt < $1.completedAt }) else { return nil }
-                return HistoryGame(id: gameID, entries: entries, latest: latest)
-            }
-            .sorted { $0.latest.completedAt > $1.latest.completedAt }
+    private var groupedGames: [(gameID: String, name: String, latest: MeasurementHistoryEntry, entries: [MeasurementHistoryEntry])] {
+        let grouped = Dictionary(grouping: entries, by: { $0.resolvedContext.context.gameID })
+        return grouped.compactMap { gameID, items in
+            guard let latest = items.max(by: { $0.completedAt < $1.completedAt }) else { return nil }
+            let sortedItems = items.sorted(by: { $0.completedAt > $1.completedAt })
+            return (gameID: gameID, name: gameName(latest), latest: latest, entries: sortedItems)
+        }
+        .sorted(by: { $0.latest.completedAt > $1.latest.completedAt })
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                if entries.isEmpty {
-                    HistoryEmptyState(action: returnToHome)
-                } else {
-                    filterPicker
-
-                    if games.isEmpty {
-                        HistoryFilteredEmptyState(filter: filter)
-                    } else {
-                        LazyVStack(spacing: NLSpacing.md) {
-                            ForEach(games) { game in
-                                NavigationLink {
-                                    HistoryGameDetailView(
-                                        gameName: gameName(game.latest),
-                                        entries: game.entries,
-                                        retry: retry
-                                    )
-                                } label: {
-                                    HistoryGameRow(entry: game.latest, gameName: gameName(game.latest))
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(accessibilityLabel(for: game))
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 16) {
+                // Cabeçalho da Tela Nomeada
+                NolaggyNamedScreenHeader(
+                    title: LocalizedStringKey("history.title"),
+                    leadingAction: showsBackHeader ? returnToHome : nil,
+                    leadingAccessibilityIdentifier: "history-back",
+                    trailing: {
+                        if !entries.isEmpty {
+                            Button(action: { showingClearConfirmation = true }) {
+                                Text(LocalizedStringKey("history.clear_all"))
+                                    .font(.system(size: 13, weight: .regular))
+                                    .foregroundStyle(NLColor.textSecondary)
+                                    .frame(height: 44)
                             }
+                            .accessibilityIdentifier("history-clear-all")
                         }
                     }
-                }
-            }
-            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.vertical, NLSpacing.lg)
-        }
-        .background(NolaggyScreenBackground())
-        .navigationTitle(Text("history.title"))
-        .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
-        .navigationBarBackButtonHidden(showsBackHeader)
-        .toolbar {
-            if showsBackHeader {
-                ToolbarItem(placement: .topBarLeading) {
-                    NolaggyBackButton(action: returnToHome, accessibilityIdentifier: "history-back")
-                }
-            }
-        }
-        .preferredColorScheme(.dark)
-    }
-
-    private var filterPicker: some View {
-        Picker("history.filter.accessibility", selection: $filter) {
-            ForEach(HistoryConnectionFilter.allCases) { filter in
-                Text(filter.titleKey).tag(filter)
-            }
-        }
-        .pickerStyle(.segmented)
-        .accessibilityIdentifier("history-connection-filter")
-    }
-
-    private func accessibilityLabel(for game: HistoryGame) -> String {
-        let latest = game.latest
-        let result = latest.isInconclusive
-            ? AppLocalization.string("history.inconclusive", comment: "")
-            : String(
-                format: AppLocalization.string("history.score_accessibility %@", comment: ""),
-                String(latest.result.finalScore)
-            )
-        return String(
-            format: AppLocalization.string("history.game_accessibility %@ %@ %@", comment: ""),
-            gameName(latest), result, latest.completedAt.formatted(date: .abbreviated, time: .shortened)
-        )
-    }
-}
-
-private struct HistoryGameDetailView: View {
-    let gameName: String
-    let entries: [MeasurementHistoryEntry]
-    let retry: (MeasurementHistoryEntry) -> Void
-
-    private var contexts: [HistoryContext] {
-        Dictionary(grouping: entries, by: HistoryContextKey.init(entry:))
-            .compactMap { key, entries in
-                guard let latest = entries.max(by: { $0.completedAt < $1.completedAt }) else { return nil }
-                return HistoryContext(id: key, entries: entries.sorted { $0.completedAt > $1.completedAt }, latest: latest)
-            }
-            .sorted { $0.latest.completedAt > $1.latest.completedAt }
-    }
-
-    var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: NLSpacing.lg) {
-                ForEach(contexts) { context in
-                    HistoryContextSection(context: context, retry: retry)
-                }
-            }
-            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.vertical, NLSpacing.lg)
-        }
-        .background(NolaggyScreenBackground())
-        .navigationTitle(gameName)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
-        .preferredColorScheme(.dark)
-    }
-}
-
-private struct HistoryContextSection: View {
-    let context: HistoryContext
-    let retry: (MeasurementHistoryEntry) -> Void
-
-    private var summary: MeasurementHistorySummary? {
-        MeasurementHistorySummary(entries: context.entries)
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: NLSpacing.md) {
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                Text(context.title)
-                    .font(NLTypography.headline)
-                    .foregroundStyle(NLColor.textPrimary)
-                Text(context.routeLabel)
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-            }
-
-            PrimaryButton(title: "history.retry", action: { retry(context.latest) })
-                .accessibilityLabel(Text("history.retry"))
-
-            if let summary, !context.latest.isInconclusive,
-               summary.sevenDayAverageScore != nil || summary.trend != nil {
-                HistoryEvolution(summary: summary)
-            }
-
-            VStack(spacing: NLSpacing.sm) {
-                ForEach(context.entries) { entry in
-                    HistoryTimelineRow(entry: entry)
-                }
-            }
-        }
-        .padding(NLSpacing.cardPadding)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay {
-            RoundedRectangle(cornerRadius: NLRadius.card)
-                .stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline)
-        }
-        .accessibilityElement(children: .contain)
-    }
-}
-
-private struct HistoryEvolution: View {
-    let summary: MeasurementHistorySummary
-
-    var body: some View {
-        HStack(spacing: NLSpacing.sm) {
-            Image(systemName: trendSymbol)
-                .foregroundStyle(NLColor.accentPrimary)
-                .accessibilityHidden(true)
-            Text(evolutionText)
-                .font(NLTypography.footnote)
-                .foregroundStyle(NLColor.textSecondary)
-        }
-        .padding(.vertical, NLSpacing.xs)
-        .accessibilityLabel(evolutionText)
-    }
-
-    private var trendSymbol: String {
-        switch summary.trend {
-        case .improving: "arrow.up.right"
-        case .worsening: "arrow.down.right"
-        case .stable, .none: "minus"
-        }
-    }
-
-    private var evolutionText: String {
-        var parts: [String] = []
-        if let average = summary.sevenDayAverageScore {
-            parts.append(
-                String(
-                    format: AppLocalization.string("history.seven_day_average %@", comment: ""),
-                    String(average)
                 )
-            )
-        }
-        if let trend = summary.trend {
-            let key: String = switch trend {
-            case .improving: "history.trend.improving"
-            case .worsening: "history.trend.worsening"
-            case .stable: "history.trend.stable"
+
+                if entries.isEmpty {
+                    emptyStateView
+                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.top, 40)
+                } else {
+                    // Grupos por jogo
+                    VStack(spacing: 24) {
+                        ForEach(groupedGames, id: \.gameID) { group in
+                            gameGroupSection(group: group)
+                        }
+
+                        Text(LocalizedStringKey("history.device_storage_note"))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(NLColor.textTertiary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 8)
+                    }
+                    .padding(.horizontal, NLSpacing.md)
+                }
+
+                Spacer(minLength: NLSpacing.xl)
             }
-            parts.append(AppLocalization.string(key, comment: ""))
         }
-        return parts.joined(separator: " · ")
+        .background(NLColor.deep.ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingClearConfirmation) {
+            deleteConfirmationSheet
+        }
     }
-}
 
-private struct HistoryGameRow: View {
-    let entry: MeasurementHistoryEntry
-    let gameName: String
-    @Environment(\.locale) private var locale
+    // MARK: - Grupo por Jogo
+    private func gameGroupSection(group: (gameID: String, name: String, latest: MeasurementHistoryEntry, entries: [MeasurementHistoryEntry])) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Cabeçalho do Jogo
+            HStack(spacing: 10) {
+                catalogCoverView(for: group.latest)
+                    .frame(width: 38, height: 46)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
 
-    var body: some View {
-        HStack(spacing: NLSpacing.md) {
-            GameArtwork(image: nil, sourceRecordID: nil, title: gameName)
-                .frame(width: NLSizing.compactGameArtworkSide, height: NLSizing.compactGameArtworkSide)
-                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(group.name)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(1)
 
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                Text(gameName)
-                    .font(NLTypography.bodyEmphasis)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .lineLimit(2)
-                Text(resultText)
-                    .font(NLTypography.callout.weight(.semibold))
-                    .foregroundStyle(entry.isInconclusive ? NLColor.textSecondary : scoreColor)
-                Text(contextText)
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-                    .lineLimit(2)
-                Text(entry.completedAt, style: .relative)
-                    .font(NLTypography.caption)
+                    Text(verbatim: "\(group.latest.resolvedContext.context.platform.displayName) · última plataforma")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(NLColor.textTertiary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(NLColor.textTertiary)
             }
+            .padding(.bottom, 10)
+            .contentShape(Rectangle())
+            .overlay(
+                Rectangle()
+                    .fill(NLColor.borderStrong)
+                    .frame(height: 1),
+                alignment: .bottom
+            )
 
-            Spacer(minLength: NLSpacing.sm)
-            Image(systemName: "chevron.right")
-                .font(NLTypography.captionStrong)
-                .foregroundStyle(NLColor.textTertiary)
-                .accessibilityHidden(true)
-        }
-        .padding(NLSpacing.cardPadding)
-        .frame(maxWidth: .infinity, minHeight: NLSizing.historyCardMinHeight, alignment: .leading)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
-    }
-
-    private var resultText: String {
-        if entry.isInconclusive {
-            return AppLocalization.string("history.inconclusive", comment: "")
-        }
-        return entry.readinessVerdict.defaultHeadline
-    }
-
-    private var contextText: String {
-        entry.historyContextDescription(routeLabel: entry.routeLabel(for: locale))
-    }
-
-    private var scoreColor: Color {
-        switch entry.readinessVerdict {
-        case .ready: NLColor.readyGreen
-        case .caution: NLColor.cautionYellow
-        case .notReady: NLColor.notReadyRed
-        case .inconclusive: NLColor.textSecondary
-        }
-    }
-}
-
-private struct HistoryTimelineRow: View {
-    let entry: MeasurementHistoryEntry
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: NLSpacing.sm) {
-            Circle()
-                .fill(timelineDotColor)
-                .frame(width: 7, height: 7)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                Text(entry.isInconclusive
-                    ? AppLocalization.string("history.inconclusive", comment: "")
-                    : "\(entry.readinessVerdict.defaultHeadline) · \(entry.result.finalScore)")
-                    .font(NLTypography.bodyEmphasis)
-                    .foregroundStyle(NLColor.textPrimary)
-                Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-                if entry.kind == .deep {
-                    Text("history.deep_check_short")
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
+            // Lista de Medições do Jogo
+            VStack(spacing: 0) {
+                ForEach(group.entries) { entry in
+                    historyItemRow(entry: entry)
                 }
             }
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget, alignment: .leading)
-        .accessibilityLabel(entry.isInconclusive
-            ? String(format: AppLocalization.string("history.timeline.inconclusive %@", comment: ""), entry.completedAt.formatted(date: .abbreviated, time: .shortened))
-            : String(
-                format: AppLocalization.string("history.timeline.score %@ %@", comment: ""),
-                String(entry.result.finalScore),
-                entry.completedAt.formatted(date: .abbreviated, time: .shortened)
-            ))
-    }
-
-    private var timelineDotColor: Color {
-        switch entry.readinessVerdict {
-        case .ready: NLColor.readyGreen
-        case .caution: NLColor.cautionYellow
-        case .notReady: NLColor.notReadyRed
-        case .inconclusive: NLColor.textTertiary
         }
     }
-}
 
-private struct HistoryEmptyState: View {
-    let action: () -> Void
+    private func historyItemRow(entry: MeasurementHistoryEntry) -> some View {
+        Button(action: {
+            selectedEntryForDetails = entry
+        }) {
+            HStack(alignment: .top, spacing: 8) {
+                Text(symbolForEntry(entry))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(colorForEntry(entry))
+                    .frame(width: 15, alignment: .leading)
+                    .padding(.top, 2)
 
-    var body: some View {
-        VStack(spacing: NLSpacing.md) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(NLTypography.displayTitle)
-                .foregroundStyle(NLColor.textTertiary)
-                .accessibilityHidden(true)
-            Text("history.empty")
-                .font(NLTypography.body)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verdictTitleForEntry(entry))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(NLColor.textPrimary)
+
+                    Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 11))
+                        .foregroundStyle(NLColor.textTertiary)
+
+                    // Métricas inline
+                    Text(verbatim: "\(formatPing(entry)) ms · \(formatJitter(entry)) ms jitter · \(formatLoss(entry))% perda")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(NLColor.textTertiary)
+                        .padding(.top, 2)
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, 11)
+            .frame(minHeight: 66)
+            .contentShape(Rectangle())
+            .overlay(
+                Rectangle()
+                    .fill(NLColor.borderStrong)
+                    .frame(height: 1),
+                alignment: .bottom
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Estado Vazio (Mockup 06)
+    private var emptyStateView: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                Circle()
+                    .stroke(NLColor.borderStrong, lineWidth: 1)
+                    .frame(width: 55, height: 55)
+
+                Text(verbatim: "—")
+                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .foregroundStyle(NLColor.textTertiary)
+            }
+            .padding(.bottom, 12)
+
+            Text(LocalizedStringKey("history.empty.title"))
+                .font(.system(size: 25, weight: .bold, design: .rounded))
+                .foregroundStyle(NLColor.textPrimary)
+
+            Text(LocalizedStringKey("history.empty.subtitle"))
+                .font(.system(size: 14))
                 .foregroundStyle(NLColor.textSecondary)
-            PrimaryButton(title: "history.choose_game", action: action)
+                .multilineTextAlignment(.center)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+
+            Button(action: returnToHome) {
+                Text(LocalizedStringKey("history.empty.go_home"))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .padding(.horizontal, 20)
+                    .frame(height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("history-empty-home")
         }
-        .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
-    }
-}
-
-private struct HistoryFilteredEmptyState: View {
-    let filter: HistoryConnectionFilter
-
-    var body: some View {
-        Text(filter == .wifi ? "history.filter.empty_wifi" : "history.filter.empty_cellular")
-            .font(NLTypography.body)
-            .foregroundStyle(NLColor.textSecondary)
-            .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
-            .multilineTextAlignment(.center)
-    }
-}
-
-private struct HistoryGame: Identifiable {
-    let id: String
-    let entries: [MeasurementHistoryEntry]
-    let latest: MeasurementHistoryEntry
-}
-
-private struct HistoryContext: Identifiable {
-    let id: HistoryContextKey
-    let entries: [MeasurementHistoryEntry]
-    let latest: MeasurementHistoryEntry
-
-    var title: String { [id.platform.displayName, id.externalLink.title, id.phoneNetwork.title].joined(separator: " · ") }
-    var routeLabel: String { id.routeLabel }
-}
-
-private struct HistoryContextKey: Hashable, Identifiable {
-    let gameID: String
-    let platform: Platform
-    let externalLink: HistoryExternalLink
-    let phoneNetwork: HistoryPhoneNetwork
-    let regionID: String
-    let profileRuleVersion: String
-
-    init(entry: MeasurementHistoryEntry) {
-        gameID = entry.resolvedContext.context.gameID
-        platform = entry.resolvedContext.context.platform
-        externalLink = entry.historyExternalLink
-        phoneNetwork = entry.historyPhoneNetwork
-        regionID = entry.resolvedContext.regionID
-        profileRuleVersion = entry.profileRuleVersion
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
 
-    var id: String { [gameID, platform.rawValue, externalLink.rawValue, phoneNetwork.rawValue, regionID, profileRuleVersion].joined(separator: "|") }
+    // MARK: - Bottom Sheet de Limpeza
+    private var deleteConfirmationSheet: some View {
+        VStack(spacing: 0) {
+            Text(LocalizedStringKey("history.sheet.delete_title"))
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(NLColor.textPrimary)
+                .padding(.top, NLSpacing.md)
+                .padding(.bottom, 8)
 
-    var routeLabel: String {
-        let identifier = AppLocalization.locale.identifier.lowercased()
-        let languageCode = identifier.hasPrefix("pt") ? "pt-BR" : identifier.hasPrefix("es") ? "es" : "en"
-        return GlobalProbeRegistry.friendlyLabel(for: regionID, languageCode: languageCode)
-    }
-}
+            Text(LocalizedStringKey("history.sheet.delete_message"))
+                .font(.system(size: 14))
+                .foregroundStyle(NLColor.textSecondary)
+                .padding(.bottom, 24)
 
-private enum HistoryConnectionFilter: String, CaseIterable, Identifiable {
-    case all
-    case wifi
-    case cellular
+            HStack(spacing: 12) {
+                Button(action: { showingClearConfirmation = false }) {
+                    Text(LocalizedStringKey("common.cancel"))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("history-delete-cancel")
 
-    var id: Self { self }
-
-    var titleKey: LocalizedStringKey {
-        switch self {
-        case .all: "history.filter.all"
-        case .wifi: "history.filter.wifi"
-        case .cellular: "history.filter.cellular"
+                Button(action: {
+                    showingClearConfirmation = false
+                    Task {
+                        try? await deleteHistory?()
+                    }
+                }) {
+                    Text(LocalizedStringKey("history.sheet.delete_confirm"))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(NLColor.coralSolar, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("history-delete-confirm")
+            }
+            .padding(.horizontal, NLSpacing.md)
+            .padding(.bottom, NLSpacing.lg)
         }
+        .presentationDetents([.fraction(0.35)])
+        .presentationDragIndicator(.visible)
+        .background(NLColor.backgroundRaised.ignoresSafeArea())
+        .preferredColorScheme(.dark)
     }
 
-    func includes(_ network: HistoryPhoneNetwork) -> Bool {
-        switch self {
-        case .all: true
-        case .wifi: network == .wifi
-        case .cellular: network == .cellular
-        }
-    }
-}
-
-private extension MeasurementHistoryEntry {
-    /// A ausência das respostas UDP mínimas não é uma nota baixa: é ausência
-    /// de evidência. Snapshots antigos preservam um `QualityResult`, então a
-    /// apresentação precisa reconhecer esse estado pelo fato medido.
-    var isInconclusive: Bool { result.metrics.validResponseCount < 10 }
-
-    var readinessVerdict: GameReadinessVerdict {
-        if isInconclusive { return .inconclusive }
-        return GameReadinessEvaluator.evaluate(
-            qualityResult: result,
-            loadImpact: deepCheck?.metrics.loadImpact,
-            profile: resolvedContext.profileID
-        ).verdict
-    }
-
-    var historyPhoneNetwork: HistoryPhoneNetwork {
-        guard resolvedContext.hasCompleteConnectionFacts else { return .unrecorded }
-        return HistoryPhoneNetwork(resolvedContext.observedPhoneNetwork)
-    }
-
-    var historyExternalLink: HistoryExternalLink {
-        HistoryExternalLink(resolvedContext.context.declaredExternalLink)
-    }
-
-    func historyContextDescription(routeLabel: String) -> String {
-        [
-            resolvedContext.context.platform.displayName,
-            historyExternalLink.title,
-            historyPhoneNetwork.title,
-            routeLabel
-        ]
-        .joined(separator: " · ")
-    }
-
-    func routeLabel(for locale: Locale) -> String {
-        let identifier = locale.identifier.lowercased()
-        let languageCode = identifier.hasPrefix("pt") ? "pt-BR" : identifier.hasPrefix("es") ? "es" : "en"
-        return GlobalProbeRegistry.friendlyLabel(for: resolvedContext.regionID, languageCode: languageCode)
-    }
-}
-
-private enum HistoryPhoneNetwork: String, Hashable {
-    case wifi
-    case cellular
-    case other
-    case unrecorded
-
-    init(_ networkKind: NetworkKind?) {
-        switch networkKind {
-        case .wifi: self = .wifi
-        case .cellular: self = .cellular
-        case .other: self = .other
-        case nil: self = .unrecorded
+    // MARK: - Helpers
+    private func symbolForEntry(_ entry: MeasurementHistoryEntry) -> String {
+        if entry.isInconclusive { return "—" }
+        switch entry.result.resultClass {
+        case .excellent, .great: return "●"
+        case .unstable, .lagRisk: return "▲"
         }
     }
 
-    var title: String {
-        switch self {
-        case .wifi: AppLocalization.string("history.connection.wifi", comment: "")
-        case .cellular: AppLocalization.string("history.connection.cellular", comment: "")
-        case .other: AppLocalization.string("history.connection.other", comment: "")
-        case .unrecorded: AppLocalization.string("history.connection.unrecorded", comment: "")
-        }
-    }
-}
-
-private enum HistoryExternalLink: String, Hashable {
-    case wifi
-    case ethernet
-    case notDeclared
-
-    init(_ link: ExternalEquipmentLink?) {
-        switch link {
-        case .wifi: self = .wifi
-        case .ethernet: self = .ethernet
-        case nil: self = .notDeclared
+    private func colorForEntry(_ entry: MeasurementHistoryEntry) -> Color {
+        if entry.isInconclusive { return NLColor.textTertiary }
+        switch entry.result.resultClass {
+        case .excellent, .great: return NLColor.semanticReady
+        case .unstable, .lagRisk: return NLColor.coralSolar
         }
     }
 
-    var title: String {
-        switch self {
-        case .wifi: AppLocalization.string("history.equipment.wifi", comment: "")
-        case .ethernet: AppLocalization.string("history.equipment.ethernet", comment: "")
-        case .notDeclared: AppLocalization.string("history.equipment.not_declared", comment: "")
+    private func verdictTitleForEntry(_ entry: MeasurementHistoryEntry) -> String {
+        if entry.isInconclusive { return AppLocalization.string("Inconclusivo", comment: "") }
+        switch entry.result.resultClass {
+        case .excellent, .great: return AppLocalization.string("Pronto para Ranked", comment: "")
+        case .unstable: return AppLocalization.string("Condições Instáveis", comment: "")
+        case .lagRisk: return AppLocalization.string("Eu evitaria Ranked agora", comment: "")
         }
+    }
+
+    private func formatPing(_ entry: MeasurementHistoryEntry) -> String {
+        guard let p50 = entry.result.metrics.p50Milliseconds else { return "—" }
+        return "\(Int(p50.rounded()))"
+    }
+
+    private func formatJitter(_ entry: MeasurementHistoryEntry) -> String {
+        guard let jitter = entry.result.metrics.jitterMilliseconds else { return "—" }
+        return "\(Int(jitter.rounded()))"
+    }
+
+    private func formatLoss(_ entry: MeasurementHistoryEntry) -> String {
+        let loss = entry.result.metrics.packetLossPercentage
+        if loss <= 0.05 { return "0" }
+        return String(format: "%.1f", loss)
+    }
+
+    private func catalogCoverView(for entry: MeasurementHistoryEntry) -> some View {
+        let dummyGame = CatalogMeasurementJourney.Game(
+            id: entry.resolvedContext.context.gameID,
+            name: gameName(entry),
+            context: entry.resolvedContext.context,
+            profileID: .battleRoyaleCompetitive
+        )
+        return VerifiedGameArtwork(game: dummyGame, aspectRatio: 38 / 46)
     }
 }

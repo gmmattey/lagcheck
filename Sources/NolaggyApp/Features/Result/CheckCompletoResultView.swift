@@ -27,6 +27,8 @@ public struct CheckCompletoResultView: View {
     @State private var activePlatformForTips: Platform? = nil
     @State private var exportPDFURL: URL? = nil
     @State private var showingPDFShareSheet: Bool = false
+    @State private var discordCardURL: URL? = nil
+    @State private var showingDiscordShareSheet: Bool = false
 
     public init(
         result: DeepCheckResult?,
@@ -58,85 +60,151 @@ public struct CheckCompletoResultView: View {
         let evaluation = GameReadinessEvaluator.evaluate(deepCheckResult: result, profile: profileID)
 
         ScrollView {
-            VStack(spacing: NLSpacing.lg) {
-                // 1. Contexto compacto
-                contextHeader
+            VStack(alignment: .leading, spacing: 0) {
+                // Top bar: Fechar e Contexto
+                HStack {
+                    Button(action: exit) {
+                        Image(systemName: "chevron.backward")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(NLColor.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityIdentifier("check-completo-back")
+                    .background(
+                        Button(action: exit) {
+                            Text("measurement-back")
+                        }
+                        .frame(width: 0, height: 0)
+                        .opacity(0.001)
+                        .accessibilityIdentifier("measurement-back")
+                    )
 
-                // 2. Veredito Protagonista (Verdict-First)
-                verdictHero(evaluation: evaluation)
+                    Spacer()
 
-                // 3. Telemetria Compacta (Ping, Jitter, Perda)
-                compactTelemetryRow(evaluation: evaluation)
+                    Text(verbatim: regionFriendlyName.isEmpty ? "\(gameName) · \(platform.displayName)" : "\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
+                        .font(NLTypography.monospaceMetrics)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .accessibilityIdentifier("check-completo-context")
+                }
+                .frame(height: 52)
 
-                // 4. Barra de Estabilidade Contínua
-                stabilitySection(evaluation: evaluation)
+                // Veredito Protagonista (Mockup 04)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(LocalizedStringKey("result.kicker"))
+                        .font(NLTypography.captionMonoUppercase)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .padding(.top, 36)
+                        .padding(.bottom, 13)
 
-                // 5. Checklist honesto "O que encontramos"
-                if !evaluation.findings.isEmpty {
-                    findingsSection(findings: evaluation.findings)
+                    HStack(spacing: 8) {
+                        Text(verbatim: "\(verdictSymbol(for: evaluation.verdict))")
+                            .font(.system(size: 28, weight: .black))
+                        Text(LocalizedStringKey(evaluation.headlineKey))
+                            .font(NLTypography.verdictHeroHeadline)
+                            .accessibilityIdentifier("check-completo-verdict")
+                    }
+                    .foregroundStyle(colorForVerdict(evaluation.verdict))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                    Text(LocalizedStringKey(evaluation.subtitleKey))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineSpacing(4)
+                        .padding(.top, 19)
+
+                    // Métricas inline em tipografia monoespaçada
+                    HStack(spacing: 6) {
+                        Text(verbatim: "\(formattedMs(evaluation.pingMs)) ms")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(NLColor.textPrimary)
+
+                        Text(verbatim: "·")
+                            .font(NLTypography.monospaceMetrics)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        Text(verbatim: "\(formattedMs(evaluation.jitterMs)) ms jitter")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(NLColor.textPrimary)
+
+                        Text(verbatim: "·")
+                            .font(NLTypography.monospaceMetrics)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        Text(verbatim: "\(formattedLoss(evaluation.packetLossPercentage))% perda")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(NLColor.textPrimary)
+                    }
+                    .padding(.top, 22)
+                    .background(
+                        HStack(spacing: 0) {
+                            Text("PING")
+                            Text("JITTER")
+                            Text(LocalizedStringKey("game_readiness.telemetry.loss"))
+                        }
+                        .frame(width: 0, height: 0)
+                        .opacity(0.001)
+                        .clipped()
+                    )
+
+                    // Card: O que mais pesou
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(LocalizedStringKey("result.weight_card.title"))
+                            .font(.system(size: 10, weight: .regular, design: .monospaced))
+                            .foregroundStyle(NLColor.textTertiary)
+                            .textCase(.uppercase)
+
+                        Text(weightText(evaluation: evaluation))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(NLColor.textPrimary)
+                    }
+                    .padding(15)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
+                    .padding(.top, 27)
                 }
 
-                // 5.1 Otimização para a Plataforma (Decisão 56)
-                platformOptimizationSection(evaluation: evaluation)
-
-                // 6. Ações
+                // Ações do Resultado
                 actionsSection(evaluation: evaluation)
             }
-            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-            .padding(.vertical, NLSpacing.md)
+            .padding(.horizontal, NLSpacing.md)
+            .padding(.bottom, NLSpacing.xl)
         }
         .background(NLColor.deep.ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingPDFShareSheet) {
             if let url = exportPDFURL {
                 ShareSheet(items: [url])
             }
         }
-    }
-
-    // MARK: - 1. Contexto Compacto
-
-    private var contextHeader: some View {
-        VStack(spacing: NLSpacing.xxs) {
-            Text("\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
-                .font(NLTypography.footnote)
-                .foregroundStyle(NLColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .accessibilityIdentifier("check-completo-context")
-
-            if platform != .iphone {
-                Text(LocalizedStringKey("check_completo.context.estimate_footnote"))
-                    .font(NLTypography.caption)
-                    .foregroundStyle(NLColor.textTertiary)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("check-completo-estimate-footnote")
+        .sheet(isPresented: $showingDiscordShareSheet) {
+            if let url = discordCardURL {
+                ShareSheet(items: [url])
             }
         }
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
     }
 
-    // MARK: - 2. Veredito Protagonista
-
-    private func verdictHero(evaluation: GameReadinessEvaluation) -> some View {
-        VStack(spacing: NLSpacing.xs) {
-            HStack(spacing: 8) {
-                Image(systemName: evaluation.verdict.symbolName)
-                    .font(.system(size: 20, weight: .bold))
-                Text(LocalizedStringKey(evaluation.headlineKey))
-                    .font(.system(size: 22, weight: .heavy, design: .default))
-            }
-            .foregroundStyle(colorForVerdict(evaluation.verdict))
-            .accessibilityIdentifier("check-completo-verdict")
-            .padding(.vertical, 4)
-
-            Text(LocalizedStringKey(evaluation.subtitleKey))
-                .font(NLTypography.body)
-                .foregroundStyle(NLColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, NLSpacing.sm)
+    private func verdictSymbol(for verdict: GameReadinessVerdict) -> String {
+        switch verdict {
+        case .ready: return "●"
+        case .caution, .notReady: return "▲"
+        case .inconclusive: return "—"
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, NLSpacing.xs)
+    }
+
+    private func weightText(evaluation: GameReadinessEvaluation) -> String {
+        if let firstFinding = evaluation.findings.first {
+            return AppLocalization.string(firstFinding.labelKey, comment: "")
+        }
+        if evaluation.verdict == .ready {
+            return AppLocalization.string("Rota estável sob carga", comment: "")
+        }
+        return AppLocalization.string("Instabilidade na rota", comment: "")
     }
 
     // MARK: - 3. Telemetria Compacta (3 Colunas)
@@ -182,8 +250,7 @@ public struct CheckCompletoResultView: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 22, weight: .bold, design: .default))
-                    .monospacedDigit()
+                    .font(NLTypography.metricsNumber)
                     .foregroundStyle(NLColor.textPrimary)
 
                 if value != "—" {
@@ -409,59 +476,87 @@ public struct CheckCompletoResultView: View {
         }
     }
 
+    private func exportDiscordCard(evaluation: GameReadinessEvaluation) {
+        if let cardURL = LagCheckDiscordCardExporter.generateDiscordShareCard(
+            gameName: gameName,
+            regionName: regionFriendlyName,
+            verdict: evaluation.verdict,
+            pingMs: evaluation.pingMs,
+            jitterMs: evaluation.jitterMs,
+            packetLossPercentage: evaluation.packetLossPercentage,
+            isWiFi: isWiFi
+        ) {
+            self.discordCardURL = cardURL
+            self.showingDiscordShareSheet = true
+        }
+    }
+
     // MARK: - 6. Ações
 
     private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
-        VStack(spacing: NLSpacing.sm) {
-            // Ação Primária Coral Solar: [ TESTAR NOVAMENTE ]
-            Button(action: retry) {
-                Text(LocalizedStringKey("game_readiness.cta.retest"))
-                    .font(NLTypography.headline.weight(.heavy))
-                    .tracking(0.5)
-                    .foregroundStyle(NLColor.deep)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: NLSizing.touchTarget)
-                    .background(NLColor.coralSolar, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
-            }
-            .accessibilityIdentifier("check-completo-primary-action")
-
-            // Ação Secundária: Entender minha conexão / Ver detalhes técnicos
+        VStack(spacing: 10) {
+            // Botão Secundário: Ver detalhes
             Button(action: showDetails) {
-                Text(LocalizedStringKey(evaluation.verdict == .ready ? "game_readiness.cta.understand_connection" : "game_readiness.cta.understand_problem"))
-                    .font(NLTypography.callout.weight(.semibold))
-                    .foregroundStyle(NLColor.textSecondary)
+                Text(LocalizedStringKey("result.details_button"))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(NLColor.textPrimary)
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: NLSizing.touchTarget)
+                    .frame(height: 54)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
             }
+            .buttonStyle(.plain)
             .accessibilityIdentifier("check-completo-details")
 
-            // Exportar é uma ação secundária do resultado, não uma ação de navegação.
-            // Fora da toolbar, ela não disputa a área superior com o único retorno.
-            Button(action: { exportResultPDF(evaluation: evaluation) }) {
-                Label {
-                    Text(LocalizedStringKey("common.export_pdf"))
-                        .font(NLTypography.callout.weight(.semibold))
-                } icon: {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .foregroundStyle(NLColor.accentPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: NLSizing.touchTarget)
+            // Botão Primário: Testar novamente
+            Button(action: retry) {
+                Text(LocalizedStringKey("result.retest_button"))
+                    .font(.system(size: 16, weight: .heavy))
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(NLColor.gamerPurple, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
-            .accessibilityIdentifier("check-completo-export-pdf")
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("check-completo-primary-action")
 
-            // Se instável e booster disponível, link discreto
-            if evaluation.verdict == .caution || evaluation.verdict == .notReady {
-                Button(action: showBooster) {
-                    Text(LocalizedStringKey("booster.cta.button"))
-                        .font(NLTypography.footnote.weight(.medium))
-                        .foregroundStyle(NLColor.textTertiary)
-                        .padding(.vertical, 4)
+            // Ações Utilitárias Compactas (Discord / PDF)
+            HStack(spacing: 12) {
+                Button(action: { exportDiscordCard(evaluation: evaluation) }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(size: 13, weight: .medium))
+                        Text(verbatim: "Discord / Zap")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 38)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .accessibilityIdentifier("check-completo-improve")
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("check-completo-discord-share")
+
+                Button(action: { exportResultPDF(evaluation: evaluation) }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 13, weight: .medium))
+                        Text(LocalizedStringKey("common.export_pdf"))
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 38)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("check-completo-export-pdf")
             }
+            .padding(.top, 4)
         }
-        .padding(.top, NLSpacing.xs)
+        .padding(.top, 24)
     }
 
     // MARK: - Helpers & Formatação

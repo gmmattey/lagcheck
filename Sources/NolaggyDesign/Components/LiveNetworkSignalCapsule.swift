@@ -27,6 +27,13 @@ public struct LiveNetworkSignal: Equatable, Sendable {
         self.regionalRouteName = regionalRouteName
         self.isRegionalRouteOperational = isRegionalRouteOperational
     }
+
+    public var gatewayRTTMs: Double? {
+        if case let .wifi(_, rtt) = connection {
+            return rtt
+        }
+        return nil
+    }
 }
 
 /// Pílula compacta de telemetria de rede local ao vivo inspirada no NoPing (Decisão 54).

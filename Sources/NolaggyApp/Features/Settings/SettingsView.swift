@@ -4,300 +4,443 @@ import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
 
-/// Configurações (doc 01 §7.8 / decisão 17): idioma do sistema, exclusão do
-/// histórico local, versão do app, Suporte e Política de privacidade.
-///
-/// A região de referência é sempre escolhida automaticamente com base na rede
-/// no momento da medição. A preferência manual guardada aqui é só um override
-/// persistido — não existe mais um passo de escolha de região no meio da
-/// jornada de medição (ver decisão de seleção regional automática, doc 16).
+/// Tela de Ajustes (Mockup 07 · Dark Competitive UI).
+/// Preferências de Idioma, Exclusão de Histórico Local, Sobre o LagCheck e Suporte.
 struct SettingsView: View {
     let configuration: NolaggyAppConfiguration
-    /// Vazio enquanto o catálogo ainda não carregou: a linha de região fica
-    /// oculta até existir algo para escolher. O primeiro candidato é sempre
-    /// "Automática".
     let regionCandidates: [RegionalReferenceCandidate]
     let manualRegionID: String?
     let onSelectRegion: (RegionalReferenceCandidate) -> Void
     let deleteHistory: () async throws -> Void
     let showHistory: () -> Void
     var showsBackHeader: Bool = true
+    var onDismiss: (() -> Void)? = nil
 
-    private var regionDetailLabel: String {
-        regionCandidates.first(where: { $0.id == (manualRegionID ?? RegionalPreferenceIdentifiers.automatic) })?.label
-            ?? AppLocalization.string("settings.region.automatic", comment: "")
-    }
-
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
-    @AppStorage("user_default_platform") private var defaultPlatformRaw: String = ""
-    @State private var showingDeleteConfirmation = false
-    @State private var deletionFailed = false
-    @State private var showingCockpit = false
 
-    private var selectedPlatformDisplayName: String {
-        guard let p = Platform(rawValue: defaultPlatformRaw) else {
-            return AppLocalization.string("settings.platform.none", comment: "")
+    @State private var showingLanguageSheet: Bool = false
+    @State private var showingDeleteSheet: Bool = false
+    @State private var toastMessage: String? = nil
+    @State private var showingToast: Bool = false
+
+    private var currentLanguageName: String {
+        switch selectedLanguage {
+        case AppLanguage.ptBR.rawValue: return "Português (Brasil)"
+        case AppLanguage.en.rawValue: return "English"
+        case AppLanguage.es.rawValue: return "Español"
+        default: return "Português (Brasil)"
         }
-        return p.displayName
+    }
+
+    private var regionDetailLabel: String {
+        guard let manualRegionID, manualRegionID != RegionalPreferenceIdentifiers.automatic else {
+            return AppLocalization.string("settings.region.automatic", comment: "")
+        }
+        return regionCandidates.first(where: { $0.id == manualRegionID })?.label ?? manualRegionID
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            List {
-                Section {
-                    Button(action: showHistory) {
-                        SettingsRow(title: "history.title", symbol: "clock.arrow.circlepath", detail: nil, showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-history")
-
-                    Button(action: { showingCockpit = true }) {
-                        SettingsRow(title: "network_cockpit.title", symbol: "network", detail: nil, showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-network-cockpit")
-
-                    Button(action: {
-                        if let url = URL(string: "shortcuts://") {
-                            openURL(url)
-                        }
-                    }) {
-                        SettingsRow(title: "settings.shortcuts.title", symbol: "sparkles", detail: nil, showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-shortcuts")
-                }
-
-                Section {
-                    Menu {
-                        Button {
-                            defaultPlatformRaw = ""
-                        } label: {
-                            if defaultPlatformRaw.isEmpty {
-                                Label(AppLocalization.string("settings.platform.none", comment: ""), systemImage: "checkmark")
+        ZStack(alignment: .bottom) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Barra superior e Título
+                    NolaggyNamedScreenHeader(
+                        title: LocalizedStringKey("navigation.settings"),
+                        leadingAction: {
+                            if let onDismiss {
+                                onDismiss()
                             } else {
-                                Text(AppLocalization.string("settings.platform.none", comment: ""))
+                                dismiss()
                             }
-                        }
+                        },
+                        leadingAccessibilityIdentifier: "settings-back"
+                    )
 
-                        Divider()
+                    // Seção 1: Preferências
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(LocalizedStringKey("settings.preferences.title"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
 
-                        ForEach(Platform.allCases, id: \.self) { platform in
-                            Button {
-                                defaultPlatformRaw = platform.rawValue
-                            } label: {
-                                if defaultPlatformRaw == platform.rawValue {
-                                    Label(platform.displayName, systemImage: "checkmark")
-                                } else {
-                                    Text(platform.displayName)
-                                }
+                        Button(action: { showingLanguageSheet = true }) {
+                            HStack {
+                                Text(LocalizedStringKey("settings.language.title"))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(NLColor.textPrimary)
+
+                                Spacer()
+
+                                Text(currentLanguageName)
+                                    .font(NLTypography.monospaceMetrics)
+                                    .foregroundStyle(NLColor.textTertiary)
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(NLColor.textTertiary)
+                                    .padding(.leading, 4)
                             }
+                            .frame(height: 56)
+                            .contentShape(Rectangle())
+                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                         }
-                    } label: {
-                        SettingsRow(
-                            title: "settings.platform.title",
-                            symbol: "gamecontroller",
-                            detail: selectedPlatformDisplayName,
-                            showsChevron: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-platform")
-                }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("settings-language")
 
-                Section {
-                    Menu {
-                        ForEach(AppLanguage.allCases) { lang in
-                            Button {
-                                selectedLanguage = lang.rawValue
-                            } label: {
-                                if (AppLanguage(rawValue: selectedLanguage) ?? .system) == lang {
-                                    Label(lang.displayName, systemImage: "checkmark")
-                                } else {
-                                    Text(lang.displayName)
-                                }
-                            }
-                        }
-                    } label: {
-                        SettingsRow(
-                            title: "settings.language",
-                            symbol: "globe",
-                            detail: (AppLanguage(rawValue: selectedLanguage) ?? .system).displayName,
-                            showsChevron: true
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-language")
-                    if !regionCandidates.isEmpty {
-                        Menu {
-                            if let autoCandidate = regionCandidates.first(where: { $0.id == RegionalPreferenceIdentifiers.automatic }) {
-                                Button {
-                                    onSelectRegion(autoCandidate)
-                                } label: {
-                                    let isSelected = (manualRegionID == nil || manualRegionID == RegionalPreferenceIdentifiers.automatic)
-                                    if isSelected {
-                                        Label(autoCandidate.label, systemImage: "checkmark")
-                                    } else {
-                                        Text(autoCandidate.label)
+                        if !regionCandidates.isEmpty {
+                            Menu {
+                                if let autoCandidate = regionCandidates.first(where: { $0.id == RegionalPreferenceIdentifiers.automatic }) {
+                                    Button {
+                                        onSelectRegion(autoCandidate)
+                                    } label: {
+                                        let isSelected = (manualRegionID == nil || manualRegionID == RegionalPreferenceIdentifiers.automatic)
+                                        if isSelected {
+                                            Label(autoCandidate.label, systemImage: "checkmark")
+                                        } else {
+                                            Text(autoCandidate.label)
+                                        }
                                     }
                                 }
-                            }
 
-                            Divider()
+                                Divider()
 
-                            ForEach(GlobalProbeRegistry.Continent.allCases, id: \.self) { continent in
-                                let continentCandidates = regionCandidates.filter { $0.continentKey == continent.localizationKey }
-                                if !continentCandidates.isEmpty {
-                                    Menu(LocalizedStringKey(continent.localizationKey)) {
-                                        ForEach(continentCandidates) { candidate in
-                                            Button {
-                                                onSelectRegion(candidate)
-                                            } label: {
-                                                let isSelected = candidate.id == manualRegionID
-                                                if isSelected {
-                                                    Label(candidate.label, systemImage: "checkmark")
-                                                } else {
-                                                    Text(candidate.label)
+                                ForEach(GlobalProbeRegistry.Continent.allCases, id: \.self) { continent in
+                                    let continentCandidates = regionCandidates.filter { $0.continentKey == continent.localizationKey }
+                                    if !continentCandidates.isEmpty {
+                                        Menu(LocalizedStringKey(continent.localizationKey)) {
+                                            ForEach(continentCandidates) { candidate in
+                                                Button {
+                                                    onSelectRegion(candidate)
+                                                } label: {
+                                                    let isSelected = candidate.id == manualRegionID
+                                                    if isSelected {
+                                                        Label(candidate.label, systemImage: "checkmark")
+                                                    } else {
+                                                        Text(candidate.label)
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
+                            } label: {
+                                HStack {
+                                    Text(LocalizedStringKey("settings.region.title"))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(NLColor.textPrimary)
 
-                            let otherCandidates = regionCandidates.filter {
-                                $0.id != RegionalPreferenceIdentifiers.automatic && $0.continentKey == nil
-                            }
-                            if !otherCandidates.isEmpty {
-                                Divider()
-                                ForEach(otherCandidates) { candidate in
-                                    Button {
-                                        onSelectRegion(candidate)
-                                    } label: {
-                                        let isSelected = candidate.id == manualRegionID
-                                        if isSelected {
-                                            Label(candidate.label, systemImage: "checkmark")
-                                        } else {
-                                            Text(candidate.label)
-                                        }
-                                    }
+                                    Spacer()
+
+                                    Text(regionDetailLabel)
+                                        .font(NLTypography.monospaceMetrics)
+                                        .foregroundStyle(NLColor.textTertiary)
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(NLColor.textTertiary)
+                                        .padding(.leading, 4)
                                 }
+                                .frame(height: 56)
+                                .contentShape(Rectangle())
+                                .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                             }
-                        } label: {
-                            SettingsRow(
-                                title: "settings.region.title",
-                                symbol: "mappin.and.ellipse",
-                                detail: regionDetailLabel,
-                                showsChevron: true
-                            )
+                            .accessibilityIdentifier("settings-region")
                         }
-                        .listRowBackground(SettingsListSurface())
-                        .listRowSeparator(.hidden)
-                        .compactSettingsRow()
-                        .accessibilityIdentifier("settings-region")
                     }
-                } header: {
-                    sectionHeader("settings.section.preferences")
-                }
+                    .padding(.horizontal, NLSpacing.md)
 
-                Section {
-                    configuredLinkRow("settings.privacy_policy", symbol: "hand.raised", url: configuration.privacyPolicyURL)
-                    Button { showingDeleteConfirmation = true } label: {
-                        SettingsRow(
-                            title: "settings.delete_history",
-                            symbol: "trash",
-                            detail: nil,
-                            showsChevron: false,
-                            tone: .destructive
-                        )
+                    // Seção 2: Histórico
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(LocalizedStringKey("settings.history.title"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        Button(action: {
+                            if let onDismiss {
+                                onDismiss()
+                            } else {
+                                dismiss()
+                            }
+                            showHistory()
+                        }) {
+                            HStack {
+                                Text(LocalizedStringKey("home.shortcuts.history"))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(NLColor.textPrimary)
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(NLColor.textTertiary)
+                            }
+                            .frame(height: 56)
+                            .contentShape(Rectangle())
+                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("settings-history")
+
+                        Button(action: { showingDeleteSheet = true }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(LocalizedStringKey("settings.history.delete"))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(NLColor.coralSolar)
+
+                                    Text(LocalizedStringKey("settings.history.delete_subtext"))
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(NLColor.textTertiary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(NLColor.textTertiary)
+                            }
+                            .frame(height: 56)
+                            .contentShape(Rectangle())
+                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("ajustes-apagar-historico")
                     }
-                    .buttonStyle(.plain)
-                    .listRowBackground(SettingsListSurface())
-                    .listRowSeparator(.hidden)
-                    .compactSettingsRow()
-                    .accessibilityIdentifier("settings-delete-history")
-                } header: {
-                    sectionHeader("settings.section.privacy")
-                }
+                    .padding(.horizontal, NLSpacing.md)
 
-                Section {
-                    settingValueRow("settings.version", symbol: "info.circle", value: versionDescription)
-                    configuredLinkRow("settings.support", symbol: "questionmark.circle", url: configuration.supportURL)
-                } header: {
-                    sectionHeader("settings.section.about")
+                    // Seção 3: Sobre o LagCheck
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(LocalizedStringKey("settings.about.title"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        // Versão
+                        HStack {
+                            Text(LocalizedStringKey("settings.about.version"))
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(NLColor.textPrimary)
+
+                            Spacer()
+
+                            Text(verbatim: "\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0")")
+                                .font(NLTypography.monospaceMetrics)
+                                .foregroundStyle(NLColor.textTertiary)
+                        }
+                        .frame(height: 56)
+                        .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
+
+                        // Termos de Uso
+                        settingsRowButton(title: LocalizedStringKey("settings.about.terms")) {
+                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                        }
+
+                        // Política de Privacidade
+                        settingsRowButton(title: LocalizedStringKey("settings.about.privacy")) {
+                            if let url = URL(string: "https://buildea.com/lagcheck/privacy") {
+                                openURL(url)
+                            }
+                        }
+
+                        // Licenças de código aberto
+                        settingsRowButton(title: LocalizedStringKey("settings.about.licenses"), isLast: true) {
+                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                        }
+                    }
+                    .padding(.horizontal, NLSpacing.md)
+
+                    // Seção 4: Suporte
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(LocalizedStringKey("settings.support.title"))
+                            .font(NLTypography.captionMonoUppercase)
+                            .foregroundStyle(NLColor.textTertiary)
+
+                        settingsRowButton(title: LocalizedStringKey("settings.support.feedback"), identifier: "ajustes-enviar-feedback") {
+                            if let url = URL(string: "mailto:suporte@buildea.com?subject=LagCheck%20Feedback") {
+                                openURL(url)
+                            }
+                        }
+
+                        settingsRowButton(title: LocalizedStringKey("settings.support.rate"), isLast: true, identifier: "ajustes-avaliar") {
+                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                        }
+                    }
+                    .padding(.horizontal, NLSpacing.md)
+
+                    Spacer(minLength: NLSpacing.xl)
                 }
             }
-            .listStyle(.insetGrouped)
-            .listSectionSpacing(NLSpacing.xs)
-            .scrollContentBackground(.hidden)
+
+            // Toast Flutuante
+            if showingToast, let toastMessage {
+                Text(toastMessage)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(NLColor.backgroundRaised.opacity(0.97), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                    )
+                    .padding(.horizontal, NLSpacing.md)
+                    .padding(.bottom, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
-        .background(NolaggyScreenBackground())
-        .navigationTitle("settings.title")
-        .navigationBarTitleDisplayMode(showsBackHeader ? .inline : .large)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .background(NLColor.deep.ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .alert("settings.delete_history.confirmation.title", isPresented: $showingDeleteConfirmation) {
-            Button("settings.delete_history.confirmation.cancel", role: .cancel) {}
-            Button("settings.delete_history.confirmation.action", role: .destructive) {
-                Task {
-                    do { try await deleteHistory() }
-                    catch { deletionFailed = true }
+        .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingLanguageSheet) {
+            languageSelectorSheet
+        }
+        .sheet(isPresented: $showingDeleteSheet) {
+            deleteConfirmationSheet
+        }
+    }
+
+    private func settingsRowButton(title: LocalizedStringKey, isLast: Bool = false, identifier: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(NLColor.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(NLColor.textTertiary)
+            }
+            .frame(height: 56)
+            .contentShape(Rectangle())
+            .overlay(isLast ? nil : Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier ?? "")
+    }
+
+    // MARK: - Language Sheet
+    private var languageSelectorSheet: some View {
+        VStack(spacing: 0) {
+            Text(LocalizedStringKey("settings.language.title"))
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(NLColor.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, NLSpacing.md)
+                .padding(.bottom, NLSpacing.sm)
+                .padding(.horizontal, NLSpacing.md)
+
+            VStack(spacing: 0) {
+                languageChoiceRow(name: "Português (Brasil)", code: AppLanguage.ptBR.rawValue)
+                languageChoiceRow(name: "English", code: AppLanguage.en.rawValue)
+                languageChoiceRow(name: "Español", code: AppLanguage.es.rawValue)
+            }
+            .padding(.horizontal, NLSpacing.md)
+
+            Spacer()
+        }
+        .presentationDetents([.fraction(0.38)])
+        .presentationDragIndicator(.visible)
+        .background(NLColor.backgroundRaised.ignoresSafeArea())
+        .preferredColorScheme(.dark)
+    }
+
+    private func languageChoiceRow(name: String, code: String) -> some View {
+        let isSelected = selectedLanguage == code
+        return Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            selectedLanguage = code
+            showingLanguageSheet = false
+            showToast(message: String(format: AppLocalization.string("settings.toast.language %@", comment: ""), name))
+        } label: {
+            HStack {
+                Text(name)
+                    .font(.system(size: 15, weight: isSelected ? .bold : .regular))
+                    .foregroundStyle(isSelected ? NLColor.gamerPurple : NLColor.textPrimary)
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(NLColor.gamerPurple)
                 }
             }
-        } message: { Text("settings.delete_history.confirmation.message") }
-        .alert("settings.delete_history.error.title", isPresented: $deletionFailed) {
-            Button("settings.delete_history.error.action", role: .cancel) {}
-        } message: { Text("settings.delete_history.error.message") }
-        .sheet(isPresented: $showingCockpit) {
-            NetworkCockpitView()
+            .frame(height: 48)
+            .contentShape(Rectangle())
+            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .top)
         }
+        .buttonStyle(.plain)
     }
 
-    private var versionDescription: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
-        return String(format: AppLocalization.string("settings.version.value", comment: ""), version, build)
-    }
+    // MARK: - Delete Sheet
+    private var deleteConfirmationSheet: some View {
+        VStack(spacing: 0) {
+            Text(LocalizedStringKey("settings.delete_history.confirmation.title"))
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(NLColor.textPrimary)
+                .padding(.top, NLSpacing.md)
+                .padding(.bottom, 8)
 
-    private func settingValueRow(_ title: LocalizedStringKey, symbol: String, value: String) -> some View {
-        SettingsRow(title: title, symbol: symbol, detail: value, showsChevron: false)
-            .listRowBackground(SettingsListSurface())
-            .listRowSeparator(.hidden)
-            .compactSettingsRow()
-    }
+            Text(LocalizedStringKey("settings.delete_history.confirmation.message"))
+                .font(.system(size: 14))
+                .foregroundStyle(NLColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.bottom, 24)
 
-    @ViewBuilder
-    private func configuredLinkRow(_ title: LocalizedStringKey, symbol: String, url: URL?) -> some View {
-        if let url {
-            Button { openURL(url) } label: { SettingsRow(title: title, symbol: symbol, detail: nil, showsChevron: true) }
+            HStack(spacing: 12) {
+                Button(action: { showingDeleteSheet = false }) {
+                    Text(LocalizedStringKey("common.cancel"))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+                }
                 .buttonStyle(.plain)
-                .accessibilityHint(Text("settings.link.opens_browser"))
-                .listRowBackground(SettingsListSurface())
-                .listRowSeparator(.hidden)
-                .compactSettingsRow()
+                .accessibilityIdentifier("settings-delete-cancel")
+
+                Button(action: {
+                    showingDeleteSheet = false
+                    Task {
+                        try? await deleteHistory()
+                        showToast(message: AppLocalization.string("settings.toast.history_deleted", comment: ""))
+                    }
+                }) {
+                    Text(LocalizedStringKey("settings.delete_history.confirmation.action"))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(NLColor.coralSolar, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("settings-delete-confirm")
+            }
+            .padding(.horizontal, NLSpacing.md)
+            .padding(.bottom, NLSpacing.lg)
         }
+        .presentationDetents([.fraction(0.35)])
+        .presentationDragIndicator(.visible)
+        .background(NLColor.backgroundRaised.ignoresSafeArea())
+        .preferredColorScheme(.dark)
     }
 
-    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(NLTypography.captionStrong)
-            .foregroundStyle(NLColor.textTertiary)
+    private func showToast(message: String) {
+        toastMessage = message
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            showingToast = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation(.easeOut(duration: 0.25)) {
+                showingToast = false
+            }
+        }
     }
 }
 
@@ -307,62 +450,3 @@ enum RegionalPreferenceIdentifiers {
     static let automatic = "automatic"
 }
 
-private struct SettingsRow: View {
-    enum Tone { case standard, destructive }
-
-    let title: LocalizedStringKey
-    let symbol: String
-    let detail: String?
-    let showsChevron: Bool
-    let tone: Tone
-
-    init(title: LocalizedStringKey, symbol: String, detail: String?, showsChevron: Bool, tone: Tone = .standard) {
-        self.title = title
-        self.symbol = symbol
-        self.detail = detail
-        self.showsChevron = showsChevron
-        self.tone = tone
-    }
-
-    var body: some View {
-        HStack(spacing: NLSpacing.sm) {
-            Image(systemName: symbol)
-                .font(NLTypography.navigationIcon)
-                .foregroundStyle(tone == .destructive ? NLColor.scoreLagRisk : NLColor.textLink)
-                .frame(width: NLSizing.iconMedium, height: NLSizing.iconMedium)
-                .accessibilityHidden(true)
-            Text(title).font(NLTypography.body).foregroundStyle(tone == .destructive ? NLColor.scoreLagRisk : NLColor.textPrimary)
-            Spacer()
-            if let detail { Text(detail).font(NLTypography.callout).foregroundStyle(NLColor.textSecondary).multilineTextAlignment(.trailing) }
-            if showsChevron {
-                Image(systemName: "chevron.right")
-                    .font(NLTypography.footnote.weight(.semibold))
-                    .foregroundStyle(NLColor.textSecondary)
-                    .accessibilityHidden(true)
-                    .padding(.leading, detail == nil ? 0 : NLSpacing.xs)
-            }
-        }
-        .padding(.horizontal, NLSpacing.md)
-        .frame(minHeight: NLSizing.touchTarget)
-    }
-}
-
-private struct SettingsListSurface: View {
-    var body: some View {
-        Rectangle()
-            .fill(NLColor.settingsSurface)
-    }
-}
-
-private extension View {
-    func compactSettingsRow() -> some View {
-        listRowInsets(
-            EdgeInsets(
-                top: 0,
-                leading: NLSpacing.screenMarginHorizontal,
-                bottom: 0,
-                trailing: NLSpacing.screenMarginHorizontal
-            )
-        )
-    }
-}

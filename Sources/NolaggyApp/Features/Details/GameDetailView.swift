@@ -41,21 +41,14 @@ struct GameDetailView: View {
                         externalLink: selectedExternalLink
                     )
 
-                    Button(action: startDeepCheck) {
-                        HStack(spacing: NLSpacing.xs) {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 15, weight: .semibold))
-                            Text(LocalizedStringKey("home.cta.start_lagcheck"))
-                                .font(NLTypography.bodyEmphasis)
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 48)
-                        .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium))
-                    }
-                    .disabled(requiresEquipmentConnection)
+                    PrimaryButton(
+                        title: "home.cta.start_lagcheck",
+                        icon: Image(systemName: "play.fill"),
+                        isEnabled: !requiresEquipmentConnection,
+                        accessibilityIdentifier: "start-game-deep-check",
+                        action: startDeepCheck
+                    )
                     .opacity(requiresEquipmentConnection ? 0.45 : 1)
-                    .accessibilityIdentifier("start-game-deep-check")
                     .accessibilityHint(Text(requiresEquipmentConnection ? "game_detail.context.connection_required" : "game_detail.context.start_hint"))
 
                     supplementaryInformation
@@ -66,7 +59,7 @@ struct GameDetailView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
-        .background(Color.black.ignoresSafeArea())
+        .background(NLColor.deep.ignoresSafeArea())
         .tint(.white)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.hidden, for: .navigationBar)

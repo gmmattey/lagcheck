@@ -15,23 +15,44 @@ struct VerifiedGameArtwork: View {
 
     var body: some View {
         GameArtwork(
-            image: verifiedImage,
-            sourceRecordID: game.artwork?.sha256,
+            image: localAssetImage,
             title: game.name,
             aspectRatio: aspectRatio
         )
-        .task(id: artworkIdentity) {
-            verifiedImage = nil
-            guard let data = await VerifiedRemoteArtworkLoader.shared.imageData(
-                artwork: game.artwork,
-                assetBaseURL: game.assetBaseURL
-            ),
-            !Task.isCancelled,
-            let uiImage = UIImage(data: data) else {
-                return
+    }
+
+    private var localAssetImage: Image? {
+        let id = game.id.lowercased().replacingOccurrences(of: "-", with: "")
+        let mapping: [(String, String)] = [
+            ("fortnite", "GameFortnite"),
+            ("valorant", "GameValorant"),
+            ("warzone", "GameWarzone"),
+            ("cs2", "GameCs2"),
+            ("leagueoflegends", "GameLeagueOfLegends"),
+            ("roblox", "GameRoblox"),
+            ("freefire", "GameFreeFire"),
+            ("apex", "GameApexLegends"),
+            ("rainbowsix", "GameRainbowSix"),
+            ("rocketleague", "GameRocketLeague"),
+            ("dota2", "GameDota2"),
+            ("minecraft", "GameMinecraft"),
+            ("brawlstars", "GameBrawlStars"),
+            ("bloodstrike", "GameBloodStrike"),
+            ("rust", "GameRust"),
+            ("palworld", "GamePalworld"),
+            ("eafc", "GameEaFc"),
+            ("pubg", "GamePubg"),
+            ("codm", "GameCodm"),
+            ("wildrift", "GameWildRift")
+        ]
+        for (key, assetName) in mapping {
+            if id.contains(key) {
+                if UIImage(named: assetName, in: .main, with: nil) != nil {
+                    return Image(assetName, bundle: .main)
+                }
             }
-            verifiedImage = Image(uiImage: uiImage)
         }
+        return nil
     }
 
     private var artworkIdentity: String {

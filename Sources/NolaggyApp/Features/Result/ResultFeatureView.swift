@@ -179,9 +179,9 @@ extension QuickCheckFeatureView {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(NLSpacing.cardPadding)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
                 .stroke(isCause ? causeColor.opacity(0.5) : NLColor.borderSubtle, lineWidth: isCause ? 1.0 : 0.5)
         }
     }
@@ -204,8 +204,8 @@ extension QuickCheckFeatureView {
                 .foregroundStyle(NLColor.textPrimary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: NLSizing.touchTarget)
-                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay { RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 0.5) }
+                .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 0.5) }
         }
         .accessibilityIdentifier(identifier)
     }

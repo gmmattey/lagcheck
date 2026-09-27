@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Componente visual de linha nativa para a lista de jogos da Home (Decisão 22).
-/// Exibe miniatura neutra, título, badge de categoria/plataforma e score ou skeleton.
+/// Componente visual de linha nativa para a lista de jogos (DESIGN.md / kit-components.css).
+/// Linha com min-height de 72px, miniatura neutra de 8px de raio, título display e contexto técnico em mono.
 public struct GameRowView: View {
     public enum ScoreState: Equatable, Sendable {
         case measuring
@@ -33,14 +33,14 @@ public struct GameRowView: View {
     public var body: some View {
         Button(action: action) {
             HStack(spacing: NLSpacing.md) {
-                // Miniatura neutra
+                // Miniatura neutra com raio de 8px
                 GameArtwork(image: nil, sourceRecordID: nil, title: title, aspectRatio: 1)
-                    .frame(width: 48, height: 48)
-                    .clipped()
+                    .frame(width: 44, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
 
                 // Título e Meta
-                VStack(alignment: .leading, spacing: NLSpacing.xxs) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
@@ -51,7 +51,7 @@ public struct GameRowView: View {
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textSecondary)
 
-                        Text("•")
+                        Text("·")
                             .font(NLTypography.caption)
                             .foregroundStyle(NLColor.textTertiary)
 
@@ -64,10 +64,11 @@ public struct GameRowView: View {
 
                 Spacer(minLength: NLSpacing.sm)
 
-                // Score ou Skeleton
+                // Score, Skeleton ou Chevron
                 scoreBadge
             }
             .padding(.vertical, NLSpacing.xs)
+            .frame(minHeight: 72)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
@@ -80,12 +81,12 @@ public struct GameRowView: View {
         switch scoreState {
         case .measuring:
             // Skeleton discreto nativo
-            RoundedRectangle(cornerRadius: NLRadius.controlSmall)
+            RoundedRectangle(cornerRadius: NLRadius.sm)
                 .fill(NLColor.controlOverlay)
                 .frame(width: 44, height: 32)
                 .overlay {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: NLColor.textTertiary))
+                        .progressViewStyle(CircularProgressViewStyle(tint: NLColor.accentPrimary))
                         .scaleEffect(0.75)
                 }
         case let .evaluated(score, classification):
@@ -93,37 +94,39 @@ public struct GameRowView: View {
                 .font(.system(.subheadline, design: .rounded).weight(.bold))
                 .foregroundStyle(classification.color)
                 .frame(minWidth: 44, minHeight: 32)
-                .background(classification.subtleColor, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+                .background(classification.subtleColor, in: RoundedRectangle(cornerRadius: NLRadius.sm))
                 .overlay {
-                    RoundedRectangle(cornerRadius: NLRadius.controlSmall)
-                        .stroke(classification.color.opacity(0.35), lineWidth: NLStroke.hairline)
+                    RoundedRectangle(cornerRadius: NLRadius.sm)
+                        .stroke(classification.color.opacity(0.35), lineWidth: 1)
                 }
         case .inconclusive, .failed:
             Text("—")
                 .font(.system(.subheadline, design: .rounded).weight(.semibold))
                 .foregroundStyle(NLColor.textTertiary)
                 .frame(minWidth: 44, minHeight: 32)
-                .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+                .background(NLColor.controlOverlay, in: RoundedRectangle(cornerRadius: NLRadius.sm))
         }
     }
 }
 
 #Preview("GameRowView States") {
-    VStack(spacing: NLSpacing.sm) {
+    VStack(spacing: 0) {
         GameRowView(
             title: "Fortnite",
             category: "Battle Royale",
-            platform: "iPhone",
+            platform: "PlayStation · Wi-Fi",
             scoreState: .evaluated(score: 92, classification: .excellent),
             action: {}
         )
+        Divider().overlay(NLColor.borderHairline)
         GameRowView(
-            title: "Brawl Stars",
-            category: "Tempo Real",
-            platform: "iPhone",
+            title: "Valorant",
+            category: "Tático",
+            platform: "PC · Ethernet",
             scoreState: .measuring,
             action: {}
         )
+        Divider().overlay(NLColor.borderHairline)
         GameRowView(
             title: "Roblox",
             category: "Casual",
