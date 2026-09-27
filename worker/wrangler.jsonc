@@ -17,5 +17,10 @@
       "binding": "WAITLIST_KV",
       "id": "e1cd0a74d6a44078a57330b4fc06b71e"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "0 12 * * *"
+    ]
+  }
 }

@@ -39,14 +39,11 @@ test("POST /v1/waitlist normalizes email to lowercase and trims whitespace", asy
 });
 
 test("POST /v1/waitlist writes to env.WAITLIST_KV when bound", async () => {
-  let savedKey = null;
-  let savedVal = null;
+  const kvMap = new Map();
   const mockEnv = {
     WAITLIST_KV: {
-      put: async (key, val) => {
-        savedKey = key;
-        savedVal = val;
-      }
+      get: async (key) => kvMap.get(key) || null,
+      put: async (key, val) => kvMap.set(key, val)
     }
   };
   const payload = {
@@ -61,9 +58,8 @@ test("POST /v1/waitlist writes to env.WAITLIST_KV when bound", async () => {
   }), mockEnv);
 
   assert.equal(response.status, 200);
-  assert.equal(savedKey, "lead:clutch@buildea.com");
-  assert.ok(savedVal);
-  const parsed = JSON.parse(savedVal);
+  assert.ok(kvMap.has("lead:clutch@buildea.com"));
+  const parsed = JSON.parse(kvMap.get("lead:clutch@buildea.com"));
   assert.equal(parsed.email, "clutch@buildea.com");
   assert.equal(parsed.source, "waitlist_modal");
   assert.equal(parsed.lang, "en");
@@ -154,3 +150,65 @@ test("POST /v1/waitlist dispatches to env.DISCORD_WEBHOOK_URL when set", async (
     globalThis.fetch = originalFetch;
   }
 });
+
+test("POST /v1/visit increments visit count and returns 200", async () => {
+  const kvMap = new Map();
+  const mockEnv = {
+    WAITLIST_KV: {
+      get: async (key) => kvMap.get(key) || null,
+      put: async (key, val) => kvMap.set(key, val)
+    }
+  };
+
+  const response = await handleRequest(new Request("https://example.workers.dev/v1/visit", {
+    method: "POST"
+  }), mockEnv);
+
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.status, "ok");
+
+  const total = JSON.parse(kvMap.get("stats:total"));
+  assert.equal(total.visits, 1);
+});
+
+test("POST /v1/report/test triggers daily report to Discord", async () => {
+  let reportSent = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    if (url === "https://discord.com/api/webhooks/test") {
+      reportSent = JSON.parse(options.body);
+      return new Response(null, { status: 204 });
+    }
+    return originalFetch(url, options);
+  };
+
+  try {
+    const kvMap = new Map();
+    kvMap.set("stats:total", JSON.stringify({ visits: 100, leads: 15 }));
+    const mockEnv = {
+      DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/test",
+      WAITLIST_KV: {
+        get: async (key) => kvMap.get(key) || null,
+        put: async (key, val) => kvMap.set(key, val)
+      }
+    };
+
+    const response = await handleRequest(new Request("https://example.workers.dev/v1/report/test", {
+      method: "POST"
+    }), mockEnv);
+
+    assert.equal(response.status, 200);
+    assert.ok(reportSent);
+    assert.equal(reportSent.username, "Lagcheck Analytics");
+    const embed = reportSent.embeds[0];
+    assert.ok(embed.title.includes("Relatório Diário"));
+    const totalField = embed.fields.find(f => f.name.includes("Acumulado"));
+    assert.ok(totalField.value.includes("Visitas Totais:** 100"));
+    assert.ok(totalField.value.includes("Cadastros Totais:** 15"));
+    assert.ok(totalField.value.includes("Conversão Geral:** **15.0%**"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+

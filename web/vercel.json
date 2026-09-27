@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "https://nolaggy-deep-check.buildealabs.workers.dev/v1/:path*"
+    }
+  ]
+}

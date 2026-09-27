@@ -222,6 +222,7 @@ async function handleWaitlist(request, env = {}) {
       if (cleanUtm) record.utm = cleanUtm;
       if (typeof cleanLaunchNotice === "boolean") record.launchNotice = cleanLaunchNotice;
       await env.WAITLIST_KV.put(`lead:${cleanEmail}`, JSON.stringify(record));
+      await incrementStat(env, "lead");
     } catch (err) {
       console.error("KV put error:", err);
     }
@@ -319,6 +320,140 @@ async function handleWaitlist(request, env = {}) {
   });
 }
 
+export async function getStats(env, key) {
+  if (!env.WAITLIST_KV || typeof env.WAITLIST_KV.get !== "function") return { visits: 0, leads: 0 };
+  try {
+    const val = await env.WAITLIST_KV.get(key);
+    if (!val) return { visits: 0, leads: 0 };
+    return JSON.parse(val);
+  } catch {
+    return { visits: 0, leads: 0 };
+  }
+}
+
+export async function incrementStat(env, type) {
+  if (!env.WAITLIST_KV || typeof env.WAITLIST_KV.put !== "function") return;
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const dailyKey = `stats:daily:${today}`;
+  const totalKey = 'stats:total';
+
+  try {
+    const [daily, total] = await Promise.all([
+      getStats(env, dailyKey),
+      getStats(env, totalKey)
+    ]);
+
+    if (type === "visit") {
+      daily.visits = (daily.visits || 0) + 1;
+      total.visits = (total.visits || 0) + 1;
+    } else if (type === "lead") {
+      daily.leads = (daily.leads || 0) + 1;
+      total.leads = (total.leads || 0) + 1;
+    }
+
+    await Promise.all([
+      env.WAITLIST_KV.put(dailyKey, JSON.stringify(daily)),
+      env.WAITLIST_KV.put(totalKey, JSON.stringify(total))
+    ]);
+  } catch (err) {
+    console.error("Failed to increment stat:", err);
+  }
+}
+
+export async function handleVisit(request, env = {}) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: { "Allow": "POST, OPTIONS", "Cache-Control": "no-store" }
+    });
+  }
+
+  await incrementStat(env, "visit");
+
+  return Response.json({ status: "ok" }, {
+    status: 200,
+    headers: WAITLIST_CORS_HEADERS
+  });
+}
+
+export async function sendDailyReport(env) {
+  if (!env.DISCORD_WEBHOOK_URL) return;
+
+  const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(Date.now() - 24 * 60 * 60 * 1000));
+  const dailyKey = `stats:daily:${yesterday}`;
+  const totalKey = 'stats:total';
+
+  const [d1Stats, totalStats] = await Promise.all([
+    getStats(env, dailyKey),
+    getStats(env, totalKey)
+  ]);
+
+  const d1Visits = d1Stats.visits || 0;
+  const d1Leads = d1Stats.leads || 0;
+  const d1Conversion = d1Visits > 0 ? ((d1Leads / d1Visits) * 100).toFixed(1) : "0.0";
+
+  const totalVisits = totalStats.visits || 0;
+  const totalLeads = totalStats.leads || 0;
+  const totalConversion = totalVisits > 0 ? ((totalLeads / totalVisits) * 100).toFixed(1) : "0.0";
+
+  const payload = {
+    username: "Lagcheck Analytics",
+    avatar_url: "https://lagcheck.signallq.com/assets/lagcheck-wordmark-light.svg",
+    embeds: [
+      {
+        title: "📊 Relatório Diário de Conversão (D-1)",
+        description: "Métricas consolidadas de acessos e inscrições no **lagcheck.signallq.com**.",
+        color: 0x7c3aed,
+        fields: [
+          {
+            name: `📅 Ontem (D-1: ${yesterday})`,
+            value: [
+              `• 👁️ **Visitas:** ${d1Visits}`,
+              `• 🎯 **Cadastros:** ${d1Leads}`,
+              `• 📈 **Taxa de Conversão:** **${d1Conversion}%**`
+            ].join("\n"),
+            inline: false
+          },
+          {
+            name: "🌐 Acumulado Geral",
+            value: [
+              `• 👁️ **Visitas Totais:** ${totalVisits}`,
+              `• 👥 **Cadastros Totais:** ${totalLeads}`,
+              `• 🏆 **Conversão Geral:** **${totalConversion}%**`
+            ].join("\n"),
+            inline: false
+          }
+        ],
+        footer: {
+          text: "Lagcheck • Relatório Diário Automático (09:00 BRT)"
+        },
+        timestamp: new Date().toISOString()
+      }
+    ]
+  };
+
+  try {
+    await fetch(env.DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error("Failed to send daily report to Discord:", err);
+  }
+}
+
+export async function handleScheduled(event, env, ctx) {
+  await sendDailyReport(env);
+}
+
 export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const assetMatch = url.pathname.match(artworkPath);
@@ -329,6 +464,16 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS) return new Response("Asset binding unavailable", { status: 503, headers: { "Cache-Control": "no-store" } });
     // A URL pública não expõe o diretório interno nem aceita segmentos livres.
     return env.ASSETS.fetch(new Request(new URL(`/games/${assetMatch[1]}`, url), request));
+  }
+  if (url.pathname === "/v1/visit") {
+    return handleVisit(request, env);
+  }
+  if (url.pathname === "/v1/report/test") {
+    if (request.method !== "POST") {
+      return new Response("Method not allowed", { status: 405 });
+    }
+    await sendDailyReport(env);
+    return Response.json({ status: "ok", message: "Daily report dispatched" });
   }
   if (url.pathname === "/v1/telemetry") {
     return handleTelemetry(request, env);
@@ -359,4 +504,8 @@ export async function handleRequest(request, env = {}) {
   return new Response(loadStream(), { status: 200, headers: loadHeaders });
 }
 
-export default { fetch: handleRequest };
+export default {
+  fetch: handleRequest,
+  scheduled: handleScheduled
+};
+

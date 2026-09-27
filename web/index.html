@@ -997,6 +997,23 @@
 
       setPlatform('ios');
     })();
+
+    // Registro de visita anônima para estatísticas de conversão (sem cookies/sem PII)
+    (function() {
+      try {
+        const payload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/v1/visit', payload);
+        } else {
+          fetch('/v1/visit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true
+          }).catch(function() {});
+        }
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>
