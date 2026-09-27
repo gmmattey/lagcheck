@@ -186,7 +186,7 @@ async function handleWaitlist(request, env = {}) {
     });
   }
 
-  const { email, source, lang } = body;
+  const { email, source, lang, platform, utm, launchNotice, createdAt } = body;
   if (!email || typeof email !== "string") {
     return Response.json({ error: "missing_email" }, {
       status: 400,
@@ -204,17 +204,24 @@ async function handleWaitlist(request, env = {}) {
 
   const cleanSource = (typeof source === "string" && source.length <= 64) ? source.trim() : "web_waitlist";
   const cleanLang = (lang === "en" || lang === "es") ? lang : "pt-BR";
-  const timestamp = new Date().toISOString();
+  const cleanPlatform = (platform === "ios" || platform === "android" || platform === "both") ? platform : (platform ? String(platform).slice(0, 16) : undefined);
+  const cleanUtm = (utm && typeof utm === "object" && !Array.isArray(utm)) ? utm : undefined;
+  const cleanLaunchNotice = typeof launchNotice === "boolean" ? launchNotice : undefined;
+  const timestamp = typeof createdAt === "string" && createdAt.length <= 40 ? createdAt : new Date().toISOString();
 
   // Grava em Cloudflare KV se o binding estiver presente
   if (env.WAITLIST_KV && typeof env.WAITLIST_KV.put === "function") {
     try {
-      await env.WAITLIST_KV.put(`lead:${cleanEmail}`, JSON.stringify({
+      const record = {
         email: cleanEmail,
         source: cleanSource,
         lang: cleanLang,
         timestamp
-      }));
+      };
+      if (cleanPlatform) record.platform = cleanPlatform;
+      if (cleanUtm) record.utm = cleanUtm;
+      if (typeof cleanLaunchNotice === "boolean") record.launchNotice = cleanLaunchNotice;
+      await env.WAITLIST_KV.put(`lead:${cleanEmail}`, JSON.stringify(record));
     } catch {
       // Ignora falha de KV para manter resiliência de borda
     }

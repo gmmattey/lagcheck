@@ -1,6 +1,6 @@
 /**
- * Nolaggy — Static Site Automated Validation Suite
- * Validação rigorosa dos arquivos do site estático em web/ sem dependências externas.
+ * Lagcheck — Pre-Launch Website Automated Validation Suite
+ * Valida a reconstrução da landing page e páginas auxiliares conforme a fonte de verdade do protótipo.
  */
 
 const fs = require('fs');
@@ -8,7 +8,6 @@ const path = require('path');
 const http = require('http');
 
 const WEB_DIR = path.resolve(__dirname);
-const REPO_ROOT = path.resolve(WEB_DIR, '..');
 
 let totalTests = 0;
 let passedTests = 0;
@@ -25,7 +24,7 @@ function assert(condition, message) {
   }
 }
 
-console.log('\n--- 1. Verificação de Estrutura de Arquivos ---');
+console.log('\n--- 1. Verificação de Estrutura de Arquivos Obrigatórios ---');
 const requiredFiles = [
   'index.html',
   'support.html',
@@ -33,16 +32,11 @@ const requiredFiles = [
   'privacy.html',
   'privacy/index.html',
   'css/style.css',
-  'js/main.js',
-  'assets/brand/app-icon-source.svg',
-  'assets/brand/lockup-thumbnail.svg',
-  'assets/brand/symbol-compact.svg',
-  'assets/brand/wordmark-mono-dark.svg',
-  'assets/brand/wordmark-mono-light.svg',
-  'assets/brand/wordmark-primary.svg',
+  'assets/lagcheck-wordmark-light.svg',
+  'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
+  'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
   'robots.txt',
-  'sitemap.xml',
-  'README.md'
+  'sitemap.xml'
 ];
 
 requiredFiles.forEach((relPath) => {
@@ -50,170 +44,136 @@ requiredFiles.forEach((relPath) => {
   assert(fs.existsSync(fullPath), `Arquivo existe: ${relPath}`);
 });
 
-console.log('\n--- 2. Verificação de Integridade dos Ativos Oficiais ---');
-const officialBrandDir = path.join(REPO_ROOT, 'design-system', 'assets', 'brand');
-const webBrandDir = path.join(WEB_DIR, 'assets', 'brand');
-
-const brandSVGs = [
-  'app-icon-source.svg',
-  'lockup-thumbnail.svg',
-  'symbol-compact.svg',
-  'wordmark-mono-dark.svg',
-  'wordmark-mono-light.svg',
-  'wordmark-primary.svg'
+console.log('\n--- 2. Verificação de Grafia Estrita e Wordmark Oficial ---');
+const textFilesToCheck = [
+  'index.html',
+  'support.html',
+  'support/index.html',
+  'privacy.html',
+  'privacy/index.html',
+  'assets/lagcheck-wordmark-light.svg'
 ];
 
-brandSVGs.forEach((svgName) => {
-  const src = fs.readFileSync(path.join(officialBrandDir, svgName));
-  const dest = fs.readFileSync(path.join(webBrandDir, svgName));
-  assert(src.equals(dest), `Ativo ${svgName} é 100% idêntico ao oficial`);
+textFilesToCheck.forEach((relPath) => {
+  const content = fs.readFileSync(path.join(WEB_DIR, relPath), 'utf-8');
+  assert(!content.includes('LagCheck'), `${relPath}: Grafia 'Lagcheck' respeitada (nunca 'LagCheck')`);
+  assert(content.includes('Lagcheck'), `${relPath}: Contém 'Lagcheck' corretamente grafado`);
 });
 
-console.log('\n--- 3. Verificação de Tokens de Design System em style.css ---');
+const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf-8');
+assert(indexHtml.includes('src="assets/lagcheck-wordmark-light.svg"'), 'index.html usa wordmark SVG oficial');
+
+console.log('\n--- 3. Verificação de Tokens Visuais e Dark Competitive UI ---');
 const cssContent = fs.readFileSync(path.join(WEB_DIR, 'css', 'style.css'), 'utf-8');
 const expectedTokens = [
-  '--navy-950: #040A16;',
-  '--navy-900: #050B18;',
-  '--navy-800: #0A1730;',
-  '--navy-700: #101E3D;',
-  '--blue-500: #2E7CFF;',
-  '--green-500: #3DDC97;',
-  '--amber-500: #F5B942;',
-  '--coral-500: #F0525B;',
-  '--neutral-50: #F5F8FF;',
-  '--neutral-400: #AAB4CC;',
-  '--neutral-900: #1C2A4A;'
+  '--bg: oklch(.158 .011 260)',
+  '--surface: oklch(.205 .012 260)',
+  '--fg: oklch(.955 .006 260)',
+  '--muted: oklch(.675 .014 260)',
+  '--border: oklch(.302 .014 260)',
+  '--accent: oklch(.585 .214 299)',
+  '--good: oklch(.76 .15 150)',
+  '--attention: oklch(.684 .196 35)',
+  '--font-display: ui-rounded',
+  '--font-body: -apple-system',
+  '--font-mono: ui-monospace'
 ];
 
 expectedTokens.forEach((token) => {
   assert(cssContent.includes(token), `Token presente em style.css: ${token}`);
+  assert(indexHtml.includes(token), `Token presente no style inline de index.html: ${token}`);
 });
 
-console.log('\n--- 4. Verificação de Conteúdo e Requisitos de Negócio ---');
-const htmlFiles = ['index.html', 'support.html', 'privacy.html'];
+console.log('\n--- 4. Verificação de Estrutura Obrigatória da Landing Page ---');
+assert(indexHtml.includes('<title>Lagcheck — Teste se sua conexão está boa para ranked</title>'), 'SEO: Title exato');
+assert(indexHtml.includes('name="description" content="Descubra se vale a pena entrar na partida agora. Medição real de latência, jitter e perda. Em breve no iPhone e Android. Entre na lista de acesso antecipado."'), 'SEO: Meta description exata');
+assert(indexHtml.includes('property="og:image"'), 'SEO: Open Graph image configurado');
+assert(indexHtml.includes('name="twitter:card" content="summary_large_image"'), 'SEO: Twitter Card configurado');
 
-htmlFiles.forEach((file) => {
-  const content = fs.readFileSync(path.join(WEB_DIR, file), 'utf-8');
+// Hero
+assert(indexHtml.includes('Sua conexão está pronta para ranked?'), 'Hero: Headline principal');
+assert(indexHtml.includes('O Lagcheck mede a qualidade real da sua rota'), 'Hero: Explicação objetiva');
+assert(indexHtml.includes('Entrar no TestFlight'), 'Hero CTA: TestFlight');
+assert(indexHtml.includes('Entrar no Play Beta'), 'Hero CTA: Play Beta');
+assert(indexHtml.includes('Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png'), 'Hero: Captura Fortnite Home em primeiro plano');
+assert(indexHtml.includes('Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png'), 'Hero: Captura Jogos em apoio');
 
-  // Wordmark em minúsculas
-  assert(content.includes('alt="lagcheck"'), `${file}: Wordmark usa 'lagcheck' em minúsculas`);
+// 3 Passos
+assert(indexHtml.includes('Escolhe o jogo'), 'Passo 1: Escolhe o jogo');
+assert(indexHtml.includes('Faz o Check'), 'Passo 2: Faz o Check');
+assert(indexHtml.includes('Recebe o veredito'), 'Passo 3: Recebe o veredito');
 
-  // Plataforma iPhone e iOS 17+
-  assert(content.includes('iPhone') && content.includes('iOS 17'), `${file}: Especifica iPhone e iOS 17+`);
+// Casos de Uso
+assert(indexHtml.includes('Ranked'), 'Caso de uso: Ranked');
+assert(indexHtml.includes('Casual'), 'Caso de uso: Casual');
+assert(indexHtml.includes('Party / Discord'), 'Caso de uso: Party / Discord');
+assert(indexHtml.includes('Streaming + jogo'), 'Caso de uso: Streaming + jogo');
 
-  // Não promete ping real
-  assert(
-    content.includes('não promete o ping real') || content.includes('sem falsas promessas de ping') || content.includes('does not promise'),
-    `${file}: Declara expressamente que não promete ping real de jogos`
-  );
+// Jogos Previstos
+assert(indexHtml.includes('Fortnite'), 'Jogo: Fortnite');
+assert(indexHtml.includes('Free Fire'), 'Jogo: Free Fire');
+assert(indexHtml.includes('COD Mobile'), 'Jogo: COD Mobile');
+assert(indexHtml.includes('Valorant'), 'Jogo: Valorant');
 
-  // Skip link acessível
-  assert(content.includes('class="skip-link"'), `${file}: Possui skip link acessível`);
+// Speedtest vs Lagcheck
+assert(indexHtml.includes('Speedtest'), 'Comparação: Speedtest');
+assert(indexHtml.includes('Comportamento sob carga'), 'Comparação: Comportamento sob carga');
+assert(indexHtml.includes('Por que estou com lag no jogo?'), 'FAQ: Dúvida lag');
+assert(indexHtml.includes('Como saber se posso jogar ranked?'), 'FAQ: Dúvida ranked');
+assert(indexHtml.includes('Speedtest mostra lag de verdade?'), 'FAQ: Dúvida speedtest');
 
-  // Botão de alternância de idioma
-  assert(content.includes('class="lang-toggle"'), `${file}: Possui controle de idioma acessível`);
+// Form e Backend
+assert(indexHtml.includes('action') === false || indexHtml.includes('novalidate'), 'Formulário: Validação assíncrona JS');
+assert(indexHtml.includes('fetch(\'/v1/waitlist\''), 'Backend: Envio para endpoint POST /v1/waitlist');
+assert(indexHtml.includes('15000'), 'Backend: Timeout de 15 segundos configurado');
+assert(indexHtml.includes('localStorage.setItem(\'lagcheck.waitlist\''), 'Resiliência: Preserva inscrição no localStorage');
+assert(indexHtml.includes('Não conseguimos confirmar sua inscrição agora. Seu e-mail ficou salvo neste navegador'), 'UX de falha: Preserva e-mail e orienta usuário');
 
-  // Paridade de blocos bilíngues (PT-BR e EN)
-  const ptCount = (content.match(/data-lang="pt"/g) || []).length;
-  const enCount = (content.match(/data-lang="en"/g) || []).length;
-  assert(ptCount > 0 && ptCount === enCount, `${file}: Paridade de tradução (${ptCount} blocos PT / ${enCount} blocos EN)`);
-});
+// UX Mobile & Desktop
+assert(indexHtml.includes('class="mobile-cta"'), 'UX Mobile: CTA fixo mobile');
+assert(indexHtml.includes('class="side"'), 'UX Desktop: Navegação lateral presente');
 
-// Verificações específicas da Política de Privacidade
-const privacyContent = fs.readFileSync(path.join(WEB_DIR, 'privacy.html'), 'utf-8');
-const privacyRequirements = [
-  { text: 'sem contas', desc: 'Sem necessidade de conta/cadastro' },
-  { text: 'UUID aleatório por instalação', desc: 'Telemetria mínima declarada' },
-  { text: 'SwiftData', desc: 'Armazenamento local no iPhone via SwiftData' },
-  { text: '90 dias', desc: 'Retenção máxima de 90 dias' },
-  { text: '100', desc: 'Limite de até 100 registros recentes por jogo' },
-  { text: 'GET /v1/load', desc: 'Endpoint de carga controlada Deep Check' },
-  { text: 'Cache-Control: no-store', desc: 'Cabeçalho no-store no Deep Check' },
-  { text: 'não identifica', desc: 'Worker sem identificação de pessoa, aparelho ou sessão' },
-  { text: 'não estão integrados nem ativos', desc: 'AdMob e UMP explicitamente não integrados/inativos' },
-  { text: 'formalmente revisada', desc: 'Compromisso de revisão formal antes de integrar AdMob/UMP ou catálogo remoto' }
-];
+console.log('\n--- 5. Verificação das Páginas Auxiliares de Suporte e Privacidade ---');
+const supportHtml = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
+const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy.html'), 'utf-8');
 
-privacyRequirements.forEach((req) => {
-  assert(privacyContent.includes(req.text), `privacy.html: ${req.desc}`);
-});
+assert(supportHtml.includes('suporte@lagcheck.app'), 'Suporte: E-mail suporte@lagcheck.app presente');
+assert(supportHtml.includes('TestFlight'), 'Suporte: Menção a TestFlight');
+assert(supportHtml.includes('Play Beta'), 'Suporte: Menção a Play Beta');
+assert(privacyHtml.includes('suporte@lagcheck.app'), 'Privacidade: E-mail suporte@lagcheck.app presente');
+assert(privacyHtml.includes('Armazenamento local'), 'Privacidade: Seção de armazenamento local');
 
-// Verificações específicas do Suporte
-const supportContent = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
-const supportRequirements = [
-  { text: 'suporte@signallq.com', desc: 'Contato de suporte visível' },
-  { text: 'provisório', desc: 'Contato provisório explicitamente identificado' },
-  { testFn: (c) => c.includes('Metodologia do Lagcheck') || c.includes('Metodologia do LagCheck'), desc: 'Explicação da metodologia do Lagcheck' },
-  { text: 'consentimento', desc: 'Consentimento de dados em rede móvel' },
-  { text: 'Inconclusivo', desc: 'Tratamento honesto de resultado inconclusivo' },
-  { text: '75 – 100', desc: 'Tabela com escala do Lagcheck Score' }
-];
+console.log('\n--- 6. Teste de Servidor HTTP Local (Rotas Estáticas) ---');
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8'
+};
 
-supportRequirements.forEach((req) => {
-  if (req.testFn) {
-    assert(req.testFn(supportContent), `support.html: ${req.desc}`);
-  } else {
-    assert(supportContent.includes(req.text), `support.html: ${req.desc}`);
-  }
-});
-
-// Verificações específicas da Landing Page e Waitlist (Decisão 61)
-const indexContent = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf-8');
-const indexRequirements = [
-  { text: 'LANÇAMENTO EM BREVE', desc: 'Comunica lançamento em breve para iOS' },
-  { text: 'TestFlight', desc: 'Menção a acesso antecipado via TestFlight' },
-  { text: 'class="waitlist-form"', desc: 'Presença do formulário de convite/waitlist' },
-  { text: 'class="waitlist-input"', desc: 'Campo de input para e-mail' },
-  { text: 'class="waitlist-submit-btn"', desc: 'Botão de submissão do convite' },
-  { text: 'class="waitlist-feedback"', desc: 'Área de feedback dinâmico com aria-live' },
-  { text: 'RFC 4737', desc: 'Funcionalidade existente: Detecção Out-of-Order RFC 4737' },
-  { text: 'RFC 5389', desc: 'Funcionalidade existente: Auditoria NAT RFC 5389' },
-  { text: 'Gateway Local', desc: 'Funcionalidade existente: Probe de Gateway Local' }
-];
-
-indexRequirements.forEach((req) => {
-  assert(indexContent.includes(req.text), `index.html: ${req.desc}`);
-});
-
-// Verificações de Scripts e Persistência
-const jsContent = fs.readFileSync(path.join(WEB_DIR, 'js', 'main.js'), 'utf-8');
-assert(jsContent.includes('lagcheck_waitlist_leads'), 'main.js: Persistência local de leads no localStorage');
-assert(jsContent.includes('window.LagcheckWaitlist'), 'main.js: Utilitário global LagcheckWaitlist disponível para exportação');
-assert(jsContent.includes('/v1/waitlist'), 'main.js: Sincronização de leads com o Worker /v1/waitlist');
-
-console.log('\n--- 5. Teste de Servidor HTTP Local ---');
 const server = http.createServer((req, res) => {
   let reqPath = req.url.split('?')[0];
-  if (reqPath === '/') reqPath = '/index.html';
-
-  let filePath = path.join(WEB_DIR, reqPath);
-  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(filePath, 'index.html');
+  if (reqPath.endsWith('/')) {
+    reqPath += 'index.html';
   }
 
-  if (fs.existsSync(filePath)) {
+  const filePath = path.join(WEB_DIR, reqPath);
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath);
-    const contentTypes = {
-      '.html': 'text/html; charset=utf-8',
-      '.css': 'text/css; charset=utf-8',
-      '.js': 'application/javascript; charset=utf-8',
-      '.svg': 'image/svg+xml',
-      '.xml': 'application/xml; charset=utf-8',
-      '.txt': 'text/plain; charset=utf-8'
-    };
-    res.writeHead(200, { 'Content-Type': contentTypes[ext] || 'application/octet-stream' });
-    res.end(fs.readFileSync(filePath));
+    res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+    fs.createReadStream(filePath).pipe(res);
   } else {
-    res.writeHead(404);
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
   }
 });
 
-server.listen(0, '127.0.0.1', async () => {
-  const port = server.address().port;
-  const baseUrl = `http://127.0.0.1:${port}`;
-
-  const routesToTest = [
+const PORT = 8189;
+server.listen(PORT, async () => {
+  const routes = [
     '/',
     '/index.html',
     '/support.html',
@@ -223,34 +183,43 @@ server.listen(0, '127.0.0.1', async () => {
     '/privacy/',
     '/privacy/index.html',
     '/css/style.css',
-    '/js/main.js',
-    '/assets/brand/wordmark-primary.svg',
-    '/assets/brand/symbol-compact.svg',
+    '/assets/lagcheck-wordmark-light.svg',
+    '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
+    '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
     '/robots.txt',
     '/sitemap.xml'
   ];
 
-  for (const route of routesToTest) {
+  for (const route of routes) {
     await new Promise((resolve) => {
-      http.get(`${baseUrl}${route}`, (res) => {
+      http.get({
+        hostname: '127.0.0.1',
+        port: PORT,
+        path: route,
+        agent: false
+      }, (res) => {
         assert(res.statusCode === 200, `Rota HTTP ${route} responde com status 200`);
+        res.resume();
         resolve();
       }).on('error', (err) => {
-        assert(false, `Erro ao acessar ${route}: ${err.message}`);
+        assert(false, `Falha ao acessar ${route}: ${err.message}`);
         resolve();
       });
     });
   }
 
+  if (typeof server.closeAllConnections === 'function') {
+    server.closeAllConnections();
+  }
   server.close(() => {
     console.log('\n========================================');
     console.log(`Resumo dos Testes: ${passedTests}/${totalTests} passaram`);
-    if (failedTests > 0) {
-      console.error(`Status: ${failedTests} testes falharam!`);
-      process.exit(1);
-    } else {
-      console.log('Status: Todos os testes passaram com sucesso! ✓');
+    if (failedTests === 0) {
+      console.log('Status: Todos os testes passaram com sucesso! ✓\n');
       process.exit(0);
+    } else {
+      console.error(`Status: ${failedTests} testes falharam! ✗\n`);
+      process.exit(1);
     }
   });
 });

@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://lagcheck.signallq.com/sitemap.xml
+Sitemap: https://lagcheck.app/sitemap.xml
