@@ -24,23 +24,8 @@ public enum WiFiBandEvaluator {
             )
         }
 
-        // 2. Análise sintática inequívoca de SSID (se disponível)
-        if let ssid = telemetry.detectedSSID {
-            if hasExplicit5GHzPattern(ssid) {
-                return makeResult(
-                    diagnostic: .confirmed5GHzOrHigher(ssid: ssid),
-                    confidence: .high,
-                    telemetry: telemetry
-                )
-            }
-            if hasExplicit24GHzPattern(ssid) {
-                return makeResult(
-                    diagnostic: .confirmed24GHz(ssid: ssid),
-                    confidence: .high,
-                    telemetry: telemetry
-                )
-            }
-        }
+        // 2. SSID, RTT e jitter não são evidência de frequência/canal no iOS.
+        // O nome escolhido pelo roteador não confirma a rádio em uso.
 
         // 3. Verificação de resposta do gateway (se sondado)
         if telemetry.plannedSampleCount > 0 && telemetry.validSampleCount == 0 {
@@ -62,7 +47,7 @@ public enum WiFiBandEvaluator {
 
         // 5. Avaliação do primeiro salto (gateway local)
         if let localJitter = telemetry.gatewayJitterMs, let localMedian = telemetry.gatewayRTTMedianMs {
-            // Contenção severa ou assinatura de 2.4 GHz ruidoso
+            // Contenção severa no enlace local. Não confirma 2.4 GHz.
             let isHighJitter = localJitter > Thresholds.highJitterContentionMs
             let isAsymmetricTail = (telemetry.tailRatioP95P50 ?? 1.0) >= Thresholds.tailRatioContentionMin && localMedian >= Thresholds.minimumGatewayRTTForContentionMs
 
@@ -102,6 +87,9 @@ public enum WiFiBandEvaluator {
     }
 
     // MARK: - Auxiliares de Padrão de SSID
+
+    // Mantidos para compatibilidade de importação, mas não são usados para
+    // afirmar frequência: iOS não entrega esse dado por API pública.
 
     public static func hasExplicit5GHzPattern(_ ssid: String) -> Bool {
         let pattern = #"(?i)(?:^|[-_\s])(?:5G|5GHz|5\.0GHz|5_GHz|6G|6GHz|6E|WiFi6|WiFi7)(?:$|[-_\s])|(?i)(?:5G|5GHz|5\.0GHz|5_GHz|6G|6GHz|6E|WiFi6|WiFi7)$"#

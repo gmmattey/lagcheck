@@ -84,6 +84,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: "LagCheck"
+        INFOPLIST_KEY_CFBundleName: "LagCheck"
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # URLs públicas só devem ser fornecidas pelo build/release depois de

@@ -44,29 +44,15 @@ public struct OpenNetworkCockpitIntent: AppIntent {
 @available(iOS 17.0, *)
 public struct GetNetworkTelemetryIntent: AppIntent {
     public static var title: LocalizedStringResource { "Obter Diagnóstico de Rede" }
-    public static var description: IntentDescription { "Consulta o roteador local e retorna a latência de gateway e frequência Wi-Fi sem abrir o app." }
+    public static var description: IntentDescription { "Consulta o gateway local e retorna a latência observada sem abrir o app. A frequência Wi-Fi só aparece quando o sistema a confirma." }
     public static var openAppWhenRun: Bool { false }
 
     public init() {}
 
     public func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        let prober = BSDWiFiLocalGatewayProber()
-        let sample = await prober.probeLocalGateway(sampleCount: 2, timeoutPerSampleSeconds: 0.3)
-        let rttText = sample.gatewayRTTMedianMs.map { "\(Int(round($0))) ms" } ?? "N/D"
-        let bandResult = WiFiBandEvaluator.evaluate(telemetry: sample)
-        let bandText: String
-        switch bandResult.diagnostic {
-        case .confirmed5GHzOrHigher:
-            bandText = "5 GHz"
-        case .confirmed24GHz, .suspected24GHzContention:
-            bandText = "2.4 GHz"
-        case .stableWiFi:
-            bandText = "Wi-Fi Estável"
-        case .inconclusive:
-            bandText = "Wi-Fi"
-        }
-        let summary = "Wi-Fi: \(bandText) | Latência do Roteador: \(rttText)"
-        return .result(value: summary)
+        let snapshot = await LocalNetworkTelemetrySnapshot.capture()
+        let presentation = LocalNetworkTelemetryPresentation(snapshot: snapshot)
+        return .result(value: presentation.shortcutSummary)
     }
 }
 
@@ -109,5 +95,6 @@ public struct LagCheckShortcutsProvider: AppShortcutsProvider {
             shortTitle: "Status da Rede",
             systemImageName: "wifi"
         )
+
     }
 }

@@ -540,7 +540,7 @@ Estes oito critérios são exclusivamente funcionais e técnicos. **O MVP1 não 
 
 ### 13.1 Critério de saída do MVP1
 
-Antes de comprometer escopo do MVP1.1, a equipe revisa os dados agregados já autorizados por §9 da arquitetura (App Store Connect: sessões, retenção, taxa de instalação/desinstalação, avaliações) depois de um período mínimo em produção. Essa revisão, e não a qualidade técnica do código, é o sinal que decide se o MVP1.1 segue como planejado, é ajustado ou é adiado. Nenhuma telemetria própria é criada para essa revisão; ela usa somente o que a App Store já fornece, preservando a regra de zero telemetria do MVP1.
+Antes de comprometer escopo do MVP1.1, a equipe revisa os dados agregados do App Store Connect e a telemetria mínima já autorizada em `POST /v1/telemetry` (retenção e reteste, sem PII/IP, SSID, BSSID, amostras brutas, IDFA ou localização). Essa revisão, e não a qualidade técnica do código, é o sinal que decide se o MVP1.1 segue como planejado, é ajustado ou é adiado. A declaração pública e de App Store deve permanecer coerente com esse contrato; ver `docs/62`.
 
 ## 14. Decisões pendentes
 

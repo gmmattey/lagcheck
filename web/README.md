@@ -82,7 +82,20 @@ O script testará:
 4. Paridade de blocos bilíngues (PT-BR e EN).
 5. Conformidade com todas as regras de privacidade (SwiftData, 90 dias, 100 registros, ausência de AdMob/UMP nesta entrega, compromisso de revisão futura).
 6. Conformidade com regras de suporte (contato provisório visível, produto iPhone iOS 17+, explicação de rota vs ping de servidor de jogo).
-7. Subida de servidor HTTP local temporário e teste de 200 OK em todas as rotas (incluindo SEO).
+7. Formulários de convite e waitlist acessíveis, com labels, campos de e-mail e áreas de feedback dinâmico.
+8. Persistência de dados cliente-servidor (localStorage `lagcheck_waitlist_leads` + Worker `/v1/waitlist`).
+9. Subida de servidor HTTP local temporário e teste de 200 OK em todas as rotas (incluindo SEO).
+
+---
+
+## Gestão de Leads da Waitlist (Admin / Squad)
+
+Para consultar e exportar os e-mails cadastrados via navegador no ambiente local ou produção:
+1. Abra as DevTools do navegador (F12 ou Cmd+Option+I) no console.
+2. Comandos disponíveis:
+   - `window.LagcheckWaitlist.list()`: Lista os cadastros em formato de tabela no console.
+   - `window.LagcheckWaitlist.exportJSON()`: Baixa arquivo `.json` com todos os registros.
+   - `window.LagcheckWaitlist.exportCSV()`: Baixa arquivo `.csv` formatado para ferramentas de e-mail marketing/TestFlight.
 
 ---
 
@@ -103,5 +116,7 @@ O script testará:
 ## Suposições e Decisões Tomadas
 
 1. **Contato de Suporte:** O canal de suporte oficial definido é `suporte@signallq.com`, com alertas de canal de atendimento direto para conformidade com a App Store.
-2. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
-3. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Lagcheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.
+2. **Lançamento no iOS (Decisão 61):** O site comunica oficialmente o lançamento em breve para iPhone (iOS 17+) com programa de acesso antecipado via TestFlight.
+3. **Persistência Resiliente em Duas Camadas:** Os e-mails são gravados instantaneamente no `localStorage` do usuário e enviados ao endpoint `POST /v1/waitlist` do Cloudflare Worker (com suporte a Cloudflare KV e Analytics Engine).
+4. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
+5. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Lagcheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.

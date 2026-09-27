@@ -144,6 +144,101 @@ async function handleTelemetry(request, env = {}) {
   });
 }
 
+const WAITLIST_CORS_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+async function handleWaitlist(request, env = {}) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: { "Allow": "POST, OPTIONS", "Cache-Control": "no-store" }
+    });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "invalid_json" }, {
+      status: 400,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  if (!body || typeof body !== "object") {
+    return Response.json({ error: "invalid_payload" }, {
+      status: 400,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  const { email, source, lang } = body;
+  if (!email || typeof email !== "string") {
+    return Response.json({ error: "missing_email" }, {
+      status: 400,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  if (cleanEmail.length > 254 || !EMAIL_REGEX.test(cleanEmail)) {
+    return Response.json({ error: "invalid_email" }, {
+      status: 400,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  const cleanSource = (typeof source === "string" && source.length <= 64) ? source.trim() : "web_waitlist";
+  const cleanLang = (lang === "en" || lang === "es") ? lang : "pt-BR";
+  const timestamp = new Date().toISOString();
+
+  // Grava em Cloudflare KV se o binding estiver presente
+  if (env.WAITLIST_KV && typeof env.WAITLIST_KV.put === "function") {
+    try {
+      await env.WAITLIST_KV.put(`lead:${cleanEmail}`, JSON.stringify({
+        email: cleanEmail,
+        source: cleanSource,
+        lang: cleanLang,
+        timestamp
+      }));
+    } catch {
+      // Ignora falha de KV para manter resiliência de borda
+    }
+  }
+
+  // Suporte a Cloudflare Analytics Engine (gratuito) caso o binding esteja presente no ambiente
+  if (env.ANALYTICS && typeof env.ANALYTICS.writeDataPoint === "function") {
+    try {
+      env.ANALYTICS.writeDataPoint({
+        blobs: ["waitlist_signup", cleanLang, cleanSource],
+        doubles: [1],
+        indexes: [cleanEmail]
+      });
+    } catch {
+      // Ignora falha silenciosa no envio ao Analytics Engine
+    }
+  }
+
+  return Response.json({ status: "ok", email: cleanEmail }, {
+    status: 200,
+    headers: WAITLIST_CORS_HEADERS
+  });
+}
+
 export async function handleRequest(request, env = {}) {
   const url = new URL(request.url);
   const assetMatch = url.pathname.match(artworkPath);
@@ -157,6 +252,9 @@ export async function handleRequest(request, env = {}) {
   }
   if (url.pathname === "/v1/telemetry") {
     return handleTelemetry(request, env);
+  }
+  if (url.pathname === "/v1/waitlist") {
+    return handleWaitlist(request, env);
   }
   if (url.pathname === "/v1/catalog.json") {
     if (request.method !== "GET") {

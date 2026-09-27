@@ -123,7 +123,7 @@ htmlFiles.forEach((file) => {
 const privacyContent = fs.readFileSync(path.join(WEB_DIR, 'privacy.html'), 'utf-8');
 const privacyRequirements = [
   { text: 'sem contas', desc: 'Sem necessidade de conta/cadastro' },
-  { text: 'telemetria própria', desc: 'Sem telemetria própria' },
+  { text: 'UUID aleatório por instalação', desc: 'Telemetria mínima declarada' },
   { text: 'SwiftData', desc: 'Armazenamento local no iPhone via SwiftData' },
   { text: '90 dias', desc: 'Retenção máxima de 90 dias' },
   { text: '100', desc: 'Limite de até 100 registros recentes por jogo' },
@@ -156,6 +156,30 @@ supportRequirements.forEach((req) => {
     assert(supportContent.includes(req.text), `support.html: ${req.desc}`);
   }
 });
+
+// Verificações específicas da Landing Page e Waitlist (Decisão 61)
+const indexContent = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf-8');
+const indexRequirements = [
+  { text: 'LANÇAMENTO EM BREVE', desc: 'Comunica lançamento em breve para iOS' },
+  { text: 'TestFlight', desc: 'Menção a acesso antecipado via TestFlight' },
+  { text: 'class="waitlist-form"', desc: 'Presença do formulário de convite/waitlist' },
+  { text: 'class="waitlist-input"', desc: 'Campo de input para e-mail' },
+  { text: 'class="waitlist-submit-btn"', desc: 'Botão de submissão do convite' },
+  { text: 'class="waitlist-feedback"', desc: 'Área de feedback dinâmico com aria-live' },
+  { text: 'RFC 4737', desc: 'Funcionalidade existente: Detecção Out-of-Order RFC 4737' },
+  { text: 'RFC 5389', desc: 'Funcionalidade existente: Auditoria NAT RFC 5389' },
+  { text: 'Gateway Local', desc: 'Funcionalidade existente: Probe de Gateway Local' }
+];
+
+indexRequirements.forEach((req) => {
+  assert(indexContent.includes(req.text), `index.html: ${req.desc}`);
+});
+
+// Verificações de Scripts e Persistência
+const jsContent = fs.readFileSync(path.join(WEB_DIR, 'js', 'main.js'), 'utf-8');
+assert(jsContent.includes('lagcheck_waitlist_leads'), 'main.js: Persistência local de leads no localStorage');
+assert(jsContent.includes('window.LagcheckWaitlist'), 'main.js: Utilitário global LagcheckWaitlist disponível para exportação');
+assert(jsContent.includes('/v1/waitlist'), 'main.js: Sincronização de leads com o Worker /v1/waitlist');
 
 console.log('\n--- 5. Teste de Servidor HTTP Local ---');
 const server = http.createServer((req, res) => {

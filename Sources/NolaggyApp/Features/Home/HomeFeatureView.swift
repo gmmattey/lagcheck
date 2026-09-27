@@ -277,20 +277,8 @@ extension QuickCheckFeatureView {
         case .wifi:
             let prober = BSDWiFiLocalGatewayProber()
             let telemetry = await prober.probeLocalGateway(sampleCount: 1, timeoutPerSampleSeconds: 0.3)
-            let bandResult = WiFiBandEvaluator.evaluate(telemetry: telemetry)
-            let band: LiveNetworkSignal.WiFiBand
-            switch bandResult.diagnostic {
-            case .confirmed5GHzOrHigher:
-                band = .fiveGHz
-            case .confirmed24GHz, .suspected24GHzContention:
-                band = .twoPointFourGHz
-            case .stableWiFi:
-                band = .fiveGHz
-            case .inconclusive:
-                band = .standard
-            }
             liveNetworkSignal = LiveNetworkSignal(
-                connection: .wifi(band: band, gatewayRTTMs: telemetry.gatewayRTTMedianMs),
+                connection: .wifi(band: .standard, gatewayRTTMs: telemetry.gatewayRTTMedianMs),
                 regionalRouteName: regionalName,
                 isRegionalRouteOperational: true
             )

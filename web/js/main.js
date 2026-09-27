@@ -100,6 +100,7 @@
     // Initialize Interactive Route Simulator if present
     initAlgorithmDemo();
     bindAnalyticsTracking();
+    initWaitlistForms();
   }
 
   // --- Analytics & Demand Intent Tracking ---
@@ -301,10 +302,148 @@
     if (phoneGameImg) phoneGameImg.src = game.image;
   }
 
+  // --- Waitlist & Early Access Capture (Decisão 61) ---
+  const WAITLIST_STORAGE_KEY = 'lagcheck_waitlist_leads';
+
+  function saveLeadLocally(leadData) {
+    try {
+      const stored = JSON.parse(localStorage.getItem(WAITLIST_STORAGE_KEY) || '[]');
+      const existingIdx = stored.findIndex((item) => item.email === leadData.email);
+      if (existingIdx >= 0) {
+        stored[existingIdx] = { ...stored[existingIdx], ...leadData, updated_at: new Date().toISOString() };
+      } else {
+        stored.push(leadData);
+      }
+      localStorage.setItem(WAITLIST_STORAGE_KEY, JSON.stringify(stored));
+      return true;
+    } catch (e) {
+      console.warn("LagCheck: Não foi possível salvar no localStorage:", e);
+      return false;
+    }
+  }
+
+  function getStoredLeads() {
+    try {
+      return JSON.parse(localStorage.getItem(WAITLIST_STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  // Export helper accessible via console for squad/admin
+  window.LagcheckWaitlist = {
+    list: function() {
+      const leads = getStoredLeads();
+      console.table(leads);
+      return leads;
+    },
+    exportJSON: function() {
+      const leads = getStoredLeads();
+      const blob = new Blob([JSON.stringify(leads, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `lagcheck_waitlist_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      return leads;
+    },
+    exportCSV: function() {
+      const leads = getStoredLeads();
+      if (!leads.length) return "Nenhum cadastro.";
+      const headers = ["email", "source", "lang", "timestamp", "synced"];
+      const rows = leads.map(l => [l.email, l.source || "", l.lang || "", l.timestamp || "", l.synced ? "true" : "false"].join(","));
+      const csv = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `lagcheck_waitlist_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      return csv;
+    }
+  };
+
+  const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+  function initWaitlistForms() {
+    const forms = document.querySelectorAll(".waitlist-form");
+    forms.forEach((form) => {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = form.querySelector(".waitlist-input");
+        const submitBtn = form.querySelector(".waitlist-submit-btn");
+        const feedback = form.querySelector(".waitlist-feedback");
+        const source = form.getAttribute("data-source") || "website";
+        const isEn = document.body.classList.contains("lang-en");
+
+        if (!input || !input.value) return;
+        const email = input.value.trim().toLowerCase();
+
+        if (!EMAIL_REGEX.test(email)) {
+          showFeedback(feedback, "error", isEn ? "Please enter a valid email address." : "Por favor, digite um e-mail válido.");
+          return;
+        }
+
+        // Disable button while processing
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.setAttribute("data-original-text", submitBtn.innerHTML);
+          submitBtn.innerHTML = isEn ? "<span>Saving...</span>" : "<span>Salvando...</span>";
+        }
+
+        const leadRecord = {
+          email,
+          source,
+          lang: isEn ? "en" : "pt-BR",
+          timestamp: new Date().toISOString(),
+          synced: false
+        };
+
+        // Salva IMEDIATAMENTE no localStorage (Garantia de persistência sem falha)
+        saveLeadLocally(leadRecord);
+        trackEvent("waitlist_signup", { source, email_hash: btoa(email).slice(0, 8) });
+
+        // Tenta sincronizar com o Cloudflare Worker
+        try {
+          const res = await fetch("/v1/waitlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, source, lang: leadRecord.lang })
+          });
+          if (res.ok) {
+            leadRecord.synced = true;
+            saveLeadLocally(leadRecord);
+          }
+        } catch (netErr) {
+          // Permanece salvo no localStorage mesmo se offline
+        }
+
+        // Feedback positivo
+        const successMsg = isEn
+          ? "🎉 You're on the list! We'll email your TestFlight invite as soon as new slots open."
+          : "🎉 E-mail cadastrado com sucesso! Enviaremos seu convite do TestFlight assim que abrirmos novas vagas.";
+        showFeedback(feedback, "success", successMsg);
+
+        input.value = "";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = submitBtn.getAttribute("data-original-text") || (isEn ? "<span>Get Invite</span>" : "<span>Receber Convite</span>");
+        }
+      });
+    });
+  }
+
+  function showFeedback(el, type, message) {
+    if (!el) return;
+    el.className = `waitlist-feedback active ${type}`;
+    el.innerHTML = `<span>${message}</span>`;
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 })();
-

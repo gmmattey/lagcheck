@@ -264,11 +264,13 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         if let band = req.wifiBandEstimate {
             switch band {
             case .confirmed24GHz:
-                wifiDiagnosticDesc = "Conectado em rede 2.4 GHz confirmada. Priorize fortemente sugerir migrar para rede 5 GHz ou usar cabo."
+                wifiDiagnosticDesc = "A frequência foi fornecida por uma fonte configurada. Não extrapole a qualidade da rota a partir dela."
             case .suspected24GHzContention:
-                wifiDiagnosticDesc = "Oscilações e contenção severa típicas de 2.4 GHz ou sinal instável observadas. Recomende testar frequência de 5 GHz ou aproximar-se do roteador."
-            case .confirmed5GHzOrHigher, .stableWiFi:
-                wifiDiagnosticDesc = "Rede Wi-Fi em 5 GHz/estável com baixo jitter local."
+                wifiDiagnosticDesc = "Houve contenção ou variação no enlace local; a frequência Wi-Fi não foi confirmada."
+            case .confirmed5GHzOrHigher:
+                wifiDiagnosticDesc = "A frequência foi fornecida por uma fonte configurada. Não extrapole a qualidade da rota a partir dela."
+            case .stableWiFi:
+                wifiDiagnosticDesc = "O enlace local ficou estável na amostra; a frequência Wi-Fi não foi confirmada."
             case .inconclusive:
                 wifiDiagnosticDesc = "Sem leitura conclusiva do rádio local."
             }
@@ -408,18 +410,18 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
 
     private func englishWiFiDescription(_ diagnostic: WiFiBandDiagnostic?) -> String {
         switch diagnostic {
-        case .confirmed24GHz?: "Confirmed 2.4 GHz Wi-Fi. Prioritize moving to 5 GHz or using Ethernet."
-        case .suspected24GHzContention?: "Severe variation or contention typical of 2.4 GHz or unstable signal was observed. Suggest testing 5 GHz or moving closer to the router."
-        case .confirmed5GHzOrHigher?, .stableWiFi?: "5 GHz or stable Wi-Fi with low local jitter."
+        case .confirmed24GHz?, .confirmed5GHzOrHigher?: "A configured source supplied a Wi-Fi frequency; do not infer route quality from it."
+        case .suspected24GHzContention?: "Local-link variation or contention was observed; Wi-Fi frequency was not confirmed."
+        case .stableWiFi?: "The local link was stable in this sample; Wi-Fi frequency was not confirmed."
         case .inconclusive?, nil: "not measured or inconclusive"
         }
     }
 
     private func spanishWiFiDescription(_ diagnostic: WiFiBandDiagnostic?) -> String {
         switch diagnostic {
-        case .confirmed24GHz?: "Wi-Fi de 2,4 GHz confirmado. Prioriza cambiar a 5 GHz o usar cable Ethernet."
-        case .suspected24GHzContention?: "Se observaron variaciones o congestión intensa típicas de 2,4 GHz o de señal inestable. Sugiere probar 5 GHz o acercarse al router."
-        case .confirmed5GHzOrHigher?, .stableWiFi?: "Wi-Fi de 5 GHz o estable, con poco jitter local."
+        case .confirmed24GHz?, .confirmed5GHzOrHigher?: "Una fuente configurada proporcionó una frecuencia Wi-Fi; no infieras la calidad de la ruta a partir de ella."
+        case .suspected24GHzContention?: "Se observó variación o contención local; la frecuencia Wi-Fi no fue confirmada."
+        case .stableWiFi?: "El enlace local estuvo estable en esta muestra; la frecuencia Wi-Fi no fue confirmada."
         case .inconclusive?, nil: "sin medición o sin resultado concluyente"
         }
     }

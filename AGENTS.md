@@ -79,6 +79,8 @@ Além dos sete documentos estruturais acima, `docs/08` em diante registra decis�
 | `56` | Jornada Direta em 1 Toque, Cockpit de Rede ("Dados da Rede") e Otimizações de Setup por Plataforma no Resultado | decidido e implementado |
 | `57` | Hero Gauge Pulsante com "Testar Agora", Meus Jogos Favoritos (até 4), Exportação de Relatórios PDF Customizados, Otimização Única de Maior Impacto e Casos de Uso com Ícones | decidido e implementado |
 | `58` | Incorporação do Relatório de Pesquisa: Detecção de Pacotes Fora de Ordem (RFC 4737), Modulação `.caution`, Mapeamento de Arquitetura de Servidores (`GameServerArchitecture`) e Recomendações de Peering | decidido e implementado |
+| `60` | Corte do Atalho de Contexto de Rede para o candidato a TestFlight (dados puramente observados no iPhone) | decidido para o release |
+| `61` | Atualização do Website Oficial: Lançamento em Breve no iOS (iOS 17+) e Captura Resiliente de Convites (Waitlist / TestFlight) | decidido e em implementação |
 
 Docs `19` e `20` são conversas exploratórias pedidas por Marco: não implemente nada a partir deles sem decisão explícita registrada, conforme a regra abaixo sobre exploração não ser autorização.
 

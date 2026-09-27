@@ -74,8 +74,16 @@ struct DeepCheckFeatureView: View {
                 }
             }
             .background(NolaggyScreenBackground())
+            .navigationBarBackButtonHidden(true)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                if isResultPresentation {
+                    ToolbarItem(placement: .topBarLeading) {
+                        NolaggyBackButton(action: cancelOrDismiss, accessibilityIdentifier: "check-completo-back")
+                    }
+                }
+            }
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -298,6 +306,15 @@ struct DeepCheckFeatureView: View {
 
     private var titleHeader: some View {
         NolaggyBackHeader(action: cancelOrDismiss, accessibilityIdentifier: "deep-check-back")
+    }
+
+    private var isResultPresentation: Bool {
+        switch presentation {
+        case .result, .inconclusive:
+            true
+        default:
+            false
+        }
     }
 
     private func start(withConsent: Bool = false) {

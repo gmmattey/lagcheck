@@ -66,7 +66,7 @@ flowchart TD
 #### Item 2: Diagnóstico de Frequência Wi-Fi Confiável (2.4 GHz vs 5 GHz)
 - **Problema:** Inferir banda Wi-Fi a partir de ping remoto gera erros graves.
 - **Decisão Técnica (Iury & Rian):**
-  - A avaliação de banda Wi-Fi deve utilizar metadados de enlace do sistema (`CWWiFiClient` / `NEHotspotNetwork` quando autorizados) ou heurísticas estritas de PHY rate.
+  - A avaliação de banda Wi-Fi só pode utilizar uma fonte pública válida de metadados de enlace do sistema. O candidato atual não dispõe dessa fonte; não se usa SSID, RTT, jitter, perda ou heurística de PHY rate como substituto.
   - Classificar a detecção em níveis de confiança: `.high`, `.medium`, `.low`, `.unknown`.
   - Se `.unknown` ou `.low`: o app **não afirma a banda** nem exibe avisos falsos.
   - Se `.high` ou `.medium` e banda for 2.4 GHz em jogo de perfil competitivo (`BATTLE_ROYALE_COMPETITIVE` / `MOBILE_REALTIME`): emitir sintoma informativo e recomendação prioritária de troca para 5 GHz, modulando veredito para `.caution` se acompanhado de jitter.
