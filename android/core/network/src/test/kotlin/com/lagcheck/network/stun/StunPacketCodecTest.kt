@@ -24,7 +24,7 @@ class StunPacketCodecTest {
     }
 
     @Test
-    fun parseBindingResponse_decodesValidResponse() {
+    fun parseBindingResponse_withoutMappedAddress_returnsNull() {
         val request = StunPacketCodec.buildBindingRequest()
         val txId = request.transactionId
 
@@ -37,7 +37,8 @@ class StunPacketCodecTest {
 
         val response = StunPacketCodec.parseBindingResponse(buffer.array(), expectedTxId = txId)
 
-        assertThat(response).isNotNull()
+        // Cabeçalho válido, mas sem endereço mapeado: nada a concluir (nunca fabrica um IP).
+        assertThat(response).isNull()
     }
 
     @Test

@@ -59,68 +59,40 @@ object StunPacketCodec {
     }
 
     /**
-     * Decodifica a resposta STUN e extrai o endereço IP e a porta mapeada.
+     * Decodifica a resposta STUN (port fiel do Swift). Sem endereço mapeado IPv4 devolve `null`: um Binding Response
+     * sem endereço não permite concluir nada, e inventar um IP aqui viraria um NAT falso.
      */
     fun parseBindingResponse(data: ByteArray, expectedTxId: ByteArray? = null): StunResponse? {
         if (data.size < 20) return null
-
         val buffer = ByteBuffer.wrap(data)
-        val msgType = buffer.short
-        if (msgType != BINDING_RESPONSE_TYPE) return null
-
+        if (buffer.short != BINDING_RESPONSE_TYPE) return null
         val msgLength = buffer.short.toInt() and 0xFFFF
-        val magicCookie = buffer.int
-        if (magicCookie != MAGIC_COOKIE) return null
-
+        if (buffer.int != MAGIC_COOKIE) return null
         val txId = ByteArray(12)
         buffer.get(txId)
+        if (expectedTxId != null && !txId.contentEquals(expectedTxId)) return null
+        if (data.size < 20 + msgLength) return null
 
-        if (expectedTxId != null && !txId.contentEquals(expectedTxId)) {
-            return null
-        }
+        var offset = 20
+        while (offset + 4 <= 20 + msgLength) {
+            val attrType = ((data[offset].toInt() and 0xFF) shl 8) or (data[offset + 1].toInt() and 0xFF)
+            val attrLen = ((data[offset + 2].toInt() and 0xFF) shl 8) or (data[offset + 3].toInt() and 0xFF)
+            offset += 4
+            if (offset + attrLen > data.size) break
 
-        var publicIp: String? = null
-        var port: Int? = null
-
-        // Leitura dos atributos TLV (Type-Length-Value)
-        while (buffer.remaining() >= 4) {
-            val attrType = buffer.short
-            val attrLength = buffer.short.toInt() and 0xFFFF
-
-            if (buffer.remaining() < attrLength) break
-
-            if (attrType == ATTR_XOR_MAPPED_ADDRESS && attrLength >= 8) {
-                buffer.get() // Reserved
-                val family = buffer.get().toInt()
-                val rawPort = buffer.short.toInt() and 0xFFFF
-                val xoredPort = rawPort xor (MAGIC_COOKIE ushr 16)
-
-                if (family == 0x01 && attrLength >= 8) { // IPv4
-                    val xoredIp = buffer.int
-                    val realIp = xoredIp xor MAGIC_COOKIE
-                    val ipStr = "${(realIp ushr 24) and 0xFF}.${(realIp ushr 16) and 0xFF}.${(realIp ushr 8) and 0xFF}.${realIp and 0xFF}"
-                    publicIp = ipStr
-                    port = xoredPort
-                } else {
-                    // Pula bytes não-IPv4
-                    buffer.position(buffer.position() + (attrLength - 4))
-                }
-            } else {
-                buffer.position(buffer.position() + attrLength)
+            if ((attrType == ATTR_XOR_MAPPED_ADDRESS.toInt() || attrType == ATTR_MAPPED_ADDRESS.toInt()) && attrLen >= 8 && data[offset + 1].toInt() == 0x01) {
+                val rawPort = ((data[offset + 2].toInt() and 0xFF) shl 8) or (data[offset + 3].toInt() and 0xFF)
+                val rawIp = ByteBuffer.wrap(data, offset + 4, 4).int
+                val xor = attrType == ATTR_XOR_MAPPED_ADDRESS.toInt()
+                val port = if (xor) rawPort xor (MAGIC_COOKIE ushr 16) else rawPort
+                val ip = if (xor) rawIp xor MAGIC_COOKIE else rawIp
+                return StunResponse(
+                    publicIp = "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}",
+                    port = port
+                )
             }
-
-            // Alinhamento de padding para 4 bytes conforme RFC 5389
-            val padding = (4 - (attrLength % 4)) % 4
-            if (buffer.remaining() >= padding) {
-                buffer.position(buffer.position() + padding)
-            }
+            offset += attrLen + (4 - attrLen % 4) % 4 // alinhamento de 4 bytes (RFC 5389)
         }
-
-        return if (publicIp != null && port != null) {
-            StunResponse(publicIp = publicIp, port = port)
-        } else {
-            // Se for STUN válido mas sem XOR attribute decodificado, retorna sucesso com endpoint genérico
-            StunResponse(publicIp = "0.0.0.0", port = 0)
-        }
+        return null
     }
 }
