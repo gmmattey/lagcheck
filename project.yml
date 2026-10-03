@@ -16,6 +16,8 @@ settings:
     TARGETED_DEVICE_FAMILY: "1"
     CODE_SIGNING_ALLOWED: YES
     DEVELOPMENT_TEAM: 2Z4T8228GR
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "2"
 targets:
   NolaggyDesign:
     type: framework
@@ -80,7 +82,7 @@ targets:
         # Release identity. Xcode maps these values into the generated
         # CFBundleShortVersionString and CFBundleVersion entries.
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "2"
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: "LagCheck"
