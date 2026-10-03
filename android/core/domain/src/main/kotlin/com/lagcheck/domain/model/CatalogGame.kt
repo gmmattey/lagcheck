@@ -49,7 +49,11 @@ object OfficialGameCatalog {
         CatalogGame("rocket-league-sideswipe", "Rocket League Sideswipe", "Competitivo Mobile", listOf("Mobile"), drawableResName = "")
     )
 
+    /** Ids do protótipo anterior que podem estar no histórico de quem já testou. */
+    private val legacyIds = mapOf("codm" to "call-of-duty-mobile", "pubg" to "pubg-mobile", "ea-fc" to "eafc")
+
     fun findById(id: String): CatalogGame {
-        return games.firstOrNull { it.id == id } ?: games.first()
+        val canonical = legacyIds[id] ?: id
+        return games.firstOrNull { it.id == canonical } ?: games.first()
     }
 }

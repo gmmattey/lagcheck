@@ -29,6 +29,12 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
+    override fun onStop() {
+        super.onStop()
+        // Ir para segundo plano no meio da medição descarta o resultado parcial (ciclo de vida da sessão).
+        viewModel.onAppBackgrounded()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

@@ -4,18 +4,34 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.lagcheck.android.data.CheckHistoryItem
+import com.lagcheck.android.data.FileCatalogCache
 import com.lagcheck.android.data.HistoryRepository
+import com.lagcheck.android.data.NetworkPathWatcher
 import com.lagcheck.android.data.PreferencesRepository
+import com.lagcheck.android.data.PrefsInstallationIdStore
+import com.lagcheck.catalog.CatalogPayload
+import com.lagcheck.catalog.RemoteCatalogRepository
 import com.lagcheck.core.telemetry.radio.AndroidRadioTelemetryProvider
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
+import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.OfficialGameCatalog
-import com.lagcheck.domain.model.ProbeSample
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
-import com.lagcheck.domain.rules.GameReadinessEvaluator
-import com.lagcheck.network.client.CloudflareWorkerClient
-import com.lagcheck.network.engine.UdpMeasurementEngine
+import com.lagcheck.domain.presentation.ReadinessLanguage
+import com.lagcheck.domain.presentation.ReadinessPresenter
+import com.lagcheck.network.transport.UdpProbeTransport
+import com.lagcheck.network.worker.HttpCatalogFetcher
+import com.lagcheck.network.worker.HttpLoadTransport
+import com.lagcheck.session.CheckOrchestrator
+import com.lagcheck.session.CheckPhase
+import com.lagcheck.session.MeasurementPlanner
+import com.lagcheck.session.PlanResult
+import com.lagcheck.session.PlatformLabels
+import com.lagcheck.session.TelemetryReporter
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -54,8 +70,17 @@ sealed class Screen {
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val radioTelemetryProvider = AndroidRadioTelemetryProvider(application)
-    private val udpEngine = UdpMeasurementEngine()
-    private val workerClient = CloudflareWorkerClient()
+    private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport())
+    private val pathWatcher = NetworkPathWatcher(application)
+    private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
+
+    // Catálogo assinado: base embarcada no APK + atualização diária. Só sai daqui payload já verificado.
+    private val catalogRepository = RemoteCatalogRepository(
+        baseEnvelope = application.assets.open("catalog-base.json").use { it.readBytes() },
+        fetcher = HttpCatalogFetcher(),
+        cache = FileCatalogCache(application)
+    )
+    private val catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
 
@@ -85,12 +110,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val liveRadioTelemetry: StateFlow<RadioTelemetrySnapshot?> = _liveRadioTelemetry.asStateFlow()
 
     private var measurementJob: Job? = null
-    private var loadJob: Job? = null
     private var hasConsentedMobileData: Boolean = false
+    private var nextStartIsRetest: Boolean = false
 
     init {
         refreshRadioTelemetry()
+        telemetry.appOpen()
+        viewModelScope.launch {
+            // Atualização diária em segundo plano; falha mantém o catálogo que já era válido e nunca bloqueia a Home.
+            runCatching { catalogRepository.refreshIfDue() }
+        }
     }
+
+    /** Catálogo base/cache validado, ou nulo se nenhum for válido (ex.: base expirada sem rede). Nulo = não mede. */
+    private suspend fun loadCatalog(): CatalogPayload? =
+        runCatching { catalogRepository.loadedCatalogForLaunch().payload }.getOrNull()
 
     fun navigateTo(screen: Screen) {
         _currentScreen.value = screen
@@ -157,95 +191,111 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         radioSnapshot: RadioTelemetrySnapshot?
     ) {
         measurementJob?.cancel()
-        loadJob?.cancel()
-        loadJob = null
+
+        val isRetest = nextStartIsRetest
+        nextStartIsRetest = false
+        val platformEnum = PlatformLabels.toPlatform(platform)
+        if (isRetest) telemetry.retestStarted(targetGame.id, platformEnum) else telemetry.checkStarted(targetGame.id, platformEnum)
 
         measurementJob = viewModelScope.launch {
-            val collectedSamples = mutableListOf<ProbeSample>()
-            val loadSamples = mutableListOf<ProbeSample>()
-
-            _currentScreen.value = Screen.Measurement(
-                game = targetGame,
-                platform = platform,
-                connectionType = connectionType,
-                progressRatio = 0.04f,
-                currentPingMs = null,
-                isPhaseRest = true,
-                isCancelled = false,
-                showMobileDataConsent = false
-            )
-
-            try {
-                udpEngine.executeMeasurement().collect { sample ->
-                    collectedSamples.add(sample)
-                    val totalPlanned = 30f
-                    val ratio = (collectedSamples.size / totalPlanned).coerceIn(0.04f, 1f)
-                    val latestPing = if (sample.isValidResponse) sample.roundTripMillis else null
-                    val isRest = collectedSamples.size <= 18
-
-                    if (!isRest) {
-                        loadSamples.add(sample)
-                        // Dispara estresse real de download via Cloudflare Worker (/v1/load)
-                        if (loadJob == null) {
-                            loadJob = launch {
-                                try {
-                                    workerClient.downloadLoadPayload(maxBytes = 5 * 1024 * 1024)
-                                } catch (_: Exception) {
-                                    // Falha no download de carga não quebra as amostras UDP
-                                }
-                            }
-                        }
-                    }
-
+            val job = this.coroutineContext[Job]
+            fun measuring(ratio: Float, ping: Double?, rest: Boolean) {
+                // Eventos tardios de um check já cancelado não podem sobrescrever a tela atual.
+                if (job?.isActive == true) {
                     _currentScreen.value = Screen.Measurement(
-                        game = targetGame,
-                        platform = platform,
-                        connectionType = connectionType,
-                        progressRatio = ratio,
-                        currentPingMs = latestPing,
-                        isPhaseRest = isRest,
-                        isCancelled = false,
-                        showMobileDataConsent = false
+                        game = targetGame, platform = platform, connectionType = connectionType,
+                        progressRatio = ratio.coerceIn(0.04f, 1f), currentPingMs = ping, isPhaseRest = rest,
+                        isCancelled = false, showMobileDataConsent = false
                     )
                 }
-
-                // Finaliza download de estresse concorrente
-                loadJob?.cancel()
-
-                val evaluation = GameReadinessEvaluator.evaluate(
-                    samples = collectedSamples,
-                    loadSamples = loadSamples,
-                    radioSnapshot = radioSnapshot,
-                    platform = platform,
-                    connectionType = connectionType
-                )
-
-                // Salva no repositório de histórico do dispositivo
-                historyRepository.recordCheck(targetGame, evaluation)
-
-                _currentScreen.value = Screen.Verdict(targetGame, evaluation)
-
-            } catch (e: Exception) {
-                loadJob?.cancel()
+            }
+            fun cancelledScreen() {
                 _currentScreen.value = Screen.Measurement(
-                    game = targetGame,
-                    platform = platform,
-                    connectionType = connectionType,
-                    isCancelled = true,
-                    showMobileDataConsent = false
+                    game = targetGame, platform = platform, connectionType = connectionType,
+                    isCancelled = true, showMobileDataConsent = false
                 )
             }
+
+            measuring(0.04f, null, true)
+
+            val payload = catalog.await()
+            val plan = if (payload == null) null else MeasurementPlanner.plan(payload, targetGame.id, platform)
+            if (payload == null || plan !is PlanResult.Ready) {
+                // Sem catálogo válido ou sem rota ativa: não há destino confiável, então não existe nota nem fallback.
+                cancelledScreen()
+                return@launch
+            }
+
+            // Troca de rede durante a medição descarta o resultado parcial.
+            pathWatcher.start { viewModelScope.launch { if (job?.isActive == true) { job?.cancel(); cancelledScreen() } } }
+            try {
+                var lastPing: Double? = null
+                val result = orchestrator.run(plan.context) { p ->
+                    if (p.latestPingMs != null) lastPing = p.latestPingMs
+                    measuring(p.ratio, lastPing, p.phase == CheckPhase.REST)
+                }
+
+                // Conexão que caiu no meio (watchdog) é cancelamento por integridade, não veredito.
+                if (result.abortReason != null) {
+                    cancelledScreen()
+                    return@launch
+                }
+
+                val route = payload.regions.firstOrNull { it.id == plan.context.regionId }
+                val regionLabel = route?.label?.get("pt-BR") ?: plan.context.regionId
+                val evaluation = ReadinessPresenter.present(
+                    assessment = result.assessment,
+                    language = readinessLanguage(),
+                    platform = platform,
+                    connectionType = connectionType,
+                    destinationName = "$regionLabel · rota regional de referência",
+                    confidence = plan.context.confidence,
+                    latencySeries = result.latencySeries,
+                    radio = radioSnapshot
+                )
+
+                // Só resultado concluído entra no histórico (inconclusivo não vira registro, como no iOS).
+                if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
+                    historyRepository.recordCheck(targetGame, evaluation)
+                }
+                telemetry.verdictViewed(targetGame.id, platformEnum, evaluation.verdict)
+                _currentScreen.value = Screen.Verdict(targetGame, evaluation)
+            } finally {
+                pathWatcher.stop()
+            }
+        }
+    }
+
+    private fun readinessLanguage(): ReadinessLanguage = when {
+        language.value.contains("English", ignoreCase = true) -> ReadinessLanguage.EN
+        language.value.contains("Español", ignoreCase = true) -> ReadinessLanguage.ES
+        else -> ReadinessLanguage.PT_BR
+    }
+
+    /** Fechar o app ou ir para segundo plano durante a medição descarta o resultado parcial. */
+    fun onAppBackgrounded() {
+        val screen = _currentScreen.value
+        if (screen is Screen.Measurement && !screen.isCancelled && !screen.showMobileDataConsent) {
+            measurementJob?.cancel()
+            pathWatcher.stop()
+            _currentScreen.value = screen.copy(isCancelled = true)
         }
     }
 
     fun cancelCheck() {
         measurementJob?.cancel()
-        loadJob?.cancel()
+        pathWatcher.stop()
         _currentScreen.value = Screen.Home
     }
 
     fun retryCheck() {
+        nextStartIsRetest = true
         startCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value)
+    }
+
+    override fun onCleared() {
+        pathWatcher.stop()
+        super.onCleared()
     }
 
     fun openLatestResult() {

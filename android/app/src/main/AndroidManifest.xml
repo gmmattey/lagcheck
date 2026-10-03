@@ -13,8 +13,11 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
 
-    <!-- Permissão opcional para leitura de rádio em dispositivos Android 10-12 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Só Android 12 ou menor: lá o Wi-Fi (frequência/RSSI) exige localização. Do Android 13 em diante vale NEARBY_WIFI_DEVICES
+         com neverForLocation, e o app nem declara localização. Negar é seguro: a medição UDP segue normalmente. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="32" />
 
     <application
         android:allowBackup="false"

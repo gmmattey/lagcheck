@@ -56,6 +56,18 @@ class ShelfAndPlannerTest {
         }
     }
 
+    @Test fun bundledBaseCatalogIsTheSameSignedEnvelopeAsTheWorkerAndTheIosBase() {
+        val asset = File(root, "android/app/src/main/assets/catalog-base.json").readBytes()
+        assertThat(asset).isEqualTo(File(root, "worker/catalog/catalog-v3.envelope.json").readBytes())
+        assertThat(asset).isEqualTo(File(root, "Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json").readBytes())
+    }
+
+    @Test fun legacyPrototypeIdsStillFindTheirGame() {
+        assertThat(OfficialGameCatalog.findById("codm").id).isEqualTo("call-of-duty-mobile")
+        assertThat(OfficialGameCatalog.findById("pubg").id).isEqualTo("pubg-mobile")
+        assertThat(OfficialGameCatalog.findById("ea-fc").id).isEqualTo("eafc")
+    }
+
     @Test fun uiPlatformLabelsMapToCatalogPlatforms() {
         assertThat(PlatformLabels.toPlatform("PlayStation")).isEqualTo(Platform.PLAYSTATION)
         assertThat(PlatformLabels.toPlatform("Xbox")).isEqualTo(Platform.XBOX)
