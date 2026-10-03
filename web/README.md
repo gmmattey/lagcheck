@@ -20,6 +20,7 @@ web/
 │   │   ├── wordmark-mono-light.svg
 │   │   └── wordmark-primary.svg
 │   └── games/                    # Artes dos títulos competitivos em assets/games/
+│   ├── app-home.webp / app-games.webp   # Screenshots do hero em WebP (600 px); o PNG da raiz é o fallback
 ├── css/
 │   └── style.css                 # Dark Competitive UI, animações de pulso e tokens oficiais
 ├── js/
@@ -32,7 +33,10 @@ web/
 ├── privacy/
 │   └── index.html                # Rota direta /privacy/ para servidores estáticos
 ├── robots.txt                    # Diretrizes para indexação de motores de busca
-├── sitemap.xml                   # Mapa do site com hreflang para SEO internacional
+├── sitemap.xml                   # Só URLs indexáveis (home); /support/ e /privacy/ são noindex
+├── og.png                        # Imagem de compartilhamento 1200×630
+├── favicon.ico / favicon.svg / apple-touch-icon.png  # Ícones (a partir de design-system/assets/brand/app-icon-source.svg)
+├── vercel.json                   # Rewrite /v1/* para o Worker + cache de imagens e ícones
 ├── validate.js                   # Suite de testes com 81 validações automatizadas
 └── README.md                     # Este guia de execução e contexto
 ```

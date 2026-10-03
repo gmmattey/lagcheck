@@ -4,5 +4,16 @@
       "source": "/v1/:path*",
       "destination": "https://nolaggy-deep-check.buildealabs.workers.dev/v1/:path*"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)\\.(png|webp|svg|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    }
   ]
 }

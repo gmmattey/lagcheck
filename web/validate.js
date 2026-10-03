@@ -36,7 +36,13 @@ const requiredFiles = [
   'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
   'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
   'robots.txt',
-  'sitemap.xml'
+  'sitemap.xml',
+  'og.png',
+  'favicon.ico',
+  'favicon.svg',
+  'apple-touch-icon.png',
+  'assets/app-home.webp',
+  'assets/app-games.webp'
 ];
 
 requiredFiles.forEach((relPath) => {
@@ -85,9 +91,13 @@ expectedTokens.forEach((token) => {
 });
 
 console.log('\n--- 4. Verificação de Estrutura Obrigatória da Landing Page ---');
-assert(indexHtml.includes('<title>Lagcheck — Teste se sua conexão está boa para ranked</title>'), 'SEO: Title exato');
-assert(indexHtml.includes('name="description" content="Descubra se vale a pena entrar na partida agora. Medição real de latência, jitter e perda. Em breve no iPhone e Android. Entre na lista de acesso antecipado."'), 'SEO: Meta description exata');
-assert(indexHtml.includes('property="og:image"'), 'SEO: Open Graph image configurado');
+assert(indexHtml.includes('<title>Lagcheck — Teste de lag: sua conexão aguenta o ranked?</title>'), 'SEO: Title exato');
+assert(indexHtml.includes('name="description" content="Meça latência, jitter e perda de pacotes antes do ranked e saiba se sua conexão aguenta. Em breve no iPhone e Android: entre na lista."'), 'SEO: Meta description exata');
+assert(indexHtml.includes('property="og:image" content="https://lagcheck.signallq.com/og.png"'), 'SEO: Open Graph image 1200x630 configurado');
+assert(indexHtml.includes('property="og:image:width" content="1200"') && indexHtml.includes('property="og:image:height" content="630"'), 'SEO: og:image com dimensões 1200x630');
+const sitemapXml = fs.readFileSync(path.join(WEB_DIR, 'sitemap.xml'), 'utf-8');
+assert(!sitemapXml.includes('/support/') && !sitemapXml.includes('/privacy/'), 'SEO: sitemap lista só URLs indexáveis (suporte e privacidade são noindex)');
+assert(indexHtml.includes('"@type": "MobileApplication"') && !indexHtml.includes('GameApplication'), 'SEO: JSON-LD MobileApplication com categoria única');
 assert(indexHtml.includes('name="twitter:card" content="summary_large_image"'), 'SEO: Twitter Card configurado');
 
 // Hero
@@ -187,7 +197,13 @@ server.listen(PORT, async () => {
     '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
     '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
     '/robots.txt',
-    '/sitemap.xml'
+    '/sitemap.xml',
+    '/og.png',
+    '/favicon.ico',
+    '/favicon.svg',
+    '/apple-touch-icon.png',
+    '/assets/app-home.webp',
+    '/assets/app-games.webp'
   ];
 
   for (const route of routes) {
