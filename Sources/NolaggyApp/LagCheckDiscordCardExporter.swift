@@ -92,9 +92,9 @@ public enum LagCheckDiscordCardExporter {
                 verdictColor = UIColor(NLColor.semanticCaution)
             case .notReady:
                 verdictText = "■ \(AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: ""))"
-                // Nota de auditoria: #EF4444 (239,68,68) não existe em NLColor; mantido literal
-                // até Renan decidir se é um novo tom semântico ou deve colapsar para coralSolar.
-                verdictColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
+                // Decisão Renan: #EF4444 não é token oficial; colapsado para coralSolar
+                // (Decisão 66 reserva Coral Solar para atenção/erro — não cabe um segundo vermelho).
+                verdictColor = UIColor(NLColor.coralSolar)
             case .inconclusive:
                 verdictText = "— \(AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: ""))"
                 verdictColor = UIColor.lightGray
@@ -127,7 +127,7 @@ public enum LagCheckDiscordCardExporter {
             let metrics = [
                 (AppLocalization.string("exporter.discord.ping_label", comment: ""), pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
                 (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(NLColor.semanticCaution)),
-                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0))
+                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(NLColor.coralSolar))
             ]
 
             for (index, item) in metrics.enumerated() {
@@ -136,7 +136,9 @@ public enum LagCheckDiscordCardExporter {
 
                 // Fundo da coluna
                 let colPath = UIBezierPath(roundedRect: rectCol, cornerRadius: 16)
-                cg.setFillColor(UIColor(red: 14/255, green: 16/255, blue: 20/255, alpha: 1.0).cgColor)
+                // Decisão Renan: #0E1014 era quase idêntico ao fundo (deep), não elevava a
+                // superfície. Colapsado para o token de card/contêiner da Decisão 51.
+                cg.setFillColor(UIColor(NLColor.surface).cgColor)
                 colPath.fill()
                 cg.setStrokeColor(UIColor(white: 1.0, alpha: 0.08).cgColor)
                 cg.setLineWidth(1)

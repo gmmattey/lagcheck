@@ -57,10 +57,10 @@ public enum LagCheckPDFExporter {
                 // 3. Card: Borda WAN, NAT & CGNAT
                 let wanRows: [(String, String, UIColor)] = [
                     ("Tipo de NAT", natTypeDisplay, natTypeDisplay.contains("Tipo 1") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.semanticCaution)),
-                    // Nota de auditoria: #EF4444 (239,68,68) não existe em NLColor; mantido literal
-                    // até Renan decidir se é um novo tom semântico ou deve colapsar para coralSolar.
-                    ("Status CGNAT (RFC 6598)", cgnatDisplay, cgnatDisplay.contains("Livre") ? UIColor(NLColor.semanticReady) : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)),
-                    ("Duplo NAT (Roteadores em Cascata)", doubleNATDisplay, doubleNATDisplay.contains("Não") ? UIColor(NLColor.semanticReady) : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)),
+                    // Decisão Renan: #EF4444 não é token oficial; colapsado para coralSolar
+                    // (Decisão 66 reserva Coral Solar para atenção/erro — não cabe um segundo vermelho).
+                    ("Status CGNAT (RFC 6598)", cgnatDisplay, cgnatDisplay.contains("Livre") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.coralSolar)),
+                    ("Duplo NAT (Roteadores em Cascata)", doubleNATDisplay, doubleNATDisplay.contains("Não") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.coralSolar)),
                     ("IP Público Identificado", publicIPDisplay, .lightGray)
                 ]
                 drawCard(ctx: ctx, title: "2. BORDA WAN & TOPOLOGIA DE REDE (RFC 5389)", rows: wanRows, currentY: &currentY, pageWidth: pageWidth)
