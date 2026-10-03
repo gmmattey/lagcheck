@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.components.HomeTopBar
+import com.lagcheck.android.ui.components.PlatformHealthBanner
+import com.lagcheck.network.health.PlatformHealth
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.RadioSignalPill
 import com.lagcheck.core.designsystem.theme.LagCheckColors
@@ -56,6 +58,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenLatestResult: () -> Unit,
     onOpenNetworkCockpit: () -> Unit = {},
+    /** Problema reportado na rede do console escolhido. Nulo = nada a avisar. */
+    platformHealth: PlatformHealth? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -162,6 +166,11 @@ fun HomeScreen(
                 style = LagCheckTypography.Subtext.copy(fontSize = 14.sp),
                 color = LagCheckColors.TextMuted
             )
+        }
+
+        if (platformHealth != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PlatformHealthBanner(platformHealth)
         }
 
         Spacer(modifier = Modifier.height(28.dp))

@@ -15,6 +15,7 @@ dependencies {
     api(project(":core:domain"))
     api(project(":core:catalog"))
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)

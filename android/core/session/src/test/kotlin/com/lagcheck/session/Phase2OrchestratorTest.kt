@@ -97,22 +97,23 @@ class Phase2OrchestratorTest {
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY) // banda é fato observado, não condena sozinha
     }
 
-    @Test fun degradedGatewayDoesNotTouchTheVerdictByDefault() = runBlocking {
+    @Test fun degradedGatewayDemotesTheVerdictByDefault() = runBlocking {
         val diag = LocalDiagnostics(gateway(40.0, 45.0, 38.0, 50.0, 42.0), stun())
         val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
             .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
-        assertThat(r.localTelemetry!!.gatewayOutcome).isInstanceOf(GatewayProbeOutcome.Degraded::class.java) // medido e exibível
+        assertThat(r.localTelemetry!!.gatewayOutcome).isInstanceOf(GatewayProbeOutcome.Degraded::class.java)
+        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.CAUTION)
+        assertThat(r.assessment.recommendations.map { it.key }).contains(RecommendationKey.APPROACH_ROUTER)
+    }
+
+    @Test fun gatewayCanStillBeKeptOutOfTheVerdictExplicitly() = runBlocking {
+        val diag = LocalDiagnostics(gateway(40.0, 45.0, 38.0, 50.0, 42.0), stun(), gatewayInfluencesVerdict = false)
+        val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
+            .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
+        assertThat(r.localTelemetry!!.gatewayOutcome).isInstanceOf(GatewayProbeOutcome.Degraded::class.java)
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
         assertThat(r.assessment.findings.none { it.kind == NetworkFinding.Kind.LOCAL_GATEWAY }).isTrue()
         assertThat(r.assessment.recommendations.map { it.key }).doesNotContain(RecommendationKey.APPROACH_ROUTER)
-    }
-
-    @Test fun degradedGatewayDemotesTheVerdictOnlyWhenExplicitlyEnabled() = runBlocking {
-        val diag = LocalDiagnostics(gateway(40.0, 45.0, 38.0, 50.0, 42.0), stun(), gatewayInfluencesVerdict = true)
-        val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
-            .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
-        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.CAUTION)
-        assertThat(r.assessment.recommendations.map { it.key }).contains(RecommendationKey.APPROACH_ROUTER)
     }
 
     @Test fun silentGatewayStaysUnobservableAndNeverAccusesTheWifi() = runBlocking {

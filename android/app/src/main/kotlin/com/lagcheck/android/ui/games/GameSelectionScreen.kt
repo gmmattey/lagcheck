@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.R
@@ -47,6 +49,7 @@ import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
+import com.lagcheck.domain.model.FavoriteGames
 import com.lagcheck.domain.model.OfficialGameCatalog
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
@@ -64,6 +67,8 @@ fun GameSelectionScreen(
     onStartGeneralCheck: () -> Unit,
     /** Últimos checks reais do histórico. Sem histórico, a seção de recentes não aparece. */
     recentChecks: List<CheckHistoryItem> = emptyList(),
+    favorites: FavoriteGames = FavoriteGames.EMPTY,
+    onToggleFavorite: (CatalogGame) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -80,7 +85,8 @@ fun GameSelectionScreen(
         else allGames.filter { it.name.contains(searchQuery, ignoreCase = true) || it.category.contains(searchQuery, ignoreCase = true) }
     }
 
-    // Recentes saem do histórico real (antes eram um jogo e uma plataforma fixos). Favoritos não existem no Android ainda.
+    // Recentes saem do histórico real; favoritos, da escolha da pessoa (salva no aparelho).
+    val favoriteGames = remember(favorites) { favorites.resolve(allGames) }
     val recentGames = remember(recentChecks) {
         recentChecks.distinctBy { it.gameId }.take(3).map { it to OfficialGameCatalog.findById(it.gameId) }
     }
@@ -195,6 +201,30 @@ fun GameSelectionScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
+            // 2.5 Seção FAVORITOS (só quando a pessoa favoritou algo)
+            if (searchQuery.isBlank() && favoriteGames.isNotEmpty()) {
+                item {
+                    Text(
+                        text = tr("FAVORITOS"),
+                        style = LagCheckTypography.MonoKicker,
+                        color = LagCheckColors.TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(11.dp))
+                }
+                items(favoriteGames, key = { "fav-${it.id}" }) { game ->
+                    CatalogRowItem(
+                        game = game,
+                        isFavorite = true,
+                        onToggleFavorite = { onToggleFavorite(game) },
+                        onClick = {
+                            pendingGameForSheet = game
+                            selectedPlatform = game.platforms.firstOrNull() ?: "PlayStation"
+                        }
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(20.dp)) }
+            }
+
             // 3. Seção USADOS RECENTEMENTE (só quando há histórico real)
             if (searchQuery.isBlank() && recentGames.isNotEmpty()) {
                 item {
@@ -248,6 +278,8 @@ fun GameSelectionScreen(
             items(filteredGames) { game ->
                 CatalogRowItem(
                     game = game,
+                    isFavorite = game.id in favorites,
+                    onToggleFavorite = { onToggleFavorite(game) },
                     onClick = {
                         pendingGameForSheet = game
                         selectedPlatform = game.platforms.firstOrNull() ?: "PlayStation"
@@ -436,6 +468,8 @@ private fun FavoriteCard(
 @Composable
 private fun CatalogRowItem(
     game: CatalogGame,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -487,6 +521,23 @@ private fun CatalogRowItem(
                 color = LagCheckColors.TextMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Estrela (alvo de 44 dp): o estado vai em texto, não só em cor.
+        val favLabel = if (isFavorite) tr("Remover dos favoritos") else tr("Favoritar")
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .clickable { onToggleFavorite() }
+                .semantics { contentDescription = favLabel },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (isFavorite) "★" else "☆",
+                fontSize = 20.sp,
+                color = if (isFavorite) LagCheckColors.SemanticCaution else LagCheckColors.TextMuted
             )
         }
 

@@ -55,6 +55,8 @@ class MainActivity : ComponentActivity() {
             SideEffect { AppLocale.language = language.toAppLanguage() }
             val radioSnapshot by viewModel.liveRadioTelemetry.collectAsState()
             val localReport by viewModel.localReport.collectAsState()
+            val platformHealth by viewModel.platformHealth.collectAsState()
+            val favorites by viewModel.favorites.collectAsState()
 
             // Back button handling nativo conforme a tela
             BackHandler(enabled = currentScreen !is Screen.Home) {
@@ -95,6 +97,7 @@ class MainActivity : ComponentActivity() {
                             connectionType = selectedConnectionType,
                             radioSnapshot = radioSnapshot,
                             latestCheck = latestCheck,
+                            platformHealth = platformHealth,
                             onStartCheck = {
                                 viewModel.startCheck(selectedGame, selectedPlatform, selectedConnectionType)
                             },
@@ -119,6 +122,8 @@ class MainActivity : ComponentActivity() {
                     is Screen.GameSelection -> {
                         GameSelectionScreen(
                             recentChecks = historyItems,
+                            favorites = favorites,
+                            onToggleFavorite = { viewModel.toggleFavorite(it.id) },
                             onBack = {
                                 viewModel.navigateTo(Screen.Home)
                             },

@@ -42,6 +42,9 @@ import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.AppLocale
+import com.lagcheck.domain.presentation.RouteReport
+import com.lagcheck.android.data.RouteReportPdfExporter
 import com.lagcheck.android.ui.trf
 
 /**
@@ -164,32 +167,20 @@ fun VerdictScreen(
     }
 
     fun exportPDF() {
-        val report = """
-            ====================================
-            LAGCHECK · ${tr("RELATÓRIO DE ROTA")}
-            ====================================
-            ${tr("Jogo")}: ${game.name}
-            ${tr("Plataforma")}: ${evaluation.platform}
-            ${tr("Região")}: $regionLabel
-            ${tr("Veredito")}: ${evaluation.headline}
-            Lagcheck Score: ${evaluation.score}
-
-            ${tr("TELEMETRIA")}:
-            • ${tr("Latência P50")}: $pingText
-            • ${tr("Oscilação (Jitter)")}: $jitterText
-            • ${tr("Perda de Pacotes")}: $lossText
-            • ${tr("Pior spike")}: ${evaluation.worstSpikeMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "—"}
-
-            ${tr("O QUE MAIS PESOU")}:
-            • ${evaluation.primaryWeight}
-            
-            https://lagcheck.app
-        """.trimIndent()
-
+        val stamp = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.ROOT).format(java.util.Date(evaluation.timestamp))
+        val document = RouteReport.build(evaluation, game.name, trf("Gerado em %s", stamp), AppLocale.language)
+        val fileName = "lagcheck-${game.id}-${java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.ROOT).format(java.util.Date(evaluation.timestamp))}"
+        val file = RouteReportPdfExporter.export(context, document, fileName)
+        if (file == null) {
+            Toast.makeText(context, tr("Não deu para gerar o relatório."), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
+            type = "application/pdf"
             putExtra(Intent.EXTRA_SUBJECT, trf("Relatório LagCheck - %s", game.name))
-            putExtra(Intent.EXTRA_TEXT, report)
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(shareIntent, tr("Exportar Relatório")))
     }

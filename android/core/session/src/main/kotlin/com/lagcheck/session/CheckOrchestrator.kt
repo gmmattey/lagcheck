@@ -51,11 +51,12 @@ class LocalDiagnostics(
     private val gateway: GatewayProber = GatewayProber(),
     private val nat: StunTopologyProbe = StunTopologyProbe(),
     /**
-     * Se o primeiro salto entra no veredito e nas recomendações. **Desligado de propósito:** o RTT vem de uma consulta
-     * DNS ao roteador, que pode encaminhar para fora e inflar o tempo, e isso acusaria o Wi-Fi sem evidência (Decisão 50).
-     * O iOS também não usa o gateway no veredito. Ligar só depois de validar em aparelho (Breno) e com revisão do Iury.
+     * Se o primeiro salto entra no veredito e nas recomendações. **Ligado por decisão do dono do produto (Decisão 69).**
+     * Risco conhecido: o RTT vem de uma consulta DNS ao roteador, que pode encaminhar para fora e inflar o tempo. O iOS
+     * não usa o gateway no veredito, então o mesmo jogador pode ver veredito diferente nas duas plataformas. A falha
+     * de leitura (sem resposta) continua `Unobservable` e nunca acusa o Wi-Fi.
      */
-    val gatewayInfluencesVerdict: Boolean = false,
+    val gatewayInfluencesVerdict: Boolean = true,
     private val gatewaySamples: Int = 5,
     private val gatewayTimeoutMillis: Long = 300
 ) {

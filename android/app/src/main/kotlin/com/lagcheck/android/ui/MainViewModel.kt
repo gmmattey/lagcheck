@@ -14,12 +14,15 @@ import com.lagcheck.catalog.CatalogPayload
 import com.lagcheck.catalog.RemoteCatalogRepository
 import com.lagcheck.core.telemetry.radio.AndroidRadioTelemetryProvider
 import com.lagcheck.domain.model.CatalogGame
+import com.lagcheck.domain.model.FavoriteGames
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.OfficialGameCatalog
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.presentation.ReadinessLanguage
 import com.lagcheck.domain.presentation.ReadinessPresenter
+import com.lagcheck.network.health.PlatformHealth
+import com.lagcheck.network.health.PlatformHealthClient
 import com.lagcheck.network.transport.UdpProbeTransport
 import com.lagcheck.network.worker.HttpCatalogFetcher
 import com.lagcheck.network.worker.HttpLoadTransport
@@ -126,6 +129,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val language: StateFlow<String> = preferencesRepository.language
 
+    val favorites: StateFlow<FavoriteGames> = preferencesRepository.favorites
+    fun toggleFavorite(gameId: String) = preferencesRepository.toggleFavorite(gameId)
+
+    // Status público da rede do console escolhido (PSN/Xbox/Nintendo). Nulo = nada a avisar (inclui falha de leitura).
+    private val platformHealthClient = PlatformHealthClient()
+    private val _platformHealth = MutableStateFlow<PlatformHealth?>(null)
+    val platformHealth: StateFlow<PlatformHealth?> = _platformHealth.asStateFlow()
+    private var platformHealthJob: Job? = null
+
+    private fun refreshPlatformHealth() {
+        platformHealthJob?.cancel()
+        val platform = PlatformLabels.toPlatform(_selectedPlatform.value)
+        _platformHealth.value = null
+        platformHealthJob = viewModelScope.launch(Dispatchers.IO) {
+            _platformHealth.value = runCatching { platformHealthClient.check(platform) }.getOrNull()?.takeIf { it.isIssueReported }
+        }
+    }
+
     private val _liveRadioTelemetry = MutableStateFlow<RadioTelemetrySnapshot?>(null)
     val liveRadioTelemetry: StateFlow<RadioTelemetrySnapshot?> = _liveRadioTelemetry.asStateFlow()
 
@@ -140,6 +161,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         refreshRadioTelemetry()
+        refreshPlatformHealth()
         telemetry.appOpen()
         // Atualização diária em segundo plano (fora da thread principal: verifica assinatura). Falha mantém o catálogo
         // que já era válido e nunca bloqueia a Home. Se chegou um catálogo novo, relê: uma base expirada não pode
@@ -192,6 +214,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // A conexão não é escolha da pessoa: vem do sistema (`refreshRadioTelemetry`). O parâmetro fica por compatibilidade.
         preferencesRepository.setSelectedGame(game.id)
         preferencesRepository.setSelectedPlatform(platform)
+        refreshPlatformHealth()
     }
 
     fun setLanguage(lang: String) {

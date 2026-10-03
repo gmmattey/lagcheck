@@ -129,10 +129,10 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 2. **Ed25519 sem dependência.** `Signature.getInstance("Ed25519")` só existe no Android 13+, e o `minSdk` é 26. Implementação verify-only em Kotlin puro, validada contra os vetores do RFC 8032 e contra o envelope real do Worker. Zero SDK novo.
 3. **Base embarcada + atualização diária**, igual ao iOS (`RemoteCatalogRepository`): envelope v3 vai em `assets/`, cache em arquivo, uma tentativa de refresh por dia, falha mantém o catálogo válido.
 4. **Sem rota ativa, sem medição.** Rota `gameOwned` com status `pending` não é medida. Só `awsFallback` ativa mede, com confiança `medium` (margem de 10% nos guardrails, igual ao iOS).
-5. **Fase 2 (implementada):** banda Wi-Fi por frequência real, voz, NAT/STUN, probe de gateway (DNS/UDP), recomendações por evidência, EN/ES. O gateway **não** entra no veredito por padrão (ver Decisão 68 item 6). **Fora:** Connection Booster (Gemini com chave no binário: custo e segredo, exige decisão) e PlatformHealth.
+5. **Fase 2 (implementada):** banda Wi-Fi por frequência real, voz, NAT/STUN, probe de gateway (DNS/UDP), recomendações por evidência, EN/ES. O gateway **entra** no veredito (Decisão 69). PlatformHealth, favoritos e PDF entregues (Decisão 69). **Fora:** Connection Booster (Gemini com chave no binário: custo e segredo, exige decisão).
 
 ### 7.4 Critérios de aceite
-- `./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test` verde (validado neste ambiente com Gradle JVM: 267 testes).
+- `./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test` verde (validado neste ambiente com Gradle JVM: 283 testes).
 - Vetores portados dos testes Swift (`QualityEvaluator*`, `SpikePattern`, `SampleQuality`, `ResultInterpreter`, `GameReadinessDomain`, `DeepCheckEvaluator`, `RemoteCatalog`, codecs) passando em Kotlin.
 - Envelope `catalog-v3.envelope.json` real verifica; envelope adulterado, expirado ou com payload alterado é recusado.
 - Transporte UDP exercitado em loopback (eco válido, timeout, resposta inválida, cancelamento sem vazar socket).
@@ -164,10 +164,10 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 | 6 | Telemetria usa o host `giammattey.workers.dev`, enquanto catálogo e carga usam `buildealabs.workers.dev` (espelho do iOS). Confirmar se é intencional. | Iury |
 | 7 | Android 16 ignora `screenOrientation=portrait` em telas grandes (target 36). Layout de tablet/dobrável não foi desenhado. | Renan / Breno |
 | 8 | **Connection Booster** chama a API do Gemini com chave dentro do binário. Fere custo recorrente zero e expõe segredo. Só com decisão do dono do produto (e, se aprovado, via Worker, nunca com chave no app). | Luiz / Camillo |
-| 9 | **PlatformHealth** (status de PSN/Xbox/Nintendo) não foi portado: depende de endpoints públicos de terceiros que não foram exercitados nesta sessão. | Marco |
-| 10 | **Gateway fora do veredito.** A consulta DNS com RD=1 pode inflar o RTT. Validar em aparelhos reais (roteadores diferentes) antes de ligar `gatewayInfluencesVerdict`. | Breno / Iury |
+| 9 | **PlatformHealth** entregue, mas os endpoints de PSN/Xbox/Nintendo nunca foram acessados (sandbox sem rota). Parsers testados só com payloads do iOS. Conferir os três formatos em rede real; se mudaram, o aviso simplesmente não aparece. | Breno / Iury |
+| 10 | **Gateway no veredito (Decisão 69), sem validação em aparelho.** A consulta DNS com RD=1 pode inflar o RTT e rebaixar o veredito sem culpa do Wi-Fi. O iOS não usa o gateway, então os vereditos podem divergir entre plataformas. Validar em roteadores diferentes; reverter = default de `gatewayInfluencesVerdict`. | Breno / Iury |
 | 11 | **EN/ES novos** (interface e recomendações) foram escritos pelo Android: precisam da revisão de voz do Marco (`docs/07`). | Marco |
 | 12 | **Bug do iOS:** `GameEditorialRegistry` marca `ea-sports-fc-mobile` como híbrido, mas o id do catálogo é `eafc`: a regra de NAT nunca dispara no iOS. O Android cobre os dois ids. | Rian |
 | 13 | **iOS:** recomendação de rota/operadora sai com gateway não observável (`!isDegraded`). O Android exige gateway estável (Decisão 50). | Iury |
-| 14 | Botão "Relatório" compartilha texto simples (o iOS gera PDF). | Rian / Renan |
+| 14 | Relatório em PDF implementado com `PdfDocument`, mas **nunca gerado de verdade** (só roda no Android). Conferir paginação, quebra de linha e abertura em leitores de PDF no aparelho. | Breno / Renan |
 | 15 | Favoritos (Decisão 57) não existem no Android. | Marco |

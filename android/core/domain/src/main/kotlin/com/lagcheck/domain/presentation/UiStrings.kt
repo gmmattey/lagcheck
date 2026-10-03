@@ -75,6 +75,24 @@ object UiStrings {
         t("Medido agora no aparelho. O que não foi medido aparece como —.", "Measured on this device right now. Anything not measured shows —.", "Medido ahora en el dispositivo. Lo que no se midió aparece como —.")
         // endregion
 
+        // region Relatório em PDF e Favoritos
+        t("Estimativa da rota até a infraestrutura de referência. Não é o ping real do jogo.", "Estimate of the route to the reference infrastructure. Not the game's real ping.", "Estimación de la ruta hasta la infraestructura de referencia. No es el ping real del juego.")
+        t("Gerado em %s", "Generated on %s", "Generado el %s")
+        t("Não deu para gerar o relatório.", "Couldn't generate the report.", "No se pudo generar el informe.")
+        t("FAVORITOS", "FAVORITES", "FAVORITOS")
+        t("Favoritar", "Add to favorites", "Agregar a favoritos")
+        t("Remover dos favoritos", "Remove from favorites", "Quitar de favoritos")
+        // endregion
+
+        // region Status das redes de console
+        t("%s com instabilidade", "%s Experiencing Issues", "%s con problemas")
+        t("%s fora do ar", "%s Service Outage", "%s fuera de servicio")
+        t("Pode haver lentidão ou dificuldade temporária para entrar em partidas online.", "You may experience delays or matchmaking issues until services normalize.", "Puede haber lentitud o dificultades temporales para ingresar a partidas online.")
+        t("Os servidores de login e multiplayer estão passando por interrupções no momento.", "Online sign-in and multiplayer servers are currently experiencing interruptions.", "Los servidores de inicio de sesión y multijugador están experimentando interrupciones en este momento.")
+        t("Fora do ar", "Outage", "Fuera de servicio")
+        t("Afeta: %s", "Affects: %s", "Afecta a: %s")
+        // endregion
+
         for ((pt, en, es) in SCREEN_STRINGS) t(pt, en, es)
     }
 }
