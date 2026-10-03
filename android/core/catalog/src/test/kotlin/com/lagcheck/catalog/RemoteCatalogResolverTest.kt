@@ -65,6 +65,14 @@ class RemoteCatalogResolverTest {
         assertThat(r.confidence).isEqualTo(MeasurementConfidence.MEDIUM)
     }
 
+    @Test fun genericGamingPreReadsOnlyThePrimaryRouteForItsMarket() {
+        val brazil = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("BR"), payload, NOW)
+        val unitedStates = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("US"), payload, NOW)
+        assertThat(brazil.map { it.regionId }).containsExactly("sa-east-1")
+        // O catálogo publicado só contém SA; US usa o primeiro destino assinado.
+        assertThat(unitedStates.map { it.regionId }).containsExactly("sa-east-1")
+    }
+
     @Test fun excludingTheOnlyActiveRouteMakesItUnavailableInsteadOfInventingOne() {
         val r = RemoteCatalogResolver.resolve(
             GameContext("fortnite", "BR", Platform.MOBILE), payload, NOW, excludingRouteIds = setOf("fortnite-iphone-aws")

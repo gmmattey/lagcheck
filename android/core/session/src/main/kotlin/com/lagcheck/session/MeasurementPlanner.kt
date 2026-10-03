@@ -72,4 +72,47 @@ object MeasurementPlanner {
             PlanResult.Failed(PlanFailure.UNSUPPORTED_GAME_OR_PLATFORM)
         }
     }
+
+    fun planRegional(
+        payload: CatalogPayload,
+        gameId: String,
+        platformLabel: String,
+        market: String = "BR",
+        now: Instant = Instant.now()
+    ): com.lagcheck.domain.rules.RegionalSelectionSnapshot<GameContext, ResolvedCandidate>? {
+        val platform = PlatformLabels.toPlatform(platformLabel)
+        val context = if (gameId == PlatformLabels.GENERIC_GAME_ID) GameContext.genericGaming(market, platform)
+        else GameContext(gameId, market, platform)
+
+        return try {
+            val contexts = RemoteCatalogResolver.resolveCandidates(context, payload, now)
+            if (contexts.isEmpty()) null
+            else {
+                val candidates = contexts.mapIndexed { index, ctx ->
+                    ResolvedCandidate(
+                        regionId = ctx.regionId,
+                        priority = index,
+                        catalogVersion = payload.catalogVersion,
+                        context = context,
+                        resolvedContext = ctx
+                    )
+                }
+                com.lagcheck.domain.rules.RegionalSelectionSnapshot(
+                    catalogVersion = payload.catalogVersion,
+                    context = context,
+                    candidates = candidates
+                )
+            }
+        } catch (_: CatalogResolutionException) {
+            null
+        }
+    }
 }
+
+data class ResolvedCandidate(
+    override val regionId: String,
+    override val priority: Int,
+    override val catalogVersion: String,
+    override val context: GameContext,
+    val resolvedContext: ResolvedMeasurementContext
+) : com.lagcheck.domain.rules.RegionalSelectionCandidate<GameContext>

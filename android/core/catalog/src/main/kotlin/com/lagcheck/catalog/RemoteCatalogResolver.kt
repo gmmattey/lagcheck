@@ -61,6 +61,47 @@ object RemoteCatalogResolver {
         }
     }
 
+    fun resolveCandidates(
+        context: GameContext,
+        payload: CatalogPayload,
+        now: Instant = Instant.now(),
+        excludingRouteIds: Set<String> = emptySet()
+    ): List<ResolvedMeasurementContext> {
+        validateStructure(context)
+        if (context.isGenericGaming) {
+            // O catálogo v3 do iOS pré-lê somente a rota primária resolvida para o mercado.
+            val resolved = resolveGenericGaming(context, payload) as RemoteCatalogResolution.Available
+            return listOf(resolved.context)
+        }
+
+        val game = payload.games.firstOrNull { it.id == context.gameId } ?: return emptyList()
+        val gameContext = selectContext(game, context) ?: return emptyList()
+        if (!gameContext.availableForMeasurement) return emptyList()
+
+        val profile = payload.profiles.firstOrNull { it.id == gameContext.profileId }
+        val profileId = QualityProfileId.fromRaw(gameContext.profileId)
+        if (profile == null || profileId == null) return emptyList()
+
+        val route = selectRoute(gameContext, payload.regions, now, excludingRouteIds) ?: return emptyList()
+        val destination = resolvedDestination(route, payload.regions) ?: return emptyList()
+
+        return listOf(
+            ResolvedMeasurementContext(
+                context = context,
+                catalogVersion = payload.catalogVersion,
+                profileId = profileId,
+                profileRuleVersion = profile.ruleVersion,
+                regionId = route.regionId,
+                destination = destination,
+                strategy = route.strategy,
+                confidence = route.confidence,
+                precisionKey = route.precisionKey,
+                routeId = route.id,
+                routeKind = route.kind
+            )
+        )
+    }
+
     private fun resolveGenericGaming(context: GameContext, payload: CatalogPayload): RemoteCatalogResolution {
         val profileId = QualityProfileId.BATTLE_ROYALE_COMPETITIVE
         val ruleVersion = payload.profiles.firstOrNull { it.id == profileId.rawValue }?.ruleVersion

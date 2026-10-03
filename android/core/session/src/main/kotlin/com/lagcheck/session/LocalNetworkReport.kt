@@ -93,11 +93,40 @@ object CockpitPresenter {
             else -> if (report == null) tr("Medindo…") else DASH
         }
 
+        val rttInt = localRtt?.let { Math.round(it).toInt() }
+        val isConfirmed5GHz = wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ
+        val isConfirmed24GHz = wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ
+
+        val cg = when {
+            rttInt == null -> tr("Não avaliado")
+            isConfirmed5GHz && rttInt <= 4 -> UiStrings.translateFormat("Favorável · 5 GHz, roteador %d ms", lang, rttInt)
+            isConfirmed24GHz -> tr("Atenção · 2.4 GHz detectado")
+            rttInt > 10 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
+            else -> tr("Não avaliado")
+        }
+
         val voice = when (val v = report?.voice) {
             null -> tr("Medindo…")
             is VoiceChatSuitabilityEvaluator.Assessment.Favorable -> UiStrings.translateFormat("Favorável · roteador %d ms", lang, v.localGatewayRttMs)
             is VoiceChatSuitabilityEvaluator.Assessment.Attention -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, v.localGatewayRttMs)
             VoiceChatSuitabilityEvaluator.Assessment.NotAssessed -> tr("Não avaliado")
+        }
+
+        val multi = when {
+            rttInt == null || nat == null -> tr("Não avaliado")
+            nat.natType == NatType.TYPE_3_STRICT -> tr("Atenção · NAT restrito")
+            nat.doubleNatStatus == DoubleNatStatus.SUSPECT_OR_DETECTED -> tr("Atenção · Duplo NAT")
+            rttInt > 15 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
+            nat.natType != NatType.INCONCLUSIVE && nat.doubleNatStatus == DoubleNatStatus.NOT_DETECTED && rttInt <= 5 -> UiStrings.translateFormat("Favorável · NAT ok, roteador %d ms", lang, rttInt)
+            else -> tr("Não avaliado")
+        }
+
+        val stream = when {
+            rttInt == null -> tr("Não avaliado")
+            isConfirmed5GHz && rttInt <= 6 -> UiStrings.translateFormat("Favorável · 5 GHz, roteador %d ms", lang, rttInt)
+            isConfirmed24GHz -> tr("Atenção · 2.4 GHz detectado")
+            rttInt > 15 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
+            else -> tr("Não avaliado")
         }
 
         return listOf(
@@ -109,6 +138,7 @@ object CockpitPresenter {
                     CockpitRow(tr("Frequência"), frequency),
                     CockpitRow(tr("Sinal (RSSI)"), rssi),
                     CockpitRow(tr("Velocidade do link"), link),
+                    CockpitRow(tr("IP Local"), radio?.localAddress ?: DASH),
                     CockpitRow(tr("Gateway"), radio?.gatewayAddress ?: DASH),
                     CockpitRow(tr("Latência do roteador"), gatewayRtt)
                 )
@@ -118,10 +148,19 @@ object CockpitPresenter {
                 listOf(
                     CockpitRow(tr("Tipo de NAT"), natType),
                     CockpitRow(tr("CGNAT"), cgnat),
-                    CockpitRow(tr("NAT duplo"), doubleNat)
+                    CockpitRow(tr("NAT duplo"), doubleNat),
+                    CockpitRow(tr("IP Público"), nat?.publicIpMasked ?: DASH)
                 )
             ),
-            CockpitSection(tr("VOZ"), listOf(CockpitRow(tr("Voz (Discord)"), voice)))
+            CockpitSection(
+                tr("CASOS DE USO"),
+                listOf(
+                    CockpitRow(tr("Cloud Gaming"), if (report == null) tr("Medindo…") else cg),
+                    CockpitRow(tr("Voz (Discord)"), voice),
+                    CockpitRow(tr("Multiplayer"), if (report == null) tr("Medindo…") else multi),
+                    CockpitRow(tr("Live Stream"), if (report == null) tr("Medindo…") else stream)
+                )
+            )
         )
     }
 

@@ -72,14 +72,15 @@ class UdpProbeTransport(
             return@withContext allTransportErrors(plan.count)
         }
 
-        val socket = try {
-            DatagramSocket().apply { soTimeout = RECEIVE_POLL_MILLIS; connect(address, destination.port) }
-        } catch (e: IOException) {
-            return@withContext allTransportErrors(plan.count)
-        }
-
-        val steamToken = AtomicLong(NO_TOKEN)
+        var socket: DatagramSocket? = null
         try {
+            socket = try {
+                DatagramSocket().apply { soTimeout = RECEIVE_POLL_MILLIS; connect(address, destination.port) }
+            } catch (e: IOException) {
+                return@withContext allTransportErrors(plan.count)
+            }
+
+            val steamToken = AtomicLong(NO_TOKEN)
             coroutineScope {
                 val receiver = launch {
                     val buffer = ByteArray(2048)
@@ -143,7 +144,7 @@ class UdpProbeTransport(
                 ProbeCollection(ledger.finish(), abortReason)
             }
         } finally {
-            socket.close() // também no cancelamento: nenhum socket vaza
+            socket?.close() // também no cancelamento: nenhum socket vaza
         }
     }
 

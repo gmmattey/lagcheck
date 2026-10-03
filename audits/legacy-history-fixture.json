@@ -1,0 +1,1 @@
+[{"id":"legacy-parity-fixture","gameId":"fortnite","gameName":"Fortnite","platform":"PC","connectionType":"Wi-Fi","timestamp":1760000000000,"verdict":"READY","score":80,"pingMs":31.0,"jitterMs":3.0,"packetLossPercentage":0.4,"worstSpikeMs":48.0,"primaryWeight":"Rota estável","suitableUses":[],"latencySeries":[31.0,32.0,30.0],"findings":[]}]

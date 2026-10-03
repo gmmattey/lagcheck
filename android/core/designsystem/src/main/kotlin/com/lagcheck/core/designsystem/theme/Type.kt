@@ -1,9 +1,13 @@
 package com.lagcheck.core.designsystem.theme
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.lagcheck.core.designsystem.R
 
 /**
  * 3 Pilhas Tipográficas Canônicas do Lagcheck (Open Design / Brand Spec / Decisões 53 e 66).
@@ -11,10 +15,18 @@ import androidx.compose.ui.unit.sp
  * 2. Corpo: Sans-serif para contexto, listas e ações.
  * 3. Mono: Cockpit de telemetria, kickers, pings, jitter, perda de pacotes e fases.
  */
+@OptIn(ExperimentalTextApi::class)
 object LagCheckTypography {
+    // O SwiftUI usa .rounded nos títulos. Nunito cobre esse papel no Android sem substituir o corpo nativo.
+    private val RoundedDisplay = FontFamily(
+        Font(R.font.nunito_variable, FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
+        Font(R.font.nunito_variable, FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
+        Font(R.font.nunito_variable, FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(900)))
+    )
+
     // 04 · Veredito Hero
     val VerdictHero = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = RoundedDisplay,
         fontWeight = FontWeight.Black,
         fontSize = 42.sp,
         lineHeight = 40.sp,
@@ -23,7 +35,7 @@ object LagCheckTypography {
 
     // 01 · Home Game Title
     val HomeGameTitle = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = RoundedDisplay,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 38.sp,
         lineHeight = 38.sp,
@@ -32,7 +44,7 @@ object LagCheckTypography {
 
     // Page Titles (Jogos, Detalhes, Histórico, Ajustes)
     val PageTitle = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = RoundedDisplay,
         fontWeight = FontWeight.Bold,
         fontSize = 31.sp,
         lineHeight = 36.sp,
@@ -50,7 +62,7 @@ object LagCheckTypography {
 
     // Status Copy durante medição ("Medindo rota em repouso…")
     val StatusCopy = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = RoundedDisplay,
         fontWeight = FontWeight.Bold,
         fontSize = 25.sp,
         lineHeight = 30.sp,
@@ -59,7 +71,7 @@ object LagCheckTypography {
 
     // Modal / Alert Title ("A conexão mudou.", "Não encontrou o jogo?")
     val SectionHeader = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = RoundedDisplay,
         fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         lineHeight = 26.sp,

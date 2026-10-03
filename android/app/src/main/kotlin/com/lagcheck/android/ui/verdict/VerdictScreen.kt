@@ -21,6 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -85,23 +89,7 @@ fun VerdictScreen(
     val pingText = evaluation.pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms"
     val jitterText = evaluation.jitterMs?.let { trf("%.0f ms jitter", it) } ?: tr("— ms jitter")
     val lossText = evaluation.packetLossPercentage?.let { trf("%.1f%% perda", it) } ?: tr("— perda")
-    val regionLabel = evaluation.regionLabel.ifEmpty { "São Paulo" }
-
-    // Barra de estabilidade: valor e texto vêm do domínio. Só resultado reaberto do histórico (que guarda apenas o
-    // veredito) usa um padrão por veredito, e então o texto não afirma nada além dele.
-    val stabilityRatio = evaluation.stabilityRatio?.toFloat() ?: when (evaluation.verdict) {
-        GameReadinessVerdict.READY -> 0.95f
-        GameReadinessVerdict.CAUTION -> 0.65f
-        GameReadinessVerdict.NOT_READY -> 0.25f
-        GameReadinessVerdict.INCONCLUSIVE -> 0.10f
-    }
-
-    val stabilitySummary = evaluation.stabilitySummary ?: when (evaluation.verdict) {
-        GameReadinessVerdict.READY -> tr("Estável")
-        GameReadinessVerdict.CAUTION -> tr("Oscilações detectadas")
-        GameReadinessVerdict.NOT_READY -> tr("Instável")
-        GameReadinessVerdict.INCONCLUSIVE -> tr("Amostras insuficientes")
-    }
+    val regionLabel = evaluation.regionLabel
 
     fun shareToDiscord() {
         val cardFile = LagCheckDiscordCardExporter.generateDiscordShareCard(
@@ -189,33 +177,33 @@ fun VerdictScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 22.dp)
+            .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // 1. Top bar: "Fechar" (esquerda) + "[Game] · [Plataforma] · São Paulo" (direita)
+        // 1. Top bar: Fechar e Contexto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
-                .padding(top = 8.dp),
+                .height(52.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
+                    .size(44.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .clickable { onClose() }
-                    .padding(horizontal = 7.dp, vertical = 6.dp)
+                    .clickable { onClose() },
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = tr("Fechar"),
-                    fontSize = 14.sp,
-                    color = LagCheckColors.TextMuted
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = tr("Voltar"),
+                    tint = LagCheckColors.TextPrimary
                 )
             }
 
             Text(
-                text = "${game.name} · ${evaluation.platform} · $regionLabel",
+                text = listOf(game.name, evaluation.platform, regionLabel).filter { it.isNotBlank() }.joinToString(" · "),
                 style = LagCheckTypography.MonoData,
                 color = LagCheckColors.TextMuted
             )
@@ -239,7 +227,7 @@ fun VerdictScreen(
         ) {
             Text(
                 text = verdictSymbol,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
                 color = verdictColor
             )
@@ -252,11 +240,12 @@ fun VerdictScreen(
 
         Spacer(modifier = Modifier.height(19.dp))
 
-        // 4. Frase do veredito, vinda do domínio (antes era um texto fixo "conexão estável" mesmo sob "EVITARIA RANKED")
+        // 4. Frase do veredito
         Text(
             text = evaluation.subtitle,
             style = LagCheckTypography.BodySemibold,
-            color = LagCheckColors.TextPrimary
+            color = LagCheckColors.TextPrimary,
+            lineHeight = 20.sp
         )
 
         Spacer(modifier = Modifier.height(22.dp))
@@ -288,52 +277,9 @@ fun VerdictScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(27.dp))
 
-        // 6. Barra Contínua de Estabilidade da Rota (Paridade 1:1 com iOS)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = tr("ESTABILIDADE DA ROTA"),
-                    style = LagCheckTypography.MonoSmall,
-                    color = LagCheckColors.TextMuted
-                )
-                Text(
-                    text = stabilitySummary,
-                    fontSize = 12.sp,
-                    color = LagCheckColors.TextSecondary,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                    modifier = Modifier.weight(1f).padding(start = 12.dp)
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(LagCheckColors.Panel)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(fraction = stabilityRatio)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(verdictColor)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 7. Card "O que mais pesou"
+        // 6. Card "O que mais pesou"
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -358,19 +304,13 @@ fun VerdictScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // 8. Ações Principais: "Testar novamente" (56dp) e "Ver detalhes" (54dp)
+        // 7. Ações Principais: "Ver detalhes" antes de "Testar novamente"
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            PrimaryButton(
-                text = tr("Testar novamente"),
-                onClick = onRetry,
-                height = 56.dp
-            )
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -388,9 +328,15 @@ fun VerdictScreen(
                 )
             }
 
+            PrimaryButton(
+                text = tr("Testar novamente"),
+                onClick = onRetry,
+                height = 56.dp
+            )
+
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 9. Ações Utilitárias Compactas: Discord, WhatsApp e PDF (Paridade 1:1 com iOS)
+            // 8. Ações Utilitárias Compactas: Discord, WhatsApp e PDF
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -400,9 +346,9 @@ fun VerdictScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(11.dp))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.Border, RoundedCornerShape(12.dp))
+                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { shareToDiscord() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -413,8 +359,8 @@ fun VerdictScreen(
                         DiscordLogo(size = 15.dp)
                         Text(
                             text = "Discord",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -425,9 +371,9 @@ fun VerdictScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(11.dp))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.Border, RoundedCornerShape(12.dp))
+                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { shareToWhatsApp() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -438,8 +384,8 @@ fun VerdictScreen(
                         WhatsAppLogo(size = 15.dp)
                         Text(
                             text = "WhatsApp",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -450,9 +396,9 @@ fun VerdictScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(11.dp))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.Border, RoundedCornerShape(12.dp))
+                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { exportPDF() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -460,12 +406,12 @@ fun VerdictScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        PdfDocumentIcon(size = 14.dp, color = LagCheckColors.TextSecondary)
+                        PdfDocumentIcon(size = 13.dp, color = LagCheckColors.TextSecondary)
                         Text(
-                            text = tr("Relatório"),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = LagCheckColors.TextPrimary
+                            text = tr("PDF"),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LagCheckColors.TextSecondary
                         )
                     }
                 }

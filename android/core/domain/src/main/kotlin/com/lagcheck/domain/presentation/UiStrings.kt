@@ -73,6 +73,19 @@ object UiStrings {
         t("Exportar Dados da Rede", "Export Network Data", "Exportar Datos de la Red")
         t("LagCheck - Dados da Rede", "LagCheck - Network Data", "LagCheck - Datos de la Red")
         t("Medido agora no aparelho. O que não foi medido aparece como —.", "Measured on this device right now. Anything not measured shows —.", "Medido ahora en el dispositivo. Lo que no se midió aparece como —.")
+        t("IP Local", "Local IP", "IP Local")
+        t("IP Público", "Public IP", "IP Público")
+        t("Atualizar", "Refresh", "Actualizar")
+        t("Compartilhar", "Share", "Compartir")
+        t("Cloud Gaming", "Cloud Gaming", "Cloud Gaming")
+        t("Multiplayer", "Multiplayer", "Multijugador")
+        t("Live Stream", "Live Stream", "Transmisión en vivo")
+        t("CASOS DE USO", "USE CASES", "CASOS DE USO")
+        t("Atenção · NAT restrito", "Heads up · Strict NAT", "Atención · NAT estricta")
+        t("Atenção · Duplo NAT", "Heads up · Double NAT", "Atención · NAT doble")
+        t("Favorável · NAT ok, roteador %d ms", "Good · NAT ok, router %d ms", "Favorable · NAT ok, router %d ms")
+        t("Atenção · 2.4 GHz detectado", "Heads up · 2.4 GHz detected", "Atención · 2.4 GHz detectado")
+        t("Favorável · 5 GHz, roteador %d ms", "Good · 5 GHz, router %d ms", "Favorable · 5 GHz, router %d ms")
         // endregion
 
         // region Relatório em PDF e Favoritos

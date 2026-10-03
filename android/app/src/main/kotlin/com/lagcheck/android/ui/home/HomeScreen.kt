@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -115,13 +116,24 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Capa com proporção de 204dp e sangramento horizontal idêntico ao protótipo (-22dp)
+            // A arte ocupa a largura da tela; o restante do conteúdo respeita as margens.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 0.dp)
                     .height(204.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .layout { measurable, constraints ->
+                        val bleed = 22.dp.roundToPx()
+                        val expandedWidth = constraints.maxWidth + bleed * 2
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minWidth = expandedWidth,
+                                maxWidth = expandedWidth
+                            )
+                        )
+                        layout(constraints.maxWidth, placeable.height) {
+                            placeable.place(-bleed, 0)
+                        }
+                    }
                     .background(LagCheckColors.Surface)
             ) {
                 val resId = context.resources.getIdentifier(selectedGame.drawableResName, "drawable", context.packageName)

@@ -4,11 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,6 +57,8 @@ import com.lagcheck.domain.model.OfficialGameCatalog
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
+import com.lagcheck.catalog.Platform
+import com.lagcheck.session.PlatformLabels
 
 /**
  * 02 · Trocar Jogo (Seleção de Jogos e Plataforma).
@@ -62,8 +67,9 @@ import com.lagcheck.android.ui.trf
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameSelectionScreen(
+    showBackButton: Boolean = false,
     onBack: () -> Unit,
-    onGameSelected: (game: CatalogGame, platform: String, connectionType: String) -> Unit,
+    onGameSelected: (game: CatalogGame, platform: String, connectionType: String, declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink?) -> Unit,
     onStartGeneralCheck: () -> Unit,
     /** Últimos checks reais do histórico. Sem histórico, a seção de recentes não aparece. */
     recentChecks: List<CheckHistoryItem> = emptyList(),
@@ -78,6 +84,7 @@ fun GameSelectionScreen(
     // Bottom sheet state para selecionar plataforma e conexão
     var pendingGameForSheet by remember { mutableStateOf<CatalogGame?>(null) }
     var selectedPlatform by remember { mutableStateOf("PlayStation") }
+    var selectedDeclaredLink by remember(pendingGameForSheet?.id) { mutableStateOf(com.lagcheck.domain.model.ExternalEquipmentLink.WIFI) }
 
     val allGames = OfficialGameCatalog.games
     val filteredGames = remember(searchQuery) {
@@ -111,18 +118,22 @@ fun GameSelectionScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .clickable { onBack() },
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        com.lagcheck.core.designsystem.components.ChevronLeftIcon(
-                            size = 20.dp,
-                            color = LagCheckColors.TextPrimary,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
+                    if (showBackButton) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .clickable { onBack() },
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            com.lagcheck.core.designsystem.components.ChevronLeftIcon(
+                                size = 20.dp,
+                                color = LagCheckColors.TextPrimary,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(44.dp))
                     }
 
                     Image(
@@ -201,8 +212,9 @@ fun GameSelectionScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // 2.5 Seção FAVORITOS (só quando a pessoa favoritou algo)
-            if (searchQuery.isBlank() && favoriteGames.isNotEmpty()) {
+            // 2.5 Seção FAVORITOS
+            if (searchQuery.isBlank()) {
+                val favs = if (favoriteGames.isEmpty()) allGames.take(3) else favoriteGames
                 item {
                     Text(
                         text = tr("FAVORITOS"),
@@ -210,53 +222,76 @@ fun GameSelectionScreen(
                         color = LagCheckColors.TextMuted
                     )
                     Spacer(modifier = Modifier.height(11.dp))
-                }
-                items(favoriteGames, key = { "fav-${it.id}" }) { game ->
-                    CatalogRowItem(
-                        game = game,
-                        isFavorite = true,
-                        onToggleFavorite = { onToggleFavorite(game) },
-                        onClick = {
-                            pendingGameForSheet = game
-                            selectedPlatform = game.platforms.firstOrNull() ?: "PlayStation"
+
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(favs, key = { "favcard-${it.id}" }) { game ->
+                            FavoriteCard(
+                                game = game,
+                                onClick = {
+                                    pendingGameForSheet = game
+                                    selectedPlatform = game.platforms.firstOrNull() ?: "PlayStation"
+                                }
+                            )
                         }
-                    )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                item { Spacer(modifier = Modifier.height(20.dp)) }
             }
 
             // 3. Seção USADOS RECENTEMENTE (só quando há histórico real)
             if (searchQuery.isBlank() && recentGames.isNotEmpty()) {
+                val (check, recentGame) = recentGames.first()
                 item {
                     Text(
                         text = tr("USADOS RECENTEMENTE"),
                         style = LagCheckTypography.MonoKicker,
                         color = LagCheckColors.TextMuted
                     )
-                    Spacer(modifier = Modifier.height(11.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    recentGames.forEach { (check, recentGame) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(38.dp)
-                                .clickable {
-                                    pendingGameForSheet = recentGame
-                                    selectedPlatform = recentGame.platforms.firstOrNull { it == check.platform }
-                                        ?: recentGame.platforms.firstOrNull() ?: "Mobile"
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(LagCheckColors.Surface)
+                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(12.dp))
+                            .clickable {
+                                pendingGameForSheet = recentGame
+                                selectedPlatform = recentGame.platforms.firstOrNull { it == check.platform }
+                                    ?: recentGame.platforms.firstOrNull() ?: "Mobile"
+                            }
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
                             Text(
                                 text = recentGame.name,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = LagCheckColors.TextPrimary
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LagCheckColors.TextPrimary,
+                                maxLines = 1
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
+                            Text(
+                                text = check.platform,
+                                style = LagCheckTypography.MonoSmall,
+                                color = LagCheckColors.TextMuted
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = check.formattedDate,
+                                style = LagCheckTypography.MonoSmall,
+                                color = LagCheckColors.TextMuted
                             )
                             Text(
-                                text = "${check.platform} · ${check.formattedDate}",
-                                style = LagCheckTypography.MonoSmall,
+                                text = "›",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
                                 color = LagCheckColors.TextMuted
                             )
                         }
@@ -352,67 +387,131 @@ fun GameSelectionScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
                         .padding(bottom = 32.dp)
                 ) {
-                    Text(
-                        text = game.name,
-                        style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
-                        color = LagCheckColors.TextPrimary
-                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 22.dp)
+                    ) {
+                        Text(
+                            text = game.name,
+                            style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
+                            color = LagCheckColors.TextPrimary,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 2.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = tr("Onde você joga?"),
+                            fontSize = 13.sp,
+                            color = LagCheckColors.TextMuted,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
 
-                    Text(
-                        text = tr("PLATAFORMA"),
-                        style = LagCheckTypography.MonoKicker,
-                        color = LagCheckColors.TextMuted
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Lista de escolhas de plataforma
-                    game.platforms.forEach { platform ->
-                        val isSelected = selectedPlatform == platform
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable { selectedPlatform = platform },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = platform,
-                                fontSize = 15.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary
-                            )
-                            if (isSelected) {
-                                Text(
-                                    text = "✓",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = LagCheckColors.AccentPrimary
+                        // Lista de escolhas de plataforma
+                        game.platforms.forEach { platform ->
+                            val isSelected = selectedPlatform == platform
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .clickable { selectedPlatform = platform }
+                            ) {
+                                // Top divider
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(LagCheckColors.BorderStrong)
                                 )
+
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = platform,
+                                        fontSize = 15.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary
+                                    )
+                                    if (isSelected) {
+                                        Text(
+                                            text = "✓",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = LagCheckColors.AccentPrimary
+                                        )
+                                    }
+                                }
                             }
+                        }
+
+                        if (PlatformLabels.toPlatform(selectedPlatform) != Platform.MOBILE) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = String.format(tr("Como o %s está conectado?"), selectedPlatform),
+                                fontSize = 13.sp,
+                                color = LagCheckColors.TextMuted,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(
+                                    com.lagcheck.domain.model.ExternalEquipmentLink.WIFI to "Wi-Fi",
+                                    com.lagcheck.domain.model.ExternalEquipmentLink.ETHERNET to tr("Cabo")
+                                ).forEach { (link, label) ->
+                                    val isSelected = selectedDeclaredLink == link
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .defaultMinSize(minHeight = 44.dp)
+                                            .height(42.dp)
+                                            .clip(RoundedCornerShape(11.dp))
+                                            .background(Color.Transparent)
+                                            .border(
+                                                width = 1.dp,
+                                                color = if (isSelected) LagCheckColors.AccentPrimary else LagCheckColors.BorderStrong,
+                                                shape = RoundedCornerShape(11.dp)
+                                            )
+                                            .clickable { selectedDeclaredLink = link },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
 
-                    // A conexão (Wi-Fi, celular, cabo) não é escolhida: o app lê do sistema o que está em uso.
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Botão Iniciar Check (Roxo Gamer)
-                    PrimaryButton(
-                        text = tr("Iniciar Check"),
-                        onClick = {
-                            val targetGame = pendingGameForSheet ?: game
-                            val chosenPlatform = selectedPlatform
-                            pendingGameForSheet = null
-                            onGameSelected(targetGame, chosenPlatform, "")
-                        },
-                        height = 56.dp
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp, vertical = 12.dp)
+                    ) {
+                        PrimaryButton(
+                            text = tr("Iniciar Check"),
+                            onClick = {
+                                val targetGame = pendingGameForSheet ?: game
+                                val chosenPlatform = selectedPlatform
+                                val declaredLink = if (PlatformLabels.toPlatform(chosenPlatform) == Platform.MOBILE) null else selectedDeclaredLink
+                                pendingGameForSheet = null
+                                onGameSelected(targetGame, chosenPlatform, "", declaredLink)
+                            },
+                            height = 56.dp
+                        )
+                    }
                 }
             }
         }

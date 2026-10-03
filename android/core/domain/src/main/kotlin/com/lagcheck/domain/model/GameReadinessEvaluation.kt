@@ -34,6 +34,11 @@ data class NetworkFinding(
     }
 }
 
+enum class ExternalEquipmentLink {
+    WIFI,
+    ETHERNET
+}
+
 /**
  * Resultado completo da avaliação de prontidão competitiva (1:1 com o protótipo de alta fidelidade).
  */
@@ -53,6 +58,7 @@ data class GameReadinessEvaluation(
     val latencySeries: List<Double> = emptyList(),
     val platform: String = "PlayStation",
     val connectionType: String = "Wi-Fi",
+    val declaredExternalLink: ExternalEquipmentLink? = null,
     val destinationName: String = "São Paulo · rota regional de referência",
     val confidence: String = "boa",
     val timestamp: Long = System.currentTimeMillis(),
@@ -64,7 +70,9 @@ data class GameReadinessEvaluation(
     /** Nome da região medida, vindo do catálogo. */
     val regionLabel: String = "",
     /** Posição, na série de latência, onde começa a fase sob carga. Nulo se a carga não foi medida. */
-    val loadStartIndex: Int? = null
+    val loadStartIndex: Int? = null,
+    /** Snapshot estruturado da medição de repouso e carga. Nulo se não foi medido. */
+    val metrics: com.lagcheck.domain.rules.DeepCheckMetrics? = null
 )
 
 /** Recomendação já localizada para a UI. */

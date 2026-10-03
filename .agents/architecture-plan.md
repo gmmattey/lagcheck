@@ -171,3 +171,110 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 | 13 | **iOS:** recomendação de rota/operadora sai com gateway não observável (`!isDegraded`). O Android exige gateway estável (Decisão 50). | Iury |
 | 14 | Relatório em PDF implementado com `PdfDocument`, mas **nunca gerado de verdade** (só roda no Android). Conferir paginação, quebra de linha e abertura em leitores de PDF no aparelho. | Breno / Renan |
 | 15 | Favoritos (Decisão 57) não existem no Android. | Marco |
+
+## 10. Adendo P1: Captura Declarativa de Conexão (Console/PC)
+
+### Problema
+No Android, a rede utilizada (Wi-Fi, Celular) é sempre observada diretamente pelo dispositivo. No entanto, quando a medição destina-se a uma plataforma externa (PlayStation, Xbox, PC, Nintendo Switch), a conexão física dessa plataforma não pode ser inferida a partir do celular (ex: console no cabo e celular no Wi-Fi). É necessário capturar a declaração explícita de "Wi-Fi" ou "Cabo" da plataforma externa, isolando-a da rede observada, de forma paritária com o iOS.
+
+### Invariantes
+- **Isolamento de Estado:** A declaração (Wi-Fi/Cabo) aplica-se estritamente a equipamentos externos. Se a plataforma for o próprio celular (Android/iPhone), o campo não se aplica e a rede observada é soberana.
+- **Integridade Diagnóstica:** A declaração jamais altera o Score, a confiança ou a avaliação UDP (sem evidências via tráfego real). Não se bonifica "Cabo" sem evidência.
+- **Verdade Técnica:** A rede observada (via `radioSnapshot`) continua sendo a única fonte da verdade para o transporte real do pacote e diagnósticos de Gateway e Wi-Fi do celular.
+
+### Contrato de Estado e Persistência Retrocompatível
+- **Estado de sessão:** Adição de um enum tipado `ExternalEquipmentLink` (`WIFI` ou `ETHERNET`, nulável) no `GameReadinessEvaluation` e orquestração do `MainViewModel`, separado de `connectionType` (transporte observado no Android). `ReadinessPresenter` deve apenas transportar o valor, sem entregá-lo ao avaliador.
+- **Persistência (`CheckHistoryItem.kt` / `HistoryRepository.kt`):**
+  - Adição do campo `declaredExternalLink: String?` ao modelo.
+  - O JSON salvo ganha a nova chave (se presente).
+  - O parse de JSON antigo no `HistoryRepository` usa leitura segura (mapeando chaves inexistentes para nulo), assegurando 100% de retrocompatibilidade sem migração complexa.
+
+### Limite de UI
+- Em `GameSelectionScreen.kt`, o seletor visual Wi-Fi/Cabo aparece apenas após a seleção de uma plataforma diferente do celular.
+- A opção visual restringe-se ao check ativo (estado transitório). Não transformar essa opção em preferência global persistente de usuário (sem uso real).
+
+### Arquivos e Frentes Afetados
+- **App (UI):** `android/app/src/main/kotlin/com/lagcheck/android/ui/games/GameSelectionScreen.kt`
+- **App (ViewModel):** `android/app/src/main/kotlin/com/lagcheck/android/ui/MainViewModel.kt`
+- **App (Composição e strings):** `android/app/src/main/kotlin/com/lagcheck/android/MainActivity.kt`, `android/core/domain/src/main/kotlin/com/lagcheck/domain/presentation/ScreenStrings.kt`
+- **App (Persistência):** `android/app/src/main/kotlin/com/lagcheck/android/data/CheckHistoryItem.kt`, `HistoryRepository.kt`
+- **Domínio (Modelo e apresentação):** `android/core/domain/src/main/kotlin/com/lagcheck/domain/model/GameReadinessEvaluation.kt`, `ReadinessPresenter.kt`
+
+### Critérios de Aceite
+1. Selecionar celular oculta a declaração de cabo/wi-fi.
+2. Na folha de seleção de jogo, Console/PC apresenta Wi-Fi como valor inicial e permite trocar para Cabo, seguindo `PlatformSelectionSheet.swift`; a futura tela de detalhe de jogo pode exigir escolha explícita, como `GameDetailView.swift`. O valor enviado ao Check nunca é inferido da rede do Android.
+3. A declaração qualifica o contexto da sessão e é mantida no histórico; a UI distingue esse dado declarado do transporte medido no celular, inclusive nos compartilhamentos onde a conexão for mencionada.
+4. Históricos antigos não falham ao serem carregados (nulabilidade correta do novo campo).
+5. O motor de pontuação não altera o score baseando-se apenas nesta declaração.
+
+### Testes
+- **Testes de serialização (JVM):** Validar se o carregamento de JSONs antigos preserva os dados antigos com `declaredExternalLink = null`.
+- **Testes de domínio (JVM):** Confirmar que instâncias do avaliador não embutem acréscimo de pontuação para o estado `declaredExternalLink = ETHERNET`.
+
+## 11. Adendo P1: Pré-Leitura Regional Automática (Android)
+
+### Distinção Crítica
+1. **Resolver destino assinado:** Executar a resolução do catálogo (`RemoteCatalogResolver`) para extrair os candidatos definidos nas regras assinadas. É estritamente local (memória/JSON), sem tocar na rede.
+2. **Pré-testar resposta UDP:** É a execução real e concorrente de tráfego ultra-curto (pré-leitura) contra os candidatos resolvidos, usando `UdpProbeTransport` para eleger o de melhor latência antes de iniciar o Check.
+
+### Contrato de Entrada e Saída
+- **Entrada:** `RegionalSelectionSnapshot` contendo o contexto e a lista de candidatos gerada pelo catálogo assinado.
+- **Saída:** `RegionalSelectionDecision`, podendo ser `.selected(candidate)` ou `.inconclusive`.
+
+### Máquina de Estado da UI
+Orquestrada no `MainViewModel`:
+- **Confirming:** Estado transitório, bloqueando o Check enquanto as probes concorrentes ocorrem.
+- **No Viable Candidate:** Se todos os candidatos derem timeout ou erro, o fluxo trava aqui.
+- **Retry:** Opção do usuário de disparar novamente a pré-leitura a partir do estado de erro.
+- **Cancel:** Voltar para a tela anterior cancela a rotina em andamento.
+
+### Concorrência e Cancelamento
+- Disparo paralelo das probes usando `async` / `awaitAll` dentro do `viewModelScope`.
+- O cancelamento estruturado do Kotlin deve fechar os `DatagramSocket` usados pelo transporte, sem vazar sockets se o usuário abortar ou fechar o app.
+
+### Limites e Integração
+- **Limite de probes e Custo Zero:** Envio de apenas ~3 probes estritas por candidato com timeout rápido (fail-fast). Não ampliar o Cloudflare Worker de forma alguma.
+- **Proibição de Fallback:** Uso exclusivo dos protocolos UDP já tipados no catálogo e implementados em `UdpProbeTransport` (`GAMELIFT_PING`, `PLAYFAB_QOS`, `STEAM_A2S`). Não afirmar suporte STUN nesse transporte. Zero ping ICMP, zero HTTP fallback.
+- **Integração sem alterar score:** As latências medidas na pré-leitura **nunca** são injetadas nas amostras finais do check. Elas só definem o destino.
+- **Fail-Closed:** Se a pré-leitura não confirmar resposta válida de nenhum candidato, mostrar o estado regional `NoViableCandidate` com retry/voltar; não iniciar o check nem gerar veredito.
+
+### Validação
+- **Testes de vetor (JVM):** Garantir que a eleição de candidato via `RegionalSelectionRule` selecione corretamente o vencedor ou falhe adequadamente nos mesmos cenários portados do iOS.
+- **Regressões:** Testes isolados para confirmar ausência de race conditions ou vazamento de pacotes (socket isolation) durante o disparo concorrente.
+
+### Arquivos Afetados
+- **core:session / network:** Novos `RegionalPreReadCoordinator.kt`, `RegionalPreReadCollector.kt`, `MeasurementPlanner.kt` (para emitir `RegionalSelectionSnapshot`).
+- **core:domain:** Port de `RegionalSelectionRule.kt` e seus modelos.
+- **app (UI):** `MainViewModel.kt`, nova `RegionalSelectionScreen.kt`.
+
+### Responsabilidades e Bloqueios
+- **Limite verificado:** `UdpProbeTransport` pode usar uma janela curta via `ProbePlan` e fecha o socket no cancelamento. O Android ainda não possui snapshot ou regra regional; estes são trabalho deste recorte. O resolvedor Android descarta rotas próprias A2S com candidatos que exigem pré-validação de identidade; esse caso permanece fora do escopo até contrato e testes específicos. Não anunciar paridade dessas rotas.
+- **Iury:** Portar a regra de seleção, coletor e validar o contrato estrito no domínio.
+- **Breno:** Validação regressiva em hardware físico e injeção de falhas (modo avião, DNS sink) para testar fail-closed e cancelamento limpo.
+
+## 12. Adendo P1: Detalhes Técnicos e Detalhe de Histórico (Android)
+
+### Problema
+O iOS renderiza percentis exatos (P50, P95, P99) separados por fases de repouso e carga na tela de Detalhes Técnicos. No Android, embora o domínio (`DeepCheckEvaluator`) já calcule `QualityMetrics` a partir de `restSamples` e `loadSamples` armazenados no `CheckResult`, essas métricas não chegam à UI de forma estruturada. A interface Android atual expõe apenas uma série temporal crua na UI, violando a paridade de informações apresentadas e a fidelidade da leitura.
+
+### Distinção de Telas e Responsabilidades
+1. **Detalhes da Sessão Atual (`TechnicalDetailsScreen.kt`):** Acessada via jornada principal. Deriva os dados da medição recém-concluída e presente em memória no fluxo ativo (`MainViewModel`).
+2. **Detalhe de Histórico (`CheckHistoryItemDetailsScreen.kt`):** Acessada via aba de Histórico. Reconstrói os dados a partir da persistência local via `HistoryRepository`, lidando com possíveis estados legados.
+
+### Desenho da Solução e Tipos
+- **Transporte (Domínio → UI):** A aplicação pode obter `DeepCheckMetrics` com `DeepCheckEvaluator.evaluate(restSamples, loadSamples, profile)` após a sessão. `ReadinessPresenter` apenas transporta um snapshot tipado e anulável das `QualityMetrics` já calculadas, com percentis `Double?`, até `GameReadinessEvaluation`. A tela não calcula métricas.
+- **Proibição de Sintéticos:** É terminantemente proibido tentar recalcular percentis na camada de apresentação (UI) usando a série temporal incompleta. Não utilize default states falsos (ex: 0 ou -1). Onde não houver métrica, o valor é estritamente ausente (`null`).
+- **Score e Regras Intactos:** O fluxo de métricas é apenas read-only para apresentação. Nenhuma regra de threshold, veredito ou score será modificada.
+
+### Persistência Retrocompatível (`HistoryRepository.kt`)
+- **Modelo:** Expandir `CheckHistoryItem.kt` com um snapshot opcional das métricas de fase. Os percentis são `Double?`, como em `QualityMetrics`; a carga inteira é nula quando não foi medida.
+- **Migração Zero e Dados Ausentes:** `HistoryRepository` usa `org.json`, com leitura e escrita manuais. Novas chaves ausentes em JSONs antigos devem ser lidas como `null`, sem migração, cálculo retrospectivo ou perda dos demais registros.
+- **Comportamento UI:** Se a tela de Detalhes de Histórico receber métricas nulas de um registro legado, a UI deve omitir os blocos da interface que dependem dessa informação (ou exibir "N/A"), preservando a integridade dos dados históricos da época da medição sem quebrar o layout.
+
+### Critérios de Teste e Validação
+1. **Testes de Serialização (JVM):** Testes em `HistoryRepository` / `CheckHistoryItem` devem assegurar que carregar um JSON legado não resulta em falha, resultando apenas em campos nulos.
+2. **Testes de Presenter (JVM):** Garantir que as métricas `QualityMetrics` fluam corretamente pelo `ReadinessPresenter` sem mutar ou influenciar os avaliadores.
+3. **Validação UI (Física/Rota):** Visualizar a renderização de um resultado atual em tela e comparar com a visualização de um histórico legado para confirmar o tratamento correto (ocultação) de dados indisponíveis.
+
+### Regra de Execução / Faseamento
+- **Uma tela por vez:** A implementação subsequente deve primeiro plugar o transporte em memória e ajustar estritamente a `TechnicalDetailsScreen.kt` (Sessão Atual). Somente após sua estabilização, alterar a camada de persistência e a `CheckHistoryItemDetailsScreen.kt` (Histórico).

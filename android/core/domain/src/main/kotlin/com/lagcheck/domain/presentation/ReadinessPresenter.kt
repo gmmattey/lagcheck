@@ -21,12 +21,14 @@ object ReadinessPresenter {
         language: ReadinessLanguage = ReadinessLanguage.PT_BR,
         platform: String,
         connectionType: String,
+        declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = null,
         destinationName: String,
         confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
         latencySeries: List<Double> = emptyList(),
         radio: RadioTelemetrySnapshot? = null,
         regionLabel: String = "",
         loadStartIndex: Int? = null,
+        metrics: com.lagcheck.domain.rules.DeepCheckMetrics? = null,
         timestamp: Long = System.currentTimeMillis()
     ): GameReadinessEvaluation {
         val table = table(language)
@@ -52,6 +54,7 @@ object ReadinessPresenter {
             latencySeries = latencySeries,
             platform = platform,
             connectionType = connectionType,
+            declaredExternalLink = declaredExternalLink,
             destinationName = destinationName,
             confidence = when (confidence) {
                 MeasurementConfidence.HIGH -> when (language) { ReadinessLanguage.PT_BR -> "alta"; ReadinessLanguage.EN -> "high"; ReadinessLanguage.ES -> "alta" }
@@ -63,7 +66,8 @@ object ReadinessPresenter {
             stabilityRatio = assessment.stabilityRatio,
             stabilitySummary = t(assessment.stabilitySummaryKey),
             regionLabel = regionLabel,
-            loadStartIndex = loadStartIndex
+            loadStartIndex = loadStartIndex,
+            metrics = metrics
         )
     }
 
@@ -95,6 +99,9 @@ object ReadinessPresenter {
     }
 
     private fun primaryWeight(a: GameReadinessAssessment, lang: ReadinessLanguage): String {
+        if (a.verdict == GameReadinessVerdict.INCONCLUSIVE) {
+            return table(lang)["game_readiness.finding.insufficient_samples"] ?: "—"
+        }
         val cause = a.primaryCause
         val (pt, en, es) = when (cause) {
             PrimaryCause.PACKET_LOSS -> Triple("Perda de pacotes na rota", "Packet loss on route", "Pérdida de paquetes en la ruta")

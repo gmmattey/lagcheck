@@ -49,6 +49,15 @@ fun MeasurementLiveTrail(
     gameName: String,
     isWiFi: Boolean = true,
     connectionLabel: String = "Wi-Fi",
+    textStatusRest: String = "Medindo rota em repouso…",
+    textStatusLoad: String = "Avaliando sob carga…",
+    textDetailRest: String = "O check preserva uma leitura estável.",
+    textDetailLoad: String = "Simulando tráfego simultâneo para detectar oscilações.",
+    textPhaseRest: String = "Fase 1 de 2 · Repouso",
+    textPhaseLoad: String = "Fase 2 de 2 · Carga",
+    textNodeDevice: String = "Seu Celular",
+    textNodeLocalSubtitle: String = "Rede local",
+    textNodeServer: String = "Região Gamer",
     modifier: Modifier = Modifier
 ) {
     // Duração do ciclo de ida e volta (RTT) em milissegundos
@@ -142,7 +151,7 @@ fun MeasurementLiveTrail(
                 // Nó 1: Smartphone (Origem)
                 RouteNode(
                     icon = { SmartphoneIcon(size = 22.dp, color = if (isHitNode1) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary) },
-                    title = "Seu Celular",
+                    title = textNodeDevice,
                     subtitle = null,
                     isFinished = true,
                     isCurrent = false,
@@ -153,7 +162,7 @@ fun MeasurementLiveTrail(
                 RouteNode(
                     icon = { WifiIcon(size = 22.dp, color = if (isHitNode2) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary) },
                     title = connectionLabel,
-                    subtitle = "Rede local",
+                    subtitle = textNodeLocalSubtitle,
                     isFinished = !isPhaseRest,
                     isCurrent = isPhaseRest,
                     isHit = isHitNode2
@@ -162,7 +171,7 @@ fun MeasurementLiveTrail(
                 // Nó 3: Região Gamer (Destino)
                 RouteNode(
                     icon = { ServerRackIcon(size = 22.dp, color = if (isHitNode3) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary) },
-                    title = "Região Gamer",
+                    title = textNodeServer,
                     subtitle = destinationName,
                     isFinished = false,
                     isCurrent = !isPhaseRest,
@@ -175,7 +184,7 @@ fun MeasurementLiveTrail(
 
         // 2. Status Copy ("Medindo rota em repouso…" / "Avaliando sob carga…")
         Text(
-            text = if (isPhaseRest) "Medindo rota em repouso…" else "Avaliando sob carga…",
+            text = if (isPhaseRest) textStatusRest else textStatusLoad,
             style = LagCheckTypography.StatusCopy,
             color = LagCheckColors.TextPrimary,
             textAlign = TextAlign.Center
@@ -185,7 +194,7 @@ fun MeasurementLiveTrail(
 
         // 3. Status Subtitle
         Text(
-            text = if (isPhaseRest) "O check preserva uma leitura estável." else "Simulando tráfego simultâneo para detectar oscilações.",
+            text = if (isPhaseRest) textDetailRest else textDetailLoad,
             style = LagCheckTypography.Subtext,
             color = LagCheckColors.TextMuted,
             textAlign = TextAlign.Center
@@ -221,7 +230,7 @@ fun MeasurementLiveTrail(
 
         // 5. Phase Kicker (11px mono)
         Text(
-            text = if (isPhaseRest) "Fase 1 de 2 · Repouso" else "Fase 2 de 2 · Carga",
+            text = if (isPhaseRest) textPhaseRest else textPhaseLoad,
             style = LagCheckTypography.MonoData,
             color = LagCheckColors.TextMuted,
             textAlign = TextAlign.Center

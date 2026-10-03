@@ -83,20 +83,27 @@ fun TechnicalDetailsScreen(
             .padding(horizontal = 22.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // 1. Header: "Fechar" (esquerda) + "Detalhes" (centro/abaixo)
+        // 1. Header: "Detalhes Técnicos" (esquerda) + "Fechar" (direita)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
-                .padding(top = 8.dp),
+                .height(52.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = tr("Detalhes Técnicos"),
+                style = LagCheckTypography.PageTitle.copy(fontSize = 24.sp),
+                color = LagCheckColors.TextPrimary
+            )
+
             Box(
                 modifier = Modifier
+                    .height(44.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onClose() }
-                    .padding(horizontal = 7.dp, vertical = 6.dp)
+                    .padding(horizontal = 7.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = tr("Fechar"),
@@ -104,17 +111,9 @@ fun TechnicalDetailsScreen(
                     color = LagCheckColors.TextMuted
                 )
             }
-
-            Text(
-                text = tr("Detalhes"),
-                style = LagCheckTypography.PageTitle.copy(fontSize = 24.sp),
-                color = LagCheckColors.TextPrimary
-            )
-
-            Spacer(modifier = Modifier.size(44.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 2. Card Compacto de Resumo do Veredito
         Box(
@@ -127,7 +126,7 @@ fun TechnicalDetailsScreen(
         ) {
             Column {
                 Text(
-                    text = "$verdictSymbol $verdictName",
+                    text = "$verdictSymbol ${verdictName.uppercase()}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = verdictColor
@@ -141,7 +140,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 3. Seção Score (Lagcheck Score 86) + Grid de Métricas (2x2)
         Column {
@@ -170,14 +169,15 @@ fun TechnicalDetailsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Grid 2x2: Latência P50, Jitter, Perda, Pior spike
+            // Grid 2x2: P50, Jitter, Perda e P99 quando a fase de repouso foi avaliada.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MetricBox(
                     label = tr("Latência P50"),
-                    value = evaluation.pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
+                    value = (evaluation.metrics?.rest?.p50Milliseconds ?: evaluation.pingMs)
+                        ?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
                     modifier = Modifier.weight(1f)
                 )
                 MetricBox(
@@ -198,15 +198,17 @@ fun TechnicalDetailsScreen(
                     value = evaluation.packetLossPercentage?.let { "%.1f%%".format(java.util.Locale.ROOT, it) } ?: "— %",
                     modifier = Modifier.weight(1f)
                 )
+                val p99Rest = evaluation.metrics?.rest?.p99Milliseconds
                 MetricBox(
-                    label = tr("Pior spike"),
-                    value = evaluation.worstSpikeMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
+                    label = if (p99Rest != null) "P99" else tr("Pior spike"),
+                    value = (p99Rest ?: evaluation.worstSpikeMs)
+                        ?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 4. Gráfico de Latência durante o Check (Canvas nativo com Repouso e Sob Carga)
         Column {
@@ -217,30 +219,61 @@ fun TechnicalDetailsScreen(
             )
             Spacer(modifier = Modifier.height(11.dp))
 
-            LatencyChart(
-                series = evaluation.latencySeries,
-                worstSpike = evaluation.worstSpikeMs,
-                loadStartIndex = evaluation.loadStartIndex,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-            )
+            val metrics = evaluation.metrics
+            val p50Rest = metrics?.rest?.p50Milliseconds
+            val p95Rest = metrics?.rest?.p95Milliseconds
+            val p50Load = metrics?.load?.p50Milliseconds
+            val p95Load = metrics?.load?.p95Milliseconds
+            val p99Load = metrics?.load?.p99Milliseconds
+            if (p50Rest != null && p95Rest != null && p50Load != null && p95Load != null && p99Load != null) {
+                val hasSpike = metrics.rest.spikeCount > 0 || (metrics.load?.spikeCount ?: 0) > 0
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 7.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
-                // "Sob carga" só existe se a carga foi medida. Sem ela, não se rotula um trecho que não aconteceu.
-                if (evaluation.loadStartIndex != null) {
+                PercentileChartView(
+                    p50Rest = p50Rest,
+                    p95Rest = p95Rest,
+                    p50Load = p50Load,
+                    p95Load = p95Load,
+                    p99Load = p99Load,
+                    hasSpike = hasSpike,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(118.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 7.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
                     Text(text = tr("Sob carga"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                }
+            } else {
+                LatencyChart(
+                    series = evaluation.latencySeries,
+                    worstSpike = evaluation.worstSpikeMs,
+                    loadStartIndex = evaluation.loadStartIndex,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(118.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 7.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                    if (evaluation.loadStartIndex != null) {
+                        Text(text = tr("Sob carga"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 5. Origem da Evidência (Enlace local vs Rota externa)
         Column {
@@ -297,7 +330,7 @@ fun TechnicalDetailsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 6. O que encontramos (Checklist de Achados)
         Column {
@@ -308,14 +341,51 @@ fun TechnicalDetailsScreen(
             )
             Spacer(modifier = Modifier.height(11.dp))
 
-            evaluation.findings.forEach { finding ->
-                FindingItem(finding = finding)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(13.dp))
+                    .background(LagCheckColors.Surface)
+                    .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                    .padding(horizontal = 16.dp)
+            ) {
+                Column {
+                    evaluation.findings.forEachIndexed { index, finding ->
+                        FindingItem(finding = finding, isLast = index == evaluation.findings.lastIndex)
+                    }
+                }
             }
         }
 
-        // 6b. O que fazer: só recomendações amarradas a uma evidência medida (pode não haver nenhuma)
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // 7. Informações Técnicas Adicionais (Nota técnica)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(13.dp))
+                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                .padding(13.dp)
+        ) {
+            Column {
+                Text(
+                    text = trf("Confiança: %s", evaluation.confidence),
+                    style = LagCheckTypography.MonoData,
+                    fontWeight = FontWeight.Bold,
+                    color = LagCheckColors.TextPrimary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = trf("Regra %s", com.lagcheck.domain.rules.GameReadinessEvaluator.VERSION),
+                    style = LagCheckTypography.MonoSmall,
+                    color = LagCheckColors.TextMuted
+                )
+            }
+        }
+
+        // Recomendações Android já vinculadas a achados medidos; não descartar conteúdo útil.
         if (evaluation.recommendations.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Column {
                 Text(
                     text = tr("O QUE FAZER"),
@@ -339,32 +409,6 @@ fun TechnicalDetailsScreen(
                         Text(text = rec.badge, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextSecondary)
                     }
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // 7. Informações Técnicas Adicionais (Nota técnica)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(13.dp))
-                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
-                .padding(13.dp)
-        ) {
-            Column {
-                Text(
-                    text = trf("Confiança: %s", evaluation.confidence),
-                    style = LagCheckTypography.MonoData,
-                    fontWeight = FontWeight.Bold,
-                    color = LagCheckColors.TextPrimary
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = trf("Regra %s", com.lagcheck.domain.rules.GameReadinessEvaluator.VERSION),
-                    style = LagCheckTypography.MonoSmall,
-                    color = LagCheckColors.TextMuted
-                )
             }
         }
 
@@ -430,34 +474,45 @@ private fun EvidenceRow(
 }
 
 @Composable
-private fun FindingItem(finding: NetworkFinding) {
+private fun FindingItem(finding: NetworkFinding, isLast: Boolean) {
     val dotColor = when (finding.severity) {
         NetworkFinding.Severity.POSITIVE -> LagCheckColors.Good
         NetworkFinding.Severity.WARNING, NetworkFinding.Severity.NEGATIVE -> LagCheckColors.CoralWarning
         NetworkFinding.Severity.NEUTRAL -> LagCheckColors.TextMuted
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Row(
             modifier = Modifier
-                .padding(top = 5.dp)
-                .size(7.dp)
-                .clip(CircleShape)
-                .background(dotColor)
-        )
-        Spacer(modifier = Modifier.width(9.dp))
-        Column {
-            Text(text = finding.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
-            finding.detail?.let {
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(text = it, fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 5.dp)
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(dotColor)
+            )
+            Spacer(modifier = Modifier.width(9.dp))
+            Column {
+                Text(text = finding.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
+                finding.detail?.let {
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(text = it, fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                }
             }
+        }
+
+        if (!isLast) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(LagCheckColors.Border)
+                    .align(Alignment.BottomCenter)
+            )
         }
     }
 }
@@ -554,10 +609,10 @@ private fun LatencyChart(
                 style = Stroke(width = 2.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
 
-            // Ponto de spike em Roxo Gamer
+            // Ponto de spike com cor de Warning
             if (spikeX > 0f) {
                 drawCircle(
-                    color = Color(0xFF7C3AED),
+                    color = LagCheckColors.CoralWarning,
                     radius = 4.5f,
                     center = Offset(spikeX, spikeY)
                 )
@@ -565,4 +620,72 @@ private fun LatencyChart(
         }
     }
 }
+}
+
+@Composable
+private fun PercentileChartView(
+    p50Rest: Double,
+    p95Rest: Double,
+    p50Load: Double,
+    p95Load: Double,
+    p99Load: Double,
+    hasSpike: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            val maxVal = maxOf(100.0, maxOf(p99Load, p95Rest) * 1.25)
+
+            val yRestP50 = h * (1.0f - (p50Rest / maxVal).toFloat().coerceIn(0.05f, 1.0f))
+            val yRestP95 = h * (1.0f - (p95Rest / maxVal).toFloat().coerceIn(0.05f, 1.0f))
+            val yLoadP50 = h * (1.0f - (p50Load / maxVal).toFloat().coerceIn(0.05f, 1.0f))
+            val yLoadP95 = h * (1.0f - (p95Load / maxVal).toFloat().coerceIn(0.05f, 1.0f))
+            val yLoadP99 = h * (1.0f - (p99Load / maxVal).toFloat().coerceIn(0.05f, 1.0f))
+
+            // Metade sob carga mais escura
+            drawRect(
+                color = Color(0x331E232B),
+                topLeft = Offset(w * 0.5f, 0f),
+                size = Size(w * 0.5f, h)
+            )
+
+            // Linhas de grade
+            val gridColor = Color(0xFF262D38)
+            drawLine(gridColor, Offset(0f, h * 0.25f), Offset(w, h * 0.25f), strokeWidth = 1f)
+            drawLine(gridColor, Offset(0f, h * 0.50f), Offset(w, h * 0.50f), strokeWidth = 1f)
+            drawLine(gridColor, Offset(0f, h * 0.75f), Offset(w, h * 0.75f), strokeWidth = 1f)
+
+            // Curva de percentis calculada
+            val path = Path()
+            path.moveTo(0f, yRestP50)
+            path.lineTo(w * 0.25f, yRestP50)
+            path.lineTo(w * 0.45f, yRestP95)
+            path.lineTo(w * 0.55f, yLoadP50)
+            path.lineTo(w * 0.75f, yLoadP99)
+            path.lineTo(w * 0.88f, yLoadP95)
+            path.lineTo(w, yLoadP50)
+
+            drawPath(
+                path = path,
+                color = Color(0xFF34D399),
+                style = Stroke(width = 2.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            )
+
+            // Spike dot real
+            if (hasSpike) {
+                drawCircle(
+                    color = LagCheckColors.CoralWarning,
+                    radius = 4.5f,
+                    center = Offset(w * 0.75f, yLoadP99)
+                )
+            }
+        }
+    }
 }

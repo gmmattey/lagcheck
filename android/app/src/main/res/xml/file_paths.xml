@@ -2,4 +2,5 @@
 <paths>
     <cache-path name="cached_images" path="images/" />
     <cache-path name="route_reports" path="reports/" />
+    <cache-path name="network_reports" path="network-reports/" />
 </paths>

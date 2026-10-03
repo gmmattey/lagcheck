@@ -17,6 +17,7 @@ data class CheckHistoryItem(
     val gameName: String,
     val platform: String,
     val connectionType: String,
+    val declaredExternalLink: String? = null,
     val timestamp: Long,
     val verdict: GameReadinessVerdict,
     val score: Int,
@@ -27,7 +28,15 @@ data class CheckHistoryItem(
     val primaryWeight: String,
     val suitableUses: List<String>,
     val latencySeries: List<Double>,
-    val findings: List<NetworkFinding>
+    val findings: List<NetworkFinding>,
+    val idleP50: Double? = null,
+    val idleP95: Double? = null,
+    val idleP99: Double? = null,
+    val idleSpikeCount: Int? = null,
+    val loadP50: Double? = null,
+    val loadP95: Double? = null,
+    val loadP99: Double? = null,
+    val loadSpikeCount: Int? = null
 ) {
     val formattedDate: String
         get() {

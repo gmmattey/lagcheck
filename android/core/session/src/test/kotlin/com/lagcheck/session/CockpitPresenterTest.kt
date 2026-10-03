@@ -90,6 +90,25 @@ class CockpitPresenterTest {
         assertThat(rows(wifiRadio, report)["Voz (Discord)"]).isEqualTo("Atenção · roteador 22 ms")
     }
 
+    @Test fun useCasesRequireTheMeasuredBandAndGatewayLatency() {
+        val report = LocalNetworkReport(
+            WiFiLocalTelemetry(3.0, 0.4, 0.5, validSampleCount = 3, plannedSampleCount = 3),
+            NatTopologySnapshot(NatType.TYPE_2_MODERATE, CgnatStatus.NOT_DETECTED, DoubleNatStatus.NOT_DETECTED),
+            null
+        )
+        val on5Ghz = rows(wifiRadio, report)
+        assertThat(on5Ghz["Cloud Gaming"]).contains("Favorável")
+        assertThat(on5Ghz["Multiplayer"]).contains("Favorável")
+
+        val on6Ghz = rows(wifiRadio.copy(wifiDetails = RadioTelemetrySnapshot.WifiDetails(6055, -47, 866, 866, "Wi-Fi 6E")), report)
+        assertThat(on6Ghz["Cloud Gaming"]).isEqualTo("Não avaliado")
+        assertThat(on6Ghz["Live Stream"]).isEqualTo("Não avaliado")
+
+        val noGateway = rows(wifiRadio, report.copy(telemetry = null))
+        assertThat(noGateway["Cloud Gaming"]).isEqualTo("Não avaliado")
+        assertThat(noGateway["Multiplayer"]).isEqualTo("Não avaliado")
+    }
+
     @Test fun everyRowIsLocalizedInEnglishAndSpanish() {
         val strict = NatTopologySnapshot(NatType.TYPE_3_STRICT, CgnatStatus.DETECTED, DoubleNatStatus.SUSPECT_OR_DETECTED)
         val report = LocalNetworkReport(WiFiLocalTelemetry(8.0, 1.0, 1.1, validSampleCount = 3, plannedSampleCount = 3), strict, null)

@@ -41,6 +41,7 @@ import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.MainViewModel.RegionCandidate
 
 /**
  * 07 · Ajustes.
@@ -51,6 +52,10 @@ import com.lagcheck.android.ui.tr
 fun SettingsScreen(
     currentLanguage: String,
     onLanguageSelected: (String) -> Unit,
+    regionCandidates: List<RegionCandidate>,
+    manualRegionId: String?,
+    onRegionSelected: (String?) -> Unit,
+    onOpenHistory: () -> Unit,
     onClearHistory: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -58,6 +63,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     var showLanguageSheet by remember { mutableStateOf(false) }
     var showDeleteConfirmSheet by remember { mutableStateOf(false) }
+    var showRegionSheet by remember { mutableStateOf(false) }
+    var showLicensesSheet by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -85,10 +92,29 @@ fun SettingsScreen(
                 onClick = { showLanguageSheet = true }
             )
 
-            Spacer(modifier = Modifier.height(26.dp))
+            if (regionCandidates.isNotEmpty()) {
+                val activeRegionId = manualRegionId ?: "automatic"
+                val regionLabel = if (activeRegionId == "automatic") {
+                    tr("Automática")
+                } else {
+                    regionCandidates.firstOrNull { it.id == activeRegionId }?.label ?: tr("Automática")
+                }
+                SettingRow(
+                    title = tr("Região de referência"),
+                    value = regionLabel,
+                    onClick = { showRegionSheet = true }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // 2. Grupo: Histórico
             SettingsSectionHeader(title = tr("HISTÓRICO"))
+
+            SettingRow(
+                title = tr("Histórico"),
+                onClick = onOpenHistory
+            )
 
             SettingRowDestructive(
                 title = tr("Apagar histórico"),
@@ -96,7 +122,7 @@ fun SettingsScreen(
                 onClick = { showDeleteConfirmSheet = true }
             )
 
-            Spacer(modifier = Modifier.height(26.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // 3. Grupo: Sobre o Lagcheck
             SettingsSectionHeader(title = tr("SOBRE O LAGCHECK"))
@@ -120,14 +146,18 @@ fun SettingsScreen(
                 Text(text = versionText, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
             }
 
-            // Só entram links que existem de verdade (os mesmos do app iOS). Termos, licenças e "avaliar" eram
-            // botões que só mostravam um aviso; saíram até haver destino real.
+            // Termos e "avaliar" no iOS atual só exibem um aviso; permanecem fora até haver destino real.
             SettingRow(
                 title = tr("Política de Privacidade"),
                 onClick = { openUrl(context, "https://lagcheck.signallq.com/privacy/") }
             )
 
-            Spacer(modifier = Modifier.height(26.dp))
+            SettingRow(
+                title = tr("Licenças de código aberto"),
+                onClick = { showLicensesSheet = true }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // 4. Grupo: Suporte
             SettingsSectionHeader(title = tr("SUPORTE"))
@@ -152,6 +182,33 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(48.dp))
+        }
+
+        if (showLicensesSheet) {
+            val licenseText = remember(context) {
+                runCatching {
+                    context.assets.open("licenses/nunito-OFL.txt").bufferedReader().use { it.readText() }
+                }.getOrDefault("—")
+            }
+            ModalBottomSheet(
+                onDismissRequest = { showLicensesSheet = false },
+                containerColor = LagCheckColors.Surface
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).padding(bottom = 24.dp)) {
+                    Text(
+                        text = tr("Licenças de código aberto"),
+                        style = LagCheckTypography.SectionHeader,
+                        color = LagCheckColors.TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = licenseText,
+                        style = LagCheckTypography.Subtext,
+                        color = LagCheckColors.TextSecondary,
+                        modifier = Modifier.fillMaxWidth().height(360.dp).verticalScroll(rememberScrollState())
+                    )
+                }
+            }
         }
 
         // Sheet Seletor de Idioma
@@ -220,6 +277,74 @@ fun SettingsScreen(
             }
         }
 
+
+        if (showRegionSheet) {
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+            ModalBottomSheet(
+                onDismissRequest = { showRegionSheet = false },
+                sheetState = sheetState,
+                containerColor = LagCheckColors.Surface,
+                dragHandle = {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp, bottom = 18.dp)
+                            .size(width = 35.dp, height = 4.dp)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(LagCheckColors.Border)
+                    )
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 22.dp)
+                        .padding(bottom = 32.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = tr("Região de referência"),
+                        style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
+                        color = LagCheckColors.TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val activeId = manualRegionId ?: "automatic"
+
+                    regionCandidates.forEach { candidate ->
+                        val isSelected = activeId == candidate.id
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
+                                .clickable {
+                                    onRegionSelected(if (candidate.id == "automatic") null else candidate.id)
+                                    showRegionSheet = false
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = candidate.label,
+                                fontSize = 15.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary
+                            )
+                            if (isSelected) {
+                                Text(
+                                    text = "✓",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LagCheckColors.AccentPrimary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // Sheet de Confirmação para Apagar Todo o Histórico
         if (showDeleteConfirmSheet) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

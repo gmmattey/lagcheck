@@ -61,6 +61,13 @@ fun CancelReason?.headline(): String = when (this) {
 sealed class Screen {
     data object Home : Screen()
     data object GameSelection : Screen()
+    data class ConnectionRequired(val game: CatalogGame) : Screen()
+    data class RegionalSelection(
+        val game: CatalogGame,
+        val platform: String,
+        val connectionType: String,
+        val isConfirming: Boolean = true
+    ) : Screen()
     data class Measurement(
         val game: CatalogGame,
         val platform: String,
@@ -82,6 +89,10 @@ sealed class Screen {
         val evaluation: GameReadinessEvaluation,
         val fromHistory: Boolean = false
     ) : Screen()
+    data class HistoryDetails(
+        val item: CheckHistoryItem,
+        val fromHome: Boolean = false
+    ) : Screen()
     data object History : Screen()
     data object Settings : Screen()
     data object NetworkCockpit : Screen()
@@ -92,6 +103,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val radioTelemetryProvider = AndroidRadioTelemetryProvider(application)
     private val localDiagnostics = LocalDiagnostics()
     private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport(), localDiagnostics)
+    private val regionalPreReadCoordinator = com.lagcheck.session.RegionalPreReadCoordinator()
     private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
@@ -104,6 +116,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
     @Volatile
     private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
+    private val _catalogPayload = MutableStateFlow<CatalogPayload?>(null)
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
 
@@ -121,6 +134,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedConnectionType = MutableStateFlow(preferencesRepository.selectedConnectionType.value)
     val selectedConnectionType: StateFlow<String> = _selectedConnectionType.asStateFlow()
 
+    private val _declaredExternalLink = MutableStateFlow<com.lagcheck.domain.model.ExternalEquipmentLink?>(null)
+    val declaredExternalLink: StateFlow<com.lagcheck.domain.model.ExternalEquipmentLink?> = _declaredExternalLink.asStateFlow()
+
     val historyItems: StateFlow<List<CheckHistoryItem>> = historyRepository.history
 
     val latestCheck: StateFlow<CheckHistoryItem?> = historyRepository.history.map {
@@ -128,6 +144,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, historyRepository.history.value.firstOrNull())
 
     val language: StateFlow<String> = preferencesRepository.language
+
+
+    data class RegionCandidate(val id: String, val label: String)
+
+    val regionCandidates: StateFlow<List<RegionCandidate>> = kotlinx.coroutines.flow.combine(
+        _catalogPayload, language
+    ) { payload, lang ->
+        if (payload == null) return@combine emptyList()
+        val langKey = lang.toAppLanguage().catalogLabelKey()
+        val list = mutableListOf<RegionCandidate>()
+        list.add(RegionCandidate("automatic", com.lagcheck.domain.presentation.UiStrings.translate("Automática", lang.toAppLanguage())))
+        payload.regions.forEach { r ->
+            list.add(RegionCandidate(r.id, r.label[langKey] ?: r.id))
+        }
+        list
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val manualRegionId: StateFlow<String?> = preferencesRepository.manualRegionId
+
+    fun setManualRegionId(regionId: String?) {
+        preferencesRepository.setManualRegionId(regionId)
+    }
 
     val favorites: StateFlow<FavoriteGames> = preferencesRepository.favorites
     fun toggleFavorite(gameId: String) = preferencesRepository.toggleFavorite(gameId)
@@ -153,6 +191,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _localReport = MutableStateFlow<LocalNetworkReport?>(null)
     /** Leitura local do Cockpit (gateway, NAT, banda, voz). Nulo enquanto mede. */
     val localReport: StateFlow<LocalNetworkReport?> = _localReport.asStateFlow()
+    private val _localReportLoading = MutableStateFlow(false)
+    val localReportLoading: StateFlow<Boolean> = _localReportLoading.asStateFlow()
 
     private var localReportJob: Job? = null
     private var measurementJob: Job? = null
@@ -169,6 +209,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             if (runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)) {
                 catalog = async { loadCatalog() }
+            }
+            _catalogPayload.value = currentCatalog()
+            val savedRegion = preferencesRepository.manualRegionId.value
+            if (savedRegion != null && savedRegion != "automatic" &&
+                _catalogPayload.value?.regions?.none { it.id == savedRegion } == true) {
+                preferencesRepository.setManualRegionId(null)
             }
         }
     }
@@ -198,19 +244,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     /** Mede gateway e NAT ao abrir o Cockpit (3 amostras no gateway, 2 consultas STUN). */
-    private fun refreshLocalReport() {
+    fun refreshLocalReport() {
         localReportJob?.cancel()
         refreshRadioTelemetry()
         val env = environmentOf(_liveRadioTelemetry.value)
         _localReport.value = null
+        _localReportLoading.value = true
         localReportJob = viewModelScope.launch(Dispatchers.IO) {
-            _localReport.value = runCatching { localReporter.capture(env) }.getOrNull()
+            val job = coroutineContext[Job]
+            try {
+                val result = runCatching { localReporter.capture(env) }
+                    .getOrDefault(LocalNetworkReport(null, null, null))
+                if (localReportJob === job) _localReport.value = result
+            } finally {
+                if (localReportJob === job) _localReportLoading.value = false
+            }
         }
     }
 
-    fun selectGame(game: CatalogGame, platform: String, connectionType: String) {
+    fun selectGame(game: CatalogGame, platform: String, connectionType: String, declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = null) {
         _selectedGame.value = game
         _selectedPlatform.value = platform
+        _declaredExternalLink.value = declaredExternalLink.takeIf { PlatformLabels.toPlatform(platform) != com.lagcheck.catalog.Platform.MOBILE }
         // A conexão não é escolha da pessoa: vem do sistema (`refreshRadioTelemetry`). O parâmetro fica por compatibilidade.
         preferencesRepository.setSelectedGame(game.id)
         preferencesRepository.setSelectedPlatform(platform)
@@ -242,15 +297,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun startCheck(
         targetGame: CatalogGame = _selectedGame.value,
         platform: String = _selectedPlatform.value,
-        connectionType: String = _selectedConnectionType.value
+        connectionType: String = _selectedConnectionType.value,
+        declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = _declaredExternalLink.value
     ) {
-        selectGame(targetGame, platform, connectionType)
+        selectGame(targetGame, platform, connectionType, declaredExternalLink)
         refreshRadioTelemetry()
         val radioSnapshot = _liveRadioTelemetry.value
         val observedConnection = observedConnectionLabel(radioSnapshot)
 
         // O aviso de dados móveis depende do que o sistema reporta, não do que foi escolhido na tela.
         val isMobile = radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.CELLULAR
+
+        if (radioSnapshot?.transportType != RadioTelemetrySnapshot.TransportType.WIFI && !isMobile) {
+            _currentScreen.value = Screen.ConnectionRequired(targetGame)
+            return
+        }
 
         // Se for conexão móvel e ainda não confirmou consentimento de dados, exibe sheet
         if (isMobile && !hasConsentedMobileData) {
@@ -263,19 +324,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        executeActualCheck(targetGame, platform, observedConnection, radioSnapshot)
+        executeActualCheck(targetGame, platform, observedConnection, _declaredExternalLink.value, radioSnapshot)
     }
 
     fun confirmMobileDataAndStart() {
         hasConsentedMobileData = true
         refreshRadioTelemetry()
-        executeActualCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value, _liveRadioTelemetry.value)
+        val observed = _liveRadioTelemetry.value?.transportType
+        if (observed != RadioTelemetrySnapshot.TransportType.WIFI && observed != RadioTelemetrySnapshot.TransportType.CELLULAR) {
+            _currentScreen.value = Screen.ConnectionRequired(_selectedGame.value)
+            return
+        }
+        executeActualCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value, _declaredExternalLink.value, _liveRadioTelemetry.value)
     }
 
     private fun executeActualCheck(
         targetGame: CatalogGame,
         platform: String,
         connectionType: String,
+        declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink?,
         radioSnapshot: RadioTelemetrySnapshot?
     ) {
         measurementJob?.cancel()
@@ -286,8 +353,57 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val platformEnum = PlatformLabels.toPlatform(platform)
         if (isRetest) telemetry.retestStarted(targetGame.id, platformEnum) else telemetry.checkStarted(targetGame.id, platformEnum)
 
+        _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = true)
         measurementJob = viewModelScope.launch {
+            val payload = currentCatalog()
+            if (payload == null) {
+                _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = false)
+                return@launch
+            }
+
+            val regionalSnapshot = MeasurementPlanner.planRegional(payload, targetGame.id, platform)
+            if (regionalSnapshot == null || regionalSnapshot.candidates.isEmpty()) {
+                _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = false)
+                return@launch
+            }
+
+            _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = true)
+
             val job = this.coroutineContext[Job]
+            fun cancelledScreen(reason: CancelReason) {
+                _currentScreen.value = Screen.Measurement(
+                    game = targetGame, platform = platform, connectionType = connectionType,
+                    isCancelled = true, showMobileDataConsent = false, cancelReason = reason
+                )
+            }
+
+            // Troca de rede durante a medição ou pré-leitura descarta o resultado parcial.
+            pathWatcher.start { viewModelScope.launch {
+                if (job?.isActive == true) {
+                    val wasSelectingRegion = _currentScreen.value is Screen.RegionalSelection
+                    job.cancel()
+                    pathWatcher.stop()
+                    if (wasSelectingRegion) _currentScreen.value = Screen.Home
+                    else cancelledScreen(CancelReason.NETWORK_CHANGED)
+                }
+            } }
+            val prefRegion = preferencesRepository.manualRegionId.value
+                ?.takeIf { id -> id != "automatic" && regionalSnapshot.candidates.any { it.regionId == id } }
+            val decision = try {
+                regionalPreReadCoordinator.select(regionalSnapshot, prefRegion)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                com.lagcheck.domain.rules.RegionalSelectionDecision.Inconclusive(com.lagcheck.domain.rules.RegionalSelectionInconclusiveReason.NO_VIABLE_REGIONAL_CANDIDATE)
+            }
+
+            if (decision is com.lagcheck.domain.rules.RegionalSelectionDecision.Inconclusive) {
+                pathWatcher.stop()
+                _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = false)
+                return@launch
+            }
+
+            val selectedContext = (decision as com.lagcheck.domain.rules.RegionalSelectionDecision.Selected).result.selected.resolvedContext
+
             var destinationLabel = ""
             fun measuring(ratio: Float, ping: Double?, rest: Boolean) {
                 // Eventos tardios de um check já cancelado não podem sobrescrever a tela atual.
@@ -299,31 +415,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
             }
-            fun cancelledScreen(reason: CancelReason) {
-                _currentScreen.value = Screen.Measurement(
-                    game = targetGame, platform = platform, connectionType = connectionType,
-                    isCancelled = true, showMobileDataConsent = false, cancelReason = reason
-                )
-            }
 
             measuring(0.04f, null, true)
-
-            val payload = currentCatalog()
-            val plan = if (payload == null) null else MeasurementPlanner.plan(payload, targetGame.id, platform)
-            if (payload == null || plan !is PlanResult.Ready) {
-                // Sem catálogo válido ou sem rota ativa: não há destino confiável, então não existe nota nem fallback.
-                cancelledScreen(CancelReason.UNAVAILABLE)
-                return@launch
-            }
-            val regionLabel = payload.regions.firstOrNull { it.id == plan.context.regionId }
-                ?.label?.get(readinessLanguage().catalogLabelKey()) ?: plan.context.regionId
+            val regionLabel = payload.regions.firstOrNull { it.id == selectedContext.regionId }
+                ?.label?.get(readinessLanguage().catalogLabelKey()) ?: selectedContext.regionId
             destinationLabel = regionLabel
 
-            // Troca de rede durante a medição descarta o resultado parcial.
-            pathWatcher.start { viewModelScope.launch { if (job?.isActive == true) { job?.cancel(); cancelledScreen(CancelReason.NETWORK_CHANGED) } } }
             try {
                 var lastPing: Double? = null
-                val result = orchestrator.run(plan.context, environmentOf(radioSnapshot)) { p ->
+                val result = orchestrator.run(selectedContext, environmentOf(radioSnapshot)) { p ->
                     if (p.latestPingMs != null) lastPing = p.latestPingMs
                     measuring(p.ratio, lastPing, p.phase == CheckPhase.REST)
                 }
@@ -334,18 +434,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     return@launch
                 }
 
+                val deepCheckResult = com.lagcheck.domain.rules.DeepCheckEvaluator.evaluate(
+                    restSamples = result.restSamples,
+                    loadSamples = result.loadSamples,
+                    profile = selectedContext.profileId
+                )
+                val metrics = (deepCheckResult as? com.lagcheck.domain.rules.DeepCheckEvaluation.Completed)?.result?.metrics
+
                 val evaluation = ReadinessPresenter.present(
                     assessment = result.assessment,
                     language = readinessLanguage(),
                     platform = platform,
                     connectionType = connectionType,
+                    declaredExternalLink = declaredExternalLink,
                     destinationName = "$regionLabel · rota regional de referência",
-                    confidence = plan.context.confidence,
+                    confidence = selectedContext.confidence,
                     latencySeries = result.latencySeries,
                     radio = radioSnapshot,
                     regionLabel = regionLabel,
                     // Onde a fase sob carga começa na série. Sem carga medida, não há trecho "sob carga" para rotular.
-                    loadStartIndex = if (result.loadMeasured) result.restSamples.count { it.isValidResponse } else null
+                    loadStartIndex = if (result.loadMeasured) result.restSamples.count { it.isValidResponse } else null,
+                    metrics = metrics
                 )
 
                 // Só resultado concluído entra no histórico (inconclusivo não vira registro, como no iOS).
@@ -376,6 +485,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             measurementJob?.cancel()
             pathWatcher.stop()
             _currentScreen.value = screen.copy(isCancelled = true, cancelReason = CancelReason.BACKGROUND)
+        } else if (screen is Screen.RegionalSelection && screen.isConfirming) {
+            measurementJob?.cancel()
+            pathWatcher.stop()
+            _currentScreen.value = Screen.Home
         }
     }
 
@@ -387,7 +500,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun retryCheck() {
         nextStartIsRetest = true
-        startCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value)
+        startCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value, _declaredExternalLink.value)
     }
 
     override fun onCleared() {
@@ -397,48 +510,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openLatestResult() {
         val check = latestCheck.value ?: return
-        val game = OfficialGameCatalog.findById(check.gameId)
-        val evaluation = GameReadinessEvaluation(
-            verdict = check.verdict,
-            headline = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).first,
-            subtitle = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).second,
-            score = check.score,
-            primaryWeight = check.primaryWeight,
-            suitableUses = check.suitableUses,
-            pingMs = check.pingMs,
-            jitterMs = check.jitterMs,
-            packetLossPercentage = check.packetLossPercentage,
-            worstSpikeMs = check.worstSpikeMs,
-            isUnderLoadAffected = false,
-            findings = check.findings,
-            latencySeries = check.latencySeries,
-            platform = check.platform,
-            connectionType = check.connectionType,
-            timestamp = check.timestamp
-        )
-        _currentScreen.value = Screen.TechnicalDetails(game, evaluation, fromHistory = false)
+        _currentScreen.value = Screen.HistoryDetails(check, fromHome = true)
     }
 
     fun openCheckDetails(check: CheckHistoryItem) {
-        val game = OfficialGameCatalog.findById(check.gameId)
-        val evaluation = GameReadinessEvaluation(
-            verdict = check.verdict,
-            headline = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).first,
-            subtitle = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).second,
-            score = check.score,
-            primaryWeight = check.primaryWeight,
-            suitableUses = check.suitableUses,
-            pingMs = check.pingMs,
-            jitterMs = check.jitterMs,
-            packetLossPercentage = check.packetLossPercentage,
-            worstSpikeMs = check.worstSpikeMs,
-            isUnderLoadAffected = false,
-            findings = check.findings,
-            latencySeries = check.latencySeries,
-            platform = check.platform,
-            connectionType = check.connectionType,
-            timestamp = check.timestamp
-        )
-        _currentScreen.value = Screen.TechnicalDetails(game, evaluation, fromHistory = true)
+        _currentScreen.value = Screen.HistoryDetails(check)
     }
 }
