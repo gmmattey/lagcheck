@@ -164,7 +164,7 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 | 6 | Telemetria usa o host `giammattey.workers.dev`, enquanto catálogo e carga usam `buildealabs.workers.dev` (espelho do iOS). Confirmar se é intencional. | Iury |
 | 7 | Android 16 ignora `screenOrientation=portrait` em telas grandes (target 36). Layout de tablet/dobrável não foi desenhado. | Renan / Breno |
 | 8 | **Connection Booster** chama a API do Gemini com chave dentro do binário. Fere custo recorrente zero e expõe segredo. Só com decisão do dono do produto (e, se aprovado, via Worker, nunca com chave no app). | Luiz / Camillo |
-| 9 | **PlatformHealth** (status de PSN/Xbox/Nintendo) não foi portado: depende de endpoints públicos de terceiros que não consegui exercitar aqui. | Marco |
+| 9 | **PlatformHealth** (status de PSN/Xbox/Nintendo) não foi portado: depende de endpoints públicos de terceiros que não foram exercitados nesta sessão. | Marco |
 | 10 | **Gateway fora do veredito.** A consulta DNS com RD=1 pode inflar o RTT. Validar em aparelhos reais (roteadores diferentes) antes de ligar `gatewayInfluencesVerdict`. | Breno / Iury |
 | 11 | **EN/ES novos** (interface e recomendações) foram escritos pelo Android: precisam da revisão de voz do Marco (`docs/07`). | Marco |
 | 12 | **Bug do iOS:** `GameEditorialRegistry` marca `ea-sports-fc-mobile` como híbrido, mas o id do catálogo é `eafc`: a regra de NAT nunca dispara no iOS. O Android cobre os dois ids. | Rian |
