@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.android.ui.tr
 
 /**
  * 07 · Ajustes.
@@ -71,15 +72,15 @@ fun SettingsScreen(
         ) {
             // Header Canônico: Voltar '‹' + Ajustes
             SecondaryScreenHeader(
-                title = "Ajustes",
+                title = tr("Ajustes"),
                 onBack = onBack
             )
 
             // 1. Grupo: Preferências
-            SettingsSectionHeader(title = "PREFERÊNCIAS")
+            SettingsSectionHeader(title = tr("PREFERÊNCIAS"))
 
             SettingRow(
-                title = "Idioma",
+                title = tr("Idioma"),
                 value = currentLanguage,
                 onClick = { showLanguageSheet = true }
             )
@@ -87,20 +88,26 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(26.dp))
 
             // 2. Grupo: Histórico
-            SettingsSectionHeader(title = "HISTÓRICO")
+            SettingsSectionHeader(title = tr("HISTÓRICO"))
 
             SettingRowDestructive(
-                title = "Apagar histórico",
-                subtext = "Remove todos os checks salvos neste dispositivo",
+                title = tr("Apagar histórico"),
+                subtext = tr("Remove todos os checks salvos neste dispositivo"),
                 onClick = { showDeleteConfirmSheet = true }
             )
 
             Spacer(modifier = Modifier.height(26.dp))
 
             // 3. Grupo: Sobre o Lagcheck
-            SettingsSectionHeader(title = "SOBRE O LAGCHECK")
+            SettingsSectionHeader(title = tr("SOBRE O LAGCHECK"))
 
-            // Versão
+            // Versão real do pacote instalado (antes era o texto fixo "1.0.0 (build 1)")
+            val versionText = remember {
+                runCatching {
+                    val info = context.packageManager.getPackageInfo(context.packageName, 0)
+                    "${info.versionName} (${info.longVersionCode})"
+                }.getOrDefault("—")
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,54 +116,38 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Versão", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
-                Text(text = "1.0.0 (build 1)", style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                Text(text = tr("Versão"), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
+                Text(text = versionText, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
             }
 
+            // Só entram links que existem de verdade (os mesmos do app iOS). Termos, licenças e "avaliar" eram
+            // botões que só mostravam um aviso; saíram até haver destino real.
             SettingRow(
-                title = "Termos de Uso",
-                onClick = {
-                    Toast.makeText(context, "Termos de uso do Lagcheck", Toast.LENGTH_SHORT).show()
-                }
-            )
-
-            SettingRow(
-                title = "Política de Privacidade",
-                onClick = {
-                    Toast.makeText(context, "Política de privacidade sem rastreamento de IP/PII", Toast.LENGTH_SHORT).show()
-                }
-            )
-
-            SettingRow(
-                title = "Licenças de código aberto",
-                onClick = {
-                    Toast.makeText(context, "Licenças: Kotlin, Coroutines, Jetpack Compose", Toast.LENGTH_SHORT).show()
-                }
+                title = tr("Política de Privacidade"),
+                onClick = { openUrl(context, "https://lagcheck.signallq.com/privacy/") }
             )
 
             Spacer(modifier = Modifier.height(26.dp))
 
             // 4. Grupo: Suporte
-            SettingsSectionHeader(title = "SUPORTE")
+            SettingsSectionHeader(title = tr("SUPORTE"))
 
             SettingRow(
-                title = "Enviar feedback",
+                title = tr("Suporte"),
+                onClick = { openUrl(context, "https://lagcheck.signallq.com/support/") }
+            )
+
+            SettingRow(
+                title = tr("Enviar feedback"),
                 onClick = {
                     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:suporte@lagcheck.com?subject=Feedback%20Lagcheck%20Android")
+                        data = Uri.parse("mailto:suporte@signallq.com?subject=Feedback%20LagCheck%20Android")
                     }
                     try {
                         context.startActivity(emailIntent)
                     } catch (e: Exception) {
-                        Toast.makeText(context, "suporte@lagcheck.com", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "suporte@signallq.com", Toast.LENGTH_LONG).show()
                     }
-                }
-            )
-
-            SettingRow(
-                title = "Avaliar o Lagcheck",
-                onClick = {
-                    Toast.makeText(context, "Obrigado por apoiar o Lagcheck!", Toast.LENGTH_SHORT).show()
                 }
             )
 
@@ -188,7 +179,7 @@ fun SettingsScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Idioma",
+                        text = tr("Idioma"),
                         style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
                         color = LagCheckColors.TextPrimary
                     )
@@ -254,7 +245,7 @@ fun SettingsScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Apagar todo o histórico?",
+                        text = tr("Apagar todo o histórico?"),
                         style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
                         color = LagCheckColors.TextPrimary
                     )
@@ -262,7 +253,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Esta ação não pode ser desfeita.",
+                        text = tr("Esta ação não pode ser desfeita."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted
                     )
@@ -284,7 +275,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Cancelar",
+                                text = tr("Cancelar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LagCheckColors.TextPrimary
@@ -301,12 +292,12 @@ fun SettingsScreen(
                                 .clickable {
                                     showDeleteConfirmSheet = false
                                     onClearHistory()
-                                    Toast.makeText(context, "Histórico apagado com sucesso", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, tr("Histórico apagado com sucesso"), Toast.LENGTH_SHORT).show()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Apagar",
+                                text = tr("Apagar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -379,4 +370,9 @@ private fun SettingRowDestructive(
 
         Text(text = "›", fontSize = 20.sp, color = LagCheckColors.TextMuted)
     }
+}
+
+/** Abre um link no navegador. Sem navegador disponível, não faz nada (nunca derruba o app). */
+private fun openUrl(context: android.content.Context, url: String) {
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
 }

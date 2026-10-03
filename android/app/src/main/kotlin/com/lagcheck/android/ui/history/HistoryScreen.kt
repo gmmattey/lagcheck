@@ -48,6 +48,8 @@ import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.OfficialGameCatalog
+import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 
 /**
  * 06 · Histórico.
@@ -84,12 +86,12 @@ fun HistoryScreen(
             // 1. Header Canônico: Voltar '‹' + Histórico + Limpar
             item {
                 SecondaryScreenHeader(
-                    title = "Histórico",
+                    title = tr("Histórico"),
                     onBack = onBack,
                     trailingAction = {
                         if (historyItems.isNotEmpty()) {
                             Text(
-                                text = "Limpar",
+                                text = tr("Limpar"),
                                 fontSize = 13.sp,
                                 color = LagCheckColors.TextMuted,
                                 modifier = Modifier
@@ -128,7 +130,7 @@ fun HistoryScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "Nenhum check ainda",
+                            text = tr("Nenhum check ainda"),
                             style = LagCheckTypography.PageTitle.copy(fontSize = 25.sp),
                             color = LagCheckColors.TextPrimary
                         )
@@ -136,7 +138,7 @@ fun HistoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Faça seu primeiro teste na Home",
+                            text = tr("Faça seu primeiro teste na Home"),
                             style = LagCheckTypography.BodyMedium,
                             color = LagCheckColors.TextMuted,
                             textAlign = TextAlign.Center
@@ -152,7 +154,7 @@ fun HistoryScreen(
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
                         ) {
                             Text(
-                                text = "Ir para a Home",
+                                text = tr("Ir para a Home"),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = LagCheckColors.TextPrimary
@@ -208,7 +210,7 @@ fun HistoryScreen(
                                 )
                                 Spacer(modifier = Modifier.height(3.dp))
                                 Text(
-                                    text = "${checks.firstOrNull()?.platform ?: "PlayStation"} · última plataforma",
+                                    text = trf("%s · última plataforma", checks.firstOrNull()?.platform ?: "—"),
                                     style = LagCheckTypography.MonoSmall,
                                     color = LagCheckColors.TextMuted
                                 )
@@ -235,7 +237,7 @@ fun HistoryScreen(
                 item {
                     Spacer(modifier = Modifier.height(28.dp))
                     Text(
-                        text = "Histórico salvo neste dispositivo · até 100 checks por jogo",
+                        text = tr("Histórico salvo neste dispositivo · até 100 checks"),
                         style = LagCheckTypography.MonoSmall,
                         color = LagCheckColors.TextMuted,
                         textAlign = TextAlign.Center,
@@ -271,7 +273,7 @@ fun HistoryScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Apagar todo o histórico?",
+                        text = tr("Apagar todo o histórico?"),
                         style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
                         color = LagCheckColors.TextPrimary
                     )
@@ -279,7 +281,7 @@ fun HistoryScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Esta ação não pode ser desfeita.",
+                        text = tr("Esta ação não pode ser desfeita."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted
                     )
@@ -301,7 +303,7 @@ fun HistoryScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Cancelar",
+                                text = tr("Cancelar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LagCheckColors.TextPrimary
@@ -322,7 +324,7 @@ fun HistoryScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Apagar",
+                                text = tr("Apagar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -353,10 +355,10 @@ private fun HistoryRowItem(
     }
 
     val headlineText = when (item.verdict) {
-        GameReadinessVerdict.READY -> "Pronto para Ranked"
-        GameReadinessVerdict.CAUTION -> "Condições Instáveis"
-        GameReadinessVerdict.NOT_READY -> "Evitaria Ranked Agora"
-        GameReadinessVerdict.INCONCLUSIVE -> "Inconclusivo"
+        GameReadinessVerdict.READY -> tr("Pronto para Ranked")
+        GameReadinessVerdict.CAUTION -> tr("Condições Instáveis")
+        GameReadinessVerdict.NOT_READY -> tr("Evitaria Ranked Agora")
+        GameReadinessVerdict.INCONCLUSIVE -> tr("Inconclusivo")
     }
 
     Row(

@@ -70,6 +70,8 @@
 | [65](#decisão-65) | Validação Científica (12s, 3 Fases), Fallback de Jogo, Cockpit e Blindagem Visual | **Vigente (Execução Total)** | 3 fases reais UDP/Bufferbloat, fallback jogos, 2 abas, anti-glitches visuais | Marco / Squad / Luiz |
 | [66](#decisão-66) | Adoção do Design System LagCheck Canônico (Roxo Gamer Primário, Coral Solar para Atenção) | **Vigente (Design System Canônico)** | Roxo Gamer (#7C3AED), Coral Solar (#FF5A36) restrito a atenção/erro, 3 pilhas tipográficas, raios 8/13/17/26/999px | Renan / Squad / Luiz |
 | [67](#decisão-67) | Expansão Multiplataforma: Rascunho Arquitetural e Telemetria Avançada de Rádio no Android | **Vigente (Expansão Android)** | Módulo de rádio (2.4G/5G/6G, RSSI, PHY speed, Gateway), paridade determinística e custo zero | Marco / Camillo / Iury / Luiz |
+| [68](#decisão-68) | Port iOS → Android com paridade de regras (readiness-v2.0, catálogo v3 assinado, beacons) | **Vigente (Execução)** | Substitui a medição STUN e os thresholds fixos do protótipo Android; Android passa a ser alvo oficial | Marco / Camillo / Iury / Luiz |
+| [69](#decisão-69) | Android: gateway no veredito, status de redes de console, favoritos e relatório em PDF | **Vigente (Execução)** | Refina o item 6 da Decisão 68: liga o gateway no veredito (autorizado pelo Luiz) e entrega o que tinha sido cortado por escopo | Marco / Iury / Luiz |
 
 
 ---
@@ -383,6 +385,42 @@
      - Repositório preparado com módulo Android limpo sob `android/`: `:core:domain` (puro Kotlin, port direto de `NolaggyDomain` com os mesmos vetores determinísticos), `:core:network` (STUN RFC 5389, RFC 4737 e bufferbloat), `:core:telemetry-radio` (APIs nativas de rede/rádio Android) e `:ui` (Dark Competitive UI com Roxo Gamer `#7C3AED` e tokens canônicos em Compose).
   5. **Política de Permissões e Degradação Graciosa:**
      - Se o usuário conceder permissões de rádio (`NEARBY_WIFI_DEVICES`), o app ativa a telemetria detalhada de rádio. Se negar, o teste de ping/jitter/loss UDP para os servidores de jogo ocorre normalmente com máxima privacidade.
+
+### Decisão 68
+- **Título:** Port iOS → Android com paridade de regras: readiness-v2.0, catálogo v3 assinado e beacons de jogo.
+- **Status Atual:** **Vigente (Execução).** Refina a Decisão 67 e **substitui** a linha "somente iPhone / Android fora do escopo" do `AGENTS.md`.
+- **Frentes envolvidas:** Marco, Luiz (autorizou "port completo, fim a fim"), Camillo, Iury, Rian (revisão de contrato), Breno (homologação).
+- **Contexto e Problema:**
+  1. O módulo Android da Decisão 67 era um protótipo: thresholds fixos, medição contra STUN do Google, catálogo hardcoded, fase de carga simulada partindo um único fluxo de probes e telemetria do Worker sem uso. Um mesmo jogador podia receber veredito diferente no iOS e no Android.
+  2. As artes de jogo no Android (`res/drawable/game_*.jpg`) foram verificadas por SHA-256 contra `worker/catalog/artwork-manifest.json` (política `lagcheck-editorial-original-only`, status `approved`). Estão em conformidade com as Decisões 18/44.
+- **Decisão:**
+  1. O código Swift em `Sources/NolaggyDomain` e o catálogo v3 assinado são a fonte de verdade. O Kotlin é port 1:1 de `QualityEvaluator`, `SampleQualityEvaluator`, `SpikePatternEvaluator`, `DeepCheckEvaluator` (carga v2), `ResultInterpreter` e `GameReadinessEvaluator` (readiness-v2.0). Mantêm-se as versões de regra (`pilot-2026.09.08.1`, `mobile-realtime-2026.09.08.1`, `casual-realtime-2026.09.08.1`, `readiness-v2.0`, `spike-pattern-v1`, `sample-quality-v1`, `deep-load-impact-v2`).
+  2. A medição usa os destinos do catálogo (`gameLiftPing`, `playFabQoS`, `steamA2S`), 30 probes a cada 500 ms, janela de fechamento de 17 s e resposta válida somente com correlação integral. STUN deixa de ser destino de medição.
+  3. Repouso e carga são duas séries independentes. O veredito avalia o repouso e penaliza a degradação sob carga.
+  4. O catálogo v3 é verificado com Ed25519 em Kotlin puro (sem SDK novo), com base embarcada e atualização diária.
+  5. O contexto `iphone` do catálogo é usado como contexto de celular no Android até o catálogo ganhar `android` (exige nova assinatura do dono da chave).
+  6. **Fase 2 (implementada):** banda Wi-Fi, qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES na interface. Regras de segurança diagnóstica:
+     - A frequência real do rádio (`WifiInfo.getFrequency()`) é a única evidência que confirma banda 2.4 ou 5/6 GHz. SSID, RTT e jitter nunca afirmam frequência (Decisão 50).
+     - O probe de gateway mede e exibe (Cockpit, voz). **Superado pela Decisão 69:** ele agora também entra no veredito e nas recomendações.
+     - Recomendação que atribui a causa à rota ou à operadora só sai com o primeiro salto comprovadamente limpo.
+     - NAT só é medido em jogo P2P ou híbrido. IPs são guardados só mascarados.
+     **Não implementado:** Connection Booster (chama a API do Gemini com chave embutida no binário: fere o custo recorrente zero e expõe segredo; só com nova decisão do dono do produto). PlatformHealth, favoritos e relatório em PDF foram cortados por escopo e entregues na Decisão 69.
+  7. Custo recorrente zero preservado. Nenhum endpoint novo no Worker.
+- **Critérios de validação e aceite:** ver `.agents/architecture-plan.md` §7.4. Estados reportados separadamente: documentado, implementado, testes JVM verdes, compilado, validado em aparelho.
+
+### Decisão 69
+- **Título:** Android: gateway no veredito, status de redes de console, favoritos e relatório em PDF.
+- **Status Atual:** **Vigente (Execução).** Refina o item 6 da Decisão 68.
+- **Frentes envolvidas:** Marco, Luiz (autorizou), Iury (regra de veredito), Rian (contrato), Breno (homologação em aparelho).
+- **Contexto e Problema:** Na Fase 2 (Decisão 68) o gateway ficou fora do veredito e três itens foram cortados por escopo, sem decisão de produto. O Luiz pediu os três e a ligação do gateway.
+- **Decisão:**
+  1. **Gateway no veredito.** `LocalDiagnostics.gatewayInfluencesVerdict` passa a `true`. Risco aceito pelo dono do produto: o RTT vem de uma consulta DNS (RD=1) que o roteador pode encaminhar para fora e inflar o tempo, então um roteador lento a DNS pode rebaixar o veredito e disparar a recomendação "aproxime-se do roteador" sem que o Wi-Fi seja a causa. Mitigações mantidas: sem resposta continua `Unobservable` e nunca acusa o Wi-Fi; recomendação de rota ou operadora só com primeiro salto limpo (Decisão 50). **Divergência conhecida:** o iOS não usa o gateway no veredito, então o mesmo jogador, na mesma rede, pode ver veredito diferente entre iOS e Android. Pendente: validar em aparelhos e roteadores diferentes (Breno) e revisão de Iury; se o desvio aparecer, reverter é uma linha (default do flag).
+  2. **Status das redes de console (PlatformHealth).** Port da Decisão 30: PSN, Xbox Live e Nintendo, consultados direto nos endpoints públicos das fabricantes (sem Worker, sem identificação, cache de 10 min, timeout de 3 s). Falha de rede, HTTP diferente de 200 ou formato inesperado = `Unknown`: o app não mostra nada, nunca inventa queda nem "operacional". Só avisa com problema reportado, na Home, com símbolo e selo (não depende só de cor). Celular e PC não consultam. **Não verificado:** os três endpoints não puderam ser acessados no ambiente de desenvolvimento; os parsers foram testados só com payloads copiados dos testes do iOS. Se um formato mudou, o efeito é o aviso não aparecer.
+  3. **Favoritos.** Local, no aparelho, sem sincronização. Estrela em cada jogo; seção "FAVORITOS" no topo da lista. Ids que saem do catálogo são ignorados.
+  4. **Relatório em PDF.** Geração local com `PdfDocument` do Android (A4, sem biblioteca, sem rede), compartilhado como `application/pdf`. O conteúdo vem de `RouteReport` (domínio): só o observado, campo sem leitura sai como "—", rodapé afirma que é estimativa da rota e não o ping real do jogo.
+  5. Custo recorrente zero preservado. Nenhum endpoint novo no Worker, nenhum SDK novo.
+- **Não implementado (continua dependendo de decisão):** Connection Booster.
+- **Critérios de validação e aceite:** testes JVM (parsers, cache e fail-open do status; `RouteReport`; `FavoriteGames`; gateway ligado e desligado no orquestrador); varredura de tradução EN/ES. Estados: implementado e testado na JVM; type-check do app; **sem build AGP e sem aparelho**. O PDF nunca foi gerado de fato (`PdfDocument` só roda no Android).
 
 ---
 

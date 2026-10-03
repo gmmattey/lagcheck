@@ -31,6 +31,9 @@ import com.lagcheck.core.designsystem.components.MeasurementLiveTrail
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
+import com.lagcheck.android.ui.CancelReason
+import com.lagcheck.android.ui.headline
+import com.lagcheck.android.ui.tr
 
 /**
  * 03 · Medição ao Vivo (Trilha Viva de Medição).
@@ -48,6 +51,8 @@ fun CheckCockpitScreen(
     isPhaseRest: Boolean,
     isWiFi: Boolean,
     isCancelled: Boolean = false,
+    cancelReason: CancelReason? = null,
+    destinationName: String = "",
     showMobileDataConsent: Boolean = false,
     onCancel: () -> Unit,
     onRetry: () -> Unit,
@@ -80,7 +85,7 @@ fun CheckCockpitScreen(
                         .padding(horizontal = 7.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "Cancelar",
+                        text = tr("Cancelar"),
                         fontSize = 14.sp,
                         color = LagCheckColors.TextMuted
                     )
@@ -102,14 +107,14 @@ fun CheckCockpitScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "A conexão mudou.",
+                        text = tr(cancelReason.headline()),
                         style = LagCheckTypography.SectionHeader.copy(fontSize = 28.sp),
                         color = LagCheckColors.TextPrimary,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "O teste foi cancelado para preservar a integridade da medição.",
+                        text = tr("O teste foi cancelado para preservar a integridade da medição."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted,
                         textAlign = TextAlign.Center,
@@ -124,7 +129,7 @@ fun CheckCockpitScreen(
                             .padding(horizontal = 19.dp, vertical = 12.dp)
                     ) {
                         Text(
-                            text = "Tentar novamente",
+                            text = tr("Tentar novamente"),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = LagCheckColors.TextPrimary
@@ -134,7 +139,7 @@ fun CheckCockpitScreen(
             } else {
                 // Trilha Viva com 3 Nós e Pacotes Viajando
                 MeasurementLiveTrail(
-                    destinationName = "São Paulo",
+                    destinationName = destinationName.ifEmpty { "…" },
                     currentRTT = currentPingMs,
                     progress = progressRatio,
                     isPhaseRest = isPhaseRest,
@@ -172,13 +177,13 @@ fun CheckCockpitScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Usar dados móveis?",
+                        text = tr("Usar dados móveis?"),
                         style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp),
                         color = LagCheckColors.TextPrimary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Este teste pode consumir até 10 MB.",
+                        text = tr("Este teste pode consumir até 10 MB."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted
                     )
@@ -197,7 +202,7 @@ fun CheckCockpitScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Cancelar",
+                                text = tr("Cancelar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LagCheckColors.TextPrimary
@@ -214,7 +219,7 @@ fun CheckCockpitScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Continuar",
+                                text = tr("Continuar"),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White

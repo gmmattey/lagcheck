@@ -1,6 +1,7 @@
 package com.lagcheck.android.data
 
 import android.content.Context
+import com.lagcheck.domain.model.FavoriteGames
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +32,15 @@ class PreferencesRepository(context: Context) {
         prefs.getString("pref_conn_type", "Wi-Fi") ?: "Wi-Fi"
     )
     val selectedConnectionType: StateFlow<String> = _selectedConnectionType.asStateFlow()
+
+    private val _favorites = MutableStateFlow(FavoriteGames.parse(prefs.getString("pref_favorites", null)))
+    val favorites: StateFlow<FavoriteGames> = _favorites.asStateFlow()
+
+    fun toggleFavorite(gameId: String) {
+        val next = _favorites.value.toggle(gameId)
+        _favorites.value = next
+        prefs.edit().putString("pref_favorites", next.serialize()).apply()
+    }
 
     fun setLanguage(lang: String) {
         _language.value = lang

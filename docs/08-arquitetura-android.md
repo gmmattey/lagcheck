@@ -20,60 +20,57 @@ O LagCheck para Android expande a experiência do aplicativo mantendo 100% de pa
 
 ## 2. Estrutura Modular do Projeto Android (`android/`)
 
-O projeto adota uma arquitetura modular moderna e desacoplada em Gradle:
+Arquitetura modular em Gradle. Os módulos JVM não importam Android SDK e são testados em qualquer máquina (`./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test`).
 
 ```
 android/
-├── build.gradle.kts
-├── settings.gradle.kts
-├── gradle/
-│   └── libs.versions.toml             # Catálogo de dependências centralizado
 ├── core/
-│   ├── domain/                        # Pure Kotlin (JVM) - Sem dependências de Android OS
-│   │   ├── model/                     # GameReadinessVerdict, MetricSnapshot, RadioTelemetrySnapshot
-│   │   └── rules/                     # Algoritmos determinísticos de score, thresholds e veredito
-│   ├── network/                       # Motor UDP puro + STUN RFC 5389 + Jitter RFC 4737 + Bufferbloat
-│   ├── telemetry-radio/               # Módulo Android: WifiManager, ConnectivityManager, TelephonyManager
-│   └── designsystem/                  # Dark Competitive UI em Jetpack Compose (tokens LagCheck)
-└── app/                               # Target executável Android
-    ├── MainActivity.kt                # Entrada única
-    └── ui/                            # Composição das telas (Home, Jogo, Check, Veredito)
+│   ├── domain/          JVM puro. QualityEvaluator (3 perfis), SampleQuality, SpikePattern, DeepCheck (carga v2),
+│   │                    ResultInterpreter, GameReadinessEvaluator readiness-v2.0, ReadinessPresenter (PT-BR/EN/ES).
+│   ├── catalog/         JVM puro. Ed25519 (RFC 8032, verify-only), envelope v3 assinado, validação, resolução de rota,
+│   │                    repositório com base embarcada + cache + refresh diário.
+│   ├── network/         JVM. Codecs GameLift/PlayFab/Steam A2S, ProbeLedger, UdpProbeTransport,
+│   │                    cliente do Worker (catálogo, carga, telemetria). STUN fica só como codec legado (NAT, fase 2).
+│   ├── session/         JVM. CheckOrchestrator (repouso → carga → veredito), MeasurementPlanner, TelemetryReporter.
+│   ├── telemetry-radio/ Android SDK: WifiManager, ConnectivityManager (o diferencial Android).
+│   └── designsystem/    Jetpack Compose: tokens Dark Competitive UI.
+└── app/                 Composição (Compose). ViewModel fino sobre :core:session.
 ```
+Dependência: `domain ← catalog ← network ← session ← app`.
 
----
+## 3. Paridade com o iOS (Decisão 68)
 
-## 3. Contrato de Domínio Puro (`:core:domain`)
+O Kotlin é port do Swift, não reinterpretação. A fonte de verdade é `Sources/NolaggyDomain` e o catálogo v3 assinado.
 
-O módulo `:core:domain` é estritamente independente de frameworks de UI, banco de dados ou do SDK do Android. Ele reproduz os mesmos tipos e algoritmos do `NolaggyDomain` (Swift):
-
-- `GameReadinessVerdict`: `.READY`, `.CAUTION`, `.NOT_READY`, `.INCONCLUSIVE` (mínimo de 10 amostras UDP válidas; sem fallback para ping falso).
-- `RadioTelemetrySnapshot`:
-  - `WifiDetails`: Frequência (MHz), RSSI (dBm), Tx/Rx link speed (Mbps), Padrão (Wi-Fi 4/5/6/7).
-  - `Gateway`: Endereço IP do gateway padrão.
-
----
+- **Regras:** `pilot-2026.09.08.1`, `mobile-realtime-2026.09.08.1`, `casual-realtime-2026.09.08.1`, `readiness-v2.0`, `spike-pattern-v1`, `sample-quality-v1`, `deep-load-impact-v2`. Os testes JVM carregam os vetores dos testes Swift.
+- **Veredito:** `READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`. Menos de 10 respostas UDP válidas é inconclusivo, sem fallback HTTP/ICMP e sem nota inventada.
+- **Medição:** repouso (30 probes, 1 a cada 500 ms, fechamento em 17 s) e depois carga (30 probes com `GET /v1/load` concorrente). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
+- **Destino:** o do catálogo assinado (`gameLiftPing`, `playFabQoS`, `steamA2S`). Hoje todas as rotas ativas são `awsFallback` em `sa-east-1`, com confiança média. Rotas `gameOwned` pendentes nunca são medidas.
+- **Plataforma:** o catálogo v3 só publica `iphone|playstation|xbox|pc|nintendo`. O celular Android usa o contexto `iphone` (mesmas rotas) até o catálogo ganhar `android`.
+- **Fase 2 (implementada):** banda Wi-Fi (frequência real do Android), qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES. O gateway é medido, exibido e **entra no veredito** (Decisão 69; o iOS não usa o gateway no veredito, então pode haver divergência entre plataformas; reverter é o default de `LocalDiagnostics.gatewayInfluencesVerdict`). Sem resposta do roteador = não observável, nunca acusa o Wi-Fi. Recomendação sobre rota ou operadora só com primeiro salto comprovadamente limpo (Decisão 50).
+- **Decisão 69:** status das redes de console (PSN/Xbox/Nintendo, direto nos endpoints públicos, fail-open, aviso na Home), favoritos locais e relatório em PDF (`PdfDocument`, conteúdo em `RouteReport`).
+- **Fora do port:** Connection Booster (Gemini com chave embutida: fere custo zero e segurança).
+- **Cockpit:** mostra só o que foi medido. Campo sem leitura aparece como "—". Nunca há valor padrão (o protótipo antigo exibia NAT, UPnP, voz e gateway `192.168.1.1` que ninguém medira).
+- **Idiomas:** PT-BR, EN e ES. Textos de tela passam por `tr("texto em PT-BR")` e um teste varre o app exigindo tradução para cada um (`UiStringsCompletenessTest`).
 
 ## 4. O Módulo de Telemetria de Rádio (`:core:telemetry-radio`)
 
-Responsável por extrair do sistema operacional as informações de telemetria sem invasão de privacidade e com degradação graciosa.
+Extrai do sistema operacional frequência, RSSI e velocidade de enlace sem invadir privacidade, com degradação graciosa.
 
-### Política de Permissões:
-- **`ACCESS_NETWORK_STATE` & `ACCESS_WIFI_STATE`:** Permissões normais concedidas na instalação. Permitem verificar tipo de rede e métricas básicas de rádio.
-- **`NEARBY_WIFI_DEVICES` (Android 13+):** Solicitada com a flag `neverForLocation` no `AndroidManifest.xml` para garantir que o app não rastreie localização geográfica do jogador.
-- **Degradação Graciosa:** Se o usuário negar permissões opcionais, o LagCheck executa a medição de jogo normalmente via UDP e apenas omite o cartão de diagnóstico de rádio no veredito.
+### Política de permissões
+- **`ACCESS_NETWORK_STATE` e `ACCESS_WIFI_STATE`:** normais, concedidas na instalação.
+- **`NEARBY_WIFI_DEVICES` (Android 13+):** declarada com `neverForLocation`.
+- **`ACCESS_FINE_LOCATION`:** declarada só até a API 32 (`maxSdkVersion="32"`), onde o Wi-Fi exige localização. O app não a solicita ativamente.
+- **Degradação graciosa:** sem permissão opcional, a medição UDP roda normalmente e o app apenas omite os fatos de rádio.
 
----
+## 5. Integração com o Worker e custo zero
 
-## 5. Integração com Backend e Custo Zero
+Um único Cloudflare Worker (`nolaggy-deep-check`), sem endpoint novo (hosts iguais aos do iOS):
+- `GET /v1/catalog.json`: envelope Ed25519. Base embarcada em `assets/catalog-base.json` (idêntica ao envelope do Worker e à base do iOS, garantido por teste), atualização diária, cache em arquivo só após validação.
+- `GET /v1/load`: carga de download, no máximo 10 MiB ou 15 s.
+- `POST /v1/telemetry`: funil anônimo `app_open`, `check_started`, `verdict_viewed`, `retest_started`. O Worker não aceita `android` nem `nintendo` em `platform`, então para celular o campo é omitido.
 
-O aplicativo Android consome exatamente a mesma infraestrutura Cloudflare Worker existente (`nolaggy-deep-check`):
-- `GET /v1/catalog.json`: Catálogo de jogos e rotas assinado com Ed25519.
-- `GET /v1/load`: Carga estática para estresse sob saturação de bufferbloat.
-- `POST /v1/telemetry`: Telemetria de produto anônima (sem PII ou IP completo).
-
-**Custo Operacional Recorrente Adicional:** **R$ 0,00**.
-
----
+**Custo operacional recorrente adicional:** R$ 0,00. Sem SDK de terceiros.
 
 ## 6. Design System em Jetpack Compose (`:core:designsystem`)
 

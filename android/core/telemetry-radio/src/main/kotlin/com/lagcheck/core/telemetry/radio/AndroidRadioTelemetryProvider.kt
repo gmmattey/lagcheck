@@ -45,7 +45,8 @@ class AndroidRadioTelemetryProvider(
             transportType = transportType,
             wifiDetails = wifiDetails,
             cellularDetails = null, // Celular avançado (RSRP/SINR) via TelephonyManager
-            gatewayAddress = gateway
+            gatewayAddress = gateway,
+            localAddress = resolveLocalIpv4()
         )
     }
 
@@ -100,11 +101,22 @@ class AndroidRadioTelemetryProvider(
         for (route in linkProperties.routes) {
             if (route.isDefaultRoute && route.hasGateway()) {
                 val gateway: InetAddress? = route.gateway
-                if (gateway != null && !gateway.isAnyLocalAddress) {
+                // Só IPv4, como o probe do iOS: rota padrão IPv6 (::/0) tem gateway link-local com escopo e não serve ao probe.
+                if (gateway is java.net.Inet4Address && !gateway.isAnyLocalAddress) {
                     return gateway.hostAddress
                 }
             }
         }
         return null
+    }
+
+    /** IPv4 local da rede ativa, vindo do `LinkProperties`. Nulo se não houver. */
+    private fun resolveLocalIpv4(): String? {
+        val network = connectivityManager?.activeNetwork ?: return null
+        val link = connectivityManager.getLinkProperties(network) ?: return null
+        return link.linkAddresses
+            .map { it.address }
+            .firstOrNull { it is java.net.Inet4Address && !it.isLoopbackAddress && !it.isLinkLocalAddress }
+            ?.hostAddress
     }
 }

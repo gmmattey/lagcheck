@@ -96,11 +96,78 @@ flowchart TD
 
 ---
 
-## 7. Status do Gate Arquitetural
+## 7. Plano de Port iOS → Android (Decisão 68)
+
+> Gate Arquitetural cumprido por Camillo + Iury. Fonte de verdade das regras: o código Swift em `Sources/NolaggyDomain` (readiness-v2.0) e o catálogo v3 assinado em `worker/catalog/`. O Kotlin é port, não reinterpretação.
+
+### 7.1 Diagnóstico do estado anterior (por que não era port)
+| Gap | Estado no Android antes do port | Alvo |
+| --- | --- | --- |
+| Regras de veredito | Thresholds fixos (110 ms / 25 ms / 2%), sem perfil | `QualityEvaluator` (3 perfis) + `ResultInterpreter` + `GameReadinessEvaluator` readiness-v2.0 |
+| Destino da medição | STUN `stun.l.google.com` fixo | Beacons do catálogo assinado: `gameLiftPing`, `playFabQoS`, `steamA2S` |
+| Catálogo | 20 jogos hardcoded | Envelope v3 verificado com Ed25519 + validação + resolução de rota |
+| Fase de carga | 1 fluxo de 30 probes cortado em 18/12 | Repouso (30 probes) e carga (30 probes) separados, `/v1/load` concorrente só na segunda |
+| Telemetria Worker | Cliente existe, ninguém chama | `app_open`, `check_started`, `verdict_viewed`, `retest_started` |
+| Release | `proguard-rules.pro` ausente, `targetSdk` 34, `ACCESS_FINE_LOCATION` sem teto | Corrigidos (fast lane) |
+
+### 7.2 Módulos
+```
+android/core/domain    Kotlin puro. Perfis, QualityEvaluator, SampleQuality, SpikePattern,
+                       DeepCheck (carga v2), ResultInterpreter, GameReadinessEvaluator v2.0.
+android/core/catalog   Kotlin puro (kotlinx-serialization). Ed25519 (RFC 8032, verify-only, BigInteger),
+                       envelope, validação do payload, resolução de rota por jogo/plataforma/mercado.
+android/core/network   JVM. Codecs (GameLift/PlayFab/Steam), ProbeLedger, UdpProbeTransport,
+                       WorkerClient (/v1/load, /v1/catalog.json, /v1/telemetry). STUN permanece só como codec legado.
+android/core/telemetry-radio  Android SDK. Inalterado (diferencial de rádio).
+android/core/designsystem     Compose. Inalterado.
+android/app            Composição: ViewModel orquestra catálogo → rota → repouso → carga → veredito.
+```
+Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum módulo JVM importa Android SDK.
+
+### 7.3 Decisões de desenho
+1. **Plataforma "mobile".** O catálogo v3 assinado só conhece `iphone|playstation|xbox|pc|nintendo`. Não temos a chave privada para re-assinar com `android`. O resolvedor Android trata o contexto `iphone` como o contexto de celular. Impacto: nenhum, pois as rotas de celular são as mesmas `awsFallback sa-east-1`. Quando o catálogo ganhar `android`, o resolvedor prefere o contexto exato.
+2. **Ed25519 sem dependência.** `Signature.getInstance("Ed25519")` só existe no Android 13+, e o `minSdk` é 26. Implementação verify-only em Kotlin puro, validada contra os vetores do RFC 8032 e contra o envelope real do Worker. Zero SDK novo.
+3. **Base embarcada + atualização diária**, igual ao iOS (`RemoteCatalogRepository`): envelope v3 vai em `assets/`, cache em arquivo, uma tentativa de refresh por dia, falha mantém o catálogo válido.
+4. **Sem rota ativa, sem medição.** Rota `gameOwned` com status `pending` não é medida. Só `awsFallback` ativa mede, com confiança `medium` (margem de 10% nos guardrails, igual ao iOS).
+5. **Fase 2 (implementada):** banda Wi-Fi por frequência real, voz, NAT/STUN, probe de gateway (DNS/UDP), recomendações por evidência, EN/ES. O gateway **entra** no veredito (Decisão 69). PlatformHealth, favoritos e PDF entregues (Decisão 69). **Fora:** Connection Booster (Gemini com chave no binário: custo e segredo, exige decisão).
+
+### 7.4 Critérios de aceite
+- `./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test` verde (validado neste ambiente com Gradle JVM: 283 testes).
+- Vetores portados dos testes Swift (`QualityEvaluator*`, `SpikePattern`, `SampleQuality`, `ResultInterpreter`, `GameReadinessDomain`, `DeepCheckEvaluator`, `RemoteCatalog`, codecs) passando em Kotlin.
+- Envelope `catalog-v3.envelope.json` real verifica; envelope adulterado, expirado ou com payload alterado é recusado.
+- Transporte UDP exercitado em loopback (eco válido, timeout, resposta inválida, cancelamento sem vazar socket).
+- Módulos Android (`app`, `telemetry-radio`, `designsystem`) **não** são compiláveis no ambiente de CI do agente (Google Maven bloqueado). Estado reportado: *implementado, não compilado*. Compilação e hardware físico ficam com Breno.
+
+## 8. Status do Gate Arquitetural
 - [x] Investigação concluída por Camillo e Iury
 - [x] Plano aprovado por Camillo e alinhado com Marco
 - [x] Infraestrutura do repositório preparada
-- [ ] Implementação de `:core:domain` e `:core:network` em Kotlin
-- [ ] Implementação de `:core:telemetry-radio`
-- [ ] Implementação das telas em Jetpack Compose
-- [ ] Homologação em dispositivos reais por Breno
+- [x] Decisão 68 registrada
+- [x] `:core:domain` readiness-v2.0 — 62 testes JVM (vetores portados do Swift)
+- [x] `:core:catalog` — 61 testes JVM (envelope v3 real do Worker verifica; adulteração, expiração e chave errada recusadas)
+- [x] `:core:network` — 45 testes JVM (UDP real em loopback, codecs byte a byte, Worker via HttpServer local)
+- [x] `:core:session` — 23 testes JVM (orquestrador, planner, telemetria, aderência da prateleira ao catálogo e SHA-256 das artes)
+- [x] Fase 2: banda, voz, NAT, gateway, recomendações, Cockpit real, EN/ES (testes JVM)
+- [~] `:app`, `:core:designsystem`: **type-check** contra as classes reais dos módulos e Compose Multiplatform como substituto (só `R` gerado e 3 classes de rede com API Android nova ficaram de fora). **Não houve build do AGP** (Google Maven bloqueado no ambiente do agente).
+- [ ] Build real do app (`./gradlew :app:assembleDebug`) com AGP 8.9.2, Gradle 8.11.1, compileSdk/targetSdk 36
+- [ ] Homologação em dispositivo real por Breno (rede, background, Wi-Fi↔celular, cancelamento, gateway)
+
+## 9. Pendências e achados que exigem decisão (não são escopo do port)
+
+| # | Achado | Dono sugerido |
+| --- | --- | --- |
+| 1 | **O catálogo v3 embarcado expira em 2026-10-19T15:30Z** (iOS e Android). Precisa de um novo envelope assinado com a chave privada do dono. Android: cache remoto válido já vence base expirada. | Luiz / Iury |
+| 2 | **iOS: `RemoteCatalogRepository.loadedCatalogForLaunch` lança se a base expirou, mesmo com cache remoto válido.** O Kotlin foi corrigido; o Swift não foi tocado. | Rian |
+| 3 | **iOS nunca passa `confidence` ao `GameReadinessEvaluator`** (padrão `.high`): a margem de 10% da Decisão 55 para rota `medium` (todas as rotas ativas hoje) é código morto em produção. O Android replica o iOS (paridade). Decidir se a margem deve valer. | Iury / Marco |
+| 4 | O Worker não aceita `platform=android`/`nintendo` na telemetria. Android envia sem `platform`. Separar Android exige mudar o Worker (nova decisão). | Marco / Camillo |
+| 5 | O catálogo v3 não tem contexto `android`; o Android usa `iphone`. Quando o dono re-assinar, adicionar `android`. | Luiz / Iury |
+| 6 | Telemetria usa o host `giammattey.workers.dev`, enquanto catálogo e carga usam `buildealabs.workers.dev` (espelho do iOS). Confirmar se é intencional. | Iury |
+| 7 | Android 16 ignora `screenOrientation=portrait` em telas grandes (target 36). Layout de tablet/dobrável não foi desenhado. | Renan / Breno |
+| 8 | **Connection Booster** chama a API do Gemini com chave dentro do binário. Fere custo recorrente zero e expõe segredo. Só com decisão do dono do produto (e, se aprovado, via Worker, nunca com chave no app). | Luiz / Camillo |
+| 9 | **PlatformHealth** entregue, mas os endpoints de PSN/Xbox/Nintendo nunca foram acessados (sandbox sem rota). Parsers testados só com payloads do iOS. Conferir os três formatos em rede real; se mudaram, o aviso simplesmente não aparece. | Breno / Iury |
+| 10 | **Gateway no veredito (Decisão 69), sem validação em aparelho.** A consulta DNS com RD=1 pode inflar o RTT e rebaixar o veredito sem culpa do Wi-Fi. O iOS não usa o gateway, então os vereditos podem divergir entre plataformas. Validar em roteadores diferentes; reverter = default de `gatewayInfluencesVerdict`. | Breno / Iury |
+| 11 | **EN/ES novos** (interface e recomendações) foram escritos pelo Android: precisam da revisão de voz do Marco (`docs/07`). | Marco |
+| 12 | **Bug do iOS:** `GameEditorialRegistry` marca `ea-sports-fc-mobile` como híbrido, mas o id do catálogo é `eafc`: a regra de NAT nunca dispara no iOS. O Android cobre os dois ids. | Rian |
+| 13 | **iOS:** recomendação de rota/operadora sai com gateway não observável (`!isDegraded`). O Android exige gateway estável (Decisão 50). | Iury |
+| 14 | Relatório em PDF implementado com `PdfDocument`, mas **nunca gerado de verdade** (só roda no Android). Conferir paginação, quebra de linha e abertura em leitores de PDF no aparelho. | Breno / Renan |
+| 15 | Favoritos (Decisão 57) não existem no Android. | Marco |

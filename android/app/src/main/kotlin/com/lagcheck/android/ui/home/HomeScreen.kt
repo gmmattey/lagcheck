@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.components.HomeTopBar
+import com.lagcheck.android.ui.components.PlatformHealthBanner
+import com.lagcheck.network.health.PlatformHealth
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.RadioSignalPill
 import com.lagcheck.core.designsystem.theme.LagCheckColors
@@ -37,6 +39,7 @@ import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
+import com.lagcheck.android.ui.tr
 
 /**
  * 01 · Home (Modo Pronto).
@@ -55,18 +58,26 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenLatestResult: () -> Unit,
     onOpenNetworkCockpit: () -> Unit = {},
+    /** Problema reportado na rede do console escolhido. Nulo = nada a avisar. */
+    platformHealth: PlatformHealth? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val wifi = radioSnapshot?.wifiDetails
     val radioLabel = when {
         wifi != null -> {
-            val band = if (wifi.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ) "Wi-Fi 2.4 GHz" else "Wi-Fi 5 GHz"
-            val pingEst = latestCheck?.pingMs?.let { " · %.0f ms".format(it) } ?: ""
+            // Banda só quando o sistema informou a frequência. Antes, 6 GHz e "desconhecida" apareciam como "5 GHz".
+            val band = when (wifi.band) {
+                RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ -> "Wi-Fi 2.4 GHz"
+                RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ -> "Wi-Fi 5 GHz"
+                RadioTelemetrySnapshot.WifiBand.BAND_6_GHZ -> "Wi-Fi 6 GHz"
+                RadioTelemetrySnapshot.WifiBand.UNKNOWN -> "Wi-Fi"
+            }
+            val pingEst = latestCheck?.pingMs?.let { " · %.0f ms".format(java.util.Locale.ROOT, it) } ?: ""
             "$band$pingEst"
         }
-        radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.CELLULAR -> "4G/5G · Dados Móveis"
-        else -> "Rede local"
+        radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.CELLULAR -> tr("Dados móveis")
+        else -> tr("Rede local")
     }
     val isRadioWarning = wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ || (wifi?.isSignalCritical == true)
 
@@ -157,11 +168,16 @@ fun HomeScreen(
             )
         }
 
+        if (platformHealth != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PlatformHealthBanner(platformHealth)
+        }
+
         Spacer(modifier = Modifier.height(28.dp))
 
         // 4. CTA Primário: "Checar agora" (62dp, Roxo Gamer #7C3AED, raio 17dp)
         PrimaryButton(
-            text = "Checar agora",
+            text = tr("Checar agora"),
             onClick = onStartCheck,
             height = 62.dp
         )
@@ -174,13 +190,13 @@ fun HomeScreen(
                 GameReadinessVerdict.INCONCLUSIVE -> "—"
             }
             val verdictName = when (item.verdict) {
-                GameReadinessVerdict.READY -> "Pronto para Ranked"
-                GameReadinessVerdict.CAUTION -> "Condições Instáveis"
-                GameReadinessVerdict.NOT_READY -> "Evitaria Ranked Agora"
-                GameReadinessVerdict.INCONCLUSIVE -> "Inconclusivo"
+                GameReadinessVerdict.READY -> tr("Pronto para Ranked")
+                GameReadinessVerdict.CAUTION -> tr("Condições Instáveis")
+                GameReadinessVerdict.NOT_READY -> tr("Evitaria Ranked Agora")
+                GameReadinessVerdict.INCONCLUSIVE -> tr("Inconclusivo")
             }
             "$symbol $verdictName · ${item.formattedDate}"
-        } ?: "— Nenhum check ainda"
+        } ?: tr("— Nenhum check ainda")
 
         val lastColor = when (latestCheck?.verdict) {
             GameReadinessVerdict.READY -> LagCheckColors.Good
@@ -220,7 +236,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Trocar jogo",
+                    text = tr("Trocar jogo"),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LagCheckColors.TextMuted
@@ -244,7 +260,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Histórico",
+                    text = tr("Histórico"),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LagCheckColors.TextMuted

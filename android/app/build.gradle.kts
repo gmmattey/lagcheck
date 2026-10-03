@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.lagcheck.android"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.buildea.lagcheck"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
@@ -46,6 +46,8 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:network"))
+    implementation(project(":core:catalog"))
+    implementation(project(":core:session"))
     implementation(project(":core:telemetry-radio"))
     implementation(project(":core:designsystem"))
 

@@ -10,6 +10,7 @@ import androidx.core.content.FileProvider
 import com.lagcheck.domain.model.GameReadinessVerdict
 import java.io.File
 import java.io.FileOutputStream
+import com.lagcheck.android.ui.tr
 
 /**
  * Gerador do Card Viral de Alta Fidelidade para Discord, WhatsApp e Redes Sociais no Android.
@@ -21,10 +22,10 @@ object LagCheckDiscordCardExporter {
 
     fun gamerQuote(verdict: GameReadinessVerdict): String {
         return when (verdict) {
-            GameReadinessVerdict.READY -> "“Minha rota tá lisa. Bora puxar a fila.”"
-            GameReadinessVerdict.CAUTION -> "“Minha rota tá instável, pode ter delay nos tiros.”"
-            GameReadinessVerdict.NOT_READY -> "“Boneco tá sendo puxado pra trás. Não dá pra jogar ranked agora.”"
-            GameReadinessVerdict.INCONCLUSIVE -> "“Medição inconclusiva, vou testar de novo.”"
+            GameReadinessVerdict.READY -> tr("“Minha rota tá lisa. Bora puxar a fila.”")
+            GameReadinessVerdict.CAUTION -> tr("“Minha rota tá instável, pode ter delay nos tiros.”")
+            GameReadinessVerdict.NOT_READY -> tr("“Boneco tá sendo puxado pra trás. Não dá pra jogar ranked agora.”")
+            GameReadinessVerdict.INCONCLUSIVE -> tr("“Medição inconclusiva, vou testar de novo.”")
         }
     }
 
@@ -77,10 +78,10 @@ object LagCheckDiscordCardExporter {
             textSize = 15f
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         }
-        canvas.drawText("● ATESTADO OFICIAL DE ROTA", 250f, 96f, tagPaint)
+        canvas.drawText(tr("● ATESTADO OFICIAL DE ROTA"), 250f, 96f, tagPaint)
 
         // Subtítulo da conexão
-        val connType = if (isWiFi) "WI-FI OBSERVADO NO DISPOSITIVO" else "DADOS MÓVEIS OBSERVADOS"
+        val connType = if (isWiFi) tr("WI-FI OBSERVADO NO DISPOSITIVO") else tr("DADOS MÓVEIS OBSERVADOS")
         val subPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = android.graphics.Color.argb(160, 255, 255, 255)
             textSize = 14f
@@ -97,10 +98,10 @@ object LagCheckDiscordCardExporter {
 
         // 4. Veredito Central Gigante
         val (verdictText, verdictColorHex) = when (verdict) {
-            GameReadinessVerdict.READY -> "● PRONTO PARA RANKED" to "#22C55E"
-            GameReadinessVerdict.CAUTION -> "▲ INSTÁVEL: PODE TER DELAY" to "#F59E0B"
-            GameReadinessVerdict.NOT_READY -> "■ EVITE JOGAR RANKED AGORA" to "#FF5A36"
-            GameReadinessVerdict.INCONCLUSIVE -> "— RESULTADO INCONCLUSIVO" to "#8A93A0"
+            GameReadinessVerdict.READY -> tr("● PRONTO PARA RANKED") to "#22C55E"
+            GameReadinessVerdict.CAUTION -> tr("▲ INSTÁVEL: PODE TER DELAY") to "#F59E0B"
+            GameReadinessVerdict.NOT_READY -> tr("■ EVITE JOGAR RANKED AGORA") to "#FF5A36"
+            GameReadinessVerdict.INCONCLUSIVE -> tr("— RESULTADO INCONCLUSIVO") to "#8A93A0"
         }
 
         val verdictPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -122,14 +123,14 @@ object LagCheckDiscordCardExporter {
         val teleY = 330f
         val colWidth = (width - 150f) / 3f
 
-        val pingStr = pingMs?.let { "%.0f ms".format(it) } ?: "—"
-        val jitterStr = jitterMs?.let { "%.1f ms".format(it) } ?: "—"
-        val lossStr = packetLossPercentage?.let { "%.1f%%".format(it) } ?: "—"
+        val pingStr = pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "—"
+        val jitterStr = jitterMs?.let { "%.1f ms".format(java.util.Locale.ROOT, it) } ?: "—"
+        val lossStr = packetLossPercentage?.let { "%.1f%%".format(java.util.Locale.ROOT, it) } ?: "—"
 
         val metrics = listOf(
-            Triple("LATÊNCIA (PING)", pingStr, if ((pingMs ?: 999.0) <= 40) verdictColorHex else "#FFFFFF"),
-            Triple("OSCILAÇÃO (JITTER)", jitterStr, if ((jitterMs ?: 999.0) <= 4.0) verdictColorHex else "#F59E0B"),
-            Triple("PERDA DE PACOTES", lossStr, if ((packetLossPercentage ?: 999.0) == 0.0) verdictColorHex else "#FF5A36")
+            Triple(tr("LATÊNCIA (PING)"), pingStr, if ((pingMs ?: 999.0) <= 40) verdictColorHex else "#FFFFFF"),
+            Triple(tr("OSCILAÇÃO (JITTER)"), jitterStr, if ((jitterMs ?: 999.0) <= 4.0) verdictColorHex else "#F59E0B"),
+            Triple(tr("PERDA DE PACOTES"), lossStr, if ((packetLossPercentage ?: 999.0) == 0.0) verdictColorHex else "#FF5A36")
         )
 
         for ((index, item) in metrics.withIndex()) {
@@ -172,9 +173,9 @@ object LagCheckDiscordCardExporter {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             }
             val subText = when (index) {
-                0 -> "medido via UDP em repouso"
-                1 -> "desvio padrão de estabilidade"
-                else -> "sob estresse de tráfego"
+                0 -> tr("mediana em repouso, via UDP")
+                1 -> tr("variação entre pacotes seguidos")
+                else -> tr("perda no teste em repouso")
             }
             canvas.drawText(subText, colX + 20f, teleY + 138f, honestyPaint)
         }
@@ -185,7 +186,7 @@ object LagCheckDiscordCardExporter {
             textSize = 13f
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
         }
-        canvas.drawText("lagcheck.app · Medição real determinística · Sem notas inventadas", 75f, height - 70f, footerPaint)
+        canvas.drawText(tr("lagcheck.app · Medição real determinística · Sem notas inventadas"), 75f, height - 70f, footerPaint)
 
         // Salvar imagem no cache para compartilhamento seguro
         return try {
