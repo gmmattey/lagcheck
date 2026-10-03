@@ -41,6 +41,8 @@ import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
+import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 
 /**
  * 04 · Veredito.
@@ -77,35 +79,37 @@ fun VerdictScreen(
         GameReadinessVerdict.INCONCLUSIVE -> "—"
     }
 
-    val pingText = evaluation.pingMs?.let { "%.0f ms".format(it) } ?: "— ms"
-    val jitterText = evaluation.jitterMs?.let { "%.0f ms jitter".format(it) } ?: "— ms jitter"
-    val lossText = evaluation.packetLossPercentage?.let { "%.1f%% perda".format(it) } ?: "— perda"
+    val pingText = evaluation.pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms"
+    val jitterText = evaluation.jitterMs?.let { trf("%.0f ms jitter", it) } ?: tr("— ms jitter")
+    val lossText = evaluation.packetLossPercentage?.let { trf("%.1f%% perda", it) } ?: tr("— perda")
+    val regionLabel = evaluation.regionLabel.ifEmpty { "São Paulo" }
 
-    // Razão de estabilidade para a barra contínua (0.0 a 1.0)
-    val stabilityRatio = when (evaluation.verdict) {
+    // Barra de estabilidade: valor e texto vêm do domínio. Só resultado reaberto do histórico (que guarda apenas o
+    // veredito) usa um padrão por veredito, e então o texto não afirma nada além dele.
+    val stabilityRatio = evaluation.stabilityRatio?.toFloat() ?: when (evaluation.verdict) {
         GameReadinessVerdict.READY -> 0.95f
         GameReadinessVerdict.CAUTION -> 0.65f
         GameReadinessVerdict.NOT_READY -> 0.25f
         GameReadinessVerdict.INCONCLUSIVE -> 0.10f
     }
 
-    val stabilitySummary = when (evaluation.verdict) {
-        GameReadinessVerdict.READY -> "Excelente sob carga"
-        GameReadinessVerdict.CAUTION -> "Oscilações detectadas"
-        GameReadinessVerdict.NOT_READY -> "Gargalo severo sob carga"
-        GameReadinessVerdict.INCONCLUSIVE -> "Amostras insuficientes"
+    val stabilitySummary = evaluation.stabilitySummary ?: when (evaluation.verdict) {
+        GameReadinessVerdict.READY -> tr("Estável")
+        GameReadinessVerdict.CAUTION -> tr("Oscilações detectadas")
+        GameReadinessVerdict.NOT_READY -> tr("Instável")
+        GameReadinessVerdict.INCONCLUSIVE -> tr("Amostras insuficientes")
     }
 
     fun shareToDiscord() {
         val cardFile = LagCheckDiscordCardExporter.generateDiscordShareCard(
             context = context,
             gameName = game.name,
-            regionName = "São Paulo",
+            regionName = regionLabel,
             verdict = evaluation.verdict,
             pingMs = evaluation.pingMs,
             jitterMs = evaluation.jitterMs,
             packetLossPercentage = evaluation.packetLossPercentage,
-            isWiFi = true
+            isWiFi = evaluation.connectionType.contains("Wi-Fi", ignoreCase = true)
         )
         val quote = LagCheckDiscordCardExporter.gamerQuote(evaluation.verdict)
         val shareText = "🎮 LagCheck · ${game.name}\n$quote\nhttps://lagcheck.app"
@@ -113,7 +117,7 @@ fun VerdictScreen(
         // Copiar texto para o clipboard para facilidade no Discord
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("LagCheck Discord", shareText))
-        Toast.makeText(context, "Texto copiado para colar no Discord!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, tr("Texto copiado para colar no Discord!"), Toast.LENGTH_SHORT).show()
 
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = if (cardFile != null) "image/png" else "text/plain"
@@ -124,25 +128,25 @@ fun VerdictScreen(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Compartilhar no Discord"))
+        context.startActivity(Intent.createChooser(shareIntent, tr("Compartilhar no Discord")))
     }
 
     fun shareToWhatsApp() {
         val cardFile = LagCheckDiscordCardExporter.generateDiscordShareCard(
             context = context,
             gameName = game.name,
-            regionName = "São Paulo",
+            regionName = regionLabel,
             verdict = evaluation.verdict,
             pingMs = evaluation.pingMs,
             jitterMs = evaluation.jitterMs,
             packetLossPercentage = evaluation.packetLossPercentage,
-            isWiFi = true
+            isWiFi = evaluation.connectionType.contains("Wi-Fi", ignoreCase = true)
         )
         val quote = LagCheckDiscordCardExporter.gamerQuote(evaluation.verdict)
         val whatsappText = """
             🎮 *LagCheck — ${game.name}*
-            *Veredito:* ${evaluation.headline}
-            ⏱ *Ping:* $pingText | *Jitter:* $jitterText | *Perda:* $lossText
+            *${tr("Veredito")}:* ${evaluation.headline}
+            ⏱ *Ping:* $pingText | *Jitter:* $jitterText | *${tr("Perda")}:* $lossText
             $quote
             https://lagcheck.app
         """.trimIndent()
@@ -156,38 +160,38 @@ fun VerdictScreen(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Enviar via WhatsApp"))
+        context.startActivity(Intent.createChooser(shareIntent, tr("Enviar via WhatsApp")))
     }
 
     fun exportPDF() {
         val report = """
             ====================================
-            LAGCHECK · RELATÓRIO OFICIAL DE ROTA
+            LAGCHECK · ${tr("RELATÓRIO DE ROTA")}
             ====================================
-            Jogo: ${game.name}
-            Plataforma: ${evaluation.platform}
-            Região: São Paulo
-            Veredito: ${evaluation.headline}
+            ${tr("Jogo")}: ${game.name}
+            ${tr("Plataforma")}: ${evaluation.platform}
+            ${tr("Região")}: $regionLabel
+            ${tr("Veredito")}: ${evaluation.headline}
             Lagcheck Score: ${evaluation.score}
 
-            TELEMETRIA:
-            • Latência P50: $pingText
-            • Oscilação (Jitter): $jitterText
-            • Perda de Pacotes: $lossText
-            • Pior Spike: ${evaluation.worstSpikeMs?.let { "%.0f ms".format(it) } ?: "—"}
+            ${tr("TELEMETRIA")}:
+            • ${tr("Latência P50")}: $pingText
+            • ${tr("Oscilação (Jitter)")}: $jitterText
+            • ${tr("Perda de Pacotes")}: $lossText
+            • ${tr("Pior spike")}: ${evaluation.worstSpikeMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "—"}
 
-            ORIGEM DA EVIDÊNCIA:
-            • O que mais pesou: ${evaluation.primaryWeight}
+            ${tr("O QUE MAIS PESOU")}:
+            • ${evaluation.primaryWeight}
             
             https://lagcheck.app
         """.trimIndent()
 
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Relatório LagCheck - ${game.name}")
+            putExtra(Intent.EXTRA_SUBJECT, trf("Relatório LagCheck - %s", game.name))
             putExtra(Intent.EXTRA_TEXT, report)
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Exportar Relatório"))
+        context.startActivity(Intent.createChooser(shareIntent, tr("Exportar Relatório")))
     }
 
     Column(
@@ -213,14 +217,14 @@ fun VerdictScreen(
                     .padding(horizontal = 7.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "Fechar",
+                    text = tr("Fechar"),
                     fontSize = 14.sp,
                     color = LagCheckColors.TextMuted
                 )
             }
 
             Text(
-                text = "${game.name} · ${evaluation.platform} · São Paulo",
+                text = "${game.name} · ${evaluation.platform} · $regionLabel",
                 style = LagCheckTypography.MonoData,
                 color = LagCheckColors.TextMuted
             )
@@ -230,7 +234,7 @@ fun VerdictScreen(
 
         // 2. Kicker: RESULTADO DO CHECK (11px mono uppercase)
         Text(
-            text = "RESULTADO DO CHECK",
+            text = tr("RESULTADO DO CHECK"),
             style = LagCheckTypography.MonoKicker,
             color = LagCheckColors.TextMuted
         )
@@ -257,9 +261,9 @@ fun VerdictScreen(
 
         Spacer(modifier = Modifier.height(19.dp))
 
-        // 4. Result Copy ("Sua conexão está estável o suficiente para [Game] agora.")
+        // 4. Frase do veredito, vinda do domínio (antes era um texto fixo "conexão estável" mesmo sob "EVITARIA RANKED")
         Text(
-            text = "Sua conexão está estável o suficiente para ${game.name} agora.",
+            text = evaluation.subtitle,
             style = LagCheckTypography.BodySemibold,
             color = LagCheckColors.TextPrimary
         )
@@ -306,14 +310,16 @@ fun VerdictScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "ESTABILIDADE DA ROTA",
+                    text = tr("ESTABILIDADE DA ROTA"),
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
                 Text(
                     text = stabilitySummary,
                     fontSize = 12.sp,
-                    color = LagCheckColors.TextSecondary
+                    color = LagCheckColors.TextSecondary,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    modifier = Modifier.weight(1f).padding(start = 12.dp)
                 )
             }
 
@@ -347,7 +353,7 @@ fun VerdictScreen(
         ) {
             Column {
                 Text(
-                    text = "O QUE MAIS PESOU",
+                    text = tr("O QUE MAIS PESOU"),
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
@@ -369,7 +375,7 @@ fun VerdictScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             PrimaryButton(
-                text = "Testar novamente",
+                text = tr("Testar novamente"),
                 onClick = onRetry,
                 height = 56.dp
             )
@@ -384,7 +390,7 @@ fun VerdictScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Ver detalhes",
+                    text = tr("Ver detalhes"),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = LagCheckColors.TextPrimary
@@ -465,7 +471,7 @@ fun VerdictScreen(
                     ) {
                         PdfDocumentIcon(size = 14.dp, color = LagCheckColors.TextSecondary)
                         Text(
-                            text = "PDF",
+                            text = tr("Relatório"),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = LagCheckColors.TextPrimary

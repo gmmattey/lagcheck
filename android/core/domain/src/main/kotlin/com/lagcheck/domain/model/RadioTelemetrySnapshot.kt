@@ -8,7 +8,9 @@ data class RadioTelemetrySnapshot(
     val transportType: TransportType,
     val wifiDetails: WifiDetails? = null,
     val cellularDetails: CellularDetails? = null,
-    val gatewayAddress: String? = null
+    val gatewayAddress: String? = null,
+    /** IPv4 local do aparelho na rede ativa (usado para classificar NAT). Nunca persistido nem enviado. */
+    val localAddress: String? = null
 ) {
     enum class TransportType {
         WIFI,

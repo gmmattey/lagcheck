@@ -9,6 +9,7 @@ import com.lagcheck.android.data.HistoryRepository
 import com.lagcheck.android.data.NetworkPathWatcher
 import com.lagcheck.android.data.PreferencesRepository
 import com.lagcheck.android.data.PrefsInstallationIdStore
+import com.lagcheck.android.data.toAppLanguage
 import com.lagcheck.catalog.CatalogPayload
 import com.lagcheck.catalog.RemoteCatalogRepository
 import com.lagcheck.core.telemetry.radio.AndroidRadioTelemetryProvider
@@ -22,7 +23,11 @@ import com.lagcheck.domain.presentation.ReadinessPresenter
 import com.lagcheck.network.transport.UdpProbeTransport
 import com.lagcheck.network.worker.HttpCatalogFetcher
 import com.lagcheck.network.worker.HttpLoadTransport
+import com.lagcheck.session.CheckEnvironment
 import com.lagcheck.session.CheckOrchestrator
+import com.lagcheck.session.LocalDiagnostics
+import com.lagcheck.session.LocalNetworkReport
+import com.lagcheck.session.LocalNetworkReporter
 import com.lagcheck.session.CheckPhase
 import com.lagcheck.session.MeasurementPlanner
 import com.lagcheck.session.PlanResult
@@ -40,6 +45,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/** Por que um check foi cancelado. A tela diz a verdade sobre o motivo em vez de sempre dizer "a conexão mudou". */
+enum class CancelReason { NETWORK_CHANGED, BACKGROUND, POOR_QUALITY, UNAVAILABLE }
+
+fun CancelReason?.headline(): String = when (this) {
+    null, CancelReason.NETWORK_CHANGED -> "A conexão mudou."
+    CancelReason.BACKGROUND -> "O teste foi interrompido."
+    CancelReason.POOR_QUALITY -> "Sem resposta suficiente do servidor."
+    CancelReason.UNAVAILABLE -> "Rota indisponível agora."
+}
+
 sealed class Screen {
     data object Home : Screen()
     data object GameSelection : Screen()
@@ -51,7 +66,9 @@ sealed class Screen {
         val currentPingMs: Double? = null,
         val isPhaseRest: Boolean = true,
         val isCancelled: Boolean = false,
-        val showMobileDataConsent: Boolean = false
+        val showMobileDataConsent: Boolean = false,
+        val cancelReason: CancelReason? = null,
+        val destinationName: String = ""
     ) : Screen()
     data class Verdict(
         val game: CatalogGame,
@@ -70,7 +87,9 @@ sealed class Screen {
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val radioTelemetryProvider = AndroidRadioTelemetryProvider(application)
-    private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport())
+    private val localDiagnostics = LocalDiagnostics()
+    private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport(), localDiagnostics)
+    private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
 
@@ -110,6 +129,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _liveRadioTelemetry = MutableStateFlow<RadioTelemetrySnapshot?>(null)
     val liveRadioTelemetry: StateFlow<RadioTelemetrySnapshot?> = _liveRadioTelemetry.asStateFlow()
 
+    private val _localReport = MutableStateFlow<LocalNetworkReport?>(null)
+    /** Leitura local do Cockpit (gateway, NAT, banda, voz). Nulo enquanto mede. */
+    val localReport: StateFlow<LocalNetworkReport?> = _localReport.asStateFlow()
+
+    private var localReportJob: Job? = null
     private var measurementJob: Job? = null
     private var hasConsentedMobileData: Boolean = false
     private var nextStartIsRetest: Boolean = false
@@ -140,15 +164,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun navigateTo(screen: Screen) {
         _currentScreen.value = screen
+        if (screen is Screen.NetworkCockpit) refreshLocalReport()
+    }
+
+    /** O que o aparelho sabe do ambiente local agora, vindo só do sistema operacional. */
+    private fun environmentOf(radio: RadioTelemetrySnapshot?) = CheckEnvironment(
+        isWiFi = radio?.transportType == RadioTelemetrySnapshot.TransportType.WIFI,
+        gatewayAddress = radio?.gatewayAddress,
+        localIp = radio?.localAddress,
+        wifiRadio = radio?.wifiDetails
+    )
+
+    /** Mede gateway e NAT ao abrir o Cockpit (3 amostras no gateway, 2 consultas STUN). */
+    private fun refreshLocalReport() {
+        localReportJob?.cancel()
+        refreshRadioTelemetry()
+        val env = environmentOf(_liveRadioTelemetry.value)
+        _localReport.value = null
+        localReportJob = viewModelScope.launch(Dispatchers.IO) {
+            _localReport.value = runCatching { localReporter.capture(env) }.getOrNull()
+        }
     }
 
     fun selectGame(game: CatalogGame, platform: String, connectionType: String) {
         _selectedGame.value = game
         _selectedPlatform.value = platform
-        _selectedConnectionType.value = connectionType
+        // A conexão não é escolha da pessoa: vem do sistema (`refreshRadioTelemetry`). O parâmetro fica por compatibilidade.
         preferencesRepository.setSelectedGame(game.id)
         preferencesRepository.setSelectedPlatform(platform)
-        preferencesRepository.setSelectedConnectionType(connectionType)
     }
 
     fun setLanguage(lang: String) {
@@ -160,7 +203,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshRadioTelemetry() {
-        _liveRadioTelemetry.value = radioTelemetryProvider.captureCurrentSnapshot()
+        val snapshot = radioTelemetryProvider.captureCurrentSnapshot()
+        _liveRadioTelemetry.value = snapshot
+        _selectedConnectionType.value = observedConnectionLabel(snapshot)
+    }
+
+    /** Conexão em uso, lida do sistema. Nunca vem de preferência da pessoa. */
+    private fun observedConnectionLabel(radio: RadioTelemetrySnapshot?): String = when (radio?.transportType) {
+        RadioTelemetrySnapshot.TransportType.WIFI -> "Wi-Fi"
+        RadioTelemetrySnapshot.TransportType.CELLULAR -> "Dados móveis"
+        RadioTelemetrySnapshot.TransportType.ETHERNET -> "Ethernet"
+        else -> "—"
     }
 
     fun startCheck(
@@ -171,23 +224,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         selectGame(targetGame, platform, connectionType)
         refreshRadioTelemetry()
         val radioSnapshot = _liveRadioTelemetry.value
+        val observedConnection = observedConnectionLabel(radioSnapshot)
 
-        val isMobile = connectionType.contains("4G", ignoreCase = true) ||
-                connectionType.contains("5G", ignoreCase = true) ||
-                radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.CELLULAR
+        // O aviso de dados móveis depende do que o sistema reporta, não do que foi escolhido na tela.
+        val isMobile = radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.CELLULAR
 
         // Se for conexão móvel e ainda não confirmou consentimento de dados, exibe sheet
         if (isMobile && !hasConsentedMobileData) {
             _currentScreen.value = Screen.Measurement(
                 game = targetGame,
                 platform = platform,
-                connectionType = connectionType,
+                connectionType = observedConnection,
                 showMobileDataConsent = true
             )
             return
         }
 
-        executeActualCheck(targetGame, platform, connectionType, radioSnapshot)
+        executeActualCheck(targetGame, platform, observedConnection, radioSnapshot)
     }
 
     fun confirmMobileDataAndStart() {
@@ -203,6 +256,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         radioSnapshot: RadioTelemetrySnapshot?
     ) {
         measurementJob?.cancel()
+        hasConsentedMobileData = false // o consentimento vale para esta sessão de medição, não para as próximas
 
         val isRetest = nextStartIsRetest
         nextStartIsRetest = false
@@ -211,20 +265,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         measurementJob = viewModelScope.launch {
             val job = this.coroutineContext[Job]
+            var destinationLabel = ""
             fun measuring(ratio: Float, ping: Double?, rest: Boolean) {
                 // Eventos tardios de um check já cancelado não podem sobrescrever a tela atual.
                 if (job?.isActive == true) {
                     _currentScreen.value = Screen.Measurement(
                         game = targetGame, platform = platform, connectionType = connectionType,
                         progressRatio = ratio.coerceIn(0.04f, 1f), currentPingMs = ping, isPhaseRest = rest,
-                        isCancelled = false, showMobileDataConsent = false
+                        isCancelled = false, showMobileDataConsent = false, destinationName = destinationLabel
                     )
                 }
             }
-            fun cancelledScreen() {
+            fun cancelledScreen(reason: CancelReason) {
                 _currentScreen.value = Screen.Measurement(
                     game = targetGame, platform = platform, connectionType = connectionType,
-                    isCancelled = true, showMobileDataConsent = false
+                    isCancelled = true, showMobileDataConsent = false, cancelReason = reason
                 )
             }
 
@@ -234,27 +289,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val plan = if (payload == null) null else MeasurementPlanner.plan(payload, targetGame.id, platform)
             if (payload == null || plan !is PlanResult.Ready) {
                 // Sem catálogo válido ou sem rota ativa: não há destino confiável, então não existe nota nem fallback.
-                cancelledScreen()
+                cancelledScreen(CancelReason.UNAVAILABLE)
                 return@launch
             }
+            val regionLabel = payload.regions.firstOrNull { it.id == plan.context.regionId }
+                ?.label?.get(readinessLanguage().catalogLabelKey()) ?: plan.context.regionId
+            destinationLabel = regionLabel
 
             // Troca de rede durante a medição descarta o resultado parcial.
-            pathWatcher.start { viewModelScope.launch { if (job?.isActive == true) { job?.cancel(); cancelledScreen() } } }
+            pathWatcher.start { viewModelScope.launch { if (job?.isActive == true) { job?.cancel(); cancelledScreen(CancelReason.NETWORK_CHANGED) } } }
             try {
                 var lastPing: Double? = null
-                val result = orchestrator.run(plan.context) { p ->
+                val result = orchestrator.run(plan.context, environmentOf(radioSnapshot)) { p ->
                     if (p.latestPingMs != null) lastPing = p.latestPingMs
                     measuring(p.ratio, lastPing, p.phase == CheckPhase.REST)
                 }
 
                 // Conexão que caiu no meio (watchdog) é cancelamento por integridade, não veredito.
                 if (result.abortReason != null) {
-                    cancelledScreen()
+                    cancelledScreen(CancelReason.POOR_QUALITY)
                     return@launch
                 }
 
-                val route = payload.regions.firstOrNull { it.id == plan.context.regionId }
-                val regionLabel = route?.label?.get("pt-BR") ?: plan.context.regionId
                 val evaluation = ReadinessPresenter.present(
                     assessment = result.assessment,
                     language = readinessLanguage(),
@@ -263,7 +319,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     destinationName = "$regionLabel · rota regional de referência",
                     confidence = plan.context.confidence,
                     latencySeries = result.latencySeries,
-                    radio = radioSnapshot
+                    radio = radioSnapshot,
+                    regionLabel = regionLabel,
+                    // Onde a fase sob carga começa na série. Sem carga medida, não há trecho "sob carga" para rotular.
+                    loadStartIndex = if (result.loadMeasured) result.restSamples.count { it.isValidResponse } else null
                 )
 
                 // Só resultado concluído entra no histórico (inconclusivo não vira registro, como no iOS).
@@ -278,10 +337,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun readinessLanguage(): ReadinessLanguage = when {
-        language.value.contains("English", ignoreCase = true) -> ReadinessLanguage.EN
-        language.value.contains("Español", ignoreCase = true) -> ReadinessLanguage.ES
-        else -> ReadinessLanguage.PT_BR
+    private fun readinessLanguage(): ReadinessLanguage = language.value.toAppLanguage()
+
+    /** Chave do idioma nos rótulos de região do catálogo (`pt-BR`, `en`, `es`). */
+    private fun ReadinessLanguage.catalogLabelKey(): String = when (this) {
+        ReadinessLanguage.PT_BR -> "pt-BR"
+        ReadinessLanguage.EN -> "en"
+        ReadinessLanguage.ES -> "es"
     }
 
     /** Fechar o app ou ir para segundo plano durante a medição descarta o resultado parcial. */
@@ -290,7 +352,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (screen is Screen.Measurement && !screen.isCancelled && !screen.showMobileDataConsent) {
             measurementJob?.cancel()
             pathWatcher.stop()
-            _currentScreen.value = screen.copy(isCancelled = true)
+            _currentScreen.value = screen.copy(isCancelled = true, cancelReason = CancelReason.BACKGROUND)
         }
     }
 
@@ -315,13 +377,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val game = OfficialGameCatalog.findById(check.gameId)
         val evaluation = GameReadinessEvaluation(
             verdict = check.verdict,
-            headline = when (check.verdict) {
-                com.lagcheck.domain.model.GameReadinessVerdict.READY -> "PRONTO PARA RANKED"
-                com.lagcheck.domain.model.GameReadinessVerdict.CAUTION -> "CONDIÇÕES INSTÁVEIS"
-                com.lagcheck.domain.model.GameReadinessVerdict.NOT_READY -> "EU EVITARIA RANKED AGORA"
-                com.lagcheck.domain.model.GameReadinessVerdict.INCONCLUSIVE -> "DADOS INSUFICIENTES"
-            },
-            subtitle = "Sua conexão está estável o suficiente para ${game.name} agora.",
+            headline = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).first,
+            subtitle = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).second,
             score = check.score,
             primaryWeight = check.primaryWeight,
             suitableUses = check.suitableUses,
@@ -343,13 +400,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val game = OfficialGameCatalog.findById(check.gameId)
         val evaluation = GameReadinessEvaluation(
             verdict = check.verdict,
-            headline = when (check.verdict) {
-                com.lagcheck.domain.model.GameReadinessVerdict.READY -> "PRONTO PARA RANKED"
-                com.lagcheck.domain.model.GameReadinessVerdict.CAUTION -> "CONDIÇÕES INSTÁVEIS"
-                com.lagcheck.domain.model.GameReadinessVerdict.NOT_READY -> "EU EVITARIA RANKED AGORA"
-                com.lagcheck.domain.model.GameReadinessVerdict.INCONCLUSIVE -> "DADOS INSUFICIENTES"
-            },
-            subtitle = "Sua conexão está estável o suficiente para ${game.name} agora.",
+            headline = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).first,
+            subtitle = ReadinessPresenter.verdictCopy(check.verdict, readinessLanguage()).second,
             score = check.score,
             primaryWeight = check.primaryWeight,
             suitableUses = check.suitableUses,

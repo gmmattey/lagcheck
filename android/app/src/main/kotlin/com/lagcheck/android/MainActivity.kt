@@ -9,9 +9,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.lagcheck.android.data.toAppLanguage
+import com.lagcheck.android.ui.AppLocale
 import com.lagcheck.android.ui.MainViewModel
 import com.lagcheck.android.ui.Screen
 import com.lagcheck.android.ui.check.CheckCockpitScreen
@@ -38,6 +41,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Idioma inicial já na primeira composição (sem piscar em PT-BR antes de trocar).
+        AppLocale.language = viewModel.language.value.toAppLanguage()
+
         setContent {
             val currentScreen by viewModel.currentScreen.collectAsState()
             val selectedGame by viewModel.selectedGame.collectAsState()
@@ -46,7 +52,9 @@ class MainActivity : ComponentActivity() {
             val historyItems by viewModel.historyItems.collectAsState()
             val latestCheck by viewModel.latestCheck.collectAsState()
             val language by viewModel.language.collectAsState()
+            SideEffect { AppLocale.language = language.toAppLanguage() }
             val radioSnapshot by viewModel.liveRadioTelemetry.collectAsState()
+            val localReport by viewModel.localReport.collectAsState()
 
             // Back button handling nativo conforme a tela
             BackHandler(enabled = currentScreen !is Screen.Home) {
@@ -110,6 +118,7 @@ class MainActivity : ComponentActivity() {
 
                     is Screen.GameSelection -> {
                         GameSelectionScreen(
+                            recentChecks = historyItems,
                             onBack = {
                                 viewModel.navigateTo(Screen.Home)
                             },
@@ -137,6 +146,8 @@ class MainActivity : ComponentActivity() {
                             isPhaseRest = screen.isPhaseRest,
                             isWiFi = screen.connectionType.contains("Wi-Fi", ignoreCase = true),
                             isCancelled = screen.isCancelled,
+                            cancelReason = screen.cancelReason,
+                            destinationName = screen.destinationName,
                             showMobileDataConsent = screen.showMobileDataConsent,
                             onCancel = {
                                 viewModel.cancelCheck()
@@ -218,6 +229,8 @@ class MainActivity : ComponentActivity() {
                     is Screen.NetworkCockpit -> {
                         NetworkCockpitScreen(
                             radioSnapshot = radioSnapshot,
+                            report = localReport,
+                            language = language.toAppLanguage(),
                             onClose = {
                                 viewModel.navigateTo(Screen.Home)
                             }

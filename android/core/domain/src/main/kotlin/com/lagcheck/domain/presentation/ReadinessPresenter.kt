@@ -25,6 +25,8 @@ object ReadinessPresenter {
         confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
         latencySeries: List<Double> = emptyList(),
         radio: RadioTelemetrySnapshot? = null,
+        regionLabel: String = "",
+        loadStartIndex: Int? = null,
         timestamp: Long = System.currentTimeMillis()
     ): GameReadinessEvaluation {
         val table = table(language)
@@ -52,14 +54,39 @@ object ReadinessPresenter {
             connectionType = connectionType,
             destinationName = destinationName,
             confidence = when (confidence) {
-                MeasurementConfidence.HIGH -> "alta"
-                MeasurementConfidence.MEDIUM -> "boa"
+                MeasurementConfidence.HIGH -> when (language) { ReadinessLanguage.PT_BR -> "alta"; ReadinessLanguage.EN -> "high"; ReadinessLanguage.ES -> "alta" }
+                MeasurementConfidence.MEDIUM -> when (language) { ReadinessLanguage.PT_BR -> "média"; ReadinessLanguage.EN -> "medium"; ReadinessLanguage.ES -> "media" }
             },
             timestamp = timestamp,
             radioTelemetry = radio,
-            recommendations = assessment.recommendations.map { RecommendationCopy.localize(it.key, language) }
+            recommendations = assessment.recommendations.map { RecommendationCopy.localize(it.key, language) },
+            stabilityRatio = assessment.stabilityRatio,
+            stabilitySummary = t(assessment.stabilitySummaryKey),
+            regionLabel = regionLabel,
+            loadStartIndex = loadStartIndex
         )
     }
+
+    /**
+     * Texto de um resultado reaberto do histórico, que guarda só o veredito. Genérico por veredito: não afirma
+     * nada além dele (o texto específico, como "perda de pacotes", só existe na hora da medição).
+     */
+    fun verdictCopy(verdict: GameReadinessVerdict, language: ReadinessLanguage): Pair<String, String> {
+        val table = table(language)
+        val (headline, subtitle) = when (verdict) {
+            GameReadinessVerdict.READY -> "game_readiness.verdict.ready.headline" to "game_readiness.verdict.ready.stable"
+            GameReadinessVerdict.CAUTION -> "game_readiness.verdict.caution.headline" to "game_readiness.verdict.caution.general"
+            GameReadinessVerdict.NOT_READY -> "game_readiness.verdict.not_ready.headline" to "game_readiness.verdict.not_ready.risk"
+            GameReadinessVerdict.INCONCLUSIVE -> "game_readiness.verdict.inconclusive.headline" to "game_readiness.verdict.inconclusive.subtitle"
+        }
+        return (table[headline] ?: headline) to (table[subtitle] ?: subtitle)
+    }
+
+    /** Nome localizado do tipo de NAT (mesmas chaves do iOS). */
+    fun natLabel(type: com.lagcheck.domain.model.NatType, language: ReadinessLanguage): String = table(language)[type.titleKey] ?: type.shortLabel
+
+    /** Texto localizado de uma chave `network.band.*` do iOS. */
+    fun bandText(key: String, language: ReadinessLanguage): String = table(language)[key] ?: key
 
     private fun table(language: ReadinessLanguage) = when (language) {
         ReadinessLanguage.PT_BR -> ReadinessCopyTable.pt_br

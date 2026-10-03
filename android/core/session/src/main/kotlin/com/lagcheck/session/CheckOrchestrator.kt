@@ -59,8 +59,8 @@ class LocalDiagnostics(
     private val gatewaySamples: Int = 5,
     private val gatewayTimeoutMillis: Long = 300
 ) {
-    suspend fun probeGateway(env: CheckEnvironment): WiFiLocalTelemetry =
-        gateway.probe(env.gatewayAddress, env.isWiFi, gatewaySamples, gatewayTimeoutMillis)
+    suspend fun probeGateway(env: CheckEnvironment, samples: Int = gatewaySamples): WiFiLocalTelemetry =
+        gateway.probe(env.gatewayAddress, env.isWiFi, samples, gatewayTimeoutMillis)
 
     suspend fun probeNat(env: CheckEnvironment): NatTopologySnapshot = nat.probe(env.localIp)
 }

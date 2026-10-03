@@ -57,7 +57,14 @@ data class GameReadinessEvaluation(
     val confidence: String = "boa",
     val timestamp: Long = System.currentTimeMillis(),
     val radioTelemetry: RadioTelemetrySnapshot? = null,
-    val recommendations: List<LocalizedRecommendation> = emptyList()
+    val recommendations: List<LocalizedRecommendation> = emptyList(),
+    /** 0.0–1.0 vindo do domínio. Nulo em registros antigos do histórico (a UI usa um padrão do veredito). */
+    val stabilityRatio: Double? = null,
+    val stabilitySummary: String? = null,
+    /** Nome da região medida, vindo do catálogo. */
+    val regionLabel: String = "",
+    /** Posição, na série de latência, onde começa a fase sob carga. Nulo se a carga não foi medida. */
+    val loadStartIndex: Int? = null
 )
 
 /** Recomendação já localizada para a UI. */

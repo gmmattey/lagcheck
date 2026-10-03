@@ -41,6 +41,8 @@ import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.NetworkFinding
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
+import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 
 /**
  * 05 · Detalhes Técnicos.
@@ -66,10 +68,10 @@ fun TechnicalDetailsScreen(
     }
 
     val verdictName = when (evaluation.verdict) {
-        GameReadinessVerdict.READY -> "Pronto para Ranked"
-        GameReadinessVerdict.CAUTION -> "Condições Instáveis"
-        GameReadinessVerdict.NOT_READY -> "Evitaria Ranked Agora"
-        GameReadinessVerdict.INCONCLUSIVE -> "Dados Insuficientes"
+        GameReadinessVerdict.READY -> tr("Pronto para Ranked")
+        GameReadinessVerdict.CAUTION -> tr("Condições Instáveis")
+        GameReadinessVerdict.NOT_READY -> tr("Evitaria Ranked Agora")
+        GameReadinessVerdict.INCONCLUSIVE -> tr("Dados Insuficientes")
     }
 
     val dateFormatted = java.text.SimpleDateFormat("dd MMM · HH:mm", java.util.Locale.getDefault()).format(java.util.Date(evaluation.timestamp))
@@ -97,14 +99,14 @@ fun TechnicalDetailsScreen(
                     .padding(horizontal = 7.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "Fechar",
+                    text = tr("Fechar"),
                     fontSize = 14.sp,
                     color = LagCheckColors.TextMuted
                 )
             }
 
             Text(
-                text = "Detalhes",
+                text = tr("Detalhes"),
                 style = LagCheckTypography.PageTitle.copy(fontSize = 24.sp),
                 color = LagCheckColors.TextPrimary
             )
@@ -144,7 +146,7 @@ fun TechnicalDetailsScreen(
         // 3. Seção Score (Lagcheck Score 86) + Grid de Métricas (2x2)
         Column {
             Text(
-                text = "SCORE",
+                text = tr("SCORE"),
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
@@ -160,7 +162,7 @@ fun TechnicalDetailsScreen(
                     color = LagCheckColors.TextMuted
                 )
                 Text(
-                    text = "${evaluation.score}",
+                    text = if (evaluation.verdict == GameReadinessVerdict.INCONCLUSIVE) "—" else "${evaluation.score}",
                     style = LagCheckTypography.ScoreNumber,
                     color = LagCheckColors.TextPrimary
                 )
@@ -174,13 +176,13 @@ fun TechnicalDetailsScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MetricBox(
-                    label = "Latência P50",
-                    value = evaluation.pingMs?.let { "%.0f ms".format(it) } ?: "— ms",
+                    label = tr("Latência P50"),
+                    value = evaluation.pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
                     modifier = Modifier.weight(1f)
                 )
                 MetricBox(
                     label = "Jitter",
-                    value = evaluation.jitterMs?.let { "%.0f ms".format(it) } ?: "— ms",
+                    value = evaluation.jitterMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -192,13 +194,13 @@ fun TechnicalDetailsScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MetricBox(
-                    label = "Perda",
-                    value = evaluation.packetLossPercentage?.let { "%.1f%%".format(it) } ?: "— %",
+                    label = tr("Perda"),
+                    value = evaluation.packetLossPercentage?.let { "%.1f%%".format(java.util.Locale.ROOT, it) } ?: "— %",
                     modifier = Modifier.weight(1f)
                 )
                 MetricBox(
-                    label = "Pior spike",
-                    value = evaluation.worstSpikeMs?.let { "%.0f ms".format(it) } ?: "— ms",
+                    label = tr("Pior spike"),
+                    value = evaluation.worstSpikeMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -209,7 +211,7 @@ fun TechnicalDetailsScreen(
         // 4. Gráfico de Latência durante o Check (Canvas nativo com Repouso e Sob Carga)
         Column {
             Text(
-                text = "LATÊNCIA DURANTE O CHECK",
+                text = tr("LATÊNCIA DURANTE O CHECK"),
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
@@ -218,6 +220,7 @@ fun TechnicalDetailsScreen(
             LatencyChart(
                 series = evaluation.latencySeries,
                 worstSpike = evaluation.worstSpikeMs,
+                loadStartIndex = evaluation.loadStartIndex,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
@@ -229,8 +232,11 @@ fun TechnicalDetailsScreen(
                     .padding(top = 7.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Repouso", style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
-                Text(text = "Sob carga", style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                // "Sob carga" só existe se a carga foi medida. Sem ela, não se rotula um trecho que não aconteceu.
+                if (evaluation.loadStartIndex != null) {
+                    Text(text = tr("Sob carga"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
+                }
             }
         }
 
@@ -239,33 +245,42 @@ fun TechnicalDetailsScreen(
         // 5. Origem da Evidência (Enlace local vs Rota externa)
         Column {
             Text(
-                text = "ORIGEM DA EVIDÊNCIA",
+                text = tr("ORIGEM DA EVIDÊNCIA"),
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
             Spacer(modifier = Modifier.height(11.dp))
 
             val wifi = evaluation.radioTelemetry?.wifiDetails
+            // O status descreve só o que foi lido (sinal), nunca "estabilidade" do enlace: sem probe de gateway isolado
+            // não se atribui a causa do lag ao Wi-Fi (Decisão 50).
             val localStatus = if (wifi != null) {
-                if (wifi.isSignalCritical) "Atenção" else "Estável"
+                if (wifi.isSignalCritical) "Sinal fraco" else "Sinal bom"
             } else "Não observável"
 
             val localStatusColor = when (localStatus) {
-                "Estável" -> LagCheckColors.Good
-                "Atenção" -> LagCheckColors.CoralWarning
+                "Sinal bom" -> LagCheckColors.Good
+                "Sinal fraco" -> LagCheckColors.CoralWarning
                 else -> LagCheckColors.TextMuted
             }
 
             val localDetail = if (wifi != null) {
-                val band = if (wifi.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ) "Wi-Fi 2.4 GHz" else "Wi-Fi 5 GHz"
-                "Enlace local $band · ${wifi.rssiDbm} dBm · ${wifi.txLinkSpeedMbps} Mbps."
+                val band = when (wifi.band) {
+                    RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ -> "Wi-Fi 2.4 GHz"
+                    RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ -> "Wi-Fi 5 GHz"
+                    RadioTelemetrySnapshot.WifiBand.BAND_6_GHZ -> "Wi-Fi 6 GHz"
+                    RadioTelemetrySnapshot.WifiBand.UNKNOWN -> "Wi-Fi"
+                }
+                val rssi = wifi.rssiDbm.takeIf { it in -126..0 }?.let { " · $it dBm" } ?: ""
+                val link = wifi.txLinkSpeedMbps.takeIf { it > 0 }?.let { " · $it Mbps" } ?: ""
+                "$band$rssi$link"
             } else {
-                "Sem medida direta de Wi-Fi ou gateway nesta sessão."
+                tr("Sem medida direta de Wi-Fi ou gateway nesta sessão.")
             }
 
             EvidenceRow(
-                title = "Enlace local",
-                status = localStatus,
+                title = tr("Enlace local"),
+                status = tr(localStatus),
                 statusColor = localStatusColor,
                 detail = localDetail
             )
@@ -273,10 +288,12 @@ fun TechnicalDetailsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             EvidenceRow(
-                title = "Rota externa",
-                status = if (evaluation.isUnderLoadAffected) "Atenção" else "Estável",
-                statusColor = if (evaluation.isUnderLoadAffected) LagCheckColors.CoralWarning else LagCheckColors.Good,
-                detail = "Rota regional de referência · São Paulo · sob carga."
+                title = tr("Rota externa"),
+                status = if (evaluation.loadStartIndex == null) tr("Carga não medida")
+                    else if (evaluation.isUnderLoadAffected) tr("Atenção") else tr("Estável"),
+                statusColor = if (evaluation.loadStartIndex == null) LagCheckColors.TextMuted
+                    else if (evaluation.isUnderLoadAffected) LagCheckColors.CoralWarning else LagCheckColors.Good,
+                detail = trf("Rota regional de referência · %s", evaluation.regionLabel.ifEmpty { "São Paulo" })
             )
         }
 
@@ -285,7 +302,7 @@ fun TechnicalDetailsScreen(
         // 6. O que encontramos (Checklist de Achados)
         Column {
             Text(
-                text = "O QUE ENCONTRAMOS",
+                text = tr("O QUE ENCONTRAMOS"),
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
@@ -293,6 +310,35 @@ fun TechnicalDetailsScreen(
 
             evaluation.findings.forEach { finding ->
                 FindingItem(finding = finding)
+            }
+        }
+
+        // 6b. O que fazer: só recomendações amarradas a uma evidência medida (pode não haver nenhuma)
+        if (evaluation.recommendations.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(25.dp))
+            Column {
+                Text(
+                    text = tr("O QUE FAZER"),
+                    style = LagCheckTypography.MonoSmall,
+                    color = LagCheckColors.TextMuted
+                )
+                Spacer(modifier = Modifier.height(11.dp))
+                evaluation.recommendations.forEach { rec ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp)
+                            .clip(RoundedCornerShape(13.dp))
+                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                            .padding(13.dp)
+                    ) {
+                        Text(text = rec.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = rec.instruction, fontSize = 13.sp, color = LagCheckColors.TextMuted)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = rec.badge, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextSecondary)
+                    }
+                }
             }
         }
 
@@ -308,14 +354,14 @@ fun TechnicalDetailsScreen(
         ) {
             Column {
                 Text(
-                    text = "Confiança: ${evaluation.confidence}",
+                    text = trf("Confiança: %s", evaluation.confidence),
                     style = LagCheckTypography.MonoData,
                     fontWeight = FontWeight.Bold,
                     color = LagCheckColors.TextPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "27 s de teste · regra de score v1",
+                    text = trf("Regra %s", com.lagcheck.domain.rules.GameReadinessEvaluator.VERSION),
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
@@ -420,6 +466,7 @@ private fun FindingItem(finding: NetworkFinding) {
 private fun LatencyChart(
     series: List<Double>,
     worstSpike: Double?,
+    loadStartIndex: Int?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -430,7 +477,7 @@ private fun LatencyChart(
     ) {
         if (series.size < 2) {
             Text(
-                text = "Sem amostras suficientes para traçado da rota",
+                text = tr("Sem amostras suficientes para traçado da rota"),
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
@@ -440,12 +487,15 @@ private fun LatencyChart(
             val width = size.width
             val height = size.height
 
-            // 1. Metade direita tintada de carga
-            drawRect(
-                color = Color(0x331E232B),
-                topLeft = Offset(width * 0.5f, 0f),
-                size = Size(width * 0.5f, height)
-            )
+            // 1. Trecho sob carga tintado: começa onde a carga de fato começou (e só existe se foi medida)
+            if (loadStartIndex != null && loadStartIndex in 1 until points.size) {
+                val startX = width * loadStartIndex / (points.size - 1).coerceAtLeast(1)
+                drawRect(
+                    color = Color(0x331E232B),
+                    topLeft = Offset(startX, 0f),
+                    size = Size(width - startX, height)
+                )
+            }
 
             // 2. Linhas de grade sutis
             val gridColor = Color(0xFF262D38)

@@ -36,74 +36,44 @@ import com.lagcheck.core.designsystem.components.WifiIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
+import com.lagcheck.domain.presentation.ReadinessLanguage
+import com.lagcheck.domain.presentation.UiStrings
+import com.lagcheck.session.CockpitPresenter
+import com.lagcheck.session.LocalNetworkReport
 
 /**
  * Cockpit de Rede ("Dados da Rede do Jogador" — Decisões 56 e 67).
- * Paridade 1:1 estrita com NetworkCockpitView.swift do iOS.
- * Expõe parâmetros físicos reais de rádio e enlace (Wi-Fi 2.4/5/6GHz, RSSI em dBm, PHY Speed, Gateway IP e NAT).
+ * Mostra só o que foi medido agora no aparelho: rádio (frequência, RSSI, link), gateway, NAT e voz.
+ * Campo sem leitura aparece como "—". O protótipo anterior exibia NAT, CGNAT, UPnP e voz que ninguém tinha medido.
  */
 @Composable
 fun NetworkCockpitScreen(
     radioSnapshot: RadioTelemetrySnapshot?,
+    report: LocalNetworkReport?,
+    language: ReadinessLanguage,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val wifi = radioSnapshot?.wifiDetails
+    fun tr(pt: String) = UiStrings.translate(pt, language)
 
-    val isWiFi = radioSnapshot?.transportType != RadioTelemetrySnapshot.TransportType.CELLULAR
-    val connKindText = if (isWiFi) "Wi-Fi Ativo" else "Dados Móveis (4G/5G)"
-
-    val bandText = when (wifi?.band) {
-        RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ -> "2.4 GHz (Risco de interferência)"
-        RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ -> "5 GHz (Recomendado para jogos)"
-        RadioTelemetrySnapshot.WifiBand.BAND_6_GHZ -> "6 GHz (Wi-Fi 6E/7 Ultra-baixo lag)"
-        else -> if (isWiFi) "5 GHz" else "Celular"
-    }
-
-    val rssiText = wifi?.rssiDbm?.let { "$it dBm" } ?: "-54 dBm"
-    val phySpeedText = wifi?.txLinkSpeedMbps?.let { "$it Mbps" } ?: "866 Mbps"
-    val freqText = wifi?.frequencyMhz?.let { "$it MHz" } ?: "5240 MHz"
-    val gatewayText = radioSnapshot?.gatewayAddress ?: "192.168.1.1"
+    val isWiFi = radioSnapshot?.transportType == RadioTelemetrySnapshot.TransportType.WIFI
+    val sections = CockpitPresenter.sections(radioSnapshot, report, language)
+    val connKindText = sections.first().rows.first().value
 
     fun copyData() {
-        val data = """
-            [LAGCHECK COCKPIT DE REDE]
-            Tipo: $connKindText
-            Banda: $bandText
-            Frequência: $freqText
-            Nível de Sinal: $rssiText
-            Velocidade de Link PHY: $phySpeedText
-            Gateway Padrão: $gatewayText
-            Topologia NAT: NAT Tipo 2 (Moderado/Cone)
-            CGNAT: Não detectado (IP Público dedicado)
-        """.trimIndent()
-
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("LagCheck Network", data))
-        Toast.makeText(context, "Dados da rede copiados!", Toast.LENGTH_SHORT).show()
+        clipboard.setPrimaryClip(ClipData.newPlainText("LagCheck Network", CockpitPresenter.shareText(radioSnapshot, report, language)))
+        Toast.makeText(context, tr("Dados da rede copiados!"), Toast.LENGTH_SHORT).show()
     }
 
     fun exportReport() {
-        val data = """
-            ====================================
-            LAGCHECK · DADOS DA REDE DO JOGADOR
-            ====================================
-            Conexão: $connKindText
-            Frequência: $freqText ($bandText)
-            Sinal Físico: $rssiText
-            Velocidade PHY: $phySpeedText
-            Gateway Roteador: $gatewayText
-            NAT: Aberto/Moderado
-            https://lagcheck.app
-        """.trimIndent()
-
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "LagCheck - Dados da Rede")
-            putExtra(Intent.EXTRA_TEXT, data)
+            putExtra(Intent.EXTRA_SUBJECT, tr("LagCheck - Dados da Rede"))
+            putExtra(Intent.EXTRA_TEXT, CockpitPresenter.shareText(radioSnapshot, report, language))
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Exportar Dados da Rede"))
+        context.startActivity(Intent.createChooser(shareIntent, tr("Exportar Dados da Rede")))
     }
 
     Column(
@@ -128,11 +98,11 @@ fun NetworkCockpitScreen(
                     .clickable { onClose() }
                     .padding(horizontal = 7.dp, vertical = 6.dp)
             ) {
-                Text(text = "Fechar", fontSize = 14.sp, color = LagCheckColors.TextMuted)
+                Text(text = tr("Fechar"), fontSize = 14.sp, color = LagCheckColors.TextMuted)
             }
 
             Text(
-                text = "Dados da Rede",
+                text = tr("Dados da Rede"),
                 style = LagCheckTypography.PageTitle.copy(fontSize = 18.sp),
                 color = LagCheckColors.TextPrimary
             )
@@ -170,39 +140,19 @@ fun NetworkCockpitScreen(
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Telemetria física de enlace e rádio observada no hardware",
+            text = tr("Medido agora no aparelho. O que não foi medido aparece como —."),
             style = LagCheckTypography.Subtext,
             color = LagCheckColors.TextMuted
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. Card 1: Conexão Local e Primeiro Salto
-        SectionCard(title = "CONEXÃO LOCAL E ENLACE") {
-            CockpitRow(label = "Banda / Frequência", value = bandText)
-            CockpitRow(label = "Frequência Real", value = freqText)
-            CockpitRow(label = "Nível de Sinal (RSSI)", value = rssiText)
-            CockpitRow(label = "Velocidade PHY (Tx)", value = phySpeedText)
-            CockpitRow(label = "Gateway Padrão", value = gatewayText)
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 4. Card 2: Borda WAN e NAT (STUN RFC 5389)
-        SectionCard(title = "BORDA WAN E TOPOLOGIA") {
-            CockpitRow(label = "Tipo de NAT", value = "Moderado (Tipo 2)")
-            CockpitRow(label = "CGNAT Operadora", value = "Não detectado (IP Dedicado)")
-            CockpitRow(label = "Port Mapping (UPnP)", value = "Habilitado")
-            CockpitRow(label = "Integridade UDP", value = "Pacotes em ordem (RFC 4737)")
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 5. Card 3: Casos de Uso Recomendados
-        SectionCard(title = "ADEQUAÇÃO PARA JOGOS") {
-            CockpitRow(label = "Ranked Competitivo", value = if (wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ) "Evitar (Wi-Fi 2.4 GHz)" else "Pronto")
-            CockpitRow(label = "Discord / Voice Chat", value = "Ótimo (Sem perda de pacotes)")
-            CockpitRow(label = "Cloud Gaming (GeForce NOW / xCloud)", value = if (isWiFi) "Adequado" else "Consumo alto")
+        // 3. Seções geradas só com o que foi observado
+        sections.forEachIndexed { index, section ->
+            if (index > 0) Spacer(modifier = Modifier.height(20.dp))
+            SectionCard(title = section.title) {
+                section.rows.forEach { row -> CockpitRow(label = row.label, value = row.value) }
+            }
         }
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -218,7 +168,7 @@ fun NetworkCockpitScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Copiar dados da rede",
+                text = tr("Copiar dados da rede"),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = LagCheckColors.TextPrimary

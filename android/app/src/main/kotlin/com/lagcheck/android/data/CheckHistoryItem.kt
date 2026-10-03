@@ -4,6 +4,8 @@ import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.NetworkFinding
+import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 
 /**
  * Item persistido de histórico de medição (Decisões 50 e 66).
@@ -34,19 +36,20 @@ data class CheckHistoryItem(
             val diffMin = diffMs / 60000
             val diffHours = diffMin / 60
             return when {
-                diffMin < 1 -> "Agora"
-                diffMin < 60 -> "${diffMin} min atrás"
-                diffHours < 24 -> "Hoje, ${java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp))}"
-                diffHours < 48 -> "Ontem, ${java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp))}"
+                diffMin < 1 -> tr("Agora")
+                diffMin < 60 -> trf("%d min atrás", diffMin)
+                diffHours < 24 -> trf("Hoje, %s", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp)))
+                diffHours < 48 -> trf("Ontem, %s", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp)))
                 else -> java.text.SimpleDateFormat("dd MMM · HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp))
             }
         }
 
     val metricsString: String
         get() {
-            val ping = pingMs?.let { "%.0f ms".format(it) } ?: "— ms"
-            val jitter = jitterMs?.let { "%.0f ms jitter".format(it) } ?: "— ms jitter"
-            val loss = packetLossPercentage?.let { "%.1f%% perda".format(it) } ?: "0% perda"
+            val ping = pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms"
+            val jitter = jitterMs?.let { trf("%.0f ms jitter", it) } ?: tr("— ms jitter")
+            // Sem leitura de perda, "—". Antes aparecia "0% perda", que é uma afirmação que ninguém mediu.
+            val loss = packetLossPercentage?.let { trf("%.1f%% perda", it) } ?: tr("— perda")
             return "$ping · $jitter · $loss"
         }
 }
