@@ -233,23 +233,23 @@ public struct TechnicalDetailsView: View {
     // MARK: - 4. Origem da Evidência
     private var evidenceOriginSection: some View {
         VStack(alignment: .leading, spacing: 11) {
-            Text(verbatim: "ORIGEM DA EVIDÊNCIA")
+            Text(LocalizedStringKey("technical_details.evidence_origin"))
                 .font(NLTypography.captionMonoUppercase)
                 .foregroundStyle(NLColor.textTertiary)
 
             VStack(spacing: 8) {
                 evidenceRow(
-                    title: "Enlace local",
-                    statusText: "Não observável",
+                    title: AppLocalization.string("technical_details.local_hop"),
+                    statusText: AppLocalization.string("technical_details.unobservable"),
                     statusColor: NLColor.textTertiary,
-                    detail: "Sem medida direta de Wi-Fi ou gateway nesta sessão."
+                    detail: AppLocalization.string("technical_details.local_hop_unobservable_detail")
                 )
 
                 evidenceRow(
-                    title: "Rota externa",
-                    statusText: "Estável",
+                    title: AppLocalization.string("technical_details.external_route"),
+                    statusText: AppLocalization.string("technical_details.status_stable"),
                     statusColor: NLColor.semanticReady,
-                    detail: "Rota regional de referência · \(regionName) · sob carga."
+                    detail: String(format: AppLocalization.string("technical_details.external_route_detail %@"), regionName)
                 )
             }
         }
@@ -286,12 +286,21 @@ public struct TechnicalDetailsView: View {
     // MARK: - 5. O Que Encontramos
     private func findingsSection(result: DeepCheckResult) -> some View {
         let jitter = result.restResult.metrics.jitterMilliseconds ?? 0
-        let jitterText = jitter <= 5.0 ? "Jitter estável (\(Int(jitter.rounded())) ms)." : "Jitter observado de \(Int(jitter.rounded())) ms."
+        let jitterInt = Int(jitter.rounded())
+        let jitterText = jitter <= 5.0
+            ? String(format: AppLocalization.string("technical_details.finding.jitter_stable %d"), jitterInt)
+            : String(format: AppLocalization.string("technical_details.finding.jitter_observed %d"), jitterInt)
+
         let loadImpact = result.metrics.loadImpact?.increaseMilliseconds ?? 0
         let loadInt = Int(loadImpact.rounded())
-        let loadText = loadImpact <= 15.0
-            ? (loadInt == 0 ? "Sem degradação relevante sob carga (+0 ms)." : "Degradação mínima sob carga (+\(loadInt) ms).")
-            : "Aumento de latência de +\(loadInt) ms sob carga."
+        let loadText: String
+        if loadImpact <= 15.0 {
+            loadText = loadInt == 0
+                ? AppLocalization.string("technical_details.finding.load_no_degradation")
+                : String(format: AppLocalization.string("technical_details.finding.load_minimal_degradation %d"), loadInt)
+        } else {
+            loadText = String(format: AppLocalization.string("technical_details.finding.load_increase %d"), loadInt)
+        }
 
         return VStack(alignment: .leading, spacing: 11) {
             Text(LocalizedStringKey("technical_details.findings_title"))
@@ -299,9 +308,13 @@ public struct TechnicalDetailsView: View {
                 .foregroundStyle(NLColor.textTertiary)
 
             VStack(spacing: 0) {
-                findingRow(title: "Estabilidade", detail: jitterText, isLast: false)
-                findingRow(title: "Comportamento sob carga", detail: loadText, isLast: false)
-                findingRow(title: "Destino testado", detail: "\(regionName) · rota regional de referência.", isLast: true)
+                findingRow(title: AppLocalization.string("technical_details.finding.stability"), detail: jitterText, isLast: false)
+                findingRow(title: AppLocalization.string("technical_details.finding.load_behavior"), detail: loadText, isLast: false)
+                findingRow(
+                    title: AppLocalization.string("technical_details.finding.tested_destination"),
+                    detail: String(format: AppLocalization.string("technical_details.finding.tested_destination_detail %@"), regionName),
+                    isLast: true
+                )
             }
             .padding(.horizontal, NLSpacing.md)
             .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
@@ -342,11 +355,11 @@ public struct TechnicalDetailsView: View {
     // MARK: - 6. Nota Técnica
     private var technicalNoteSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: "Confiança: boa")
+            Text(LocalizedStringKey("technical_details.confidence_good"))
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(NLColor.textPrimary)
 
-            Text(verbatim: "27 s de teste · regra de score v1")
+            Text(LocalizedStringKey("technical_details.test_duration_v1"))
                 .font(.system(size: 11, weight: .regular, design: .monospaced))
                 .foregroundStyle(NLColor.textTertiary)
         }

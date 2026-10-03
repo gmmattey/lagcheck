@@ -150,7 +150,7 @@ public struct CheckCompletoResultView: View {
                             .font(NLTypography.monospaceMetrics)
                             .foregroundStyle(NLColor.textTertiary)
 
-                        Text(verbatim: "\(formattedLoss(evaluation.packetLossPercentage))% perda")
+                        Text(verbatim: String(format: AppLocalization.string("telemetry.loss_format %@", comment: ""), formattedLoss(evaluation.packetLossPercentage)))
                             .font(.system(size: 11, weight: .semibold, design: .monospaced))
                             .foregroundStyle(NLColor.textPrimary)
                     }
@@ -214,9 +214,9 @@ public struct CheckCompletoResultView: View {
             return AppLocalization.string(firstFinding.labelKey, comment: "")
         }
         if evaluation.verdict == .ready {
-            return AppLocalization.string("Rota estável sob carga", comment: "")
+            return AppLocalization.string("result.weight.stable_route", comment: "")
         }
-        return AppLocalization.string("Instabilidade na rota", comment: "")
+        return AppLocalization.string("result.weight.jitter_oscillation", comment: "")
     }
 
     // MARK: - 3. Telemetria Compacta (3 Colunas)
@@ -523,10 +523,15 @@ public struct CheckCompletoResultView: View {
             let lossStr = evaluation.packetLossPercentage.map { String(format: "%.1f%%", $0) } ?? "—"
             let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
 
+            let pingLabel = AppLocalization.string("game_readiness.telemetry.ping", comment: "")
+            let jitterLabel = AppLocalization.string("quick_check.result.jitter", comment: "")
+            let lossLabel = AppLocalization.string("result.weight.packet_loss", comment: "")
+            let verdictLabel = AppLocalization.string(evaluation.headlineKey, comment: "")
+
             let whatsappText = """
             🎮 *LagCheck — \(gameName)*
-            *Veredito:* \(AppLocalization.string(evaluation.headlineKey, comment: ""))
-            ⏱ *Ping:* \(pingStr) | *Jitter:* \(jitterStr) | *Perda:* \(lossStr)
+            *\(AppLocalization.string("result.weight.title", comment: "")):* \(verdictLabel)
+            ⏱ *\(pingLabel):* \(pingStr) | *\(jitterLabel):* \(jitterStr) | *\(lossLabel):* \(lossStr)
             \(quote)
             https://lagcheck.app
             """
@@ -571,7 +576,7 @@ public struct CheckCompletoResultView: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier("check-completo-primary-action")
 
-            // Ações Utilitárias Compactas: Discord, Zap e PDF separados
+            // Ações Utilitárias Compactas: Discord, WhatsApp e PDF separados
             HStack(spacing: 8) {
                 // Botão Discord com ícone oficial
                 Button(action: { shareToDiscord(evaluation: evaluation) }) {
@@ -592,11 +597,11 @@ public struct CheckCompletoResultView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-discord-share")
 
-                // Botão Zap (WhatsApp) com ícone oficial
+                // Botão WhatsApp com ícone oficial
                 Button(action: { shareToWhatsApp(evaluation: evaluation) }) {
                     HStack(spacing: 6) {
                         WhatsAppLogo(size: 15)
-                        Text(verbatim: "Zap")
+                        Text(verbatim: "WhatsApp")
                             .font(.system(size: 12, weight: .bold))
                     }
                     .foregroundStyle(Color(red: 37/255, green: 211/255, blue: 102/255))

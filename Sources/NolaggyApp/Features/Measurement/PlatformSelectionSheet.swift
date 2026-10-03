@@ -91,8 +91,8 @@ struct PlatformSelectionSheet: View {
                                 connectionSegment(title: AppLocalization.string("games.connection.wifi", comment: ""), isSelected: connectionMode == "Wi-Fi") {
                                     connectionMode = "Wi-Fi"
                                 }
-                                connectionSegment(title: AppLocalization.string("games.connection.ethernet", comment: ""), isSelected: connectionMode != "Wi-Fi") {
-                                    connectionMode = "Cabo (Ethernet)"
+                                connectionSegment(title: AppLocalization.string("games.connection.cable", comment: ""), isSelected: connectionMode != "Wi-Fi") {
+                                    connectionMode = "Ethernet"
                                 }
                             }
                         }

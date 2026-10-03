@@ -173,14 +173,14 @@ public struct BoosterSkeletonView: View {
             return String(localized: "booster.loading.step1.title", defaultValue: "Lendo o comportamento da sua rede…")
         case 1:
             if let gameName, !gameName.isEmpty {
-                return String(localized: "booster.loading.step2.title \(gameName)")
+                return String(format: String(localized: "booster.loading.step2.title %@", defaultValue: "Cruzando requisitos de %@…"), gameName)
             }
-            return String(localized: "booster.loading.step1.title", defaultValue: "Analisando requisitos do jogo…")
+            return String(localized: "booster.loading.step2.fallback", defaultValue: "Analisando requisitos do jogo…")
         default:
             if let platform, !platform.isEmpty {
-                return String(localized: "booster.loading.step3.title \(platform)")
+                return String(format: String(localized: "booster.loading.step3.title %@", defaultValue: "Preparando ações práticas para %@…"), platform)
             }
-            return String(localized: "booster.loading.step1.title", defaultValue: "Preparando ações práticas…")
+            return String(localized: "booster.loading.step3.fallback", defaultValue: "Preparando ações práticas…")
         }
     }
     

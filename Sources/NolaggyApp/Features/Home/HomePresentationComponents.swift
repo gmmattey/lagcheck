@@ -1222,7 +1222,7 @@ struct HomeCatalogView: View {
                                 Spacer()
 
                                 HStack(spacing: 4) {
-                                    Text(verbatim: "agora")
+                                    Text(LocalizedStringKey("catalog.recent.just_now"))
                                         .font(NLTypography.monospaceSubtitle)
                                         .foregroundStyle(NLColor.textTertiary)
 

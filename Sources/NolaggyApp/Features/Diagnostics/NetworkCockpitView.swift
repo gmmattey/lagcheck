@@ -474,7 +474,7 @@ public struct NetworkCockpitView: View {
         let isConfirmed24GHz = telemetry.isWiFi && telemetry.wifiBand.contains("2.4")
 
         switch useCase {
-        case .claudeGaming:
+        case .cloudGaming:
             guard let rtt else { return .notAssessed }
             if isConfirmed5GHz && rtt <= 4 {
                 return .favorable(AppLocalization.format("network_cockpit.use_case.reason.5ghz_low_rtt", rtt))
@@ -528,7 +528,7 @@ public struct NetworkCockpitView: View {
     }
 
     private enum GamerUseCase: String, CaseIterable, Identifiable {
-        case claudeGaming
+        case cloudGaming
         case voiceChat
         case multiplayer
         case liveStream
@@ -537,7 +537,7 @@ public struct NetworkCockpitView: View {
 
         var order: Int {
             switch self {
-            case .claudeGaming: return 0
+            case .cloudGaming: return 0
             case .voiceChat: return 1
             case .multiplayer: return 2
             case .liveStream: return 3
@@ -546,7 +546,7 @@ public struct NetworkCockpitView: View {
 
         var titleKey: String {
             switch self {
-            case .claudeGaming: return "network_cockpit.use_case.claude_gaming"
+            case .cloudGaming: return "network_cockpit.use_case.cloud_gaming"
             case .voiceChat: return "network_cockpit.use_case.voice_chat"
             case .multiplayer: return "network_cockpit.use_case.multiplayer"
             case .liveStream: return "network_cockpit.use_case.live_stream"
@@ -555,7 +555,7 @@ public struct NetworkCockpitView: View {
 
         var icon: String {
             switch self {
-            case .claudeGaming: return "cloud.fill"
+            case .cloudGaming: return "cloud.fill"
             case .voiceChat: return "mic.fill"
             case .multiplayer: return "person.3.fill"
             case .liveStream: return "dot.radiowaves.left.and.right"
@@ -621,12 +621,14 @@ public struct NetworkCockpitView: View {
 
     // MARK: - Propriedades Computadas de Exibição
     private var natTypeDisplay: String {
-        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else {
+            return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
+        }
         switch nat.natType {
-        case .type1Open: return "Tipo 1 (Aberto)"
-        case .type2Moderate: return "Tipo 2 (Moderado)"
-        case .type3Strict: return "Tipo 3 (Estrito)"
-        case .inconclusive: return "Inconclusivo"
+        case .type1Open: return AppLocalization.string("network_cockpit.nat.type1")
+        case .type2Moderate: return AppLocalization.string("network_cockpit.nat.type2")
+        case .type3Strict: return AppLocalization.string("network_cockpit.nat.type3")
+        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
         }
     }
 
@@ -641,11 +643,13 @@ public struct NetworkCockpitView: View {
     }
 
     private var cgnatDisplay: String {
-        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else {
+            return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
+        }
         switch nat.cgnatStatus {
-        case .notDetected: return "Livre (IP Público Real)"
-        case .detected: return "Detectado (RFC 6598)"
-        case .inconclusive: return "Inconclusivo"
+        case .notDetected: return AppLocalization.string("network_cockpit.cgnat.free")
+        case .detected: return AppLocalization.string("network_cockpit.cgnat.detected")
+        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
         }
     }
 
@@ -659,11 +663,13 @@ public struct NetworkCockpitView: View {
     }
 
     private var doubleNATDisplay: String {
-        guard let nat = telemetry.natTopology else { return telemetry.isProbing ? "Aferindo..." : "—" }
+        guard let nat = telemetry.natTopology else {
+            return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
+        }
         switch nat.doubleNATStatus {
-        case .notDetected: return "Não detectado"
-        case .suspectOrDetected: return "Detectado (2 Roteadores)"
-        case .inconclusive: return "Inconclusivo"
+        case .notDetected: return AppLocalization.string("network_cockpit.double_nat.not_detected")
+        case .suspectOrDetected: return AppLocalization.string("network_cockpit.double_nat.detected")
+        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
         }
     }
 

@@ -622,7 +622,7 @@
 "network_cockpit.refresh_live" = "Atualizar";
 "network_cockpit.probing" = "Aferindo...";
 "network_cockpit.use_cases.title" = "CASOS DE USO";
-"network_cockpit.use_case.claude_gaming" = "Claude Gaming";
+"network_cockpit.use_case.cloud_gaming" = "Cloud Gaming";
 "network_cockpit.use_case.cloud_gaming_desc" = "Xbox Cloud, GeForce NOW, PS Remote Play";
 "network_cockpit.use_case.voice_chat" = "Chat de Voz";
 "network_cockpit.use_case.voice_chat_desc" = "Discord, Party Chat PSN e Xbox Live";
@@ -780,3 +780,82 @@
 "network.connected" = "Conectado";
 "common.done" = "Concluído";
 
+// Novas chaves de Veredito, NAT e Diagnostico (Decisao 33 e Correcoes de Localizacao)
+"game_readiness.verdict.inconclusive.subtitle" = "Não recebemos respostas suficientes para avaliar sua rota com segurança.";
+"game_readiness.verdict.not_ready.load" = "Saturação crítica sob uso simultâneo. A latência aumentou excessivamente sob carga.";
+"game_readiness.verdict.caution.spikes" = "Picos recorrentes de latência observados durante a medição.";
+"game_readiness.verdict.ready" = "Pronto para ranked";
+"game_readiness.verdict.caution" = "Condições instáveis";
+"game_readiness.verdict.not_ready" = "Eu evitaria ranked agora";
+"game_readiness.verdict.inconclusive" = "Inconclusivo";
+
+"nat.type1.open.title" = "NAT Tipo 1 (Aberto)";
+"nat.type2.moderate.title" = "NAT Tipo 2 (Moderado)";
+"nat.type3.strict.title" = "NAT Tipo 3 (Estrito)";
+"nat.inconclusive.title" = "NAT Inconclusivo";
+
+"quick_check.result.cause.load_degradation" = "Degradação sob carga";
+"quick_check.result.explanation.load_degradation" = "A rota aumentou significativamente a latência quando a rede foi exigida.";
+"quick_check.result.insight.load_degradation" = "Se houver downloads, streams ou outras pessoas usando a rede, você sentirá delay nos comandos.";
+
+"quick_check.result.cause.load_instability" = "Instabilidade sob carga";
+"quick_check.result.explanation.load_instability" = "A rota perdeu estabilidade e apresentou variações abruptas quando exigida.";
+"quick_check.result.insight.load_instability" = "A rota nao suporta tráfego concorrente sem provocar oscilações na partida.";
+
+"quick_check.result.cause.tail_latency" = "Oscilações extremas (P95)";
+"quick_check.result.explanation.tail_latency" = "Uma parcela das respostas demorou muito mais do que a média da rota.";
+"quick_check.result.insight.tail_latency" = "Essas oscilações pontuais causam micro-travamentos repentinos mesmo com ping médio aceitável.";
+
+"games.connection.mode %@" = "Modo de conexão no %@";
+"games.connection.cable" = "Cabo (Ethernet)";
+
+"booster.loading.step2.fallback" = "Analisando requisitos do jogo…";
+"booster.loading.step3.fallback" = "Preparando ações práticas…";
+
+"network_cockpit.probing_ellipsis" = "Aferindo...";
+"network_cockpit.nat.type1" = "Tipo 1 (Aberto)";
+"network_cockpit.nat.type2" = "Tipo 2 (Moderado)";
+"network_cockpit.nat.type3" = "Tipo 3 (Estrito)";
+"network_cockpit.nat.inconclusive" = "Inconclusivo";
+"network_cockpit.cgnat.free" = "Livre (IP Público Real)";
+"network_cockpit.cgnat.detected" = "Detectado (RFC 6598)";
+"network_cockpit.double_nat.not_detected" = "Não detectado";
+"network_cockpit.double_nat.detected" = "Detectado (2 Roteadores)";
+
+"technical_details.evidence_origin" = "ORIGEM DA EVIDÊNCIA";
+"technical_details.local_hop" = "Enlace local";
+"technical_details.unobservable" = "Não observavel";
+"technical_details.local_hop_unobservable_detail" = "Sem medida direta de Wi-Fi ou gateway nesta sessão.";
+"technical_details.external_route" = "Rota externa";
+"technical_details.status_stable" = "Estável";
+"technical_details.external_route_detail %@" = "Rota regional de referência · %@ · sob carga.";
+"technical_details.confidence_good" = "Confiança: boa";
+"technical_details.test_duration_v1" = "27 s de teste · regra de score v1";
+"technical_details.finding.stability" = "Estabilidade";
+"technical_details.finding.load_behavior" = "Comportamento sob carga";
+"technical_details.finding.tested_destination" = "Destino testado";
+"technical_details.finding.tested_destination_detail %@" = "%@ · rota regional de referência.";
+"technical_details.finding.jitter_stable %d" = "Jitter estável (%d ms).";
+"technical_details.finding.jitter_observed %d" = "Jitter observado de %d ms.";
+"technical_details.finding.load_no_degradation" = "Sem degradação relevante sob carga (+0 ms).";
+"technical_details.finding.load_minimal_degradation %d" = "Degradação mínima sob carga (+%d ms).";
+"technical_details.finding.load_increase %d" = "Aumento de latência de +%d ms sob carga.";
+
+"telemetry.loss_format %@" = "%@% perda";
+"catalog.recent.just_now" = "agora";
+
+"exporter.discord.official_tag" = "● ATESTADO OFICIAL DE ROTA";
+"exporter.discord.wifi_iphone" = "WI-FI OBSERVADO NO IPHONE";
+"exporter.discord.cellular" = "REDE CELULAR OBSERVADA";
+"exporter.discord.ping_label" = "LATÊNCIA (PING)";
+"exporter.discord.jitter_label" = "OSCILAÇÃO (JITTER)";
+"exporter.discord.loss_label" = "PERDA DE PACOTES";
+"exporter.discord.real_udp_sampling" = "Amostragem real UDP";
+"exporter.discord.footer %@" = "TESTADO EM: %@ · DADOS BRUTOS SEM ESTIMATIVA · LAGCHECK.APP";
+"exporter.discord.quote.ready" = "“Rota 100% lisa. Se perder no ranked hoje a culpa é sua.”";
+"exporter.discord.quote.caution" = "“Oscilação detectada. Joga por sua conta e risco, vai ter micro-teleporte.”";
+"exporter.discord.quote.not_ready" = "“Nem me chama pra jogar hoje. A conexão ta instavel demais pro ranked.”";
+"exporter.discord.quote.inconclusive" = "“Amostras insuficientes na rota de rede. Verifique seu sinal.”";
+
+"exporter.pdf.loss_column" = "PERDA";
+"exporter.pdf.footer" = "LagCheck · Auditoria de Rede e Medição de Rota para Jogadores Competitivos · Relatório auditavel RFC 5389 & Probing Local";

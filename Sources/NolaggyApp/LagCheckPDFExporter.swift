@@ -359,7 +359,7 @@ public enum LagCheckPDFExporter {
         let cols = [
             ("PING", ping.map { "\(Int($0.rounded())) ms" } ?? "—"),
             ("JITTER", jitter.map { "\(Int($0.rounded())) ms" } ?? "—"),
-            ("PERDA", loss.map { String(format: "%.1f%%", $0) } ?? "0.0%"),
+            (AppLocalization.string("exporter.pdf.loss_column", comment: ""), loss.map { String(format: "%.1f%%", $0) } ?? "0.0%"),
             ("CARGA", bufferbloat)
         ]
 
@@ -438,7 +438,7 @@ public enum LagCheckPDFExporter {
             .font: UIFont.systemFont(ofSize: 8.5, weight: .regular),
             .foregroundColor: UIColor(white: 0.45, alpha: 1.0)
         ]
-        let footerText = "LagCheck · Auditoria de Rede e Medição de Rota para Jogadores Competitivos · Relatório auditável RFC 5389 & Probing Local"
+        let footerText = AppLocalization.string("exporter.pdf.footer", comment: "")
         NSAttributedString(string: footerText, attributes: footerAttrs).draw(at: CGPoint(x: 40, y: footerY + 12))
     }
 }

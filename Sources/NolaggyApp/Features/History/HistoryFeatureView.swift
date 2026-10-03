@@ -164,7 +164,8 @@ struct HistoryView: View {
                         .foregroundStyle(NLColor.textTertiary)
 
                     // Métricas inline
-                    Text(verbatim: "\(formatPing(entry)) ms · \(formatJitter(entry)) ms jitter · \(formatLoss(entry))% perda")
+                    let lossFormatted = String(format: AppLocalization.string("telemetry.loss_format %@", comment: ""), formatLoss(entry))
+                    Text(verbatim: "\(formatPing(entry)) ms · \(formatJitter(entry)) ms jitter · \(lossFormatted)")
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(NLColor.textTertiary)
                         .padding(.top, 2)

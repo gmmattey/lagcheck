@@ -622,7 +622,7 @@
 "network_cockpit.refresh_live" = "Refresh";
 "network_cockpit.probing" = "Probing...";
 "network_cockpit.use_cases.title" = "USE CASES";
-"network_cockpit.use_case.claude_gaming" = "Claude Gaming";
+"network_cockpit.use_case.cloud_gaming" = "Cloud Gaming";
 "network_cockpit.use_case.cloud_gaming_desc" = "Xbox Cloud, GeForce NOW, PS Remote Play";
 "network_cockpit.use_case.voice_chat" = "Chat de Voz";
 "network_cockpit.use_case.voice_chat_desc" = "Discord, PSN and Xbox Live Party Chat";
@@ -780,3 +780,82 @@
 "network.cellular" = "Cellular";
 "network.connected" = "Connected";
 
+// New Verdict, NAT and Diagnostic keys
+"game_readiness.verdict.inconclusive.subtitle" = "We didn't receive enough valid responses to evaluate your route reliably.";
+"game_readiness.verdict.not_ready.load" = "Critical saturation under concurrent use. Latency spiked heavily under load.";
+"game_readiness.verdict.caution.spikes" = "Recurring latency spikes observed during the test.";
+"game_readiness.verdict.ready" = "Ready for ranked";
+"game_readiness.verdict.caution" = "Unstable conditions";
+"game_readiness.verdict.not_ready" = "I'd avoid ranked right now";
+"game_readiness.verdict.inconclusive" = "Inconclusive";
+
+"nat.type1.open.title" = "NAT Type 1 (Open)";
+"nat.type2.moderate.title" = "NAT Type 2 (Moderate)";
+"nat.type3.strict.title" = "NAT Type 3 (Strict)";
+"nat.inconclusive.title" = "NAT Inconclusive";
+
+"quick_check.result.cause.load_degradation" = "Degradation under load";
+"quick_check.result.explanation.load_degradation" = "Route latency increased noticeably when network demand went up.";
+"quick_check.result.insight.load_degradation" = "Concurrent downloads, streaming, or other users on the network will cause perceptible input delay.";
+
+"quick_check.result.cause.load_instability" = "Instability under load";
+"quick_check.result.explanation.load_instability" = "The route lost stability and showed sharp variations under traffic.";
+"quick_check.result.insight.load_instability" = "The route cannot sustain concurrent traffic without match jitter.";
+
+"quick_check.result.cause.tail_latency" = "Extreme tail latency (P95)";
+"quick_check.result.explanation.tail_latency" = "A portion of replies took significantly longer than the route average.";
+"quick_check.result.insight.tail_latency" = "These sharp oscillations cause sudden micro-stutters even with an acceptable average ping.";
+
+"games.connection.mode %@" = "Connection mode on %@";
+"games.connection.cable" = "Cable (Ethernet)";
+
+"booster.loading.step2.fallback" = "Analyzing game requirements…";
+"booster.loading.step3.fallback" = "Tailoring practical actions…";
+
+"network_cockpit.probing_ellipsis" = "Measuring…";
+"network_cockpit.nat.type1" = "Type 1 (Open)";
+"network_cockpit.nat.type2" = "Type 2 (Moderate)";
+"network_cockpit.nat.type3" = "Type 3 (Strict)";
+"network_cockpit.nat.inconclusive" = "Inconclusive";
+"network_cockpit.cgnat.free" = "Direct (Real Public IP)";
+"network_cockpit.cgnat.detected" = "Detected (RFC 6598)";
+"network_cockpit.double_nat.not_detected" = "Not detected";
+"network_cockpit.double_nat.detected" = "Detected (2 Routers)";
+
+"technical_details.evidence_origin" = "EVIDENCE ORIGIN";
+"technical_details.local_hop" = "Local link";
+"technical_details.unobservable" = "Not observable";
+"technical_details.local_hop_unobservable_detail" = "No direct Wi-Fi or gateway measurement in this session.";
+"technical_details.external_route" = "External route";
+"technical_details.status_stable" = "Stable";
+"technical_details.external_route_detail %@" = "Regional reference route · %@ · under load.";
+"technical_details.confidence_good" = "Confidence: good";
+"technical_details.test_duration_v1" = "27 s test · score rule v1";
+"technical_details.finding.stability" = "Stability";
+"technical_details.finding.load_behavior" = "Behavior under load";
+"technical_details.finding.tested_destination" = "Tested destination";
+"technical_details.finding.tested_destination_detail %@" = "%@ · regional reference route.";
+"technical_details.finding.jitter_stable %d" = "Stable jitter (%d ms).";
+"technical_details.finding.jitter_observed %d" = "Observed jitter of %d ms.";
+"technical_details.finding.load_no_degradation" = "No material degradation under load (+0 ms).";
+"technical_details.finding.load_minimal_degradation %d" = "Minimal degradation under load (+%d ms).";
+"technical_details.finding.load_increase %d" = "Latency increase of +%d ms under load.";
+
+"telemetry.loss_format %@" = "%@% loss";
+"catalog.recent.just_now" = "just now";
+
+"exporter.discord.official_tag" = "● OFFICIAL ROUTE CERTIFICATE";
+"exporter.discord.wifi_iphone" = "WI-FI OBSERVED ON IPHONE";
+"exporter.discord.cellular" = "CELLULAR DATA OBSERVED";
+"exporter.discord.ping_label" = "LATENCY (PING)";
+"exporter.discord.jitter_label" = "VARIATION (JITTER)";
+"exporter.discord.loss_label" = "PACKET LOSS";
+"exporter.discord.real_udp_sampling" = "Real UDP sampling";
+"exporter.discord.footer %@" = "TESTED ON: %@ · RAW DATA NO ESTIMATES · LAGCHECK.APP";
+"exporter.discord.quote.ready" = "“100% smooth route. If you lose in ranked today, it's on you.”";
+"exporter.discord.quote.caution" = "“Oscillation detected. Play at your own risk, micro-stutters ahead.”";
+"exporter.discord.quote.not_ready" = "“Don't even call me to play today. Connection is too unstable for ranked.”";
+"exporter.discord.quote.inconclusive" = "“Insufficient samples along the route. Check your signal.”";
+
+"exporter.pdf.loss_column" = "LOSS";
+"exporter.pdf.footer" = "LagCheck · Network Audit & Route Measurement for Competitive Gamers · RFC 5389 & Local Probing Audit Report";

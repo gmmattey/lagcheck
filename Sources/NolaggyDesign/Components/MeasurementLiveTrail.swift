@@ -213,7 +213,7 @@ public struct MeasurementLiveTrail: View {
                     // Nó 1: iPhone
                     nodeItem(
                         icon: "iphone",
-                        title: LocalizedStringKey("check.node.iphone"),
+                        title: Text(LocalizedStringKey("check.node.iphone")),
                         isFinished: true,
                         isCurrent: false,
                         isHit: isHitNode1
@@ -223,7 +223,7 @@ public struct MeasurementLiveTrail: View {
                     // Nó 2: Rede local (Wi-Fi / Rede Móvel)
                     nodeItem(
                         icon: isWiFi ? "wifi" : "antenna.radiowaves.left.and.right",
-                        title: isWiFi ? LocalizedStringKey("check.node.wifi") : LocalizedStringKey("check.node.cellular"),
+                        title: Text(isWiFi ? LocalizedStringKey("check.node.wifi") : LocalizedStringKey("check.node.cellular")),
                         isFinished: !isPhaseRest,
                         isCurrent: isPhaseRest,
                         isHit: isHitNode2
@@ -233,7 +233,7 @@ public struct MeasurementLiveTrail: View {
                     // Nó 3: Região Gamer (Destino)
                     nodeItem(
                         icon: "server.rack",
-                        title: LocalizedStringKey("check.node.gamer_region \(destinationName)"),
+                        title: Text(String(format: String(localized: "check.node.gamer_region %@", defaultValue: "Região Gamer\n%@"), destinationName)),
                         isFinished: false,
                         isCurrent: !isPhaseRest,
                         isHit: isHitNode3
@@ -304,7 +304,7 @@ public struct MeasurementLiveTrail: View {
 
     private func nodeItem(
         icon: String,
-        title: LocalizedStringKey,
+        title: Text,
         isFinished: Bool,
         isCurrent: Bool,
         isHit: Bool = false
@@ -335,7 +335,7 @@ public struct MeasurementLiveTrail: View {
                     .foregroundStyle((isHit || isCurrent) ? NLColor.gamerPurple : (isFinished ? NLColor.textPrimary : NLColor.textSecondary))
             }
 
-            Text(title)
+            title
                 .font(NLTypography.monospaceSubtitle)
                 .foregroundStyle(NLColor.textTertiary)
                 .multilineTextAlignment(.center)

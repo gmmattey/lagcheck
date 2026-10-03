@@ -56,11 +56,13 @@ public enum LagCheckDiscordCardExporter {
                 .font: UIFont.monospacedSystemFont(ofSize: 15, weight: .bold),
                 .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
             ]
-            let tag = NSAttributedString(string: "● ATESTADO OFICIAL DE ROTA", attributes: tagAttrs)
+            let tag = NSAttributedString(string: AppLocalization.string("exporter.discord.official_tag", comment: ""), attributes: tagAttrs)
             tag.draw(at: CGPoint(x: 230, y: 85))
 
             // Subtítulo da conexão
-            let connType = isWiFi ? "WI-FI OBSERVADO NO IPHONE" : "REDE CELULAR OBSERVADA"
+            let connType = isWiFi
+                ? AppLocalization.string("exporter.discord.wifi_iphone", comment: "")
+                : AppLocalization.string("exporter.discord.cellular", comment: "")
             let subAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.monospacedSystemFont(ofSize: 14, weight: .medium),
                 .foregroundColor: UIColor(white: 0.6, alpha: 1.0)
@@ -82,16 +84,16 @@ public enum LagCheckDiscordCardExporter {
 
             switch verdict {
             case .ready:
-                verdictText = "● PRONTO PARA RANKED"
+                verdictText = "● \(AppLocalization.string("game_readiness.verdict.ready.headline", comment: ""))"
                 verdictColor = UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1.0)
             case .caution:
-                verdictText = "▲ INSTÁVEL: PODE TER DELAY"
+                verdictText = "▲ \(AppLocalization.string("game_readiness.verdict.caution.headline", comment: ""))"
                 verdictColor = UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)
             case .notReady:
-                verdictText = "■ EVITE JOGAR RANKED AGORA"
+                verdictText = "■ \(AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: ""))"
                 verdictColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
             case .inconclusive:
-                verdictText = "— RESULTADO INCONCLUSIVO"
+                verdictText = "— \(AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: ""))"
                 verdictColor = UIColor.lightGray
             }
 
@@ -120,9 +122,9 @@ public enum LagCheckDiscordCardExporter {
             let lossStr = packetLossPercentage.map { "\(String(format: "%.1f", $0))%" } ?? "—"
 
             let metrics = [
-                ("LATÊNCIA (PING)", pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
-                ("OSCILAÇÃO (JITTER)", jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)),
-                ("PERDA DE PACOTES", lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0))
+                (AppLocalization.string("exporter.discord.ping_label", comment: ""), pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
+                (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)),
+                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0))
             ]
 
             for (index, item) in metrics.enumerated() {
@@ -158,7 +160,7 @@ public enum LagCheckDiscordCardExporter {
                     .font: UIFont.systemFont(ofSize: 13, weight: .medium),
                     .foregroundColor: UIColor(white: 0.45, alpha: 1.0)
                 ]
-                let subLegStr = NSAttributedString(string: "Amostragem real UDP", attributes: subLegAttrs)
+                let subLegStr = NSAttributedString(string: AppLocalization.string("exporter.discord.real_udp_sampling", comment: ""), attributes: subLegAttrs)
                 subLegStr.draw(at: CGPoint(x: colX + 20, y: teleY + 128))
             }
 
@@ -169,7 +171,7 @@ public enum LagCheckDiscordCardExporter {
                 .font: UIFont.monospacedSystemFont(ofSize: 13, weight: .semibold),
                 .foregroundColor: UIColor(white: 0.4, alpha: 1.0)
             ]
-            let footText = NSAttributedString(string: "TESTADO EM: \(dateStr.uppercased()) · DADOS BRUTOS SEM ESTIMATIVA · LAGCHECK.APP", attributes: footAttrs)
+            let footText = NSAttributedString(string: String(format: AppLocalization.string("exporter.discord.footer %@", comment: ""), dateStr.uppercased()), attributes: footAttrs)
             footText.draw(at: CGPoint(x: 75, y: footY))
         }
 
@@ -186,13 +188,13 @@ public enum LagCheckDiscordCardExporter {
     public static func gamerQuote(for verdict: GameReadinessVerdict) -> String {
         switch verdict {
         case .ready:
-            return "“Rota 100% lisa. Se perder no ranked hoje a culpa é sua.”"
+            return AppLocalization.string("exporter.discord.quote.ready", comment: "")
         case .caution:
-            return "“Oscilação detectada. Joga por sua conta e risco, vai ter micro-teleporte.”"
+            return AppLocalization.string("exporter.discord.quote.caution", comment: "")
         case .notReady:
-            return "“Nem me chama pra jogar hoje. A conexão tá instável demais pro ranked.”"
+            return AppLocalization.string("exporter.discord.quote.not_ready", comment: "")
         case .inconclusive:
-            return "“Amostras insuficientes na rota de rede. Verifique seu sinal.”"
+            return AppLocalization.string("exporter.discord.quote.inconclusive", comment: "")
         }
     }
 }
