@@ -143,8 +143,22 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 - [x] Plano aprovado por Camillo e alinhado com Marco
 - [x] Infraestrutura do repositório preparada
 - [x] Decisão 68 registrada
-- [ ] `:core:domain` readiness-v2.0
-- [ ] `:core:catalog`
-- [ ] `:core:network` (beacons + Worker)
-- [ ] Integração `:app`
-- [ ] Compilação do app e homologação em dispositivo real por Breno
+- [x] `:core:domain` readiness-v2.0 — 62 testes JVM (vetores portados do Swift)
+- [x] `:core:catalog` — 61 testes JVM (envelope v3 real do Worker verifica; adulteração, expiração e chave errada recusadas)
+- [x] `:core:network` — 45 testes JVM (UDP real em loopback, codecs byte a byte, Worker via HttpServer local)
+- [x] `:core:session` — 23 testes JVM (orquestrador, planner, telemetria, aderência da prateleira ao catálogo e SHA-256 das artes)
+- [ ] Compilação do `:app`, `:core:telemetry-radio` e `:core:designsystem` (**não validada**: o ambiente do agente não alcança o Google Maven). Toolchain novo: AGP 8.9.2, Gradle 8.11.1, compileSdk/targetSdk 36.
+- [ ] Homologação em dispositivo real por Breno (rede, background, Wi-Fi↔celular, cancelamento)
+
+## 9. Pendências e achados que exigem decisão (não são escopo do port)
+
+| # | Achado | Dono sugerido |
+| --- | --- | --- |
+| 1 | **O catálogo v3 embarcado expira em 2026-10-19T15:30Z** (iOS e Android). Precisa de um novo envelope assinado com a chave privada do dono. Android: cache remoto válido já vence base expirada. | Luiz / Iury |
+| 2 | **iOS: `RemoteCatalogRepository.loadedCatalogForLaunch` lança se a base expirou, mesmo com cache remoto válido.** O Kotlin foi corrigido; o Swift não foi tocado. | Rian |
+| 3 | **iOS nunca passa `confidence` ao `GameReadinessEvaluator`** (padrão `.high`): a margem de 10% da Decisão 55 para rota `medium` (todas as rotas ativas hoje) é código morto em produção. O Android replica o iOS (paridade). Decidir se a margem deve valer. | Iury / Marco |
+| 4 | O Worker não aceita `platform=android`/`nintendo` na telemetria. Android envia sem `platform`. Separar Android exige mudar o Worker (nova decisão). | Marco / Camillo |
+| 5 | O catálogo v3 não tem contexto `android`; o Android usa `iphone`. Quando o dono re-assinar, adicionar `android`. | Luiz / Iury |
+| 6 | Telemetria usa o host `giammattey.workers.dev`, enquanto catálogo e carga usam `buildealabs.workers.dev` (espelho do iOS). Confirmar se é intencional. | Iury |
+| 7 | Android 16 ignora `screenOrientation=portrait` em telas grandes (target 36). Layout de tablet/dobrável não foi desenhado. | Renan / Breno |
+| 8 | Fase 2: probe de gateway, NAT/STUN, voz, Connection Booster, Deep Check manual, EN/ES na UI (hoje só o veredito localiza). | Marco |

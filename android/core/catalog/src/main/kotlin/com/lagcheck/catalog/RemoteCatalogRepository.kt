@@ -30,15 +30,18 @@ class RemoteCatalogRepository(
     private val clock: () -> Instant = Instant::now,
     private val validator: (ByteArray, Instant) -> CatalogPayload = { bytes, now -> RemoteCatalogVerifier.verifyAndDecode(bytes, now) }
 ) {
+    /**
+     * Cache remoto válido vence base expirada. A base só é exigida quando não há cache válido: uma base que venceu
+     * não pode derrubar quem já tem um catálogo recente e assinado em disco. Sem nenhum válido, lança.
+     */
     suspend fun loadedCatalogForLaunch(): LoadedCatalog {
         val now = clock()
-        val base = validator(baseEnvelope, now)
+        val base = runCatching { validator(baseEnvelope, now) }
         val cached = cache.load()?.let { runCatching { validator(it.envelope, now) }.getOrNull() }
-        return if (cached != null && cached.schemaVersion >= base.schemaVersion) {
-            LoadedCatalog(cached, CatalogSource.CACHED_REMOTE)
-        } else {
-            LoadedCatalog(base, CatalogSource.BUNDLED_BASE)
+        if (cached != null && (base.isFailure || cached.schemaVersion >= base.getOrThrow().schemaVersion)) {
+            return LoadedCatalog(cached, CatalogSource.CACHED_REMOTE)
         }
+        return LoadedCatalog(base.getOrThrow(), CatalogSource.BUNDLED_BASE)
     }
 
     /** Retorna true se um catálogo novo e válido foi gravado no cache. */
@@ -48,7 +51,7 @@ class RemoteCatalogRepository(
         if (stored != null && Duration.between(stored.refreshedAt, now) < REFRESH_INTERVAL) {
             val base = runCatching { validator(baseEnvelope, now) }.getOrNull()
             val cached = runCatching { validator(stored.envelope, now) }.getOrNull()
-            if (base != null && cached != null && cached.schemaVersion >= base.schemaVersion) return false
+            if (cached != null && (base == null || cached.schemaVersion >= base.schemaVersion)) return false
         }
         val data = runCatching { fetcher.fetchCatalog() }.getOrNull() ?: return false
         if (runCatching { validator(data, now) }.isFailure) return false

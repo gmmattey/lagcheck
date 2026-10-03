@@ -80,7 +80,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         fetcher = HttpCatalogFetcher(),
         cache = FileCatalogCache(application)
     )
-    private val catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
+    @Volatile
+    private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
 
@@ -116,10 +117,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         refreshRadioTelemetry()
         telemetry.appOpen()
-        viewModelScope.launch {
-            // Atualização diária em segundo plano; falha mantém o catálogo que já era válido e nunca bloqueia a Home.
-            runCatching { catalogRepository.refreshIfDue() }
+        // Atualização diária em segundo plano (fora da thread principal: verifica assinatura). Falha mantém o catálogo
+        // que já era válido e nunca bloqueia a Home. Se chegou um catálogo novo, relê: uma base expirada não pode
+        // deixar o app sem medir até reiniciar.
+        viewModelScope.launch(Dispatchers.IO) {
+            if (runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)) {
+                catalog = async { loadCatalog() }
+            }
         }
+    }
+
+    /** Catálogo vigente. Sem nenhum válido, tenta uma atualização na hora antes de desistir (nunca inventa destino). */
+    private suspend fun currentCatalog(): CatalogPayload? {
+        catalog.await()?.let { return it }
+        val refreshed = runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)
+        return if (refreshed) loadCatalog().also { catalog = viewModelScope.async { it } } else null
     }
 
     /** Catálogo base/cache validado, ou nulo se nenhum for válido (ex.: base expirada sem rede). Nulo = não mede. */
@@ -218,7 +230,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             measuring(0.04f, null, true)
 
-            val payload = catalog.await()
+            val payload = currentCatalog()
             val plan = if (payload == null) null else MeasurementPlanner.plan(payload, targetGame.id, platform)
             if (payload == null || plan !is PlanResult.Ready) {
                 // Sem catálogo válido ou sem rota ativa: não há destino confiável, então não existe nota nem fallback.

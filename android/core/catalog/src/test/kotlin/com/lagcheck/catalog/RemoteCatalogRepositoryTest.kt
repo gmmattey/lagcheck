@@ -67,4 +67,38 @@ class RemoteCatalogRepositoryTest {
         val cache = MemoryCache(StoredCatalog("garbage".toByteArray(), NOW))
         assertThat(repo(Fetcher { real }, cache).loadedCatalogForLaunch().source).isEqualTo(CatalogSource.BUNDLED_BASE)
     }
+
+    @Test fun validCachedCatalogSurvivesAnExpiredBundledBase() = runBlocking {
+        // 20/10/2026: a base embarcada (válida até 19/10) expirou, mas o cache recente continua válido.
+        clock = Instant.parse("2026-10-20T00:00:00Z")
+        val validCache = RemoteCatalogVerifier.verifyAndDecode(real, NOW)
+        val cacheBytes = "cache".toByteArray()
+        val cache = MemoryCache(StoredCatalog(cacheBytes, clock))
+        val repo = RemoteCatalogRepository(real, Fetcher { real }, cache, { clock }) { bytes, now ->
+            if (bytes === cacheBytes) validCache else RemoteCatalogVerifier.verifyAndDecode(bytes, now)
+        }
+        val loaded = repo.loadedCatalogForLaunch()
+        assertThat(loaded.source).isEqualTo(CatalogSource.CACHED_REMOTE)
+        assertThat(loaded.payload.games).hasSize(22)
+    }
+
+    @Test fun expiredBaseWithoutAnyValidCacheFailsInsteadOfInventingACatalog() {
+        clock = Instant.parse("2026-10-20T00:00:00Z")
+        val e = org.junit.Assert.assertThrows(RemoteCatalogException::class.java) {
+            runBlocking { repo(Fetcher { real }, MemoryCache()).loadedCatalogForLaunch() }
+        }
+        assertThat(e.error).isEqualTo(RemoteCatalogError.EXPIRED)
+    }
+
+    @Test fun refreshStillRunsWhenOnlyTheBaseIsExpired() = runBlocking {
+        clock = Instant.parse("2026-10-20T00:00:00Z")
+        val fresh = RemoteCatalogVerifier.verifyAndDecode(real, NOW)
+        val cache = MemoryCache()
+        val fetcher = Fetcher { "novo".toByteArray() }
+        val repo = RemoteCatalogRepository(real, fetcher, cache, { clock }) { bytes, now ->
+            if (String(bytes) == "novo") fresh else RemoteCatalogVerifier.verifyAndDecode(bytes, now)
+        }
+        assertThat(repo.refreshIfDue()).isTrue()
+        assertThat(repo.loadedCatalogForLaunch().source).isEqualTo(CatalogSource.CACHED_REMOTE)
+    }
 }
