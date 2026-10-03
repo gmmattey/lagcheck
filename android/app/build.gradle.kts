@@ -46,6 +46,8 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:network"))
+    implementation(project(":core:catalog"))
+    implementation(project(":core:session"))
     implementation(project(":core:telemetry-radio"))
     implementation(project(":core:designsystem"))
 
