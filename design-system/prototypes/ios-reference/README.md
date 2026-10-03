@@ -1,4 +1,4 @@
-# Protótipo iOS de referência — Nolaggy
+# Protótipo iOS de referência — LagCheck
 
 Este diretório preserva o protótipo oficial da V1 para iPhone. Ele é a referência canônica de paridade visual e de comportamento para a implementação SwiftUI.
 
@@ -10,7 +10,7 @@ Este diretório preserva o protótipo oficial da V1 para iPhone. Ele é a refer�
 | `source/Nolaggy iOS Prototype.dc.html` | Protótipo navegável/visual principal |
 | `source/ios-frame.jsx` | Moldura de iPhone usada pelo protótipo |
 | `source/support.js` | Suporte do protótipo |
-| `source/assets/` | Assets e referências utilizáveis extraídos do pacote |
+| `source/assets/` | Assets complementares; marca legada removida. O HTML usa os assets oficiais em `design-system/assets/brand/` |
 | `source/uploads/` | Imagens auxiliares incluídas no pacote original |
 
 **Integridade do ZIP original (SHA-256):** `aa624b799282a021a43c2c5c9320e425311f2316137756f43d0c49f0ee2ee44f`
@@ -48,3 +48,7 @@ O pacote não desenha catálogo carregando/vazio/falhou, busca sem resultado, hi
 - Marco decide qualquer conflito entre protótipo e documentação de produto.
 
 Não edite os arquivos ativos em `source/` sem uma evolução deliberada do protótipo. O ZIP permanece como registro imutável do pacote recebido; o board PNG legado foi propositalmente excluído da cópia extraída, pois não representa o catálogo inicial aprovado. Evoluções do protótipo devem entrar em uma nova pasta versionada, mantendo esta referência intacta.
+
+## Limpeza de marca (2026-10-03)
+
+Referências visuais Nolaggy e cópias antigas de wordmark/ícone foram removidas da árvore extraída. O HTML aponta para a wordmark, o ícone e o símbolo roxos existentes e aprovados na Decisão 66. O ZIP original permanece apenas como arquivo histórico; seus assets não são fonte de marca atual.

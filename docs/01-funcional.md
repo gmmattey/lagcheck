@@ -1,15 +1,15 @@
 # LagCheck — documentação funcional
 
-**Status:** rascunho inicial para V1  
+**Status:** referência funcional; escopo atualizado pelas Decisões 67–69
 **Idioma do documento:** PT-BR  
-**Sistema mínimo:** iOS 17  
+**Sistema mínimo:** iOS 17; Android API 26 (Kotlin/Compose)
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
 > **Atualização de reposicionamento (Decisões 50 e 55 — 2026-09-26):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos), a Conexão Geral atua como fallback em busca sem resultado, e a integridade diagnóstica (Decisão 55) separa com probe isolado enlace local (Wi-Fi/gateway) da rota externa (WAN), avalia bufferbloat multidimensionalmente por perfil, classifica spikes recorrentes, descarta sessões na troca de interface e entrega de 1 a 3 recomendações acionáveis baseadas estritamente em evidência.
 
-> **Decisão de plataforma:** o LagCheck nasce para iPhone. Uma versão Android está planejada para o futuro, mas não integra o escopo, a data ou a promessa de paridade da V1.
+> **Decisão de plataforma vigente (67–69):** iPhone continua como plataforma inicial; Android nativo é alvo oficial, com port das regras determinísticas e adaptações de rádio. A influência do gateway no veredito Android é uma divergência autorizada pela Decisão 69. Consulte [Arquitetura Android](./08-arquitetura-android.md) e [evidências locais](../audits/android-ios-code-parity-2026-10-03.md). Implementação não equivale a publicação.
 >
-> **Motivo registrado (2026-09-10):** a escolha é de viabilidade de distribuição, não de validação de público-alvo. Testar no Android exige closed testing de 14 dias com 12 usuários antes de qualquer disponibilização mais ampla — fricção desproporcional para um time pequeno validando um conceito. A App Store permite lançar e iterar de forma mais direta. **Isso não significa que o público iPhone BR/US seja quem mais sente a dor que o LagCheck resolve** — jogadores em Android, dados móveis limitados e Wi-Fi doméstico compartilhado provavelmente têm mais incerteza sobre a própria conexão do que o público iPhone típico desses dois mercados. A equipe aceita conscientemente que a V1 valida o conceito e a qualidade técnica nesse subconjunto, não a tese completa de mercado do produto. Quando o Android entrar em escopo, os aprendizados de retenção e comportamento da V1 devem ser tratados como indicativos, não como prova de que funcionam para o público de maior necessidade.
+> **Contexto histórico da escolha inicial, anterior às Decisões 67–68 (2026-09-10):** a escolha é de viabilidade de distribuição, não de validação de público-alvo. Testar no Android exige closed testing de 14 dias com 12 usuários antes de qualquer disponibilização mais ampla — fricção desproporcional para um time pequeno validando um conceito. A App Store permite lançar e iterar de forma mais direta. **Isso não significa que o público iPhone BR/US seja quem mais sente a dor que o LagCheck resolve** — jogadores em Android, dados móveis limitados e Wi-Fi doméstico compartilhado provavelmente têm mais incerteza sobre a própria conexão do que o público iPhone típico desses dois mercados. A equipe aceita conscientemente que a V1 valida o conceito e a qualidade técnica nesse subconjunto, não a tese completa de mercado do produto. Quando o Android entrar em escopo, os aprendizados de retenção e comportamento da V1 devem ser tratados como indicativos, não como prova de que funcionam para o público de maior necessidade.
 
 ## 1. Visão do produto
 
@@ -27,7 +27,7 @@ LagCheck reduz essa incerteza antes da partida. Ele avalia latência, estabilida
 
 ## 3. Público e contexto de uso
 
-O público primário da V1 são pessoas que usam iPhone, especialmente para títulos competitivos e populares. Elas querem uma resposta rápida, sem precisar entender jargão de rede. A V1 estabelece a experiência e as regras de produto que uma futura versão Android deverá avaliar e adaptar às capacidades da plataforma, sem assumir implementação idêntica.
+O público primário da V1 são pessoas que usam iPhone, especialmente para títulos competitivos e populares. Elas querem uma resposta rápida, sem precisar entender jargão de rede. O Android oficial preserva as regras determinísticas e adapta transporte, rádio, persistência e apresentação à plataforma (Decisões 67–69); a paridade tem limites documentados.
 
 O produto também atende quem joga em PlayStation, Xbox, PC ou Nintendo, desde que trate o resultado como estimativa quando o aparelho testado não for o mesmo que joga. A qualidade da rota de internet pode ser representativa; a conexão local do console ou computador pode não ser.
 
@@ -46,11 +46,10 @@ O princípio de interface é: **o veredicto vem antes do score e das métricas**
 
 A V1 inclui:
 
-- iOS: iPhone;
+- iOS: iPhone (iOS 17+); Android nativo (API 26+), conforme Decisões 67–69;
 - oito jogos populares no catálogo inicial: Fortnite, Call of Duty Mobile, Free Fire, PUBG Mobile, Brawl Stars, Roblox, Minecraft e Wild Rift;
 - escolha de plataforma: iPhone, PlayStation, Xbox, PC e Nintendo;
-- Quick Check;
-- Deep Check;
+- Check único com repouso e carga (Deep Check); Quick Check não é uma opção visível (Decisões 43 e 46);
 - LagCheck Score determinístico;
 - identificação de causa de lag e recomendação prática;
 - detecção de picos de latência;
@@ -65,7 +64,7 @@ O catálogo é **mobile-first, não mobile-only**. Jogos multiplataforma podem o
 
 Ficam explicitamente fora da V1:
 
-- aplicativo Android; a plataforma é uma evolução planejada, sem prazo definido nesta fase;
+- iPad; distribuição Android depende de validação e autorização próprias, sem prazo de publicação assumido;
 - criação obrigatória de conta;
 - VPN ou alteração/otimização de rota;
 - servidor próprio de speed test;
@@ -346,7 +345,7 @@ Na V1, o mercado reconhecido para esse processo é Brasil ou Estados Unidos. A l
 
 A pré-leitura é parte da mesma sessão e escolhe somente a região de referência antes do Quick Check ou do Deep Check. Ela não escolhe servidor do jogo, não muda matchmaking e não autoriza prometer ping oficial.
 
-**Atualização de UX (2026-09-10):** a seleção deixou de ter uma tela de confirmação/escolha no meio da jornada de medição — ao tocar em "Iniciar", a pré-leitura resolve o candidato e a medição já começa, sem segundo toque. A escolha manual não é mais feita por sessão: é uma preferência persistida em Configurações (menu nativo "Região de referência"), aplicada automaticamente a toda sessão futura enquanto o candidato escolhido continuar válido para o jogo/mercado/plataforma medidos. Se deixar de ser válido, a sessão volta para automático em vez de falhar. Sem candidato viável (automático ou preferido), o resultado continua inconclusivo, sem troca silenciosa de destino. A regra de seleção em si (desempate, privacidade, gates) não mudou e está em [Decisão de seleção regional automática](./16-decisao-selecao-regional-automatica.md).
+**Atualização de UX (2026-09-10):** a seleção deixou de ter uma tela de confirmação/escolha no meio da jornada de medição — ao tocar em "Iniciar", a pré-leitura resolve o candidato e a medição já começa, sem segundo toque. A escolha manual não é mais feita por sessão: é uma preferência persistida em Configurações (menu nativo "Região de referência"), aplicada automaticamente a toda sessão futura enquanto o candidato escolhido continuar válido para o jogo/mercado/plataforma medidos. Se deixar de ser válido, a sessão volta para automático em vez de falhar. Sem candidato viável (automático ou preferido), o resultado continua inconclusivo, sem troca silenciosa de destino. A regra de seleção em si (desempate, privacidade, gates) não mudou e está em [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
 
 O Quick Check mede a região assim escolhida. O Deep Check mede essa mesma região no repouso e sob carga; impacto sob carga continua complementar e não altera o score principal. Uma referência mais rápida não altera automaticamente a região real usada pelo jogo e não deve ser apresentada como recomendação de troca de servidor sem evidência de que essa troca é possível no jogo.
 

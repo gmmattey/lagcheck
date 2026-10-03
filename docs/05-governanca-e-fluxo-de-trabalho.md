@@ -1,8 +1,8 @@
 # LagCheck — governança e fluxo de trabalho
 
-**Status:** regra operacional do projeto  
+**Status:** regra operacional do projeto
 **Idioma:** PT-BR  
-**Escopo:** V1 para iPhone  
+**Escopo:** iPhone e Android oficial (Decisões 67–69); gates de release específicos por plataforma
 **Documentos relacionados:** [Funcional](./01-funcional.md) · [Arquitetura](./02-arquitetura.md) · [Especificação técnica](./03-especificacao-tecnica.md) · [Sistema de design](./04-design-system.md)
 
 ## 1. Objetivo
@@ -33,7 +33,7 @@ Marco é o ponto único de integração e interlocutor primário com o dono do p
 4. **Uma mudança, uma dona.** Toda alteração tem uma frente responsável, uma hipótese, critérios de aceite e evidência de validação.
 5. **A base não vira monólito.** Domínio, aplicação, infraestrutura, design system, features e composição do app permanecem separados conforme a arquitetura aprovada.
 6. **Custo recorrente zero é uma restrição de produto.** Qualquer dependência, serviço ou recurso novo precisa declarar custo presente e futuro antes de entrar no escopo.
-7. **iPhone primeiro.** A V1 não inclui iPad ou Android. Decisões que facilitam o futuro são bem-vindas quando não aumentam a complexidade nem atrasam o iPhone. Essa ordem é uma escolha de viabilidade de distribuição (o closed testing do Google Play exige 14 dias com 12 usuários, fricção alta para o tamanho do time), não uma afirmação de que o público iPhone é quem mais sente a dor do produto — detalhe e implicação em [Funcional](./01-funcional.md#1-visão-do-produto).
+7. **iPhone como plataforma inicial; Android oficial.** As Decisões 67–69 autorizam o port nativo Android com paridade determinística e limites registrados em `docs/08-arquitetura-android.md`. iPad continua fora do escopo. O restante deste item registra a justificativa histórica da priorização inicial: Decisões que facilitam o futuro são bem-vindas quando não aumentam a complexidade nem atrasam o iPhone. Essa ordem é uma escolha de viabilidade de distribuição (o closed testing do Google Play exige 14 dias com 12 usuários, fricção alta para o tamanho do time), não uma afirmação de que o público iPhone é quem mais sente a dor do produto — detalhe e implicação em [Funcional](./01-funcional.md#1-visão-do-produto).
 8. **V1 é fundação, não validação de negócio.** O MVP1 prioriza qualidade técnica, superfície enxuta e identidade de produto definida. Retenção e monetização são avaliadas depois, com os dados agregados de App Store Connect — nunca o código limpo sozinho — como critério de decidir avançar ao MVP1.1. Ver [Funcional §13.1](./01-funcional.md#131-critério-de-saída-do-mvp1).
 
 ## 4. Como uma decisão acontece
@@ -64,7 +64,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 ### 5.1 Design e experiência — Renan
 
 - Nenhuma tela segue para desenvolvimento sem objetivo, fluxo e estados de carregamento, vazio, erro, cancelamento e sucesso necessários.
-- A direção **Dark Competitive UI** é a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite, painéis com borda fina de 1px (sem card soup), tipografia pesada, números monoespaçados e Coral Solar (`#FF5A36`) como acento exclusivo de ação primária.
+- A direção **Dark Competitive UI** é a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite, painéis com borda fina de 1px (sem card soup), tipografia pesada, números monoespaçados e Roxo Gamer (`#7C3AED`) para ação primária; Coral Solar (`#FF5A36`) é reservado para atenção, erro e ações destrutivas (Decisão 66, que refina a 51).
 - A wordmark `lagcheck` é a marca oficial. O jogo é o protagonista visual, recebendo artwork autoral amplo em destaque na Home.
 - Tokens são a fonte de verdade. Valor de cor, espaço, raio ou tipografia solto na tela exige revisão de design.
 - Marca, ícones e artes vêm de arquivo-fonte aprovado e versionado. Não se redesenha, deforma, recolore ou adiciona efeito ad hoc a um asset.

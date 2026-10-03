@@ -215,9 +215,9 @@ O catálogo é tratado como entrada não confiável até passar por validação 
 
 ### 5.3 Seleção de mercado, região e assets de catálogo
 
-O app usa localidade/região do sistema apenas para ordenar candidatos de mercado publicados no catálogo. Dentro de uma sessão, o coordenador cria snapshot imutável do catálogo validado e faz pré-leitura UDP somente contra regiões candidatas declaradas nele. Mercado e região efetivos são resolvidos por essa pré-leitura ou por override manual explícito; viagem, VPN ou configuração regional do aparelho não autorizam fixar contexto por localidade. Não há GPS, geocodificação, IP geolocation nem destino obtido fora do catálogo. Sem candidato confirmado, não há medição nem score. A regra canônica está em [Decisão de seleção regional automática](./16-decisao-selecao-regional-automatica.md).
+O app usa localidade/região do sistema apenas para ordenar candidatos de mercado publicados no catálogo. Dentro de uma sessão, o coordenador cria snapshot imutável do catálogo validado e faz pré-leitura UDP somente contra regiões candidatas declaradas nele. Mercado e região efetivos são resolvidos por essa pré-leitura ou por override manual explícito; viagem, VPN ou configuração regional do aparelho não autorizam fixar contexto por localidade. Não há GPS, geocodificação, IP geolocation nem destino obtido fora do catálogo. Sem candidato confirmado, não há medição nem score. A regra canônica está em [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
 
-> **Substituído para a V1:** os três parágrafos abaixo descrevem o pipeline de assets remotos assinados como estava previsto originalmente. A [Decisão de identidade visual neutra dos jogos](./18-decisao-identidade-visual-neutra-de-jogos.md) substitui esse pipeline para a V1: não há asset remoto, URL, hash ou cache de imagem por jogo no catálogo assinado atual. A miniatura é um componente neutro do design system, sem mapeamento por jogo. O texto abaixo permanece como referência para uma eventual reintrodução de arte licenciada, mediante nova decisão.
+> **Substituído para a V1:** os três parágrafos abaixo descrevem o pipeline de assets remotos assinados como estava previsto originalmente. A [Decisão de identidade visual neutra dos jogos](./DECISOES.md#decisão-18) substitui esse pipeline para a V1: não há asset remoto, URL, hash ou cache de imagem por jogo no catálogo assinado atual. A miniatura é um componente neutro do design system, sem mapeamento por jogo. O texto abaixo permanece como referência para uma eventual reintrodução de arte licenciada, mediante nova decisão.
 
 O catálogo assinado pode referenciar assets remotos de jogos por URL HTTPS, hash de conteúdo, tipo MIME e limite de tamanho. A assinatura autoriza a referência; o app ainda valida esquema, host permitido, HTTPS, hash e limites antes de disponibilizar a imagem para a UI. Nenhuma tela interpreta URL ou JSON remoto diretamente.
 
@@ -262,9 +262,9 @@ O MVP não possui fallback HTTP ou ICMP para um destino UDP bloqueado. Quando o 
 
 O domínio trabalha com uma abstração de alvo de medição. Um destino oficial, infraestrutura de jogo, proxy regional gamer ou destino genérico são variações configuráveis de estratégia. É possível adicionar novos provedores de probe sem mudar fórmula, telas ou histórico.
 
-### 8.2 Android futuro
+### 8.2 Android oficial (Decisões 67–69)
 
-A versão Android futura deverá preservar os contratos de catálogo, métricas, NGQE, resultado e histórico. Os adaptadores de transporte, observação de rede, persistência e apresentação serão específicos da plataforma.
+O port Android em `android/` preserva os contratos de catálogo e as regras determinísticas do iOS, com adaptadores próprios de transporte, rádio, persistência e apresentação. Estrutura, versões das regras e a divergência autorizada do gateway estão em [Arquitetura Android](./08-arquitetura-android.md). A validação local e seus limites estão na [auditoria de paridade](../audits/android-ios-code-parity-2026-10-03.md).
 
 Não há premissa de código compartilhado no MVP iPhone. A portabilidade vem dos contratos, catálogo versionado e comportamento determinístico, não de uma escolha prematura de framework multiplataforma.
 

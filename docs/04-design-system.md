@@ -13,7 +13,7 @@ Este documento não altera nem substitui os três documentos funcionais/técnico
 
 > **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação.
 >
-> **Direção Visual Vigente (Decisão 51 — Dark Competitive UI):** O LagCheck adota a direção visual de **produto gamer competitivo de alta performance**, substituindo a estética de "utilitário de rede / Apple HIG genérico". A experiência é fundamentada em fundo quase preto, superfícies grafite, arte do jogo como protagonista, painéis de borda fina (eliminando o "card soup"), tipografia pesada, números monoespaçados, telemetria viva compacta e Coral Solar exclusivo para ações dominantes.
+> **Direção Visual Vigente (Decisões 51 e 66 — Dark Competitive UI):** O LagCheck adota a direção visual de **produto gamer competitivo de alta performance**, substituindo a estética de "utilitário de rede / Apple HIG genérico". A experiência é fundamentada em fundo quase preto, superfícies grafite, arte do jogo como protagonista, painéis de borda fina (eliminando o "card soup"), tipografia pesada, números monoespaçados, telemetria viva compacta e Roxo Gamer (`#7C3AED`) para ações primárias; Coral Solar (`#FF5A36`) reservado a atenção, erro e ações destrutivas (Decisão 66).
 >
 > **Iniciativa Unificada:** Essa linguagem integra a entrega *“Lagcheck Competitive Redesign + Ready Check”* (Decisões 50 e 51).
 
@@ -23,12 +23,12 @@ LagCheck fala a linguagem de jogadores competitivos: **impacto, foco, clareza e 
 
 1. **Veredito antes das métricas:** O jogador descobre instantaneamente se a conexão está pronta para a partida (`● PRONTO PARA RANKED` ou `▲ EU EVITARIA RANKED AGORA`). O score 0–100 e métricas aprofundadas ficam subordinados à decisão.
 2. **O jogo é o protagonista:** O artwork do jogo ocupa o espaço central de prestígio da tela. A rede e a telemetria apoiam a experiência com precisão cirúrgica, sem transformar o app em um painel de NOC.
-3. **Gamer premium, limpo e direto:** Nada de RGB espalhado, gradientes cyberpunk caricatos ou dezenas de cards empilhados. Usamos painéis amplos com borda fina (1px `rgba(255, 255, 255, 0.08)`), tipografia pesada, labels em caixa alta compacta e **Coral Solar** como acento exclusivo de ação primária. O verde é utilizado estritamente com função semântica para indicar condição pronta, nunca como cor corporativa.
+3. **Gamer premium, limpo e direto:** Nada de RGB espalhado, gradientes cyberpunk caricatos ou dezenas de cards empilhados. Usamos painéis amplos com borda fina (1px `rgba(255, 255, 255, 0.08)`), tipografia pesada, labels em caixa alta compacta e **Roxo Gamer** como acento de ação primária (Decisão 66). O verde é utilizado estritamente com função semântica para indicar condição pronta, nunca como cor corporativa.
 
 ### 1.1 Wordmark e regras da marca
 
 - Marca oficial: **LagCheck** (sempre com `lagcheck` em minúsculas).
-- O `gg` do wordmark incorpora o símbolo compacto em Coral Solar / Gradiente de performance.
+- Wordmark oficial: símbolo e `check` em Roxo Gamer; `lag` em branco (Decisão 66). O símbolo isolado está em `design-system/assets/brand/app-icon-foreground-only.svg`.
 - Fundos aprovados: Quase preto profundo (`#0B0D10`).
 - Sem símbolo ™ ou ® nesta versão.
 
