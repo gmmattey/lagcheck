@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Lagcheck — Resultado do check</title>
+  <style>
+    :root {
+      --bg: oklch(0.158 0.011 260);
+      --surface: oklch(0.205 0.012 260);
+      --fg: oklch(0.955 0.006 260);
+      --muted: oklch(0.675 0.014 260);
+      --border: oklch(0.302 0.014 260);
+      --accent: oklch(0.585 0.214 299);
+      --attention: oklch(0.684 0.196 35);
+      --good: oklch(0.76 0.15 150);
+      --font-display: ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --ease: cubic-bezier(.2, 0, 0, 1);
+    }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; background: oklch(.09 .009 260); color: var(--fg); font-family: var(--font-body); }
+    button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+    .stage { width: min(100%, 1080px); margin: 0 auto; padding: 30px 20px 48px; }
+    .eyebrow { margin: 0 0 9px; color: var(--muted); font: 11px/1 var(--font-mono); letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+    .page-title { margin: 0 auto 26px; font: 800 30px/1 var(--font-display); letter-spacing: -.055em; text-align: center; }
+    .composition { display: grid; grid-template-columns: 180px 393px 180px; justify-content: center; align-items: center; gap: 32px; }
+    .notes { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .notes h2 { margin: 0 0 12px; color: var(--fg); font: 700 12px/1.1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .notes p { margin: 0 0 13px; }
+    .notes b { color: var(--fg); font-weight: 650; }
+    .mode-switcher { display: grid; gap: 7px; }
+    .mode-switcher button { min-height: 38px; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--muted); font: 11px/1 var(--font-mono); text-align: left; transition: background 150ms var(--ease), color 150ms var(--ease), border-color 150ms var(--ease); }
+    .mode-switcher button:hover { background: var(--surface); color: var(--fg); }
+    .mode-switcher button[aria-pressed="true"] { border-color: var(--accent); background: oklch(.585 .214 299 / .12); color: var(--fg); }
+    .phone { width: 393px; height: 852px; padding: 11px; border: 1px solid oklch(.36 .012 260); border-radius: 57px; background: linear-gradient(145deg, oklch(.34 .014 260), oklch(.12 .01 260)); box-shadow: 0 34px 85px oklch(0 0 0 / .58), inset 0 1px oklch(.7 .01 260 / .28); }
+    .app { position: relative; isolation: isolate; height: 100%; overflow: hidden; border-radius: 47px; background: var(--bg); }
+    .island { position: absolute; z-index: 2; top: 11px; left: 50%; width: 124px; height: 35px; transform: translateX(-50%); border-radius: 22px; background: #000; }
+    .status { height: 54px; padding: 15px 27px 0; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; }
+    .icons { display: flex; align-items: center; gap: 6px; }
+    .icons svg { display: block; fill: currentColor; }
+    .content { height: calc(100% - 54px); display: flex; flex-direction: column; padding: 0 22px 25px; }
+    .result-top { display: flex; min-height: 52px; align-items: center; justify-content: space-between; }
+    .icon-btn { display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--fg); transition: background 150ms var(--ease), transform 100ms var(--ease); }
+    .icon-btn:hover { background: var(--surface); }
+    .icon-btn:active { transform: scale(.94); }
+    .back { width: 11px; height: 11px; margin-left: 5px; border-bottom: 1.8px solid currentColor; border-left: 1.8px solid currentColor; transform: rotate(45deg); }
+    .game-context { color: var(--muted); font: 11px/1 var(--font-mono); }
+    .result-top > span { width: 44px; }
+    .verdict-hero { padding-top: 81px; }
+    .verdict-kicker { margin: 0 0 14px; color: var(--muted); font: 11px/1 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
+    .verdict { max-width: 320px; margin: 0; font: 900 43px/.9 var(--font-display); letter-spacing: -.073em; text-wrap: balance; }
+    .verdict-symbol { display: inline-block; margin-right: 3px; font: 800 28px/.9 var(--font-body); vertical-align: 7px; }
+    .tone-good { color: var(--good); }
+    .tone-warn { color: var(--attention); }
+    .tone-muted { color: var(--muted); }
+    .result-copy { max-width: 310px; margin: 20px 0 0; font-size: 16px; font-weight: 600; line-height: 1.34; letter-spacing: -.02em; }
+    .uses { min-height: 57px; margin-top: 25px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .use-line { display: flex; gap: 10px; align-items: baseline; }
+    .use-line + .use-line { margin-top: 3px; }
+    .use-label { flex: none; min-width: 94px; color: var(--muted); font-weight: 650; }
+    .use-values { color: var(--fg); font-family: var(--font-mono); font-size: 11px; letter-spacing: -.025em; }
+    .uses[data-state="inconclusivo"] { max-width: 280px; font-size: 12px; line-height: 1.45; }
+    .metrics { min-height: 19px; margin: 22px 0 0; color: var(--muted); font: 11px/1.5 var(--font-mono); letter-spacing: -.025em; }
+    .metrics strong { color: var(--fg); font-weight: 600; }
+    .weight-card { display: none; margin-top: 24px; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+    .weight-card.show { display: block; }
+    .weight-card p { margin: 0 0 5px; color: var(--muted); font: 10px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .weight-card strong { display: block; font-size: 14px; letter-spacing: -.015em; }
+    .result-actions { display: grid; gap: 10px; margin-top: auto; padding-top: 22px; }
+    .primary, .secondary { width: 100%; min-height: 56px; border-radius: 16px; font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+    .primary { border: 0; background: var(--accent); color: oklch(.955 .006 260); box-shadow: 0 12px 28px oklch(.585 .214 299 / .24); transition: background 150ms var(--ease), transform 100ms var(--ease); }
+    .primary:hover { background: oklch(.66 .214 299); }
+    .primary:active { transform: scale(.98); }
+    .secondary { border: 1px solid var(--border); background: transparent; color: var(--fg); transition: background 150ms var(--ease), border-color 150ms var(--ease); }
+    .secondary:hover { border-color: oklch(.44 .018 260); background: var(--surface); }
+    .home-indicator { position: absolute; z-index: 3; bottom: 8px; left: 50%; width: 134px; height: 5px; transform: translateX(-50%); border-radius: 999px; background: var(--fg); opacity: .88; }
+    .toast { position: absolute; right: 22px; bottom: 149px; left: 22px; z-index: 4; padding: 11px 13px; border: 1px solid var(--border); border-radius: 12px; background: oklch(.24 .012 260); color: var(--fg); font-size: 12px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity 150ms var(--ease), transform 150ms var(--ease); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 760px) { .stage { padding-top: 22px; } .composition { display: block; } .notes { display: none; } .phone { margin: 0 auto; } }
+    @media (max-width: 430px) { .stage { padding: 0; } .eyebrow, .page-title { display: none; } .phone { width: 100%; height: 100dvh; padding: 0; border: 0; border-radius: 0; background: var(--bg); box-shadow: none; } .app { border-radius: 0; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="stage" data-od-id="resultado-lagcheck">
+    <p class="eyebrow">Lagcheck · tela de resultado</p>
+    <h1 class="page-title" data-od-id="titulo-prototipo">O ranked decide. Os outros usos se explicam.</h1>
+    <section class="composition" aria-label="Protótipo da tela de resultado">
+      <aside class="notes" data-od-id="notas-hierarquia">
+        <h2>Hierarquia</h2>
+        <p><b>1. Veredito</b><br>O sinal de ranked é a primeira coisa que o olho encontra.</p>
+        <p><b>2. Usos</b><br>Texto calmo, sem virar um segundo placar.</p>
+      </aside>
+      <article class="phone" aria-label="Resultado do check do Lagcheck">
+        <div class="app">
+          <div class="island" aria-hidden="true"></div>
+          <header class="status" aria-label="Barra de status">
+            <span>9:41</span>
+            <span class="icons" aria-hidden="true">
+              <svg width="17" height="12" viewBox="0 0 17 12"><path d="M1 10h2V7H1v3Zm4 0h2V5H5v5Zm4 0h2V2H9v8Zm4 0h2V0h-2v10Z"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.1A10.8 10.8 0 0 0 .6 5.2L8 12l7.4-6.8A10.8 10.8 0 0 0 8 2.1Zm0 3.2a5.7 5.7 0 0 0-3.8 1.5L8 10.3l3.8-3.5A5.7 5.7 0 0 0 8 5.3Z"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor"/><path d="M23 4v4h1V4h-1Z"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.5"/></svg>
+            </span>
+          </header>
+          <section class="content" data-od-id="resultado">
+            <header class="result-top" data-od-id="topo-resultado">
+              <button class="icon-btn" type="button" data-od-id="voltar" aria-label="Voltar"><i class="back" aria-hidden="true"></i></button>
+              <span class="game-context" id="gameContext">Fortnite · PC</span>
+              <span aria-hidden="true"></span>
+            </header>
+            <section class="verdict-hero" data-od-id="area-veredito" aria-live="polite">
+              <p class="verdict-kicker">Resultado do seu check</p>
+              <h2 class="verdict tone-good" id="verdict" data-od-id="veredito">PRONTO PARA RANKED</h2>
+              <p class="result-copy" id="resultCopy">Sua conexão está estável o suficiente para Fortnite agora.</p>
+              <section class="uses" id="uses" data-od-id="casos-de-uso" aria-label="Casos de uso recomendados">
+                <div class="use-line"><span class="use-label">Adequado para:</span><span class="use-values">Ranked&nbsp; · &nbsp;Casual&nbsp; · &nbsp;Party</span></div>
+              </section>
+              <p class="metrics" id="metrics" data-od-id="metricas-essenciais"><strong>31 ms</strong> · 2 ms jitter · 0,1% perda</p>
+              <section class="weight-card" id="weightCard" data-od-id="fator-dominante">
+                <p>O que mais pesou</p>
+                <strong id="weightText">Perda de pacotes sob carga</strong>
+              </section>
+            </section>
+            <div class="result-actions" data-od-id="acoes-resultado">
+              <button class="primary" type="button" id="retest" data-od-id="testar-novamente">Testar novamente</button>
+              <button class="secondary" type="button" id="details" data-od-id="ver-detalhes">Ver detalhes</button>
+            </div>
+          </section>
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          <div class="home-indicator" aria-hidden="true"></div>
+        </div>
+      </article>
+      <aside class="notes" data-od-id="variacoes-resultado">
+        <h2>Casos de uso</h2>
+        <div class="mode-switcher" role="group" aria-label="Ver outros estados de resultado">
+          <button type="button" data-state="pronto" aria-pressed="true">● Pronto</button>
+          <button type="button" data-state="evitar" aria-pressed="false">▲ Evitaria</button>
+          <button type="button" data-state="instavel" aria-pressed="false">▲ Instável</button>
+          <button type="button" data-state="inconclusivo" aria-pressed="false">— Inconclusivo</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+  <script>
+    const states = {
+      pronto: { verdict: 'PRONTO PARA RANKED', tone: 'good', copy: 'Sua conexão está estável o suficiente para Fortnite agora.', uses: [['Adequado para:', 'Ranked&nbsp; · &nbsp;Casual&nbsp; · &nbsp;Party']], metrics: '<strong>31 ms</strong> · 2 ms jitter · 0,1% perda', weight: '', game: 'Fortnite · PC' },
+      evitar: { verdict: 'EU EVITARIA RANKED', tone: 'warn', copy: 'Detectamos perda de pacotes sob carga.', uses: [['Melhor para:', 'Casual'], ['Evitar:', 'Ranked&nbsp; · &nbsp;Party&nbsp; · &nbsp;Streaming']], metrics: '<strong>52 ms</strong> · 19 ms jitter · 2,8% perda', weight: 'Perda de pacotes sob carga', game: 'Fortnite · PC' },
+      instavel: { verdict: 'CONDIÇÕES INSTÁVEIS', tone: 'warn', copy: 'A latência oscilou bastante durante o teste.', uses: [['Melhor para:', 'Casual'], ['Atenção em:', 'Ranked&nbsp; · &nbsp;Party']], metrics: '<strong>38 ms</strong> · 22 ms jitter · 0,6% perda', weight: '', game: 'Fortnite · PC' },
+      inconclusivo: { verdict: 'INCONCLUSIVO', tone: 'muted', copy: 'Não foi possível avaliar com segurança desta vez.', uses: [], metrics: '', weight: '', game: 'Fortnite · PC' }
+    };
+    const verdict = document.getElementById('verdict');
+    const resultCopy = document.getElementById('resultCopy');
+    const uses = document.getElementById('uses');
+    const metrics = document.getElementById('metrics');
+    const weightCard = document.getElementById('weightCard');
+    const weightText = document.getElementById('weightText');
+    const gameContext = document.getElementById('gameContext');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function setState(key) {
+      const state = states[key];
+      verdict.className = `verdict tone-${state.tone}`;
+      verdict.textContent = state.verdict;
+      resultCopy.textContent = state.copy;
+      gameContext.textContent = state.game;
+      uses.dataset.state = key;
+      uses.innerHTML = state.uses.length ? state.uses.map(([label, values]) => `<div class="use-line"><span class="use-label">${label}</span><span class="use-values">${values}</span></div>`).join('') : 'Dados insuficientes para indicar usos recomendados.';
+      metrics.innerHTML = state.metrics;
+      metrics.hidden = !state.metrics;
+      weightCard.classList.toggle('show', Boolean(state.weight));
+      weightText.textContent = state.weight;
+      document.querySelectorAll('[data-state]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.state === key)));
+    }
+    document.querySelectorAll('[data-state]').forEach(button => button.addEventListener('click', () => setState(button.dataset.state)));
+    function announce(message) {
+      clearTimeout(toastTimer); toast.textContent = message; toast.classList.add('show'); toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+    }
+    document.getElementById('retest').addEventListener('click', () => announce('Novo check iniciado.'));
+    document.getElementById('details').addEventListener('click', () => announce('Detalhes do check abertos.'));
+  </script>
+</body>
+</html>

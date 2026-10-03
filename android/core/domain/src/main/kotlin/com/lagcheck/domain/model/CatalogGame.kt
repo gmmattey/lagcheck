@@ -1,0 +1,46 @@
+package com.lagcheck.domain.model
+
+/**
+ * Representação de jogo do catálogo do Lagcheck (Decisões 18, 31, 56 e 66).
+ * Alinhado 1:1 com o protótipo de alta fidelidade Open Design.
+ */
+data class CatalogGame(
+    val id: String,
+    val name: String,
+    val category: String,
+    val platforms: List<String> = listOf("PC"),
+    val primaryRegion: String = "São Paulo (sa-east-1)",
+    val drawableResName: String
+) {
+    val platformsFormatted: String
+        get() = platforms.joinToString(" · ")
+}
+
+object OfficialGameCatalog {
+    val games: List<CatalogGame> = listOf(
+        CatalogGame("fortnite", "Fortnite", "Battle Royale", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_fortnite"),
+        CatalogGame("valorant", "Valorant", "FPS Tático", listOf("PC"), drawableResName = "game_valorant"),
+        CatalogGame("warzone", "Call of Duty: Warzone", "Battle Royale", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_warzone"),
+        CatalogGame("cs2", "Counter-Strike 2", "FPS Competitivo", listOf("PC"), drawableResName = "game_cs2"),
+        CatalogGame("league-of-legends", "League of Legends", "MOBA", listOf("PC"), drawableResName = "game_league_of_legends"),
+        CatalogGame("apex-legends", "Apex Legends", "Battle Royale", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_apex_legends"),
+        CatalogGame("rainbow-six", "Tom Clancy's Rainbow Six Siege", "FPS Tático", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_rainbow_six"),
+        CatalogGame("rocket-league", "Rocket League", "Competitivo", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_rocket_league"),
+        CatalogGame("dota2", "Dota 2", "MOBA", listOf("PC"), drawableResName = "game_dota2"),
+        CatalogGame("free-fire", "Free Fire", "Battle Royale Mobile", listOf("Mobile"), drawableResName = "game_free_fire"),
+        CatalogGame("codm", "Call of Duty: Mobile", "FPS Mobile", listOf("Mobile"), drawableResName = "game_codm"),
+        CatalogGame("brawl-stars", "Brawl Stars", "Ação Competitiva", listOf("Mobile"), drawableResName = "game_brawl_stars"),
+        CatalogGame("blood-strike", "Blood Strike", "FPS Mobile", listOf("PC", "Mobile"), drawableResName = "game_blood_strike"),
+        CatalogGame("pubg", "PUBG Mobile", "Battle Royale Mobile", listOf("Mobile"), drawableResName = "game_pubg"),
+        CatalogGame("wild-rift", "League of Legends: Wild Rift", "MOBA Mobile", listOf("Mobile"), drawableResName = "game_wild_rift"),
+        CatalogGame("roblox", "Roblox", "Sandbox / Comunidade", listOf("PlayStation", "Xbox", "PC", "Mobile"), drawableResName = "game_roblox"),
+        CatalogGame("minecraft", "Minecraft", "Sandbox", listOf("PlayStation", "Xbox", "PC", "Nintendo", "Mobile"), drawableResName = "game_minecraft"),
+        CatalogGame("ea-fc", "EA SPORTS FC Mobile", "Esportes", listOf("PlayStation", "Xbox", "PC", "Mobile"), drawableResName = "game_ea_fc"),
+        CatalogGame("rust", "Rust", "Sobrevivência", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_rust"),
+        CatalogGame("palworld", "Palworld", "Sobrevivência", listOf("Xbox", "PC"), drawableResName = "game_palworld")
+    )
+
+    fun findById(id: String): CatalogGame {
+        return games.firstOrNull { it.id == id } ?: games.first()
+    }
+}

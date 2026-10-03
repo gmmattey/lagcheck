@@ -28,6 +28,7 @@ Leia o documento relevante antes de propor ou implementar mudanças:
 | Papéis, decisões, workflow e gates | `docs/05-governanca-e-fluxo-de-trabalho.md` e `.agents/WORKFLOW.md` |
 | Canais, versões e publicação | `docs/06-fluxo-de-release.md` |
 | Tom, copy e localização | `docs/07-voz-do-produto.md` |
+| Arquitetura, rádio e expansão Android | `docs/08-arquitetura-android.md` |
 | **Decisões registradas (08 a 63+) e novas deliberações** | **`docs/DECISOES.md` (documento único vivo de decisões)** |
 
 ### Regra do Documento Único de Decisões (`docs/DECISOES.md`)

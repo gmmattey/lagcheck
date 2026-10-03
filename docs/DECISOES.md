@@ -69,6 +69,8 @@
 | [64](#decisão-64) | Diretriz "Zero Cara de IA / Gamer Não Lê", Card Viral Discord e Dogfooding | **Vigente (Produto & Processo)** | Proibição de cardlização/textão, card pro Discord, dogfooding e skills de ação | Marco / Luiz / Squad |
 | [65](#decisão-65) | Validação Científica (12s, 3 Fases), Fallback de Jogo, Cockpit e Blindagem Visual | **Vigente (Execução Total)** | 3 fases reais UDP/Bufferbloat, fallback jogos, 2 abas, anti-glitches visuais | Marco / Squad / Luiz |
 | [66](#decisão-66) | Adoção do Design System LagCheck Canônico (Roxo Gamer Primário, Coral Solar para Atenção) | **Vigente (Design System Canônico)** | Roxo Gamer (#7C3AED), Coral Solar (#FF5A36) restrito a atenção/erro, 3 pilhas tipográficas, raios 8/13/17/26/999px | Renan / Squad / Luiz |
+| [67](#decisão-67) | Expansão Multiplataforma: Rascunho Arquitetural e Telemetria Avançada de Rádio no Android | **Vigente (Expansão Android)** | Módulo de rádio (2.4G/5G/6G, RSSI, PHY speed, Gateway), paridade determinística e custo zero | Marco / Camillo / Iury / Luiz |
+
 
 ---
 
@@ -363,6 +365,24 @@
   5. **Ativos Oficiais:**
      - Wordmark oficial: `wordmark-primary.svg` com símbolo e "Check" em Roxo Gamer, e "Lag" em branco.
      - Ícone do aplicativo: fonte `app-icon-source.svg` com gradiente roxo gamer (`#5B21B6` -> `#7C3AED` -> `#A78BFA`).
+
+### Decisão 67
+- **Título:** Expansão Multiplataforma: Especificação Técnica e Rascunho Arquitetural do LagCheck para Android com Telemetria Avançada de Rádio.
+- **Status Atual:** **Vigente (Expansão Android).**
+- **Frentes envolvidas:** Marco (Product Lead), Luiz (Dono do Produto), Camillo (Arquiteto Sistêmico), Iury (Engenheiro de Redes), Renan (Design System).
+- **Contexto, Problema e Decisão:**
+  1. **Abertura da Trilha Android:**
+     - Autorizada pelo dono do produto (Luiz) a preparação da infraestrutura do repositório e elaboração da arquitetura técnica para suportar o LagCheck no ecossistema Android nativo (Kotlin / Jetpack Compose).
+  2. **Diferencial Competitivo — Telemetria de Rádio Sem Sandbox Fechado:**
+     - O Android expõe dados de hardware e rádio que a Apple bloqueia no iOS (`WifiInfo.getFrequency()`, `getRssi()`, `getTxLinkSpeedMbps()`, `getWifiStandard()`, `LinkProperties.getRoutes()`).
+     - O LagCheck Android usará essas métricas para identificar instantaneamente se o jogador está conectado em Wi-Fi 2.4 GHz vs 5 GHz vs 6 GHz, o nível de sinal real em dBm, queda de velocidade PHY e perda física de pacotes no ar vs rota externa.
+     - Cumpre a **Decisão 50 (Integridade Diagnóstica)** com dados empíricos de hardware e a **Decisão 64 (Regra do Discord)** com badges rápidas de telemetria sem textão explicativo.
+  3. **Preservação de Custo Operacional Zero:**
+     - O app Android consumirá os mesmos contratos e endpoints do Cloudflare Worker já existente (`nolaggy-deep-check`): `GET /v1/catalog.json` (assinado Ed25519), `GET /v1/load` (bufferbloat) e `POST /v1/telemetry` (retenção anônima). Zero custo adicional de backend ou serviços pagos.
+  4. **Estrutura Modular e Paridade de Domínio:**
+     - Repositório preparado com módulo Android limpo sob `android/`: `:core:domain` (puro Kotlin, port direto de `NolaggyDomain` com os mesmos vetores determinísticos), `:core:network` (STUN RFC 5389, RFC 4737 e bufferbloat), `:core:telemetry-radio` (APIs nativas de rede/rádio Android) e `:ui` (Dark Competitive UI com Roxo Gamer `#7C3AED` e tokens canônicos em Compose).
+  5. **Política de Permissões e Degradação Graciosa:**
+     - Se o usuário conceder permissões de rádio (`NEARBY_WIFI_DEVICES`), o app ativa a telemetria detalhada de rádio. Se negar, o teste de ping/jitter/loss UDP para os servidores de jogo ocorre normalmente com máxima privacidade.
 
 ---
 
