@@ -47,7 +47,10 @@ O Kotlin é port do Swift, não reinterpretação. A fonte de verdade é `Source
 - **Medição:** repouso (30 probes, 1 a cada 500 ms, fechamento em 17 s) e depois carga (30 probes com `GET /v1/load` concorrente). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
 - **Destino:** o do catálogo assinado (`gameLiftPing`, `playFabQoS`, `steamA2S`). Hoje todas as rotas ativas são `awsFallback` em `sa-east-1`, com confiança média. Rotas `gameOwned` pendentes nunca são medidas.
 - **Plataforma:** o catálogo v3 só publica `iphone|playstation|xbox|pc|nintendo`. O celular Android usa o contexto `iphone` (mesmas rotas) até o catálogo ganhar `android`.
-- **Fora do port (fase 2, decisão consciente):** probe de gateway, NAT/STUN, qualidade de voz, Connection Booster e Deep Check manual. Sem probe de gateway, o Android não afirma nada sobre roteador ou operadora (Decisão 50). A telemetria de rádio entra como fato observado, nunca como causa.
+- **Fase 2 (implementada):** banda Wi-Fi (frequência real do Android), qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES. O gateway é medido e exibido, mas **não entra no veredito** até validação em aparelho (`LocalDiagnostics.gatewayInfluencesVerdict`). Recomendação sobre rota ou operadora só com primeiro salto comprovadamente limpo (Decisão 50).
+- **Fora do port:** Connection Booster (Gemini com chave embutida: fere custo zero e segurança) e PlatformHealth.
+- **Cockpit:** mostra só o que foi medido. Campo sem leitura aparece como "—". Nunca há valor padrão (o protótipo antigo exibia NAT, UPnP, voz e gateway `192.168.1.1` que ninguém medira).
+- **Idiomas:** PT-BR, EN e ES. Textos de tela passam por `tr("texto em PT-BR")` e um teste varre o app exigindo tradução para cada um (`UiStringsCompletenessTest`).
 
 ## 4. O Módulo de Telemetria de Rádio (`:core:telemetry-radio`)
 

@@ -129,10 +129,10 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 2. **Ed25519 sem dependência.** `Signature.getInstance("Ed25519")` só existe no Android 13+, e o `minSdk` é 26. Implementação verify-only em Kotlin puro, validada contra os vetores do RFC 8032 e contra o envelope real do Worker. Zero SDK novo.
 3. **Base embarcada + atualização diária**, igual ao iOS (`RemoteCatalogRepository`): envelope v3 vai em `assets/`, cache em arquivo, uma tentativa de refresh por dia, falha mantém o catálogo válido.
 4. **Sem rota ativa, sem medição.** Rota `gameOwned` com status `pending` não é medida. Só `awsFallback` ativa mede, com confiança `medium` (margem de 10% nos guardrails, igual ao iOS).
-5. **Fora do port V1 Android (decisão consciente, não esquecimento):** Deep Check manual separado, NAT/STUN, qualidade de voz, Connection Booster (Gemini) e probe de gateway. O probe de gateway fica para a fase 2, e **até lá o Android não diz nada sobre roteador ou Wi-Fi como causa** (Decisão 50). A telemetria de rádio entra como fato observado (banda, RSSI), nunca como causa.
+5. **Fase 2 (implementada):** banda Wi-Fi por frequência real, voz, NAT/STUN, probe de gateway (DNS/UDP), recomendações por evidência, EN/ES. O gateway **não** entra no veredito por padrão (ver Decisão 68 item 6). **Fora:** Connection Booster (Gemini com chave no binário: custo e segredo, exige decisão) e PlatformHealth.
 
 ### 7.4 Critérios de aceite
-- `./gradlew :core:domain:test :core:catalog:test :core:network:test` verde (validado neste ambiente com Gradle JVM).
+- `./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test` verde (validado neste ambiente com Gradle JVM: 267 testes).
 - Vetores portados dos testes Swift (`QualityEvaluator*`, `SpikePattern`, `SampleQuality`, `ResultInterpreter`, `GameReadinessDomain`, `DeepCheckEvaluator`, `RemoteCatalog`, codecs) passando em Kotlin.
 - Envelope `catalog-v3.envelope.json` real verifica; envelope adulterado, expirado ou com payload alterado é recusado.
 - Transporte UDP exercitado em loopback (eco válido, timeout, resposta inválida, cancelamento sem vazar socket).
@@ -147,8 +147,10 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 - [x] `:core:catalog` — 61 testes JVM (envelope v3 real do Worker verifica; adulteração, expiração e chave errada recusadas)
 - [x] `:core:network` — 45 testes JVM (UDP real em loopback, codecs byte a byte, Worker via HttpServer local)
 - [x] `:core:session` — 23 testes JVM (orquestrador, planner, telemetria, aderência da prateleira ao catálogo e SHA-256 das artes)
-- [ ] Compilação do `:app`, `:core:telemetry-radio` e `:core:designsystem` (**não validada**: o ambiente do agente não alcança o Google Maven). Toolchain novo: AGP 8.9.2, Gradle 8.11.1, compileSdk/targetSdk 36.
-- [ ] Homologação em dispositivo real por Breno (rede, background, Wi-Fi↔celular, cancelamento)
+- [x] Fase 2: banda, voz, NAT, gateway, recomendações, Cockpit real, EN/ES (testes JVM)
+- [~] `:app`, `:core:designsystem`: **type-check** contra as classes reais dos módulos e Compose Multiplatform como substituto (só `R` gerado e 3 classes de rede com API Android nova ficaram de fora). **Não houve build do AGP** (Google Maven bloqueado no ambiente do agente).
+- [ ] Build real do app (`./gradlew :app:assembleDebug`) com AGP 8.9.2, Gradle 8.11.1, compileSdk/targetSdk 36
+- [ ] Homologação em dispositivo real por Breno (rede, background, Wi-Fi↔celular, cancelamento, gateway)
 
 ## 9. Pendências e achados que exigem decisão (não são escopo do port)
 
@@ -161,4 +163,11 @@ Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum m�
 | 5 | O catálogo v3 não tem contexto `android`; o Android usa `iphone`. Quando o dono re-assinar, adicionar `android`. | Luiz / Iury |
 | 6 | Telemetria usa o host `giammattey.workers.dev`, enquanto catálogo e carga usam `buildealabs.workers.dev` (espelho do iOS). Confirmar se é intencional. | Iury |
 | 7 | Android 16 ignora `screenOrientation=portrait` em telas grandes (target 36). Layout de tablet/dobrável não foi desenhado. | Renan / Breno |
-| 8 | Fase 2: probe de gateway, NAT/STUN, voz, Connection Booster, Deep Check manual, EN/ES na UI (hoje só o veredito localiza). | Marco |
+| 8 | **Connection Booster** chama a API do Gemini com chave dentro do binário. Fere custo recorrente zero e expõe segredo. Só com decisão do dono do produto (e, se aprovado, via Worker, nunca com chave no app). | Luiz / Camillo |
+| 9 | **PlatformHealth** (status de PSN/Xbox/Nintendo) não foi portado: depende de endpoints públicos de terceiros que não consegui exercitar aqui. | Marco |
+| 10 | **Gateway fora do veredito.** A consulta DNS com RD=1 pode inflar o RTT. Validar em aparelhos reais (roteadores diferentes) antes de ligar `gatewayInfluencesVerdict`. | Breno / Iury |
+| 11 | **EN/ES novos** (interface e recomendações) foram escritos pelo Android: precisam da revisão de voz do Marco (`docs/07`). | Marco |
+| 12 | **Bug do iOS:** `GameEditorialRegistry` marca `ea-sports-fc-mobile` como híbrido, mas o id do catálogo é `eafc`: a regra de NAT nunca dispara no iOS. O Android cobre os dois ids. | Rian |
+| 13 | **iOS:** recomendação de rota/operadora sai com gateway não observável (`!isDegraded`). O Android exige gateway estável (Decisão 50). | Iury |
+| 14 | Botão "Relatório" compartilha texto simples (o iOS gera PDF). | Rian / Renan |
+| 15 | Favoritos (Decisão 57) não existem no Android. | Marco |

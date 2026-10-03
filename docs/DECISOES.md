@@ -398,7 +398,12 @@
   3. Repouso e carga são duas séries independentes. O veredito avalia o repouso e penaliza a degradação sob carga.
   4. O catálogo v3 é verificado com Ed25519 em Kotlin puro (sem SDK novo), com base embarcada e atualização diária.
   5. O contexto `iphone` do catálogo é usado como contexto de celular no Android até o catálogo ganhar `android` (exige nova assinatura do dono da chave).
-  6. Probe de gateway, NAT, voz e Connection Booster ficam para fase 2. Enquanto isso, o Android não atribui causa a roteador ou operadora (Decisão 50).
+  6. **Fase 2 (implementada):** banda Wi-Fi, qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES na interface. Regras de segurança diagnóstica:
+     - A frequência real do rádio (`WifiInfo.getFrequency()`) é a única evidência que confirma banda 2.4 ou 5/6 GHz. SSID, RTT e jitter nunca afirmam frequência (Decisão 50).
+     - O probe de gateway mede e exibe (Cockpit, voz), mas **não entra no veredito nem nas recomendações** (`LocalDiagnostics.gatewayInfluencesVerdict = false`). A consulta DNS (RD=1) pode ser encaminhada pelo roteador e inflar o RTT, o que acusaria o Wi-Fi sem evidência. O iOS também não usa o gateway no veredito. Ligar exige validação em aparelho (Breno) e revisão do Iury.
+     - Recomendação que atribui a causa à rota ou à operadora só sai com o primeiro salto comprovadamente limpo.
+     - NAT só é medido em jogo P2P ou híbrido. IPs são guardados só mascarados.
+     **Não implementado:** Connection Booster (chama a API do Gemini com chave embutida no binário: fere o custo recorrente zero e expõe segredo; só com nova decisão do dono do produto) e PlatformHealth (status de PSN/Xbox/Nintendo; não era parte da Fase 2 e depende de endpoints de terceiros).
   7. Custo recorrente zero preservado. Nenhum endpoint novo no Worker.
 - **Critérios de validação e aceite:** ver `.agents/architecture-plan.md` §7.4. Estados reportados separadamente: documentado, implementado, testes JVM verdes, compilado, validado em aparelho.
 
