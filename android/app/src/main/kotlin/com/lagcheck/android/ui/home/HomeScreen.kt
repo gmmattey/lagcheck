@@ -136,15 +136,7 @@ fun HomeScreen(
                     }
                     .background(LagCheckColors.Surface)
             ) {
-                val resId = context.resources.getIdentifier(selectedGame.drawableResName, "drawable", context.packageName)
-                if (resId != 0) {
-                    Image(
-                        painter = painterResource(id = resId),
-                        contentDescription = selectedGame.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                com.lagcheck.android.ui.components.RemoteGameArtwork(selectedGame, Modifier.fillMaxSize())
 
                 // Gradiente escuro para mesclar perfeitamente no fundo #0B0D10
                 Box(

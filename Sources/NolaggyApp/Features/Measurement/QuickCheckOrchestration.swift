@@ -35,6 +35,7 @@ extension QuickCheckFeatureView {
     }
 
     func performRegionalPreRead(snapshot: RegionalSelectionSnapshot, manualRegionID: String? = nil) async {
+        await VerifiedRemoteArtworkLoader.shared.setDownloadsEnabled(false)
         let decision: RegionalSelectionDecision
         do {
             decision = try await coordinator.selectRegionalCandidate(

@@ -67,6 +67,7 @@ import com.lagcheck.session.PlatformLabels
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameSelectionScreen(
+    allGames: List<CatalogGame>,
     showBackButton: Boolean = false,
     onBack: () -> Unit,
     onGameSelected: (game: CatalogGame, platform: String, connectionType: String, declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink?) -> Unit,
@@ -86,16 +87,15 @@ fun GameSelectionScreen(
     var selectedPlatform by remember { mutableStateOf("PlayStation") }
     var selectedDeclaredLink by remember(pendingGameForSheet?.id) { mutableStateOf(com.lagcheck.domain.model.ExternalEquipmentLink.WIFI) }
 
-    val allGames = OfficialGameCatalog.games
-    val filteredGames = remember(searchQuery) {
+    val filteredGames = remember(searchQuery, allGames) {
         if (searchQuery.isBlank()) allGames
         else allGames.filter { it.name.contains(searchQuery, ignoreCase = true) || it.category.contains(searchQuery, ignoreCase = true) }
     }
 
     // Recentes saem do histórico real; favoritos, da escolha da pessoa (salva no aparelho).
-    val favoriteGames = remember(favorites) { favorites.resolve(allGames) }
-    val recentGames = remember(recentChecks) {
-        recentChecks.distinctBy { it.gameId }.take(3).map { it to OfficialGameCatalog.findById(it.gameId) }
+    val favoriteGames = remember(favorites, allGames) { favorites.resolve(allGames) }
+    val recentGames = remember(recentChecks, allGames) {
+        recentChecks.distinctBy { it.gameId }.mapNotNull { check -> allGames.firstOrNull { it.id == check.gameId }?.let { check to it } }.take(3)
     }
 
     Box(
@@ -523,8 +523,6 @@ private fun FavoriteCard(
     game: CatalogGame,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    val resId = context.resources.getIdentifier(game.drawableResName, "drawable", context.packageName)
 
     Column(
         modifier = Modifier
@@ -541,14 +539,7 @@ private fun FavoriteCard(
                 .clip(RoundedCornerShape(8.dp))
                 .background(LagCheckColors.Panel)
         ) {
-            if (resId != 0) {
-                Image(
-                    painter = painterResource(id = resId),
-                    contentDescription = game.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -571,8 +562,6 @@ private fun CatalogRowItem(
     onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    val resId = context.resources.getIdentifier(game.drawableResName, "drawable", context.packageName)
 
     Row(
         modifier = Modifier
@@ -591,14 +580,7 @@ private fun CatalogRowItem(
                 .background(LagCheckColors.Surface)
                 .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp))
         ) {
-            if (resId != 0) {
-                Image(
-                    painter = painterResource(id = resId),
-                    contentDescription = game.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+            com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
         }
 
         Spacer(modifier = Modifier.width(12.dp))

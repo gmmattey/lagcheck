@@ -95,3 +95,29 @@ export function buildCanonicalCatalog() {
     })
   };
 }
+
+// Decisão 70: expansion authorized locally; never serve these unsigned bytes.
+export const catalogExpansionGames = [
+  ["dead-by-daylight", "Dead by Daylight", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
+  ["for-honor", "For Honor", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["borderlands-3", "Borderlands 3", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
+  ["new-world", "New World: Aeternum", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"]
+];
+
+export function buildCandidateCatalog(manifest) {
+  const catalog = buildCanonicalCatalog();
+  catalog.catalogVersion = "catalog-v3-2026.10.03.1";
+  for (const [id, name, platforms, profileID] of catalogExpansionGames) {
+    const item = manifest.items.find(item => item.gameID === id);
+    if (!item) throw new Error(`Missing artwork: ${id}`);
+    catalog.games.push({
+      id, name, artwork: { path: `artwork/games/${id}.png`, sha256: item.sha256 },
+      rating: { status: "pendingVerification", sourceName: "Aguardando fonte editorial verificável" },
+      contexts: platforms.map(platform => ({
+        market: "BR", platforms: [platform], profileID, availability: "available", measurement: null,
+        routes: routesFor(id, platform)
+      }))
+    });
+  }
+  return catalog;
+}

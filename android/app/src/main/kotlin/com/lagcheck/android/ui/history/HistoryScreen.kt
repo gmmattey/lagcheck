@@ -58,6 +58,7 @@ import com.lagcheck.android.ui.trf
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
+    catalogGames: List<com.lagcheck.domain.model.CatalogGame>,
     historyItems: List<CheckHistoryItem>,
     onBack: () -> Unit,
     onSelectCheck: (CheckHistoryItem) -> Unit,
@@ -165,8 +166,9 @@ fun HistoryScreen(
             } else {
                 // 3. Grupos por Jogo
                 groupedByGame.forEach { (gameId, checks) ->
-                    val catalogGame = OfficialGameCatalog.findById(gameId)
-                    val resId = context.resources.getIdentifier(catalogGame.drawableResName, "drawable", context.packageName)
+                    val catalogGame = catalogGames.firstOrNull { it.id == gameId }
+                        ?: (OfficialGameCatalog.games + OfficialGameCatalog.pendingExpansion).firstOrNull { it.id == gameId }
+                        ?: com.lagcheck.domain.model.CatalogGame(gameId, checks.first().gameName, "Online", drawableResName = "")
 
                     // Header do grupo do jogo
                     item(key = "header_$gameId") {
@@ -187,14 +189,7 @@ fun HistoryScreen(
                                     .background(LagCheckColors.Surface)
                                     .border(1.dp, LagCheckColors.Border, RoundedCornerShape(7.dp))
                             ) {
-                                if (resId != 0) {
-                                    Image(
-                                        painter = painterResource(id = resId),
-                                        contentDescription = catalogGame.name,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
+                                com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
                             }
 
                             Spacer(modifier = Modifier.width(10.dp))

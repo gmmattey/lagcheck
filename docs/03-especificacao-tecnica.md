@@ -210,14 +210,14 @@ O exemplo é o contrato do schema 2 para seleção regional: `candidateRegionIDs
 
 O identificador regional do sistema somente ordena candidatos de mercado publicados. A escolha efetiva de mercado/região depende da pré-leitura UDP e da resolução contra o catálogo validado; ela não usa IP, localização precisa nem inferência geográfica e não fica travada na localidade quando a pessoa viaja ou usa VPN. Os candidatos, prioridade e destino UDP vêm exclusivamente do snapshot assinado aberto no começo da sessão. Sem contexto confirmado por esse fluxo, o jogo não aparece como testável. A regra `regional-selection-1`, vetores e gates estão em [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
 
-> **Substituído para a V1:** o parágrafo de assets remotos abaixo não reflete o catálogo Debug atual. A [Decisão de identidade visual neutra dos jogos](./DECISOES.md#decisão-18) remove qualquer asset remoto, URL, hash ou MIME de imagem do payload; a miniatura é um componente neutro do design system. Fica como referência para uma eventual reativação do pipeline, com nova decisão e revisão de Renan/Marco.
+> **Atualizado pela Decisão 71:** catálogo assinado e artes remotas estão autorizados para iOS/Android. Artes continuam originais do LagCheck; não baixar capas ou materiais oficiais de terceiros.
 
-Cada asset remoto declarado pelo payload contém `url`, `sha256`, `mimeType`, `byteLength` e identificador estável. O cliente exige HTTPS, host permitido pela configuração assinada, MIME de imagem permitido e tamanho máximo de 5 MB antes de decodificar. Depois do download, confere tamanho e SHA-256; divergência descarta o arquivo e não altera o catálogo nem a sessão de medição.
+O schema 3 declara `assetBaseURL` e `artwork.path`/`sha256`. O cliente exige HTTPS, caminho de imagem restrito, MIME PNG/JPEG/WebP, até 8 MiB e dimensões até 4096×4096 antes de decodificar. Por autorização do dono, não compara SHA-256 aos bytes recebidos; o campo permanece como metadado de compatibilidade. Falha de arte não altera catálogo nem medição. Downloads são interrompidos durante preparação/Check.
 
 O armazenamento usa duas políticas independentes:
 
 - catálogo: envelope validado, data de atualização e origem; consulta remota no máximo a cada 24 h e validade máxima de 30 dias;
-- imagens: bytes já verificados por hash, chaveados pelo hash do asset, com LRU e teto local de 50 MB.
+- imagens: cache local por URL e revisão (versão de catálogo ou metadado assinado), revalidação após 24 h, fallback em falha e teto de 50 MiB por limpeza das entradas antigas.
 
 O carregamento de assets é oportunista. Falha, cache ausente ou pressão de armazenamento mostra placeholder neutro e permite continuar descoberta, seleção e medição. Um asset nunca é pré-requisito para score, região, rota, perfil ou início de sessão.
 

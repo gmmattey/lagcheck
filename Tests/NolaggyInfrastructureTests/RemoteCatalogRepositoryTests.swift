@@ -3,6 +3,17 @@ import XCTest
 @testable import NolaggyDomain
 
 final class RemoteCatalogRepositoryTests: XCTestCase {
+    func testValidRemoteCacheSurvivesInvalidBundledBase() async throws {
+        let cache = MemoryCache(value: StoredRemoteCatalog(envelopeData: Data([3]), refreshedAt: Date(timeIntervalSince1970: 990)))
+        let fetcher = CountingFetcher(data: Data([3]))
+        let repository = RemoteCatalogRepository(baseEnvelopeData: Data([9]), fetcher: fetcher, cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) })
+        let loaded = try await repository.loadedCatalogForLaunch()
+        XCTAssertEqual(loaded.source, .cachedRemote)
+        await repository.refreshIfDue()
+        let calls = await fetcher.calls
+        XCTAssertEqual(calls, 0)
+    }
     func testBundledDebugCatalogIsAvailableToTheInfrastructureBundle() throws {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
         let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: Date())
