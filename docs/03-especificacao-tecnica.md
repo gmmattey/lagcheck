@@ -20,7 +20,7 @@
 | Privacidade | Sem SDKs de terceiros (Firebase, Mixpanel, Ads). Telemetria mínima anônima via Worker próprio sem PII/IP. |
 | Idiomas | PT-BR, inglês e espanhol. |
 
-Não entram no MVP1: Android, conta, sincronização em nuvem, VPN/otimização de rota, banco de dados remoto, analytics de terceiros, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e assistentes de IA no fluxo principal.
+Android passou a ser alvo oficial pelas Decisões 67–69; o contrato do port está em [Arquitetura Android](./08-arquitetura-android.md). Esta especificação detalha a implementação iOS. Não entram no MVP1: conta, sincronização em nuvem, VPN/otimização de rota, banco de dados remoto, analytics de terceiros, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e assistentes de IA no fluxo principal.
 
 ## 2. Organização do código iOS
 
@@ -196,7 +196,7 @@ A chave privada fica fora do app e é usada exclusivamente no processo de public
 }
 ```
 
-O exemplo é o contrato do schema 2 para seleção regional: `candidateRegionIDs` e `candidatePriorities` exigem envelope/payload de schema 2 e a chave de prioridades precisa corresponder exatamente aos IDs candidatos. O Debug publicado de catálogo `debug-2026.09.08.2` permanece no schema 1, compatível por mapear seu único `primaryRegion` BR para candidato implícito de prioridade zero. Todos usam o beacon AWS de São Paulo exclusivamente como `genericRegion`, com confiança `medium`; nenhum contexto declara endpoint ou ping oficial do jogo. Um jogo só é exibido como testável quando o mercado, a plataforma, o perfil, ao menos uma região candidata e a estratégia são válidos. A decisão, fontes e mapa completo estão em [Catálogo remoto Debug](./14-decisao-catalogo-remoto-debug.md) e [Decisão de seleção regional automática](./16-decisao-selecao-regional-automatica.md).
+O exemplo é o contrato do schema 2 para seleção regional: `candidateRegionIDs` e `candidatePriorities` exigem envelope/payload de schema 2 e a chave de prioridades precisa corresponder exatamente aos IDs candidatos. O Debug publicado de catálogo `debug-2026.09.08.2` permanece no schema 1, compatível por mapear seu único `primaryRegion` BR para candidato implícito de prioridade zero. Todos usam o beacon AWS de São Paulo exclusivamente como `genericRegion`, com confiança `medium`; nenhum contexto declara endpoint ou ping oficial do jogo. Um jogo só é exibido como testável quando o mercado, a plataforma, o perfil, ao menos uma região candidata e a estratégia são válidos. A decisão, fontes e mapa completo estão em [Catálogo remoto Debug](./DECISOES.md#decisão-14) e [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
 
 ### 4.4 Atualização e fallback
 
@@ -208,9 +208,9 @@ O exemplo é o contrato do schema 2 para seleção regional: `candidateRegionIDs
 
 ### 4.5 Mercado automático, seleção regional e assets remotos assinados
 
-O identificador regional do sistema somente ordena candidatos de mercado publicados. A escolha efetiva de mercado/região depende da pré-leitura UDP e da resolução contra o catálogo validado; ela não usa IP, localização precisa nem inferência geográfica e não fica travada na localidade quando a pessoa viaja ou usa VPN. Os candidatos, prioridade e destino UDP vêm exclusivamente do snapshot assinado aberto no começo da sessão. Sem contexto confirmado por esse fluxo, o jogo não aparece como testável. A regra `regional-selection-1`, vetores e gates estão em [Decisão de seleção regional automática](./16-decisao-selecao-regional-automatica.md).
+O identificador regional do sistema somente ordena candidatos de mercado publicados. A escolha efetiva de mercado/região depende da pré-leitura UDP e da resolução contra o catálogo validado; ela não usa IP, localização precisa nem inferência geográfica e não fica travada na localidade quando a pessoa viaja ou usa VPN. Os candidatos, prioridade e destino UDP vêm exclusivamente do snapshot assinado aberto no começo da sessão. Sem contexto confirmado por esse fluxo, o jogo não aparece como testável. A regra `regional-selection-1`, vetores e gates estão em [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
 
-> **Substituído para a V1:** o parágrafo de assets remotos abaixo não reflete o catálogo Debug atual. A [Decisão de identidade visual neutra dos jogos](./18-decisao-identidade-visual-neutra-de-jogos.md) remove qualquer asset remoto, URL, hash ou MIME de imagem do payload; a miniatura é um componente neutro do design system. Fica como referência para uma eventual reativação do pipeline, com nova decisão e revisão de Renan/Marco.
+> **Substituído para a V1:** o parágrafo de assets remotos abaixo não reflete o catálogo Debug atual. A [Decisão de identidade visual neutra dos jogos](./DECISOES.md#decisão-18) remove qualquer asset remoto, URL, hash ou MIME de imagem do payload; a miniatura é um componente neutro do design system. Fica como referência para uma eventual reativação do pipeline, com nova decisão e revisão de Renan/Marco.
 
 Cada asset remoto declarado pelo payload contém `url`, `sha256`, `mimeType`, `byteLength` e identificador estável. O cliente exige HTTPS, host permitido pela configuração assinada, MIME de imagem permitido e tamanho máximo de 5 MB antes de decodificar. Depois do download, confere tamanho e SHA-256; divergência descarta o arquivo e não altera o catálogo nem a sessão de medição.
 

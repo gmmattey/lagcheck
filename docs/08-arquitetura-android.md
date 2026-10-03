@@ -2,7 +2,7 @@
 
 > **Documento Canônico de Arquitetura Multiplataforma**  
 > **Autores:** Camillo (Principal Engineer / Arquiteto), Iury (Network Systems), Marco (Product Lead)  
-> **Referência:** Decisão 67 (`docs/DECISOES.md`) e Gate Arquitetural (`.agents/architecture-plan.md`)
+> **Referência:** Decisões 67–69 (`docs/DECISOES.md`) e Gate Arquitetural (`.agents/architecture-plan.md`)
 
 ---
 
@@ -80,3 +80,9 @@ Em total conformidade com a Decisão 66 e o protótipo canônico:
 - **Superfícies:** Fundo Profundo (`#0B0D10`), Superfície (`#15181E`), Painéis (`#1E232B`), Bordas 1px (`#262D38`).
 - **Escala de Raios:** 8px, 13px, 17px (botão), 26px (bottom sheet) e 999px (chips/pills).
 - **Tipografia:** Manchetes de veredito arredondadas e números de latência/jitter em monoespaçado estilo cockpit.
+
+## 7. Evidência posterior ao port (2026-10-03)
+
+A [auditoria de paridade com o código iOS](../audits/android-ios-code-parity-2026-10-03.md) registra o acompanhamento posterior às Decisões 68–69: build Debug e testes locais aprovados, navegação e estados revisados, percentis opcionais no Histórico com leitura retrocompatível e capturas no emulador. O cockpit tem atualização manual e casos de uso com motivo e limite; a exportação PDF foi exercitada no emulador.
+
+Os estados “sem build AGP e sem aparelho” das decisões são registros históricos da entrega inicial. A evidência posterior de build e emulador não fecha os gates físicos: UDP real, troca de rede, cancelamento da resolução DNS, gateway/NAT, PDF em aparelho e comparação renderizada com iPhone continuam pendentes conforme a auditoria. Nenhuma distribuição ou publicação Android é comprovada por esses resultados.

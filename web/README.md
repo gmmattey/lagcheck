@@ -14,8 +14,6 @@ web/
 ├── assets/
 │   ├── brand/                    # Cópias 1:1 dos ativos oficiais em design-system/assets/brand/
 │   │   ├── app-icon-source.svg
-│   │   ├── lockup-thumbnail.svg
-│   │   ├── symbol-compact.svg
 │   │   ├── wordmark-mono-dark.svg
 │   │   ├── wordmark-mono-light.svg
 │   │   └── wordmark-primary.svg

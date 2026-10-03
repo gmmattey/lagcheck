@@ -88,7 +88,7 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - Repouso e carga no Check são leituras complementares: o veredito avalia repouso e penaliza degradações sob carga.
 - Catálogo remoto só entra após validar assinatura Ed25519, schema, validade e regras de negócio. Nenhuma UI interpreta JSON remoto diretamente.
 - Toda alteração de score, veredito, thresholds, guardrails, spikes ou catálogo exige versão da regra, vetores de teste e revisão de Iury.
-- Tokens da **Dark Competitive UI** são a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E`/`#1E232B`), bordas finas de 1px, números monoespaçados e Coral Solar (`#FF5A36`) para ações. Não introduza cores ou espaçamentos soltos.
+- Tokens da **Dark Competitive UI** são a fonte de verdade visual (Decisões 51 e 66): fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E`/`#1E232B`), bordas finas de 1px, números monoespaçados e Roxo Gamer (`#7C3AED`) para ações primárias. Coral Solar (`#FF5A36`) fica reservado a atenção, erro e ações destrutivas. Não introduza cores ou espaçamentos soltos.
 - Ativos em `design-system/assets/brand/` e `design-system/assets/app-icon/` são oficiais e aprovados. Não os redesenhe, deforme, recolora ou substitua.
 - **Iniciativa Unificada (Decisões 50 e 51):** O produto adota a jornada direta `Home → Jogo → Check → Veredito` e a interface **Dark Competitive UI**. A tab bar tem 2 abas (`Início | Jogos`), o veredicto semântico é a manchete de maior hierarquia, e o score numérico (0–100) fica subordinado a "Entender resultado / Detalhes".
 - **Integridade Diagnóstica:** É terminantemente proibido acusar roteador local ou operadora sem evidência comprovada por probe isolado (Decisão 50).
