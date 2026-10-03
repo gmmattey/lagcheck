@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import NolaggyDomain
 import NolaggyApplication
+import NolaggyDesign
 
 /// Gerador de relatórios em PDF oficiais do LagCheck.
 /// Produz layouts vetoriais com a identidade Dark Competitive UI da marca.
@@ -34,7 +35,7 @@ public enum LagCheckPDFExporter {
                 let ctx = context.cgContext
 
                 // Fundo Escuro Profundo (#0B0D10)
-                ctx.setFillColor(UIColor(red: 11/255, green: 13/255, blue: 16/255, alpha: 1.0).cgColor)
+                ctx.setFillColor(UIColor(NLColor.deep).cgColor)
                 ctx.fill(pageRect)
 
                 var currentY: CGFloat = 40
@@ -46,18 +47,20 @@ public enum LagCheckPDFExporter {
                 let rttText = gatewayRTTMs.map { "\(Int(round($0))) ms" } ?? "—"
                 let localRows: [(String, String, UIColor)] = [
                     ("Interface Conectada", interfaceName, .white),
-                    ("Frequência Wi-Fi", isWiFi ? wifiBand : "Não aplicável", isWiFi ? (wifiBand.contains("5") ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1)) : .lightGray),
+                    ("Frequência Wi-Fi", isWiFi ? wifiBand : "Não aplicável", isWiFi ? (wifiBand.contains("5") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.semanticCaution)) : .lightGray),
                     ("Endereço IP Local", localIP ?? "—", .white),
                     ("Gateway Padrão (Roteador)", gatewayIP ?? "—", .white),
-                    ("Latência do Primeiro Salto (RTT)", rttText, (gatewayRTTMs ?? 99) <= 5.0 ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1))
+                    ("Latência do Primeiro Salto (RTT)", rttText, (gatewayRTTMs ?? 99) <= 5.0 ? UIColor(NLColor.semanticReady) : UIColor(NLColor.coralSolar))
                 ]
                 drawCard(ctx: ctx, title: "1. CONEXÃO LOCAL & PRIMEIRO SALTO (RF / LAN)", rows: localRows, currentY: &currentY, pageWidth: pageWidth)
 
                 // 3. Card: Borda WAN, NAT & CGNAT
                 let wanRows: [(String, String, UIColor)] = [
-                    ("Tipo de NAT", natTypeDisplay, natTypeDisplay.contains("Tipo 1") ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1)),
-                    ("Status CGNAT (RFC 6598)", cgnatDisplay, cgnatDisplay.contains("Livre") ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)),
-                    ("Duplo NAT (Roteadores em Cascata)", doubleNATDisplay, doubleNATDisplay.contains("Não") ? UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1) : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)),
+                    ("Tipo de NAT", natTypeDisplay, natTypeDisplay.contains("Tipo 1") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.semanticCaution)),
+                    // Decisão Renan: #EF4444 não é token oficial; colapsado para coralSolar
+                    // (Decisão 66 reserva Coral Solar para atenção/erro — não cabe um segundo vermelho).
+                    ("Status CGNAT (RFC 6598)", cgnatDisplay, cgnatDisplay.contains("Livre") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.coralSolar)),
+                    ("Duplo NAT (Roteadores em Cascata)", doubleNATDisplay, doubleNATDisplay.contains("Não") ? UIColor(NLColor.semanticReady) : UIColor(NLColor.coralSolar)),
                     ("IP Público Identificado", publicIPDisplay, .lightGray)
                 ]
                 drawCard(ctx: ctx, title: "2. BORDA WAN & TOPOLOGIA DE REDE (RFC 5389)", rows: wanRows, currentY: &currentY, pageWidth: pageWidth)
@@ -103,7 +106,7 @@ public enum LagCheckPDFExporter {
                 let ctx = context.cgContext
 
                 // Fundo Escuro Profundo (#0B0D10)
-                ctx.setFillColor(UIColor(red: 11/255, green: 13/255, blue: 16/255, alpha: 1.0).cgColor)
+                ctx.setFillColor(UIColor(NLColor.deep).cgColor)
                 ctx.fill(pageRect)
 
                 var currentY: CGFloat = 40
@@ -139,7 +142,7 @@ public enum LagCheckPDFExporter {
         ]
         let checkAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 24, weight: .black),
-            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
+            .foregroundColor: UIColor(NLColor.gamerPurple)
         ]
         let brandStr = NSMutableAttributedString(string: "lag", attributes: lagAttrs)
         brandStr.append(NSAttributedString(string: "check", attributes: checkAttrs))
@@ -188,7 +191,7 @@ public enum LagCheckPDFExporter {
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
         // Fundo do Card (#15181E)
-        ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+        ctx.setFillColor(UIColor(NLColor.surface).cgColor)
         let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
@@ -202,7 +205,7 @@ public enum LagCheckPDFExporter {
         // Título do Card
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
+            .foregroundColor: UIColor(NLColor.gamerPurple)
         ]
         NSAttributedString(string: title, attributes: titleAttrs).draw(at: CGPoint(x: 54, y: currentY + 14))
 
@@ -240,7 +243,7 @@ public enum LagCheckPDFExporter {
         let cardHeight: CGFloat = 36 + CGFloat(useCases.count * 42)
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
-        ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+        ctx.setFillColor(UIColor(NLColor.surface).cgColor)
         let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
@@ -249,7 +252,7 @@ public enum LagCheckPDFExporter {
 
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 11, weight: .bold),
-            .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
+            .foregroundColor: UIColor(NLColor.gamerPurple)
         ]
         NSAttributedString(string: "3. PRONTIDÃO PARA PERFIS DE USO GAMER", attributes: titleAttrs).draw(at: CGPoint(x: 54, y: currentY + 14))
 
@@ -293,7 +296,7 @@ public enum LagCheckPDFExporter {
         let cardHeight: CGFloat = 110
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
-        ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+        ctx.setFillColor(UIColor(NLColor.surface).cgColor)
         let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
@@ -349,7 +352,7 @@ public enum LagCheckPDFExporter {
         let cardHeight: CGFloat = 80
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
-        ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+        ctx.setFillColor(UIColor(NLColor.surface).cgColor)
         let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
@@ -401,17 +404,17 @@ public enum LagCheckPDFExporter {
         let cardHeight: CGFloat = 95
         let cardRect = CGRect(x: 40, y: currentY, width: cardWidth, height: cardHeight)
 
-        ctx.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+        ctx.setFillColor(UIColor(NLColor.surface).cgColor)
         let path = UIBezierPath(roundedRect: cardRect, cornerRadius: 13)
         ctx.addPath(path.cgPath)
         ctx.fillPath()
-        ctx.setStrokeColor(UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 0.25).cgColor)
+        ctx.setStrokeColor(UIColor(NLColor.coralSolar.opacity(0.25)).cgColor)
         ctx.strokePath()
 
         // Tag de Maior Impacto
         let tagAttrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 10, weight: .black),
-            .foregroundColor: UIColor(red: 255/255, green: 90/255, blue: 54/255, alpha: 1)
+            .foregroundColor: UIColor(NLColor.coralSolar)
         ]
         NSAttributedString(string: "OPORTUNIDADE DE MAIOR IMPACTO (\(tag.uppercased()))", attributes: tagAttrs).draw(at: CGPoint(x: 56, y: currentY + 16))
 
