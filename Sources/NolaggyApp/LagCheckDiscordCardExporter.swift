@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import NolaggyDomain
 import NolaggyApplication
+import NolaggyDesign
 
 /// Gerador do Card Viral de Alta Fidelidade para Discord, WhatsApp e Redes Sociais.
 /// Gera uma imagem PNG em 1200x675 (16:9, padrão de preview do Discord/Twitter)
@@ -29,13 +30,13 @@ public enum LagCheckDiscordCardExporter {
             let cg = ctx.cgContext
 
             // 1. Fundo Dark Profundo (#0B0D10)
-            cg.setFillColor(UIColor(red: 11/255, green: 13/255, blue: 16/255, alpha: 1.0).cgColor)
+            cg.setFillColor(UIColor(NLColor.deep).cgColor)
             cg.fill(bounds)
 
             // 2. Painel Central com borda fina 1px
             let cardInset = CGRect(x: 40, y: 40, width: width - 80, height: height - 80)
             let cardPath = UIBezierPath(roundedRect: cardInset, cornerRadius: 24)
-            cg.setFillColor(UIColor(red: 21/255, green: 24/255, blue: 30/255, alpha: 1.0).cgColor)
+            cg.setFillColor(UIColor(NLColor.surface).cgColor)
             cardPath.fill()
 
             // Borda do card
@@ -54,7 +55,7 @@ public enum LagCheckDiscordCardExporter {
             // Tag "ATESTADO DE ROTA"
             let tagAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.monospacedSystemFont(ofSize: 15, weight: .bold),
-                .foregroundColor: UIColor(red: 124/255, green: 58/255, blue: 237/255, alpha: 1.0)
+                .foregroundColor: UIColor(NLColor.gamerPurple)
             ]
             let tag = NSAttributedString(string: AppLocalization.string("exporter.discord.official_tag", comment: ""), attributes: tagAttrs)
             tag.draw(at: CGPoint(x: 230, y: 85))
@@ -85,12 +86,14 @@ public enum LagCheckDiscordCardExporter {
             switch verdict {
             case .ready:
                 verdictText = "● \(AppLocalization.string("game_readiness.verdict.ready.headline", comment: ""))"
-                verdictColor = UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1.0)
+                verdictColor = UIColor(NLColor.semanticReady)
             case .caution:
                 verdictText = "▲ \(AppLocalization.string("game_readiness.verdict.caution.headline", comment: ""))"
-                verdictColor = UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)
+                verdictColor = UIColor(NLColor.semanticCaution)
             case .notReady:
                 verdictText = "■ \(AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: ""))"
+                // Nota de auditoria: #EF4444 (239,68,68) não existe em NLColor; mantido literal
+                // até Renan decidir se é um novo tom semântico ou deve colapsar para coralSolar.
                 verdictColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
             case .inconclusive:
                 verdictText = "— \(AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: ""))"
@@ -123,7 +126,7 @@ public enum LagCheckDiscordCardExporter {
 
             let metrics = [
                 (AppLocalization.string("exporter.discord.ping_label", comment: ""), pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
-                (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)),
+                (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(NLColor.semanticCaution)),
                 (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0))
             ]
 
