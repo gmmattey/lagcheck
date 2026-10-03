@@ -19,6 +19,7 @@ data class NetworkFinding(
         STABLE_ROUTE,
         NORMAL_DESTINATION,
         LOCAL_GATEWAY,
+        NAT_TOPOLOGY,
         WIFI_BAND_2_4GHZ,
         WIFI_BAND_5GHZ,
         WIFI_SIGNAL_CRITICAL,
@@ -55,5 +56,9 @@ data class GameReadinessEvaluation(
     val destinationName: String = "São Paulo · rota regional de referência",
     val confidence: String = "boa",
     val timestamp: Long = System.currentTimeMillis(),
-    val radioTelemetry: RadioTelemetrySnapshot? = null
+    val radioTelemetry: RadioTelemetrySnapshot? = null,
+    val recommendations: List<LocalizedRecommendation> = emptyList()
 )
+
+/** Recomendação já localizada para a UI. */
+data class LocalizedRecommendation(val title: String, val instruction: String, val badge: String)

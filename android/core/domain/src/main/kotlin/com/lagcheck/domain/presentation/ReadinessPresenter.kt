@@ -56,7 +56,8 @@ object ReadinessPresenter {
                 MeasurementConfidence.MEDIUM -> "boa"
             },
             timestamp = timestamp,
-            radioTelemetry = radio
+            radioTelemetry = radio,
+            recommendations = assessment.recommendations.map { RecommendationCopy.localize(it.key, language) }
         )
     }
 

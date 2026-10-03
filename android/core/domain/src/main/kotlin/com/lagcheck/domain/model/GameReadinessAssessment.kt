@@ -26,7 +26,8 @@ data class GameReadinessAssessment(
     val worstSpikeMs: Double? = null,
     /** Score numérico de repouso, subordinado ao veredito (Decisão 51). Nulo se inconclusivo. */
     val score: Int? = null,
-    val primaryCause: PrimaryCause? = null
+    val primaryCause: PrimaryCause? = null,
+    val recommendations: List<ActionableRecommendation> = emptyList()
 ) {
     companion object {
         val INCONCLUSIVE = GameReadinessAssessment(

@@ -1,6 +1,6 @@
 package com.lagcheck.domain.presentation
 
-// Gerado a partir dos Localizable.strings do app iOS (chaves game_readiness.*). Não editar à mão: regenerar.
+// Gerado a partir dos Localizable.strings do app iOS (game_readiness.*, network.band.*, nat.*). Não editar à mão: regenerar.
 internal object ReadinessCopyTable {
     val pt_br: Map<String, String> = mapOf(
         "game_readiness.finding.destination_response_normal" to "Resposta do destino normal",
@@ -41,6 +41,23 @@ internal object ReadinessCopyTable {
         "game_readiness.verdict.ready" to "Pronto para ranked",
         "game_readiness.verdict.ready.headline" to "PRONTO PARA RANKED",
         "game_readiness.verdict.ready.stable" to "Sua conexão está estável. Sinal verde para partidas ranqueadas.",
+        "nat.inconclusive.title" to "NAT Inconclusivo",
+        "nat.type1.open.title" to "NAT Tipo 1 (Aberto)",
+        "nat.type2.moderate.title" to "NAT Tipo 2 (Moderado)",
+        "nat.type3.strict.title" to "NAT Tipo 3 (Estrito)",
+        "network.band.action.deep_check" to "Testar conexão",
+        "network.band.action.details" to "Ver detalhes",
+        "network.band.action.settings" to "Ver ajustes de Wi-Fi",
+        "network.band.confirmed_24.message" to "Conecte-se à rede 5 GHz do roteador ou use cabo Ethernet para eliminar interferências.",
+        "network.band.confirmed_24.title" to "Wi-Fi 2.4 GHz detectado",
+        "network.band.confirmed_5.message" to "Sinal local rápido e com baixa latência até o roteador.",
+        "network.band.confirmed_5.title" to "Wi-Fi 5 GHz confirmado",
+        "network.band.inconclusive.message" to "Não foi possível verificar a resposta do roteador local.",
+        "network.band.inconclusive.title" to "Sinal Wi-Fi inconclusivo",
+        "network.band.stable.message" to "Resposta rápida e estável entre o aparelho e o roteador.",
+        "network.band.stable.title" to "Wi-Fi local estável",
+        "network.band.suspected_24.message" to "Troque para a rede 5 GHz ou aproxime-se do roteador para estabilizar o sinal.",
+        "network.band.suspected_24.title" to "Instabilidade no sinal Wi-Fi",
     )
     val en: Map<String, String> = mapOf(
         "game_readiness.finding.destination_response_normal" to "Normal destination response",
@@ -81,6 +98,23 @@ internal object ReadinessCopyTable {
         "game_readiness.verdict.ready" to "Ready for ranked",
         "game_readiness.verdict.ready.headline" to "READY FOR RANKED",
         "game_readiness.verdict.ready.stable" to "Your connection is stable. Green light for ranked matches.",
+        "nat.inconclusive.title" to "NAT Inconclusive",
+        "nat.type1.open.title" to "NAT Type 1 (Open)",
+        "nat.type2.moderate.title" to "NAT Type 2 (Moderate)",
+        "nat.type3.strict.title" to "NAT Type 3 (Strict)",
+        "network.band.action.deep_check" to "Test connection",
+        "network.band.action.details" to "View details",
+        "network.band.action.settings" to "Open Wi-Fi Settings",
+        "network.band.confirmed_24.message" to "Connect to your router's 5 GHz band or use Ethernet to eliminate interference.",
+        "network.band.confirmed_24.title" to "2.4 GHz Wi-Fi detected",
+        "network.band.confirmed_5.message" to "Fast local wireless link with low gateway latency.",
+        "network.band.confirmed_5.title" to "5 GHz Wi-Fi confirmed",
+        "network.band.inconclusive.message" to "Unable to verify the local router response.",
+        "network.band.inconclusive.title" to "Inconclusive Wi-Fi signal",
+        "network.band.stable.message" to "Fast and stable connection between your device and router.",
+        "network.band.stable.title" to "Stable local Wi-Fi",
+        "network.band.suspected_24.message" to "Switch to 5 GHz or move closer to the router to stabilize jitter.",
+        "network.band.suspected_24.title" to "Unstable Wi-Fi signal",
     )
     val es: Map<String, String> = mapOf(
         "game_readiness.finding.destination_response_normal" to "Respuesta del destino normal",
@@ -121,5 +155,22 @@ internal object ReadinessCopyTable {
         "game_readiness.verdict.ready" to "Listo para ranked",
         "game_readiness.verdict.ready.headline" to "LISTO PARA RANKED",
         "game_readiness.verdict.ready.stable" to "Tu conexión está estable. Luz verde para partidas ranked.",
+        "nat.inconclusive.title" to "NAT Inconcluso",
+        "nat.type1.open.title" to "NAT Tipo 1 (Abierto)",
+        "nat.type2.moderate.title" to "NAT Tipo 2 (Moderado)",
+        "nat.type3.strict.title" to "NAT Tipo 3 (Estricto)",
+        "network.band.action.deep_check" to "Probar conexión",
+        "network.band.action.details" to "Ver detalles",
+        "network.band.action.settings" to "Ver ajustes de Wi-Fi",
+        "network.band.confirmed_24.message" to "Conéctate a la red 5 GHz del router o usa cable Ethernet para eliminar interferencias.",
+        "network.band.confirmed_24.title" to "Wi-Fi 2.4 GHz detectado",
+        "network.band.confirmed_5.message" to "Señal local rápida y con baja latencia hasta el router.",
+        "network.band.confirmed_5.title" to "Wi-Fi 5 GHz confirmado",
+        "network.band.inconclusive.message" to "No fue posible verificar la respuesta del router local.",
+        "network.band.inconclusive.title" to "Señal Wi-Fi no concluyente",
+        "network.band.stable.message" to "Conexión rápida y estable entre tu dispositivo y el router.",
+        "network.band.stable.title" to "Wi-Fi local estable",
+        "network.band.suspected_24.message" to "Cambia a la red 5 GHz o acércate al router para estabilizar la señal.",
+        "network.band.suspected_24.title" to "Señal Wi-Fi inestable",
     )
 }

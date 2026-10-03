@@ -2,6 +2,9 @@ package com.lagcheck.domain.rules
 
 import com.lagcheck.domain.model.GameReadinessAssessment
 import com.lagcheck.domain.model.GameReadinessVerdict
+import com.lagcheck.domain.model.GameServerArchitecture
+import com.lagcheck.domain.model.NatTopologySnapshot
+import com.lagcheck.domain.model.WiFiBandDiagnosticResult
 import com.lagcheck.domain.model.GatewayProbeOutcome
 import com.lagcheck.domain.model.MeasurementConfidence
 import com.lagcheck.domain.model.NetworkFinding
@@ -29,7 +32,10 @@ object GameReadinessEvaluator {
         loadSamples: List<ProbeSample>?,
         profile: QualityProfileId,
         confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
-        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable
+        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable,
+        serverArchitecture: GameServerArchitecture = GameServerArchitecture.DEDICATED_SERVER,
+        natSnapshot: NatTopologySnapshot? = null,
+        wifiBand: WiFiBandDiagnosticResult? = null
     ): GameReadinessAssessment {
         val deep = DeepCheckEvaluator.evaluate(restSamples, loadSamples, profile)
         val result = (deep as? DeepCheckEvaluation.Completed)?.result ?: return GameReadinessAssessment.INCONCLUSIVE
@@ -38,7 +44,10 @@ object GameReadinessEvaluator {
             loadImpact = result.metrics.loadImpact,
             profile = profile,
             confidence = confidence,
-            gatewayOutcome = gatewayOutcome
+            gatewayOutcome = gatewayOutcome,
+            serverArchitecture = serverArchitecture,
+            natSnapshot = natSnapshot,
+            wifiBand = wifiBand
         )
     }
 
@@ -48,7 +57,10 @@ object GameReadinessEvaluator {
         profile: QualityProfileId,
         confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
         spikePattern: SpikePattern? = null,
-        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable
+        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable,
+        serverArchitecture: GameServerArchitecture = GameServerArchitecture.DEDICATED_SERVER,
+        natSnapshot: NatTopologySnapshot? = null,
+        wifiBand: WiFiBandDiagnosticResult? = null
     ): GameReadinessAssessment {
         if (qualityResult == null) return GameReadinessAssessment.INCONCLUSIVE
         val metrics = qualityResult.metrics
@@ -122,7 +134,24 @@ object GameReadinessEvaluator {
             isTailLatencyHigh = isTailLatencyHigh,
             hasHighJitter = hasHighJitter,
             isLoadSevere = isLoadSevere,
-            isLoadMaterial = isLoadMaterial
+            isLoadMaterial = isLoadMaterial,
+            serverArchitecture = serverArchitecture,
+            natSnapshot = natSnapshot
+        )
+
+        val recommendations = EvidenceRecommendationEngine.generate(
+            DiagnosticEvidence(
+                gatewayOutcome = gatewayOutcome,
+                wifiBand = wifiBand?.diagnostic,
+                wifiBandConfidence = wifiBand?.confidence,
+                loadTier = loadImpact?.tier,
+                packetLossPercentage = metrics.packetLossPercentage,
+                spikePattern = spikePattern,
+                tailRatio = metrics.p95ToP50Ratio,
+                natType = natSnapshot?.natType,
+                serverArchitecture = serverArchitecture,
+                outOfOrderCount = metrics.outOfOrderCount
+            )
         )
 
         val consistency = metrics.components?.consistency ?: qualityResult.finalScore.toDouble()
@@ -153,7 +182,8 @@ object GameReadinessEvaluator {
             isUnderLoadAffected = isLoadMaterial,
             worstSpikeMs = metrics.worstSpikeMilliseconds,
             score = qualityResult.finalScore,
-            primaryCause = cause
+            primaryCause = cause,
+            recommendations = recommendations
         )
     }
 
@@ -166,7 +196,9 @@ object GameReadinessEvaluator {
         isTailLatencyHigh: Boolean,
         hasHighJitter: Boolean,
         isLoadSevere: Boolean,
-        isLoadMaterial: Boolean
+        isLoadMaterial: Boolean,
+        serverArchitecture: GameServerArchitecture,
+        natSnapshot: NatTopologySnapshot?
     ): List<ReadinessFinding> {
         val f = mutableListOf<ReadinessFinding>()
 
@@ -202,6 +234,15 @@ object GameReadinessEvaluator {
             isLoadSevere -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.NEGATIVE, "game_readiness.finding.load_degradation_detected", fmt("+%.0f ms", loadImpact?.increaseMilliseconds ?: 0.0))
             isLoadMaterial -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.WARNING, "game_readiness.finding.load_degradation_detected", fmt("+%.0f ms", loadImpact?.increaseMilliseconds ?: 0.0))
             loadImpact != null -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.POSITIVE, "game_readiness.finding.load_stable")
+        }
+        // NAT só importa em jogo P2P ou híbrido (Decisão 55); em servidor dedicado o achado não aparece.
+        if ((serverArchitecture == GameServerArchitecture.PEER_TO_PEER || serverArchitecture == GameServerArchitecture.HYBRID) && natSnapshot != null) {
+            f += ReadinessFinding(
+                Kind.NAT_TOPOLOGY,
+                if (natSnapshot.natType.isMultiplayerRestricted) Sev.NEGATIVE else Sev.POSITIVE,
+                natSnapshot.natType.titleKey,
+                natSnapshot.natType.shortLabel
+            )
         }
         f += ReadinessFinding(Kind.NORMAL_DESTINATION, Sev.POSITIVE, "game_readiness.finding.destination_response_normal")
         return f
