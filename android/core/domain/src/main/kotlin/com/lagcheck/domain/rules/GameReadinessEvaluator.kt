@@ -1,286 +1,212 @@
 package com.lagcheck.domain.rules
 
-import com.lagcheck.domain.model.GameReadinessEvaluation
+import com.lagcheck.domain.model.GameReadinessAssessment
 import com.lagcheck.domain.model.GameReadinessVerdict
+import com.lagcheck.domain.model.GatewayProbeOutcome
+import com.lagcheck.domain.model.MeasurementConfidence
 import com.lagcheck.domain.model.NetworkFinding
+import com.lagcheck.domain.model.NetworkFinding.Kind
+import com.lagcheck.domain.model.NetworkFinding.Severity as Sev
+import com.lagcheck.domain.model.ProbeAcceptancePolicy
 import com.lagcheck.domain.model.ProbeSample
-import com.lagcheck.domain.model.RadioTelemetrySnapshot
-import kotlin.math.abs
-import kotlin.math.roundToInt
+import com.lagcheck.domain.model.QualityProfileId
+import com.lagcheck.domain.model.QualityResult
+import com.lagcheck.domain.model.ReadinessFinding
+import com.lagcheck.domain.model.ResultClass
+import com.lagcheck.domain.model.SpikePattern
+import java.util.Locale
 
 /**
- * Avaliador de prontidão determinístico e versionado (Decisões 50, 58 e 67).
- * Mantém paridade matemática estrita com a especificação técnica e o protótipo de alta fidelidade.
+ * Port de `GameReadinessEvaluator` (Swift, readiness-v2.0).
+ * Veredito avalia o repouso e penaliza degradação sob carga. Sem 10 respostas UDP válidas: inconclusivo.
  */
 object GameReadinessEvaluator {
+    const val VERSION = "readiness-v2.0"
 
-    const val MIN_VALID_SAMPLES = 10
-    const val PLANNED_PROBE_COUNT = 30
+    /** Pipeline completo: repouso + carga opcional → avaliação. */
+    fun evaluate(
+        restSamples: List<ProbeSample>,
+        loadSamples: List<ProbeSample>?,
+        profile: QualityProfileId,
+        confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
+        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable
+    ): GameReadinessAssessment {
+        val deep = DeepCheckEvaluator.evaluate(restSamples, loadSamples, profile)
+        val result = (deep as? DeepCheckEvaluation.Completed)?.result ?: return GameReadinessAssessment.INCONCLUSIVE
+        return evaluate(
+            qualityResult = result.restResult,
+            loadImpact = result.metrics.loadImpact,
+            profile = profile,
+            confidence = confidence,
+            gatewayOutcome = gatewayOutcome
+        )
+    }
 
     fun evaluate(
-        samples: List<ProbeSample>,
-        loadSamples: List<ProbeSample> = emptyList(),
-        radioSnapshot: RadioTelemetrySnapshot? = null,
-        platform: String = "PlayStation",
-        connectionType: String = "Wi-Fi"
-    ): GameReadinessEvaluation {
-        val validRTTs = samples.filter { it.isValidResponse }.mapNotNull { it.roundTripMillis }
-        val timeoutCount = samples.count { it.outcome == ProbeSample.Outcome.TIMEOUT }
-        val totalPlanned = if (samples.size >= PLANNED_PROBE_COUNT) samples.size else PLANNED_PROBE_COUNT
-        val lossPercentage = (timeoutCount.toDouble() / totalPlanned.toDouble()) * 100.0
+        qualityResult: QualityResult?,
+        loadImpact: DeepCheckLoadImpact?,
+        profile: QualityProfileId,
+        confidence: MeasurementConfidence = MeasurementConfidence.HIGH,
+        spikePattern: SpikePattern? = null,
+        gatewayOutcome: GatewayProbeOutcome = GatewayProbeOutcome.Unobservable
+    ): GameReadinessAssessment {
+        if (qualityResult == null) return GameReadinessAssessment.INCONCLUSIVE
+        val metrics = qualityResult.metrics
 
-        // Menos de 10 amostras válidas: INCONCLUSIVE inegociável
-        if (validRTTs.size < MIN_VALID_SAMPLES) {
-            return GameReadinessEvaluation(
-                verdict = GameReadinessVerdict.INCONCLUSIVE,
-                headline = "DADOS INSUFICIENTES",
-                subtitle = "Não recebemos respostas UDP suficientes para avaliar com precisão.",
-                score = 0,
-                primaryWeight = "Respostas insuficientes",
-                suitableUses = listOf("—"),
-                pingMs = null,
-                jitterMs = null,
-                packetLossPercentage = lossPercentage,
-                worstSpikeMs = null,
-                isUnderLoadAffected = false,
-                findings = listOf(
-                    NetworkFinding(
-                        kind = NetworkFinding.Kind.INSUFFICIENT_DATA,
-                        severity = NetworkFinding.Severity.NEUTRAL,
-                        label = "Respostas insuficientes",
-                        detail = "Recebemos apenas ${validRTTs.size} respostas válidas de $totalPlanned probes."
-                    )
-                ),
-                latencySeries = emptyList(),
-                platform = platform,
-                connectionType = connectionType,
-                radioTelemetry = radioSnapshot
-            )
+        // Regra inegociável: menos de 10 respostas UDP válidas é inconclusivo.
+        if (metrics.validResponseCount < ProbeAcceptancePolicy.MINIMUM_VALID_RESPONSES) {
+            return GameReadinessAssessment.INCONCLUSIVE
         }
 
-        val sortedRTTs = validRTTs.sorted()
-        val p50 = percentile(sortedRTTs, 0.50)
-        val p95 = percentile(sortedRTTs, 0.95)
-        val jitter = calculateJitter(validRTTs)
-        val worstSpike = sortedRTTs.lastOrNull() ?: p50
+        val interpretation = ResultInterpreter.interpret(qualityResult, profile, loadImpact?.tier, spikePattern)
+        val cause = interpretation.primaryCause
+        val guardrails = QualityEvaluator.causeGuardrails(profile)
 
-        // RFC 4737: Verificação de reordenação de pacotes
-        val outOfOrderCount = samples.count { it.isOutOfOrder }
-        val outOfOrderRate = (outOfOrderCount.toDouble() / samples.size.toDouble()) * 100.0
-        val isOutOfOrderHigh = outOfOrderRate > 1.0
+        // Margem de 10% para rota genérica (confiança medium), Decisão 55.
+        val margin = if (confidence == MeasurementConfidence.MEDIUM) 0.90 else 1.0
+        val effectiveMaxLoss = guardrails.lossGuardrailPercentage * margin
+        val effectiveMaxP50 = guardrails.latencyGuardrailMilliseconds * margin
+        val effectiveCautionJitter = guardrails.jitterRiskMilliseconds * margin
 
-        // Avaliação de estresse sob carga (Bufferbloat)
-        val validLoadRTTs = loadSamples.filter { it.isValidResponse }.mapNotNull { it.roundTripMillis }
-        val loadP50 = if (validLoadRTTs.size >= MIN_VALID_SAMPLES) percentile(validLoadRTTs.sorted(), 0.50) else null
-        val isUnderLoadAffected = loadP50 != null && (loadP50 - p50) > 30.0
+        val isLoadSevere = loadImpact?.tier == LoadDegradationTier.SEVERE
+        val isLoadMaterial = loadImpact?.tier == LoadDegradationTier.MATERIAL ||
+            loadImpact?.classification == LoadImpactClassification.MATERIAL
+        val hasPacketLoss = metrics.packetLossPercentage > effectiveMaxLoss || cause == PrimaryCause.PACKET_LOSS
+        val hasHighLatency = (metrics.p50Milliseconds ?: 0.0) > effectiveMaxP50 || cause == PrimaryCause.HIGH_LATENCY
 
-        // Determinação do Veredito Semântico
-        val verdict = when {
-            lossPercentage > 2.0 || p50 > 110.0 || jitter > 25.0 -> {
-                GameReadinessVerdict.NOT_READY
-            }
-            lossPercentage > 0.5 || p50 > 65.0 || jitter > 10.0 || isUnderLoadAffected || isOutOfOrderHigh -> {
-                GameReadinessVerdict.CAUTION
-            }
-            else -> {
-                GameReadinessVerdict.READY
-            }
-        }
-
-        val headline = when (verdict) {
-            GameReadinessVerdict.READY -> "PRONTO PARA RANKED"
-            GameReadinessVerdict.CAUTION -> "CONDIÇÕES INSTÁVEIS"
-            GameReadinessVerdict.NOT_READY -> "EU EVITARIA RANKED AGORA"
-            GameReadinessVerdict.INCONCLUSIVE -> "DADOS INSUFICIENTES"
-        }
-
-        val subtitle = when (verdict) {
-            GameReadinessVerdict.READY -> "Sua conexão está estável o suficiente para ranked agora."
-            GameReadinessVerdict.CAUTION -> "Oscilações observadas que podem gerar micro-travamentos."
-            GameReadinessVerdict.NOT_READY -> "Perda de pacotes ou latência prejudicial detectada."
-            GameReadinessVerdict.INCONCLUSIVE -> "Sem amostras suficientes para concluir."
-        }
-
-        // Cálculo determinístico do Lagcheck Score (0..100)
-        var calculatedScore = 100.0
-        if (p50 > 20.0) {
-            calculatedScore -= (p50 - 20.0) * 0.45
-        }
-        calculatedScore -= (jitter * 1.5)
-        calculatedScore -= (lossPercentage * 12.0)
-        if (isUnderLoadAffected) {
-            calculatedScore -= 12.0
-        }
-        if (isOutOfOrderHigh) {
-            calculatedScore -= 8.0
-        }
-        val finalScore = calculatedScore.roundToInt().coerceIn(10, 99)
-
-        // O que mais pesou
-        val primaryWeight = when {
-            lossPercentage > 1.0 -> "Perda de pacotes na rota"
-            jitter > 12.0 -> "Variação de latência (jitter)"
-            isUnderLoadAffected -> "Degradação sob carga de download"
-            isOutOfOrderHigh -> "Pacotes fora de ordem (RFC 4737)"
-            p50 > 75.0 -> "Latência média elevada"
-            else -> "Rota estável sob carga"
-        }
-
-        // Casos de uso adequados
-        val suitableUses = when (verdict) {
-            GameReadinessVerdict.READY -> listOf("Ranked", "Casual", "Party")
-            GameReadinessVerdict.CAUTION -> listOf("Casual", "Party")
-            GameReadinessVerdict.NOT_READY -> listOf("Party", "Jogos por turno")
-            GameReadinessVerdict.INCONCLUSIVE -> listOf("—")
-        }
-
-        // Construção dos achados objetivos ("O que encontramos")
-        val findings = mutableListOf<NetworkFinding>()
-
-        if (jitter <= 5.0) {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.STABLE_ROUTE,
-                    severity = NetworkFinding.Severity.POSITIVE,
-                    label = "Estabilidade",
-                    detail = "Jitter baixo durante a medição."
-                )
-            )
+        val recurringSevereSpikes = if (spikePattern != null) {
+            spikePattern.severeSpikes >= 2 && spikePattern.isRecurring
         } else {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.HIGH_JITTER,
-                    severity = NetworkFinding.Severity.WARNING,
-                    label = "Jitter elevado",
-                    detail = "Variação de %.1f ms entre pacotes consecutivos.".format(jitter)
-                )
-            )
+            metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount
+        }
+        val hasSevereSpikes = recurringSevereSpikes ||
+            metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount ||
+            cause == PrimaryCause.SEVERE_SPIKES
+        val hasHighJitter = (metrics.jitterMilliseconds ?: 0.0) >= effectiveCautionJitter || cause == PrimaryCause.HIGH_JITTER
+        val hasRecurringSpikes = spikePattern?.isRecurring ?: false
+        val hasOutOfOrder = metrics.outOfOrderCount >= 2 || metrics.outOfOrderRatePercentage >= 5.0
+
+        // Cauda só é relevante com dispersão relativa E absoluta (evita falso positivo em fibra rápida).
+        val p50 = metrics.p50Milliseconds ?: 0.0
+        val p95 = metrics.p95Milliseconds ?: 0.0
+        val isTailLatencyHigh = (metrics.p95ToP50Ratio ?: 0.0) >= 1.8 && (p95 - p50) >= 20.0 && p95 > 45.0
+        val isGatewayDegraded = gatewayOutcome.isDegraded
+
+        val (verdict, subtitleKey) = when {
+            hasPacketLoss -> GameReadinessVerdict.NOT_READY to "game_readiness.verdict.not_ready.packet_loss"
+            hasHighLatency -> GameReadinessVerdict.NOT_READY to "game_readiness.verdict.not_ready.high_latency"
+            recurringSevereSpikes || hasSevereSpikes -> GameReadinessVerdict.NOT_READY to "game_readiness.verdict.not_ready.severe_spikes"
+            isLoadSevere -> GameReadinessVerdict.NOT_READY to "game_readiness.verdict.not_ready.load"
+            qualityResult.resultClass == ResultClass.LAG_RISK -> GameReadinessVerdict.NOT_READY to "game_readiness.verdict.not_ready.risk"
+            hasHighJitter -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.jitter"
+            hasOutOfOrder -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.out_of_order"
+            isLoadMaterial -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.load"
+            hasRecurringSpikes -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.spikes"
+            isTailLatencyHigh -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.jitter"
+            isGatewayDegraded -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.general"
+            qualityResult.resultClass == ResultClass.UNSTABLE -> GameReadinessVerdict.CAUTION to "game_readiness.verdict.caution.general"
+            else -> GameReadinessVerdict.READY to "game_readiness.verdict.ready.stable"
+        }
+        val headlineKey = when (verdict) {
+            GameReadinessVerdict.NOT_READY -> "game_readiness.verdict.not_ready.headline"
+            GameReadinessVerdict.CAUTION -> "game_readiness.verdict.caution.headline"
+            else -> "game_readiness.verdict.ready.headline"
         }
 
-        if (!isUnderLoadAffected) {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.STABLE_ROUTE,
-                    severity = NetworkFinding.Severity.POSITIVE,
-                    label = "Comportamento sob carga",
-                    detail = "Sem degradação relevante na rota externa."
-                )
-            )
-        } else {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.LOAD_DEGRADATION,
-                    severity = NetworkFinding.Severity.WARNING,
-                    label = "Sensível a tráfego na rede",
-                    detail = "A latência aumentou +%.0f ms durante download simultâneo.".format((loadP50 ?: 0.0) - p50)
-                )
-            )
-        }
-
-        findings.add(
-            NetworkFinding(
-                kind = NetworkFinding.Kind.STABLE_ROUTE,
-                severity = NetworkFinding.Severity.POSITIVE,
-                label = "Destino testado",
-                detail = "São Paulo · rota regional de referência."
-            )
+        val findings = buildFindings(
+            metrics = metrics,
+            loadImpact = loadImpact,
+            isGatewayDegraded = isGatewayDegraded,
+            hasHighLatency = hasHighLatency,
+            hasSevereSpikes = hasSevereSpikes,
+            isTailLatencyHigh = isTailLatencyHigh,
+            hasHighJitter = hasHighJitter,
+            isLoadSevere = isLoadSevere,
+            isLoadMaterial = isLoadMaterial
         )
 
-        if (lossPercentage > 0.5) {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.PACKET_LOSS,
-                    severity = if (lossPercentage > 2.0) NetworkFinding.Severity.NEGATIVE else NetworkFinding.Severity.WARNING,
-                    label = "Perda de pacotes observada",
-                    detail = "%.1f%% de perda até o servidor do jogo.".format(lossPercentage)
-                )
-            )
+        val consistency = metrics.components?.consistency ?: qualityResult.finalScore.toDouble()
+        var stability = (consistency / 100.0).coerceIn(0.0, 1.0)
+        if (isLoadMaterial) stability = maxOf(0.2, stability * 0.8)
+        stability = when (verdict) {
+            GameReadinessVerdict.NOT_READY -> minOf(0.45, stability)
+            GameReadinessVerdict.CAUTION -> minOf(0.75, maxOf(0.50, stability))
+            else -> maxOf(0.85, stability)
+        }
+        val stabilitySummaryKey = when (verdict) {
+            GameReadinessVerdict.READY -> "game_readiness.stability.ready_summary"
+            GameReadinessVerdict.CAUTION -> "game_readiness.stability.caution_summary"
+            GameReadinessVerdict.NOT_READY -> "game_readiness.stability.not_ready_summary"
+            GameReadinessVerdict.INCONCLUSIVE -> "game_readiness.stability.inconclusive"
         }
 
-        if (isOutOfOrderHigh) {
-            findings.add(
-                NetworkFinding(
-                    kind = NetworkFinding.Kind.OUT_OF_ORDER_PACKETS,
-                    severity = NetworkFinding.Severity.WARNING,
-                    label = "Pacotes fora de ordem (RFC 4737)",
-                    detail = "%.1f%% dos pacotes chegaram invertidos na rota.".format(outOfOrderRate)
-                )
-            )
-        }
-
-        // Modulação com telemetria física do Android
-        if (radioSnapshot != null && radioSnapshot.wifiDetails != null) {
-            val wifi = radioSnapshot.wifiDetails
-            when (wifi.band) {
-                RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ -> {
-                    findings.add(
-                        NetworkFinding(
-                            kind = NetworkFinding.Kind.WIFI_BAND_2_4GHZ,
-                            severity = NetworkFinding.Severity.WARNING,
-                            label = "Wi-Fi 2.4 GHz detectado",
-                            detail = "Frequência ${wifi.frequencyMhz} MHz suscetível a interferências de canal."
-                        )
-                    )
-                }
-                RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ, RadioTelemetrySnapshot.WifiBand.BAND_6_GHZ -> {
-                    if (wifi.isSignalCritical) {
-                        findings.add(
-                            NetworkFinding(
-                                kind = NetworkFinding.Kind.WIFI_SIGNAL_CRITICAL,
-                                severity = NetworkFinding.Severity.WARNING,
-                                label = "Sinal Wi-Fi fraco (${wifi.rssiDbm} dBm)",
-                                detail = "Proximidade do roteador pode mitigar oscilações."
-                            )
-                        )
-                    } else {
-                        findings.add(
-                            NetworkFinding(
-                                kind = NetworkFinding.Kind.WIFI_BAND_5GHZ,
-                                severity = NetworkFinding.Severity.POSITIVE,
-                                label = "Wi-Fi ${if (wifi.band == RadioTelemetrySnapshot.WifiBand.BAND_6_GHZ) "6 GHz" else "5 GHz"} (${wifi.rssiDbm} dBm)",
-                                detail = "Enlace local excelente a ${wifi.txLinkSpeedMbps} Mbps."
-                            )
-                        )
-                    }
-                }
-                else -> Unit
-            }
-        }
-
-        val allSeries = validRTTs + validLoadRTTs
-
-        return GameReadinessEvaluation(
+        return GameReadinessAssessment(
             verdict = verdict,
-            headline = headline,
-            subtitle = subtitle,
-            score = finalScore,
-            primaryWeight = primaryWeight,
-            suitableUses = suitableUses,
-            pingMs = p50,
-            jitterMs = jitter,
-            packetLossPercentage = lossPercentage,
-            worstSpikeMs = worstSpike,
-            isUnderLoadAffected = isUnderLoadAffected,
+            headlineKey = headlineKey,
+            subtitleKey = subtitleKey,
+            stabilityRatio = stability,
+            stabilitySummaryKey = stabilitySummaryKey,
             findings = findings,
-            latencySeries = allSeries,
-            platform = platform,
-            connectionType = connectionType,
-            radioTelemetry = radioSnapshot
+            pingMs = metrics.p50Milliseconds,
+            jitterMs = metrics.jitterMilliseconds,
+            packetLossPercentage = metrics.packetLossPercentage,
+            isUnderLoadAffected = isLoadMaterial,
+            worstSpikeMs = metrics.worstSpikeMilliseconds,
+            score = qualityResult.finalScore,
+            primaryCause = cause
         )
     }
 
-    private fun percentile(sortedList: List<Double>, p: Double): Double {
-        if (sortedList.isEmpty()) return 0.0
-        val index = ((sortedList.size - 1) * p).toInt()
-        return sortedList[index]
+    private fun buildFindings(
+        metrics: com.lagcheck.domain.model.QualityMetrics,
+        loadImpact: DeepCheckLoadImpact?,
+        isGatewayDegraded: Boolean,
+        hasHighLatency: Boolean,
+        hasSevereSpikes: Boolean,
+        isTailLatencyHigh: Boolean,
+        hasHighJitter: Boolean,
+        isLoadSevere: Boolean,
+        isLoadMaterial: Boolean
+    ): List<ReadinessFinding> {
+        val f = mutableListOf<ReadinessFinding>()
+
+        if (isGatewayDegraded) {
+            f += ReadinessFinding(Kind.LOCAL_GATEWAY, Sev.NEGATIVE, "game_readiness.finding.local_gateway_degraded", "Wi-Fi")
+        }
+        if (metrics.packetLossPercentage > 1.0) {
+            f += ReadinessFinding(Kind.PACKET_LOSS, Sev.NEGATIVE, "game_readiness.finding.packet_loss_detected", fmt("%.1f%%", metrics.packetLossPercentage))
+        } else {
+            f += ReadinessFinding(Kind.PACKET_LOSS, Sev.POSITIVE, "game_readiness.finding.no_packet_loss", "0%")
+        }
+        if (hasHighLatency) {
+            f += ReadinessFinding(Kind.HIGH_LATENCY, Sev.NEGATIVE, "game_readiness.finding.high_latency_detected", fmt("%.0f ms", metrics.p50Milliseconds ?: 0.0))
+        }
+        if (hasSevereSpikes) {
+            f += ReadinessFinding(Kind.LATENCY_SPIKES, Sev.NEGATIVE, "game_readiness.finding.severe_spikes_detected", "${metrics.severeSpikeCount}")
+        } else if (isTailLatencyHigh) {
+            f += ReadinessFinding(Kind.LATENCY_SPIKES, Sev.WARNING, "game_readiness.finding.tail_latency_elevated", fmt("%.1fx", metrics.p95ToP50Ratio ?: 0.0))
+        } else if (metrics.spikeCount > 0 || hasHighJitter) {
+            f += ReadinessFinding(Kind.LATENCY_SPIKES, Sev.WARNING, "game_readiness.finding.jitter_oscillations")
+        } else {
+            f += ReadinessFinding(Kind.STABLE_ROUTE, Sev.POSITIVE, "game_readiness.finding.route_stable")
+        }
+        if (metrics.outOfOrderCount > 0) {
+            f += ReadinessFinding(
+                Kind.OUT_OF_ORDER_PACKETS,
+                if (metrics.outOfOrderRatePercentage >= 10.0) Sev.NEGATIVE else Sev.WARNING,
+                "game_readiness.finding.out_of_order_detected",
+                "${metrics.outOfOrderCount}"
+            )
+        }
+        when {
+            isLoadSevere -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.NEGATIVE, "game_readiness.finding.load_degradation_detected", fmt("+%.0f ms", loadImpact?.increaseMilliseconds ?: 0.0))
+            isLoadMaterial -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.WARNING, "game_readiness.finding.load_degradation_detected", fmt("+%.0f ms", loadImpact?.increaseMilliseconds ?: 0.0))
+            loadImpact != null -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.POSITIVE, "game_readiness.finding.load_stable")
+        }
+        f += ReadinessFinding(Kind.NORMAL_DESTINATION, Sev.POSITIVE, "game_readiness.finding.destination_response_normal")
+        return f
     }
 
-    private fun calculateJitter(rtts: List<Double>): Double {
-        if (rtts.size < 2) return 0.0
-        var diffSum = 0.0
-        for (i in 0 until rtts.size - 1) {
-            diffSum += abs(rtts[i + 1] - rtts[i])
-        }
-        return diffSum / (rtts.size - 1).toDouble()
-    }
+    // Locale.ROOT: ponto decimal estável, independente do idioma do aparelho (igual ao String(format:) do Swift em en_US_POSIX).
+    private fun fmt(pattern: String, value: Double) = String.format(Locale.ROOT, pattern, value)
 }

@@ -70,6 +70,7 @@
 | [65](#decisão-65) | Validação Científica (12s, 3 Fases), Fallback de Jogo, Cockpit e Blindagem Visual | **Vigente (Execução Total)** | 3 fases reais UDP/Bufferbloat, fallback jogos, 2 abas, anti-glitches visuais | Marco / Squad / Luiz |
 | [66](#decisão-66) | Adoção do Design System LagCheck Canônico (Roxo Gamer Primário, Coral Solar para Atenção) | **Vigente (Design System Canônico)** | Roxo Gamer (#7C3AED), Coral Solar (#FF5A36) restrito a atenção/erro, 3 pilhas tipográficas, raios 8/13/17/26/999px | Renan / Squad / Luiz |
 | [67](#decisão-67) | Expansão Multiplataforma: Rascunho Arquitetural e Telemetria Avançada de Rádio no Android | **Vigente (Expansão Android)** | Módulo de rádio (2.4G/5G/6G, RSSI, PHY speed, Gateway), paridade determinística e custo zero | Marco / Camillo / Iury / Luiz |
+| [68](#decisão-68) | Port iOS → Android com paridade de regras (readiness-v2.0, catálogo v3 assinado, beacons) | **Vigente (Execução)** | Substitui a medição STUN e os thresholds fixos do protótipo Android; Android passa a ser alvo oficial | Marco / Camillo / Iury / Luiz |
 
 
 ---
@@ -383,6 +384,23 @@
      - Repositório preparado com módulo Android limpo sob `android/`: `:core:domain` (puro Kotlin, port direto de `NolaggyDomain` com os mesmos vetores determinísticos), `:core:network` (STUN RFC 5389, RFC 4737 e bufferbloat), `:core:telemetry-radio` (APIs nativas de rede/rádio Android) e `:ui` (Dark Competitive UI com Roxo Gamer `#7C3AED` e tokens canônicos em Compose).
   5. **Política de Permissões e Degradação Graciosa:**
      - Se o usuário conceder permissões de rádio (`NEARBY_WIFI_DEVICES`), o app ativa a telemetria detalhada de rádio. Se negar, o teste de ping/jitter/loss UDP para os servidores de jogo ocorre normalmente com máxima privacidade.
+
+### Decisão 68
+- **Título:** Port iOS → Android com paridade de regras: readiness-v2.0, catálogo v3 assinado e beacons de jogo.
+- **Status Atual:** **Vigente (Execução).** Refina a Decisão 67 e **substitui** a linha "somente iPhone / Android fora do escopo" do `AGENTS.md`.
+- **Frentes envolvidas:** Marco, Luiz (autorizou "port completo, fim a fim"), Camillo, Iury, Rian (revisão de contrato), Breno (homologação).
+- **Contexto e Problema:**
+  1. O módulo Android da Decisão 67 era um protótipo: thresholds fixos, medição contra STUN do Google, catálogo hardcoded, fase de carga simulada partindo um único fluxo de probes e telemetria do Worker sem uso. Um mesmo jogador podia receber veredito diferente no iOS e no Android.
+  2. As artes de jogo no Android (`res/drawable/game_*.jpg`) foram verificadas por SHA-256 contra `worker/catalog/artwork-manifest.json` (política `lagcheck-editorial-original-only`, status `approved`). Estão em conformidade com as Decisões 18/44.
+- **Decisão:**
+  1. O código Swift em `Sources/NolaggyDomain` e o catálogo v3 assinado são a fonte de verdade. O Kotlin é port 1:1 de `QualityEvaluator`, `SampleQualityEvaluator`, `SpikePatternEvaluator`, `DeepCheckEvaluator` (carga v2), `ResultInterpreter` e `GameReadinessEvaluator` (readiness-v2.0). Mantêm-se as versões de regra (`pilot-2026.09.08.1`, `mobile-realtime-2026.09.08.1`, `casual-realtime-2026.09.08.1`, `readiness-v2.0`, `spike-pattern-v1`, `sample-quality-v1`, `deep-load-impact-v2`).
+  2. A medição usa os destinos do catálogo (`gameLiftPing`, `playFabQoS`, `steamA2S`), 30 probes a cada 500 ms, janela de fechamento de 17 s e resposta válida somente com correlação integral. STUN deixa de ser destino de medição.
+  3. Repouso e carga são duas séries independentes. O veredito avalia o repouso e penaliza a degradação sob carga.
+  4. O catálogo v3 é verificado com Ed25519 em Kotlin puro (sem SDK novo), com base embarcada e atualização diária.
+  5. O contexto `iphone` do catálogo é usado como contexto de celular no Android até o catálogo ganhar `android` (exige nova assinatura do dono da chave).
+  6. Probe de gateway, NAT, voz e Connection Booster ficam para fase 2. Enquanto isso, o Android não atribui causa a roteador ou operadora (Decisão 50).
+  7. Custo recorrente zero preservado. Nenhum endpoint novo no Worker.
+- **Critérios de validação e aceite:** ver `.agents/architecture-plan.md` §7.4. Estados reportados separadamente: documentado, implementado, testes JVM verdes, compilado, validado em aparelho.
 
 ---
 

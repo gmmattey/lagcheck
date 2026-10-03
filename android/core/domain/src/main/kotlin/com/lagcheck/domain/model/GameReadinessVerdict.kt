@@ -17,6 +17,9 @@ enum class GameReadinessVerdict(val rawValue: String) {
     /** Menos de 10 amostras UDP válidas. Proibido inventar score ou fazer fallback HTTP/ICMP. */
     INCONCLUSIVE("inconclusive");
 
+    val isReady: Boolean
+        get() = this == READY
+
     val isPlayable: Boolean
         get() = this == READY || this == CAUTION
 }

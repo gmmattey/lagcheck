@@ -17,6 +17,7 @@ data class NetworkFinding(
         OUT_OF_ORDER_PACKETS,
         LOAD_DEGRADATION,
         STABLE_ROUTE,
+        NORMAL_DESTINATION,
         LOCAL_GATEWAY,
         WIFI_BAND_2_4GHZ,
         WIFI_BAND_5GHZ,

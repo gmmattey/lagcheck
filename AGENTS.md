@@ -5,7 +5,7 @@ Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a en
 ## Contexto inegociável
 
 - Marca oficial: **LagCheck**, sempre com `lagcheck` em minúsculas na wordmark. (Decisão 25; substitui a marca preliminar Nolaggy).
-- V1: somente iPhone, iOS 17 ou superior. Android está fora do escopo atual.
+- V1: iPhone, iOS 17 ou superior. Android nativo (Kotlin/Compose, API 26+) é alvo oficial desde as Decisões 67 e 68, com paridade de regras com o iOS.
 - O app mede a rota do iPhone até uma infraestrutura de referência. Não promete ping real de um jogo sem evidência. Para console ou PC, comunica resultado como estimativa.
 - O score é determinístico, versionado e baseado em medição real. Sem respostas UDP válidas suficientes, o resultado é inconclusivo — nunca uma nota inventada, fallback HTTP/ICMP ou recomendação para jogar.
 - Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check), `GET /v1/catalog.json` (catálogo remoto assinado em Debug) e `POST /v1/telemetry` (telemetria de produto anônima e mínima para validação de retenção sem PII/IP) — ver `docs/12`, `docs/14` e `docs/50`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.

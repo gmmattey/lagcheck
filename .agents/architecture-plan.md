@@ -96,11 +96,55 @@ flowchart TD
 
 ---
 
-## 7. Status do Gate Arquitetural
+## 7. Plano de Port iOS → Android (Decisão 68)
+
+> Gate Arquitetural cumprido por Camillo + Iury. Fonte de verdade das regras: o código Swift em `Sources/NolaggyDomain` (readiness-v2.0) e o catálogo v3 assinado em `worker/catalog/`. O Kotlin é port, não reinterpretação.
+
+### 7.1 Diagnóstico do estado anterior (por que não era port)
+| Gap | Estado no Android antes do port | Alvo |
+| --- | --- | --- |
+| Regras de veredito | Thresholds fixos (110 ms / 25 ms / 2%), sem perfil | `QualityEvaluator` (3 perfis) + `ResultInterpreter` + `GameReadinessEvaluator` readiness-v2.0 |
+| Destino da medição | STUN `stun.l.google.com` fixo | Beacons do catálogo assinado: `gameLiftPing`, `playFabQoS`, `steamA2S` |
+| Catálogo | 20 jogos hardcoded | Envelope v3 verificado com Ed25519 + validação + resolução de rota |
+| Fase de carga | 1 fluxo de 30 probes cortado em 18/12 | Repouso (30 probes) e carga (30 probes) separados, `/v1/load` concorrente só na segunda |
+| Telemetria Worker | Cliente existe, ninguém chama | `app_open`, `check_started`, `verdict_viewed`, `retest_started` |
+| Release | `proguard-rules.pro` ausente, `targetSdk` 34, `ACCESS_FINE_LOCATION` sem teto | Corrigidos (fast lane) |
+
+### 7.2 Módulos
+```
+android/core/domain    Kotlin puro. Perfis, QualityEvaluator, SampleQuality, SpikePattern,
+                       DeepCheck (carga v2), ResultInterpreter, GameReadinessEvaluator v2.0.
+android/core/catalog   Kotlin puro (kotlinx-serialization). Ed25519 (RFC 8032, verify-only, BigInteger),
+                       envelope, validação do payload, resolução de rota por jogo/plataforma/mercado.
+android/core/network   JVM. Codecs (GameLift/PlayFab/Steam), ProbeLedger, UdpProbeTransport,
+                       WorkerClient (/v1/load, /v1/catalog.json, /v1/telemetry). STUN permanece só como codec legado.
+android/core/telemetry-radio  Android SDK. Inalterado (diferencial de rádio).
+android/core/designsystem     Compose. Inalterado.
+android/app            Composição: ViewModel orquestra catálogo → rota → repouso → carga → veredito.
+```
+Regra de dependência: `domain` ← `catalog` ← `network` ← `app`. Nenhum módulo JVM importa Android SDK.
+
+### 7.3 Decisões de desenho
+1. **Plataforma "mobile".** O catálogo v3 assinado só conhece `iphone|playstation|xbox|pc|nintendo`. Não temos a chave privada para re-assinar com `android`. O resolvedor Android trata o contexto `iphone` como o contexto de celular. Impacto: nenhum, pois as rotas de celular são as mesmas `awsFallback sa-east-1`. Quando o catálogo ganhar `android`, o resolvedor prefere o contexto exato.
+2. **Ed25519 sem dependência.** `Signature.getInstance("Ed25519")` só existe no Android 13+, e o `minSdk` é 26. Implementação verify-only em Kotlin puro, validada contra os vetores do RFC 8032 e contra o envelope real do Worker. Zero SDK novo.
+3. **Base embarcada + atualização diária**, igual ao iOS (`RemoteCatalogRepository`): envelope v3 vai em `assets/`, cache em arquivo, uma tentativa de refresh por dia, falha mantém o catálogo válido.
+4. **Sem rota ativa, sem medição.** Rota `gameOwned` com status `pending` não é medida. Só `awsFallback` ativa mede, com confiança `medium` (margem de 10% nos guardrails, igual ao iOS).
+5. **Fora do port V1 Android (decisão consciente, não esquecimento):** Deep Check manual separado, NAT/STUN, qualidade de voz, Connection Booster (Gemini) e probe de gateway. O probe de gateway fica para a fase 2, e **até lá o Android não diz nada sobre roteador ou Wi-Fi como causa** (Decisão 50). A telemetria de rádio entra como fato observado (banda, RSSI), nunca como causa.
+
+### 7.4 Critérios de aceite
+- `./gradlew :core:domain:test :core:catalog:test :core:network:test` verde (validado neste ambiente com Gradle JVM).
+- Vetores portados dos testes Swift (`QualityEvaluator*`, `SpikePattern`, `SampleQuality`, `ResultInterpreter`, `GameReadinessDomain`, `DeepCheckEvaluator`, `RemoteCatalog`, codecs) passando em Kotlin.
+- Envelope `catalog-v3.envelope.json` real verifica; envelope adulterado, expirado ou com payload alterado é recusado.
+- Transporte UDP exercitado em loopback (eco válido, timeout, resposta inválida, cancelamento sem vazar socket).
+- Módulos Android (`app`, `telemetry-radio`, `designsystem`) **não** são compiláveis no ambiente de CI do agente (Google Maven bloqueado). Estado reportado: *implementado, não compilado*. Compilação e hardware físico ficam com Breno.
+
+## 8. Status do Gate Arquitetural
 - [x] Investigação concluída por Camillo e Iury
 - [x] Plano aprovado por Camillo e alinhado com Marco
 - [x] Infraestrutura do repositório preparada
-- [ ] Implementação de `:core:domain` e `:core:network` em Kotlin
-- [ ] Implementação de `:core:telemetry-radio`
-- [ ] Implementação das telas em Jetpack Compose
-- [ ] Homologação em dispositivos reais por Breno
+- [x] Decisão 68 registrada
+- [ ] `:core:domain` readiness-v2.0
+- [ ] `:core:catalog`
+- [ ] `:core:network` (beacons + Worker)
+- [ ] Integração `:app`
+- [ ] Compilação do app e homologação em dispositivo real por Breno
