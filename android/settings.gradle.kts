@@ -23,6 +23,7 @@ rootProject.name = "lagcheck"
 
 include(":app")
 include(":core:domain")
+include(":core:catalog")
 include(":core:network")
 include(":core:telemetry-radio")
 include(":core:designsystem")
