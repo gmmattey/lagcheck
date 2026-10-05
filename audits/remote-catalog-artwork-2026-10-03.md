@@ -20,3 +20,9 @@ Escopo autorizado por Luiz na Decisão 71: catálogo assinado e imagens remotas 
 ## Pendências de distribuição
 
 Uma build inicial com esta implementação precisa ser instalada em cada plataforma. A expansão de quatro jogos continua em `worker/catalog/catalog-v3.candidate.json` (26 jogos, não assinado). Assinar no Mac com a chave vigente e publicar envelope/arquivos de arte no Worker existente são etapas externas distintas. Com o envelope válido publicado, esta implementação passa a receber jogos e artes sem nova edição da lista local. Não há prova de publicação, TestFlight, App Store ou aparelho físico.
+
+## Complemento: validação iOS no Mac
+
+Em 3 de outubro de 2026, app Debug compilado com Xcode 27.0 e executado em iPhone 17 Pro simulado / iOS 26.5. Suíte `NolaggyCoreTests`: 326 aprovados, 2 ignorados, zero falhas. Depois da ampliação dos testes de cache, respostas inválidas, limites e cancelamento durante transferência, a execução dirigida de catálogo/artes passou em 17 testes (contagem sobreposta à suíte completa). Nenhuma mudança no loader de produção foi necessária.
+
+Downloads reais preencheram o cache do simulador com 22 artes. A inspeção visual confirmou a lista e as miniaturas. Os novos testes usam transporte controlado para falhas, offline e cancelamento; não comprovam condições de rádio ou ausência de tráfego durante probes no iPhone físico. Evidências, comandos-base e pendências estão no adendo de `mac-continuation-2026-10-03.md`.

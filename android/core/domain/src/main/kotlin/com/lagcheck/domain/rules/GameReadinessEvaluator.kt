@@ -169,6 +169,20 @@ object GameReadinessEvaluator {
             GameReadinessVerdict.INCONCLUSIVE -> "game_readiness.stability.inconclusive"
         }
 
+        var evaluatedScore = qualityResult.finalScore
+        if (isLoadSevere) {
+            evaluatedScore = minOf(59, evaluatedScore)
+        } else if (isLoadMaterial) {
+            evaluatedScore = minOf(74, evaluatedScore)
+        }
+
+        val unifiedScore: Int? = when (verdict) {
+            GameReadinessVerdict.READY -> maxOf(75, evaluatedScore)
+            GameReadinessVerdict.CAUTION -> minOf(74, maxOf(60, evaluatedScore))
+            GameReadinessVerdict.NOT_READY -> minOf(59, maxOf(0, evaluatedScore))
+            GameReadinessVerdict.INCONCLUSIVE -> null
+        }
+
         return GameReadinessAssessment(
             verdict = verdict,
             headlineKey = headlineKey,
@@ -181,7 +195,7 @@ object GameReadinessEvaluator {
             packetLossPercentage = metrics.packetLossPercentage,
             isUnderLoadAffected = isLoadMaterial,
             worstSpikeMs = metrics.worstSpikeMilliseconds,
-            score = qualityResult.finalScore,
+            score = unifiedScore,
             primaryCause = cause,
             recommendations = recommendations
         )

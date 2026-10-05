@@ -32,3 +32,22 @@ Implementação local:
 ## Prompt de retomada
 
 Continue a implementação de catálogo e artes remotos do LagCheck a partir de audits/mac-continuation-2026-10-03.md. Preserve Ed25519 do catálogo e não confira hash dos bytes das imagens, conforme Decisão 71. Primeiro valide a transferência, compile e execute os testes iOS no Xcode, depois faça QA de cache/fallback e pausa dos downloads durante Check. Preserve as mudanças existentes. Não crie nem rotacione chave, publique Cloudflare, envie TestFlight ou App Store sem minha autorização explícita. Informe separadamente implementação, build, testes, aparelho e publicação.
+
+## Retomada no Mac — 3 de outubro de 2026
+
+- Branch conferida e selecionada: `codex/remote-catalog-artwork`, commit de entrada `4195f32`. Arquivos locais não rastreados preservados. A branch não inclui os três commits posteriores da `main`; não houve merge nesta validação.
+- Xcode 27.0 (27A266a), Swift 6, simulador iPhone 17 Pro / iOS 26.5. `xcodegen generate` incluiu `RemoteArtworkLoaderTests.swift` no projeto, que ainda não referenciava esse arquivo.
+- App Debug: **BUILD SUCCEEDED**. `NolaggyCoreTests`: **326 aprovados, 2 ignorados, 0 falhas**. Ignorados: smoke de rede física e filtro de plataforma substituído pelo catálogo atual.
+- Após ampliar a cobertura e corrigir os testes, execução dirigida de `RemoteArtworkLoaderTests` + `RemoteCatalogRepositoryTests`: **17 aprovados, 0 falhas**. Essa contagem sobrepõe parte da suíte completa; não deve ser somada como testes únicos.
+- Cobertura adicionada: MIME/status/corpo inválidos, tamanho declarado, stream acima de 8 MiB sem EOF (interrupção antes do timeout HTTP), dimensões 4097, cache vencido com falha e preservação da idade, cancelamento durante corpo parcial, pausa e retomada. Dois testes de catálogo agora realmente ultrapassam 24h e confirmam uma chamada ao fetcher.
+- Runtime: catálogo de 22 jogos exibido; cache do app no simulador com 22 artes / 22.092.696 bytes. Worker consultado por `curl`: catálogo e arte Fortnite HTTP 200; envelope remoto validado com o verificador Ed25519 vigente. Captura: `audits/ios-remote-catalog-simulator-2026-10-03.png`.
+- Sem alteração no código de produção. Build contém avisos preexistentes de variável não usada, APIs depreciadas, assets de ícone não atribuídos e extração de AppIntents; não declarar warning-free.
+- Artefatos locais: `/tmp/lagcheck-remote-artwork-build.log`, `/tmp/lagcheck-remote-artwork-core.xcresult`, `/tmp/lagcheck-remote-artwork-focused-final.xcresult`.
+
+### Próximos gates
+
+- iPhone físico listado como indisponível. Rede real, troca Wi-Fi/celular e ausência de sobreposição de tráfego de arte com probes ainda exigem prova física. Os testes de cancelamento usam URLProtocol controlado; não equivalem a captura de pacotes no aparelho.
+- Poda do cache de 50 MiB e catálogo novo/removido em UI ainda sem prova dedicada nesta rodada. Cache offline/falha foi validado no loader; não houve desligamento da rede do Mac.
+- Item de publicação encontrado no Keychain apenas por consulta de existência. Não foi lida/exportada a chave, nem executado o signer. A correspondência dessa chave com a pública vigente ainda precisa ser conferida ao assinar.
+- Candidato de 26 jogos permanece não assinado/inativo. Os dois testes de expansão passaram (IDs/plataformas e artes/cópias), sem substituição dos envelopes.
+- Sem deploy Cloudflare, upload TestFlight/App Store, commit ou push nesta retomada.

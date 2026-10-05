@@ -361,4 +361,79 @@ final class GameReadinessDomainTests: XCTestCase {
         XCTAssertEqual(readiness.subtitleKey, "game_readiness.verdict.caution.out_of_order")
         XCTAssertTrue(readiness.findings.contains(where: { $0.kind == .outOfOrderPackets }))
     }
+
+    // MARK: - Decisão 72: Unificação de Score e Veredito (Guardrails Estruturais)
+
+    func testDecision72ScoreIsCappedAt74WhenVerdictIsCautionUnderMaterialLoad() throws {
+        // Cenário exato do problema do Luiz:
+        // Conexão limpa em repouso (RTT 25ms constante, 0% perda -> score original seria ~92+)
+        let testSamples = samples(count: 30, rtt: 25.0)
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+        XCTAssertGreaterThanOrEqual(qualityResult.finalScore, 85, "Score de repouso isolado deve ser alto")
+
+        // Carga material (+35ms delta)
+        let loadImpact = DeepCheckLoadImpact(restP50Milliseconds: 25.0, loadP50Milliseconds: 60.0, tier: .material)
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: loadImpact,
+            profile: .battleRoyaleCompetitive
+        )
+
+        XCTAssertEqual(readiness.verdict, .caution)
+        XCTAssertNotNil(readiness.score)
+        // Guardrail Decisão 72: Veredito Caution NUNCA exibe nota na faixa 'Muito Bom' (88). Teto estrito é 74.
+        XCTAssertLessThanOrEqual(readiness.score ?? 100, 74)
+        XCTAssertGreaterThanOrEqual(readiness.score ?? 0, 60)
+        XCTAssertEqual(readiness.subtitleKey, "game_readiness.verdict.caution.load")
+    }
+
+    func testDecision72ScoreIsCappedAt74WhenVerdictIsCautionDueToOutOfOrder() {
+        var testSamples: [ProbeSample] = []
+        var arrival = 0
+        for seq in 0..<30 {
+            let actualSeq: Int
+            if seq == 2 { actualSeq = 3 }
+            else if seq == 3 { actualSeq = 2 }
+            else if seq == 6 { actualSeq = 7 }
+            else if seq == 7 { actualSeq = 6 }
+            else { actualSeq = seq }
+
+            testSamples.append(ProbeSample(sequence: actualSeq, roundTripMilliseconds: 20.0, outcome: .received, arrivalIndex: arrival))
+            arrival += 1
+        }
+
+        let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
+        guard case let .completed(qualityResult) = eval else { return XCTFail() }
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: qualityResult,
+            loadImpact: nil,
+            profile: .battleRoyaleCompetitive
+        )
+
+        XCTAssertEqual(readiness.verdict, .caution)
+        XCTAssertLessThanOrEqual(readiness.score ?? 100, 74)
+        XCTAssertGreaterThanOrEqual(readiness.score ?? 0, 60)
+    }
+
+    func testDecision72ScoreIsCappedAt59WhenVerdictIsNotReady() throws {
+        // Amostras com alta perda de pacotes
+        var testSamples = samples(count: 20, rtt: 25.0)
+        testSamples += (20..<30).map { seq in
+            ProbeSample(sequence: seq, roundTripMilliseconds: nil, outcome: .timeout)
+        }
+
+        let eval = try evaluateSamples(testSamples, profile: .battleRoyaleCompetitive)
+        XCTAssertEqual(eval.verdict, .notReady)
+        XCTAssertNotNil(eval.score)
+        // Guardrail Decisão 72: Veredito NotReady teto estrito é 59.
+        XCTAssertLessThanOrEqual(eval.score ?? 100, 59)
+    }
+
+    func testDecision72ScoreIsNilWhenInconclusive() {
+        let eval = GameReadinessEvaluator.evaluate(deepCheckResult: nil, profile: .battleRoyaleCompetitive)
+        XCTAssertEqual(eval.verdict, .inconclusive)
+        XCTAssertNil(eval.score, "Resultado inconclusivo nunca pode inventar uma nota")
+    }
 }

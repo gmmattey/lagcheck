@@ -74,6 +74,7 @@
 | [69](#decisão-69) | Android: gateway no veredito, status de redes de console, favoritos e relatório em PDF | **Vigente (Execução)** | Refina o item 6 da Decisão 68: liga o gateway no veredito (autorizado pelo Luiz) e entrega o que tinha sido cortado por escopo | Marco / Iury / Luiz |
 | [70](#decisão-70) | Expansão do catálogo: quatro jogos e artes autorais | **Vigente (assinatura pendente)** | Dead by Daylight, For Honor, Borderlands 3 e New World; candidato local de 26 jogos | Marco / Luiz |
 | [71](#decisão-71) | Catálogo e artes remotos nos apps | **Vigente (implementação local)** | Ed25519 mantida, imagens sem conferência de hash, descoberta dinâmica Android | Marco / Camillo / Luiz |
+| [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 
 
 ---
@@ -441,12 +442,30 @@
 ### Decisão 71
 - **Data:** 3 de outubro de 2026.
 - **Título:** Catálogo e artes atualizados remotamente em iOS e Android.
-- **Status Atual:** Implementado localmente; APK Android e testes JVM validados. Build Xcode e runtime/aparelhos pendentes.
+- **Status Atual:** Implementado localmente; APK Android e testes JVM validados. Build Xcode e suíte iOS validados no Mac em 2026-10-03; catálogo/artes observados em simulador. Prova física e distribuição pendentes (ver `audits/mac-continuation-2026-10-03.md`).
 - **Frentes envolvidas:** Marco, Camillo (plano e segunda opinião), implementação iOS/Android.
 - **Decisão:** Luiz autorizou baixar catálogo e artes pelo Cloudflare. Preservar assinatura Ed25519 do catálogo e dispensar comparação do hash dos bytes das imagens. Refina Decisões 37/40/70 e o pipeline de assets da especificação técnica: SHA no schema 3 permanece para compatibilidade, sem impedir exibição quando os bytes diferirem. Não rotacionar chave.
 - **Comportamento:** Catálogo validado determina descoberta e plataformas; novos jogos aparecem após publicação de envelope válido sem novas builds. Artes remotas com cache local e fallback empacotado/neutro. Uma build inicial é necessária em cada plataforma.
 - **Limites:** Sem alteração de medição ou SDK, sem endpoint novo; downloads de arte não devem competir com Check. Preparação local não é assinatura, publicação, instalação nem prova em aparelho.
 - **Aceite:** Testes de catálogo/cache e mapeamento dinâmico; bytes e dimensões limitados, HTTPS e cancelamento; validar compilação e aparelhos conforme ambiente. Expansão de 26 jogos ainda depende de envelope assinado pela chave vigente.
+
+### Decisão 72
+- **Data:** 4 de outubro de 2026.
+- **Título:** Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes).
+- **Status Atual:** **Vigente (Execução).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer / Gate Arquitetural), Iury (Network & Edge Systems), Rian (iOS), Renan (Design System) e Luiz (autorização e diretriz).
+- **Contexto e Problema:** Ao realizar um teste de conexão, a tela principal de resultado exibiu o veredito semântico `▲ CONDIÇÕES INSTÁVEIS` (Âmbar). Porém, ao abrir a folha secundária de "Entender conexão / Detalhes técnicos", a tela exibia `● MUITO BOM` (Verde), nota `88` e telemetria aparentemente estável. O diagnóstico revelou a existência de avaliadores paralelos no domínio: `QualityEvaluator` calculava o score (88) e a classe (`.great`) olhando apenas para o repouso; `GameReadinessEvaluator` rebaixava o veredito para `caution` ao detectar impacto sob carga (bufferbloat) ou dispersão de cauda, mas não recalculava nem limitava o score numérico; e `TechnicalDetailsView` consumia `result.restResult.resultClass` isolado. Essa discrepância destruía a percepção de confiabilidade do app.
+- **Decisão:**
+  1. **Motor Único de Domínio:** O `GameReadinessEvaluator` passa a ser o único avaliador canônico do teste, unificando o cálculo de veredito, score numérico integrado, estabilidade e achados em uma única passada determinística.
+  2. **Acoplamento Matemático (Guardrail Estrutural por Veredito):** O score numérico passa a ter tetos rígidos vinculados ao veredito de prontidão:
+     - `.ready`: score na faixa **75–100** (Pronto para ranked).
+     - `.caution`: score obrigatoriamente limitado a **60–74** (Faixa instável; é matematicamente impossível um resultado instável pontuar 88).
+     - `.notReady`: score obrigatoriamente limitado a **0–59** (Evitaria ranked / alto risco).
+     - `.inconclusive`: score estritamente `nil` (exibido como `—`, sem notas inventadas).
+  3. **Penalização Integrada de Carga:** O impacto sob carga (bufferbloat) reduz diretamente o score numérico e modula o veredito de forma simultânea.
+  4. **Consumo 1:1 na Interface:** Extinção do `resultClass` e de classificações paralelas na apresentação. A folha de Detalhes Técnicos (`TechnicalDetailsView`) passa a consumir rigorosamente a mesma `GameReadinessEvaluation`, exibindo o mesmo símbolo, cor, veredito e score coerente.
+  5. **Paridade Android:** A mesma regra de teto no score subordinado ao veredito é replicada no módulo `:core:domain` Kotlin.
+- **Critérios de validação e aceite:** Testes unitários do domínio comprovando que testes com carga material produzem veredito `.caution` e score no intervalo `60..74`; testes de regressão verdes; ausência de qualquer texto "MUITO BOM" na tela de detalhes quando o veredito for de atenção.
 
 ## Como Registrar Novas Decisões
 
