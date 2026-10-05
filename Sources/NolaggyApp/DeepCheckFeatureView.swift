@@ -28,19 +28,22 @@ struct DeepCheckFeatureView: View {
     private let analyticsTracker: any AnalyticsTracker
     private let usesFixture: Bool
     private let autoStart: Bool
+    private let onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)?
 
     init(
         resolvedContext: ResolvedMeasurementContext,
         gameName: String,
         historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
         analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker(),
-        autoStart: Bool = true
+        autoStart: Bool = true,
+        onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)? = nil
     ) {
         _activeContext = State(initialValue: resolvedContext)
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.analyticsTracker = analyticsTracker
         self.autoStart = autoStart
+        self.onMeasurementCompleted = onMeasurementCompleted
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
         _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
@@ -445,6 +448,9 @@ struct DeepCheckFeatureView: View {
         case let .measuring(_, phase): presentation = .measuring(phase)
         case let .completed(_, .completed(result), availability):
             presentation = .result(result, availability)
+            let entry = MeasurementHistoryEntry.completedDeepCheck(resolvedContext: activeContext, result: result)
+            let completedSamples = samples.isEmpty ? restSamples : samples
+            onMeasurementCompleted?(completedSamples, entry)
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true
                 let duration = measurementStartTime.map { Date().timeIntervalSince($0) } ?? 0.0

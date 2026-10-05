@@ -30,12 +30,58 @@ struct MeasurementDetailsView: View {
                     }
                 }
 
-                LatencyGraph(
-                    values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
-                    awaitingLabel: "details.history_graph_unavailable",
-                    accessibilityLabel: graphAccessibilitySummary
-                )
-                .frame(height: NLSizing.detailsGraphHeight)
+                if samples.count >= 2 {
+                    LatencyGraph(
+                        values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
+                        awaitingLabel: "details.history_graph_unavailable",
+                        accessibilityLabel: graphAccessibilitySummary,
+                        isScanning: false
+                    )
+                    .frame(height: NLSizing.detailsGraphHeight)
+                } else if let deepCheck = entry.deepCheck, let p50Rest = deepCheck.metrics.rest.p50Milliseconds {
+                    let p95Rest = deepCheck.metrics.rest.p95Milliseconds ?? p50Rest
+                    let p50Load = deepCheck.metrics.load?.p50Milliseconds ?? p50Rest
+                    let p95Load = deepCheck.metrics.load?.p95Milliseconds ?? p95Rest
+                    let p99Load = deepCheck.metrics.load?.p99Milliseconds ?? p95Load
+                    let hasSpike = (deepCheck.metrics.rest.spikeCount > 0) || ((deepCheck.metrics.load?.spikeCount ?? 0) > 0)
+
+                    VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                        PercentileChartView(
+                            p50Rest: p50Rest,
+                            p95Rest: p95Rest,
+                            p50Load: p50Load,
+                            p95Load: p95Load,
+                            p99Load: p99Load,
+                            hasSpike: hasSpike
+                        )
+                        .frame(height: 118)
+                        .background(NLColor.surface)
+                        .overlay(
+                            Rectangle()
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+
+                        HStack {
+                            Text(LocalizedStringKey("deep_check.graph.rest"))
+                                .font(NLTypography.monospaceMetrics)
+                                .foregroundStyle(NLColor.textTertiary)
+
+                            Spacer()
+
+                            Text(LocalizedStringKey("deep_check.graph.load"))
+                                .font(NLTypography.monospaceMetrics)
+                                .foregroundStyle(NLColor.textTertiary)
+                        }
+                    }
+                } else {
+                    LatencyGraph(
+                        values: samples.sorted { $0.sequence < $1.sequence }.compactMap(\.roundTripMilliseconds),
+                        awaitingLabel: "details.history_graph_unavailable",
+                        accessibilityLabel: graphAccessibilitySummary,
+                        isScanning: false
+                    )
+                    .frame(height: NLSizing.detailsGraphHeight)
+                }
 
                 if let deepCheck = entry.deepCheck {
                     deepComparison(deepCheck)
