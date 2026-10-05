@@ -116,9 +116,8 @@ public struct CheckCompletoResultView: View {
                         .padding(.top, 36)
                         .padding(.bottom, 13)
 
-                    HStack(spacing: 8) {
-                        Text(verbatim: "\(verdictSymbol(for: evaluation.verdict))")
-                            .font(.system(size: 28, weight: .black))
+                    HStack(spacing: 10) {
+                        VerdictIndicatorBadge(verdict: evaluation.verdict, size: 18)
                         Text(LocalizedStringKey(evaluation.headlineKey))
                             .font(NLTypography.verdictHeroHeadline)
                             .accessibilityIdentifier("check-completo-verdict")

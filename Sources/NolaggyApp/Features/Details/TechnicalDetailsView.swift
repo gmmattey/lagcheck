@@ -95,13 +95,15 @@ public struct TechnicalDetailsView: View {
     // MARK: - 1. Veredito Compacto
     private func compactVerdictSection(evaluation: GameReadinessEvaluation) -> some View {
         let verdict = evaluation.verdict
-        let symbol = verdictSymbol(for: verdict)
         let label = AppLocalization.string(evaluation.headlineKey, comment: "").uppercased()
 
-        return VStack(alignment: .leading, spacing: 5) {
-            Text(verbatim: "\(symbol) \(label)")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(colorForVerdict(verdict))
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                VerdictIndicatorBadge(verdict: verdict, size: 12)
+                Text(verbatim: label)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(colorForVerdict(verdict))
+            }
 
             Text(verbatim: "\(gameName) · \(regionName) · \(Date().formatted(date: .abbreviated, time: .shortened))")
                 .font(NLTypography.monospaceMetrics)

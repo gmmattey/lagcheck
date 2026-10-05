@@ -75,6 +75,7 @@
 | [70](#decisão-70) | Expansão do catálogo: quatro jogos e artes autorais | **Vigente (assinatura pendente)** | Dead by Daylight, For Honor, Borderlands 3 e New World; candidato local de 26 jogos | Marco / Luiz |
 | [71](#decisão-71) | Catálogo e artes remotos nos apps | **Vigente (implementação local)** | Ed25519 mantida, imagens sem conferência de hash, descoberta dinâmica Android | Marco / Camillo / Luiz |
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
+| [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
 
 
 ---
@@ -466,6 +467,22 @@
   4. **Consumo 1:1 na Interface:** Extinção do `resultClass` e de classificações paralelas na apresentação. A folha de Detalhes Técnicos (`TechnicalDetailsView`) passa a consumir rigorosamente a mesma `GameReadinessEvaluation`, exibindo o mesmo símbolo, cor, veredito e score coerente.
   5. **Paridade Android:** A mesma regra de teto no score subordinado ao veredito é replicada no módulo `:core:domain` Kotlin.
 - **Critérios de validação e aceite:** Testes unitários do domínio comprovando que testes com carga material produzem veredito `.caution` e score no intervalo `60..74`; testes de regressão verdes; ausência de qualquer texto "MUITO BOM" na tela de detalhes quando o veredito for de atenção.
+
+### Decisão 73
+- **Data:** 5 de outubro de 2026.
+- **Título:** Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por `VerdictIndicatorBadge`).
+- **Status Atual:** **Vigente (Design & UI).**
+- **Frentes envolvidas:** Marco (Product Lead), Renan (Design System), Rian (iOS), Equipe Android e Luiz (diretriz de refinamento).
+- **Contexto e Problema:** Os símbolos geométricos de texto cru (`●`, `▲`, `—`) inseridos diretamente nas strings ou concatenados ao lado das manchetes de veredito davam um aspecto amador e de caracteres Unicode genéricos/antigos. Embora a diferenciação por forma seja um requisito inegociável de acessibilidade (WCAG/HIG para daltonismo), a forma de apresentação devia refletir a sofisticação da **Dark Competitive UI** e o clima de cockpit de telemetria esportiva.
+- **Decisão:**
+  1. **Substituição de Glifos por Componente Tático:** Fica abolido o uso de caracteres de texto soltos (`●` e `▲`) na apresentação do veredito. Em seu lugar, adota-se o componente nativo `VerdictIndicatorBadge` (SwiftUI e Jetpack Compose).
+  2. **Anatomia Visual Cockpit/HUD:**
+     - `.ready`: Dot de LED luminoso (12pt) com halo concêntrico sutil de emissão e anel externo em Verde Semântico (`#22C55E`), transmitindo sinal travado e conexão limpa.
+     - `.caution`: Micro-badge tático angular / aviso em Âmbar/Laranja (`#F59E0B`), com ícone geométrico de alerta integrado para preservar diferenciação por formato independente de cor.
+     - `.notReady`: Micro-badge de corte / atenção em Coral Solar (`#FF5A36`).
+     - `.inconclusive`: Indicador tracejado / neutro em Slate (`#64748B`), simbolizando radar sem eco.
+  3. **Manchetes Limpas:** O texto da headline (ex: `PRONTO PARA RANKED`, `EU EVITARIA RANKED AGORA`) torna-se tipograficamente puro, sem prefixos de texto misturados à tipografia.
+- **Critérios de validação e aceite:** Remoção de strings de texto cru com `●` e `▲` das telas principais (`CheckCompletoResultView`, `TechnicalDetailsView`, `VerdictScreen`); renderização nítida dos novos indicadores; validação de contraste e compilação sem regressões.
 
 ## Como Registrar Novas Decisões
 

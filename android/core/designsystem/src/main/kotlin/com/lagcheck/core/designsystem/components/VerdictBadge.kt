@@ -19,15 +19,109 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.domain.model.GameReadinessVerdict
+
+/**
+ * Indicador visual tático de veredito de telemetria no padrão Dark Competitive UI (Decisão 73).
+ * Substitui os glifos Unicode crus (●, ▲, —) por um componente de hardware/cockpit.
+ */
+@Composable
+fun VerdictIndicatorBadge(
+    verdict: GameReadinessVerdict,
+    modifier: Modifier = Modifier,
+    size: Dp = 16.dp
+) {
+    when (verdict) {
+        GameReadinessVerdict.READY -> {
+            // LED de telemetria verde travado com halo concêntrico
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.size(size + 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(size + 8.dp)
+                        .clip(CircleShape)
+                        .background(LagCheckColors.Good.copy(alpha = 0.20f))
+                )
+                Box(
+                    modifier = Modifier
+                        .size(size + 4.dp)
+                        .border(1.5.dp, LagCheckColors.Good.copy(alpha = 0.55f), CircleShape)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(size)
+                        .clip(CircleShape)
+                        .background(LagCheckColors.Good)
+                )
+            }
+        }
+        GameReadinessVerdict.CAUTION -> {
+            // Micro-tag tática chanfrada / alerta em Âmbar
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .size(size + 6.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(LagCheckColors.SemanticCaution.copy(alpha = 0.18f))
+                    .border(1.5.dp, LagCheckColors.SemanticCaution, RoundedCornerShape(4.dp))
+            ) {
+                Text(
+                    text = "!",
+                    fontSize = (size.value * 0.75).sp,
+                    fontWeight = FontWeight.Black,
+                    color = LagCheckColors.SemanticCaution
+                )
+            }
+        }
+        GameReadinessVerdict.NOT_READY -> {
+            // Micro-tag de corte / corte em Coral Solar
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .size(size + 6.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(LagCheckColors.CoralWarning.copy(alpha = 0.20f))
+                    .border(1.5.dp, LagCheckColors.CoralWarning, RoundedCornerShape(4.dp))
+            ) {
+                Text(
+                    text = "×",
+                    fontSize = (size.value * 0.85).sp,
+                    fontWeight = FontWeight.Black,
+                    color = LagCheckColors.CoralWarning
+                )
+            }
+        }
+        GameReadinessVerdict.INCONCLUSIVE -> {
+            // Radar neutro em Slate com traço técnico
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .size(size + 4.dp)
+                    .border(1.5.dp, LagCheckColors.Inconclusive, CircleShape)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = size * 0.5f, height = 2.dp)
+                        .background(LagCheckColors.Inconclusive)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun VerdictHeroBadge(
     headline: String,
     subtitle: String,
-    statusColor: Color,
+    verdict: GameReadinessVerdict,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -46,14 +140,10 @@ fun VerdictHeroBadge(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(14.dp)
-                        .clip(CircleShape)
-                        .background(statusColor)
-                )
+                VerdictIndicatorBadge(verdict = verdict, size = 14.dp)
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
-                    text = "  $headline",
+                    text = headline,
                     style = LagCheckTypography.VerdictHeadline,
                     color = LagCheckColors.TextPrimary
                 )

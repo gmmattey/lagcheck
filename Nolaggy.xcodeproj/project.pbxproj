@@ -120,6 +120,7 @@
 		714E39E985752EB58E59A013 /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		724FCE7A3916D0E09856A23D /* QuickCheckFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */; };
 		72CA5B3EA9DFEEA9C396AE04 /* PlayFabQoSPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8053C55816AED6B3210D6C53 /* PlayFabQoSPayloadCodec.swift */; };
+		74138FD6481CC1243B030A80 /* VerdictIndicatorBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F987869D45A0AF83CD2C5E4 /* VerdictIndicatorBadge.swift */; };
 		76BD76221D8C0F346EC27C34 /* EvidenceRecommendationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 840852A30063DBC03846AAFF /* EvidenceRecommendationEngineTests.swift */; };
 		79C34226E5137686F046E4E2 /* DeepCheckDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003E2D229A975C02E82CF843 /* DeepCheckDetailsView.swift */; };
 		79E32362098B69CD80E505A4 /* NolaggyInfrastructure.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -189,6 +190,7 @@
 		CD0F77981D281A6EFA9CC5A1 /* SocialBrandIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */; };
 		CF9B1F2F39E231D4ED29B509 /* GamePopularityRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */; };
 		D049C169E9F3608DD624A912 /* PlayFabQoSPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370FDD9C9EEB8EC25A40B21F /* PlayFabQoSPayloadCodecTests.swift */; };
+		D0C74838206FAB17ECADE939 /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		D18F71E13FF2580D020A99A3 /* SpikePatternEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953719393B07FB850A0EE224 /* SpikePatternEvaluatorTests.swift */; };
 		D28C3DD217EB1604C569D557 /* GameEditorialModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */; };
 		D5740A2B6B385B09184D4E0D /* ConnectionBoosterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7612D2FB84BDDF747887D8 /* ConnectionBoosterSheet.swift */; };
@@ -298,6 +300,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 710B596642BB56134731CBC9;
 			remoteInfo = Nolaggy;
+		};
+		D61E8C86E01076A84AAECBCC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 977B24420EFA0CF9AC2CDB8A;
+			remoteInfo = NolaggyDomain;
 		};
 		E1D563026A20E58ACFC09503 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -463,6 +472,7 @@
 		7D2F5111525A65687306D837 /* NWPathMonitorNetworkPathObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWPathMonitorNetworkPathObserver.swift; sourceTree = "<group>"; };
 		7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NolaggyDomain.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EE2B092AFA14143DF46F0CA /* CheckCompletoResultUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultUITests.swift; sourceTree = "<group>"; };
+		7F987869D45A0AF83CD2C5E4 /* VerdictIndicatorBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictIndicatorBadge.swift; sourceTree = "<group>"; };
 		7F9AED95DAAD26B854B85E5E /* SSIDBandPatternMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSIDBandPatternMatcher.swift; sourceTree = "<group>"; };
 		7FEEA3DAE618704096C022F6 /* NWConnectionMeasurementTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWConnectionMeasurementTransport.swift; sourceTree = "<group>"; };
 		8053C55816AED6B3210D6C53 /* PlayFabQoSPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayFabQoSPayloadCodec.swift; sourceTree = "<group>"; };
@@ -600,6 +610,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				B2A5C832DD6850F1C3719F9E /* NolaggyDomain.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8F04798E54341DD21D8224DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0C74838206FAB17ECADE939 /* NolaggyDomain.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -864,6 +882,7 @@
 				E18D78F8D75E8AD726116462 /* SessionCompatibilityStrip.swift */,
 				83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */,
 				425D7BFA6B03FC6C630C90EF /* StatusMessage.swift */,
+				7F987869D45A0AF83CD2C5E4 /* VerdictIndicatorBadge.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -1173,10 +1192,12 @@
 			buildConfigurationList = D941FC001E965C11AAC0CB63 /* Build configuration list for PBXNativeTarget "NolaggyDesign" */;
 			buildPhases = (
 				51ADEFFB8AB098737C5B1F68 /* Sources */,
+				8F04798E54341DD21D8224DE /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8AB565F9D42DE0659CF2D838 /* PBXTargetDependency */,
 			);
 			name = NolaggyDesign;
 			packageProductDependencies = (
@@ -1461,6 +1482,7 @@
 				555FF320ED5DF3A6F5CC1756 /* SessionCompatibilityStrip.swift in Sources */,
 				CD0F77981D281A6EFA9CC5A1 /* SocialBrandIcons.swift in Sources */,
 				1F0A5127374963A36C133F4C /* StatusMessage.swift in Sources */,
+				74138FD6481CC1243B030A80 /* VerdictIndicatorBadge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1676,6 +1698,11 @@
 			isa = PBXTargetDependency;
 			target = 977B24420EFA0CF9AC2CDB8A /* NolaggyDomain */;
 			targetProxy = 7670E541DD20D994E239D33D /* PBXContainerItemProxy */;
+		};
+		8AB565F9D42DE0659CF2D838 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 977B24420EFA0CF9AC2CDB8A /* NolaggyDomain */;
+			targetProxy = D61E8C86E01076A84AAECBCC /* PBXContainerItemProxy */;
 		};
 		A4BCA929D2E63B4EEC70AFBD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
