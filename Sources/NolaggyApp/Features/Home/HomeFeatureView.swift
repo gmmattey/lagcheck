@@ -500,7 +500,10 @@ extension QuickCheckFeatureView {
     func refreshLiveNetworkSignal() async {
         let availability = NWPathWiFiAvailability()
         let interface = await availability.currentInterface()
-        let regionalName = selectedRegionFriendlyName.isEmpty ? "São Paulo" : selectedRegionFriendlyName
+        // Decisão 50: sem rota resolvida ainda, não se inventa uma cidade específica.
+        let regionalName = selectedRegionFriendlyName.isEmpty
+            ? AppLocalization.string("settings.region.automatic", comment: "")
+            : selectedRegionFriendlyName
 
         switch interface {
         case .none:

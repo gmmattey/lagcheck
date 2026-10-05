@@ -326,7 +326,8 @@ fun TechnicalDetailsScreen(
                     else if (evaluation.isUnderLoadAffected) tr("Atenção") else tr("Estável"),
                 statusColor = if (evaluation.loadStartIndex == null) LagCheckColors.TextMuted
                     else if (evaluation.isUnderLoadAffected) LagCheckColors.CoralWarning else LagCheckColors.Good,
-                detail = trf("Rota regional de referência · %s", evaluation.regionLabel.ifEmpty { "São Paulo" })
+                // Decisão 50: sem rota resolvida, não se inventa uma cidade específica.
+                detail = trf("Rota regional de referência · %s", evaluation.regionLabel.ifEmpty { tr("Automática") })
             )
         }
 
