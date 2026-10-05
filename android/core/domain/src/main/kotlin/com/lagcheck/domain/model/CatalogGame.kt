@@ -10,7 +10,9 @@ data class CatalogGame(
     val category: String,
     val platforms: List<String> = listOf("PC"),
     val primaryRegion: String = "São Paulo (sa-east-1)",
-    val drawableResName: String
+    val drawableResName: String,
+    val artworkUrl: String? = null,
+    val artworkRevision: String = ""
 ) {
     val platformsFormatted: String
         get() = platforms.joinToString(" · ")
@@ -24,6 +26,14 @@ data class CatalogGame(
  * `res/drawable` (`drawableResName` vazio) caem no título tipográfico da UI, sem arte de terceiros (Decisão 18).
  */
 object OfficialGameCatalog {
+    /** Decisão 70: activate together with the externally signed 26-game envelope. */
+    val pendingExpansion: List<CatalogGame> = listOf(
+        CatalogGame("dead-by-daylight", "Dead by Daylight", "Sobrevivência / Terror", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_dead_by_daylight"),
+        CatalogGame("for-honor", "For Honor", "Combate Medieval", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_for_honor"),
+        CatalogGame("borderlands-3", "Borderlands 3", "FPS / Cooperação", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_borderlands_3"),
+        CatalogGame("new-world", "New World: Aeternum", "MMORPG", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_new_world")
+    )
+
     val games: List<CatalogGame> = listOf(
         CatalogGame("fortnite", "Fortnite", "Battle Royale", listOf("PlayStation", "Xbox", "PC", "Nintendo", "Mobile"), drawableResName = "game_fortnite"),
         CatalogGame("valorant", "VALORANT", "FPS Tático", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_valorant"),

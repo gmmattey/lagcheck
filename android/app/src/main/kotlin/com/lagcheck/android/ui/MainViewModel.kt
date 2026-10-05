@@ -117,6 +117,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @Volatile
     private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val _catalogPayload = MutableStateFlow<CatalogPayload?>(null)
+    val games: StateFlow<List<CatalogGame>> = _catalogPayload.map { payload ->
+        payload?.let(com.lagcheck.session.CatalogPresentation::games) ?: emptyList()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
 
@@ -207,16 +210,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // que já era válido e nunca bloqueia a Home. Se chegou um catálogo novo, relê: uma base expirada não pode
         // deixar o app sem medir até reiniciar.
         viewModelScope.launch(Dispatchers.IO) {
+            publishCatalog(currentCatalog())
             if (runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)) {
                 catalog = async { loadCatalog() }
             }
-            _catalogPayload.value = currentCatalog()
+            publishCatalog(currentCatalog())
             val savedRegion = preferencesRepository.manualRegionId.value
             if (savedRegion != null && savedRegion != "automatic" &&
                 _catalogPayload.value?.regions?.none { it.id == savedRegion } == true) {
                 preferencesRepository.setManualRegionId(null)
             }
         }
+    }
+
+    private fun publishCatalog(payload: CatalogPayload?) {
+        _catalogPayload.value = payload
+        val available = payload?.let(com.lagcheck.session.CatalogPresentation::games) ?: return
+        val selected = available.firstOrNull { it.id == preferencesRepository.selectedGameId.value }
+            ?: available.firstOrNull() ?: return
+        _selectedGame.value = selected
+        if (_selectedPlatform.value !in selected.platforms) _selectedPlatform.value = selected.platforms.first()
     }
 
     /** Catálogo vigente. Sem nenhum válido, tenta uma atualização na hora antes de desistir (nunca inventa destino). */
@@ -231,6 +244,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         runCatching { catalogRepository.loadedCatalogForLaunch().payload }.getOrNull()
 
     fun navigateTo(screen: Screen) {
+        com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(
+            screen is Screen.Home || screen is Screen.GameSelection || screen is Screen.History
+        )
         _currentScreen.value = screen
         if (screen is Screen.NetworkCockpit) refreshLocalReport()
     }
@@ -301,6 +317,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = _declaredExternalLink.value
     ) {
         selectGame(targetGame, platform, connectionType, declaredExternalLink)
+        com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(false)
         refreshRadioTelemetry()
         val radioSnapshot = _liveRadioTelemetry.value
         val observedConnection = observedConnectionLabel(radioSnapshot)

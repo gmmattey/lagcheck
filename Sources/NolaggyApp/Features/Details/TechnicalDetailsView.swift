@@ -8,6 +8,7 @@ import NolaggyDomain
 /// desonerando a tela principal de resultado (Mockup 05 · Dark Competitive UI).
 public struct TechnicalDetailsView: View {
     public let result: DeepCheckResult?
+    public let evaluation: GameReadinessEvaluation?
     public let gameName: String
     public let regionName: String
     public let onDismiss: () -> Void
@@ -16,11 +17,18 @@ public struct TechnicalDetailsView: View {
 
     public init(
         result: DeepCheckResult?,
+        evaluation: GameReadinessEvaluation? = nil,
+        profileID: QualityProfileID = .battleRoyaleCompetitive,
         gameName: String,
         regionName: String,
         onDismiss: @escaping () -> Void = {}
     ) {
         self.result = result
+        if let evaluation {
+            self.evaluation = evaluation
+        } else {
+            self.evaluation = result.map { GameReadinessEvaluator.evaluate(deepCheckResult: $0, profile: profileID) }
+        }
         self.gameName = gameName
         self.regionName = regionName
         self.onDismiss = onDismiss
@@ -46,13 +54,13 @@ public struct TechnicalDetailsView: View {
                     }
                 )
 
-                if let result {
+                if let result, let evaluation {
                     // 1. Resumo do veredito compacto
-                    compactVerdictSection(result: result)
+                    compactVerdictSection(evaluation: evaluation)
                         .padding(.horizontal, NLSpacing.md)
 
                     // 2. Score Numérico e Grade 2x2
-                    scoreAndMetricsSection(result: result)
+                    scoreAndMetricsSection(result: result, evaluation: evaluation)
                         .padding(.horizontal, NLSpacing.md)
 
                     // 3. Gráfico de Latência durante o Check
@@ -60,7 +68,7 @@ public struct TechnicalDetailsView: View {
                         .padding(.horizontal, NLSpacing.md)
 
                     // 4. Origem da evidência
-                    evidenceOriginSection
+                    evidenceOriginSection(evaluation: evaluation)
                         .padding(.horizontal, NLSpacing.md)
 
                     // 5. O que encontramos
@@ -85,15 +93,15 @@ public struct TechnicalDetailsView: View {
     }
 
     // MARK: - 1. Veredito Compacto
-    private func compactVerdictSection(result: DeepCheckResult) -> some View {
-        let classification = result.restResult.resultClass
-        let symbol = classificationSymbol(for: classification)
-        let label = localizedClassification(for: classification).uppercased()
+    private func compactVerdictSection(evaluation: GameReadinessEvaluation) -> some View {
+        let verdict = evaluation.verdict
+        let symbol = verdictSymbol(for: verdict)
+        let label = AppLocalization.string(evaluation.headlineKey, comment: "").uppercased()
 
         return VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: "\(symbol) \(label)")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(colorForClass(classification))
+                .foregroundStyle(colorForVerdict(verdict))
 
             Text(verbatim: "\(gameName) · \(regionName) · \(Date().formatted(date: .abbreviated, time: .shortened))")
                 .font(NLTypography.monospaceMetrics)
@@ -108,28 +116,25 @@ public struct TechnicalDetailsView: View {
         )
     }
 
-    private func classificationSymbol(for classification: ResultClass) -> String {
-        switch classification {
-        case .excellent, .great: return "●"
-        case .unstable, .lagRisk: return "▲"
+    private func verdictSymbol(for verdict: GameReadinessVerdict) -> String {
+        switch verdict {
+        case .ready: return "●"
+        case .caution, .notReady: return "▲"
+        case .inconclusive: return "—"
         }
     }
 
-    private func localizedClassification(for classification: ResultClass) -> String {
-        switch classification {
-        case .excellent:
-            return AppLocalization.string("score.classification.excellent", comment: "")
-        case .great:
-            return AppLocalization.string("score.classification.great", comment: "")
-        case .unstable:
-            return AppLocalization.string("score.classification.unstable", comment: "")
-        case .lagRisk:
-            return AppLocalization.string("score.classification.lag_risk", comment: "")
+    private func colorForVerdict(_ verdict: GameReadinessVerdict) -> Color {
+        switch verdict {
+        case .ready: return NLColor.semanticReady
+        case .caution: return NLColor.semanticCaution
+        case .notReady: return NLColor.semanticNotReady
+        case .inconclusive: return NLColor.textTertiary
         }
     }
 
     // MARK: - 2. Score e Grade 2x2
-    private func scoreAndMetricsSection(result: DeepCheckResult) -> some View {
+    private func scoreAndMetricsSection(result: DeepCheckResult, evaluation: GameReadinessEvaluation) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -144,10 +149,17 @@ public struct TechnicalDetailsView: View {
 
                 Spacer()
 
-                Text(verbatim: "\(result.restResult.finalScore)")
-                    .font(NLTypography.monospaceDetailScore)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .accessibilityIdentifier("check-completo-score")
+                if let score = evaluation.score {
+                    Text(verbatim: "\(score)")
+                        .font(NLTypography.monospaceDetailScore)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .accessibilityIdentifier("check-completo-score")
+                } else {
+                    Text(verbatim: "—")
+                        .font(NLTypography.monospaceDetailScore)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .accessibilityIdentifier("check-completo-score")
+                }
             }
 
             // Grade 2x2
@@ -231,8 +243,25 @@ public struct TechnicalDetailsView: View {
     }
 
     // MARK: - 4. Origem da Evidência
-    private var evidenceOriginSection: some View {
-        VStack(alignment: .leading, spacing: 11) {
+    private func evidenceOriginSection(evaluation: GameReadinessEvaluation) -> some View {
+        let routeStatusText: String
+        let routeStatusColor: Color
+        switch evaluation.verdict {
+        case .ready:
+            routeStatusText = AppLocalization.string("technical_details.status_stable", comment: "")
+            routeStatusColor = NLColor.semanticReady
+        case .caution:
+            routeStatusText = AppLocalization.string("game_readiness.verdict.caution", comment: "")
+            routeStatusColor = NLColor.semanticCaution
+        case .notReady:
+            routeStatusText = AppLocalization.string("game_readiness.verdict.not_ready", comment: "")
+            routeStatusColor = NLColor.semanticNotReady
+        case .inconclusive:
+            routeStatusText = AppLocalization.string("game_readiness.verdict.inconclusive", comment: "")
+            routeStatusColor = NLColor.textTertiary
+        }
+
+        return VStack(alignment: .leading, spacing: 11) {
             Text(LocalizedStringKey("technical_details.evidence_origin"))
                 .font(NLTypography.captionMonoUppercase)
                 .foregroundStyle(NLColor.textTertiary)
@@ -247,8 +276,8 @@ public struct TechnicalDetailsView: View {
 
                 evidenceRow(
                     title: AppLocalization.string("technical_details.external_route"),
-                    statusText: AppLocalization.string("technical_details.status_stable"),
-                    statusColor: NLColor.semanticReady,
+                    statusText: routeStatusText,
+                    statusColor: routeStatusColor,
                     detail: String(format: AppLocalization.string("technical_details.external_route_detail %@"), regionName)
                 )
             }
@@ -397,13 +426,6 @@ public struct TechnicalDetailsView: View {
         return String(format: "%.1f%%", value)
     }
 
-    private func colorForClass(_ classification: ResultClass) -> Color {
-        switch classification {
-        case .excellent, .great: return NLColor.semanticReady
-        case .unstable: return NLColor.scoreUnstable
-        case .lagRisk: return NLColor.coralSolar
-        }
-    }
 }
 
 struct PercentileChartView: View {

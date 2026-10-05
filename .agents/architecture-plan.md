@@ -278,3 +278,13 @@ O iOS renderiza percentis exatos (P50, P95, P99) separados por fases de repouso 
 
 ### Regra de Execução / Faseamento
 - **Uma tela por vez:** A implementação subsequente deve primeiro plugar o transporte em memória e ajustar estritamente a `TechnicalDetailsScreen.kt` (Sessão Atual). Somente após sua estabilização, alterar a camada de persistência e a `CheckHistoryItemDetailsScreen.kt` (Histórico).
+
+## Catálogo e artes remotos — Decisão 71 (2026-10-03)
+
+Gate arquitetural: implementação autorizada por Luiz e enquadrada antes do código; segunda opinião adversarial realizada pela skill Camillo.
+- Catálogo continua assinado Ed25519, validado antes de cache/uso. Schema 3 permanece intacto (campo SHA é metadado legado, não será comparado aos bytes de imagem).
+- iOS usa fluxo remoto existente, corrigindo cache válido com base expirada. Android deriva jogos/plataformas do payload validado; metadados locais servem apenas de apresentação/fallback, novos IDs não exigem build.
+- Arte é baixada por HTTPS de referência do catálogo, com caminho restrito, cache por URL+versão, limite efetivo de 8 MiB, dimensões limitadas e fallback local/neutro. Não verificar hash de conteúdo (autorizado).
+- Cache limitado, revalidação em 24h; sem erro visível por ausência de imagem. Cancelamento de tela e pausa de downloads durante preparação/medição; imagem não bloqueia Check.
+- Sem SDK, endpoint novo, migração de histórico ou mudança de score. Não publicar ou trocar chave para ativar candidato sem assinatura vigente.
+- Validação: cache/base expirada e resposta inválida, mapeamento de jogo novo/removido, downloads inválidos/tamanho/cache, compilação Android disponível; iOS exige Mac/Xcode e QA físico permanece separado.

@@ -96,6 +96,7 @@ struct DeepCheckFeatureView: View {
             if case let .result(result, _) = presentation {
                 TechnicalDetailsView(
                     result: result,
+                    profileID: activeContext.profileID,
                     gameName: gameName,
                     regionName: friendlyRegion,
                     onDismiss: { showingDetails = false }

@@ -3,6 +3,17 @@ import XCTest
 @testable import NolaggyDomain
 
 final class RemoteCatalogRepositoryTests: XCTestCase {
+    func testValidRemoteCacheSurvivesInvalidBundledBase() async throws {
+        let cache = MemoryCache(value: StoredRemoteCatalog(envelopeData: Data([3]), refreshedAt: Date(timeIntervalSince1970: 990)))
+        let fetcher = CountingFetcher(data: Data([3]))
+        let repository = RemoteCatalogRepository(baseEnvelopeData: Data([9]), fetcher: fetcher, cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) })
+        let loaded = try await repository.loadedCatalogForLaunch()
+        XCTAssertEqual(loaded.source, .cachedRemote)
+        await repository.refreshIfDue()
+        let calls = await fetcher.calls
+        XCTAssertEqual(calls, 0)
+    }
     func testBundledDebugCatalogIsAvailableToTheInfrastructureBundle() throws {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
         let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: Date())
@@ -84,13 +95,16 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
     func testRefreshFailureDoesNotOverwriteValidatedCache() async throws {
         let cached = StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date(timeIntervalSince1970: 0))
         let cache = MemoryCache(value: cached)
+        let fetcher = CountingFetcher(data: nil)
         let repository = RemoteCatalogRepository(
-            baseEnvelopeData: Data([1]), fetcher: FixedFetcher(data: nil), cache: cache,
-            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+            baseEnvelopeData: Data([1]), fetcher: fetcher, cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 90_000) }
         )
 
         await repository.refreshIfDue()
 
+        let calls = await fetcher.calls
+        XCTAssertEqual(calls, 1)
         let resultingCache = await cache.value
         XCTAssertEqual(resultingCache, cached)
     }
@@ -98,13 +112,16 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
     func testInvalidRemoteResponseDoesNotOverwriteValidatedCache() async throws {
         let cached = StoredRemoteCatalog(envelopeData: Data([2]), refreshedAt: Date(timeIntervalSince1970: 0))
         let cache = MemoryCache(value: cached)
+        let fetcher = CountingFetcher(data: Data([9]))
         let repository = RemoteCatalogRepository(
-            baseEnvelopeData: Data([1]), fetcher: FixedFetcher(data: Data([9])), cache: cache,
-            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 1_000) }
+            baseEnvelopeData: Data([1]), fetcher: fetcher, cache: cache,
+            validator: FixtureValidator(), now: { Date(timeIntervalSince1970: 90_000) }
         )
 
         await repository.refreshIfDue()
 
+        let calls = await fetcher.calls
+        XCTAssertEqual(calls, 1)
         let resultingCache = await cache.value
         XCTAssertEqual(resultingCache, cached)
     }
@@ -152,8 +169,12 @@ private struct FixedFetcher: RemoteCatalogFetching {
 }
 
 private actor CountingFetcher: RemoteCatalogFetching {
-    let data: Data
+    let data: Data?
     var calls = 0
-    init(data: Data) { self.data = data }
-    func fetchCatalog() async throws -> Data { calls += 1; return data }
+    init(data: Data?) { self.data = data }
+    func fetchCatalog() async throws -> Data {
+        calls += 1
+        guard let data else { throw URLError(.notConnectedToInternet) }
+        return data
+    }
 }

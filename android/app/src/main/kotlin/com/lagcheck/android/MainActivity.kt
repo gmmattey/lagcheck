@@ -50,10 +50,18 @@ import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.domain.model.OfficialGameCatalog
 
 class MainActivity : ComponentActivity() {
+    private var artworkForeground by mutableStateOf(false)
+
+    override fun onStart() {
+        super.onStart()
+        artworkForeground = true
+    }
 
     private val viewModel: MainViewModel by viewModels()
 
     override fun onStop() {
+        artworkForeground = false
+        com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(false)
         super.onStop()
         // Ir para segundo plano no meio da medição descarta o resultado parcial (ciclo de vida da sessão).
         viewModel.onAppBackgrounded()
@@ -69,6 +77,7 @@ class MainActivity : ComponentActivity() {
             var gamesOpenedFromHome by rememberSaveable { mutableStateOf(false) }
             val currentScreen by viewModel.currentScreen.collectAsState()
             val selectedGame by viewModel.selectedGame.collectAsState()
+            val catalogGames by viewModel.games.collectAsState()
             val selectedPlatform by viewModel.selectedPlatform.collectAsState()
             val selectedConnectionType by viewModel.selectedConnectionType.collectAsState()
             val historyItems by viewModel.historyItems.collectAsState()
@@ -111,6 +120,13 @@ class MainActivity : ComponentActivity() {
 
             val isHomeOrGames = currentScreen is Screen.Home || currentScreen is Screen.GameSelection
 
+            val artworkAllowed = artworkForeground && (currentScreen is Screen.Home || currentScreen is Screen.GameSelection || currentScreen is Screen.History)
+            androidx.compose.runtime.SideEffect {
+                com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(artworkAllowed)
+            }
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.lagcheck.android.ui.components.LocalArtworkDownloadsAllowed provides artworkAllowed
+            ) {
             Scaffold(
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
@@ -194,6 +210,7 @@ class MainActivity : ComponentActivity() {
 
                     is Screen.GameSelection -> {
                         GameSelectionScreen(
+                            allGames = catalogGames,
                             showBackButton = gamesOpenedFromHome,
                             recentChecks = historyItems,
                             favorites = favorites,
@@ -299,6 +316,7 @@ class MainActivity : ComponentActivity() {
 
                     is Screen.History -> {
                         HistoryScreen(
+                            catalogGames = catalogGames,
                             historyItems = historyItems,
                             onBack = {
                                 viewModel.navigateTo(Screen.Home)
@@ -342,6 +360,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
             }
         }
     }

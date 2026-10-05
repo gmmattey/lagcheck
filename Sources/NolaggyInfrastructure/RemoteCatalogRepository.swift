@@ -96,11 +96,11 @@ public actor RemoteCatalogRepository {
     /// deixar a Home depender da atualização remota.
     public func loadedCatalogForLaunch() async throws -> LoadedRemoteCatalog {
         let date = now()
-        let base = try validator.validate(baseEnvelopeData, now: date)
+        let base = try? validator.validate(baseEnvelopeData, now: date)
         guard let stored = await cache.load(),
               let cached = try? validator.validate(stored.envelopeData, now: date),
-              cached.schemaVersion >= base.schemaVersion else {
-            return LoadedRemoteCatalog(payload: base, source: .bundledBase)
+              base == nil || cached.schemaVersion >= base!.schemaVersion else {
+            return LoadedRemoteCatalog(payload: try validator.validate(baseEnvelopeData, now: date), source: .bundledBase)
         }
         return LoadedRemoteCatalog(payload: cached, source: .cachedRemote)
     }
@@ -111,9 +111,8 @@ public actor RemoteCatalogRepository {
         let date = now()
         if let stored = await cache.load(),
            date.timeIntervalSince(stored.refreshedAt) < Self.refreshInterval,
-           let base = try? validator.validate(baseEnvelopeData, now: date),
            let cached = try? validator.validate(stored.envelopeData, now: date),
-           cached.schemaVersion >= base.schemaVersion {
+           cached.schemaVersion >= ((try? validator.validate(baseEnvelopeData, now: date))?.schemaVersion ?? 0) {
             return
         }
         guard let data = try? await fetcher.fetchCatalog(),

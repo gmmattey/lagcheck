@@ -10,6 +10,7 @@
 		0254A05ECE5678A17B9BF55B /* DirectPlatformHealthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */; };
 		0325AB22B48BC8EC004F54AE /* MeasurementHistorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53020A17F9893FFE79C96464 /* MeasurementHistorySummary.swift */; };
 		0567D6E8990444FBBB50E191 /* DebugCatalogBase.json in Resources */ = {isa = PBXBuildFile; fileRef = 6576A75DB0E9DE75A62268E5 /* DebugCatalogBase.json */; };
+		05A956C89CE5E65A013CCDAA /* RemoteArtworkLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50722D68C7C44A43C44716E /* RemoteArtworkLoaderTests.swift */; };
 		05B5AB4659D6613138D4EEE1 /* LocalizationSmokeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11414B6D03BF3C914BBDF79 /* LocalizationSmokeUITests.swift */; };
 		075611EAE3A79B2102035735 /* GameContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3998CA61AC6C02C3CC88B332 /* GameContextTests.swift */; };
 		07AFBCB558D6A74FB4CFEB4C /* PlatformHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4097B661F9D694983F6A937 /* PlatformHealth.swift */; };
@@ -563,6 +564,7 @@
 		F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEditorialModels.swift; sourceTree = "<group>"; };
 		F3DA5AAA0EF9AC0CCFC1B230 /* NolaggyDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyDesign.swift; sourceTree = "<group>"; };
 		F47632D14DA4289BC46ACACA /* RegionalReferenceSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalReferenceSelection.swift; sourceTree = "<group>"; };
+		F50722D68C7C44A43C44716E /* RemoteArtworkLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtworkLoaderTests.swift; sourceTree = "<group>"; };
 		F51D4F39F3D3AA8985862D7D /* RegionalSelectionFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalSelectionFeatureView.swift; sourceTree = "<group>"; };
 		F6B75694BACD36BAE2C1ECDD /* RemoteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalog.swift; sourceTree = "<group>"; };
 		F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkTelemetryPresentationTests.swift; sourceTree = "<group>"; };
@@ -896,6 +898,7 @@
 				0C373FEDFBAADE3C4FE8F32F /* NWPathMonitorNetworkPathObserverTests.swift */,
 				7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */,
 				370FDD9C9EEB8EC25A40B21F /* PlayFabQoSPayloadCodecTests.swift */,
+				F50722D68C7C44A43C44716E /* RemoteArtworkLoaderTests.swift */,
 				FD54F5C987DD50A505752296 /* RemoteCatalogRepositoryTests.swift */,
 				AD6071445601F5DFB7EE168D /* SteamQueryA2SPayloadCodecTests.swift */,
 				4DE8E3E60F92BDE3E4698B26 /* StunPacketCodecTests.swift */,
@@ -1473,6 +1476,7 @@
 				6A3CC6E9F35C65C5271150AE /* NWPathMonitorNetworkPathObserverTests.swift in Sources */,
 				9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */,
 				D049C169E9F3608DD624A912 /* PlayFabQoSPayloadCodecTests.swift in Sources */,
+				05A956C89CE5E65A013CCDAA /* RemoteArtworkLoaderTests.swift in Sources */,
 				12306FB0BD4FF320844C769E /* RemoteCatalogRepositoryTests.swift in Sources */,
 				CA211A293AD8A90D90D109A1 /* SteamQueryA2SPayloadCodecTests.swift in Sources */,
 				A15771D9235053CAB4FB58A9 /* StunPacketCodecTests.swift in Sources */,

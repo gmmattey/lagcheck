@@ -57,6 +57,7 @@ struct QuickCheckFeatureView: View {
     @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
     @State private var hasTrackedAppOpen = false
+    @State private var artworkLoaderReady = false
 
     var preferredGamingPlatform: Platform? {
         Platform(rawValue: userPreferredPlatformRaw)
@@ -313,6 +314,16 @@ struct QuickCheckFeatureView: View {
                 hasTrackedAppOpen = true
                 analyticsTracker.track(.appOpen)
             }
+        }
+        .environment(\.artworkDownloadsAllowed, artworkLoaderReady && !showingRegionalSelection && deepCheckDestination == nil && presentation != .measuring && scenePhase == .active)
+        .task(id: showingRegionalSelection || deepCheckDestination != nil || presentation == .measuring || scenePhase != .active) {
+            artworkLoaderReady = false
+            let allowed = !showingRegionalSelection && deepCheckDestination == nil && presentation != .measuring && scenePhase == .active
+            await VerifiedRemoteArtworkLoader.shared.setDownloadsEnabled(
+                allowed
+            )
+            guard !Task.isCancelled else { return }
+            artworkLoaderReady = allowed
         }
         .task { await loadHistory() }
         .task { await loadRegionalPreference() }

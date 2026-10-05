@@ -4,26 +4,47 @@ import NolaggyApplication
 import NolaggyDesign
 import NolaggyInfrastructure
 
-/// Ponte de composição entre a referência assinada no catálogo e o componente
-/// visual. Enquanto a arte não tiver bytes íntegros, `GameArtwork` continua
-/// usando o asset local/fallback do app.
+private struct ArtworkDownloadsAllowedKey: EnvironmentKey {
+    static let defaultValue = true
+}
+extension EnvironmentValues {
+    var artworkDownloadsAllowed: Bool {
+        get { self[ArtworkDownloadsAllowedKey.self] }
+        set { self[ArtworkDownloadsAllowedKey.self] = newValue }
+    }
+}
+
+/// Arte remota oportunista (Decisão 71), com fallback local imediato.
 struct VerifiedGameArtwork: View {
     let game: CatalogMeasurementJourney.Game
     var aspectRatio: CGFloat? = nil
 
     @State private var verifiedImage: Image?
+    @Environment(\.artworkDownloadsAllowed) private var downloadsAllowed
 
     var body: some View {
         GameArtwork(
-            image: localAssetImage,
+            image: verifiedImage ?? localAssetImage,
             title: game.name,
             aspectRatio: aspectRatio
         )
+        .task(id: "\(artworkIdentity)|\(downloadsAllowed)") {
+            guard downloadsAllowed else { return }
+            verifiedImage = nil
+            guard let data = await VerifiedRemoteArtworkLoader.shared.imageData(
+                artwork: game.artwork, assetBaseURL: game.assetBaseURL
+            ), !Task.isCancelled, let image = UIImage(data: data) else { return }
+            verifiedImage = Image(uiImage: image)
+        }
     }
 
     private var localAssetImage: Image? {
         let id = game.id.lowercased().replacingOccurrences(of: "-", with: "")
         let mapping: [(String, String)] = [
+            ("deadbydaylight", "GameDeadByDaylight"),
+            ("forhonor", "GameForHonor"),
+            ("borderlands3", "GameBorderlands3"),
+            ("newworld", "GameNewWorld"),
             ("fortnite", "GameFortnite"),
             ("valorant", "GameValorant"),
             ("warzone", "GameWarzone"),

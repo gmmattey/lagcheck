@@ -95,6 +95,10 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
     public let packetLossPercentage: Double?
     public let isUnderLoadAffected: Bool
     public let worstSpikeMs: Double?
+    /// Score numérico (0–100) unificado e acoplado ao veredito (Decisão 72). Nulo se inconclusivo.
+    public let score: Int?
+    /// Métricas completas de repouso e carga associadas à avaliação.
+    public let metrics: DeepCheckMetrics?
 
     public init(
         verdict: GameReadinessVerdict,
@@ -107,7 +111,9 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
         jitterMs: Double?,
         packetLossPercentage: Double?,
         isUnderLoadAffected: Bool,
-        worstSpikeMs: Double? = nil
+        worstSpikeMs: Double? = nil,
+        score: Int? = nil,
+        metrics: DeepCheckMetrics? = nil
     ) {
         self.verdict = verdict
         self.headlineKey = headlineKey
@@ -120,6 +126,8 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
         self.packetLossPercentage = packetLossPercentage
         self.isUnderLoadAffected = isUnderLoadAffected
         self.worstSpikeMs = worstSpikeMs
+        self.score = score
+        self.metrics = metrics
     }
 
     public static let inconclusive = GameReadinessEvaluation(
@@ -139,7 +147,9 @@ public struct GameReadinessEvaluation: Codable, Equatable, Sendable {
         jitterMs: nil,
         packetLossPercentage: nil,
         isUnderLoadAffected: false,
-        worstSpikeMs: nil
+        worstSpikeMs: nil,
+        score: nil,
+        metrics: nil
     )
 }
 
@@ -159,7 +169,8 @@ public enum GameReadinessEvaluator {
         return evaluate(
             qualityResult: result.restResult,
             loadImpact: result.metrics.loadImpact,
-            profile: profile
+            profile: profile,
+            deepCheckMetrics: result.metrics
         )
     }
 
@@ -172,7 +183,8 @@ public enum GameReadinessEvaluator {
         spikePattern: SpikePattern? = nil,
         gatewayOutcome: GatewayProbeOutcome = .unobservable,
         serverArchitecture: GameServerArchitecture = .dedicatedServer,
-        natSnapshot: NATTopologySnapshot? = nil
+        natSnapshot: NATTopologySnapshot? = nil,
+        deepCheckMetrics: DeepCheckMetrics? = nil
     ) -> GameReadinessEvaluation {
         guard let qualityResult else {
             return .inconclusive
@@ -437,6 +449,29 @@ public enum GameReadinessEvaluator {
             stabilitySummaryKey = "game_readiness.stability.inconclusive"
         }
 
+        // 4. Cálculo do Score Numérico Unificado e Acoplado ao Veredito (Decisões 50 e 72)
+        var evaluatedScore = qualityResult.finalScore
+        if isLoadSevere {
+            evaluatedScore = min(evaluatedScore, 59)
+        } else if isLoadMaterial {
+            evaluatedScore = min(evaluatedScore, 74)
+        }
+
+        let unifiedScore: Int?
+        switch verdict {
+        case .ready:
+            // Faixa saudável: mínimo 75, máximo 100
+            unifiedScore = max(75, evaluatedScore)
+        case .caution:
+            // Faixa instável estrita: máximo 74, mínimo 60
+            unifiedScore = min(74, max(60, evaluatedScore))
+        case .notReady:
+            // Faixa de alto risco estrita: máximo 59, mínimo 0
+            unifiedScore = min(59, max(0, evaluatedScore))
+        case .inconclusive:
+            unifiedScore = nil
+        }
+
         return GameReadinessEvaluation(
             verdict: verdict,
             headlineKey: headlineKey,
@@ -448,7 +483,9 @@ public enum GameReadinessEvaluator {
             jitterMs: metrics.jitterMilliseconds,
             packetLossPercentage: metrics.packetLossPercentage,
             isUnderLoadAffected: isLoadMaterial,
-            worstSpikeMs: metrics.worstSpikeMilliseconds
+            worstSpikeMs: metrics.worstSpikeMilliseconds,
+            score: unifiedScore,
+            metrics: deepCheckMetrics ?? DeepCheckMetrics(rest: metrics, load: nil, loadImpact: loadImpact)
         )
     }
 }
