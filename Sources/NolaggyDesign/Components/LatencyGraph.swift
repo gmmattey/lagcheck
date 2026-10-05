@@ -8,12 +8,20 @@ public struct LatencyGraph: View {
     private let awaitingLabel: LocalizedStringKey
     private let accessibilityLabel: String
     private let comparisonValues: [Double]
+    private let isScanning: Bool
 
-    public init(values: [Double], awaitingLabel: LocalizedStringKey, accessibilityLabel: String, comparisonValues: [Double] = []) {
+    public init(
+        values: [Double],
+        awaitingLabel: LocalizedStringKey,
+        accessibilityLabel: String,
+        comparisonValues: [Double] = [],
+        isScanning: Bool = true
+    ) {
         self.values = values
         self.awaitingLabel = awaitingLabel
         self.accessibilityLabel = accessibilityLabel
         self.comparisonValues = comparisonValues
+        self.isScanning = isScanning
     }
 
     public var body: some View {
@@ -43,11 +51,38 @@ public struct LatencyGraph: View {
                         .stroke(NLColor.accentPrimary, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
                 }
                 .animation(.smooth(duration: 0.35), value: values)
-            } else {
-                // Linha em onda animada ao ser iniciado (indicador de varredura contínua)
+            } else if isScanning {
+                // Linha em onda animada ao ser iniciado (indicador de varredura contínua em sessão ativa)
                 VStack(spacing: NLSpacing.xs) {
                     ScanningWaveLine()
                         .frame(height: 56)
+
+                    Text(awaitingLabel)
+                        .font(NLTypography.footnote)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                // Estado estático arquivado/indisponível: sem animação contínua (Decisão 64 / Dark Competitive UI)
+                VStack(spacing: NLSpacing.sm) {
+                    ZStack {
+                        // Linha guia tracejada sutil
+                        GeometryReader { geometry in
+                            Path { path in
+                                path.move(to: CGPoint(x: 0, y: geometry.size.height / 2))
+                                path.addLine(to: CGPoint(x: geometry.size.width, y: geometry.size.height / 2))
+                            }
+                            .stroke(NLColor.borderStrong, style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                        }
+                        .frame(height: 24)
+
+                        // Ícone neutro central
+                        Image(systemName: "waveform.path")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(NLColor.textTertiary)
+                            .padding(.horizontal, 10)
+                            .background(NLColor.backgroundRaised)
+                    }
 
                     Text(awaitingLabel)
                         .font(NLTypography.footnote)

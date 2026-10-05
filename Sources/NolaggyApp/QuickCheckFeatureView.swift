@@ -361,7 +361,13 @@ struct QuickCheckFeatureView: View {
                 resolvedContext: destination.resolvedContext,
                 gameName: destination.gameName,
                 historyRepository: historyRepository,
-                analyticsTracker: analyticsTracker
+                analyticsTracker: analyticsTracker,
+                onMeasurementCompleted: { samples, entry in
+                    partialSamples = samples
+                    if let entry {
+                        completedEntry = entry
+                    }
+                }
             )
         }
         .sheet(isPresented: $showingCockpit) {
