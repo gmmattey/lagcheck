@@ -39,6 +39,7 @@ import com.lagcheck.android.data.LagCheckDiscordCardExporter
 import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PdfDocumentIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
+import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -220,16 +221,14 @@ fun VerdictScreen(
 
         Spacer(modifier = Modifier.height(13.dp))
 
-        // 3. Veredito Manchete (com símbolo ● ou ▲)
+        // 3. Veredito Manchete (com indicador tático de telemetria)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = verdictSymbol,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Black,
-                color = verdictColor
+            VerdictIndicatorBadge(
+                verdict = evaluation.verdict,
+                size = 18.dp
             )
             Text(
                 text = evaluation.headline.removePrefix("● ").removePrefix("▲ ").removePrefix("— "),

@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
@@ -125,13 +126,19 @@ fun TechnicalDetailsScreen(
                 .padding(horizontal = 13.dp, vertical = 12.dp)
         ) {
             Column {
-                Text(
-                    text = "$verdictSymbol ${verdictName.uppercase()}",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = verdictColor
-                )
-                Spacer(modifier = Modifier.height(5.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    VerdictIndicatorBadge(verdict = evaluation.verdict, size = 12.dp)
+                    Text(
+                        text = verdictName.uppercase(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = verdictColor
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "${game.name} · ${evaluation.platform} · $dateFormatted",
                     style = LagCheckTypography.MonoSmall,

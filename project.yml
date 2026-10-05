@@ -22,6 +22,8 @@ targets:
   NolaggyDesign:
     type: framework
     platform: iOS
+    dependencies:
+      - target: NolaggyDomain
     sources:
       - path: Sources/NolaggyDesign
     settings:
