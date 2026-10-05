@@ -208,40 +208,7 @@ public struct MeasurementLiveTrail: View {
                 }
                 .frame(height: 51)
 
-                // 2. Os 3 nós alinhados com ícones correspondentes (círculo 51x51 no topo)
-                HStack(alignment: .top, spacing: 0) {
-                    // Nó 1: iPhone
-                    nodeItem(
-                        icon: "iphone",
-                        title: Text(LocalizedStringKey("check.node.iphone")),
-                        isFinished: true,
-                        isCurrent: false,
-                        isHit: isHitNode1
-                    )
-                    .frame(maxWidth: .infinity)
-
-                    // Nó 2: Rede local (Wi-Fi / Rede Móvel)
-                    nodeItem(
-                        icon: isWiFi ? "wifi" : "antenna.radiowaves.left.and.right",
-                        title: Text(isWiFi ? LocalizedStringKey("check.node.wifi") : LocalizedStringKey("check.node.cellular")),
-                        isFinished: !isPhaseRest,
-                        isCurrent: isPhaseRest,
-                        isHit: isHitNode2
-                    )
-                    .frame(maxWidth: .infinity)
-
-                    // Nó 3: Região Gamer (Destino)
-                    nodeItem(
-                        icon: "server.rack",
-                        title: Text(String(format: String(localized: "check.node.gamer_region %@", defaultValue: "Região Gamer\n%@"), destinationName)),
-                        isFinished: false,
-                        isCurrent: !isPhaseRest,
-                        isHit: isHitNode3
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-
-                // 3. Pingo animado viajando sobre a rota e pelos nós
+                // 2. Pingo animado viajando sobre a rota (passa por baixo dos nós)
                 if !reduceMotion {
                     GeometryReader { proxy in
                         let y: CGFloat = 25.5
@@ -297,6 +264,39 @@ public struct MeasurementLiveTrail: View {
                     }
                     .frame(height: 51)
                     .allowsHitTesting(false)
+                }
+
+                // 3. Os 3 nós alinhados com ícones correspondentes (círculo 51x51 no topo, na frente da trilha e do pingo)
+                HStack(alignment: .top, spacing: 0) {
+                    // Nó 1: iPhone
+                    nodeItem(
+                        icon: "iphone",
+                        title: Text(LocalizedStringKey("check.node.iphone")),
+                        isFinished: true,
+                        isCurrent: false,
+                        isHit: isHitNode1
+                    )
+                    .frame(maxWidth: .infinity)
+
+                    // Nó 2: Rede local (Wi-Fi / Rede Móvel)
+                    nodeItem(
+                        icon: isWiFi ? "wifi" : "antenna.radiowaves.left.and.right",
+                        title: Text(isWiFi ? LocalizedStringKey("check.node.wifi") : LocalizedStringKey("check.node.cellular")),
+                        isFinished: !isPhaseRest,
+                        isCurrent: isPhaseRest,
+                        isHit: isHitNode2
+                    )
+                    .frame(maxWidth: .infinity)
+
+                    // Nó 3: Região Gamer (Destino)
+                    nodeItem(
+                        icon: "server.rack",
+                        title: Text(String(format: String(localized: "check.node.gamer_region %@", defaultValue: "Região Gamer\n%@"), destinationName)),
+                        isFinished: false,
+                        isCurrent: !isPhaseRest,
+                        isHit: isHitNode3
+                    )
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
