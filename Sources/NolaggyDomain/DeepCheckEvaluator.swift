@@ -99,6 +99,44 @@ public enum DeepCheckLoadImpactMaterialityRuleV2 {
     }
 }
 
+public enum BufferbloatRuleV1 {
+    public static let version = "bufferbloat-grade-v1"
+    public static let aPlusThreshold: Double = 2.0
+    public static let aThreshold: Double = 5.0
+    public static let bThreshold: Double = 15.0
+    public static let cThreshold: Double = 35.0
+    public static let dThreshold: Double = 60.0
+
+    public static func evaluate(increaseMilliseconds: Double) -> BufferbloatGrade {
+        if increaseMilliseconds <= aPlusThreshold {
+            return .aPlus
+        } else if increaseMilliseconds <= aThreshold {
+            return .a
+        } else if increaseMilliseconds <= bThreshold {
+            return .b
+        } else if increaseMilliseconds <= cThreshold {
+            return .c
+        } else if increaseMilliseconds <= dThreshold {
+            return .d
+        } else {
+            return .f
+        }
+    }
+}
+
+public enum BufferbloatGrade: String, Codable, Equatable, Sendable, CaseIterable {
+    case aPlus = "A+"
+    case a = "A"
+    case b = "B"
+    case c = "C"
+    case d = "D"
+    case f = "F"
+
+    public init(increaseMilliseconds: Double) {
+        self = BufferbloatRuleV1.evaluate(increaseMilliseconds: increaseMilliseconds)
+    }
+}
+
 /// Comparação observada entre repouso e carga nas métricas multidimensionais. Não é score nem classe.
 public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
     public let restP50Milliseconds: Double
@@ -110,6 +148,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
     public let deltaJitterMilliseconds: Double?
     public let deltaLossPercentage: Double?
     public let deltaSpikesCount: Int?
+    public let bufferbloatGrade: BufferbloatGrade
 
     public init(
         restP50Milliseconds: Double,
@@ -118,6 +157,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         deltaJitterMilliseconds: Double? = nil,
         deltaLossPercentage: Double? = nil,
         deltaSpikesCount: Int? = nil,
+        bufferbloatGrade: BufferbloatGrade? = nil,
         ruleVersion: String = DeepCheckLoadImpactMaterialityRuleV2.version
     ) {
         self.restP50Milliseconds = restP50Milliseconds
@@ -130,6 +170,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         self.deltaJitterMilliseconds = deltaJitterMilliseconds
         self.deltaLossPercentage = deltaLossPercentage
         self.deltaSpikesCount = deltaSpikesCount
+        self.bufferbloatGrade = bufferbloatGrade ?? BufferbloatGrade(increaseMilliseconds: increase)
     }
 
     public init(restP50Milliseconds: Double, loadP50Milliseconds: Double) {
@@ -156,6 +197,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         case deltaJitterMilliseconds
         case deltaLossPercentage
         case deltaSpikesCount
+        case bufferbloatGrade
     }
 
     public init(from decoder: any Decoder) throws {
@@ -173,6 +215,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         deltaJitterMilliseconds = try container.decodeIfPresent(Double.self, forKey: .deltaJitterMilliseconds)
         deltaLossPercentage = try container.decodeIfPresent(Double.self, forKey: .deltaLossPercentage)
         deltaSpikesCount = try container.decodeIfPresent(Int.self, forKey: .deltaSpikesCount)
+        bufferbloatGrade = try container.decodeIfPresent(BufferbloatGrade.self, forKey: .bufferbloatGrade) ?? BufferbloatGrade(increaseMilliseconds: increaseMilliseconds)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -186,6 +229,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
         try container.encodeIfPresent(deltaJitterMilliseconds, forKey: .deltaJitterMilliseconds)
         try container.encodeIfPresent(deltaLossPercentage, forKey: .deltaLossPercentage)
         try container.encodeIfPresent(deltaSpikesCount, forKey: .deltaSpikesCount)
+        try container.encode(bufferbloatGrade, forKey: .bufferbloatGrade)
     }
 }
 

@@ -217,7 +217,50 @@ final class DeepCheckEvaluatorTests: XCTestCase {
             DeepCheckEvaluator.evaluate(restSamples: restSamples, loadSamples: loadSamples, profile: .casualRealtime)
         )
     }
+
+    func testBufferbloatGradeThresholdBoundaries() {
+        XCTAssertEqual(BufferbloatRuleV1.version, "bufferbloat-grade-v1")
+        
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: -5.0), .aPlus)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 0.0), .aPlus)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 2.0), .aPlus)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 2.001), .a)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 5.0), .a)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 5.01), .b)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 15.0), .b)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 15.001), .c)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 35.0), .c)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 35.01), .d)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 60.0), .d)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 60.001), .f)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 120.0), .f)
+    }
+
+    func testBufferbloatDecodingFallbackForLegacyPayload() throws {
+        // JSON sem o campo 'bufferbloatGrade' (payload legado pré-Decisão 74)
+        let legacyJSON = """
+        {
+            "restP50Milliseconds": 20.0,
+            "loadP50Milliseconds": 24.0,
+            "increaseMilliseconds": 4.0,
+            "ruleVersion": "materiality-2026.09.19.1",
+            "classification": "descriptive",
+            "tier": "none"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(DeepCheckLoadImpact.self, from: legacyJSON)
+        XCTAssertEqual(decoded.bufferbloatGrade, .a) // 4.0ms -> Grade A
+    }
+
+    func testBufferbloatIntegratedInCompletedDeepCheck() throws {
+        let rest = received(30, rtt: 20.0)
+        let load = received(30, rtt: 23.0) // delta = +3.0 -> Grade A
+        let result = try completedDeepCheck(restSamples: rest, loadSamples: load)
+        XCTAssertEqual(result.metrics.loadImpact?.bufferbloatGrade, .a)
+    }
 }
+
 
 private extension DeepCheckEvaluatorTests {
     func completedDeepCheck(restSamples: [ProbeSample], loadSamples: [ProbeSample]?) throws -> DeepCheckResult {

@@ -76,6 +76,7 @@
 | [71](#decisão-71) | Catálogo e artes remotos nos apps | **Vigente (implementação local)** | Ed25519 mantida, imagens sem conferência de hash, descoberta dinâmica Android | Marco / Camillo / Luiz |
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 | [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
+| [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
 
 
 ---
@@ -483,6 +484,39 @@
      - `.inconclusive`: Indicador tracejado / neutro em Slate (`#64748B`), simbolizando radar sem eco.
   3. **Manchetes Limpas:** O texto da headline (ex: `PRONTO PARA RANKED`, `EU EVITARIA RANKED AGORA`) torna-se tipograficamente puro, sem prefixos de texto misturados à tipografia.
 - **Critérios de validação e aceite:** Remoção de strings de texto cru com `●` e `▲` das telas principais (`CheckCompletoResultView`, `TechnicalDetailsView`, `VerdictScreen`); renderização nítida dos novos indicadores; validação de contraste e compilação sem regressões.
+
+### Decisão 74
+- **Data:** 6 de outubro de 2026.
+- **Título:** Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0).
+- **Status Atual:** **Vigente (Aprovada).**
+- **Frentes envolvidas:** Marco (Product Lead), Renan (Design), Rian (iOS), Iury (Network & Edge Systems), Camillo (Principal Engineer / Gate Arquitetural), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:** Para transformar o LagCheck em um app popular com forte tração orgânica na App Store, o produto precisa se diferenciar radicalmente de utilitários genéricos de banda (Ookla/Fast.com) e de serviços pagos invasivos (ExitLag/NoPing). A squad desenvolveu e o dono do produto aprovou um plano com 9 iniciativas divididas em 3 fases, com início imediato pela Fase 1 (P0).
+- **Decisão:**
+  1. **Aprovação do Plano de Crescimento:** Fica aprovado o plano estruturado das 9 iniciativas (artefato canônico `plano-implementacao-crescimento-lagcheck.md`).
+  2. **Início Imediato da Fase 1 (P0):**
+     - **Item 2 (ASO Tático):** Metadados focados em busca de dor do jogador (`LagCheck — Teste de Rede Gamer`, subtítulo `Estabilidade e Rota de Conexão` e keywords de alto volume de intenção de busca).
+     - **Item 1 (Card Viral "Squad Pass / Ready Check"):** Componente em `NolaggyDesign` renderizado via `ImageRenderer` nativo (iOS 16+), gerando imagem de cockpit esportivo Dark Competitive para cópia instantânea para a área de transferência (`UIPasteboard`) e envio em 1 toque para Discord, WhatsApp e Stories.
+     - **Item 3 (Bufferbloat Score Tático):** Formalização no `NolaggyDomain` do cálculo de impacto sob estresse ($\Delta RTT = RTT_{carga} - RTT_{repouso}$) em notas objetivas de Bufferbloat (Grade A+ a F), sem alterar os guardrails matemáticos da Decisão 72.
+  3. **Preservação de Guardrails:** Zero custo operacional recorrente, processamento 100% on-device no iPhone, estrita fidelidade à diretriz "Gamer Não Lê" (Decisão 64) e integridade diagnóstica (Decisão 50).
+
+- **Adendo Técnico e Governança da Fase 1 (Revisão Iury — 06/10/2026):**
+  - **Regra e Versão:** A escala de Bufferbloat é formalizada e versionada como `bufferbloat-grade-v1`, implementada com paridade 1:1 em Swift (`NolaggyDomain`) e Kotlin (`:core:domain`).
+  - **Tabela Oficial de Limiares ($\Delta RTT$):**
+    - **Grade A+:** $\le 2$ ms (Bufferbloat indetectável / excelente).
+    - **Grade A:** $\le 5$ ms (Bufferbloat mínimo / ótimo).
+    - **Grade B:** $\le 15$ ms (Sob controle / bom).
+    - **Grade C:** $\le 35$ ms (Oscilação moderada sob estresse / cautela).
+    - **Grade D:** $\le 60$ ms (Degradação perceptível sob carga / risco alto).
+    - **Grade F:** $> 60$ ms (Saturação severa da fila).
+  - **Conformidade Estrita de ASO:** Nenhuma marca de terceiro (ex: jogos ou provedores) compõe os metadados de submissão na App Store, eliminando qualquer risco de rejeição (Diretriz Apple 2.3.7) ou promessa falsa de ping de servidores específicos.
+  - **Exportador do Card:** Mantém desenho determinístico em alta definição (`LagCheckDiscordCardExporter`), com token de cor semântica Coral Solar para D/F (Decisão 66), garantindo cópia instantânea sem custo de GPU.
+  - **Compatibilidade de Persistência:** Payload legado decodifica com fallback automático derivando a nota do $\Delta RTT$ observado.
+  - **Débito de QA (Breno):** Benchmark formal de tempo de renderização (<200ms) e validação tátil em iPhone físico alocados para o gate de release da Fase 1.
+
+- **Critérios de validação e aceite:**
+  - Metadados ASO prontos para submissão;
+  - Card esportivo com renderização `< 200ms` sem travamento de UI;
+  - Vetores unitários de Bufferbloat verdes em `NolaggyDomainTests`.
 
 ## Como Registrar Novas Decisões
 

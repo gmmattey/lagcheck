@@ -859,3 +859,8 @@
 
 "exporter.pdf.loss_column" = "PERDA";
 "exporter.pdf.footer" = "LagCheck · Auditoria de Rede e Medição de Rota para Jogadores Competitivos · Relatório auditavel RFC 5389 & Probing Local";
+
+
+/* Bufferbloat e Estabilidade sob carga (Decisão 74) */
+"result.bufferbloat.label" = "SOB CARGA:";
+"exporter.discord.bufferbloat_label" = "SOB CARGA";

@@ -80,4 +80,30 @@ class DeepCheckEvaluatorTest {
             assertThat(r.metrics.loadImpact?.classification).isEqualTo(LoadImpactClassification.MATERIAL)
         }
     }
+
+    @Test fun bufferbloatGradeThresholdBoundaries() {
+        assertThat(BufferbloatRuleV1.VERSION).isEqualTo("bufferbloat-grade-v1")
+        
+        // Exact thresholds and edge cases
+        assertThat(BufferbloatGrade.fromIncrease(-5.0)).isEqualTo(BufferbloatGrade.A_PLUS)
+        assertThat(BufferbloatGrade.fromIncrease(0.0)).isEqualTo(BufferbloatGrade.A_PLUS)
+        assertThat(BufferbloatGrade.fromIncrease(2.0)).isEqualTo(BufferbloatGrade.A_PLUS)
+        assertThat(BufferbloatGrade.fromIncrease(2.001)).isEqualTo(BufferbloatGrade.A)
+        assertThat(BufferbloatGrade.fromIncrease(5.0)).isEqualTo(BufferbloatGrade.A)
+        assertThat(BufferbloatGrade.fromIncrease(5.01)).isEqualTo(BufferbloatGrade.B)
+        assertThat(BufferbloatGrade.fromIncrease(15.0)).isEqualTo(BufferbloatGrade.B)
+        assertThat(BufferbloatGrade.fromIncrease(15.001)).isEqualTo(BufferbloatGrade.C)
+        assertThat(BufferbloatGrade.fromIncrease(35.0)).isEqualTo(BufferbloatGrade.C)
+        assertThat(BufferbloatGrade.fromIncrease(35.01)).isEqualTo(BufferbloatGrade.D)
+        assertThat(BufferbloatGrade.fromIncrease(60.0)).isEqualTo(BufferbloatGrade.D)
+        assertThat(BufferbloatGrade.fromIncrease(60.001)).isEqualTo(BufferbloatGrade.F)
+        assertThat(BufferbloatGrade.fromIncrease(120.0)).isEqualTo(BufferbloatGrade.F)
+    }
+
+    @Test fun bufferbloatIntegratedInDeepCheckResult() {
+        val rest = received(30, 20.0)
+        val load = received(30, 23.0) // delta = +3.0 -> Grade A
+        val result = deep(rest, load)
+        assertThat(result.metrics.loadImpact?.bufferbloatGrade).isEqualTo(BufferbloatGrade.A)
+    }
 }

@@ -16,6 +16,7 @@ public enum LagCheckDiscordCardExporter {
         pingMs: Double?,
         jitterMs: Double?,
         packetLossPercentage: Double?,
+        bufferbloatGradeText: String?,
         isWiFi: Bool
     ) -> URL? {
         let width: CGFloat = 1200
@@ -118,16 +119,27 @@ public enum LagCheckDiscordCardExporter {
 
             // 5. Bloco de Telemetria com 3 Colunas (Números de Velocímetro)
             let teleY: CGFloat = 330
-            let colWidth: CGFloat = (width - 150) / 3
+            let colWidth: CGFloat = (width - 150) / 4
 
             let pingStr = pingMs.map { "\(Int(round($0))) ms" } ?? "—"
             let jitterStr = jitterMs.map { "\(String(format: "%.1f", $0)) ms" } ?? "—"
             let lossStr = packetLossPercentage.map { "\(String(format: "%.1f", $0))%" } ?? "—"
 
+            let bbStr = bufferbloatGradeText ?? "—"
+            let bbColor: UIColor
+            if bbStr.starts(with: "A") || bbStr == "B" {
+                bbColor = verdictColor
+            } else if bbStr == "C" {
+                bbColor = UIColor(NLColor.semanticCaution)
+            } else {
+                bbColor = UIColor(NLColor.coralSolar)
+            }
+
             let metrics = [
                 (AppLocalization.string("exporter.discord.ping_label", comment: ""), pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
                 (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(NLColor.semanticCaution)),
-                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(NLColor.coralSolar))
+                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(NLColor.coralSolar)),
+                (AppLocalization.string("exporter.discord.bufferbloat_label", comment: ""), bbStr, bbColor)
             ]
 
             for (index, item) in metrics.enumerated() {

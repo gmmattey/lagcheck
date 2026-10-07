@@ -165,6 +165,26 @@ public struct CheckCompletoResultView: View {
                         .clipped()
                     )
 
+                    if let grade = evaluation.metrics?.loadImpact?.bufferbloatGrade {
+                        HStack(spacing: 6) {
+                            Text(LocalizedStringKey("result.bufferbloat.label"))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(NLColor.textTertiary)
+                            Text(verbatim: "\(grade.rawValue)")
+                                .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                                .foregroundStyle(
+                                    (grade == .aPlus || grade == .a || grade == .b)
+                                        ? colorForVerdict(.ready)
+                                        : ((grade == .c) ? NLColor.cautionYellow : NLColor.coralSolar)
+                                )
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(NLColor.surface, in: Capsule())
+                        .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
+                        .padding(.top, 12)
+                    }
+
                     // Card: O que mais pesou
                     VStack(alignment: .leading, spacing: 5) {
                         Text(LocalizedStringKey("result.weight_card.title"))
@@ -494,6 +514,7 @@ public struct CheckCompletoResultView: View {
             pingMs: evaluation.pingMs,
             jitterMs: evaluation.jitterMs,
             packetLossPercentage: evaluation.packetLossPercentage,
+            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
             isWiFi: isWiFi
         ) {
             let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
@@ -515,6 +536,7 @@ public struct CheckCompletoResultView: View {
             pingMs: evaluation.pingMs,
             jitterMs: evaluation.jitterMs,
             packetLossPercentage: evaluation.packetLossPercentage,
+            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
             isWiFi: isWiFi
         ) {
             let pingStr = evaluation.pingMs.map { "\(Int(round($0))) ms" } ?? "—"

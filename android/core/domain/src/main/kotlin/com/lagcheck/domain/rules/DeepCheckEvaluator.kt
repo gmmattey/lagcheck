@@ -11,6 +11,46 @@ enum class LoadDegradationTier { NONE, LIGHT, MATERIAL, SEVERE }
 
 enum class LoadImpactClassification { DESCRIPTIVE, MATERIAL }
 
+
+object BufferbloatRuleV1 {
+    const val VERSION: String = "bufferbloat-grade-v1"
+    const val A_PLUS_THRESHOLD: Double = 2.0
+    const val A_THRESHOLD: Double = 5.0
+    const val B_THRESHOLD: Double = 15.0
+    const val C_THRESHOLD: Double = 35.0
+    const val D_THRESHOLD: Double = 60.0
+
+    fun evaluate(increaseMilliseconds: Double): BufferbloatGrade {
+        return when {
+            increaseMilliseconds <= A_PLUS_THRESHOLD -> BufferbloatGrade.A_PLUS
+            increaseMilliseconds <= A_THRESHOLD -> BufferbloatGrade.A
+            increaseMilliseconds <= B_THRESHOLD -> BufferbloatGrade.B
+            increaseMilliseconds <= C_THRESHOLD -> BufferbloatGrade.C
+            increaseMilliseconds <= D_THRESHOLD -> BufferbloatGrade.D
+            else -> BufferbloatGrade.F
+        }
+    }
+}
+
+enum class BufferbloatGrade(val value: String) {
+    A_PLUS("A+"),
+    A("A"),
+    B("B"),
+    C("C"),
+    D("D"),
+    F("F");
+
+    companion object {
+        fun fromIncrease(increaseMilliseconds: Double): BufferbloatGrade {
+            return BufferbloatRuleV1.evaluate(increaseMilliseconds)
+        }
+
+        fun fromValue(value: String): BufferbloatGrade? {
+            return entries.firstOrNull { it.value == value }
+        }
+    }
+}
+
 /** Comparação observada repouso × carga. Não é score nem classe de qualidade. */
 data class DeepCheckLoadImpact(
     val restP50Milliseconds: Double,
@@ -19,7 +59,8 @@ data class DeepCheckLoadImpact(
     val deltaJitterMilliseconds: Double? = null,
     val deltaLossPercentage: Double? = null,
     val deltaSpikesCount: Int? = null,
-    val ruleVersion: String = DeepCheckLoadImpactRuleV2.VERSION
+    val ruleVersion: String = DeepCheckLoadImpactRuleV2.VERSION,
+    val bufferbloatGrade: BufferbloatGrade = BufferbloatGrade.fromIncrease(loadP50Milliseconds - restP50Milliseconds)
 ) {
     val increaseMilliseconds: Double get() = loadP50Milliseconds - restP50Milliseconds
 
