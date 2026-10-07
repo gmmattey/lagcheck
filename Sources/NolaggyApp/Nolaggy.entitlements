@@ -6,5 +6,13 @@
 	<array>
 		<string>group.com.lagcheck.app</string>
 	</array>
+	<key>com.apple.developer.associated-appclip-app-identifiers</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.lagcheck.app.Clip</string>
+	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:lagcheck.app</string>
+	</array>
 </dict>
 </plist>

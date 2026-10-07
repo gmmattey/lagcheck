@@ -86,6 +86,10 @@ struct NolaggyApp: App {
         do {
             let loaded = try await catalogRepository.loadedCatalogForLaunch()
             catalogState = .ready(loaded)
+            
+            // Indexa jogos no CoreSpotlight em background não-bloqueante (Decisão 76)
+            let coordinator = SpotlightIndexCoordinator(indexer: AppleCoreSpotlightIndexer())
+            await coordinator.indexCatalogGames(games: loaded.payload.games)
         } catch {
             // Sem base válida não existe descoberta nem sessão; a Home segue
             // navegável e a feature apresenta indisponibilidade explícita.

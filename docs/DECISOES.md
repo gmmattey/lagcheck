@@ -77,7 +77,8 @@
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 | [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
 | [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
-| [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Em implementação)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
+| [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Aprovada)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
+| [76](#decisão-76) | Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events, Spotlight Search & Siri Shortcuts, e App Clip Instantâneo | **Vigente (Em implementação)** | CoreSpotlight, App Shortcuts por voz/busca, deeplinks dinâmicos de jogo e App Clip leve (<15MB) | Marco / Camillo / Rian / Renan / Breno / Luiz |
 
 
 
@@ -553,6 +554,40 @@
   - Testes unitários puros no `NolaggyDomainTests` e `:core:domain:test` cobrindo todos os cenários da causa raiz;
   - Widget renderizando estados vazios, válidos e expirados sem dados estáticos inventados;
   - Build limpo e suítes de testes passando no Xcode e Gradle.
+
+### Decisão 76
+
+- **Data:** 7 de outubro de 2026.
+- **Título:** Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events Sazonais, Spotlight Search, Siri Shortcuts e App Clip Instantâneo.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer transversal / Gate Arquitetural), Rian (iOS / App Intents / App Clip), Renan (Product Designer / HIG & Dark Competitive UI), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:**
+  Concluídas a Fase 1 (Viralidade Discord, ASO e Bufferbloat Score) e a Fase 2 (Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17), o LagCheck avança para a **Fase 3 (P2)** para transformar o app em um elemento onipresente do ecossistema do jogador e eliminar atrito na call do Discord/lobby:
+  1. *Descoberta Sazonal & Editorial (Item 7):* Atração de tráfego orgânico na App Store via *In-App Events* sincronizados com os calendários das temporadas de Ranked dos principais jogos competitivos, sem infligir marcas de terceiros e a custo zero.
+  2. *Acesso por Voz e Busca Nativa (Item 8):* Permitir que o jogador busque por "ping", "valorant", "lag", "ranked" no CoreSpotlight do iOS e execute comandos por voz na Siri (*"E aí Siri, testar conexão no LagCheck"*), acionando medições específicas ou atalhos para jogos específicos.
+  3. *Fricção Zero na Call do Discord (Item 9):* Quando um jogador envia um link de teste na call (`lagcheck.app/check?game=valorant`), o amigo no iPhone não pode ter o atrito de baixar 30 MB da App Store. O link abre instantaneamente o **App Clip** (`LagCheckClip`), executando o teste de rota real em menos de 2 segundos, com banner nativo para o app completo.
+- **Decisão:**
+  1. **In-App Events Sazonais (Item 7):**
+     - Estruturação do catálogo de eventos sazonais no App Store Connect sincronizados com seasons (ex: *"Nova Season de Ranked"*).
+     - Artes autorais LagCheck (Dark Competitive UI), sem logotipos, capas ou personagens de terceiros (`docs/18`).
+     - Deeplink canônico universal: `https://lagcheck.app/check?game={game_id}` mapeado para acionamento direto do jogo no app.
+  2. **CoreSpotlight & Siri Shortcuts (Item 8):**
+     - `SpotlightIndexCoordinator` indexa os títulos do catálogo localmente com palavras-chave relevantes (`ping`, `lag`, `ranked`, `rotas`, nome do jogo).
+     - Suporte a deep links parametrizados por jogo (`lagcheck://check?game={id}`) e tratamento gracioso quando o jogo não for encontrado (cai na Home).
+     - Enriquecimento do `LagCheckShortcutsProvider` com frases adicionais em PT-BR, EN e ES.
+  3. **App Clip Instantâneo (`LagCheckClip`) (Item 9):**
+     - Criação do target `LagCheckClip` (tipo `app-clip`) vinculado aos módulos `NolaggyDomain`, `NolaggyInfrastructure` e `NolaggyDesign`.
+     - Exclusão estrita do SwiftData do App Clip para manter binário ultraleve (< 15 MB descompactado, limite estrito Apple HIG).
+     - Tela única e direta: abre, executa o check real UDP do jogo especificado na URL, exibe o veredito semântico e convida a instalar o app completo para histórico e widgets.
+     - Suporte a `apple-app-site-association` configurado para `appclips: [{ apps: ["com.lagcheck.app.Clip"] }]`.
+  4. **Paridade & Integridade:**
+     - A lógica de interpretação de URLs de jogos e modelos de indexação mantém paridade e regras determinísticas em pure domain.
+- **Critérios de validação e aceite:**
+  - Architecture Plan de Camillo assinado para o novo target `LagCheckClip` e entitlements de App Clip;
+  - Indexação Spotlight funcionando e testes unitários verdes para indexação e parsing de links;
+  - Deeplinks de jogos direcionando e acionando o teste correto;
+  - Target `LagCheckClip` e `Nolaggy` compilando sem erros no Xcode;
+  - Auditoria independente via Claude Code CLI aprovada antes do commit.
 
 ## Como Registrar Novas Decisões
 

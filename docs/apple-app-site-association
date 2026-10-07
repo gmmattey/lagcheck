@@ -1,0 +1,27 @@
+{
+  "appclips": {
+    "apps": [
+      "2Z4T8228GR.com.lagcheck.app.Clip"
+    ]
+  },
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "2Z4T8228GR.com.lagcheck.app"
+        ],
+        "components": [
+          {
+            "/": "/check*",
+            "comment": "Roteamento direto para medições de rotas de jogos"
+          },
+          {
+            "/": "/quicktest*",
+            "comment": "Atalho rápido de medição"
+          }
+        ]
+      }
+    ]
+  }
+}

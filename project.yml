@@ -72,6 +72,7 @@ targets:
       - target: NolaggyApplication
       - target: NolaggyInfrastructure
       - target: LagCheckWidget
+      - target: LagCheckClip
       - sdk: AppIntents.framework
     sources:
       - path: Sources/NolaggyApp
@@ -129,6 +130,28 @@ targets:
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "2"
         CODE_SIGN_ENTITLEMENTS: Sources/LagCheckWidget/LagCheckWidget.entitlements
+  LagCheckClip:
+    type: application.on-demand-install-capable
+    platform: iOS
+    deploymentTarget: "17.0"
+    dependencies:
+      - target: NolaggyDomain
+      - target: NolaggyDesign
+      - target: NolaggyApplication
+      - target: NolaggyInfrastructure
+      - sdk: SwiftUI.framework
+    sources:
+      - path: Sources/LagCheckClip
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lagcheck.app.Clip
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "LagCheck Clip"
+        INFOPLIST_KEY_CFBundleName: "LagCheck Clip"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "2"
+        CODE_SIGN_ENTITLEMENTS: Sources/LagCheckClip/LagCheckClip.entitlements
   NolaggyDomainTests:
     type: bundle.unit-test
     platform: iOS

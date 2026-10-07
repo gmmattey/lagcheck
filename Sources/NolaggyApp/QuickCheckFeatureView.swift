@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreSpotlight
 import Network
 import NolaggyApplication
 import NolaggyDesign
@@ -376,28 +377,52 @@ struct QuickCheckFeatureView: View {
         .onOpenURL { url in
             handleIncomingURL(url)
         }
+        .onContinueUserActivity(CSSearchableItemActionType) { userActivity in
+            guard let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String else { return }
+            let prefix = "lagcheck.game."
+            if identifier.hasPrefix(prefix) {
+                let gameID = String(identifier.dropFirst(prefix.count))
+                let encodedID = gameID.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? gameID
+                if let url = URL(string: "lagcheck://check?game=\(encodedID)") {
+                    handleIncomingURL(url)
+                }
+            }
+        }
     }
 
-    /// Trata chamadas de deep link externas (ex: do aplicativo Atalhos do iOS ou WiFi Casa).
+    /// Trata chamadas de deep link externas (esquema nativo ou Universal Links).
     /// Suporta:
-    /// - `lagcheck://quicktest` ou `lagcheck://test`: inicia o teste imediatamente em 1 toque na Home.
-    /// - `lagcheck://network` ou `lagcheck://wifi`: abre a aba de Dados da Rede (Cockpit).
+    /// - `lagcheck://check?game=valorant` ou `https://lagcheck.app/check?game=valorant`: inicia o teste para o jogo.
+    /// - `lagcheck://quicktest`: inicia o teste imediatamente em 1 toque na Home.
+    /// - `lagcheck://network`: abre a aba de Dados da Rede (Cockpit).
     /// - `lagcheck://games`: navega para o catálogo de jogos.
     /// - `lagcheck://home`: navega para a tela inicial.
     func handleIncomingURL(_ url: URL) {
-        guard let scheme = url.scheme?.lowercased(), scheme == "lagcheck" else { return }
-        let host = url.host?.lowercased() ?? ""
-        let path = url.path.lowercased()
+        guard let deepLink = DeepLinkParser.parse(url: url) else { return }
 
-        if host == "quicktest" || host == "test" || host == "check" || path == "/quicktest" || path == "/test" {
+        switch deepLink {
+        case let .quickCheck(gameID, platform):
             selectedTab = .home
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 100_000_000)
-                startLagCheckFromCTA()
+                if let gameID {
+                    if let target = availableGames.first(where: { $0.id == gameID }) {
+                        startCheckDirectly(for: target, platform: platform)
+                    } else {
+                        // Integridade diagnóstica (Decisão 50/76): Jogo desconhecido na URL
+                        // NUNCA dispara teste silencioso de outro título; mantém na Home.
+                    }
+                } else {
+                    // Sem parâmetro de jogo: inicia o check padrão da Home
+                    startLagCheckFromCTA()
+                }
             }
-        } else if host == "games" || host == "catalog" || path == "/games" {
+        case .gamesCatalog:
             selectedTab = .games
-        } else if host == "home" || host == "network" || host == "wifi" || host == "cockpit" {
+        case .networkCockpit:
+            selectedTab = .home
+            showingCockpit = true
+        case .home:
             selectedTab = .home
         }
     }

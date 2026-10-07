@@ -22,6 +22,7 @@
 		0DF69D27ABB3BDF18DA0CE47 /* InsightBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3124C8561614308016F7B9B1 /* InsightBanner.swift */; };
 		0E19A68D8447A770D2304939 /* WidgetTelemetrySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4870DD520C0495C414DF0AD /* WidgetTelemetrySnapshot.swift */; };
 		114795F4F8A8D751E0829001 /* BSDGatewayProbingAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3E3F671A11F7C858663F79 /* BSDGatewayProbingAdapter.swift */; };
+		11C459006635A8D84820BCA3 /* SpotlightIndexingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE40653F41DDB4ABB73538A /* SpotlightIndexingModels.swift */; };
 		11D780947F9529A39D9336A2 /* VoiceChatSuitabilityEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51857D2532B9BEBBEA2241E1 /* VoiceChatSuitabilityEvaluatorTests.swift */; };
 		12306FB0BD4FF320844C769E /* RemoteCatalogRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD54F5C987DD50A505752296 /* RemoteCatalogRepositoryTests.swift */; };
 		12DBA662B5C919A9F5A0A927 /* nolaggy-wordmark-primary.png in Resources */ = {isa = PBXBuildFile; fileRef = AE83D0A346A8CA7FACA86F0F /* nolaggy-wordmark-primary.png */; };
@@ -56,9 +57,11 @@
 		2E95DA40D369FEC32DC296EF /* NLShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F1D6F0F1AE0A1CD9AC2382 /* NLShadow.swift */; };
 		2E9D41587BC99F27D2694C93 /* HighImpactOptimization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8B2BA86D3C500060AB09D16 /* HighImpactOptimization.swift */; };
 		2F8F94EFE3D6666EBF3976D4 /* HomePresentationComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E888A50F3690E9219BC0A7B8 /* HomePresentationComponents.swift */; };
+		2F9C335D5885F17D281E5AAA /* DeepLinkParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB62150BD806EAABAD9ED0DC /* DeepLinkParserTests.swift */; };
 		31485C5758343ED2AD2BA6F8 /* VerifiedGameArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */; };
 		3159F1B15A26231BCD622738 /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		319EAA0C691585B49D89180C /* LocalInterfaceAddressResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */; };
+		330E6C586029FDFD6380BBE7 /* NolaggyApplication.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 49B00F528B6024D0DCC0CA19 /* NolaggyApplication.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		35245537BBB3687D50D12555 /* SampleQualityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */; };
 		352D086ED7B18C8038490D24 /* MeasurementPulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE867574BCC1C67171FECFF0 /* MeasurementPulse.swift */; };
 		35F4353CA22B4C05AECFFF61 /* VoiceChatSuitabilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */; };
@@ -83,6 +86,7 @@
 		4927E7E2DB4650355748CCE3 /* PlatformSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B00F88D7141C08CB28AB48 /* PlatformSelectionSheet.swift */; };
 		49F6A6617BFE2C30BF39BCD0 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2B6B13CC11FB27287B74F6FA /* Localizable.strings */; };
 		4A6C6B617AD3542A64F48A53 /* DeepCheckSessionCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26D3B06D443EB06AAD07FC5E /* DeepCheckSessionCoordinatorTests.swift */; };
+		4AB0B622919757D59E689BE9 /* NolaggyApplication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B00F528B6024D0DCC0CA19 /* NolaggyApplication.framework */; };
 		4F90461F45BAD41ECCCC8851 /* MeasurementHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */; };
 		514804B5FE1293525E539996 /* FavoriteGamesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BCCE28DB380E0A5CEDFA8C /* FavoriteGamesStore.swift */; };
 		51489160362A69B664682E7C /* PilotCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13CEE41EBF8FE561BB153BF /* PilotCatalog.swift */; };
@@ -99,6 +103,7 @@
 		56F3DB187FCC9B103E897E03 /* RootCauseIsolationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C1319448AD638121419FF3 /* RootCauseIsolationView.swift */; };
 		56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE082E42929EB89C90445FF /* HomeFeatureView.swift */; };
 		5989D54CC62B8EA9C36678C6 /* GamePlatformIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AD364C529AA1D089506792 /* GamePlatformIcons.swift */; };
+		59EAB3BB126C591EDD83EAC3 /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		5AA3A7E594F9F954733DB0BA /* LocalNetworkTelemetryPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */; };
 		5B30287273CABC6E22CB2BFE /* MeasurementDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */; };
 		5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
@@ -113,8 +118,10 @@
 		6306379E599B14BF2270953E /* NetworkBandAdviceBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB67CB0A5E79F662A101D45 /* NetworkBandAdviceBanner.swift */; };
 		637CD081A2093D001151D790 /* GlobalProbeRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2138CB13125F69726F372980 /* GlobalProbeRegistryTests.swift */; };
 		6467AD1AC621ECB35BB5EA4E /* NWPathMonitorNetworkPathObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2F5111525A65687306D837 /* NWPathMonitorNetworkPathObserver.swift */; };
+		649D8FABCDF5B561FD7F3C21 /* SpotlightIndexCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C05C4D81C9F42993C7887D /* SpotlightIndexCoordinator.swift */; };
 		695E8493DC02D5198A769303 /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
 		698D5E7225D33A48697B363B /* GameEditorialRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EB759A6480C1DA7A2D7408 /* GameEditorialRegistry.swift */; };
+		69A25399823538BBABC816F1 /* NolaggyDesign.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E32F5C986CB613D2B21ED68 /* NolaggyDesign.framework */; };
 		6A1EBB1B2D660C088FD85C72 /* SharedNetworkTelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9947AFBDAD5F9A011BFF73C2 /* SharedNetworkTelemetryService.swift */; };
 		6A3CC6E9F35C65C5271150AE /* NWPathMonitorNetworkPathObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C373FEDFBAADE3C4FE8F32F /* NWPathMonitorNetworkPathObserverTests.swift */; };
 		6A61F91AA7E34DC7DE4EE356 /* GlobalProbeRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F59ABE1787BB4E9581AFF31 /* GlobalProbeRegistry.swift */; };
@@ -139,10 +146,12 @@
 		7E3F13C78AF62B9C343D1C1D /* CheckCompletoResultDomainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6651525B32C6ADE84EB6690 /* CheckCompletoResultDomainTests.swift */; };
 		7E8F3EDE329745A0109A6B4F /* NolaggyDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3DA5AAA0EF9AC0CCFC1B230 /* NolaggyDesign.swift */; };
 		7F51523EC52F09307E518808 /* PingBeaconPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AFA1204CBD12558DD7EB20 /* PingBeaconPayloadCodec.swift */; };
+		7F8D757539FF4A05156339CD /* DeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A2F18A69EEBBDBD2FE5FD6 /* DeepLinkParser.swift */; };
 		812095EB8721F284637E720F /* StunProbeClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C07F76E6CB6AABDDC047CBB9 /* StunProbeClientTests.swift */; };
 		82DDD37F9E00E0141B53CE6A /* QuickCheckOrchestration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473EFB5CF17AF6DFEEFFABE3 /* QuickCheckOrchestration.swift */; };
 		8388AC8E2A421D78A2E641BF /* DarkCompetitiveHomeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13B733DC0854BF2E87705DA /* DarkCompetitiveHomeComponents.swift */; };
 		86032A36D170BA5A4EBF2A09 /* HistoryFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53C29BC2B3F7F761921D3D0 /* HistoryFeatureView.swift */; };
+		87772B2FB8B0FA0BAD4158A9 /* LagCheckClip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFA12FD20AF117B1D92D579 /* LagCheckClip.swift */; };
 		8828D96A8DBBBD3BE5AE109E /* ResultInterpreterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0766344F6FD692F9218E5C13 /* ResultInterpreterTests.swift */; };
 		88337ACA4D50D53D2EC11302 /* CloudflareWorkerAnalyticsTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB628B7DAF2EDF87A3860B94 /* CloudflareWorkerAnalyticsTrackerTests.swift */; };
 		89DB9DD4C85F89D85C1B4252 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA69002DCF9E055763C29BF3 /* SettingsView.swift */; };
@@ -152,6 +161,7 @@
 		8E22464D9315F771E7F5FC7B /* LocalNetworkTelemetrySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */; };
 		8E30DDC9A3137FF07777F52A /* LagCheckAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */; };
 		8EC72315F6F2F3183C741E12 /* CatalogMeasurementJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF7BCDF7DEC7C88691EAEC9 /* CatalogMeasurementJourney.swift */; };
+		90AF72A222D31242483BBC12 /* NolaggyDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9399AF0CE1845AA30A2592E9 /* PingBeaconPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7060104C8385880BFD63A3CF /* PingBeaconPayloadCodecTests.swift */; };
 		943428C7497403D7D197D225 /* WiFiBandModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */; };
 		94D39B7BFD64A557BE393F54 /* BoosterComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79E99C965A7BE3EBABFA526 /* BoosterComponents.swift */; };
@@ -165,6 +175,7 @@
 		A1187D393845671EE0DEDC79 /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
 		A15771D9235053CAB4FB58A9 /* StunPacketCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE8E3E60F92BDE3E4698B26 /* StunPacketCodecTests.swift */; };
 		A34E467C72A7383D1AB86EA8 /* NATTopologyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */; };
+		A5B3153D67A507485CDDA209 /* LagCheckClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D3E11571E026399E1DA00B /* GameDetailView.swift */; };
 		A64EBEF2B9AB7F96111A1D34 /* RegionalSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47A23287EDA7FA08AD8031B7 /* RegionalSelection.swift */; };
 		A6622F50544B52539F5879F2 /* ConnectionBoosterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFA895C9D16370FADFC6FC12 /* ConnectionBoosterModels.swift */; };
@@ -183,11 +194,15 @@
 		B22E7128BC8A2F6CA0C5AAEA /* DeepCheckResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993F198820E2080EED0887A2 /* DeepCheckResultView.swift */; };
 		B2A5C832DD6850F1C3719F9E /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		B35A9C4450BBD6D1F71211B2 /* LatencyGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB69FBF1D0E5521EB0D5760 /* LatencyGraph.swift */; };
+		B545E2577CA53D754E4B9F1D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E77CA6622CA7D749461EA116 /* SwiftUI.framework */; };
 		B5D455239D63CFB8C77676F4 /* VerifiedRemoteArtworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06CF63E8A62E65C646FF39E /* VerifiedRemoteArtworkLoader.swift */; };
 		B60332E3D4F48D170A4C4BCF /* LocalInterfaceAddressResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F124A151B5515C3A50BBA9E /* LocalInterfaceAddressResolver.swift */; };
 		B622860D07F6B1E5DEE7ED0D /* RemoteCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B75694BACD36BAE2C1ECDD /* RemoteCatalog.swift */; };
+		B68F96466C0E619C5A012254 /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
+		BA10A96F1ADF42C38A5E875F /* AppleCoreSpotlightIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59776676FF904C0F7ED6E0B /* AppleCoreSpotlightIndexer.swift */; };
 		BA2E544DBF6F21F05B59D6D4 /* UserDefaultsRegionalPreferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5265FA2DEC99B49E357332D7 /* UserDefaultsRegionalPreferenceRepository.swift */; };
 		BB9D5A6587B6328E84FFAF61 /* WiFiLocalGatewayProberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A22C4ACEEC14A02D397C633 /* WiFiLocalGatewayProberTests.swift */; };
+		BCD031AC4FD75F918D442897 /* NolaggyInfrastructure.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BEBAD90BF05D42CD5A8F5C84 /* RegionalPreReadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371D911C14391E13D433C476 /* RegionalPreReadCoordinator.swift */; };
 		C215B369DAFE028817EDD07A /* RegionalSelectionRuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7923005D916B2E192A47BC07 /* RegionalSelectionRuleTests.swift */; };
 		C2C1F29EA20C51C317690FDE /* SharedAppGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA321C12A829099CC7735EE /* SharedAppGroupStore.swift */; };
@@ -202,6 +217,7 @@
 		CC6238492CB91C446F80FB0B /* ConnectionBoosterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF132BEA5BD9E406F3901912 /* ConnectionBoosterCoordinator.swift */; };
 		CCDBF68C61A41115E49738E3 /* NolaggyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51691B9C7D5F278315F11757 /* NolaggyApp.swift */; };
 		CD0F77981D281A6EFA9CC5A1 /* SocialBrandIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D81ABAC1C5443FA58C9170 /* SocialBrandIcons.swift */; };
+		CE35E0CC8F67730A30FFE99D /* NolaggyDesign.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E32F5C986CB613D2B21ED68 /* NolaggyDesign.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CF9B1F2F39E231D4ED29B509 /* GamePopularityRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */; };
 		D049C169E9F3608DD624A912 /* PlayFabQoSPayloadCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370FDD9C9EEB8EC25A40B21F /* PlayFabQoSPayloadCodecTests.swift */; };
 		D0C74838206FAB17ECADE939 /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
@@ -253,6 +269,13 @@
 			remoteInfo = NolaggyDomain;
 		};
 		5D7EA40C5AF2304BCF9064C0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9D42F4F9D30CA975F16FF22E;
+			remoteInfo = NolaggyDesign;
+		};
+		631D7204BD05D3361440E245 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
 			proxyType = 1;
@@ -315,12 +338,26 @@
 			remoteGlobalIDString = 977B24420EFA0CF9AC2CDB8A;
 			remoteInfo = NolaggyDomain;
 		};
+		B28C89F81F0582A89857C387 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B241CE0A133779C7DA27479;
+			remoteInfo = LagCheckClip;
+		};
 		B2BF3A1853F89205CA204DEC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9D42F4F9D30CA975F16FF22E;
 			remoteInfo = NolaggyDesign;
+		};
+		B5A888D099AD9DF4250E1AED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CB67DCD845BB4C0A71001683;
+			remoteInfo = NolaggyApplication;
 		};
 		C600BD8988F3F01D912BE846 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -357,12 +394,26 @@
 			remoteGlobalIDString = C316F4E1179C4992B70BDDFF;
 			remoteInfo = NolaggyInfrastructure;
 		};
+		EC445863B4A4CD8B9D59D75B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 977B24420EFA0CF9AC2CDB8A;
+			remoteInfo = NolaggyDomain;
+		};
 		FBCB2BAC5B9ACD0586B11FBE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 90DA5F4E9BA8BB24C9CDDA66;
 			remoteInfo = LagCheckWidget;
+		};
+		FE65D692121956922AEE4067 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8029F1A9A9E66DDB4272DF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C316F4E1179C4992B70BDDFF;
+			remoteInfo = NolaggyInfrastructure;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -389,6 +440,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4312203B408F89ED9F55EFC0 /* Embed App Clips */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				A5B3153D67A507485CDDA209 /* LagCheckClip.app in Embed App Clips */,
+			);
+			name = "Embed App Clips";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B3D2433BD684D4199F566FAD /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -398,6 +460,20 @@
 				6E45FB6289766FE031B07071 /* LagCheckWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5EFCE36CB63AAE88A7A9489 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				90AF72A222D31242483BBC12 /* NolaggyDomain.framework in Embed Frameworks */,
+				CE35E0CC8F67730A30FFE99D /* NolaggyDesign.framework in Embed Frameworks */,
+				330E6C586029FDFD6380BBE7 /* NolaggyApplication.framework in Embed Frameworks */,
+				BCD031AC4FD75F918D442897 /* NolaggyInfrastructure.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		B787653EBA6E2858B1E52305 /* Embed Frameworks */ = {
@@ -439,6 +515,7 @@
 		0C07B37903F6BAAD97B319B2 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		0C373FEDFBAADE3C4FE8F32F /* NWPathMonitorNetworkPathObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWPathMonitorNetworkPathObserverTests.swift; sourceTree = "<group>"; };
 		0ED4DDB22B174C9E53B28D0B /* SteamQueryA2SPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamQueryA2SPayloadCodec.swift; sourceTree = "<group>"; };
+		10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LagCheckClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		115FA61E76B2519DC9E7DD8C /* RouteTrailSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteTrailSummaryCard.swift; sourceTree = "<group>"; };
 		12FC95A6691DD0F7B1DABD3E /* DeepCheckSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckSessionCoordinator.swift; sourceTree = "<group>"; };
 		138A6AC1F43869E0471AA92C /* DeepCheckFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckFeatureView.swift; sourceTree = "<group>"; };
@@ -466,6 +543,7 @@
 		26D3B06D443EB06AAD07FC5E /* DeepCheckSessionCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckSessionCoordinatorTests.swift; sourceTree = "<group>"; };
 		2A828FE7884262D4FFBAFE0A /* NLStroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLStroke.swift; sourceTree = "<group>"; };
 		2B99EB7D33E547A006A994B1 /* NolaggyDomainTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyDomainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C47012986A5FAFCFF41DCED /* LagCheckClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LagCheckClip.entitlements; sourceTree = "<group>"; };
 		2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistorySummaryTests.swift; sourceTree = "<group>"; };
 		2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluator.swift; sourceTree = "<group>"; };
 		3124C8561614308016F7B9B1 /* InsightBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBanner.swift; sourceTree = "<group>"; };
@@ -549,6 +627,7 @@
 		8A22C4ACEEC14A02D397C633 /* WiFiLocalGatewayProberTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiLocalGatewayProberTests.swift; sourceTree = "<group>"; };
 		8AF979416006BDD9E02DBC9D /* StunPacketCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StunPacketCodec.swift; sourceTree = "<group>"; };
 		8DA4E720AB8DCA4BDD16D67F /* MeasurementSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementSessionCoordinator.swift; sourceTree = "<group>"; };
+		8DFA12FD20AF117B1D92D579 /* LagCheckClip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckClip.swift; sourceTree = "<group>"; };
 		8E8315C93542EEF83E273FEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		90AA9F2EA8E8C718C5CD5D53 /* GameEditorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEditorialTests.swift; sourceTree = "<group>"; };
 		9430CDFD0EE74298BC956AE4 /* NLTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLTypography.swift; sourceTree = "<group>"; };
@@ -600,6 +679,7 @@
 		C8B2BA86D3C500060AB09D16 /* HighImpactOptimization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighImpactOptimization.swift; sourceTree = "<group>"; };
 		C95B5295CB31E3A118DA692E /* HomeFavoriteGamesRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFavoriteGamesRail.swift; sourceTree = "<group>"; };
 		C9E7880A8A3918D259977078 /* SwiftDataMeasurementHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataMeasurementHistoryRepository.swift; sourceTree = "<group>"; };
+		CB62150BD806EAABAD9ED0DC /* DeepLinkParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParserTests.swift; sourceTree = "<group>"; };
 		CC8D72D37FC2C9AC33CC470A /* GamePopularityRanking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePopularityRanking.swift; sourceTree = "<group>"; };
 		CDC26C17EAC2A1936129A8AA /* RemoteCatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalogRepository.swift; sourceTree = "<group>"; };
 		CE867574BCC1C67171FECFF0 /* MeasurementPulse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementPulse.swift; sourceTree = "<group>"; };
@@ -611,6 +691,7 @@
 		D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkTelemetrySnapshot.swift; sourceTree = "<group>"; };
 		D1B00F88D7141C08CB28AB48 /* PlatformSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSelectionSheet.swift; sourceTree = "<group>"; };
 		D1DE147F0E1C7607D29CD0F6 /* NetworkCockpitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkCockpitView.swift; sourceTree = "<group>"; };
+		D59776676FF904C0F7ED6E0B /* AppleCoreSpotlightIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleCoreSpotlightIndexer.swift; sourceTree = "<group>"; };
 		D661513CE969B148D76911DF /* QuickCheckPilotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckPilotUITests.swift; sourceTree = "<group>"; };
 		D6651525B32C6ADE84EB6690 /* CheckCompletoResultDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCompletoResultDomainTests.swift; sourceTree = "<group>"; };
 		D73B484AD9A99BD58DF85F9D /* LagCheckWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckWidget.swift; sourceTree = "<group>"; };
@@ -631,15 +712,18 @@
 		E92D37962416BF196C9A47F1 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		EA4CFF2FC2849653DE99298A /* LagCheckPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckPDFExporter.swift; sourceTree = "<group>"; };
 		EAB67CB0A5E79F662A101D45 /* NetworkBandAdviceBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkBandAdviceBanner.swift; sourceTree = "<group>"; };
+		EBE40653F41DDB4ABB73538A /* SpotlightIndexingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotlightIndexingModels.swift; sourceTree = "<group>"; };
 		ECD3A5462D81B3554DEFD4D6 /* ResultFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultFeatureView.swift; sourceTree = "<group>"; };
 		EFA895C9D16370FADFC6FC12 /* ConnectionBoosterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBoosterModels.swift; sourceTree = "<group>"; };
 		EFBB3CF9C358156CE862B40D /* DeepCheckEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckEvaluatorTests.swift; sourceTree = "<group>"; };
 		F0B5A05B0B5BAC4E41C7A109 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F15DE17D559A9DD694687B49 /* GameReadinessDomainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameReadinessDomainTests.swift; sourceTree = "<group>"; };
+		F3C05C4D81C9F42993C7887D /* SpotlightIndexCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotlightIndexCoordinator.swift; sourceTree = "<group>"; };
 		F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEditorialModels.swift; sourceTree = "<group>"; };
 		F3DA5AAA0EF9AC0CCFC1B230 /* NolaggyDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyDesign.swift; sourceTree = "<group>"; };
 		F47632D14DA4289BC46ACACA /* RegionalReferenceSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalReferenceSelection.swift; sourceTree = "<group>"; };
 		F4870DD520C0495C414DF0AD /* WidgetTelemetrySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTelemetrySnapshot.swift; sourceTree = "<group>"; };
+		F4A2F18A69EEBBDBD2FE5FD6 /* DeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkParser.swift; sourceTree = "<group>"; };
 		F50722D68C7C44A43C44716E /* RemoteArtworkLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteArtworkLoaderTests.swift; sourceTree = "<group>"; };
 		F51D4F39F3D3AA8985862D7D /* RegionalSelectionFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalSelectionFeatureView.swift; sourceTree = "<group>"; };
 		F6B75694BACD36BAE2C1ECDD /* RemoteCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCatalog.swift; sourceTree = "<group>"; };
@@ -659,6 +743,18 @@
 				D7B179426DBEFE4EBFB51412 /* NolaggyApplication.framework in Frameworks */,
 				5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */,
 				C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2FF68D7969C6196DE3BCF307 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				59EAB3BB126C591EDD83EAC3 /* NolaggyDomain.framework in Frameworks */,
+				69A25399823538BBABC816F1 /* NolaggyDesign.framework in Frameworks */,
+				4AB0B622919757D59E689BE9 /* NolaggyApplication.framework in Frameworks */,
+				B68F96466C0E619C5A012254 /* NolaggyInfrastructure.framework in Frameworks */,
+				B545E2577CA53D754E4B9F1D /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -797,6 +893,7 @@
 		2A34FF42240A85715507D350 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */,
 				227994C1882233F804F2B775 /* LagCheckWidget.appex */,
 				75A42D8AE1C21B7EEEA5D10E /* Nolaggy.app */,
 				49B00F528B6024D0DCC0CA19 /* NolaggyApplication.framework */,
@@ -838,6 +935,16 @@
 				AF42C75F9CB79E559A2DF771 /* OSLogAnalyticsTracker.swift */,
 			);
 			path = Analytics;
+			sourceTree = "<group>";
+		};
+		40AFBA72068E2AF4B5BCC631 /* LagCheckClip */ = {
+			isa = PBXGroup;
+			children = (
+				2C47012986A5FAFCFF41DCED /* LagCheckClip.entitlements */,
+				8DFA12FD20AF117B1D92D579 /* LagCheckClip.swift */,
+			);
+			name = LagCheckClip;
+			path = Sources/LagCheckClip;
 			sourceTree = "<group>";
 		};
 		4634F5FF65CD5D5B36364687 /* Fonts */ = {
@@ -905,6 +1012,7 @@
 		95DC4355444A1285F80DE96D /* NolaggyInfrastructure */ = {
 			isa = PBXGroup;
 			children = (
+				D59776676FF904C0F7ED6E0B /* AppleCoreSpotlightIndexer.swift */,
 				1B3E3F671A11F7C858663F79 /* BSDGatewayProbingAdapter.swift */,
 				13D231D06024AFEC9FAAB47A /* GeminiConnectionBoosterService.swift */,
 				D0DC1060C91FAA2456F23ADD /* LocalNetworkTelemetrySnapshot.swift */,
@@ -1042,6 +1150,7 @@
 			children = (
 				D6651525B32C6ADE84EB6690 /* CheckCompletoResultDomainTests.swift */,
 				EFBB3CF9C358156CE862B40D /* DeepCheckEvaluatorTests.swift */,
+				CB62150BD806EAABAD9ED0DC /* DeepLinkParserTests.swift */,
 				840852A30063DBC03846AAFF /* EvidenceRecommendationEngineTests.swift */,
 				3998CA61AC6C02C3CC88B332 /* GameContextTests.swift */,
 				99515BA7218611212D69163D /* GameEditorialStructuralTests.swift */,
@@ -1079,6 +1188,7 @@
 		CDA9E9EBA3E62E559F57D6F2 = {
 			isa = PBXGroup;
 			children = (
+				40AFBA72068E2AF4B5BCC631 /* LagCheckClip */,
 				8005672EE99EDBEF9C52FEF1 /* LagCheckWidget */,
 				297535453A23EB4239DBA050 /* NolaggyApp */,
 				E405F79904B482CAF27B9358 /* NolaggyApplication */,
@@ -1133,6 +1243,7 @@
 				371D911C14391E13D433C476 /* RegionalPreReadCoordinator.swift */,
 				70B5F324554E44A25BEC38DE /* RegionalSelection.swift */,
 				B4C24E9C9A3F44072F1D5E9F /* RootCauseCoordinator.swift */,
+				F3C05C4D81C9F42993C7887D /* SpotlightIndexCoordinator.swift */,
 				5AE9827F20DE833BFFD97A19 /* VocabularyGuardrail.swift */,
 				DD37CEA60B6929F1794F9C64 /* Analytics */,
 			);
@@ -1176,6 +1287,7 @@
 			children = (
 				3A73719161EFC233AFF86CC6 /* CheckCompletoResultDomain.swift */,
 				43E2684233EE42AF305A7475 /* DeepCheckEvaluator.swift */,
+				F4A2F18A69EEBBDBD2FE5FD6 /* DeepLinkParser.swift */,
 				E27CBC7E0DF1DB45CD88C8FB /* EvidenceRecommendationEngine.swift */,
 				E8BD112C975F0E3A22FAA9E4 /* GameContext.swift */,
 				F3D81BC495C6923FCD1A2BFB /* GameEditorialModels.swift */,
@@ -1198,6 +1310,7 @@
 				5B78380B56CF8B9B43AC714F /* RootCauseIsolationModels.swift */,
 				D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */,
 				774F31FC6FBC0149A0EECCC6 /* SpikePatternEvaluator.swift */,
+				EBE40653F41DDB4ABB73538A /* SpotlightIndexingModels.swift */,
 				2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */,
 				F4870DD520C0495C414DF0AD /* WidgetTelemetrySnapshot.swift */,
 				B827CA828F03CFEE6056D955 /* WiFiBandEvaluator.swift */,
@@ -1254,6 +1367,7 @@
 				41F095878D7C4E4E5A46D760 /* Resources */,
 				1F0DDCD0EE82A62B656C3E65 /* Frameworks */,
 				B3D2433BD684D4199F566FAD /* Embed Foundation Extensions */,
+				4312203B408F89ED9F55EFC0 /* Embed App Clips */,
 				C6A8BC9849A3C5DFACCECD8D /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -1264,6 +1378,7 @@
 				6104CA20F68E85360EA97FE2 /* PBXTargetDependency */,
 				5C149C4C1AC1FDDB313C1005 /* PBXTargetDependency */,
 				0125C1D2E47C314F3399311B /* PBXTargetDependency */,
+				B9C17572FB538B942DD46ED6 /* PBXTargetDependency */,
 			);
 			name = Nolaggy;
 			packageProductDependencies = (
@@ -1309,6 +1424,29 @@
 			productName = NolaggyDomain;
 			productReference = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */;
 			productType = "com.apple.product-type.framework";
+		};
+		9B241CE0A133779C7DA27479 /* LagCheckClip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56772D62E062E44761ABB897 /* Build configuration list for PBXNativeTarget "LagCheckClip" */;
+			buildPhases = (
+				FB8A7BEEBF0BBFD0229B9230 /* Sources */,
+				2FF68D7969C6196DE3BCF307 /* Frameworks */,
+				B5EFCE36CB63AAE88A7A9489 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				93BA5880F43C1480AD86739C /* PBXTargetDependency */,
+				E1140CAABC93DEA8A3160C2B /* PBXTargetDependency */,
+				9A2A181F164951DF112ECE95 /* PBXTargetDependency */,
+				32F9DACC4F2D94082AEB871E /* PBXTargetDependency */,
+			);
+			name = LagCheckClip;
+			packageProductDependencies = (
+			);
+			productName = LagCheckClip;
+			productReference = 10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */;
+			productType = "com.apple.product-type.application.on-demand-install-capable";
 		};
 		9D42F4F9D30CA975F16FF22E /* NolaggyDesign */ = {
 			isa = PBXNativeTarget;
@@ -1450,6 +1588,9 @@
 					977B24420EFA0CF9AC2CDB8A = {
 						DevelopmentTeam = 2Z4T8228GR;
 					};
+					9B241CE0A133779C7DA27479 = {
+						DevelopmentTeam = 2Z4T8228GR;
+					};
 					9D42F4F9D30CA975F16FF22E = {
 						DevelopmentTeam = 2Z4T8228GR;
 					};
@@ -1493,6 +1634,7 @@
 				C316F4E1179C4992B70BDDFF /* NolaggyInfrastructure */,
 				710B596642BB56134731CBC9 /* Nolaggy */,
 				90DA5F4E9BA8BB24C9CDDA66 /* LagCheckWidget */,
+				9B241CE0A133779C7DA27479 /* LagCheckClip */,
 				370BE12F4364441FC0A9B873 /* NolaggyDomainTests */,
 				9F8C775EA2EBDCF8EDCE0D26 /* NolaggyApplicationTests */,
 				A5B50BA102B615C964BBFA6C /* NolaggyInfrastructureTests */,
@@ -1535,6 +1677,7 @@
 			files = (
 				5583BCC417E354E8E3FB5BAF /* CheckCompletoResultDomain.swift in Sources */,
 				CA0C14D0E25C97DE8FC7203F /* DeepCheckEvaluator.swift in Sources */,
+				7F8D757539FF4A05156339CD /* DeepLinkParser.swift in Sources */,
 				24AE5E26CBB6E05FE8735B7E /* EvidenceRecommendationEngine.swift in Sources */,
 				A95FC70642D978F9C6ECD07E /* GameContext.swift in Sources */,
 				D28C3DD217EB1604C569D557 /* GameEditorialModels.swift in Sources */,
@@ -1557,6 +1700,7 @@
 				3FF81951C1E91E7616696C86 /* RootCauseIsolationModels.swift in Sources */,
 				35245537BBB3687D50D12555 /* SampleQualityEvaluator.swift in Sources */,
 				2AFA4A5ED0013FE4B3055553 /* SpikePatternEvaluator.swift in Sources */,
+				11C459006635A8D84820BCA3 /* SpotlightIndexingModels.swift in Sources */,
 				35F4353CA22B4C05AECFFF61 /* VoiceChatSuitabilityEvaluator.swift in Sources */,
 				5586208A1B34CA1350627917 /* WiFiBandEvaluator.swift in Sources */,
 				943428C7497403D7D197D225 /* WiFiBandModels.swift in Sources */,
@@ -1722,6 +1866,7 @@
 				441F03754BBD8B518F1CFED9 /* RegionalPreferenceRepository.swift in Sources */,
 				19E3590D6C3ACC4C59102541 /* RegionalSelection.swift in Sources */,
 				7C6ECF02F418213E4A033F81 /* RootCauseCoordinator.swift in Sources */,
+				649D8FABCDF5B561FD7F3C21 /* SpotlightIndexCoordinator.swift in Sources */,
 				43EF4A4C941813F3F4727F45 /* VocabularyGuardrail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1730,6 +1875,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BA10A96F1ADF42C38A5E875F /* AppleCoreSpotlightIndexer.swift in Sources */,
 				114795F4F8A8D751E0829001 /* BSDGatewayProbingAdapter.swift in Sources */,
 				DE8C97A67F68C8AED2F58319 /* CloudflareWorkerAnalyticsTracker.swift in Sources */,
 				3B31CDB545967A75FDCCAB53 /* DirectPlatformHealthClient.swift in Sources */,
@@ -1764,6 +1910,7 @@
 			files = (
 				7E3F13C78AF62B9C343D1C1D /* CheckCompletoResultDomainTests.swift in Sources */,
 				1DB9115D9DBDE15EB7BA8E5F /* DeepCheckEvaluatorTests.swift in Sources */,
+				2F9C335D5885F17D281E5AAA /* DeepLinkParserTests.swift in Sources */,
 				76BD76221D8C0F346EC27C34 /* EvidenceRecommendationEngineTests.swift in Sources */,
 				075611EAE3A79B2102035735 /* GameContextTests.swift in Sources */,
 				9D61C9DC0AA42FFEBA7E99BC /* GameEditorialStructuralTests.swift in Sources */,
@@ -1788,6 +1935,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FB8A7BEEBF0BBFD0229B9230 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				87772B2FB8B0FA0BAD4158A9 /* LagCheckClip.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1800,6 +1955,11 @@
 			isa = PBXTargetDependency;
 			target = 977B24420EFA0CF9AC2CDB8A /* NolaggyDomain */;
 			targetProxy = 10000D3ED1DE3BE50F61BBFE /* PBXContainerItemProxy */;
+		};
+		32F9DACC4F2D94082AEB871E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C316F4E1179C4992B70BDDFF /* NolaggyInfrastructure */;
+			targetProxy = FE65D692121956922AEE4067 /* PBXContainerItemProxy */;
 		};
 		36A28D76A8C8A3E336920495 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1851,6 +2011,16 @@
 			target = 977B24420EFA0CF9AC2CDB8A /* NolaggyDomain */;
 			targetProxy = D61E8C86E01076A84AAECBCC /* PBXContainerItemProxy */;
 		};
+		93BA5880F43C1480AD86739C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 977B24420EFA0CF9AC2CDB8A /* NolaggyDomain */;
+			targetProxy = EC445863B4A4CD8B9D59D75B /* PBXContainerItemProxy */;
+		};
+		9A2A181F164951DF112ECE95 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CB67DCD845BB4C0A71001683 /* NolaggyApplication */;
+			targetProxy = B5A888D099AD9DF4250E1AED /* PBXContainerItemProxy */;
+		};
 		A4BCA929D2E63B4EEC70AFBD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C316F4E1179C4992B70BDDFF /* NolaggyInfrastructure */;
@@ -1860,6 +2030,11 @@
 			isa = PBXTargetDependency;
 			target = C316F4E1179C4992B70BDDFF /* NolaggyInfrastructure */;
 			targetProxy = D4F0C89896425B987398F59C /* PBXContainerItemProxy */;
+		};
+		B9C17572FB538B942DD46ED6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B241CE0A133779C7DA27479 /* LagCheckClip */;
+			targetProxy = B28C89F81F0582A89857C387 /* PBXContainerItemProxy */;
 		};
 		BF7E890FEA6BAD4EF7F9342A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1875,6 +2050,11 @@
 			isa = PBXTargetDependency;
 			target = 710B596642BB56134731CBC9 /* Nolaggy */;
 			targetProxy = C600BD8988F3F01D912BE846 /* PBXContainerItemProxy */;
+		};
+		E1140CAABC93DEA8A3160C2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9D42F4F9D30CA975F16FF22E /* NolaggyDesign */;
+			targetProxy = 631D7204BD05D3361440E245 /* PBXContainerItemProxy */;
 		};
 		F24667149F8C9D234C122A6B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2288,6 +2468,27 @@
 			};
 			name = Debug;
 		};
+		DB9A8BDA84C0B661F1C5C627 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Sources/LagCheckClip/LagCheckClip.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "LagCheck Clip";
+				INFOPLIST_KEY_CFBundleName = "LagCheck Clip";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lagcheck.app.Clip;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		E171A7FABA3C8A1EDAC6E8EA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2395,6 +2596,27 @@
 			};
 			name = Debug;
 		};
+		E769AF674BAD5F90F6D97B94 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Sources/LagCheckClip/LagCheckClip.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "LagCheck Clip";
+				INFOPLIST_KEY_CFBundleName = "LagCheck Clip";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lagcheck.app.Clip;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		E7DC7C44E1A76791A55DDDC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2486,6 +2708,15 @@
 			buildConfigurations = (
 				E5109FBECDF8356FD01B8A86 /* Debug */,
 				393DF75EF5F6AE3C2B1F4811 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		56772D62E062E44761ABB897 /* Build configuration list for PBXNativeTarget "LagCheckClip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB9A8BDA84C0B661F1C5C627 /* Debug */,
+				E769AF674BAD5F90F6D97B94 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

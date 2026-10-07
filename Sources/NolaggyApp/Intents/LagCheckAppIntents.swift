@@ -72,8 +72,12 @@ public struct LagCheckShortcutsProvider: AppShortcutsProvider {
                 "Testar conexão no \(.applicationName)",
                 "Medir rede no \(.applicationName)",
                 "Iniciar teste no \(.applicationName)",
+                "Checar ranked no \(.applicationName)",
                 "Test connection in \(.applicationName)",
-                "Check ping in \(.applicationName)"
+                "Check ping in \(.applicationName)",
+                "Check ranked in \(.applicationName)",
+                "Probar conexión en \(.applicationName)",
+                "Verificar ping en \(.applicationName)"
             ],
             shortTitle: "Testar Conexão",
             systemImageName: "speedometer"
