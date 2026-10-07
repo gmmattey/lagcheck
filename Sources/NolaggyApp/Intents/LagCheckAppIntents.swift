@@ -22,6 +22,11 @@ public struct StartQuickCheckIntent: AppIntent {
     }
 }
 
+/// Alias oficial conforme Architecture Plan §4.3 e Decisão 75 para widgets e atalhos rápidos.
+@available(iOS 17.0, *)
+public typealias RunQuickCheckIntent = StartQuickCheckIntent
+
+
 /// Ação nativa do app Atalhos: Abre o Cockpit de Dados da Rede no LagCheck (Decisão 56).
 @available(iOS 17.0, *)
 public struct OpenNetworkCockpitIntent: AppIntent {

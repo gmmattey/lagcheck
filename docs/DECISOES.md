@@ -77,6 +77,8 @@
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 | [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
 | [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
+| [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Em implementação)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
+
 
 
 ---
@@ -517,6 +519,40 @@
   - Metadados ASO prontos para submissão;
   - Card esportivo com renderização `< 200ms` sem travamento de UI;
   - Vetores unitários de Bufferbloat verdes em `NolaggyDomainTests`.
+
+### Decisão 75
+
+- **Data:** 6 de outubro de 2026.
+- **Título:** Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping Real por Datacenter, Isolador de Causa Raiz e Widgets Interativos iOS 17.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer / Gate Arquitetural), Iury (Network & Edge Systems), Rian (iOS), Renan (Design System & Dark Competitive UI), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:** Após a aprovação da Fase 1 (Card Viral Discord, ASO e Bufferbloat Score), o LagCheck inicia a **Fase 2 (P1)** focada em diferenciação técnica inatacável e retenção diária pré-jogo. A proposta resolve 3 dores centrais dos jogadores competitivos:
+  1. *Onde o ping está sendo medido?* Provar rotas e datacenters reais (AWS GameLift, PlayFab QoS, Valve A2S e status oficial Riot) com total conformidade de termos de serviço, sem promessas não comprovadas de IPs de matchmaking fechado.
+  2. *De quem é a culpa pelo lag?* Expor de forma limpa, esportiva e sem rodeios os 3 probes determinísticos (Gateway Local Wi-Fi, Rota da Operadora via Anycast neutro e Status de Plataforma do jogo), cumprindo estritamente a Decisão 50 (proibido acusar provedor ou Wi-Fi sem evidência comprovada).
+  3. *Ritual diário pré-game:* Widgets interativos no iOS 17+ (Lock Screen e Home) lendo telemetria real do último snapshot via App Group compartilhado com ação em 1 toque, sem dados fictícios ou estáticos inventados ("Nunca uma nota inventada").
+- **Decisão:**
+  1. **Ping Real por Datacenter & Rotas Ativas (Item 4):**
+     - O catálogo remoto assinado Ed25519 (`v3`) consolida clusters de alta fidelidade para as regiões ativas (ex: `sa-east-1` AWS, Azure PlayFab SP, Valve CS2 SP).
+     - Rota própria com A2S ou PlayFab é selecionada quando há autorização e driver compatível no binário; quando não há, o app utiliza a rota de referência regional neutra da AWS e rotula claramente como *"rota de referência na região"* com confiança média, nunca mentindo que é o IP da partida.
+  2. **Isolador de Causa Raiz ("De Quem é a Culpa?") (Item 5):**
+     - Formalização do modelo imutável de domínio `RootCauseIsolationReport` com paridade 1:1 Swift/Kotlin.
+     - **Critérios de Atribuição com Evidência:**
+       - *Wi-Fi / Rede Local:* RTT medido até o gateway real da tabela de rotas do sistema $> 15\text{ ms}$ ou perda local de pacotes comprovada. Se o roteador não responde (firewall local), o status é estritamente `unobservable` e o app reporta *"Gateway não observável (sem evidência local)"*, jamais culpando o Wi-Fi.
+       - *Operadora / WAN:* Gateway local excelente ($\le 5\text{ ms}$, zero perda), mas rota Anycast externa ou destino com jitter alto, perda ou oscilações severas.
+       - *Servidores / Plataforma:* Resposta oficial degradada obtida em consulta direta e sem custo aos CDNs oficiais (PSN, Xbox Live, Nintendo, Riot Status).
+       - *Tudo Limpo:* Todos os 3 probes verdes $\rightarrow$ Conexão pronta e liberada para Ranked.
+  3. **Widgets Interativos & Lock Screen iOS 17+ (Item 6):**
+     - Adição do target de extensão `LagCheckWidget` configurado com App Group `group.com.lagcheck.app`.
+     - Compartilhamento seguro do último snapshot de medição (`WidgetTelemetrySnapshot`) gravado em UserDefaults compartilhado após cada medição real concluída.
+     - **Regra "Zero Mock / Nunca uma Nota Inventada":** Se o widget não encontrar um snapshot válido no container ou se o snapshot tiver idade superior a 4 horas (expirado do ponto de vista competitivo), ele exibe o estado neutro de radar sem sinal com a mensagem *"Sem check recente"* e convite *"Toque para medir"*.
+     - App Intent `RunQuickCheckIntent` para acionamento direto em 1 toque.
+  4. **Paridade Multiplataforma (Decisões 67 e 68):**
+     - Toda a lógica de classificação de causa raiz e regras de validação é portada para `:core:domain` no Android, mantendo suítes de testes unitários verdes em ambas as plataformas.
+- **Critérios de validação e aceite:**
+  - Architecture Plan de Camillo aprovado antes de alterar código dos targets;
+  - Testes unitários puros no `NolaggyDomainTests` e `:core:domain:test` cobrindo todos os cenários da causa raiz;
+  - Widget renderizando estados vazios, válidos e expirados sem dados estáticos inventados;
+  - Build limpo e suítes de testes passando no Xcode e Gradle.
 
 ## Como Registrar Novas Decisões
 

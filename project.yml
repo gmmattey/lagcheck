@@ -71,6 +71,7 @@ targets:
       - target: NolaggyDomain
       - target: NolaggyApplication
       - target: NolaggyInfrastructure
+      - target: LagCheckWidget
       - sdk: AppIntents.framework
     sources:
       - path: Sources/NolaggyApp
@@ -100,6 +101,7 @@ targets:
         INFOPLIST_KEY_NolaggySupportURL: "$(LAGCHECK_SUPPORT_URL)"
         INFOPLIST_KEY_NolaggyPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
         PRIVACY_MANIFEST_FILE: Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy
+        CODE_SIGN_ENTITLEMENTS: Sources/NolaggyApp/Nolaggy.entitlements
     info:
       path: Sources/NolaggyApp/Info.plist
       properties:
@@ -107,6 +109,26 @@ targets:
           - CFBundleURLName: com.lagcheck.app
             CFBundleURLSchemes:
               - lagcheck
+  LagCheckWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    dependencies:
+      - target: NolaggyDomain
+      - target: NolaggyDesign
+      - target: NolaggyInfrastructure
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    sources:
+      - path: Sources/LagCheckWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lagcheck.app.widget
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "LagCheck Widget"
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "2"
+        CODE_SIGN_ENTITLEMENTS: Sources/LagCheckWidget/LagCheckWidget.entitlements
   NolaggyDomainTests:
     type: bundle.unit-test
     platform: iOS

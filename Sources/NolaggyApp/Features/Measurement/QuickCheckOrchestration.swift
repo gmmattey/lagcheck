@@ -171,11 +171,34 @@ extension QuickCheckFeatureView {
                     completedEntry = entry
                     partialSamples = await coordinator.completedProbeSamples()
                     await loadHistory()
+
+                    // Decisão 75 (Fase 2 / Item 6): Gravação do snapshot real para Widgets iOS 17
+                    if let verdict = entry.readinessVerdict, verdict != .inconclusive,
+                       let p50 = entry.result.metrics.p50Milliseconds, p50 > 0 {
+                        let name = gameName(for: entry)
+                        let isPt = AppLocalization.locale.identifier.lowercased().hasPrefix("pt")
+                        let region = GlobalProbeRegistry.friendlyLabel(for: entry.resolvedContext.regionID, isPortuguese: isPt)
+                        let widgetSnapshot = WidgetTelemetrySnapshot(
+                            gameID: entry.resolvedContext.context.gameID,
+                            gameName: name,
+                            regionLabel: region,
+                            verdict: verdict,
+                            rttMedianMs: p50,
+                            jitterMs: entry.result.metrics.jitterMilliseconds ?? 0.0,
+                            packetLossPercentage: entry.result.metrics.packetLossPercentage,
+                            bufferbloatGrade: entry.deepCheck?.metrics.loadImpact?.bufferbloatGrade.rawValue,
+                            capturedAt: Date()
+                        )
+                        SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                    }
+
+
                 }
                 presentation = next
                 return
             }
             try? await Task.sleep(for: .milliseconds(100))
+
         }
     }
 

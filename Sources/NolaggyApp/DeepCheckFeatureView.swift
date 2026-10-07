@@ -451,6 +451,26 @@ struct DeepCheckFeatureView: View {
             let entry = MeasurementHistoryEntry.completedDeepCheck(resolvedContext: activeContext, result: result)
             let completedSamples = samples.isEmpty ? restSamples : samples
             onMeasurementCompleted?(completedSamples, entry)
+
+            // Decisão 75 (Fase 2 / Item 6): Gravação do snapshot real para Widgets iOS 17
+            // Apenas grava quando o veredito for conclusivo e houver medição de latência válida
+            if let verdict = entry.readinessVerdict, verdict != .inconclusive,
+               let p50 = result.restResult.metrics.p50Milliseconds, p50 > 0 {
+                let widgetSnapshot = WidgetTelemetrySnapshot(
+                    gameID: activeContext.context.gameID,
+                    gameName: gameName,
+                    regionLabel: friendlyRegion,
+                    verdict: verdict,
+                    rttMedianMs: p50,
+                    jitterMs: result.restResult.metrics.jitterMilliseconds ?? 0.0,
+                    packetLossPercentage: result.restResult.metrics.packetLossPercentage,
+                    bufferbloatGrade: result.metrics.loadImpact?.bufferbloatGrade.rawValue,
+                    capturedAt: Date()
+                )
+                SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+            }
+
+
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true
                 let duration = measurementStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
@@ -463,6 +483,7 @@ struct DeepCheckFeatureView: View {
                     durationSeconds: duration
                 ))
             }
+
         case .completed:
             presentation = .inconclusive
             if !hasTrackedTerminalEvent {

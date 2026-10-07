@@ -29,3 +29,9 @@ public enum GatewayProbeOutcome: Codable, Hashable, Sendable {
         }
     }
 }
+
+/// Protocolo abstrato de sondagem do gateway local (Decisões 50 e 75).
+public protocol GatewayProbing: Sendable {
+    func probeGateway() async -> GatewayProbeOutcome
+}
+
