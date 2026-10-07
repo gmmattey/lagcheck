@@ -79,6 +79,7 @@
 | [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
 | [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Aprovada)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [76](#decisão-76) | Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events, Spotlight Search & Siri Shortcuts, e App Clip Instantâneo | **Vigente (Em implementação)** | CoreSpotlight, App Shortcuts por voz/busca, deeplinks dinâmicos de jogo e App Clip leve (<15MB) | Marco / Camillo / Rian / Renan / Breno / Luiz |
+| [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
 
 
 
@@ -588,6 +589,32 @@
   - Deeplinks de jogos direcionando e acionando o teste correto;
   - Target `LagCheckClip` e `Nolaggy` compilando sem erros no Xcode;
   - Auditoria independente via Claude Code CLI aprovada antes do commit.
+
+### Decisão 77
+
+- **Data:** 7 de outubro de 2026.
+- **Título:** Sistema Unificado de Avaliação In-App (Apple StoreKit & Google Play In-App Review) com Gatilho Determinístico de Delight e Paridade Multiplataforma.
+- **Status Atual:** **Vigente (Execução).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer transversal), Rian (iOS / StoreKit), Renan (Product Designer / HIG & UX), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:**
+  A avaliação nas lojas de aplicativos (App Store e Google Play) é peça fundamental para a estratégia de crescimento orgânico e ASO (Decisão 74). No entanto, o jogador competitivo em lobby de jogo tem tolerância zero para interrupções ou pop-ups invasivos. Se um prompt de avaliação for disparado após uma medição com rota instável (`.caution`), rota ruim (`.avoid`) ou falha inconclusiva, o usuário é induzido a registrar uma avaliação negativa de 1 estrela por frustração com sua própria operadora. Além disso, modais apelativos ("Você está gostando do app?") violam a diretriz de design *"Zero Cara de IA / Gamer Não Lê"* (Decisão 64) e as diretrizes oficiais de avaliação da Apple e Google.
+- **Decisão:**
+  1. **Política de Elegibilidade e Gatilho de Delight (`ReviewPromptPolicy`):**
+     - O prompt só pode ser disparado quando o resultado da medição for estritamente **`● PRONTO PARA RANKED` (`.ready` / `READY_FOR_RANKED`)**.
+     - É terminantemente proibido disparar ou computar elegibilidade em vereditos `.caution`, `.avoid` ou `.inconclusive`.
+     - Exige acúmulo de pelo menos **3 medições completas com veredito positivo** (`.ready`).
+     - Intervalo mínimo de cooldown de **90 dias** entre solicitações exibidas.
+     - Limite de no máximo **1 solicitação por versão/build** do aplicativo.
+  2. **Experiência Visual & Não Interrupção:**
+     - Nenhum pre-prompt customizado ("Rate Us" / "Gostou do app?"). O app aciona exclusivamente a caixa de diálogo nativa oficial do sistema operacional.
+     - Transição suave com debounce de 1.5s após a conclusão da medição e estabilização dos dados na tela de resultado.
+  3. **Paridade Multiplataforma (iOS ⇄ Android):**
+     - No iOS: `AppStoreReviewCoordinator` e `ReviewPromptPolicy` em `NolaggyApplication`, acionando `StoreKit` (`requestReview`) em `DeepCheckFeatureView`. Excluído expressamente do `LagCheckClip` (App Clip).
+     - No Android: `ReviewPromptPolicy` em `:core:domain`, coordenador em `:core:session` e acionador da Google Play In-App Review API (`ReviewManager`) em `:app`.
+     - Persistência desacoplada dos contadores (`UserDefaults` no iOS, `SharedPreferences` no Android).
+  4. **Critérios de Validação e Aceite:**
+     - Testes unitários puros no iOS e Android validando os cenários: bloqueio com veredito ruim, bloqueio com menos de 3 checks, liberação no 3º check positivo, e bloqueio por cooldown/versão.
+     - Paridade determinística mantida sem regressões nas suítes existentes.
 
 ## Como Registrar Novas Decisões
 

@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -122,6 +123,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
+    private val reviewPromptStore = com.lagcheck.android.data.PreferencesReviewPromptStore(application)
+    private val reviewPromptCoordinator = com.lagcheck.session.ReviewPromptCoordinator(
+        store = reviewPromptStore,
+        appVersionProvider = {
+            try {
+                application.packageManager.getPackageInfo(application.packageName, 0).versionName ?: "1.0.0"
+            } catch (_: Exception) {
+                "1.0.0"
+            }
+        }
+    )
+    private val _reviewPromptTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
+    val reviewPromptTrigger: kotlinx.coroutines.flow.SharedFlow<Unit> = _reviewPromptTrigger.asSharedFlow()
 
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -478,6 +492,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
                     historyRepository.recordCheck(targetGame, evaluation)
                 }
+
+                // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
+                // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e debounce suave de 1.5s
+                if (evaluation.verdict == GameReadinessVerdict.READY) {
+                    val shouldPrompt = reviewPromptCoordinator.recordMeasurementCompleted(GameReadinessVerdict.READY)
+                    if (shouldPrompt) {
+                        viewModelScope.launch {
+                            kotlinx.coroutines.delay(1500)
+                            _reviewPromptTrigger.emit(Unit)
+                        }
+                    }
+                }
+
                 telemetry.verdictViewed(targetGame.id, platformEnum, evaluation.verdict)
                 _currentScreen.value = Screen.Verdict(targetGame, evaluation)
             } finally {

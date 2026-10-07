@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
@@ -8,6 +9,7 @@ struct DeepCheckFeatureView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.requestReview) private var requestReview
     @State private var presentation: Presentation = .intro
     @State private var samples: [ProbeSample] = []
     @State private var restSamples: [ProbeSample] = []
@@ -26,6 +28,7 @@ struct DeepCheckFeatureView: View {
     private let gameName: String
     private let historyRepository: any MeasurementHistoryRepository
     private let analyticsTracker: any AnalyticsTracker
+    private let reviewPromptCoordinator: ReviewPromptCoordinator
     private let usesFixture: Bool
     private let autoStart: Bool
     private let onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)?
@@ -35,6 +38,7 @@ struct DeepCheckFeatureView: View {
         gameName: String,
         historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
         analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker(),
+        reviewPromptCoordinator: ReviewPromptCoordinator = ReviewPromptCoordinator(),
         autoStart: Bool = true,
         onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)? = nil
     ) {
@@ -42,6 +46,7 @@ struct DeepCheckFeatureView: View {
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.analyticsTracker = analyticsTracker
+        self.reviewPromptCoordinator = reviewPromptCoordinator
         self.autoStart = autoStart
         self.onMeasurementCompleted = onMeasurementCompleted
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
@@ -470,6 +475,16 @@ struct DeepCheckFeatureView: View {
                 SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
             }
 
+            // Decisão 77: Sistema Unificado de Avaliação In-App (Apple StoreKit)
+            // Disparo de delight oportuno: estritamente veredito .ready, 3 checks acumulados e debounce suave de 1.5s
+            if let verdict = entry.readinessVerdict, verdict == .ready {
+                if reviewPromptCoordinator.recordMeasurementCompleted(verdict: verdict) {
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(1500))
+                        requestReview()
+                    }
+                }
+            }
 
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true

@@ -90,6 +90,13 @@ class MainActivity : ComponentActivity() {
             val platformHealth by viewModel.platformHealth.collectAsState()
             val favorites by viewModel.favorites.collectAsState()
 
+            // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                viewModel.reviewPromptTrigger.collect {
+                    launchPlayReviewFlow()
+                }
+            }
+
             // Back button handling nativo conforme a tela
             BackHandler(enabled = currentScreen !is Screen.Home) {
                 when (val screen = currentScreen) {
@@ -365,6 +372,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+    private fun launchPlayReviewFlow() {
+        try {
+            val manager = com.google.android.play.core.review.ReviewManagerFactory.create(this)
+            val request = manager.requestReviewFlow()
+            request.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val reviewInfo = task.result
+                    manager.launchReviewFlow(this, reviewInfo)
+                }
+            }
+        } catch (_: Exception) {
+            // Degradação silenciosa em emulador ou sem Play Services
+        }
+    }
 }
 
 @androidx.compose.runtime.Composable
