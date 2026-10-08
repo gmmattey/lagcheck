@@ -44,6 +44,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -122,6 +124,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
+    private val reviewPromptStore = com.lagcheck.android.data.PreferencesReviewPromptStore(application)
+    private val reviewPromptCoordinator = com.lagcheck.session.ReviewPromptCoordinator(
+        store = reviewPromptStore,
+        appVersionProvider = {
+            try {
+                application.packageManager.getPackageInfo(application.packageName, 0).versionName ?: "1.0.0"
+            } catch (_: Exception) {
+                "1.0.0"
+            }
+        }
+    )
+    private val _reviewPromptTrigger = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.BUFFERED)
+    val reviewPromptTrigger: kotlinx.coroutines.flow.Flow<Unit> = _reviewPromptTrigger.receiveAsFlow()
+    private var reviewPromptJob: Job? = null
 
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -244,6 +260,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         runCatching { catalogRepository.loadedCatalogForLaunch().payload }.getOrNull()
 
     fun navigateTo(screen: Screen) {
+        reviewPromptJob?.cancel()
+        reviewPromptJob = null
         com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(
             screen is Screen.Home || screen is Screen.GameSelection || screen is Screen.History
         )
@@ -478,6 +496,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
                     historyRepository.recordCheck(targetGame, evaluation)
                 }
+
+                // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
+                // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e cancelável se sair da tela/background
+                if (evaluation.verdict == GameReadinessVerdict.READY) {
+                    val shouldPrompt = reviewPromptCoordinator.recordMeasurementCompleted(GameReadinessVerdict.READY)
+                    if (shouldPrompt) {
+                        reviewPromptJob?.cancel()
+                        reviewPromptJob = viewModelScope.launch {
+                            kotlinx.coroutines.delay(1500)
+                            if (_currentScreen.value is Screen.Verdict) {
+                                reviewPromptCoordinator.recordPromptPresented()
+                                _reviewPromptTrigger.send(Unit)
+                            }
+                        }
+                    }
+                }
+
                 telemetry.verdictViewed(targetGame.id, platformEnum, evaluation.verdict)
                 _currentScreen.value = Screen.Verdict(targetGame, evaluation)
             } finally {
@@ -497,6 +532,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Fechar o app ou ir para segundo plano durante a medição descarta o resultado parcial. */
     fun onAppBackgrounded() {
+        reviewPromptJob?.cancel()
+        reviewPromptJob = null
         val screen = _currentScreen.value
         if (screen is Screen.Measurement && !screen.isCancelled && !screen.showMobileDataConsent) {
             measurementJob?.cancel()

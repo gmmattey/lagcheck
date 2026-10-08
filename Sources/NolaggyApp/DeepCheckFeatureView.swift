@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
@@ -8,6 +9,7 @@ struct DeepCheckFeatureView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.requestReview) private var requestReview
     @State private var presentation: Presentation = .intro
     @State private var samples: [ProbeSample] = []
     @State private var restSamples: [ProbeSample] = []
@@ -18,6 +20,7 @@ struct DeepCheckFeatureView: View {
     @State private var hasCellularConsent = false
     @State private var measurementStartTime: Date?
     @State private var hasTrackedTerminalEvent = false
+    @State private var reviewPromptTask: Task<Void, Never>?
     @State private var displayProgress: Double = 0.04
 
     @State private var activeContext: ResolvedMeasurementContext
@@ -26,6 +29,7 @@ struct DeepCheckFeatureView: View {
     private let gameName: String
     private let historyRepository: any MeasurementHistoryRepository
     private let analyticsTracker: any AnalyticsTracker
+    private let reviewPromptCoordinator: ReviewPromptCoordinator
     private let usesFixture: Bool
     private let autoStart: Bool
     private let onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)?
@@ -35,6 +39,7 @@ struct DeepCheckFeatureView: View {
         gameName: String,
         historyRepository: any MeasurementHistoryRepository = NoopMeasurementHistoryRepository(),
         analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker(),
+        reviewPromptCoordinator: ReviewPromptCoordinator = ReviewPromptCoordinator(),
         autoStart: Bool = true,
         onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)? = nil
     ) {
@@ -42,6 +47,7 @@ struct DeepCheckFeatureView: View {
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.analyticsTracker = analyticsTracker
+        self.reviewPromptCoordinator = reviewPromptCoordinator
         self.autoStart = autoStart
         self.onMeasurementCompleted = onMeasurementCompleted
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
@@ -89,11 +95,19 @@ struct DeepCheckFeatureView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                reviewPromptTask?.cancel()
+                reviewPromptTask = nil
+            }
             guard phase == .background else { return }
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
                 await refreshState()
             }
+        }
+        .onDisappear {
+            reviewPromptTask?.cancel()
+            reviewPromptTask = nil
         }
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
@@ -470,9 +484,23 @@ struct DeepCheckFeatureView: View {
                 SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
             }
 
-
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true
+
+                // Decisão 77: Sistema Unificado de Avaliação In-App (Apple StoreKit)
+                // Disparo de delight oportuno: executado estritamente 1 vez por sessão concluída (idempotência),
+                // apenas em veredito .ready, 3 checks acumulados e cancelável se a tela for fechada ou entrar em background
+                if let verdict = entry.readinessVerdict, verdict == .ready {
+                    if reviewPromptCoordinator.recordMeasurementCompleted(verdict: verdict) {
+                        reviewPromptTask = Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(1500))
+                            guard !Task.isCancelled, scenePhase == .active else { return }
+                            reviewPromptCoordinator.recordPromptPresented()
+                            requestReview()
+                        }
+                    }
+                }
+
                 let duration = measurementStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
                 analyticsTracker.track(.lagcheckCompleted(
                     gameID: activeContext.context.gameID,
