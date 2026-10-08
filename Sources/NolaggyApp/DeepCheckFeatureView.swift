@@ -495,6 +495,7 @@ struct DeepCheckFeatureView: View {
                         reviewPromptTask = Task { @MainActor in
                             try? await Task.sleep(for: .milliseconds(1500))
                             guard !Task.isCancelled, scenePhase == .active else { return }
+                            reviewPromptCoordinator.recordPromptPresented()
                             requestReview()
                         }
                     }

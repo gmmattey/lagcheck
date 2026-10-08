@@ -32,6 +32,11 @@ final class ReviewPromptCoordinatorTests: XCTestCase {
         let p3 = coordinator.recordMeasurementCompleted(verdict: .ready, now: baseDate)
         XCTAssertTrue(p3)
         XCTAssertEqual(coordinator.currentState().successfulReadyChecksCount, 3)
+        // Antes de apresentar, ainda não gravou versão/data para não queimar cooldown prematuramente
+        XCTAssertNil(coordinator.currentState().lastPromptedVersion)
+
+        // UI apresenta o diálogo com sucesso:
+        coordinator.recordPromptPresented(now: baseDate)
         XCTAssertEqual(coordinator.currentState().lastPromptedVersion, "1.0.0")
         XCTAssertEqual(coordinator.currentState().lastPromptedDate, baseDate)
 
@@ -48,6 +53,7 @@ final class ReviewPromptCoordinatorTests: XCTestCase {
         coordinator1.recordMeasurementCompleted(verdict: .ready, now: baseDate)
         coordinator1.recordMeasurementCompleted(verdict: .ready, now: baseDate)
         XCTAssertTrue(coordinator1.recordMeasurementCompleted(verdict: .ready, now: baseDate))
+        coordinator1.recordPromptPresented(now: baseDate)
 
         // Nova instância do coordinator simulando relançamento do app com o mesmo store
         let coordinator2 = ReviewPromptCoordinator(store: store, appVersionProvider: { version })

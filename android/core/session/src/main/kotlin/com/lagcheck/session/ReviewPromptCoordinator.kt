@@ -55,15 +55,24 @@ class ReviewPromptCoordinator(
             currentEpochMillis = nowEpochMillis
         )
 
-        if (shouldPrompt) {
-            state = state.copy(
-                lastPromptedEpochMillis = nowEpochMillis,
-                lastPromptedVersion = currentVersion
-            )
-        }
-
         store.saveState(state)
         return shouldPrompt
+    }
+
+    /**
+     * Registra que o diálogo de review foi de fato apresentado na Google Play Store.
+     * Evita consumir o cooldown e limite de versão se o usuário sair da tela antes dos 1.5s.
+     */
+    @Synchronized
+    fun recordPromptPresented(
+        nowEpochMillis: Long = System.currentTimeMillis()
+    ) {
+        var state = store.loadState()
+        state = state.copy(
+            lastPromptedEpochMillis = nowEpochMillis,
+            lastPromptedVersion = appVersionProvider()
+        )
+        store.saveState(state)
     }
 
     @Synchronized

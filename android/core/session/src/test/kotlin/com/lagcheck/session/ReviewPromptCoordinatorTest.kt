@@ -37,6 +37,11 @@ class ReviewPromptCoordinatorTest {
         val p3 = coordinator.recordMeasurementCompleted(GameReadinessVerdict.READY, baseEpochMillis)
         assertTrue(p3)
         assertEquals(3, coordinator.currentState().successfulReadyChecksCount)
+        // Antes da confirmação de exibição, versão e data continuam nulas (não queima cooldown prematuro)
+        org.junit.Assert.assertNull(coordinator.currentState().lastPromptedVersion)
+
+        // Exibição confirmada na UI:
+        coordinator.recordPromptPresented(baseEpochMillis)
         assertEquals("1.0.0", coordinator.currentState().lastPromptedVersion)
         assertEquals(baseEpochMillis, coordinator.currentState().lastPromptedEpochMillis)
 
@@ -54,6 +59,7 @@ class ReviewPromptCoordinatorTest {
         coordinator1.recordMeasurementCompleted(GameReadinessVerdict.READY, baseEpochMillis)
         coordinator1.recordMeasurementCompleted(GameReadinessVerdict.READY, baseEpochMillis)
         assertTrue(coordinator1.recordMeasurementCompleted(GameReadinessVerdict.READY, baseEpochMillis))
+        coordinator1.recordPromptPresented(baseEpochMillis)
 
         // Nova instância com o mesmo store simulando relançamento
         val coordinator2 = ReviewPromptCoordinator(store = store, appVersionProvider = { version })

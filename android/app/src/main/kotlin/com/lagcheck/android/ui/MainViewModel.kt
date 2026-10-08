@@ -137,6 +137,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
     private val _reviewPromptTrigger = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.BUFFERED)
     val reviewPromptTrigger: kotlinx.coroutines.flow.Flow<Unit> = _reviewPromptTrigger.receiveAsFlow()
+    private var reviewPromptJob: Job? = null
 
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -259,6 +260,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         runCatching { catalogRepository.loadedCatalogForLaunch().payload }.getOrNull()
 
     fun navigateTo(screen: Screen) {
+        reviewPromptJob?.cancel()
+        reviewPromptJob = null
         com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(
             screen is Screen.Home || screen is Screen.GameSelection || screen is Screen.History
         )
@@ -495,13 +498,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
-                // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e debounce suave de 1.5s
+                // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e cancelável se sair da tela/background
                 if (evaluation.verdict == GameReadinessVerdict.READY) {
                     val shouldPrompt = reviewPromptCoordinator.recordMeasurementCompleted(GameReadinessVerdict.READY)
                     if (shouldPrompt) {
-                        viewModelScope.launch {
+                        reviewPromptJob?.cancel()
+                        reviewPromptJob = viewModelScope.launch {
                             kotlinx.coroutines.delay(1500)
-                            _reviewPromptTrigger.send(Unit)
+                            if (_currentScreen.value is Screen.Verdict) {
+                                reviewPromptCoordinator.recordPromptPresented()
+                                _reviewPromptTrigger.send(Unit)
+                            }
                         }
                     }
                 }
@@ -525,6 +532,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Fechar o app ou ir para segundo plano durante a medição descarta o resultado parcial. */
     fun onAppBackgrounded() {
+        reviewPromptJob?.cancel()
+        reviewPromptJob = null
         val screen = _currentScreen.value
         if (screen is Screen.Measurement && !screen.isCancelled && !screen.showMobileDataConsent) {
             measurementJob?.cancel()

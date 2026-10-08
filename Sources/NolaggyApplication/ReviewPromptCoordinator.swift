@@ -96,13 +96,20 @@ public final class ReviewPromptCoordinator: @unchecked Sendable {
             currentDate: now
         )
 
-        if shouldPrompt {
-            state.lastPromptedDate = now
-            state.lastPromptedVersion = currentVersion
-        }
-
         store.saveState(state)
         return shouldPrompt
+    }
+
+    /// Registra que o diálogo de review foi de fato apresentado ao usuário.
+    /// Evita consumir o cooldown e limite de versão prematuramente caso a tela seja fechada antes.
+    public func recordPromptPresented(now: Date = Date()) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        var state = store.loadState()
+        state.lastPromptedDate = now
+        state.lastPromptedVersion = appVersionProvider()
+        store.saveState(state)
     }
 
     /// Consulta o estado atual (para telemetria ou inspeção).
