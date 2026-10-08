@@ -81,6 +81,7 @@
 | [76](#decisão-76) | Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events, Spotlight Search & Siri Shortcuts, e App Clip Instantâneo | **Vigente (Em implementação)** | CoreSpotlight, App Shortcuts por voz/busca, deeplinks dinâmicos de jogo e App Clip leve (<15MB) | Marco / Camillo / Rian / Renan / Breno / Luiz |
 | [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
+| [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 
 
 
@@ -647,6 +648,29 @@
   - Captura real de pacotes UDP em PCAP e homologação de resposta de cada host por Iury;
   - Geração e assinatura Ed25519 do novo envelope com `schemaVersion: 3` compatível com os clientes;
   - Paridade estrita entre iOS e Android e testes unitários 100% verdes sem regressões no Xcode, Gradle e Worker.
+
+
+#### Decisão 79
+
+- **Data:** 8 de outubro de 2026.
+- **Título:** Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR (Steam Datagram Relay) para CS2 e Dota 2.
+- **Status Atual:** **Em homologação técnica (Aprovada a estratégia pelo Luiz).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer transversal), Iury (Network & Edge Systems Engineer), Rian (iOS & Android Parity), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:**
+  A Valve migrou a infraestrutura de rede competitiva oficial de Counter-Strike 2 e Dota 2 para o Steam Datagram Relay (SDR), desativando queries públicas legadas A2S_INFO (`0xFFFFFFFF`) dos seus clusters oficiais de partida para proteção contra DDoS.
+  Testes empíricos em bancada de rede conduzidos por Iury comprovaram que os gateways oficiais SDR da Valve em São Paulo (`155.133.227.35:27015`, POP `gru`) respondem ativamente com latência física de 12–20 ms via datagramas estruturados em Protobuf iniciados por tag de controle (`0x08 0x08 0x01 0x12`), retornando mensagens de controle de gateway.
+- **Decisão:**
+  1. **Integridade Diagnóstica Inegociável (Sem Hacks de Rede):**
+     - O LagCheck **não** aceitará mensagens de erro de gateway ou prefixos genéricos de 4 bytes como substituto de probe de medição sem prova de identidade de jogo, preservando o valor inegociável de determinismo e honestidade diagnóstica (Decisão 50).
+  2. **Bancada de Pesquisa de SDR (Iury & Camillo):**
+     - O suporte nativo ao SDR da Valve avança em bancada de testes para modelar o framing completo do protocolo (`GameNetworkingSockets`), estabelecendo a correlação determinística de probe com timestamp/nonce antes de qualquer alteração no código de produção do app.
+  3. **Manutenção da Referência Regional no Catálogo:**
+     - Enquanto a homologação do protocolo SDR completo estiver em bancada, títulos Valve mantêm a rota de referência regional (AWS GameLift em São Paulo) como referência transparente, comunicada honestamente no atestado de rota como *Referência Regional*.
+- **Critérios de Validação e Aceite:**
+  - Especificação completa do framing do SDR validada em bancada por Iury;
+  - Validador correlacionado com nonce/timestamp sem bypass de identidade;
+  - Paridade sincronizada nos clientes iOS e Android com testes unitários puros;
+  - Validação independente via Claude Code aprovada antes de qualquer merge de código de produção.
 
 ## Como Registrar Novas Decisões
 
