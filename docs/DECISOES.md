@@ -80,6 +80,7 @@
 | [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Aprovada)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [76](#decisão-76) | Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events, Spotlight Search & Siri Shortcuts, e App Clip Instantâneo | **Vigente (Em implementação)** | CoreSpotlight, App Shortcuts por voz/busca, deeplinks dinâmicos de jogo e App Clip leve (<15MB) | Marco / Camillo / Rian / Renan / Breno / Luiz |
 | [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
+| [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 
 
 
@@ -615,6 +616,37 @@
   4. **Critérios de Validação e Aceite:**
      - Testes unitários puros no iOS e Android validando os cenários: bloqueio com veredito ruim, bloqueio com menos de 3 checks, liberação no 3º check positivo, e bloqueio por cooldown/versão.
      - Paridade determinística mantida sem regressões nas suítes existentes.
+
+
+#### Decisão 78
+
+- **Data:** 7 de outubro de 2026.
+- **Título:** Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão de Rota (Catálogo v4).
+- **Status Atual:** **Em homologação técnica (Aprovada a estratégia pelo Luiz).**
+- **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer transversal / Gate Arquitetural), Iury (Network & Edge Systems Engineer), Rian (iOS / Transport & Catalog), Renan (Product Designer / Cockpit & Transparência), Breno (QA & Reliability) e Luiz (aprovação).
+- **Contexto e Problema:**
+  Até o Catálogo v3, os 22 jogos estavam configurados para usar a rota de referência regional da AWS GameLift (`gamelift-ping.sa-east-1.api.aws:7770`) em São Paulo, mantendo as rotas dedicadas (`dedicatedServer`) marcadas como `status: "pending"`.
+  Embora os motores de protocolo UDP para Steam A2S e PlayFab QoS já estejam codificados no app, nenhum host foi ativado em produção sem comprovação empírica de resposta UDP.
+  O dono do produto (Luiz) deliberou a ativação progressiva dos testes com servidores reais onde comprovadamente houver suporte técnico e captura real, com incremento do catálogo e transparência de precisão para o jogador.
+- **Decisão:**
+  1. **Evolução do Conteúdo do Catálogo (v4):**
+     - O catálogo remoto avançará na sua versão de conteúdo (`catalogVersion`) assim que os endpoints forem capturados e validados em bancada de rede por Iury.
+     - O **`schemaVersion` permanece estritamente em 3**, garantindo compatibilidade imediata com as regras de decodificação e verificação de integridade já em produção no iOS (`RemoteCatalog.swift`) e Android (`RemoteCatalogVerifier.kt`).
+     - Preservação inegociável da assinatura criptográfica Ed25519 e custo operacional recorrente zero (Worker Cloudflare existente).
+  2. **Critério Rígido de Integridade Diagnóstica para Destinos (Iury):**
+     - Nenhuma rota dedicada será ativada como `status: "active"` sem evidência empírica de tráfego UDP em arquivo PCAP demonstrando resposta `A2S_INFO` válida com o desafio `0x41` tratado (Steam A2S), estruturada no formato estrito de `candidates` com `operatorEvidenceURL` e `expectedIdentity`.
+     - Endpoints PlayFab QoS permanecem confinados à bancada exploratória de pesquisa de rede e não entram no `schemaVersion: 3`, evitando quebras de validação nos clientes.
+     - Hosts presumidos sem teste real de captura permanecem como `pending`, garantindo que o jogador nunca receba falsa promessa de ping dedicado.
+     - A rota de infraestrutura regional AWS GameLift permanece como referência neutra sólida e transparente.
+  3. **Expansão Multirregional:**
+     - Regiões candidatas: Virgínia (`us-east-1`), Oregon (`us-west-2`) e Frankfurt (`eu-central-1`) permanecem sob validação comparativa de latência antes de inclusão no envelope assinado.
+  4. **Transparência de Precisão na UI (Cockpit):**
+     - A UI continuará utilizando o `RouteTrailSummaryCard` existente para diferenciar `Servidor de Jogo` vs `Referência Regional`, derivada exclusivamente da rota que efetivamente respondeu, sem badges artificiais redundantes.
+- **Critérios de Validação e Aceite:**
+  - Architecture Plan documentado por Camillo em `.agents/architecture-plan.md` com plano anterior arquivado;
+  - Captura real de pacotes UDP em PCAP e homologação de resposta de cada host por Iury;
+  - Geração e assinatura Ed25519 do novo envelope com `schemaVersion: 3` compatível com os clientes;
+  - Paridade estrita entre iOS e Android e testes unitários 100% verdes sem regressões no Xcode, Gradle e Worker.
 
 ## Como Registrar Novas Decisões
 
