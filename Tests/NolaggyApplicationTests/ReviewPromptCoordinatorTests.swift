@@ -45,10 +45,15 @@ final class ReviewPromptCoordinatorTests: XCTestCase {
         XCTAssertFalse(p4)
     }
 
+    final class VersionBox: @unchecked Sendable {
+        var version: String
+        init(_ version: String) { self.version = version }
+    }
+
     func testCoordinatorHandlesPersistentStoreRoundtrip() {
         let store = InMemoryReviewPromptStore()
-        var version = "1.0.0"
-        let coordinator1 = ReviewPromptCoordinator(store: store, appVersionProvider: { version })
+        let box = VersionBox("1.0.0")
+        let coordinator1 = ReviewPromptCoordinator(store: store, appVersionProvider: { box.version })
 
         coordinator1.recordMeasurementCompleted(verdict: .ready, now: baseDate)
         coordinator1.recordMeasurementCompleted(verdict: .ready, now: baseDate)
@@ -56,11 +61,11 @@ final class ReviewPromptCoordinatorTests: XCTestCase {
         coordinator1.recordPromptPresented(now: baseDate)
 
         // Nova instância do coordinator simulando relançamento do app com o mesmo store
-        let coordinator2 = ReviewPromptCoordinator(store: store, appVersionProvider: { version })
+        let coordinator2 = ReviewPromptCoordinator(store: store, appVersionProvider: { box.version })
         XCTAssertFalse(coordinator2.recordMeasurementCompleted(verdict: .ready, now: baseDate))
 
         // Nova versão e 95 dias depois
-        version = "1.1.0"
+        box.version = "1.1.0"
         let futureDate = baseDate.addingTimeInterval(95 * 86400)
         XCTAssertTrue(coordinator2.recordMeasurementCompleted(verdict: .ready, now: futureDate))
     }
