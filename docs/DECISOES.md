@@ -609,8 +609,8 @@
      - Nenhum pre-prompt customizado ("Rate Us" / "Gostou do app?"). O app aciona exclusivamente a caixa de diálogo nativa oficial do sistema operacional.
      - Transição suave com debounce de 1.5s após a conclusão da medição e estabilização dos dados na tela de resultado.
   3. **Paridade Multiplataforma (iOS ⇄ Android):**
-     - No iOS: `AppStoreReviewCoordinator` e `ReviewPromptPolicy` em `NolaggyApplication`, acionando `StoreKit` (`requestReview`) em `DeepCheckFeatureView`. Excluído expressamente do `LagCheckClip` (App Clip).
-     - No Android: `ReviewPromptPolicy` em `:core:domain`, coordenador em `:core:session` e acionador da Google Play In-App Review API (`ReviewManager`) em `:app`.
+     - No iOS: `ReviewPromptPolicy` em `NolaggyDomain` (pure domain) e `ReviewPromptCoordinator` em `NolaggyApplication`, acionando `StoreKit` (`requestReview`) de forma idempotente em `DeepCheckFeatureView` com proteção de ciclo de vida (`scenePhase`). Excluído expressamente do `LagCheckClip` (App Clip).
+     - No Android: `ReviewPromptPolicy` em `:core:domain`, `ReviewPromptCoordinator` em `:core:session` e acionador da Google Play In-App Review API (`ReviewManager`) em `:app` com canal de eventos buffered e guarda de contexto de tela (`Screen.Verdict`).
      - Persistência desacoplada dos contadores (`UserDefaults` no iOS, `SharedPreferences` no Android).
   4. **Critérios de Validação e Aceite:**
      - Testes unitários puros no iOS e Android validando os cenários: bloqueio com veredito ruim, bloqueio com menos de 3 checks, liberação no 3º check positivo, e bloqueio por cooldown/versão.

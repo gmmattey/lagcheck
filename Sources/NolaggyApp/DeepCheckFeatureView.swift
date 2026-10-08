@@ -20,6 +20,7 @@ struct DeepCheckFeatureView: View {
     @State private var hasCellularConsent = false
     @State private var measurementStartTime: Date?
     @State private var hasTrackedTerminalEvent = false
+    @State private var reviewPromptTask: Task<Void, Never>?
     @State private var displayProgress: Double = 0.04
 
     @State private var activeContext: ResolvedMeasurementContext
@@ -94,11 +95,19 @@ struct DeepCheckFeatureView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                reviewPromptTask?.cancel()
+                reviewPromptTask = nil
+            }
             guard phase == .background else { return }
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
                 await refreshState()
             }
+        }
+        .onDisappear {
+            reviewPromptTask?.cancel()
+            reviewPromptTask = nil
         }
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
@@ -475,19 +484,22 @@ struct DeepCheckFeatureView: View {
                 SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
             }
 
-            // Decisão 77: Sistema Unificado de Avaliação In-App (Apple StoreKit)
-            // Disparo de delight oportuno: estritamente veredito .ready, 3 checks acumulados e debounce suave de 1.5s
-            if let verdict = entry.readinessVerdict, verdict == .ready {
-                if reviewPromptCoordinator.recordMeasurementCompleted(verdict: verdict) {
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(1500))
-                        requestReview()
-                    }
-                }
-            }
-
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true
+
+                // Decisão 77: Sistema Unificado de Avaliação In-App (Apple StoreKit)
+                // Disparo de delight oportuno: executado estritamente 1 vez por sessão concluída (idempotência),
+                // apenas em veredito .ready, 3 checks acumulados e cancelável se a tela for fechada ou entrar em background
+                if let verdict = entry.readinessVerdict, verdict == .ready {
+                    if reviewPromptCoordinator.recordMeasurementCompleted(verdict: verdict) {
+                        reviewPromptTask = Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(1500))
+                            guard !Task.isCancelled, scenePhase == .active else { return }
+                            requestReview()
+                        }
+                    }
+                }
+
                 let duration = measurementStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
                 analyticsTracker.track(.lagcheckCompleted(
                     gameID: activeContext.context.gameID,

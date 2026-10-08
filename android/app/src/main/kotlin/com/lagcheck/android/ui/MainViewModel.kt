@@ -44,7 +44,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -134,8 +135,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     )
-    private val _reviewPromptTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
-    val reviewPromptTrigger: kotlinx.coroutines.flow.SharedFlow<Unit> = _reviewPromptTrigger.asSharedFlow()
+    private val _reviewPromptTrigger = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.BUFFERED)
+    val reviewPromptTrigger: kotlinx.coroutines.flow.Flow<Unit> = _reviewPromptTrigger.receiveAsFlow()
 
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -500,7 +501,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if (shouldPrompt) {
                         viewModelScope.launch {
                             kotlinx.coroutines.delay(1500)
-                            _reviewPromptTrigger.emit(Unit)
+                            _reviewPromptTrigger.send(Unit)
                         }
                     }
                 }

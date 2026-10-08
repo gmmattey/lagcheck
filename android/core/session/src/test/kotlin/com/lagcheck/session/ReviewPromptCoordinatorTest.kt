@@ -22,9 +22,10 @@ class ReviewPromptCoordinatorTest {
         assertFalse(p1)
         assertEquals(1, coordinator.currentState().successfulReadyChecksCount)
 
-        // Check CAUTION -> não incrementa readyCount e retorna false
-        val pCaution = coordinator.recordMeasurementCompleted(GameReadinessVerdict.CAUTION, baseEpochMillis)
-        assertFalse(pCaution)
+        // Check CAUTION, NOT_READY ou INCONCLUSIVE -> não incrementa readyCount e retorna false
+        assertFalse(coordinator.recordMeasurementCompleted(GameReadinessVerdict.CAUTION, baseEpochMillis))
+        assertFalse(coordinator.recordMeasurementCompleted(GameReadinessVerdict.NOT_READY, baseEpochMillis))
+        assertFalse(coordinator.recordMeasurementCompleted(GameReadinessVerdict.INCONCLUSIVE, baseEpochMillis))
         assertEquals(1, coordinator.currentState().successfulReadyChecksCount)
 
         // 2º check READY -> false

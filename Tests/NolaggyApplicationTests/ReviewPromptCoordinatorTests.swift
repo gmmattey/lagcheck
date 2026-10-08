@@ -17,9 +17,10 @@ final class ReviewPromptCoordinatorTests: XCTestCase {
         XCTAssertFalse(p1)
         XCTAssertEqual(coordinator.currentState().successfulReadyChecksCount, 1)
 
-        // Check com .caution -> não incrementa readyCount e retorna false
-        let pCaution = coordinator.recordMeasurementCompleted(verdict: .caution, now: baseDate)
-        XCTAssertFalse(pCaution)
+        // Check com .caution, .notReady ou .inconclusive -> não incrementa readyCount e retorna false
+        XCTAssertFalse(coordinator.recordMeasurementCompleted(verdict: .caution, now: baseDate))
+        XCTAssertFalse(coordinator.recordMeasurementCompleted(verdict: .notReady, now: baseDate))
+        XCTAssertFalse(coordinator.recordMeasurementCompleted(verdict: .inconclusive, now: baseDate))
         XCTAssertEqual(coordinator.currentState().successfulReadyChecksCount, 1)
 
         // 2º check com .ready -> false

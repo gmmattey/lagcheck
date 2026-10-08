@@ -93,7 +93,10 @@ class MainActivity : ComponentActivity() {
             // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
             androidx.compose.runtime.LaunchedEffect(Unit) {
                 viewModel.reviewPromptTrigger.collect {
-                    launchPlayReviewFlow()
+                    // Proteção de contexto: só dispara se a tela atual ainda for o resultado (Screen.Verdict)
+                    if (viewModel.currentScreen.value is Screen.Verdict) {
+                        launchPlayReviewFlow()
+                    }
                 }
             }
 

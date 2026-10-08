@@ -30,7 +30,7 @@ public enum ReviewPromptPolicy {
         verdict: GameReadinessVerdict,
         state: ReviewPromptState,
         currentAppVersion: String,
-        currentDate: Date = Date()
+        currentDate: Date
     ) -> Bool {
         // 1. Momento de delight obrigatório: estritamente .ready (Pronto para Ranked)
         guard verdict == .ready else { return false }
