@@ -1,17 +1,198 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Suporte do Lagcheck: ajuda sobre o acesso antecipado, TestFlight e Play Beta.">
-  <meta name="theme-color" content="#0B0D10">
-  <link rel="icon" href="/favicon.ico" sizes="48x48">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <title>Suporte Oficial | Lagcheck</title>
+  <meta name="description" content="Central de suporte e ajuda do Lagcheck para iPhone. Tire dúvidas sobre a medição de rota UDP, diagnósticos e vereditos.">
+  <meta name="robots" content="index,follow">
+  <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/support/">
-  <meta name="robots" content="noindex,follow">
-  <title>Suporte — Lagcheck</title>
-  <style>:root{--bg:oklch(.158 .011 260);--surface:oklch(.205 .012 260);--fg:oklch(.955 .006 260);--muted:oklch(.675 .014 260);--border:oklch(.302 .014 260);--accent:oklch(.585 .214 299);--font-display:ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;--font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-mono:ui-monospace,SFMono-Regular,Menlo,monospace}*{box-sizing:border-box}body{margin:0;background:oklch(.09 .009 260);color:var(--fg);font-family:var(--font-body)}a{color:inherit}a:focus-visible{outline:3px solid var(--fg);outline-offset:4px}.shell{display:grid;grid-template-columns:224px 1fr;min-height:100vh}.side{position:sticky;top:0;height:100vh;padding:30px 24px;border-right:1px solid var(--border);background:var(--bg)}.side img{width:142px}.side nav{display:grid;gap:4px;margin-top:68px}.side nav a{padding:10px 0;border-bottom:1px solid transparent;color:var(--muted);font:11px var(--font-mono);text-decoration:none}.side nav a:hover{color:var(--fg);border-color:var(--accent)}main{width:min(100% - 64px,760px);padding:90px 0;margin:auto}.eyebrow{color:var(--accent);font:11px var(--font-mono);letter-spacing:.1em;text-transform:uppercase}h1{max-width:620px;margin:14px 0 20px;font:900 clamp(42px,6vw,70px)/.92 var(--font-display);letter-spacing:-.07em}p{max-width:640px;color:var(--muted);font-size:17px;line-height:1.5}.panel{margin-top:50px;border-top:1px solid var(--border)}.item{padding:24px 0;border-bottom:1px solid var(--border)}h2{margin:0;font:800 22px/1 var(--font-display);letter-spacing:-.045em}.item p{margin:10px 0 0;font-size:15px}.contact{display:inline-flex;min-height:48px;align-items:center;margin-top:22px;padding:0 16px;border:1px solid var(--accent);border-radius:13px;background:var(--accent);color:var(--fg);font-weight:800;text-decoration:none}@media(max-width:700px){.shell{display:block}.side{position:static;height:auto;padding:22px;border-bottom:1px solid var(--border)}.side nav{display:flex;gap:15px;margin-top:24px;overflow:auto}.side nav a{white-space:nowrap}main{width:min(100% - 36px,760px);padding:62px 0}}</style>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0D10">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Lagcheck">
+  <meta property="og:title" content="Suporte Oficial | Lagcheck">
+  <meta property="og:description" content="Central de ajuda e suporte técnico do Lagcheck para iPhone.">
+  <meta property="og:url" content="https://lagcheck.signallq.com/support/">
+  <meta property="og:image" content="https://lagcheck.signallq.com/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+body {
+  margin: 0;
+  background: oklch(0.12 0.01 260);
+  color: oklch(0.955 0.006 260);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+a:hover { color: oklch(0.78 0.12 299); }
+* { box-sizing: border-box; }
+@keyframes fl { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-18px); } }
+@keyframes fll { 0%, 100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(14px); } }
+@keyframes flr { 0%, 100% { transform: rotate(6deg) translateY(0); } 50% { transform: rotate(8deg) translateY(-14px); } }
+@keyframes ring { 0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
+@keyframes mq { to { transform: translateX(-50%); } }
+@keyframes gx { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.585 0.214 299 / 0.5); } 50% { box-shadow: 0 0 0 14px oklch(0.585 0.214 299 / 0); } }
+@keyframes blink { 50% { opacity: 0.25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes kb { to { transform: scale(1.12); } }
+[data-rv] { opacity: 0; transform: translateY(46px) scale(0.97); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
+[data-rv].in { opacity: 1; transform: none; }
+[data-rv]:nth-child(2) { transition-delay: 0.12s; }
+[data-rv]:nth-child(3) { transition-delay: 0.24s; }
+.hi { animation: rise 0.9s cubic-bezier(0.2, 0, 0, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+  [data-rv] { opacity: 1; transform: none; }
+}
+::-webkit-scrollbar { display: none; }
+.btn-appstore {
+  display: inline-block;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.btn-appstore:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+</style>
 </head>
-<body><div class="shell"><aside class="side" data-od-id="indice-lateral"><a href="index.html"><img src="assets/lagcheck-wordmark-light.svg" alt="Lagcheck"></a><nav aria-label="Índice"><a href="index.html">Início</a><a href="index.html#como-funciona">Como funciona</a><a href="index.html#acesso">Acesso antecipado</a><a href="privacy.html">Privacidade</a></nav></aside><main data-od-id="suporte"><p class="eyebrow">Suporte</p><h1>Ajuda para entrar no beta.</h1><p>O Lagcheck está preparando o acesso antecipado para iPhone e Android. Se você tiver alguma dúvida sobre a lista, TestFlight ou Play Beta, fala com a gente.</p><section class="panel"><article class="item"><h2>Quando recebo o convite?</h2><p>Os convites serão enviados conforme cada plataforma abrir novas vagas. A inscrição não garante acesso imediato.</p></article><article class="item"><h2>Posso entrar para iOS e Android?</h2><p>Sim. Escolha “Ambos” no formulário para receber os dois convites quando estiverem disponíveis.</p></article><article class="item"><h2>O que o Lagcheck mede?</h2><p>Latência, jitter, perda de pacotes e comportamento da rota sob carga, para oferecer um veredito honesto antes da partida.</p></article></section><a class="contact" href="mailto:suporte@signallq.com">Falar com o suporte</a></main></div></body>
+<body>
+<div>
+  
+<header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px max(22px,calc((100% - 1200px)/2));background:oklch(0.12 0.01 260 / 0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid oklch(0.25 0.012 260)">
+  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:124px;display:block"></a>
+  <nav style="display:flex;gap:24px;font-size:13px;color:oklch(0.75 0.014 260)">
+    <a href="/jogos/" style="">Jogos</a>
+    <a href="/#casos">Casos de uso</a>
+    <a href="/#concorrentes">Comparativo</a>
+    <a href="/#combo">Linka</a>
+    <a href="/#como">Como funciona</a>
+    <a href="/#veredito">Veredito</a>
+    <a href="/#faq">Dúvidas</a>
+  </nav>
+  <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="padding:9px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:oklch(0.98 0 0);font-size:13px;font-weight:700">Baixar na App Store</a>
+</header>
+
+  <main style="max-width:900px;margin:auto;padding:70px 22px 100px">
+    <p style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299);animation:rise .8s both">Suporte Oficial</p>
+    <h1 style="margin:0;font:900 clamp(40px,6vw,72px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em;animation:rise .8s .1s both">
+      Como podemos ajudar?
+    </h1>
+    <p style="margin:22px 0 0;max-width:640px;font-size:19px;line-height:1.45;color:oklch(0.75 0.014 260);animation:rise .8s .2s both">
+      O Lagcheck está disponível na App Store para iPhone (iOS 17+). Se você tiver alguma dúvida técnica sobre sua medição, rotas ou feedback do app, fale com nosso time.
+    </p>
+
+    <div style="display:grid;gap:18px;margin-top:52px">
+      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
+        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O que o Lagcheck mede exatamente?</h2>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
+          Latência real (ping UDP), jitter (oscilação), descarte de pacotes (packet loss) e comportamento da rota sob carga concorrente (bufferbloat), entregando um veredito honesto antes da sua partida.
+        </p>
+      </article>
+
+      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
+        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O app mede o servidor do meu jogo ou uma rota de referência?</h2>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
+          O Lagcheck envia pacotes UDP para beacons regionais de referência (como AWS GameLift em São Paulo). Ele avalia a qualidade da rota e da sua rede local de forma determinística, sem inventar números.
+        </p>
+      </article>
+
+      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
+        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O que fazer quando o resultado der "Condições instáveis"?</h2>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
+          Recomendamos evitar filas ranqueadas no momento. Verifique se há downloads ativos na rede, aproxime-se do roteador Wi-Fi (ou prefira a banda 5 GHz) ou reinicie o modem caso a oscilação persista.
+        </p>
+      </article>
+
+      <article style="padding:32px;border-radius:26px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260));border:1px solid oklch(0.35 0.02 299);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+        <div>
+          <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Precisa falar com a gente?</h2>
+          <p style="margin:8px 0 0;font-size:15px;color:oklch(0.85 0.01 260)">Nosso canal oficial de atendimento por e-mail.</p>
+        </div>
+        <a href="mailto:suporte@signallq.com" style="padding:14px 22px;border-radius:14px;background:oklch(0.585 0.214 299);color:#fff;font-weight:700;font-size:15px;text-decoration:none">
+          suporte@signallq.com →
+        </a>
+      </article>
+    </div>
+  </main>
+  
+<footer style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;max-width:1200px;margin:auto;padding:36px 22px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);border-top:1px solid oklch(0.2 0.012 260)">
+  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:110px"></a>
+  <nav style="display:flex;gap:18px">
+    <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Baixar o Lagcheck</a>
+    <a href="https://apps.apple.com/app/id6808479321" target="_blank" rel="noopener noreferrer">Baixar o Linka</a>
+    <a href="/jogos/">Jogos</a>
+    <a href="/support/">Suporte</a>
+    <a href="/privacy/">Privacidade</a>
+  </nav>
+</footer>
+
+</div>
+
+<script>
+(function() {
+  // Observador de animações de scroll
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  function scan() {
+    document.querySelectorAll('[data-rv]:not(.in)').forEach(function(el) { io.observe(el); });
+  }
+  scan();
+  setInterval(scan, 800);
+
+  // 1. Telemetria anônima de visitas para o informe diário do Discord
+  try {
+    var visitPayload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/v1/visit', visitPayload);
+    } else {
+      fetch('/v1/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: visitPayload,
+        keepalive: true
+      }).catch(function() {});
+    }
+  } catch(e) {}
+
+  // 2. Registro de CONVERSÃO ao clicar para baixar na App Store (dispara relatório Discord)
+  document.addEventListener('click', function(e) {
+    var target = e.target.closest('a[data-track-conversion="appstore"]');
+    if (!target) return;
+
+    try {
+      var convPayload = JSON.stringify({
+        email: 'appstore_download@click.local',
+        platform: 'ios',
+        source: new URLSearchParams(location.search).get('utm_source') || 'web_download',
+        utm: Object.fromEntries(new URLSearchParams(location.search).entries()),
+        createdAt: new Date().toISOString()
+      });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/v1/waitlist', convPayload);
+      } else {
+        fetch('/v1/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: convPayload,
+          keepalive: true
+        }).catch(function() {});
+      }
+    } catch(err) {}
+  });
+})();
+</script>
+
+</body>
 </html>

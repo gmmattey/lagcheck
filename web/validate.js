@@ -1,6 +1,6 @@
 /**
- * Lagcheck — Pre-Launch Website Automated Validation Suite
- * Valida a reconstrução da landing page e páginas auxiliares conforme a fonte de verdade do protótipo.
+ * Lagcheck — Automated Validation Suite para a nova Webpage
+ * Valida a integridade dos 20 jogos, rotas, SEO, ASO, schemas JSON-LD e HTTP 200.
  */
 
 const fs = require('fs');
@@ -24,17 +24,21 @@ function assert(condition, message) {
   }
 }
 
+const GAMES = [
+  'fortnite', 'free-fire', 'cod-mobile', 'valorant', 'counter-strike-2',
+  'apex-legends', 'league-of-legends', 'wild-rift', 'rocket-league', 'roblox',
+  'minecraft', 'brawl-stars', 'warzone', 'pubg-mobile', 'blood-strike',
+  'dota-2', 'ea-sports-fc', 'palworld', 'rainbow-six-siege', 'rust'
+];
+
 console.log('\n--- 1. Verificação de Estrutura de Arquivos Obrigatórios ---');
-const requiredFiles = [
+const baseFiles = [
   'index.html',
+  'jogos/index.html',
   'support.html',
   'support/index.html',
   'privacy.html',
   'privacy/index.html',
-  'css/style.css',
-  'assets/lagcheck-wordmark-light.svg',
-  'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
-  'Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
   'robots.txt',
   'sitemap.xml',
   'og.png',
@@ -42,124 +46,78 @@ const requiredFiles = [
   'favicon.svg',
   'apple-touch-icon.png',
   'assets/app-home.webp',
-  'assets/app-games.webp'
-];
-
-requiredFiles.forEach((relPath) => {
-  const fullPath = path.join(WEB_DIR, relPath);
-  assert(fs.existsSync(fullPath), `Arquivo existe: ${relPath}`);
-});
-
-console.log('\n--- 2. Verificação de Grafia Estrita e Wordmark Oficial ---');
-const textFilesToCheck = [
-  'index.html',
-  'support.html',
-  'support/index.html',
-  'privacy.html',
-  'privacy/index.html',
+  'assets/app-games.webp',
+  'assets/app-result.webp',
   'assets/lagcheck-wordmark-light.svg'
 ];
 
-textFilesToCheck.forEach((relPath) => {
-  const content = fs.readFileSync(path.join(WEB_DIR, relPath), 'utf-8');
-  assert(!content.includes('LagCheck'), `${relPath}: Grafia 'Lagcheck' respeitada (nunca 'LagCheck')`);
-  assert(content.includes('Lagcheck'), `${relPath}: Contém 'Lagcheck' corretamente grafado`);
+baseFiles.forEach(f => {
+  assert(fs.existsSync(path.join(WEB_DIR, f)), `Arquivo base existe: ${f}`);
 });
 
+console.log('\n--- 2. Verificação dos 20 Jogos e Imagens de Alta Resolução ---');
+GAMES.forEach(slug => {
+  const gameHtml = path.join(WEB_DIR, 'jogos', slug, 'index.html');
+  assert(fs.existsSync(gameHtml), `Página do jogo existe: jogos/${slug}/index.html`);
+});
+
+const gameImages = fs.readdirSync(path.join(WEB_DIR, 'assets', 'games'));
+assert(gameImages.length >= 20, `Mínimo de 20 artes de jogos presentes em assets/games (encontrados: ${gameImages.length})`);
+
+console.log('\n--- 3. Verificação de SEO e Schemas JSON-LD na Home ---');
 const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf-8');
-assert(indexHtml.includes('src="assets/lagcheck-wordmark-light.svg"'), 'index.html usa wordmark SVG oficial');
 
-console.log('\n--- 3. Verificação de Tokens Visuais e Dark Competitive UI ---');
-const cssContent = fs.readFileSync(path.join(WEB_DIR, 'css', 'style.css'), 'utf-8');
-const expectedTokens = [
-  '--bg: oklch(.158 .011 260)',
-  '--surface: oklch(.205 .012 260)',
-  '--fg: oklch(.955 .006 260)',
-  '--muted: oklch(.675 .014 260)',
-  '--border: oklch(.302 .014 260)',
-  '--accent: oklch(.585 .214 299)',
-  '--good: oklch(.76 .15 150)',
-  '--attention: oklch(.684 .196 35)',
-  '--font-display: ui-rounded',
-  '--font-body: -apple-system',
-  '--font-mono: ui-monospace'
-];
+assert(indexHtml.includes('<title>Lagcheck — Teste de lag: sua conexão aguenta o ranked?</title>'), 'SEO Home: Title exato');
+assert(indexHtml.includes('name="description"'), 'SEO Home: Meta description configurada');
+assert(indexHtml.includes('property="og:image" content="https://lagcheck.signallq.com/og.png"'), 'SEO Home: OG Image configurada');
+assert(indexHtml.includes('"@type": "MobileApplication"'), 'Schema Home: MobileApplication presente');
+assert(indexHtml.includes('"@type": "FAQPage"'), 'Schema Home: FAQPage presente');
+assert(indexHtml.includes('name="apple-itunes-app"'), 'ASO Home: Smart App Banner configurado');
+assert(indexHtml.includes('/v1/visit'), 'Telemetria Home: Endpoint /v1/visit presente');
+assert(indexHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'ASO Home: Link oficial do Lagcheck id6818706960 presente');
+assert(indexHtml.includes('https://apps.apple.com/app/id6808479321'), 'Linka: Link de download na App Store presente');
+assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'linka-icon.png')), 'Linka: Ícone presente em assets/linka-icon.png');
 
-expectedTokens.forEach((token) => {
-  assert(cssContent.includes(token), `Token presente em style.css: ${token}`);
-  assert(indexHtml.includes(token), `Token presente no style inline de index.html: ${token}`);
+console.log('\n--- 4. Verificação de Suporte e Privacidade (Dark UI Padrão 1:1) ---');
+const supportHtml = fs.readFileSync(path.join(WEB_DIR, 'support', 'index.html'), 'utf-8');
+assert(supportHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'Suporte: Link oficial do Lagcheck id6818706960 presente');
+assert(supportHtml.includes('suporte@signallq.com'), 'Suporte: E-mail de atendimento presente');
+assert(supportHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Suporte: Header oficial com wordmark presente');
+
+const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy', 'index.html'), 'utf-8');
+assert(privacyHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'Privacidade: Link oficial do Lagcheck id6818706960 presente');
+assert(privacyHtml.includes('Zero Coleta de Dados Pessoais'), 'Privacidade: Conformidade oficial App Store');
+assert(privacyHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Privacidade: Header oficial com wordmark presente');
+
+console.log('\n--- 5. Verificação de SEO e Schemas nos Jogos ---');
+const valorantHtml = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'valorant', 'index.html'), 'utf-8');
+assert(valorantHtml.includes('Testar ping no Valorant | Lagcheck'), 'SEO Jogo: Title personalizado de Valorant');
+assert(valorantHtml.includes('"@type": "BreadcrumbList"'), 'Schema Jogo: BreadcrumbList presente');
+assert(valorantHtml.includes('"@type": "FAQPage"'), 'Schema Jogo: FAQPage presente');
+assert(valorantHtml.includes('/v1/visit'), 'Telemetria Jogo: Endpoint /v1/visit presente');
+assert(valorantHtml.includes('https://lagcheck.signallq.com/jogos/valorant/'), 'SEO Jogo: Canonical URL exata');
+
+console.log('\n--- 5. Verificação do Sitemap e Robots ---');
+const sitemapXml = fs.readFileSync(path.join(WEB_DIR, 'sitemap.xml'), 'utf-8');
+assert(sitemapXml.includes('https://lagcheck.signallq.com/'), 'Sitemap: Contém URL da Home');
+assert(sitemapXml.includes('https://lagcheck.signallq.com/jogos/'), 'Sitemap: Contém URL do Hub');
+GAMES.forEach(slug => {
+  assert(sitemapXml.includes(`https://lagcheck.signallq.com/jogos/${slug}/`), `Sitemap: Contém jogo ${slug}`);
 });
 
-console.log('\n--- 4. Verificação de Estrutura Obrigatória da Landing Page ---');
-assert(indexHtml.includes('<title>Lagcheck — Teste de lag: sua conexão aguenta o ranked?</title>'), 'SEO: Title exato');
-assert(indexHtml.includes('name="description" content="Meça latência, jitter e perda de pacotes antes do ranked e saiba se sua conexão aguenta. Em breve no iPhone e Android: entre na lista."'), 'SEO: Meta description exata');
-assert(indexHtml.includes('property="og:image" content="https://lagcheck.signallq.com/og.png"'), 'SEO: Open Graph image 1200x630 configurado');
-assert(indexHtml.includes('property="og:image:width" content="1200"') && indexHtml.includes('property="og:image:height" content="630"'), 'SEO: og:image com dimensões 1200x630');
-const sitemapXml = fs.readFileSync(path.join(WEB_DIR, 'sitemap.xml'), 'utf-8');
-assert(!sitemapXml.includes('/support/') && !sitemapXml.includes('/privacy/'), 'SEO: sitemap lista só URLs indexáveis (suporte e privacidade são noindex)');
-assert(indexHtml.includes('"@type": "MobileApplication"') && !indexHtml.includes('GameApplication'), 'SEO: JSON-LD MobileApplication com categoria única');
-assert(indexHtml.includes('name="twitter:card" content="summary_large_image"'), 'SEO: Twitter Card configurado');
+const robotsTxt = fs.readFileSync(path.join(WEB_DIR, 'robots.txt'), 'utf-8');
+assert(robotsTxt.includes('Sitemap: https://lagcheck.signallq.com/sitemap.xml'), 'Robots: Aponta para o sitemap correto');
 
-// Hero
-assert(indexHtml.includes('Sua conexão está pronta para ranked?'), 'Hero: Headline principal');
-assert(indexHtml.includes('O Lagcheck mede a qualidade real da sua rota'), 'Hero: Explicação objetiva');
-assert(indexHtml.includes('Entrar no TestFlight'), 'Hero CTA: TestFlight');
-assert(indexHtml.includes('Entrar no Play Beta'), 'Hero CTA: Play Beta');
-assert(indexHtml.includes('Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png'), 'Hero: Captura Fortnite Home em primeiro plano');
-assert(indexHtml.includes('Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png'), 'Hero: Captura Jogos em apoio');
-
-// 3 Passos
-assert(indexHtml.includes('Escolhe o jogo'), 'Passo 1: Escolhe o jogo');
-assert(indexHtml.includes('Faz o Check'), 'Passo 2: Faz o Check');
-assert(indexHtml.includes('Recebe o veredito'), 'Passo 3: Recebe o veredito');
-
-// Casos de Uso
-assert(indexHtml.includes('Ranked'), 'Caso de uso: Ranked');
-assert(indexHtml.includes('Casual'), 'Caso de uso: Casual');
-assert(indexHtml.includes('Party / Discord'), 'Caso de uso: Party / Discord');
-assert(indexHtml.includes('Streaming + jogo'), 'Caso de uso: Streaming + jogo');
-
-// Jogos Previstos
-assert(indexHtml.includes('Fortnite'), 'Jogo: Fortnite');
-assert(indexHtml.includes('Free Fire'), 'Jogo: Free Fire');
-assert(indexHtml.includes('COD Mobile'), 'Jogo: COD Mobile');
-assert(indexHtml.includes('Valorant'), 'Jogo: Valorant');
-
-// Speedtest vs Lagcheck
-assert(indexHtml.includes('Speedtest'), 'Comparação: Speedtest');
-assert(indexHtml.includes('Comportamento sob carga'), 'Comparação: Comportamento sob carga');
-assert(indexHtml.includes('Por que estou com lag no jogo?'), 'FAQ: Dúvida lag');
-assert(indexHtml.includes('Como saber se posso jogar ranked?'), 'FAQ: Dúvida ranked');
-assert(indexHtml.includes('Speedtest mostra lag de verdade?'), 'FAQ: Dúvida speedtest');
-
-// Form e Backend
-assert(indexHtml.includes('action') === false || indexHtml.includes('novalidate'), 'Formulário: Validação assíncrona JS');
-assert(indexHtml.includes('fetch(\'/v1/waitlist\''), 'Backend: Envio para endpoint POST /v1/waitlist');
-assert(indexHtml.includes('15000'), 'Backend: Timeout de 15 segundos configurado');
-assert(indexHtml.includes('localStorage.setItem(\'lagcheck.waitlist\''), 'Resiliência: Preserva inscrição no localStorage');
-assert(indexHtml.includes('Não conseguimos confirmar sua inscrição agora. Seu e-mail ficou salvo neste navegador'), 'UX de falha: Preserva e-mail e orienta usuário');
-
-// UX Mobile & Desktop
-assert(indexHtml.includes('class="mobile-cta"'), 'UX Mobile: CTA fixo mobile');
-assert(indexHtml.includes('class="side"'), 'UX Desktop: Navegação lateral presente');
-
-console.log('\n--- 5. Verificação das Páginas Auxiliares de Suporte e Privacidade ---');
-const supportHtml = fs.readFileSync(path.join(WEB_DIR, 'support.html'), 'utf-8');
-const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy.html'), 'utf-8');
-
-assert(supportHtml.includes('suporte@signallq.com'), 'Suporte: E-mail suporte@signallq.com presente');
-assert(supportHtml.includes('TestFlight'), 'Suporte: Menção a TestFlight');
-assert(supportHtml.includes('Play Beta'), 'Suporte: Menção a Play Beta');
-assert(privacyHtml.includes('suporte@signallq.com'), 'Privacidade: E-mail suporte@signallq.com presente');
-assert(privacyHtml.includes('Armazenamento local'), 'Privacidade: Seção de armazenamento local');
-
-console.log('\n--- 6. Teste de Servidor HTTP Local (Rotas Estáticas) ---');
+console.log('\n--- 6. Teste de Servidor HTTP Local (Status 200 OK) ---');
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8'
 };
@@ -181,32 +139,32 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = 8189;
+const PORT = 8192;
 server.listen(PORT, async () => {
-  const routes = [
+  const routesToTest = [
     '/',
     '/index.html',
-    '/support.html',
+    '/jogos/',
+    '/jogos/index.html',
+    '/jogos/fortnite/',
+    '/jogos/valorant/',
+    '/jogos/counter-strike-2/',
+    '/jogos/free-fire/',
+    '/jogos/cod-mobile/',
     '/support/',
-    '/support/index.html',
-    '/privacy.html',
     '/privacy/',
-    '/privacy/index.html',
-    '/css/style.css',
-    '/assets/lagcheck-wordmark-light.svg',
-    '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png',
-    '/Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png',
     '/robots.txt',
     '/sitemap.xml',
-    '/og.png',
-    '/favicon.ico',
-    '/favicon.svg',
-    '/apple-touch-icon.png',
+    '/assets/lagcheck-wordmark-light.svg',
     '/assets/app-home.webp',
-    '/assets/app-games.webp'
+    '/assets/app-games.webp',
+    '/assets/app-result.webp',
+    '/assets/games/valorant.jpg',
+    '/assets/games/fortnite.jpg',
+    '/assets/linka-icon.png'
   ];
 
-  for (const route of routes) {
+  for (const route of routesToTest) {
     await new Promise((resolve) => {
       http.get({
         hostname: '127.0.0.1',
@@ -224,9 +182,6 @@ server.listen(PORT, async () => {
     });
   }
 
-  if (typeof server.closeAllConnections === 'function') {
-    server.closeAllConnections();
-  }
   server.close(() => {
     console.log('\n========================================');
     console.log(`Resumo dos Testes: ${passedTests}/${totalTests} passaram`);

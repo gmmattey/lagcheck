@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://lagcheck.signallq.com/</loc></url>
+  <url><loc>https://lagcheck.signallq.com/</loc><lastmod>2026-10-11</lastmod><priority>1.0</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/</loc><lastmod>2026-10-11</lastmod><priority>0.9</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/fortnite/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/free-fire/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/cod-mobile/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/valorant/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/counter-strike-2/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/apex-legends/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/league-of-legends/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/wild-rift/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/rocket-league/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/roblox/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/minecraft/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/brawl-stars/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/warzone/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/pubg-mobile/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/blood-strike/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/dota-2/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/ea-sports-fc/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/palworld/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/rainbow-six-siege/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/jogos/rust/</loc><lastmod>2026-10-11</lastmod><priority>0.8</priority></url>
+  <url><loc>https://lagcheck.signallq.com/support/</loc><lastmod>2026-10-11</lastmod><priority>0.3</priority></url>
+  <url><loc>https://lagcheck.signallq.com/privacy/</loc><lastmod>2026-10-11</lastmod><priority>0.3</priority></url>
 </urlset>

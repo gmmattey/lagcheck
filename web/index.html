@@ -1,66 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Meça latência, jitter e perda de pacotes antes do ranked e saiba se sua conexão aguenta. Em breve no iPhone e Android: entre na lista.">
-  <meta name="theme-color" content="#0B0D10">
+  <title>Lagcheck — Teste de lag: sua conexão aguenta o ranked?</title>
+  <meta name="description" content="Meça latência, jitter e perda de pacotes antes do ranked e saiba se sua conexão aguenta. Disponível na App Store para iPhone.">
   <meta name="robots" content="index,follow">
+  <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/">
-
-  <!-- Open Graph / Facebook -->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0D10">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://lagcheck.signallq.com/">
   <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Lagcheck">
   <meta property="og:title" content="Lagcheck — Teste de lag: sua conexão aguenta o ranked?">
-  <meta property="og:description" content="Meça latência, jitter e perda de pacotes antes do ranked e saiba se sua conexão aguenta. Em breve no iPhone e Android: entre na lista.">
+  <meta property="og:description" content="Medição real de latência, jitter e perda antes de entrar na partida. Disponível na App Store.">
+  <meta property="og:url" content="https://lagcheck.signallq.com/">
   <meta property="og:image" content="https://lagcheck.signallq.com/og.png">
-  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Lagcheck: sua conexão está pronta para ranked? Tela do app com o botão Checar agora.">
-  <meta property="og:site_name" content="Lagcheck">
-
-  <!-- Twitter Card -->
+  <meta property="og:image:alt" content="Lagcheck: sua conexão está pronta para ranked?">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://lagcheck.signallq.com/">
-  <meta name="twitter:title" content="Lagcheck — Teste de lag: sua conexão aguenta o ranked?">
-  <meta name="twitter:description" content="Medição real de latência, jitter e perda antes de entrar na partida.">
-  <meta name="twitter:image" content="https://lagcheck.signallq.com/og.png">
-  <meta name="twitter:image:alt" content="Lagcheck: sua conexão está pronta para ranked? Tela do app com o botão Checar agora.">
-
-  <meta name="keywords" content="testar lag antes de jogar, minha conexão está boa para ranked, testar ping fortnite, testar ping free fire, testar ping cod mobile, por que estou com lag no jogo, testar jitter e packet loss, speedtest não mostra lag de verdade, como saber se posso jogar ranked, melhor app para testar lag, testar conexão para jogos online, lagcheck">
-
-  <link rel="icon" href="/favicon.ico" sizes="48x48">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <title>Lagcheck — Teste de lag: sua conexão aguenta o ranked?</title>
-
-  <!-- Structured Data JSON-LD (WebSite + MobileApplication + FAQPage) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebSite",
-        "@id": "https://lagcheck.signallq.com/#website",
-        "name": "Lagcheck",
-        "url": "https://lagcheck.signallq.com/",
-        "inLanguage": "pt-BR"
-      },
-      {
         "@type": "MobileApplication",
-        "@id": "https://lagcheck.signallq.com/#app",
-        "name": "Lagcheck",
-        "operatingSystem": "iOS 17.0+, Android",
+        "name": "Lagcheck: Teste de Ping Gamer",
+        "operatingSystem": "iOS 17.0+",
         "applicationCategory": "UtilitiesApplication",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "BRL"
-        },
-        "description": "App para iPhone e Android que diagnostica a qualidade real da rota e conexão para jogos online antes de iniciar partidas ranqueadas.",
-        "url": "https://lagcheck.signallq.com/"
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+        "description": "App que diagnostica latência, jitter e perda de pacotes para jogos online antes do ranked.",
+        "url": "https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960"
       },
       {
         "@type": "FAQPage",
@@ -68,968 +41,639 @@
           {
             "@type": "Question",
             "name": "Por que estou com lag no jogo?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga. É isso que um check focado em jogo precisa separar."
-            }
+            "acceptedAnswer": { "@type": "Answer", "text": "Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga." }
           },
           {
             "@type": "Question",
             "name": "Como saber se posso jogar ranked?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Faça um check antes da fila. O veredito não promete zero lag: ele indica quando os sinais observados pedem cautela."
-            }
+            "acceptedAnswer": { "@type": "Answer", "text": "Faça um check antes da fila. O veredito indica quando os sinais observados pedem cautela." }
           },
           {
             "@type": "Question",
             "name": "Speedtest mostra lag de verdade?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Ele ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão."
-            }
+            "acceptedAnswer": { "@type": "Answer", "text": "Ele ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão." }
           }
         ]
       }
     ]
   }
   </script>
-
   <style>
-    :root {
-      --bg: oklch(.158 .011 260); /* #0B0D10 */
-      --surface: oklch(.205 .012 260);
-      --fg: oklch(.955 .006 260);
-      --muted: oklch(.675 .014 260);
-      --border: oklch(.302 .014 260);
-      --accent: oklch(.585 .214 299); /* #7C3AED · Roxo Gamer */
-      --good: oklch(.76 .15 150);
-      --attention: oklch(.684 .196 35); /* #FF5A36 · Coral Solar */
-      --font-display: ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
-      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --ease: cubic-bezier(.2, 0, 0, 1);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      min-width: 320px;
-      margin: 0;
-      background: oklch(.09 .009 260);
-      color: var(--fg);
-      font-family: var(--font-body);
-    }
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-    a { color: inherit; text-decoration: none; }
-    button:focus-visible, a:focus-visible, input:focus-visible {
-      outline: 3px solid var(--fg);
-      outline-offset: 4px;
-    }
-
-    .shell {
-      display: grid;
-      grid-template-columns: 224px minmax(0, 1fr);
-      min-height: 100vh;
-    }
-    .side {
-      position: sticky;
-      top: 0;
-      align-self: start;
-      height: 100vh;
-      padding: 30px 24px;
-      border-right: 1px solid var(--border);
-      background: var(--bg);
-    }
-    .mark {
-      width: 142px;
-      display: block;
-    }
-    .side nav {
-      display: grid;
-      gap: 4px;
-      margin-top: 68px;
-    }
-    .side nav a {
-      min-height: 38px;
-      padding: 10px 0;
-      border-bottom: 1px solid transparent;
-      color: var(--muted);
-      font: 11px/1 var(--font-mono);
-      letter-spacing: .04em;
-      transition: color 150ms var(--ease), border-color 150ms var(--ease);
-    }
-    .side nav a:hover,
-    .side nav a[aria-current="true"] {
-      color: var(--fg);
-      border-color: var(--accent);
-    }
-    .side-note {
-      position: absolute;
-      right: 24px;
-      bottom: 30px;
-      left: 24px;
-      color: var(--muted);
-      font: 11px/1.45 var(--font-mono);
-    }
-
-    main { overflow: hidden; }
-    .wrap {
-      width: min(100% - 72px, 1120px);
-      margin: auto;
-    }
-
-    .hero {
-      min-height: 760px;
-      padding: 30px 0 76px;
-      background: radial-gradient(circle at 73% 35%, oklch(.25 .09 299 / .16), transparent 31%), var(--bg);
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-    .mobile-mark { display: none; }
-    .availability {
-      margin: 0;
-      color: var(--muted);
-      font: 11px/1 var(--font-mono);
-      letter-spacing: .04em;
-    }
-    .availability i {
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      margin-right: 7px;
-      border-radius: 50%;
-      background: var(--good);
-      box-shadow: 0 0 0 4px oklch(.76 .15 150 / .12);
-    }
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr);
-      align-items: center;
-      gap: 68px;
-      padding-top: 105px;
-    }
-    .eyebrow {
-      margin: 0 0 16px;
-      color: var(--accent);
-      font: 11px/1 var(--font-mono);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-    .hero h1 {
-      max-width: 620px;
-      margin: 0;
-      font: 900 clamp(46px, 6vw, 82px)/.91 var(--font-display);
-      letter-spacing: -.075em;
-      text-wrap: balance;
-    }
-    .hero-copy {
-      max-width: 548px;
-      margin: 26px 0 0;
-      color: var(--muted);
-      font-size: 19px;
-      line-height: 1.45;
-      letter-spacing: -.02em;
-    }
-    .cta-set {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      max-width: 530px;
-      margin-top: 37px;
-    }
-    .button {
-      display: inline-flex;
-      min-height: 56px;
-      align-items: center;
-      justify-content: center;
-      padding: 0 18px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: transparent;
-      color: var(--fg);
-      font-weight: 760;
-      letter-spacing: -.02em;
-      transition: transform 100ms var(--ease), background 150ms var(--ease), border-color 150ms var(--ease);
-    }
-    .button:hover {
-      background: var(--surface);
-      border-color: oklch(.44 .02 260);
-    }
-    .button:active { transform: scale(.98); }
-    .button.primary {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: var(--fg);
-      box-shadow: 0 15px 32px oklch(.585 .214 299 / .23);
-    }
-    .button.primary:hover {
-      background: oklch(.66 .214 299);
-    }
-    .helper {
-      margin: 13px 0 0;
-      color: var(--muted);
-      font: 11px/1.5 var(--font-mono);
-    }
-
-    .app-shots {
-      position: relative;
-      width: min(100%, 405px);
-      height: 650px;
-      margin: auto;
-    }
-    .app-shot {
-      position: absolute;
-      display: block;
-      width: 300px;
-      border: 1px solid oklch(.37 .012 260);
-      border-radius: 38px;
-      background: var(--bg);
-      box-shadow: 0 38px 90px oklch(0 0 0 / .54);
-      object-fit: cover;
-    }
-    .app-shot.games {
-      top: 42px;
-      left: 0;
-      transform: rotate(-7deg);
-      opacity: .68;
-    }
-    .app-shot.home {
-      right: 0;
-      bottom: 0;
-      z-index: 1;
-    }
-    .app-caption {
-      position: absolute;
-      z-index: 2;
-      right: -20px;
-      bottom: 22px;
-      padding: 9px 11px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: oklch(.158 .011 260 / .94);
-      color: var(--muted);
-      font: 10px var(--font-mono);
-      box-shadow: 0 10px 24px oklch(0 0 0 / .28);
-    }
-    .app-caption b {
-      color: var(--fg);
-      font-weight: 650;
-    }
-
-    section.block {
-      padding: 110px 0;
-      border-top: 1px solid var(--border);
-    }
-    .section-kicker {
-      margin: 0 0 13px;
-      color: var(--accent);
-      font: 11px/1 var(--font-mono);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-    .section-title {
-      max-width: 690px;
-      margin: 0;
-      font: 850 clamp(32px, 4vw, 54px)/.98 var(--font-display);
-      letter-spacing: -.065em;
-      text-wrap: balance;
-    }
-    .section-copy {
-      max-width: 620px;
-      margin: 19px 0 0;
-      color: var(--muted);
-      font-size: 17px;
-      line-height: 1.5;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      margin-top: 56px;
-      border-top: 1px solid var(--border);
-    }
-    .step {
-      padding: 24px 24px 12px 0;
-      border-right: 1px solid var(--border);
-    }
-    .step + .step { padding-left: 24px; }
-    .step:last-child { border-right: 0; }
-    .step-no {
-      display: block;
-      margin-bottom: 35px;
-      color: var(--accent);
-      font: 12px var(--font-mono);
-    }
-    .step h3 {
-      margin: 0;
-      font: 800 24px/1 var(--font-display);
-      letter-spacing: -.05em;
-    }
-    .step p {
-      max-width: 240px;
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .uses-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      margin-top: 54px;
-      border-top: 1px solid var(--border);
-    }
-    .use {
-      min-height: 140px;
-      padding: 22px;
-      border-right: 1px solid var(--border);
-    }
-    .use:first-child { padding-left: 0; }
-    .use:last-child { border: 0; }
-    .use span {
-      color: var(--muted);
-      font: 11px var(--font-mono);
-    }
-    .use h3 {
-      margin: 13px 0 0;
-      font: 750 23px/1 var(--font-display);
-      letter-spacing: -.05em;
-    }
-
-    .game-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 47px;
-    }
-    .game {
-      min-width: 140px;
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: var(--surface);
-      font-size: 14px;
-      font-weight: 700;
-    }
-    .game small {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted);
-      font: 10px var(--font-mono);
-    }
-
-    .comparison {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      margin-top: 52px;
-      border: 1px solid var(--border);
-      background: var(--border);
-    }
-    .compare {
-      min-height: 260px;
-      padding: 30px;
-      background: var(--bg);
-    }
-    .compare h3 {
-      margin: 0;
-      font: 800 26px/1 var(--font-display);
-      letter-spacing: -.05em;
-    }
-    .compare p {
-      max-width: 345px;
-      margin: 18px 0 0;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.45;
-    }
-    .compare ul {
-      margin: 24px 0 0;
-      padding: 0;
-      list-style: none;
-    }
-    .compare li {
-      padding: 9px 0;
-      border-top: 1px solid var(--border);
-      font: 12px var(--font-mono);
-    }
-    .compare li::before {
-      content: '—';
-      padding-right: 9px;
-      color: var(--accent);
-    }
-
-    .faq {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      margin-top: 56px;
-      border-top: 1px solid var(--border);
-    }
-    .faq article {
-      padding: 24px 24px 0 0;
-      border-right: 1px solid var(--border);
-    }
-    .faq article + article { padding-left: 24px; }
-    .faq article:last-child { border: 0; }
-    .faq h3 {
-      margin: 0;
-      font: 800 19px/1.05 var(--font-display);
-      letter-spacing: -.045em;
-    }
-    .faq p {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.48;
-    }
-
-    .signup {
-      padding: 120px 0;
-      background: var(--surface);
-    }
-    .signup-grid {
-      display: grid;
-      grid-template-columns: 1fr minmax(330px, .7fr);
-      gap: 64px;
-      align-items: end;
-    }
-    .signup .section-copy { color: var(--muted); }
-    .form {
-      padding: 23px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--bg);
-    }
-    .form label {
-      display: block;
-      margin-bottom: 9px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .email {
-      width: 100%;
-      min-height: 53px;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: var(--surface);
-      color: var(--fg);
-    }
-    .email::placeholder { color: var(--muted); }
-    .platforms {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
-      margin: 14px 0;
-    }
-    .platforms button {
-      min-height: 43px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .platforms button[aria-pressed="true"] {
-      border-color: var(--accent);
-      background: oklch(.585 .214 299 / .13);
-      color: var(--fg);
-    }
-    .optin {
-      display: flex;
-      gap: 9px;
-      align-items: flex-start;
-      margin: 15px 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-    }
-    .optin input {
-      width: 16px;
-      height: 16px;
-      margin: 0;
-      accent-color: var(--accent);
-    }
-    .form .button { width: 100%; }
-    .form-message {
-      min-height: 19px;
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-    .form-message.error { color: var(--attention); }
-    .success { display: none; }
-    .success.show { display: block; }
-    .form.done form { display: none; }
-    .success h3 {
-      margin: 0;
-      font: 800 26px/1 var(--font-display);
-      letter-spacing: -.05em;
-    }
-    .success p {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-    .success button { margin-top: 20px; }
-
-    footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      padding: 29px 0;
-      color: var(--muted);
-      font: 11px var(--font-mono);
-    }
-    footer img { width: 116px; }
-    footer nav { display: flex; gap: 18px; }
-    footer a:hover { color: var(--fg); }
-    .mobile-cta { display: none; }
-
-    @media(max-width: 900px) {
-      .shell { display: block; }
-      .side { display: none; }
-      .mobile-mark {
-        display: block;
-        width: 128px;
-      }
-      .hero { min-height: auto; }
-      .hero-grid {
-        grid-template-columns: 1fr;
-        gap: 62px;
-        padding-top: 76px;
-      }
-      .hero-visual { order: -1; }
-      .wrap { width: min(100% - 44px, 680px); }
-      .uses-grid { grid-template-columns: repeat(2, 1fr); }
-      .use:nth-child(2) { border-right: 0; }
-      .use:nth-child(3) {
-        padding-left: 0;
-        border-top: 1px solid var(--border);
-      }
-      .use:nth-child(4) { border-top: 1px solid var(--border); }
-      .signup-grid {
-        grid-template-columns: 1fr;
-        gap: 38px;
-      }
-      .mobile-cta {
-        position: fixed;
-        right: 14px;
-        bottom: 14px;
-        left: 14px;
-        z-index: 6;
-        display: flex;
-        min-height: 52px;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--accent);
-        border-radius: 15px;
-        background: var(--accent);
-        color: var(--fg);
-        box-shadow: 0 16px 32px oklch(0 0 0 / .34);
-        font-weight: 800;
-      }
-      .mobile-cta:hover { background: oklch(.66 .214 299); }
-    }
-
-    @media(max-width: 570px) {
-      .wrap { width: min(100% - 32px, 680px); }
-      .hero { padding-bottom: 64px; }
-      .topbar .availability { font-size: 10px; }
-      .hero-grid {
-        padding-top: 58px;
-        gap: 49px;
-      }
-      .hero h1 { font-size: clamp(45px, 14vw, 64px); }
-      .hero-copy { font-size: 17px; }
-      .cta-set { grid-template-columns: 1fr; }
-      .app-shots {
-        width: 310px;
-        height: 510px;
-      }
-      .app-shot {
-        width: 235px;
-        border-radius: 30px;
-      }
-      .app-caption {
-        right: -3px;
-        bottom: 14px;
-      }
-      .steps { grid-template-columns: 1fr; }
-      .step, .step + .step {
-        padding: 23px 0;
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
-      }
-      .step-no { margin-bottom: 21px; }
-      .uses-grid { grid-template-columns: 1fr; }
-      .use, .use:first-child, .use:nth-child(3) {
-        min-height: auto;
-        padding: 22px 0;
-        border-right: 0;
-        border-top: 1px solid var(--border);
-      }
-      .comparison, .faq { grid-template-columns: 1fr; }
-      .compare { min-height: auto; }
-      .faq article, .faq article + article {
-        padding: 23px 0;
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
-      }
-      .signup { padding: 86px 0 102px; }
-      section.block { padding: 82px 0; }
-      footer {
-        padding-bottom: 90px;
-        align-items: flex-start;
-        flex-direction: column;
-      }
-      footer nav { gap: 13px; }
-      .platforms { grid-template-columns: 1fr; }
-      .platforms button { min-height: 40px; }
-    }
-
-    @media(prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after {
-        transition-duration: .01ms !important;
-        animation-duration: .01ms !important;
-      }
-    }
-  </style>
+body {
+  margin: 0;
+  background: oklch(0.12 0.01 260);
+  color: oklch(0.955 0.006 260);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+a:hover { color: oklch(0.78 0.12 299); }
+* { box-sizing: border-box; }
+@keyframes fl { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-18px); } }
+@keyframes fll { 0%, 100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(14px); } }
+@keyframes flr { 0%, 100% { transform: rotate(6deg) translateY(0); } 50% { transform: rotate(8deg) translateY(-14px); } }
+@keyframes ring { 0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
+@keyframes mq { to { transform: translateX(-50%); } }
+@keyframes gx { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.585 0.214 299 / 0.5); } 50% { box-shadow: 0 0 0 14px oklch(0.585 0.214 299 / 0); } }
+@keyframes blink { 50% { opacity: 0.25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes kb { to { transform: scale(1.12); } }
+[data-rv] { opacity: 0; transform: translateY(46px) scale(0.97); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
+[data-rv].in { opacity: 1; transform: none; }
+[data-rv]:nth-child(2) { transition-delay: 0.12s; }
+[data-rv]:nth-child(3) { transition-delay: 0.24s; }
+.hi { animation: rise 0.9s cubic-bezier(0.2, 0, 0, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+  [data-rv] { opacity: 1; transform: none; }
+}
+::-webkit-scrollbar { display: none; }
+.btn-appstore {
+  display: inline-block;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.btn-appstore:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+</style>
 </head>
 <body>
-  <div class="shell">
-    <aside class="side" aria-label="Índice da página" data-od-id="indice-lateral">
-      <a href="#inicio"><img class="mark" src="assets/lagcheck-wordmark-light.svg" alt="Lagcheck"></a>
-      <nav>
-        <a href="#inicio" aria-current="true">01 · Início</a>
-        <a href="#como-funciona">02 · Como funciona</a>
-        <a href="#para-que-serve">03 · Casos de uso</a>
-        <a href="#jogos">04 · Jogos</a>
-        <a href="#diferenca">05 · Por que não é speedtest</a>
-        <a href="#acesso">06 · Acesso antecipado</a>
-      </nav>
-      <p class="side-note">Diagnóstico de conexão para decidir se agora é hora de entrar no ranked.</p>
-    </aside>
+<div style="min-width:320px;overflow:hidden">
+  
+<header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px max(22px,calc((100% - 1200px)/2));background:oklch(0.12 0.01 260 / 0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid oklch(0.25 0.012 260)">
+  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:124px;display:block"></a>
+  <nav style="display:flex;gap:24px;font-size:13px;color:oklch(0.75 0.014 260)">
+    <a href="/jogos/" style="">Jogos</a>
+    <a href="/#casos">Casos de uso</a>
+    <a href="/#concorrentes">Comparativo</a>
+    <a href="/#combo">Linka</a>
+    <a href="/#como">Como funciona</a>
+    <a href="/#veredito">Veredito</a>
+    <a href="/#faq">Dúvidas</a>
+  </nav>
+  <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="padding:9px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:oklch(0.98 0 0);font-size:13px;font-weight:700">Baixar na App Store</a>
+</header>
 
-    <main>
-      <section class="hero" id="inicio" data-od-id="hero">
-        <div class="wrap">
-          <header class="topbar">
-            <img class="mobile-mark" src="assets/lagcheck-wordmark-light.svg" alt="Lagcheck">
-            <p class="availability"><i aria-hidden="true"></i>Em breve no iPhone e Android</p>
-          </header>
 
-          <div class="hero-grid">
-            <div>
-              <p class="eyebrow">Acesso antecipado</p>
-              <h1 data-od-id="hero-headline">Sua conexão está pronta para ranked?</h1>
-              <p class="hero-copy">O Lagcheck mede a qualidade real da sua rota e te diz se vale a pena entrar na partida agora.</p>
-              <div class="cta-set" data-od-id="ctas-hero">
-                <button class="button primary" type="button" data-platform="ios">Entrar no TestFlight</button>
-                <button class="button" type="button" data-platform="android">Entrar no Play Beta</button>
-              </div>
-              <p class="helper">Acesso antecipado · Vagas limitadas · Sem spam</p>
-            </div>
+  <!-- HERO SECTION -->
+  <section id="inicio" style="position:relative;padding:92px 22px 0;text-align:center;background:radial-gradient(ellipse 60% 50% at 50% 38%,oklch(0.3 0.13 299 / 0.45),transparent 70%)">
+    <p class="hi" style="margin:0 0 18px;font:11px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Disponível na App Store para iPhone</p>
+    <h1 class="hi" style="animation-delay:.12s;margin:0 auto;max-width:900px;font:900 clamp(48px,8.6vw,112px)/.92 ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;letter-spacing:-.06em;text-wrap:balance">
+      Sua conexão está pronta para o <span style="background:linear-gradient(90deg,oklch(0.7 0.2 299),oklch(0.75 0.17 200),oklch(0.7 0.2 330),oklch(0.7 0.2 299));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx 4s linear infinite">ranked</span>?
+    </h1>
+    <p class="hi" style="animation-delay:.24s;margin:26px auto 0;max-width:560px;font-size:20px;line-height:1.4;color:oklch(0.75 0.014 260);letter-spacing:-.01em">
+      O Lagcheck mede latência, jitter e perda de pacotes e diz se vale entrar na partida agora.
+    </p>
+    <div class="hi" style="animation-delay:.36s;gap:14px;align-items:center;flex-wrap:wrap;display:flex;justify-content:center;margin-top:34px">
+      <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore" style="display:inline-flex;gap:14px;align-items:center;text-decoration:none">
+        <span style="display:inline-flex;gap:9px;align-items:center;padding:10px 16px;border-radius:999px;border:1px solid oklch(0.3 0.014 260);font:11px ui-monospace,monospace;color:oklch(0.75 0.014 260)">
+          <i style="width:8px;height:8px;border-radius:50%;background:oklch(0.76 0.15 150);animation:blink 1.2s infinite;display:inline-block"></i>check em 25–35 s
+        </span>
+        <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
+      </a>
+    </div>
 
-            <div class="hero-visual" aria-label="Telas reais do aplicativo Lagcheck">
-              <div class="app-shots">
-                <picture><source type="image/webp" srcset="assets/app-games.webp"><img class="app-shot games" src="Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.13.png" alt="Tela de jogos do Lagcheck" width="300" height="650" decoding="async"></picture>
-                <picture><source type="image/webp" srcset="assets/app-home.webp"><img class="app-shot home" src="Screenshot-iPhone-17-Pro-27-09-2026-at-19.05.37.png" alt="Tela inicial do Lagcheck mostrando Fortnite pronto para check" width="300" height="650" fetchpriority="high" decoding="async"></picture>
-                <span class="app-caption"><b>App real</b> · iPhone</span>
-              </div>
-            </div>
-          </div>
+    <!-- MOCKUPS FLUTUANTES COM RADAR RINGS -->
+    <div style="position:relative;height:clamp(420px,52vw,620px);margin:64px auto 0;max-width:900px;overflow:hidden">
+      <div style="position:absolute;left:50%;top:260px;width:520px;height:520px;border-radius:50%;border:2px solid oklch(0.585 0.214 299);animation:ring 3.6s ease-out infinite"></div>
+      <div style="position:absolute;left:50%;top:260px;width:520px;height:520px;border-radius:50%;border:2px solid oklch(0.585 0.214 299);animation:ring 3.6s ease-out 1.8s infinite"></div>
+      <img src="/assets/app-games.webp" alt="Tela de jogos do Lagcheck" style="position:absolute;left:4%;top:60px;width:min(36%,300px);border-radius:34px;border:1px solid oklch(0.37 0.012 260);animation:fll 6s ease-in-out infinite;opacity:.7;box-shadow:0 38px 90px #0008">
+      <img src="/assets/app-home.webp" alt="Tela inicial do Lagcheck" style="position:absolute;left:50%;top:0;width:min(42%,340px);animation:fl 5s ease-in-out infinite;border-radius:38px;border:1px solid oklch(0.4 0.012 260);box-shadow:0 38px 90px #000a;z-index:2">
+      <img src="/assets/app-result.webp" alt="Tela de resultado de medição" style="position:absolute;right:4%;top:60px;width:min(36%,300px);border-radius:34px;border:1px solid oklch(0.37 0.012 260);animation:flr 7s ease-in-out infinite;opacity:.9;box-shadow:0 38px 90px #0008">
+    </div>
+  </section>
+
+  <!-- MARQUEE INFINITO DE JOGOS -->
+  <section id="jogos" style="padding:90px 0 20px;background:oklch(0.12 0.01 260)">
+    <div style="max-width:1200px;margin:auto;padding:0 22px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <h2 style="margin:0;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Escolha o jogo. Faça o check.</h2>
+        <a href="/jogos/" style="font:11px ui-monospace,monospace;color:oklch(0.78 0.12 299);text-decoration:none">Ver todos os 20 jogos →</a>
+      </div>
+    </div>
+    <div style="overflow:hidden;padding:34px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)">
+      <div style="display:flex;gap:16px;width:max-content;animation:mq 50s linear infinite" onmouseover="this.style.animationPlayState='paused'" onmouseout="this.style.animationPlayState='running'">
+        
+    <a href="/jogos/fortnite/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/fortnite.jpg" alt="Fortnite" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Fortnite</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/free-fire/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/freefire.jpg" alt="Free Fire" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Free Fire</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/cod-mobile/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/codm.jpg" alt="COD Mobile" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">COD Mobile</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/valorant/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/valorant.jpg" alt="Valorant" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Valorant</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/counter-strike-2/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/cs2.jpg" alt="Counter-Strike 2" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Counter-Strike 2</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/apex-legends/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/apexlegends.jpg" alt="Apex Legends" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Apex Legends</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/league-of-legends/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/leagueoflegends.jpg" alt="League of Legends" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">League of Legends</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/wild-rift/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/wildrift.jpg" alt="Wild Rift" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Wild Rift</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/rocket-league/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/rocketleague.jpg" alt="Rocket League" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Rocket League</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/roblox/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/roblox.jpg" alt="Roblox" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Roblox</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/minecraft/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/minecraft.jpg" alt="Minecraft" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Minecraft</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/brawl-stars/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/brawlstars.jpg" alt="Brawl Stars" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Brawl Stars</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/fortnite/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/fortnite.jpg" alt="Fortnite" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Fortnite</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/free-fire/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/freefire.jpg" alt="Free Fire" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Free Fire</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/cod-mobile/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/codm.jpg" alt="COD Mobile" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">COD Mobile</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/valorant/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/valorant.jpg" alt="Valorant" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Valorant</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/counter-strike-2/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/cs2.jpg" alt="Counter-Strike 2" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Counter-Strike 2</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/apex-legends/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/apexlegends.jpg" alt="Apex Legends" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Apex Legends</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/league-of-legends/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/leagueoflegends.jpg" alt="League of Legends" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">League of Legends</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/wild-rift/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/wildrift.jpg" alt="Wild Rift" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Wild Rift</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/rocket-league/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/rocketleague.jpg" alt="Rocket League" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Rocket League</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/roblox/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/roblox.jpg" alt="Roblox" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Roblox</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/minecraft/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/minecraft.jpg" alt="Minecraft" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Minecraft</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+    <a href="/jogos/brawl-stars/" style="flex:0 0 auto;width:196px;display:block">
+      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
+        <img src="/assets/games/brawlstars.jpg" alt="Brawl Stars" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">Brawl Stars</div>
+      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+    </a>
+  
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section id="como" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <h2 style="margin:0 0 34px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:700px">Um check que respeita o que acontece na partida.</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      
+    <article data-rv="1" style="min-height:340px;padding:30px;border-radius:30px;background:linear-gradient(160deg,oklch(0.28 0.12 299),oklch(0.18 0.04 280));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden">
+      <span style="font:12px ui-monospace,monospace;letter-spacing:.1em;color:oklch(0.85 0.08 299)">01</span>
+      <div>
+        <h3 style="margin:0;font:850 34px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Escolha o jogo</h3>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.45;color:oklch(0.85 0.01 260)">Comece pelo jogo que você vai abrir agora.</p>
+      </div>
+    </article>
+  
+    <article data-rv="1" style="min-height:340px;padding:30px;border-radius:30px;background:linear-gradient(160deg,oklch(0.24 0.09 270),oklch(0.17 0.03 260));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden">
+      <span style="font:12px ui-monospace,monospace;letter-spacing:.1em;color:oklch(0.85 0.08 299)">02</span>
+      <div>
+        <h3 style="margin:0;font:850 34px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Faça o check</h3>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.45;color:oklch(0.85 0.01 260)">Em cerca de 25–35 segundos, observamos a rota em repouso e sob carga.</p>
+      </div>
+    </article>
+  
+    <article data-rv="1" style="min-height:340px;padding:30px;border-radius:30px;background:linear-gradient(160deg,oklch(0.3 0.1 330),oklch(0.18 0.04 290));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden">
+      <span style="font:12px ui-monospace,monospace;letter-spacing:.1em;color:oklch(0.85 0.08 299)">03</span>
+      <div>
+        <h3 style="margin:0;font:850 34px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Receba o veredito</h3>
+        <p style="margin:12px 0 0;font-size:16px;line-height:1.45;color:oklch(0.85 0.01 260)">Pronto para Ranked, condições instáveis ou um sinal honesto para evitar ranked.</p>
+      </div>
+    </article>
+  
+    </div>
+  </section>
+
+  <!-- CASOS DE USO -->
+  <section id="casos" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">O mesmo check, decisões diferentes</p>
+    <h2 style="margin:0 0 34px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:700px">O ranked vem primeiro. O resto ganha contexto.</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+      
+    <article data-rv="1" style="min-height:190px;padding:26px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;justify-content:space-between">
+      <span style="font:12px ui-monospace,monospace;color:oklch(0.78 0.12 299)">01</span>
+      <h3 style="margin:0;font:850 28px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Ranked</h3>
+    </article>
+  
+    <article data-rv="1" style="min-height:190px;padding:26px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;justify-content:space-between">
+      <span style="font:12px ui-monospace,monospace;color:oklch(0.78 0.12 299)">02</span>
+      <h3 style="margin:0;font:850 28px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Casual</h3>
+    </article>
+  
+    <article data-rv="1" style="min-height:190px;padding:26px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;justify-content:space-between">
+      <span style="font:12px ui-monospace,monospace;color:oklch(0.78 0.12 299)">03</span>
+      <h3 style="margin:0;font:850 28px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Party / Discord</h3>
+    </article>
+  
+    <article data-rv="1" style="min-height:190px;padding:26px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;justify-content:space-between">
+      <span style="font:12px ui-monospace,monospace;color:oklch(0.78 0.12 299)">04</span>
+      <h3 style="margin:0;font:850 28px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Streaming + jogo</h3>
+    </article>
+  
+    </div>
+  </section>
+
+  <!-- VEREDITO -->
+  <section id="veredito" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+      <article data-rv="1" style="padding:44px;border-radius:30px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;gap:22px">
+        <span style="align-self:flex-start;padding:7px 12px;border-radius:999px;background:oklch(0.76 0.15 150 / 0.14);font:11px ui-monospace,monospace;color:oklch(0.76 0.15 150)">● veredito</span>
+        <h3 style="margin:0;font:900 clamp(36px,5vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Pronto para Ranked</h3>
+        <p style="margin:0;max-width:420px;font-size:17px;line-height:1.45;color:oklch(0.75 0.014 260)">O veredito vem primeiro. Os detalhes aparecem quando você precisa entender ou agir: latência, jitter, perda e rota.</p>
+      </article>
+      <article data-rv="1" style="padding:44px;border-radius:30px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;gap:22px">
+        <span style="align-self:flex-start;padding:7px 12px;border-radius:999px;background:oklch(0.684 0.196 35 / 0.14);font:11px ui-monospace,monospace;color:oklch(0.75 0.17 35)">● honesto</span>
+        <h3 style="margin:0;font:900 clamp(36px,5vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Condições instáveis</h3>
+        <p style="margin:0;max-width:420px;font-size:17px;line-height:1.45;color:oklch(0.75 0.014 260)">Sem prometer zero lag. Quando os sinais pedem cautela, o app diz — e nunca preenche métricas que não mediu.</p>
+      </article>
+    </div>
+    <p style="margin:34px 0 16px;max-width:680px;font-size:17px;line-height:1.5;color:oklch(0.72 0.014 260)">
+      Se você quer testar ping no Fortnite, Free Fire ou COD Mobile, velocidade sozinha não mostra a história completa. O Lagcheck observa latência, jitter e perda de pacotes para responder se sua conexão está boa para ranked naquele momento.
+    </p>
+    <div data-rv="1" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:oklch(0.3 0.014 260);border:1px solid oklch(0.3 0.014 260);border-radius:30px;overflow:hidden">
+      <div style="padding:34px;background:oklch(0.12 0.01 260)">
+        <h4 style="margin:0;font:800 26px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Speedtest</h4>
+        <p style="margin:12px 0 18px;color:oklch(0.675 0.014 260);line-height:1.45">Mede a velocidade da conexão em um momento.</p>
+        <div style="font:12px ui-monospace,monospace;line-height:2;color:oklch(0.8 0.01 260)">— Download<br>— Upload<br>— Ping pontual</div>
+      </div>
+      <div style="padding:34px;background:oklch(0.16 0.03 299)">
+        <h4 style="margin:0;font:800 26px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Lagcheck</h4>
+        <p style="margin:12px 0 18px;color:oklch(0.8 0.02 299);line-height:1.45">Mede o que importa para jogar naquela rota.</p>
+        <div style="font:12px ui-monospace,monospace;line-height:2">— Latência<br>— Jitter<br>— Perda de pacotes<br>— Comportamento sob carga</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARATIVO COM CONCORRENTES -->
+  <section id="concorrentes" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Quadro comparativo</p>
+    <h2 style="margin:0 0 14px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:760px">Cada app responde uma pergunta diferente.</h2>
+    <p style="margin:0 0 30px;max-width:620px;font-size:16px;line-height:1.5;color:oklch(0.72 0.014 260)">
+      Testes de velocidade medem banda. Otimizadores de rota vendem uma solução. O Lagcheck responde antes da fila: dá para jogar agora?
+    </p>
+    <div data-rv="1" style="overflow-x:auto;border-radius:26px;border:1px solid oklch(0.3 0.014 260)">
+      <div style="min-width:760px;display:grid;grid-template-columns:1.1fr 1.3fr 1.5fr 1fr;gap:1px;background:oklch(0.3 0.014 260)">
+        
+    <div style="padding:18px 20px;background:oklch(0.2 0.02 260);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.675 0.014 260)">App</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.02 260);font-size:14px;line-height:1.4;color:oklch(0.675 0.014 260)">Foco principal</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.02 260);font-size:14px;line-height:1.4;color:oklch(0.675 0.014 260)">Resposta que entrega</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.02 260);font-size:14px;line-height:1.4;color:oklch(0.675 0.014 260)">Modelo</div>
+  
+    <div style="padding:18px 20px;background:oklch(0.2 0.06 299);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.9 0.1 299)">Lagcheck</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.06 299);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Qualidade da rota para jogar</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.06 299);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Veredito: pronto para ranked ou não</div>
+    <div style="padding:18px 20px;background:oklch(0.2 0.06 299);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Grátis no iPhone</div>
+  
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.955 0.006 260)">Speedtest (Ookla)</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Velocidade de banda</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Download, upload e ping pontual</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Teste de velocidade</div>
+  
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.955 0.006 260)">Fast.com</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Velocidade de download</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Quanto de banda você tem agora</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Teste de velocidade</div>
+  
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.955 0.006 260)">ExitLag</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Otimização de rota</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Tenta melhorar o caminho até o servidor</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Assinatura paga</div>
+  
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:oklch(0.955 0.006 260)">NoPing</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Otimização de rota</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Tenta reduzir ping e instabilidade</div>
+    <div style="padding:18px 20px;background:oklch(0.12 0.01 260);font-size:14px;line-height:1.4;color:oklch(0.8 0.012 260)">Assinatura paga</div>
+  
+      </div>
+    </div>
+    <p style="margin:14px 0 0;font:11px ui-monospace,monospace;color:oklch(0.6 0.014 260)">
+      Marcas citadas pertencem a seus respectivos donos. Comparação por foco de produto, não por desempenho.
+    </p>
+  </section>
+
+  <!-- INFRAESTRUTURA AWS -->
+  <section id="aws" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <div data-rv="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px;align-items:center;padding:clamp(28px,5vw,56px);border-radius:32px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260))">
+      <div>
+        <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Onde o ping é medido</p>
+        <h2 style="margin:0;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Latência real até a infraestrutura AWS em São Paulo.</h2>
+        <p style="margin:18px 0 0;font-size:16px;line-height:1.5;color:oklch(0.8 0.014 260)">
+          Muitos jogos online rodam seus servidores na AWS. O Lagcheck envia pacotes UDP para os beacons de ping do AWS GameLift em 21 regiões e mede a rota real entre o seu iPhone e o datacenter regional, sem depender de ICMP.
+        </p>
+        <p style="margin:14px 0 0;font-size:14px;line-height:1.5;color:oklch(0.7 0.014 260)">
+          Transparência: é uma rota de referência regional, não o servidor da sua próxima partida.
+        </p>
+      </div>
+      <div style="display:grid;gap:10px;font:12px ui-monospace,monospace">
+        
+    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;background:oklch(0.12 0.01 260 / 0.7);border:1px solid oklch(0.3 0.014 260)">
+      <span style="color:oklch(0.675 0.014 260)">Protocolo</span>
+      <b style="font-weight:600;text-align:right">UDP real</b>
+    </div>
+  
+    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;background:oklch(0.12 0.01 260 / 0.7);border:1px solid oklch(0.3 0.014 260)">
+      <span style="color:oklch(0.675 0.014 260)">Destino</span>
+      <b style="font-weight:600;text-align:right">AWS GameLift · sa-east-1</b>
+    </div>
+  
+    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;background:oklch(0.12 0.01 260 / 0.7);border:1px solid oklch(0.3 0.014 260)">
+      <span style="color:oklch(0.675 0.014 260)">Regiões</span>
+      <b style="font-weight:600;text-align:right">21 no mundo</b>
+    </div>
+  
+    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;background:oklch(0.12 0.01 260 / 0.7);border:1px solid oklch(0.3 0.014 260)">
+      <span style="color:oklch(0.675 0.014 260)">Fase 2</span>
+      <b style="font-weight:600;text-align:right">Medição sob carga</b>
+    </div>
+  
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="max-width:1200px;margin:auto;padding:90px 22px 0">
+    <h2 style="margin:0 0 30px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Dúvidas sobre lag</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      
+    <article data-rv="1" style="padding:28px;border-radius:24px;background:oklch(0.2 0.012 260)">
+      <h3 style="margin:0;font:800 20px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Por que estou com lag no jogo?</h3>
+      <p style="margin:12px 0 0;color:oklch(0.72 0.014 260);font-size:15px;line-height:1.5">Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga. É isso que um check focado em jogo separa.</p>
+    </article>
+  
+    <article data-rv="1" style="padding:28px;border-radius:24px;background:oklch(0.2 0.012 260)">
+      <h3 style="margin:0;font:800 20px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Como saber se posso jogar ranked?</h3>
+      <p style="margin:12px 0 0;color:oklch(0.72 0.014 260);font-size:15px;line-height:1.5">Faça um check antes da fila. O veredito não promete zero lag: indica quando os sinais observados pedem cautela.</p>
+    </article>
+  
+    <article data-rv="1" style="padding:28px;border-radius:24px;background:oklch(0.2 0.012 260)">
+      <h3 style="margin:0;font:800 20px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Speedtest mostra lag de verdade?</h3>
+      <p style="margin:12px 0 0;color:oklch(0.72 0.014 260);font-size:15px;line-height:1.5">Ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão.</p>
+    </article>
+  
+    </div>
+  </section>
+
+  <!-- COMBO LINKA + LAGCHECK -->
+  <section id="combo" style="max-width:1200px;margin:90px auto 0;padding:0 22px">
+    <div data-rv="1" style="padding:clamp(28px,5vw,60px);border-radius:34px;background:radial-gradient(ellipse 60% 90% at 50% 0%,oklch(0.3 0.12 299 / 0.5),transparent 70%),oklch(0.17 0.015 260);border:1px solid oklch(0.3 0.014 260);text-align:center">
+      <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">A dobradinha</p>
+      <h2 style="margin:0 auto;max-width:760px;font:900 clamp(34px,5vw,60px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">
+        Velocidade e estabilidade. O combo completo antes da fila.
+      </h2>
+      <div style="display:flex;align-items:stretch;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:40px">
+        <div style="flex:1 1 280px;max-width:380px;padding:30px;border-radius:26px;background:oklch(0.12 0.01 260);border:1px solid oklch(0.3 0.014 260);text-align:left">
+          <img src="/assets/linka-icon.png" alt="Linka: Wi-Fi e Internet" style="width:56px;height:56px;border-radius:16px;object-fit:cover;display:block">
+          <h3 style="margin:18px 0 0;font:850 30px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Linka</h3>
+          <p style="margin:10px 0 0;font-size:15px;line-height:1.45;color:oklch(0.75 0.014 260)">Teste de velocidade da sua internet. Saiba quanta banda você tem.</p>
+          <a href="https://apps.apple.com/app/id6808479321" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:20px;padding:12px 20px;border-radius:13px;background:oklch(0.2 0.03 260);border:1px solid oklch(0.4 0.014 260);color:#fff;font-weight:800;font-size:14px">Baixar o Linka na App Store →</a>
+          <div style="margin-top:12px"><a href="https://linka-speedtest.web.app/" target="_blank" rel="noopener noreferrer" style="font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);text-decoration:underline">Ou testar velocidade na web</a></div>
         </div>
-      </section>
-
-      <section class="block" id="como-funciona" data-od-id="como-funciona">
-        <div class="wrap">
-          <p class="section-kicker">Sem adivinhação</p>
-          <h2 class="section-title">Antes da fila, um check que respeita o que acontece na partida.</h2>
-          <div class="steps">
-            <article class="step" data-od-id="passo-escolher">
-              <span class="step-no">01</span>
-              <h3>Escolhe o jogo</h3>
-              <p>Comece pelo jogo que você vai abrir agora.</p>
-            </article>
-            <article class="step" data-od-id="passo-check">
-              <span class="step-no">02</span>
-              <h3>Faz o Check</h3>
-              <p>Em cerca de 25–35 segundos, o Lagcheck observa a rota em repouso e sob carga.</p>
-            </article>
-            <article class="step" data-od-id="passo-veredito">
-              <span class="step-no">03</span>
-              <h3>Recebe o veredito</h3>
-              <p>Pronto para Ranked, condições instáveis ou um sinal honesto para evitar ranked.</p>
-            </article>
-          </div>
+        <div style="align-self:center;font:900 44px ui-rounded,system-ui,sans-serif;color:oklch(0.585 0.214 299);animation:blink 1.6s infinite">+</div>
+        <div style="flex:1 1 280px;max-width:380px;padding:30px;border-radius:26px;background:oklch(0.2 0.06 299);border:1px solid oklch(0.585 0.214 299 / 0.6);text-align:left">
+          <img src="/assets/app-home.webp" alt="Lagcheck App" style="width:56px;height:56px;border-radius:16px;object-fit:cover;object-position:top">
+          <h3 style="margin:18px 0 0;font:850 30px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Lagcheck</h3>
+          <p style="margin:10px 0 0;font-size:15px;line-height:1.45;color:oklch(0.85 0.02 299)">Veredito de lag para jogar. Saiba se a conexão aguenta o ranked agora.</p>
+          <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="display:inline-block;margin-top:20px;padding:12px 20px;border-radius:13px;background:oklch(0.585 0.214 299);color:#fff;font-weight:800;font-size:14px">Baixar na App Store</a>
         </div>
-      </section>
+      </div>
+      <p style="margin:30px auto 0;max-width:540px;font-size:15px;line-height:1.5;color:oklch(0.72 0.014 260)">
+        Primeiro a banda, depois a rota. Um número alto de download não garante partida estável, e uma rota boa não resolve internet lenta.
+      </p>
+    </div>
+  </section>
 
-      <section class="block" id="para-que-serve" data-od-id="casos-de-uso">
-        <div class="wrap">
-          <p class="section-kicker">O mesmo check, decisões diferentes</p>
-          <h2 class="section-title">O ranked vem primeiro. O resto ganha contexto.</h2>
-          <div class="uses-grid">
-            <article class="use" data-od-id="uso-ranked">
-              <span>01</span>
-              <h3>Ranked</h3>
-            </article>
-            <article class="use" data-od-id="uso-casual">
-              <span>02</span>
-              <h3>Casual</h3>
-            </article>
-            <article class="use" data-od-id="uso-party">
-              <span>03</span>
-              <h3>Party / Discord</h3>
-            </article>
-            <article class="use" data-od-id="uso-streaming">
-              <span>04</span>
-              <h3>Streaming + jogo</h3>
-            </article>
-          </div>
-        </div>
-      </section>
+  <!-- ACESSO / DOWNLOAD APP STORE -->
+  <section id="acesso" style="margin-top:100px;padding:110px 22px;text-align:center;background:radial-gradient(ellipse 70% 80% at 50% 100%,oklch(0.3 0.13 299 / 0.5),transparent 70%),oklch(0.15 0.012 260)">
+    <div data-rv="1" style="max-width:640px;margin:auto">
+      <img src="/assets/app-home.webp" alt="App Lagcheck" style="width:120px;border-radius:26px;margin-bottom:28px;animation:glow 2.4s infinite;border:1px solid oklch(0.4 0.012 260)">
+      <h2 style="margin:0;font:900 clamp(38px,6vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Faça o check antes da próxima fila.</h2>
+      <p style="margin:18px 0 32px;color:oklch(0.75 0.014 260);font-size:17px;line-height:1.45">
+        Disponível agora na App Store para iPhone. Gratuito e sem anúncios.
+      </p>
+      
+      <!-- BOTÃO APP STORE -->
+      <div style="display:flex;justify-content:center">
+        <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore" style="display:inline-block">
+          <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
+        </a>
+      </div>
+    </div>
+  </section>
 
-      <section class="block" id="jogos" data-od-id="jogos-suportados">
-        <div class="wrap">
-          <p class="section-kicker">Catálogo em expansão</p>
-          <h2 class="section-title">Feito para a partida que você quer jogar.</h2>
-          <p class="section-copy">O beta começa com jogos configurados e recebe novos destinos de diagnóstico conforme a lista cresce.</p>
-          <div class="game-list" aria-label="Jogos previstos para o beta">
-            <div class="game">Fortnite<small>beta previsto</small></div>
-            <div class="game">Free Fire<small>beta previsto</small></div>
-            <div class="game">COD Mobile<small>beta previsto</small></div>
-            <div class="game">Valorant<small>beta previsto</small></div>
-          </div>
-        </div>
-      </section>
+  
+<footer style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;max-width:1200px;margin:auto;padding:36px 22px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);border-top:1px solid oklch(0.2 0.012 260)">
+  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:110px"></a>
+  <nav style="display:flex;gap:18px">
+    <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Baixar o Lagcheck</a>
+    <a href="https://apps.apple.com/app/id6808479321" target="_blank" rel="noopener noreferrer">Baixar o Linka</a>
+    <a href="/jogos/">Jogos</a>
+    <a href="/support/">Suporte</a>
+    <a href="/privacy/">Privacidade</a>
+  </nav>
+</footer>
 
-      <section class="block" id="diferenca" data-od-id="diferenca-speedtest">
-        <div class="wrap">
-          <p class="section-kicker">Não é só velocidade</p>
-          <h2 class="section-title">Um número alto de download não responde se a partida vai ficar estável.</h2>
-          <p class="section-copy">Se você quer testar ping no Fortnite, Free Fire ou COD Mobile, velocidade sozinha não mostra a história completa. O Lagcheck observa latência, jitter e perda de pacotes para responder se sua conexão está boa para ranked naquele momento.</p>
+</div>
 
-          <div class="comparison">
-            <article class="compare" data-od-id="speedtest">
-              <h3>Speedtest</h3>
-              <p>Mede a velocidade da conexão em um momento.</p>
-              <ul>
-                <li>Download</li>
-                <li>Upload</li>
-                <li>Ping pontual</li>
-              </ul>
-            </article>
-            <article class="compare" data-od-id="lagcheck">
-              <h3>Lagcheck</h3>
-              <p>Mede o que realmente importa para jogar naquela rota.</p>
-              <ul>
-                <li>Latência</li>
-                <li>Jitter</li>
-                <li>Perda de pacotes</li>
-                <li>Comportamento sob carga</li>
-              </ul>
-            </article>
-          </div>
+<script>
+(function() {
+  // Observador de animações de scroll
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  function scan() {
+    document.querySelectorAll('[data-rv]:not(.in)').forEach(function(el) { io.observe(el); });
+  }
+  scan();
+  setInterval(scan, 800);
 
-          <div class="faq" data-od-id="duvidas-sobre-lag">
-            <article>
-              <h3>Por que estou com lag no jogo?</h3>
-              <p>Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga. É isso que um check focado em jogo precisa separar.</p>
-            </article>
-            <article>
-              <h3>Como saber se posso jogar ranked?</h3>
-              <p>Faça um check antes da fila. O veredito não promete zero lag: ele indica quando os sinais observados pedem cautela.</p>
-            </article>
-            <article>
-              <h3>Speedtest mostra lag de verdade?</h3>
-              <p>Ele ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão.</p>
-            </article>
-          </div>
-        </div>
-      </section>
+  // 1. Telemetria anônima de visitas para o informe diário do Discord
+  try {
+    var visitPayload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/v1/visit', visitPayload);
+    } else {
+      fetch('/v1/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: visitPayload,
+        keepalive: true
+      }).catch(function() {});
+    }
+  } catch(e) {}
 
-      <section class="signup" id="acesso" data-od-id="acesso-antecipado">
-        <div class="wrap signup-grid">
-          <div>
-            <p class="section-kicker">Beta fechado</p>
-            <h2 class="section-title">Entre antes de abrir para todo mundo.</h2>
-            <p class="section-copy">Escolha sua plataforma. Quando o acesso estiver disponível, a gente manda o convite certo para você.</p>
-          </div>
+  // 2. Registro de CONVERSÃO ao clicar para baixar na App Store (dispara relatório Discord)
+  document.addEventListener('click', function(e) {
+    var target = e.target.closest('a[data-track-conversion="appstore"]');
+    if (!target) return;
 
-          <div class="form" id="waitlistCard" data-od-id="formulario-waitlist">
-            <form id="waitlistForm" novalidate>
-              <label for="email">Seu e-mail</label>
-              <input class="email" id="email" name="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-
-              <div class="platforms" role="group" aria-label="Sua plataforma">
-                <button type="button" data-choice="ios" aria-pressed="true">iPhone / iOS</button>
-                <button type="button" data-choice="android" aria-pressed="false">Android</button>
-                <button type="button" data-choice="both" aria-pressed="false">Ambos</button>
-              </div>
-
-              <label class="optin">
-                <input type="checkbox" name="launchNotice">
-                <span>Quero ser avisado também quando o Lagcheck lançar para todo mundo.</span>
-              </label>
-
-              <button class="button primary" type="submit" data-od-id="garantir-acesso">Garantir meu acesso</button>
-              <p class="form-message" id="formMessage" role="alert"></p>
-            </form>
-
-            <div class="success" id="successState" tabindex="-1">
-              <h3>Você está na lista.</h3>
-              <p id="successCopy"></p>
-              <button class="button" type="button" id="editChoice">Alterar plataforma</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer class="wrap" data-od-id="rodape">
-        <img src="assets/lagcheck-wordmark-light.svg" alt="Lagcheck">
-        <nav aria-label="Links do rodapé">
-          <a href="#acesso">Acesso antecipado</a>
-          <a href="support/">Suporte</a>
-          <a href="privacy/">Privacidade</a>
-        </nav>
-      </footer>
-    </main>
-  </div>
-
-  <button class="mobile-cta" type="button" data-platform="ios" data-od-id="cta-mobile">Entrar no TestFlight</button>
-
-  <script>
-    (() => {
-      const form = document.querySelector('#waitlistForm');
-      const card = document.querySelector('#waitlistCard');
-      const email = document.querySelector('#email');
-      const message = document.querySelector('#formMessage');
-      const success = document.querySelector('#successState');
-      const successCopy = document.querySelector('#successCopy');
-      let platform = 'ios';
-
-      const setPlatform = p => {
-        platform = p;
-        document.querySelectorAll('[data-choice]').forEach(b => {
-          b.setAttribute('aria-pressed', String(b.dataset.choice === p));
-        });
-        document.querySelectorAll('[data-platform]').forEach(b => {
-          if (b.classList.contains('mobile-cta')) {
-            b.textContent = p === 'android' ? 'Entrar no Play Beta' : p === 'both' ? 'Entrar no acesso antecipado' : 'Entrar no TestFlight';
-          }
-        });
-        message.textContent = '';
-      };
-
-      document.querySelectorAll('[data-choice]').forEach(b => {
-        b.addEventListener('click', () => setPlatform(b.dataset.choice));
+    try {
+      var convPayload = JSON.stringify({
+        email: 'appstore_download@click.local',
+        platform: 'ios',
+        source: new URLSearchParams(location.search).get('utm_source') || 'web_download',
+        utm: Object.fromEntries(new URLSearchParams(location.search).entries()),
+        createdAt: new Date().toISOString()
       });
 
-      document.querySelectorAll('[data-platform]').forEach(b => {
-        b.addEventListener('click', () => {
-          setPlatform(b.dataset.platform);
-          window.location.hash = 'acesso';
-          setTimeout(() => email.focus(), 250);
-        });
-      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/v1/waitlist', convPayload);
+      } else {
+        fetch('/v1/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: convPayload,
+          keepalive: true
+        }).catch(function() {});
+      }
+    } catch(err) {}
+  });
+})();
+</script>
 
-      document.querySelector('#editChoice').addEventListener('click', () => {
-        card.classList.remove('done');
-        email.focus();
-      });
-
-      form.addEventListener('submit', async e => {
-        e.preventDefault();
-        if (!email.validity.valid || !email.value.trim()) {
-          message.textContent = 'Digite um e-mail válido para entrar na lista.';
-          message.className = 'form-message error';
-          email.focus();
-          return;
-        }
-
-        const data = {
-          email: email.value.trim(),
-          platform,
-          createdAt: new Date().toISOString(),
-          source: new URLSearchParams(location.search).get('utm_source') || 'direto',
-          utm: Object.fromEntries(new URLSearchParams(location.search).entries()),
-          launchNotice: Boolean(form.launchNotice && form.launchNotice.checked)
-        };
-
-        // Preserva inscrição local caso a rede falhe
-        const local = JSON.parse(localStorage.getItem('lagcheck.waitlist') || '[]');
-        local.push(data);
-        localStorage.setItem('lagcheck.waitlist', JSON.stringify(local));
-
-        const submit = form.querySelector('[type="submit"]');
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
-
-        submit.disabled = true;
-        submit.textContent = 'Enviando…';
-
-        try {
-          const response = await fetch('/v1/waitlist', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-            signal: controller.signal
-          });
-
-          if (!response.ok) {
-            throw new Error('waitlist_unavailable');
-          }
-
-          card.classList.add('done');
-          successCopy.textContent = platform === 'ios'
-            ? 'Você está na lista do TestFlight. Em breve enviaremos o convite.'
-            : platform === 'android'
-            ? 'Você está na lista do Play Beta. Em breve enviaremos o link.'
-            : 'Você está nas listas do TestFlight e do Play Beta. Enviaremos o acesso assim que cada uma abrir.';
-          success.classList.add('show');
-          success.focus();
-        } catch (_) {
-          message.textContent = 'Não conseguimos confirmar sua inscrição agora. Seu e-mail ficou salvo neste navegador; tente novamente quando a conexão voltar.';
-          message.className = 'form-message error';
-          submit.disabled = false;
-          submit.textContent = 'Garantir meu acesso';
-        } finally {
-          clearTimeout(timeout);
-        }
-      });
-
-      setPlatform('ios');
-    })();
-
-    // Registro de visita anônima para estatísticas de conversão (sem cookies/sem PII)
-    (function() {
-      try {
-        const payload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon('/v1/visit', payload);
-        } else {
-          fetch('/v1/visit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-            keepalive: true
-          }).catch(function() {});
-        }
-      } catch (e) {}
-    })();
-  </script>
 </body>
 </html>
