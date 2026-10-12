@@ -1,4 +1,9 @@
 import CATALOG_ENVELOPE from "../catalog/catalog-v3.envelope.json" with { type: "json" };
+import {
+  isMondayBrazil,
+  getWeeklyDateRanges,
+  runWeeklyGrowthIntelligence
+} from "./growth-intelligence.js";
 
 const LOAD_BYTES = 10 * 1024 * 1024;
 const CHUNK_BYTES = 64 * 1024;
@@ -743,6 +748,19 @@ export async function sendDailyReport(env, now = new Date()) {
     };
   });
 
+  // Análise semanal com IA (Gemma 4): executada exclusivamente às segundas-feiras no horário de Brasília
+  if (isMondayBrazil(now)) {
+    try {
+      const weeklyRanges = getWeeklyDateRanges(now);
+      const growthEmbed = await runWeeklyGrowthIntelligence(env, VERCEL_PROJECTS, weeklyRanges, VERCEL_TEAM_ID);
+      if (growthEmbed) {
+        embeds.push(growthEmbed);
+      }
+    } catch (err) {
+      console.warn("Growth Intelligence: erro inesperado ao executar análise semanal", err?.message);
+    }
+  }
+
   const payload = {
     username: "SignallQ Analytics",
     content: [
@@ -796,7 +814,9 @@ export async function handleRequest(request, env = {}) {
     if (!env.REPORT_TEST_TOKEN || request.headers.get("authorization") !== "Bearer " + env.REPORT_TEST_TOKEN) {
       return new Response("Forbidden", { status: 403, headers: { "Cache-Control": "no-store" } });
     }
-    await sendDailyReport(env);
+    const dateParam = url.searchParams.get("date");
+    const testNow = dateParam ? new Date(dateParam) : new Date();
+    await sendDailyReport(env, testNow);
     return Response.json({ status: "ok", message: "Daily report dispatched" });
   }
   if (url.pathname === "/v1/telemetry") {
