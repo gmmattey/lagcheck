@@ -80,6 +80,7 @@ assert(indexHtml.includes('https://linka.signallq.com'), 'Linka: Link oficial li
 assert(!indexHtml.includes('linka-speedtest.web.app'), 'Linka: Sem URLs antigas do web.app');
 assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'linka-icon.png')), 'Linka: Ícone presente em assets/linka-icon.png');
 assert(indexHtml.includes('https://signallq.com'), 'SignallQ: Link oficial presente no ecossistema/rodapé');
+assert(indexHtml.includes('Produzido por <a href="https://signallq.com"'), 'SignallQ: Texto "Produzido por SignallQ" com link clicável presente');
 
 console.log('\n--- 4. Verificação de Navegação Mobile e Conversão Limpa ---');
 assert(indexHtml.includes('id="mobile-menu-btn"'), 'Navegação Mobile: Botão de menu hambúrguer presente');
