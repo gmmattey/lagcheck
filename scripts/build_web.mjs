@@ -478,7 +478,7 @@ export const GAMES = [
       },
       {
         q: "O app coleta dados pessoais?",
-        a: "Não coletamos dados pessoais nem exigimos login. Política de privacidade estrita e armazenamento local no iPhone."
+        a: "O uso do aplicativo não exige login nem dados cadastrais. O app processa informações técnicas das medições e da operação; veja os detalhes na política de privacidade."
       }
     ]
   },
@@ -2326,14 +2326,14 @@ function generatePrivacy() {
       Privacidade em Primeiro Lugar
     </h1>
     <p style="font-size:18px;color:var(--text-secondary);line-height:1.5;margin-bottom:44px">
-      O Lagcheck foi desenvolvido com respeito rigoroso à privacidade dos jogadores. Sem contas, sem anúncios de terceiros e sem rastreamento intrusivo.
+      O Lagcheck foi desenvolvido para funcionar sem cadastro obrigatório e sem publicidade de terceiros. Abaixo explicamos quais dados técnicos podem ser utilizados pelo aplicativo e pelo site.
     </p>
 
     <div style="display:grid;gap:18px">
       <article class="card">
-        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Zero Coleta de Dados Pessoais</h2>
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Sem Cadastro Obrigatório</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          O aplicativo não exige criação de conta, nome, e-mail, telefone ou autenticação de redes sociais. Você abre o aplicativo e realiza suas medições imediatamente de forma anônima.
+          O aplicativo não exige criação de conta, nome, e-mail, telefone ou autenticação em redes sociais para iniciar as medições. Dados técnicos limitados podem ser processados para realizar os testes e manter o serviço.
         </p>
       </article>
 
@@ -2347,7 +2347,7 @@ function generatePrivacy() {
       <article class="card">
         <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Telemetria Técnica e Minimização</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          Tanto o app quanto este site utilizam telemetria mínima agregada estritamente para monitorar a saúde da infraestrutura e conversão de produto (ex.: versão do iOS, identificadores de instalação técnicos gerados aleatoriamente e cliques na App Store). Não armazenamos endereços de IP de forma permanente e não correlacionamos dados técnicos com a identidade civil de jogadores.
+          Este site utiliza o Vercel Web Analytics para medir visitas, visualizações de páginas e origens de tráfego. Os cliques para a App Store são contabilizados separadamente pelo serviço de apoio do Lagcheck; um clique não confirma uma instalação. O aplicativo utiliza informações técnicas de medição e pode enviar telemetria operacional associada a identificadores técnicos gerados no dispositivo. O objetivo é acompanhar a estabilidade do produto sem exigir dados cadastrais.
         </p>
       </article>
 
