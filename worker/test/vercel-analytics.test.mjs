@@ -27,8 +27,9 @@ function setupFetch({ failingProject } = {}) {
       calls.push({ parsed, options });
       assert.equal(options.headers.Authorization, "Bearer " + TOKEN);
       assert.equal(parsed.searchParams.get("teamId"), "team_VCRx5oIQ20HUO84QLL62RStN");
-      assert.equal(parsed.searchParams.get("since"), "2026-10-10T03:00:00.000Z");
-      assert.equal(parsed.searchParams.get("until"), "2026-10-11T02:59:59.999Z");
+      const from = Date.parse(parsed.searchParams.get("since"));
+      const to = Date.parse(parsed.searchParams.get("until"));
+      assert.equal(to - from, 24 * 60 * 60 * 1000 - 1);
       if (failingProject === parsed.searchParams.get("projectId")) {
         return new Response("access denied", { status: 403 });
       }
@@ -61,6 +62,8 @@ test("scheduled report uses Vercel metrics for both sites, not KV visits", async
   try {
     await sendDailyReport(mockEnv(), new Date("2026-10-11T12:00:00.000Z"));
     assert.equal(mock.calls.length, 6);
+    assert.equal(mock.calls[0].parsed.searchParams.get("since"), "2026-10-10T03:00:00.000Z");
+    assert.equal(mock.calls[0].parsed.searchParams.get("until"), "2026-10-11T02:59:59.999Z");
     assert.equal(mock.discordMessages.length, 1);
     const report = mock.discordMessages[0];
     assert.equal(report.embeds.length, 2);
