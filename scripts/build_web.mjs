@@ -5,6 +5,7 @@ const ROOT_DIR = process.cwd();
 const WEB_DIR = path.join(ROOT_DIR, 'web');
 const APP_STORE_URL = "https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960";
 const LINKA_APP_STORE_URL = "https://apps.apple.com/app/id6808479321";
+const LINKA_WEB_URL = "https://linka.signallq.com";
 const SIGNALLQ_URL = "https://signallq.com";
 
 export const GAMES = [
@@ -1441,7 +1442,7 @@ function buildFooter() {
           <ul>
             <li><a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Lagcheck iOS (App Store)</a></li>
             <li><a href="${LINKA_APP_STORE_URL}" target="_blank" rel="noopener noreferrer">Linka Speedtest (iOS)</a></li>
-            <li><a href="https://linka-speedtest.web.app/" target="_blank" rel="noopener noreferrer">Linka Speedtest (Web)</a></li>
+            <li><a href="${LINKA_WEB_URL}" target="_blank" rel="noopener noreferrer">Linka Speedtest (Web)</a></li>
             <li><a href="${SIGNALLQ_URL}" target="_blank" rel="noopener noreferrer">SignallQ Android</a></li>
           </ul>
         </div>

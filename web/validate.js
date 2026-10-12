@@ -76,6 +76,8 @@ assert(indexHtml.includes('name="apple-itunes-app"'), 'ASO Home: Smart App Banne
 assert(indexHtml.includes('/v1/visit'), 'Telemetria Home: Endpoint /v1/visit presente');
 assert(indexHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'ASO Home: Link oficial do Lagcheck id6818706960 presente');
 assert(indexHtml.includes('https://apps.apple.com/app/id6808479321'), 'Linka: Link de download na App Store presente');
+assert(indexHtml.includes('https://linka.signallq.com'), 'Linka: Link oficial linka.signallq.com presente');
+assert(!indexHtml.includes('linka-speedtest.web.app'), 'Linka: Sem URLs antigas do web.app');
 assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'linka-icon.png')), 'Linka: Ícone presente em assets/linka-icon.png');
 assert(indexHtml.includes('https://signallq.com'), 'SignallQ: Link oficial presente no ecossistema/rodapé');
 
