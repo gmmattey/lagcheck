@@ -378,9 +378,9 @@ export async function handleVisit(request, env = {}) {
     });
   }
 
-  await incrementStat(env, "visit");
-
-  return Response.json({ status: "ok" }, {
+  // Legado: preserva compatibilidade dos clients antigos sem contar visitas em paralelo.
+  // Pageviews e visitantes passam a ser contabilizados apenas pela Vercel.
+  return Response.json({ status: "ok", deprecated: true }, {
     status: 200,
     headers: WAITLIST_CORS_HEADERS
   });
@@ -476,70 +476,142 @@ export async function handleAppStoreClick(request, env = {}) {
   });
 }
 
-export async function sendDailyReport(env) {
-  if (!env.DISCORD_WEBHOOK_URL) return;
+// Vercel Web Analytics e a fonte oficial de visitantes/pageviews.
+// IDs de projetos nao sao segredos; o Bearer e mantido apenas em env.VERCEL_TOKEN.
+const VERCEL_TEAM_ID = "team_VCRx5oIQ20HUO84QLL62RStN";
+const VERCEL_PROJECTS = [
+  { name: "SignallQ", id: "prj_XxQs4bRAtAczAwULNqDzAWgQTkpE", url: "https://signallq.com", color: 0x5b21d6 },
+  { name: "Lagcheck", id: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU", url: "https://lagcheck.signallq.com", color: 0x7c3aed }
+];
 
-  const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(Date.now() - 24 * 60 * 60 * 1000));
-  const dailyKey = `stats:daily:${yesterday}`;
-  const totalKey = 'stats:total';
+function brazilDate(date) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
 
-  const [d1Stats, totalStats] = await Promise.all([
-    getStats(env, dailyKey),
-    getStats(env, totalKey)
+async function vercelAnalyticsQuery(env, projectId, resource, since, until, dimension) {
+  const params = new URLSearchParams({
+    teamId: VERCEL_TEAM_ID,
+    projectId,
+    since,
+    until
+  });
+  if (dimension) {
+    params.set("by", dimension);
+    params.set("limit", "3");
+  }
+  const url = "https://api.vercel.com/v1/query/web-analytics/visits/" + resource + "?" + params.toString();
+  const response = await fetch(url, {
+    headers: { Authorization: "Bearer " + env.VERCEL_TOKEN, Accept: "application/json" }
+  });
+  if (!response.ok) {
+    // Nunca logar URL de webhook, segredos ou a resposta completa da API.
+    throw new Error("Vercel Analytics " + resource + " HTTP " + response.status);
+  }
+  return response.json();
+}
+
+function formatVercelDimension(data, name) {
+  if (!Array.isArray(data) || data.length === 0) return "Sem registros no período.";
+  return data.slice(0, 3).map((row) => {
+    const label = String(row?.[name] ?? "Não identificado")
+      .replace(/[\r\n*_]/g, " ")
+      .replace(/@/g, "@\u200b")
+      .slice(0, 85);
+    const quantity = Number(row?.pageviews ?? row?.count ?? 0);
+    return "• " + label + ": " + (Number.isFinite(quantity) ? quantity : 0);
+  }).join("\n").slice(0, 950);
+}
+
+async function readProjectAnalytics(env, project, since, until) {
+  const counts = await vercelAnalyticsQuery(env, project.id, "count", since, until);
+  const visits = Number(counts?.data?.visitors);
+  const pageviews = Number(counts?.data?.pageviews);
+  if (!Number.isFinite(visits) || !Number.isFinite(pageviews)) {
+    throw new Error("Resposta de contagem inesperada da Vercel");
+  }
+
+  // Dados auxiliares nao podem derrubar a contagem principal.
+  const [pages, referrers] = await Promise.allSettled([
+    vercelAnalyticsQuery(env, project.id, "aggregate", since, until, "requestPath"),
+    vercelAnalyticsQuery(env, project.id, "aggregate", since, until, "referrerHostname")
   ]);
+  return {
+    visitors: visits,
+    pageviews,
+    pages: pages.status === "fulfilled" ? formatVercelDimension(pages.value?.data, "requestPath") : "Indisponível",
+    referrers: referrers.status === "fulfilled" ? formatVercelDimension(referrers.value?.data, "referrerHostname") : "Indisponível"
+  };
+}
 
-  const d1Visits = d1Stats.visits || 0;
-  const d1Leads = d1Stats.leads || 0;
-  const d1Conversion = d1Visits > 0 ? ((d1Leads / d1Visits) * 100).toFixed(1) : "0.0";
+export async function sendDailyReport(env, now = new Date()) {
+  if (!env.DISCORD_WEBHOOK_URL) {
+    console.warn("DISCORD_WEBHOOK_URL ausente: relatorio nao enviado");
+    return;
+  }
+  if (!env.VERCEL_TOKEN) {
+    console.warn("VERCEL_TOKEN ausente: nao usar dados de visitas do KV como substitutos");
+    return;
+  }
 
-  const totalVisits = totalStats.visits || 0;
-  const totalLeads = totalStats.leads || 0;
-  const totalConversion = totalVisits > 0 ? ((totalLeads / totalVisits) * 100).toFixed(1) : "0.0";
+  // Relatorio do dia civil anterior em horario de Brasilia (UTC-3).
+  const yesterday = brazilDate(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  const today = brazilDate(now);
+  const since = new Date(yesterday + "T00:00:00-03:00").toISOString();
+  const until = new Date(new Date(today + "T00:00:00-03:00").getTime() - 1).toISOString();
+
+  const results = await Promise.allSettled(
+    VERCEL_PROJECTS.map((project) => readProjectAnalytics(env, project, since, until))
+  );
+  const dailyLagcheck = await getStats(env, "stats:daily:" + yesterday);
+  const clicks = Number(dailyLagcheck.clicks || 0);
+  const embeds = VERCEL_PROJECTS.map((project, index) => {
+    const result = results[index];
+    if (result.status !== "fulfilled") {
+      console.warn("Vercel Analytics indisponivel para " + project.name + ": " + result.reason?.message);
+      return {
+        title: project.name + " — dados indisponíveis",
+        url: project.url,
+        color: project.color,
+        description: "A consulta à Vercel falhou. Verifique o token, o escopo e o script de Analytics. Não substituir por zero ou contagem local."
+      };
+    }
+    const analytics = result.value;
+    const fields = [
+      { name: "Visitantes únicos", value: String(analytics.visitors), inline: true },
+      { name: "Visualizações de página", value: String(analytics.pageviews), inline: true },
+      { name: "Páginas mais acessadas", value: analytics.pages, inline: false },
+      { name: "Origens de tráfego", value: analytics.referrers, inline: false }
+    ];
+    if (project.name === "Lagcheck") {
+      fields.push({
+        name: "Cliques na App Store (medição separada)",
+        value: Number.isFinite(clicks) ? String(clicks) + " cliques; não equivalem a instalações." : "Indisponível",
+        inline: false
+      });
+    }
+    return {
+      title: project.name + " — Web Analytics",
+      url: project.url,
+      color: project.color,
+      fields
+    };
+  });
 
   const payload = {
-    username: "Lagcheck Analytics",
-    avatar_url: "https://lagcheck.signallq.com/assets/lagcheck-wordmark-light.svg",
-    embeds: [
-      {
-        title: "📊 Relatório Diário de Conversão (D-1)",
-        description: "Métricas consolidadas de acessos e inscrições no **lagcheck.signallq.com**.",
-        color: 0x7c3aed,
-        fields: [
-          {
-            name: `📅 Ontem (D-1: ${yesterday})`,
-            value: [
-              `• 👁️ **Visitas:** ${d1Visits}`,
-              `• 🎯 **Cadastros:** ${d1Leads}`,
-              `• 📈 **Taxa de Conversão:** **${d1Conversion}%**`
-            ].join("\n"),
-            inline: false
-          },
-          {
-            name: "🌐 Acumulado Geral",
-            value: [
-              `• 👁️ **Visitas Totais:** ${totalVisits}`,
-              `• 👥 **Cadastros Totais:** ${totalLeads}`,
-              `• 🏆 **Conversão Geral:** **${totalConversion}%**`
-            ].join("\n"),
-            inline: false
-          }
-        ],
-        footer: {
-          text: "Lagcheck • Relatório Diário Automático (09:00 BRT)"
-        },
-        timestamp: new Date().toISOString()
-      }
-    ]
+    username: "SignallQ Analytics",
+    content: "Relatório diário de sites (D-1: " + yesterday + ", Brasília). Fonte: Vercel Web Analytics.",
+    embeds
   };
 
   try {
-    await fetch(env.DISCORD_WEBHOOK_URL, {
+    const response = await fetch(env.DISCORD_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
+    if (!response.ok) console.error("Discord: falha ao publicar relatorio (HTTP " + response.status + ")");
   } catch (err) {
-    console.error("Failed to send daily report to Discord:", err);
+    console.error("Discord: falha de rede ao publicar relatorio", err?.message);
   }
 }
 
@@ -567,6 +639,10 @@ export async function handleRequest(request, env = {}) {
   if (url.pathname === "/v1/report/test") {
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
+    }
+    // Impede disparos anonimos do webhook/consultas Vercel na internet publica.
+    if (!env.REPORT_TEST_TOKEN || request.headers.get("authorization") !== "Bearer " + env.REPORT_TEST_TOKEN) {
+      return new Response("Forbidden", { status: 403, headers: { "Cache-Control": "no-store" } });
     }
     await sendDailyReport(env);
     return Response.json({ status: "ok", message: "Daily report dispatched" });
