@@ -3,13 +3,14 @@
 ## Fonte de dados
 - SignallQ: projeto Vercel `signallq-web` (`prj_XxQs4bRAtAczAwULNqDzAWgQTkpE`)
 - Lagcheck: projeto Vercel `lagcheck` (`prj_GuijE4Exyc2TplaUG6a22XlbK2gU`)
+- Linka: projeto Vercel `linka` (`prj_7BpZVVugGOf644g81XxOCLKnDRe0`)
 - Equipe Vercel: `team_VCRx5oIQ20HUO84QLL62RStN`
 - Web Analytics é a fonte oficial de **visitantes** e **visualizações**; as páginas do Lagcheck recebem o script `/_vercel/insights/script.js`.
 - Cliques na App Store do Lagcheck continuam em `POST /v1/click` e no KV local. **Cliques não equivalem a instalações.** O plano Hobby não fornece eventos personalizados de Web Analytics.
 
 ## Worker existente
 O Worker `nolaggy-deep-check` possui cron `0 12 * * *` (9h Brasília em UTC-3).
-O relatório chama a API oficial `/v1/query/web-analytics/visits/{count,aggregate}` para os dois projetos e publica **um** relatório por dia no Discord. Não cria banco de visitas adicional.
+O relatório chama a API oficial `/v1/query/web-analytics/visits/{count,aggregate}` para os três projetos (SignallQ, Lagcheck e Linka) e publica **um** relatório por dia no Discord. Não cria banco de visitas adicional.
 
 ### Segredos (Cloudflare; nunca comitar em `wrangler.jsonc`)
 - `VERCEL_TOKEN`: token da Vercel com acesso à equipe e aos dois projetos.

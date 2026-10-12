@@ -481,7 +481,8 @@ export async function handleAppStoreClick(request, env = {}) {
 const VERCEL_TEAM_ID = "team_VCRx5oIQ20HUO84QLL62RStN";
 const VERCEL_PROJECTS = [
   { name: "SignallQ", id: "prj_XxQs4bRAtAczAwULNqDzAWgQTkpE", url: "https://signallq.com", color: 0x5b21d6 },
-  { name: "Lagcheck", id: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU", url: "https://lagcheck.signallq.com", color: 0x7c3aed }
+  { name: "Lagcheck", id: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU", url: "https://lagcheck.signallq.com", color: 0x7c3aed },
+  { name: "Linka", id: "prj_7BpZVVugGOf644g81XxOCLKnDRe0", url: "https://linka.signallq.com", color: 0x0284c7 }
 ];
 
 function brazilDate(date) {

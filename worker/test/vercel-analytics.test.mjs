@@ -34,9 +34,18 @@ function setupFetch({ failingProject } = {}) {
         return new Response("access denied", { status: 403 });
       }
       if (parsed.pathname.endsWith("/count")) {
-        const lagcheck = parsed.searchParams.get("projectId") === "prj_GuijE4Exyc2TplaUG6a22XlbK2gU";
+        const projectId = parsed.searchParams.get("projectId");
+        let visitors = 20;
+        let pageviews = 55;
+        if (projectId === "prj_GuijE4Exyc2TplaUG6a22XlbK2gU") {
+          visitors = 13;
+          pageviews = 34;
+        } else if (projectId === "prj_7BpZVVugGOf644g81XxOCLKnDRe0") {
+          visitors = 8;
+          pageviews = 19;
+        }
         return Response.json({
-          data: { visitors: lagcheck ? 13 : 20, pageviews: lagcheck ? 34 : 55 }
+          data: { visitors, pageviews }
         });
       }
       if (parsed.searchParams.get("by") === "requestPath") {
@@ -57,25 +66,29 @@ function setupFetch({ failingProject } = {}) {
   };
 }
 
-test("scheduled report uses Vercel metrics for both sites, not KV visits", async () => {
+test("scheduled report uses Vercel metrics for all sites, not KV visits", async () => {
   const mock = setupFetch();
   try {
     await sendDailyReport(mockEnv(), new Date("2026-10-11T12:00:00.000Z"));
-    assert.equal(mock.calls.length, 6);
+    assert.equal(mock.calls.length, 9);
     assert.equal(mock.calls[0].parsed.searchParams.get("since"), "2026-10-10T03:00:00.000Z");
     assert.equal(mock.calls[0].parsed.searchParams.get("until"), "2026-10-11T02:59:59.999Z");
     assert.equal(mock.discordMessages.length, 1);
     const report = mock.discordMessages[0];
-    assert.equal(report.embeds.length, 2);
+    assert.equal(report.embeds.length, 3);
     assert.ok(report.content.includes("Vercel Web Analytics"));
     const signallq = report.embeds[0];
     const lagcheck = report.embeds[1];
+    const linka = report.embeds[2];
     assert.ok(signallq.title.includes("SignallQ"));
     assert.ok(signallq.fields.some(x => x.name === "Visitantes únicos" && x.value === "20"));
     assert.ok(signallq.fields.some(x => x.name === "Visualizações de página" && x.value === "55"));
     assert.ok(signallq.fields.some(x => x.value.includes("/jogos/fortnite/")));
     assert.ok(lagcheck.fields.some(x => x.name === "Visitantes únicos" && x.value === "13"));
     assert.ok(lagcheck.fields.some(x => x.value.includes("7 cliques; não equivalem a instalações")));
+    assert.ok(linka.title.includes("Linka"));
+    assert.ok(linka.fields.some(x => x.name === "Visitantes únicos" && x.value === "8"));
+    assert.ok(linka.fields.some(x => x.name === "Visualizações de página" && x.value === "19"));
     assert.ok(!JSON.stringify(report).includes(TOKEN));
   } finally {
     mock.restore();
