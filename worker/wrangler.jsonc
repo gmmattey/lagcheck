@@ -21,6 +21,9 @@
   "ai": {
     "binding": "AI"
   },
+  "vars": {
+    "GROWTH_AI_ENABLED": "true"
+  },
   "triggers": {
     "crons": [
       "0 12 * * *"

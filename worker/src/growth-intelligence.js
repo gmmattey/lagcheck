@@ -147,7 +147,7 @@ export function getWeeklyDateRanges(now = new Date()) {
 
 export async function fetchWeeklyProjectMetrics(env, project, dateRanges, vercelTeamId) {
   const baseCount = "https://api.vercel.com/v1/query/web-analytics/visits/count";
-  const baseAgg = "https://api.vercel.com/v1/query/web-analytics/visits";
+  const baseAgg = "https://api.vercel.com/v1/query/web-analytics/visits/aggregate";
 
   const headers = {
     Authorization: "Bearer " + env.VERCEL_TOKEN,
@@ -450,12 +450,14 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
   // 1. Verificação de Feature Flag
   if (env.GROWTH_AI_ENABLED !== "true") {
     console.info("Growth Intelligence: desativado por feature flag (GROWTH_AI_ENABLED !== 'true')");
+    env._growthDebug = "disabled_by_feature_flag";
     return null;
   }
 
   // 2. Verificação do binding AI
   if (!env.AI || typeof env.AI.run !== "function") {
     console.warn("Growth Intelligence: binding env.AI ausente ou inválido");
+    env._growthDebug = "missing_env_AI";
     return null;
   }
 
@@ -467,6 +469,7 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
       if (cached) {
         const parsedCached = JSON.parse(cached);
         console.info("Growth Intelligence: reutilizando análise semanal em cache para " + dateRanges.weekKey);
+        env._growthDebug = "cached";
         return formatGrowthIntelligenceEmbed(parsedCached, `${dateRanges.currentWeek.startStr} a ${dateRanges.currentWeek.endStr}`);
       }
     } catch (err) {
@@ -480,6 +483,7 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
   // Se nenhum produto estiver disponível na Vercel, aborta inferência
   if (!metrics.qualidadeDados.anyAvailable) {
     console.warn("Growth Intelligence: nenhum produto com dados disponíveis na Vercel");
+    env._growthDebug = "no_products_available_on_vercel";
     return null;
   }
 
@@ -506,6 +510,7 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
       : (aiResult?.response || aiResult?.choices?.[0]?.message?.content || "");
   } catch (err) {
     console.error("Growth Intelligence: falha na inferência Cloudflare Workers AI", err?.message);
+    env._growthDebug = "ai_inference_error: " + err?.message;
     return null;
   }
 
@@ -515,6 +520,7 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
     validated = validateGrowthIntelligenceResponse(rawAiResponse, metrics);
   } catch (err) {
     console.error("Growth Intelligence: resposta da IA rejeitada por validação de contrato", err?.message);
+    env._growthDebug = "validation_error: " + err?.message;
     return null;
   }
 
@@ -529,6 +535,7 @@ export async function runWeeklyGrowthIntelligence(env, projects, dateRanges, ver
     }
   }
 
+  env._growthDebug = "success";
   const periodStr = `${dateRanges.currentWeek.startStr} a ${dateRanges.currentWeek.endStr}`;
   return formatGrowthIntelligenceEmbed(validated, periodStr);
 }

@@ -773,16 +773,28 @@ export async function sendDailyReport(env, now = new Date()) {
     embeds
   };
 
+  let discordResponseStatus = null;
   try {
     const response = await fetch(env.DISCORD_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (!response.ok) console.error("Discord: falha ao publicar relatorio (HTTP " + response.status + ")");
+    discordResponseStatus = response.status;
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error("Discord: falha ao publicar relatorio (HTTP " + response.status + ") " + errText);
+    }
   } catch (err) {
     console.error("Discord: falha de rede ao publicar relatorio", err?.message);
   }
+
+  return {
+    dispatched: true,
+    discordStatus: discordResponseStatus,
+    embedsCount: embeds.length,
+    growthAiDebug: env._growthDebug || null
+  };
 }
 
 export async function handleScheduled(event, env, ctx) {
@@ -816,8 +828,8 @@ export async function handleRequest(request, env = {}) {
     }
     const dateParam = url.searchParams.get("date");
     const testNow = dateParam ? new Date(dateParam) : new Date();
-    await sendDailyReport(env, testNow);
-    return Response.json({ status: "ok", message: "Daily report dispatched" });
+    const result = await sendDailyReport(env, testNow);
+    return Response.json({ status: "ok", message: "Daily report dispatched", result });
   }
   if (url.pathname === "/v1/telemetry") {
     return handleTelemetry(request, env);
