@@ -1,124 +1,109 @@
-# Lagcheck — Site Oficial e Landing Page de Alta Performance
+# Lagcheck — Webpage Comercial Oficial & Hub de Jogos (App Store Live)
 
-Este diretório contém o site oficial do **Lagcheck**, concebido sob a direção estética **Dark Competitive UI** (Decisões 51, 52 e 53) e estruturado com base no benchmark de mercado do **NoPing**:
-1. **Landing Page de Alta Conversão (`/`):** Hero gamer de alto impacto, simulador interativo de rota e prontidão, comparativo técnico, catálogo de jogos e SEO avançado.
-2. **Página de Suporte (`/support`):** Central de ajuda e resolução de problemas conforme requisitos da Apple App Store.
-3. **Política de Privacidade (`/privacy`):** Termos de privacidade transparentes em total conformidade com o app (SwiftData local, sem contas, sem telemetria intrusiva).
+Este diretório contém a webpage estática oficial e de alta performance do **Lagcheck** ([lagcheck.signallq.com](https://lagcheck.signallq.com)), desenvolvida sob a direção estética **Dark Competitive UI** (Decisões 51, 64 e 66), integrada ao ecossistema **SignallQ** e focada em conversão para o aplicativo nativo de iPhone publicado na Apple App Store.
 
 ---
 
-## Estrutura de Arquivos
+## 1. Estrutura e Arquitetura
+
+O site é gerado determinística e estaticamente pelo script `scripts/build_web.mjs`, garantindo consistência em SEO, metadados JSON-LD, rotas e acessibilidade:
 
 ```
 web/
-├── assets/
-│   ├── brand/                    # Cópias 1:1 dos ativos oficiais em design-system/assets/brand/
-│   │   ├── app-icon-source.svg
-│   │   ├── wordmark-mono-dark.svg
-│   │   ├── wordmark-mono-light.svg
-│   │   └── wordmark-primary.svg
-│   └── games/                    # Artes dos títulos competitivos em assets/games/
-│   ├── app-home.webp / app-games.webp   # Screenshots do hero em WebP (600 px); o PNG da raiz é o fallback
-├── css/
-│   └── style.css                 # Dark Competitive UI, animações de pulso e tokens oficiais
-├── js/
-│   └── main.js                   # Controle bilíngue (PT/EN) e simulador interativo de rota
-├── index.html                    # Site oficial gamer inspirado no NoPing com SEO completo
-├── support.html                  # Central de suporte e resolução de problemas
+├── index.html                    # Homepage comercial de alta conversão
+├── jogos/
+│   ├── index.html                # Hub com busca interativa e filtros por categoria
+│   ├── fortnite/index.html       # Guia e rota específica para Fortnite
+│   ├── valorant/index.html       # Guia e rota específica para Valorant
+│   ├── counter-strike-2/...      # Guia específico com infraestrutura Valve SDR
+│   └── [demais 17 jogos]/        # Páginas com perfis de rede específicos
 ├── support/
-│   └── index.html                # Rota direta /support/ para servidores estáticos
-├── privacy.html                  # Política de privacidade completa em conformidade com o app
+│   └── index.html                # Central de suporte técnico (App Store Guidelines)
+├── support.html                  # Fallback para servidores sem trailing slash
 ├── privacy/
-│   └── index.html                # Rota direta /privacy/ para servidores estáticos
-├── robots.txt                    # Diretrizes para indexação de motores de busca
-├── sitemap.xml                   # Só URLs indexáveis (home); /support/ e /privacy/ são noindex
-├── og.png                        # Imagem de compartilhamento 1200×630
-├── favicon.ico / favicon.svg / apple-touch-icon.png  # Ícones (a partir de design-system/assets/brand/app-icon-source.svg)
-├── vercel.json                   # Rewrite /v1/* para o Worker + cache de imagens e ícones
-├── validate.js                   # Suite de testes com 81 validações automatizadas
-└── README.md                     # Este guia de execução e contexto
+│   └── index.html                # Política de privacidade transparente (SwiftData local, zero PII)
+├── privacy.html                  # Fallback para servidores sem trailing slash
+├── assets/
+│   ├── brand/                    # Vetores e wordmark oficial
+│   ├── games/                    # Artes dos 20 jogos (JPG original + WebP hero + WebP thumbnail)
+│   ├── app-home.webp             # Screenshot da Home do app
+│   ├── app-games.webp            # Screenshot da tela de Jogos
+│   ├── app-result.webp           # Screenshot do Veredito
+│   ├── linka-icon.png            # Ícone do app irmão Linka Speedtest
+│   └── lagcheck-wordmark-light.svg # Wordmark oficial em minúsculas
+├── robots.txt                    # Diretrizes para indexação
+├── sitemap.xml                   # Mapa de URLs com 24 rotas indexáveis
+├── vercel.json                   # Rewrites para Cloudflare Worker (/v1/*) e cabeçalhos de cache
+└── validate.js                   # Suite de validação automatizada de SEO, rotas e HTTP 200
 ```
 
 ---
 
-## Como Rodar Localmente
+## 2. Jornada Comercial & CRO
 
-O site é 100% estático e não requer build complexo ou dependências de terceiros (HTML, CSS e JavaScript puros).
+1. **Hero & Download:**
+   - Proposta de valor clara: *"Sua conexão está pronta para o ranked?"*
+   - Subtítulo focado no benefício: interpretação de latência, jitter e perda de pacotes.
+   - Botão oficial de download na App Store com badge Apple.
+   - Micro-provas de confiança: Gratuito, para iPhone (iOS 17+), sem cadastro, diagnóstico em segundos.
+2. **Demonstração do Resultado Real:**
+   - Hierarquia em 5 níveis: Veredito semântico → Significado claro → Indicador de atenção → Orientação prática → Detalhes técnicos da rota.
+   - CTA contextual: *"Fazer meu primeiro check"*.
+3. **Como Funciona:**
+   - 3 passos claros: Escolha o jogo → Envio de pacotes UDP reais (repouso + sob carga de bufferbloat) → Veredito direto.
+4. **Catálogo Curado na Home & Hub `/jogos/`:**
+   - 8 jogos populares destacados na Home e catálogo completo com 20 títulos em `/jogos/`.
+   - Busca em tempo real e filtros por categoria (Battle Royale, FPS/Tático, MOBA, Outros).
+5. **Speedtest Tradicional vs Lagcheck:**
+   - Demonstração de por que velocidade em Mbps não resolve o lag em jogos.
+6. **Transparência Técnica:**
+   - Explicação factual sobre a rota UDP de referência até beacons AWS GameLift (sa-east-1) em São Paulo.
+   - Callout específico para jogadores de PC e Console: o teste no iPhone diagnostica a rede doméstica e o enlace da operadora.
+7. **Ecossistema SignallQ:**
+   - Rodapé integrado com links para o ecossistema SignallQ, Linka Speedtest e SignallQ Android.
 
-### Opção 1: Usando Python 3 (Nativo no macOS)
+---
 
-A partir da raiz do repositório:
+## 3. Performance & Otimizações de Mídia
+
+- **Redução de Peso nas Artes:** As 20 imagens originais (~19 MB) receberam derivados WebP com redimensionamento responsivo:
+  - Thumbnails (`*-thumb.webp`): 480×480 px (~35 KB por imagem, redução de **94.8%**).
+  - Heroes (`*.webp`): Max 1280 px (~90 KB por imagem, redução de **84.2%**).
+  - JPGs originais preservados para retrocompatibilidade.
+- **Zero CLS:** Tags `<img>` com atributos `width` e `height` explícitos.
+- **LCP Otimizado:** Imagens da primeira dobra com `fetchpriority="high"` e `loading="eager"`. Imagens abaixo da dobra com `loading="lazy"` e `decoding="async"`.
+- **Animações Eficientes:** Remoção de polling de DOM (`setInterval`), adoção de `IntersectionObserver` pontual e suporte completo a `prefers-reduced-motion: reduce`.
+
+---
+
+## 4. Telemetria e Conversão
+
+- **Visitas Anônimas:** `POST /v1/visit` ao carregar a página (zero PII, sem cookies).
+- **Cliques da App Store:** `POST /v1/click` registra a intenção de instalação (`appstore_click`) com parâmetros UTM e página de origem.
+- **Sem Falsos Leads:** Eliminado qualquer envio de e-mail fictício para a rota de waitlist. Cliques de download são contabilizados separadamente como intenção de conversão.
+
+---
+
+## 5. Como Gerar e Validar
+
+### Gerar os arquivos estáticos:
 ```bash
-python3 -m http.server 8080 --directory web
+node scripts/build_web.mjs
 ```
-Em seguida, abra seu navegador em:
-- Home: [http://localhost:8080/](http://localhost:8080/)
-- Suporte: [http://localhost:8080/support.html](http://localhost:8080/support.html) ou [http://localhost:8080/support/](http://localhost:8080/support/)
-- Privacidade: [http://localhost:8080/privacy.html](http://localhost:8080/privacy.html) ou [http://localhost:8080/privacy/](http://localhost:8080/privacy/)
 
-### Opção 2: Usando Node.js (Servidor Local ou npx)
-
-Executar com `npx serve`:
+### Otimizar imagens dos jogos (se novos títulos forem adicionados):
 ```bash
-npx serve web
+python scripts/optimize_game_images.py
 ```
-Ou com servidor de validação nativo integrado:
+
+### Executar a suíte de testes de validação:
 ```bash
 node web/validate.js
 ```
 
 ---
 
-## Como Executar a Validação Automatizada
+## 6. Conformidade e App Store Guidelines
 
-Para verificar a integridade dos arquivos, paridade dos ativos SVG com `design-system/assets/brand/`, conferência de tokens de design system, requisitos de negócio e resposta HTTP 200 em todas as rotas:
-
-```bash
-node web/validate.js
-```
-
-O script testará:
-1. Existência e integridade de todos os arquivos obrigatórios (incluindo `robots.txt` e `sitemap.xml`).
-2. Comparação byte-a-byte dos ativos vetoriais da marca.
-3. Uso estrito dos tokens de cor e layout de `design-system/tokens/`.
-4. Paridade de blocos bilíngues (PT-BR e EN).
-5. Conformidade com todas as regras de privacidade (SwiftData, 90 dias, 100 registros, ausência de AdMob/UMP nesta entrega, compromisso de revisão futura).
-6. Conformidade com regras de suporte (contato provisório visível, produto iPhone iOS 17+, explicação de rota vs ping de servidor de jogo).
-7. Formulários de convite e waitlist acessíveis, com labels, campos de e-mail e áreas de feedback dinâmico.
-8. Persistência de dados cliente-servidor (localStorage `lagcheck_waitlist_leads` + Worker `/v1/waitlist`).
-9. Subida de servidor HTTP local temporário e teste de 200 OK em todas as rotas (incluindo SEO).
-
----
-
-## Gestão de Leads da Waitlist (Admin / Squad)
-
-Para consultar e exportar os e-mails cadastrados via navegador no ambiente local ou produção:
-1. Abra as DevTools do navegador (F12 ou Cmd+Option+I) no console.
-2. Comandos disponíveis:
-   - `window.LagcheckWaitlist.list()`: Lista os cadastros em formato de tabela no console.
-   - `window.LagcheckWaitlist.exportJSON()`: Baixa arquivo `.json` com todos os registros.
-   - `window.LagcheckWaitlist.exportCSV()`: Baixa arquivo `.csv` formatado para ferramentas de e-mail marketing/TestFlight.
-
----
-
-## Diretrizes de Marca e Design
-
-- **Marca:** Lagcheck.
-- **Wordmark:** `lagcheck` em minúsculas (Dual-Node Vector + Kinetic Speed Slant).
-- **Estética:** Dark Competitive UI (fundo `#0B0D10`, superfícies grafite `#15181E`/`#1E232B`, bordas finas de 1px e Coral Solar `#FF5A36` de ação).
-- **Acessibilidade:**
-  - Contraste WCAG AAA/AA em todas as superfícies.
-  - Alvos de toque com área mínima de 44x44 pt.
-  - Foco visível (`:focus-visible`) com anel Coral Solar.
-  - Skip link acessível no topo de cada página.
-  - Respeito à preferência de sistema `prefers-reduced-motion`.
-
----
-
-## Suposições e Decisões Tomadas
-
-1. **Contato de Suporte:** O canal de suporte oficial definido é `suporte@signallq.com`, com alertas de canal de atendimento direto para conformidade com a App Store.
-2. **Lançamento no iOS (Decisão 61):** O site comunica oficialmente o lançamento em breve para iPhone (iOS 17+) com programa de acesso antecipado via TestFlight.
-3. **Persistência Resiliente em Duas Camadas:** Os e-mails são gravados instantaneamente no `localStorage` do usuário e enviados ao endpoint `POST /v1/waitlist` do Cloudflare Worker (com suporte a Cloudflare KV e Analytics Engine).
-4. **Rotas e Compatibilidade Estática:** Para máxima compatibilidade com qualquer servidor estático (GitHub Pages, Cloudflare Pages, Nginx ou `file://`), as páginas estão disponíveis tanto como `support.html` / `privacy.html` quanto em subpastas com `index.html` (`support/index.html` e `privacy/index.html`).
-5. **Isolamento Absoluto:** Todo o código do site está restrito ao diretório `web/`. O código do app iOS (`Sources/`, `Tests/`, `Lagcheck.xcodeproj`), o Worker (`worker/`) e as documentações existentes (`docs/`) foram preservados intactos.
+- **Suporte:** Página `/support/` com canal direto `suporte@signallq.com` e esclarecimentos técnicos.
+- **Privacidade:** Página `/privacy/` declarando armazenamento local via SwiftData, ausência de publicidade de terceiros no MVP e minimização estrita de dados em conformidade com a LGPD e políticas da Apple.

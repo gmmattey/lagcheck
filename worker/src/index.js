@@ -349,6 +349,9 @@ export async function incrementStat(env, type) {
     } else if (type === "lead") {
       daily.leads = (daily.leads || 0) + 1;
       total.leads = (total.leads || 0) + 1;
+    } else if (type === "click") {
+      daily.clicks = (daily.clicks || 0) + 1;
+      total.clicks = (total.clicks || 0) + 1;
     }
 
     await Promise.all([
@@ -378,6 +381,96 @@ export async function handleVisit(request, env = {}) {
   await incrementStat(env, "visit");
 
   return Response.json({ status: "ok" }, {
+    status: 200,
+    headers: WAITLIST_CORS_HEADERS
+  });
+}
+
+export async function handleAppStoreClick(request, env = {}) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: WAITLIST_CORS_HEADERS
+    });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: { "Allow": "POST, OPTIONS", "Cache-Control": "no-store" }
+    });
+  }
+
+  let body = {};
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+
+  const cleanPage = (typeof body?.page === "string" && body.page.length <= 128) ? body.page : "/";
+  const cleanGameId = (typeof body?.gameId === "string" && body.gameId.length <= 64) ? body.gameId : undefined;
+  const cleanSource = (typeof body?.source === "string" && body.source.length <= 64) ? body.source : "web_download";
+  const cleanPlatform = (typeof body?.platform === "string" && body.platform.length <= 16) ? body.platform : "ios";
+  const cleanUtm = (body?.utm && typeof body.utm === "object" && !Array.isArray(body.utm)) ? body.utm : undefined;
+  const timestamp = (typeof body?.createdAt === "string" && body.createdAt.length <= 40) ? body.createdAt : new Date().toISOString();
+
+  await incrementStat(env, "click");
+
+  if (env.ANALYTICS && typeof env.ANALYTICS.writeDataPoint === "function") {
+    try {
+      env.ANALYTICS.writeDataPoint({
+        blobs: ["appstore_click", cleanPage, cleanGameId || "none", cleanSource],
+        doubles: [1],
+        indexes: [cleanPlatform]
+      });
+    } catch {
+      // Ignora falha silenciosa
+    }
+  }
+
+  if (env.DISCORD_WEBHOOK_URL) {
+    try {
+      let utmDesc = "";
+      if (cleanUtm && typeof cleanUtm === "object") {
+        utmDesc = Object.entries(cleanUtm).map(([k, v]) => `• **${k}**: \`${v}\``).join("\n");
+      }
+      const fields = [
+        { name: "📱 Plataforma", value: `🍏 ${cleanPlatform.toUpperCase()}`, inline: true },
+        { name: "🌐 Origem", value: `\`${cleanSource}\``, inline: true },
+        { name: "📄 Página", value: `\`${cleanPage}\``, inline: true }
+      ];
+      if (cleanGameId) {
+        fields.push({ name: "🎮 Jogo Contextual", value: `\`${cleanGameId}\``, inline: true });
+      }
+      if (utmDesc) {
+        fields.push({ name: "📊 Parâmetros UTM", value: utmDesc, inline: false });
+      }
+      fields.push({ name: "⏰ Horário (UTC)", value: timestamp, inline: false });
+
+      await fetch(env.DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: "Lagcheck Analytics",
+          avatar_url: "https://lagcheck.signallq.com/assets/lagcheck-wordmark-light.svg",
+          embeds: [
+            {
+              title: "📲 Intenção de Instalação (App Store Click)",
+              description: "Um jogador clicou no botão de download para a App Store.",
+              color: 0x7c3aed,
+              fields,
+              footer: { text: "Lagcheck • App Store Conversion" }
+            }
+          ]
+        })
+      });
+    } catch {
+      // Ignora falha silenciosa
+    }
+  }
+
+  return Response.json({ status: "ok", event: "appstore_click" }, {
     status: 200,
     headers: WAITLIST_CORS_HEADERS
   });
@@ -467,6 +560,9 @@ export async function handleRequest(request, env = {}) {
   }
   if (url.pathname === "/v1/visit") {
     return handleVisit(request, env);
+  }
+  if (url.pathname === "/v1/click" || url.pathname === "/v1/click/appstore") {
+    return handleAppStoreClick(request, env);
   }
   if (url.pathname === "/v1/report/test") {
     if (request.method !== "POST") {

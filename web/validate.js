@@ -77,8 +77,18 @@ assert(indexHtml.includes('/v1/visit'), 'Telemetria Home: Endpoint /v1/visit pre
 assert(indexHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'ASO Home: Link oficial do Lagcheck id6818706960 presente');
 assert(indexHtml.includes('https://apps.apple.com/app/id6808479321'), 'Linka: Link de download na App Store presente');
 assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'linka-icon.png')), 'Linka: Ícone presente em assets/linka-icon.png');
+assert(indexHtml.includes('https://signallq.com'), 'SignallQ: Link oficial presente no ecossistema/rodapé');
 
-console.log('\n--- 4. Verificação de Suporte e Privacidade (Dark UI Padrão 1:1) ---');
+console.log('\n--- 4. Verificação de Navegação Mobile e Conversão Limpa ---');
+assert(indexHtml.includes('id="mobile-menu-btn"'), 'Navegação Mobile: Botão de menu hambúrguer presente');
+assert(indexHtml.includes('id="mobile-nav"'), 'Navegação Mobile: Drawer/menu móvel presente');
+assert(indexHtml.includes('aria-expanded="false"'), 'Navegação Mobile: Controle acessível aria-expanded');
+assert(indexHtml.includes('aria-controls="mobile-nav"'), 'Navegação Mobile: Controle acessível aria-controls');
+assert(!indexHtml.includes('appstore_download@click.local'), 'Conversão: Sem e-mail fictício no tracking da App Store');
+assert(!indexHtml.includes('/v1/waitlist'), 'Conversão: Cliques da App Store não corrompem a rota de waitlist');
+assert(indexHtml.includes('/v1/click'), 'Conversão: Endpoint dedicado /v1/click configurado para intenção de instalação');
+
+console.log('\n--- 5. Verificação de Suporte e Privacidade (Dark UI Padrão 1:1) ---');
 const supportHtml = fs.readFileSync(path.join(WEB_DIR, 'support', 'index.html'), 'utf-8');
 assert(supportHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'Suporte: Link oficial do Lagcheck id6818706960 presente');
 assert(supportHtml.includes('suporte@signallq.com'), 'Suporte: E-mail de atendimento presente');
@@ -89,15 +99,26 @@ assert(privacyHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-pin
 assert(privacyHtml.includes('Zero Coleta de Dados Pessoais'), 'Privacidade: Conformidade oficial App Store');
 assert(privacyHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Privacidade: Header oficial com wordmark presente');
 
-console.log('\n--- 5. Verificação de SEO e Schemas nos Jogos ---');
+console.log('\n--- 6. Verificação de SEO, Conteúdo Específico e Schemas nos Jogos ---');
 const valorantHtml = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'valorant', 'index.html'), 'utf-8');
 assert(valorantHtml.includes('Testar ping no Valorant | Lagcheck'), 'SEO Jogo: Title personalizado de Valorant');
 assert(valorantHtml.includes('"@type": "BreadcrumbList"'), 'Schema Jogo: BreadcrumbList presente');
 assert(valorantHtml.includes('"@type": "FAQPage"'), 'Schema Jogo: FAQPage presente');
 assert(valorantHtml.includes('/v1/visit'), 'Telemetria Jogo: Endpoint /v1/visit presente');
+assert(valorantHtml.includes('/v1/click'), 'Conversão Jogo: Endpoint /v1/click presente');
 assert(valorantHtml.includes('https://lagcheck.signallq.com/jogos/valorant/'), 'SEO Jogo: Canonical URL exata');
 
-console.log('\n--- 5. Verificação do Sitemap e Robots ---');
+const cs2Html = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'counter-strike-2', 'index.html'), 'utf-8');
+assert(!cs2Html.includes('escolhido pelo operador de cada mundo'), 'CS2: Sem descrição incorreta de servidor comunitário genérico');
+assert(cs2Html.includes('Steam Datagram Relay') || cs2Html.includes('Valve'), 'CS2: Descrição precisa da infraestrutura Valve');
+
+const mcHtml = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'minecraft', 'index.html'), 'utf-8');
+assert(!mcHtml.includes('tiros que não conectam'), 'Minecraft: Sem descrição incorreta de tiros FPS em Minecraft');
+
+assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'games', 'valorant-thumb.webp')), 'Performance: Thumbnail WebP gerado para Valorant');
+assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'games', 'valorant.webp')), 'Performance: Hero WebP gerado para Valorant');
+
+console.log('\n--- 7. Verificação do Sitemap e Robots ---');
 const sitemapXml = fs.readFileSync(path.join(WEB_DIR, 'sitemap.xml'), 'utf-8');
 assert(sitemapXml.includes('https://lagcheck.signallq.com/'), 'Sitemap: Contém URL da Home');
 assert(sitemapXml.includes('https://lagcheck.signallq.com/jogos/'), 'Sitemap: Contém URL do Hub');
@@ -160,6 +181,8 @@ server.listen(PORT, async () => {
     '/assets/app-games.webp',
     '/assets/app-result.webp',
     '/assets/games/valorant.jpg',
+    '/assets/games/valorant-thumb.webp',
+    '/assets/games/valorant.webp',
     '/assets/games/fortnite.jpg',
     '/assets/linka-icon.png'
   ];

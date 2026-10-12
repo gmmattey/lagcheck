@@ -5,100 +5,1281 @@ const ROOT_DIR = process.cwd();
 const WEB_DIR = path.join(ROOT_DIR, 'web');
 const APP_STORE_URL = "https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960";
 const LINKA_APP_STORE_URL = "https://apps.apple.com/app/id6808479321";
+const SIGNALLQ_URL = "https://signallq.com";
 
-const GAMES = [
-  { slug: "fortnite", name: "Fortnite", file: "fortnite", platforms: "iPhone · PC · PlayStation · Xbox · Switch", infra: "fort" },
-  { slug: "free-fire", name: "Free Fire", file: "freefire", platforms: "iPhone", infra: "priv" },
-  { slug: "cod-mobile", name: "COD Mobile", file: "codm", platforms: "iPhone", infra: "priv" },
-  { slug: "valorant", name: "Valorant", file: "valorant", platforms: "PC · PlayStation · Xbox", infra: "priv" },
-  { slug: "counter-strike-2", name: "Counter-Strike 2", file: "cs2", platforms: "PC", infra: "ded" },
-  { slug: "apex-legends", name: "Apex Legends", file: "apexlegends", platforms: "PC · PlayStation · Xbox · Switch", infra: "priv" },
-  { slug: "league-of-legends", name: "League of Legends", file: "leagueoflegends", platforms: "PC", infra: "priv" },
-  { slug: "wild-rift", name: "Wild Rift", file: "wildrift", platforms: "iPhone", infra: "priv" },
-  { slug: "rocket-league", name: "Rocket League", file: "rocketleague", platforms: "PC · PlayStation · Xbox · Switch", infra: "priv" },
-  { slug: "roblox", name: "Roblox", file: "roblox", platforms: "iPhone · PC · PlayStation · Xbox", infra: "rbx" },
-  { slug: "minecraft", name: "Minecraft", file: "minecraft", platforms: "iPhone · PC · PlayStation · Xbox · Switch", infra: "ded" },
-  { slug: "brawl-stars", name: "Brawl Stars", file: "brawlstars", platforms: "iPhone", infra: "priv" },
-  { slug: "warzone", name: "Warzone", file: "warzone", platforms: "PC · PlayStation · Xbox", infra: "priv" },
-  { slug: "pubg-mobile", name: "PUBG Mobile", file: "pubg", platforms: "iPhone", infra: "priv" },
-  { slug: "blood-strike", name: "Blood Strike", file: "bloodstrike", platforms: "iPhone · PC", infra: "priv" },
-  { slug: "dota-2", name: "Dota 2", file: "dota2", platforms: "PC", infra: "priv" },
-  { slug: "ea-sports-fc", name: "EA Sports FC", file: "eafc", platforms: "iPhone · PC · PlayStation · Xbox · Switch", infra: "priv" },
-  { slug: "palworld", name: "Palworld", file: "palworld", platforms: "PC · Xbox", infra: "ded" },
-  { slug: "rainbow-six-siege", name: "Rainbow Six Siege", file: "rainbowsix", platforms: "PC · PlayStation · Xbox", infra: "priv" },
-  { slug: "rust", name: "Rust", file: "rust", platforms: "PC · PlayStation · Xbox", infra: "ded" }
+export const GAMES = [
+  {
+    slug: "fortnite",
+    name: "Fortnite",
+    file: "fortnite",
+    category: "br",
+    categoryLabel: "Battle Royale",
+    platforms: "iPhone · PC · PlayStation · Xbox · Switch",
+    isMobileNative: false,
+    infra: "aws",
+    summary: "Battle Royale multiplataforma com construção e combate sincronizado para até 100 jogadores.",
+    netProfile: "O Fortnite tem partidas com 100 jogadores e construção/combate acelerados. O matchmaking e as instâncias dependem de rotas em nuvem regional (AWS sa-east-1 em São Paulo).",
+    lagSymptoms: [
+      "Delay na colocação e edição de estruturas ('ghost building')",
+      "Rubber-banding durante movimentação rápida, saltos e uso de tirolesas",
+      "Disparos de espingarda ou submetralhadora sem registro de dano em confrontos próximos",
+      "Picos repentinos de latência ao se aproximar de zonas povoadas no mapa"
+    ],
+    guidance: "Conecte o iPhone na mesma rede Wi-Fi (5 GHz) onde você joga para medir se o roteador está sofrendo com bufferbloat ou fila na operadora antes de puxar uma ranqueada.",
+    faq: [
+      {
+        q: "Como o Lagcheck ajuda a saber se o Fortnite vai ter lag?",
+        a: "O app envia pacotes UDP contínuos até o beacon regional AWS GameLift em São Paulo. Ele mede latência média, oscilação (jitter) e descarte de pacotes em repouso e sob carga, entregando um veredito direto."
+      },
+      {
+        q: "O Lagcheck mede o servidor oficial da minha partida no Fortnite?",
+        a: "Não. O app mede uma rota de referência regional comprovada (AWS GameLift sa-east-1). Se essa rota de saída ou seu roteador apresentarem instabilidade, sua partida certamente oscilará."
+      },
+      {
+        q: "Posso testar no iPhone mesmo jogando no PC ou console?",
+        a: "Sim. Como você compartilha o mesmo link de internet e roteador, o teste no iPhone serve como um indicador confiável da saúde da rede doméstica antes de você abrir o jogo no PC ou console."
+      }
+    ]
+  },
+  {
+    slug: "free-fire",
+    name: "Free Fire",
+    file: "freefire",
+    category: "br",
+    categoryLabel: "Battle Royale",
+    platforms: "iPhone (iOS nativo)",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "Battle Royale mobile competitivo em tempo real com partidas dinâmicas no mesmo smartphone.",
+    netProfile: "Como o jogo roda diretamente no iPhone, a qualidade do rádio Wi-Fi ou sinal de dados móveis (4G/5G) determina cada trocação. Servidores regionais com alta demanda de pacotes UDP.",
+    lagSymptoms: [
+      "Botão de tiro com atraso na resposta e mira grudando com atraso",
+      "Dano não computado em trocações a curta distância ('hitmarker fantasma')",
+      "Inimigos se teletransportando ou congelando durante a corrida",
+      "Perda de conexão no meio da troca de safe zone"
+    ],
+    guidance: "Faça o check no iPhone antes de iniciar a partida ranqueada. Se o veredito indicar instabilidade no 4G/5G, migre para o Wi-Fi 5 GHz próximo ao roteador.",
+    faq: [
+      {
+        q: "Por que o Free Fire trava mesmo com internet rápida?",
+        a: "Velocidade de download não impede lag. No Free Fire, oscilações de 10 a 20 ms (jitter) ou perda de pacotes de 1% já causam atrasos fatais no registro de dano."
+      },
+      {
+        q: "O teste do Lagcheck é feito no próprio aparelho onde jogo?",
+        a: "Sim. O Lagcheck avalia a mesma interface de rede (Wi-Fi ou dados móveis) que o Free Fire utiliza no seu iPhone, oferecendo um diagnóstico preciso das condições do rádio."
+      },
+      {
+        q: "O veredito diz se posso jogar ranqueada agora?",
+        a: "Sim. O resultado classifica a conexão como 'Pronto para Ranked', 'Condições instáveis' ou 'Evitaria ranked agora', orientando sua decisão antes de perder pontos."
+      }
+    ]
+  },
+  {
+    slug: "cod-mobile",
+    name: "COD Mobile",
+    file: "codm",
+    category: "fps",
+    categoryLabel: "FPS / Tático",
+    platforms: "iPhone (iOS nativo)",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "FPS mobile competitivo com modos multijogador acelerados e Battle Royale no iPhone.",
+    netProfile: "Exige tempos de resposta extremamente baixos e consistência entre pacotes UDP para registro de acertos e alinhamento do hitbox em cantos de paredes.",
+    lagSymptoms: [
+      "Efeito de 'peeker's advantage' invertido: morrer antes de ver o inimigo sair da cobertura",
+      "Tiros não computados em duelos frente a frente com fuzis de alta cadência",
+      "Micro-travamentos na transição de mira holográfica e mira de precisão",
+      "Atraso na ativação de Scorestreaks e operadores"
+    ],
+    guidance: "Execute o diagnóstico no iPhone conectado ao Wi-Fi 5 GHz para confirmar se há perda de pacotes antes de entrar nas filas ranqueadas de Multijogador ou Battle Royale.",
+    faq: [
+      {
+        q: "Como o Lagcheck avalia a rota para o COD Mobile?",
+        a: "O app envia sequências de pacotes UDP para a infraestrutura regional em São Paulo, simulando o tráfego do jogo sob repouso e sob carga concorrente de rede."
+      },
+      {
+        q: "O que significa 'Condições instáveis' no veredito?",
+        a: "Indica que foram detectadas oscilações de latência (jitter) ou perda de pacotes que podem prejudicar seu tempo de reação no COD Mobile. Vale aguardar ou reiniciar o roteador."
+      },
+      {
+        q: "O check consome meus dados móveis?",
+        a: "O check é leve e consome apenas o tráfego estritamente necessário para testar pacotes UDP e simular bufferbloat, durando apenas alguns segundos."
+      }
+    ]
+  },
+  {
+    slug: "valorant",
+    name: "Valorant",
+    file: "valorant",
+    category: "fps",
+    categoryLabel: "FPS / Tático",
+    platforms: "PC · PlayStation · Xbox",
+    isMobileNative: false,
+    infra: "riot",
+    summary: "Tactical shooter competitivo 5v5 com servidores de 128-tick e infraestrutura Riot Direct.",
+    netProfile: "O Valorant requer precisão de sub-milissegundos com tickrate de 128 Hz. Oscilações mínimas de latência quebram a consistência do disparo e a precisão em duelos de mira (first bullet accuracy).",
+    lagSymptoms: [
+      "Headshots aparentes que não contam no primeiro disparo em cantos abertos",
+      "Inconsistência no recuo das armas por perda de sincronia de pacotes",
+      "Modelos de personagens deslizando ou surgindo bruscamente de trás de fumaças",
+      "Ícones de rede (jitter/packet loss) acesos no canto superior direito da tela"
+    ],
+    guidance: "Como o Valorant roda no PC ou console, execute o Lagcheck no iPhone na mesma rede para verificar se o roteador doméstico ou a operadora estão sofrendo com congestionamento de rota antes da fila competitiva.",
+    faq: [
+      {
+        q: "O Lagcheck mede o servidor oficial da Riot Games no Valorant?",
+        a: "O Valorant opera em rede fechada da Riot Games. O Lagcheck avalia a rota de referência UDP regional em São Paulo (sa-east-1). Se a sua conexão doméstica apresentar jitter ou perda no teste, o Valorant também sofrerá."
+      },
+      {
+        q: "Se meu PC usa cabo Ethernet, o teste no iPhone ainda vale?",
+        a: "Sim. O teste no iPhone mostra se o seu modem/provedor de internet está com rota oscilando ou com bufferbloat na saída para os datacenters de São Paulo, o que afeta tanto Wi-Fi quanto cabo."
+      },
+      {
+        q: "O que o veredito 'Pronto para Ranked' garante?",
+        a: "Garante que na medição determinística recente não foram identificados jitter elevado, descarte de pacotes ou degradação sob carga concorrente."
+      }
+    ]
+  },
+  {
+    slug: "counter-strike-2",
+    name: "Counter-Strike 2",
+    file: "cs2",
+    category: "fps",
+    categoryLabel: "FPS / Tático",
+    platforms: "PC (Steam / Valve)",
+    isMobileNative: false,
+    infra: "valve",
+    summary: "FPS tático da Valve com arquitetura sub-tick e servidores oficiais dedicados em São Paulo.",
+    netProfile: "O Counter-Strike 2 adota a tecnologia de sub-tick e a infraestrutura Steam Datagram Relay (SDR) da Valve com datacenters em São Paulo. Perda de pacotes e jitter quebram a precisão de tiros e movimentação.",
+    lagSymptoms: [
+      "Perda de comandos de recoil e spray em duelos decisivos de rifles",
+      "Tagging desincronizado: seu boneco congela com atraso ao ser alvejado",
+      "Micro-teleportes ao esbarrar em companheiros de equipe em corredores estreitos",
+      "Granadas que rebatem com física atrasada em quinas de portas e janelas"
+    ],
+    guidance: "Rode o Lagcheck no seu iPhone no Wi-Fi da casa para aferir a qualidade da sua conexão antes de abrir a fila Premier ou Competitiva no CS2.",
+    faq: [
+      {
+        q: "O Lagcheck se conecta aos servidores da Valve no CS2?",
+        a: "O teste mede a rota UDP de referência até os principais centros de servidores de jogos em São Paulo. A Valve opera sua rede SDR em São Paulo, tornando a medição um indicador confiável da qualidade de tráfego regional."
+      },
+      {
+        q: "Por que o CS2 parece lagado mesmo quando o ping marca 20 ms?",
+        a: "Porque ping baixo não significa estabilidade. Jitter e perda de pacotes afetam diretamente o registro do sub-tick do CS2, criando a sensação de balas que somem no ar."
+      },
+      {
+        q: "O app é compatível com jogadores de PC?",
+        a: "Sim. O app é um utilitário de bolso para iPhone que analisa a saúde da sua rede doméstica e operadora antes de você abrir o PC."
+      }
+    ]
+  },
+  {
+    slug: "apex-legends",
+    name: "Apex Legends",
+    file: "apexlegends",
+    category: "br",
+    categoryLabel: "Battle Royale",
+    platforms: "PC · PlayStation · Xbox · Switch",
+    isMobileNative: false,
+    infra: "ea",
+    summary: "Battle Royale rápido com movimentação dinâmica, tirolesas e combate em ritmo acelerado.",
+    netProfile: "O Apex Legends exige transmissão intensa de pacotes UDP devido à velocidade de slide, saltos e habilidades táticas de lendas. A EA hospeda suas instâncias em datacenters em São Paulo.",
+    lagSymptoms: [
+      "Efeito 'no-reg': som característico do tiro acertando a blindagem, mas sem causar dano",
+      "Ícones vermelhos de predição e desync piscando no canto da tela",
+      "Atraso ao abrir portas, cápsulas de suprimento ou trocar de armadura",
+      "Movimentação em câmera lenta no início da partida em áreas com muitos esquadrões"
+    ],
+    guidance: "Verifique no Lagcheck se a sua rota em repouso e sob carga concorrente mantém estabilidade antes de jogar partidas ranqueadas no Apex.",
+    faq: [
+      {
+        q: "O Lagcheck identifica bufferbloat para Apex Legends?",
+        a: "Sim. Durante a medição sob carga, o app avalia se o ping dispara quando outros dispositivos da sua casa utilizam a conexão, prevenindo quedas no meio do combate."
+      },
+      {
+        q: "O app promete zero lag no Apex?",
+        a: "Nunca prometemos zero lag. O Lagcheck entrega um diagnóstico factual e honesto com base em medições reais para você decidir com segurança."
+      },
+      {
+        q: "Como interpretar o jitter medido?",
+        a: "Jitter abaixo de 3–4 ms indica estabilidade excelente. Acima de 8–10 ms, a oscilação já prejudica armas automáticas de alta cadência como a R-99."
+      }
+    ]
+  },
+  {
+    slug: "league-of-legends",
+    name: "League of Legends",
+    file: "leagueoflegends",
+    category: "moba",
+    categoryLabel: "MOBA",
+    platforms: "PC (Riot Games)",
+    isMobileNative: false,
+    infra: "riot",
+    summary: "MOBA competitivo onde teamfights e reações em fração de segundo definem a vitória no Rift.",
+    netProfile: "O LoL utiliza a infraestrutura Riot Direct com servidores em São Paulo. Requer estabilidade absoluta nos pacotes UDP para garantir que cliques de movimentação e skillshots ocorram sem atraso.",
+    lagSymptoms: [
+      "Atraso aparente no clique de movimentação ('input delay')",
+      "Skillshots disparadas na direção correta que saem com frações de segundo de atraso",
+      "Congelamento súbito de personagens em teamfights com muitas partículas na tela",
+      "Flash ou Zhonya não acionando no instante exato da conjuração"
+    ],
+    guidance: "Antes de entrar na fila Solo/Duo no PC, faça um check rápido no iPhone para certificar-se de que a rota até São Paulo está limpa e sem oscilações na operadora.",
+    faq: [
+      {
+        q: "Por que fazer o check antes da fila de LoL?",
+        a: "Porque uma partida de LoL dura mais de 30 minutos e custa pontos de PDL. Saber se a rota está instável antes da seleção de campeões evita frustrações desnecessárias."
+      },
+      {
+        q: "O teste mede a rota do meu provedor de internet?",
+        a: "Sim. O iPhone analisa a rota UDP saindo da sua rede local até os pontos de interconexão em São Paulo, revelando se a sua operadora está sofrendo congestionamento."
+      },
+      {
+        q: "O resultado ajuda a identificar problemas no Wi-Fi?",
+        a: "Sim. A comparação entre repouso e carga aponta se o roteador está enfileirando pacotes de forma inadequada."
+      }
+    ]
+  },
+  {
+    slug: "wild-rift",
+    name: "Wild Rift",
+    file: "wildrift",
+    category: "moba",
+    categoryLabel: "MOBA",
+    platforms: "iPhone (iOS nativo)",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "O MOBA da Riot Games adaptado com controles táteis velozes para o ecossistema iOS.",
+    netProfile: "Partidas no próprio iPhone com controle contínuo via joystick virtual e botões táteis. Sensível a variações de latência na antena Wi-Fi e dados móveis.",
+    lagSymptoms: [
+      "Indicador de ping in-game saltando de verde para amarelo/vermelho em teamfights",
+      "Atraso ao direcionar habilidades em linha reta com joystick virtual",
+      "Personagem continuando a andar em linha reta em direção à torre inimiga",
+      "Tentativa de reconexão automática no momento de disputa de Barão ou Dragão"
+    ],
+    guidance: "Abra o Lagcheck no iPhone momentos antes de buscar partida no Wild Rift. Se a rota estiver instável, aproxime-se do roteador ou aguarde a estabilização.",
+    faq: [
+      {
+        q: "Como o Lagcheck mede o ping do Wild Rift no iPhone?",
+        a: "Ele utiliza sockets UDP nativos no próprio iOS para enviar e receber pacotes determinísticos, medindo a qualidade de transmissão sem depender de testes genéricos de navegador."
+      },
+      {
+        q: "O teste substitui o indicador de ping interno do jogo?",
+        a: "O Lagcheck é preventivo: ele mede antes de você entrar na fila ranqueada, evitando que você descubra a instabilidade somente depois que a partida já começou."
+      },
+      {
+        q: "O app é gratuito no iPhone?",
+        a: "Sim, 100% gratuito na App Store e sem necessidade de criar conta ou fazer login."
+      }
+    ]
+  },
+  {
+    slug: "rocket-league",
+    name: "Rocket League",
+    file: "rocketleague",
+    category: "casual",
+    categoryLabel: "Esportes / Físico",
+    platforms: "PC · PlayStation · Xbox · Switch",
+    isMobileNative: false,
+    infra: "epic",
+    summary: "Futebol acrobático com carros em física de simulação calculada em tempo real no servidor.",
+    netProfile: "O Rocket League processa física contínua no servidor. Jitter ou perda de pacotes geram correção visual imediata pelo cliente, fazendo a bola ou os carros desviarem inesperadamente.",
+    lagSymptoms: [
+      "Bola 'fantasma' que parece mudar de direção no ar após ser rebatida por outro carro",
+      "Colisões de carros desajustadas em disputas aéreas e no kick-off inicial",
+      "Ícones triangulares vermelhos de variação de latência e perda de pacotes na tela",
+      "Carro saindo do chão e caindo de volta bruscamente ao coletar boost de 100%"
+    ],
+    guidance: "Faça o check no iPhone para checar o nível de jitter na sua rede antes de disputar partidas competitivas no Rocket League.",
+    faq: [
+      {
+        q: "Por que o Rocket League sofre tanto com pequenas oscilações de ping?",
+        a: "Porque a trajetória da bola e dos veículos é simulada a 120 Hz no servidor. Qualquer pacote atrasado força o cliente a corrigir a posição dos objetos, causando o famoso desvio fantasma."
+      },
+      {
+        q: "O Lagcheck avalia a perda de pacotes?",
+        a: "Sim. O app mede a porcentagem exata de pacotes UDP descartados na rota de referência regional em São Paulo."
+      },
+      {
+        q: "Posso confiar no veredito?",
+        a: "O veredito é determinístico e derivado de regras transparentes: se houver perda ou jitter alto, ele indicará 'Condições instáveis' ou que evitaria ranked."
+      }
+    ]
+  },
+  {
+    slug: "roblox",
+    name: "Roblox",
+    file: "roblox",
+    category: "casual",
+    categoryLabel: "Sandbox / Criação",
+    platforms: "iPhone · PC · PlayStation · Xbox",
+    isMobileNative: false,
+    infra: "roblox",
+    summary: "Plataforma de criação e jogos multijogador com instâncias dinâmicas hospedadas na nuvem.",
+    netProfile: "Cada experiência no Roblox aloca instâncias dinâmicas em servidores em nuvem. A qualidade de conexão varia de acordo com a rota de saída da sua operadora.",
+    lagSymptoms: [
+      "Personagens travando no chão ou flutuando sem animação de caminhada",
+      "Atraso de vários segundos ao interagir com portas, lojas e itens do inventário",
+      "Desconexões repentinas com o código de erro 279 ou 267",
+      "Falta de sincronia em minigames competitivos de corrida e obstáculos (Obby)"
+    ],
+    guidance: "Utilize o Lagcheck no iPhone para saber se a sua conexão está operando com baixa latência e sem perda de pacotes antes de iniciar sua sessão no Roblox.",
+    faq: [
+      {
+        q: "O Roblox possui servidor fixo para teste?",
+        a: "No Roblox, cada experiência aloca instâncias dinâmicas. O Lagcheck mede a rota de saída regional até datacenters de referência em São Paulo para certificar a estabilidade da sua internet."
+      },
+      {
+        q: "O app funciona tanto para quem joga no iPhone quanto no PC?",
+        a: "Sim. Se você joga no iPhone, o teste é direto. Se joga no PC ou console, serve como indicador da integridade da sua rede doméstica."
+      },
+      {
+        q: "O teste exige cadastro?",
+        a: "Não. Você baixa na App Store e faz o check diretamente sem fornecer nenhum dado pessoal."
+      }
+    ]
+  },
+  {
+    slug: "minecraft",
+    name: "Minecraft",
+    file: "minecraft",
+    category: "casual",
+    categoryLabel: "Sandbox / Sobrevivência",
+    platforms: "iPhone · PC · PlayStation · Xbox · Switch",
+    isMobileNative: false,
+    infra: "dedicated",
+    summary: "Multijogador cooperativo, servidores comunitários e Realms de sobrevivência e minigames.",
+    netProfile: "No Minecraft multiplayer, as partidas ocorrem em Realms ou servidores dedicados da comunidade. A instabilidade causa dessincronização de blocos, inventário e combate com mobs.",
+    lagSymptoms: [
+      "Blocos minerados que reaparecem instantaneamente na sua frente ('ghost blocks')",
+      "Atraso perceptível ao abrir baús, fornalhas e mesas de trabalho",
+      "Mobs e outros jogadores se teletransportando ou atacando à distância",
+      "Dano de queda aplicado segundos após a descida, causando mortes inesperadas"
+    ],
+    guidance: "Rode o check no iPhone para averiguar se a sua rota doméstica está estável antes de explorar o Nether ou entrar em minigames de servidores da comunidade.",
+    faq: [
+      {
+        q: "Como o Lagcheck ajuda no Minecraft se os servidores são comunitários?",
+        a: "Mesmo que os servidores de Minecraft sejam variados, o gargalo comum quase sempre está na sua rota de saída ou no Wi-Fi. O Lagcheck avalia a qualidade da sua rede local e da conexão regional."
+      },
+      {
+        q: "O teste mede combate de tiro?",
+        a: "Não. O Lagcheck avalia pacotes UDP puros, latência e jitter — métricas que no Minecraft evitam blocos fantasmas e atrasos de sincronização."
+      },
+      {
+        q: "É gratuito?",
+        a: "Sim, o app é gratuito na App Store para iPhone."
+      }
+    ]
+  },
+  {
+    slug: "brawl-stars",
+    name: "Brawl Stars",
+    file: "brawlstars",
+    category: "moba",
+    categoryLabel: "Ação / MOBA Mobile",
+    platforms: "iPhone (iOS nativo)",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "Batalhas 3v3 de ação rápida da Supercell onde cada segundo de atraso define o controle da partida.",
+    netProfile: "Partidas de 2 a 3 minutos direto no iPhone. O protocolo em tempo real da Supercell é extremamente intolerante a micro-quedas e variações de sinal.",
+    lagSymptoms: [
+      "Ícone vermelho de Wi-Fi pulsando no meio da tela no momento mais crítico",
+      "Super ou ataque principal saindo com atraso de meio segundo após o toque",
+      "Brawler deslizando sem controle em direção ao fogo cruzado inimigo",
+      "Golpes de brawlers corpo a corpo que parecem acertar antes da animação"
+    ],
+    guidance: "Abra o Lagcheck no iPhone antes de iniciar sua sequência de troféus. O diagnóstico leva poucos segundos e previne perdas de partidas por causa do Wi-Fi.",
+    faq: [
+      {
+        q: "Por que o Brawl Stars exibe o ícone vermelho de Wi-Fi?",
+        a: "O ícone aparece quando há perda de pacotes ou o jitter supera a tolerância do motor da Supercell. O Lagcheck mede essas mesmas variáveis antes de você entrar na fila."
+      },
+      {
+        q: "O check funciona em dados móveis 4G/5G?",
+        a: "Sim, você pode testar tanto sua rede Wi-Fi quanto sua conexão de dados móveis no iPhone."
+      },
+      {
+        q: "O veredito é honesto?",
+        a: "Sim. Se houver instabilidade observada, o app diz explicitamente que evitaria ranked agora."
+      }
+    ]
+  },
+  {
+    slug: "warzone",
+    name: "Warzone",
+    file: "warzone",
+    category: "br",
+    categoryLabel: "Battle Royale",
+    platforms: "PC · PlayStation · Xbox",
+    isMobileNative: false,
+    infra: "aws",
+    summary: "Battle Royale massivo em grande escala com intenso tráfego de dados e tiroteios decisivos no Gulag.",
+    netProfile: "Tráfego UDP intenso e contínuo para sincronizar dezenas de jogadores, veículos e contratos em mapas abertos. Datacenters regionais em São Paulo.",
+    lagSymptoms: [
+      "Gulag perdido por desync de milissegundos na trocação de pistolas",
+      "Paraquedas não abrindo a tempo por atraso de registro de comando",
+      "Congelamento súbito de tela ao abrir caixas de armamento (loadout drops)",
+      "Marcadores de perda de pacotes em cascata no canto superior esquerdo"
+    ],
+    guidance: "Use o Lagcheck no iPhone na rede doméstica antes de juntar o esquadrão no PC ou console para garantir que o modem não está com bufferbloat.",
+    faq: [
+      {
+        q: "Como o Lagcheck avalia a rota do Warzone?",
+        a: "O app mede a rota UDP até a infraestrutura de referência regional em São Paulo, simulando condições de repouso e estresse de banda."
+      },
+      {
+        q: "O resultado reflete o jogo no console ou PC?",
+        a: "Sim, como você divide a mesma conexão de internet e roteador, problemas de operadora e jitter afetam todos os aparelhos da residência."
+      },
+      {
+        q: "Preciso pagar pelo app?",
+        a: "Não. O Lagcheck é gratuito na App Store."
+      }
+    ]
+  },
+  {
+    slug: "pubg-mobile",
+    name: "PUBG Mobile",
+    file: "pubg",
+    category: "br",
+    categoryLabel: "Battle Royale",
+    platforms: "iPhone (iOS nativo)",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "Battle Royale tático mobile com balística realista e mapas extensos no iPhone.",
+    netProfile: "Como opera nativamente no smartphone, a estabilidade da antena Wi-Fi e a consistência da torre de celular são vitais para a física de disparos e veículos.",
+    lagSymptoms: [
+      "Dano tardio recebido após já ter entrado completamente atrás de uma parede",
+      "Veículos com direção travada ou batendo em obstáculos invisíveis",
+      "Itens de caixas de suprimento demorando segundos para entrar na mochila",
+      "Mira telescópica (4x/8x) com movimentação engasgada durante a puxada"
+    ],
+    guidance: "Faça o check no iPhone antes de iniciar a partida. Se o veredito sugerir cautela, aguarde ou troque de rede para não prejudicar seu ranking.",
+    faq: [
+      {
+        q: "O check ajuda no PUBG Mobile?",
+        a: "Com certeza. Como você joga no iPhone, o Lagcheck analisa exatamente a mesma interface de rede que o jogo usará."
+      },
+      {
+        q: "Qual a diferença entre Speedtest e Lagcheck para PUBG Mobile?",
+        a: "Speedtest mede quantos megabits você pode baixar. O Lagcheck mede se os pacotes de tiro chegam a tempo e sem oscilação."
+      },
+      {
+        q: "O app coleta dados pessoais?",
+        a: "Não coletamos dados pessoais nem exigimos login. Política de privacidade estrita e armazenamento local no iPhone."
+      }
+    ]
+  },
+  {
+    slug: "blood-strike",
+    name: "Blood Strike",
+    file: "bloodstrike",
+    category: "br",
+    categoryLabel: "Battle Royale / FPS",
+    platforms: "iPhone · PC",
+    isMobileNative: true,
+    infra: "mobile",
+    summary: "FPS Battle Royale ultrarrápido focado em mobilidade, corrida tática e parkour.",
+    netProfile: "Movimentação em alta velocidade onde o slide-cancel e trocações verticais exigem sincronização imediata entre cliente e servidor.",
+    lagSymptoms: [
+      "Falha na execução de corrida tática e deslizamento por atraso de pacotes",
+      "Dano atrasado em combates cara a cara com submetralhadoras",
+      "Dessincronia no momento de respawn aéreo na partida",
+      "Congelamento súbito ao ativar habilidades ativas dos agentes"
+    ],
+    guidance: "Execute o diagnóstico no seu iPhone para validar se a conexão está pronta para suportar a velocidade de movimentação do Blood Strike.",
+    faq: [
+      {
+        q: "O que o teste avalia para o Blood Strike?",
+        a: "Latência média, variação de milissegundos (jitter) e descarte de pacotes sob tráfego UDP em São Paulo."
+      },
+      {
+        q: "Posso testar se jogo no PC?",
+        a: "Sim. O iPhone na mesma rede ajuda a identificar se há problemas no modem ou na operadora."
+      },
+      {
+        q: "Quanto tempo dura o teste?",
+        a: "Leva apenas alguns segundos para emitir um veredito conclusivo."
+      }
+    ]
+  },
+  {
+    slug: "dota-2",
+    name: "Dota 2",
+    file: "dota2",
+    category: "moba",
+    categoryLabel: "MOBA",
+    platforms: "PC (Valve)",
+    isMobileNative: false,
+    infra: "valve",
+    summary: "MOBA de altíssima complexidade estratégica da Valve em servidores dedicados em São Paulo.",
+    netProfile: "Utiliza servidores da Valve no Brasil com roteamento Steam Datagram Relay. Exige consistência de milissegundos para cancelar animações e conjurar habilidades críticas.",
+    lagSymptoms: [
+      "Atraso no cancelamento de animações de ataque básico (backswing)",
+      "Itens de ativação imediata como Black King Bar ou Blink Dagger falhando no timing",
+      "Skillshots massivas (Black Hole, Chronosphere) conjuradas com delay fatal",
+      "Perda de last hits em creeps por dessincronia no projétil de ataque à distância"
+    ],
+    guidance: "Consulte o Lagcheck no iPhone antes de iniciar sua partida ranqueada no PC para averiguar a estabilidade da rota da sua internet.",
+    faq: [
+      {
+        q: "O Dota 2 roda nos servidores da Valve em São Paulo?",
+        a: "Sim. A Valve possui infraestrutura em São Paulo. O Lagcheck mede a rota de referência UDP regional para diagnosticar a estabilidade do enlace."
+      },
+      {
+        q: "Por que medir antes da partida?",
+        a: "Partidas de Dota 2 costumam passar de 40 minutos. Evitar uma partida instável previne quedas, frustração e penalidades de abandono."
+      },
+      {
+        q: "O app é seguro?",
+        a: "Totalmente seguro, oficial na App Store e sem anúncios."
+      }
+    ]
+  },
+  {
+    slug: "ea-sports-fc",
+    name: "EA Sports FC",
+    file: "eafc",
+    category: "casual",
+    categoryLabel: "Futebol / Esportes",
+    platforms: "iPhone · PC · PlayStation · Xbox · Switch",
+    isMobileNative: false,
+    infra: "ea",
+    summary: "Simulador de futebol competitivo com servidores dedicados para modos online e Ultimate Team.",
+    netProfile: "Os modos online operam em servidores dedicados da EA. A oscilação na rota causa o temido 'heavy gameplay', onde os comandos respondem com lentidão.",
+    lagSymptoms: [
+      "Sensação de 'jogadores pesados' que demoram para girar o corpo com a bola ('heavy gameplay')",
+      "Atraso entre apertar o botão de passe/chute e a execução do jogador",
+      "Divididas e botes de marcação que ocorrem fora de tempo",
+      "Ícone circular de perda de conexão da EA piscando na parte superior da tela"
+    ],
+    guidance: "Verifique o veredito no Lagcheck antes de iniciar sua rodada da Weekend League ou Division Rivals no PC/console para certificar-se de que a conexão está leve.",
+    faq: [
+      {
+        q: "O Lagcheck detecta o que causa o 'heavy gameplay' no EA Sports FC?",
+        a: "O heavy gameplay é frequentemente provocado por jitter e bufferbloat na rota até os servidores da EA. O Lagcheck mede exatamente essas métricas."
+      },
+      {
+        q: "O teste mede no iPhone para console?",
+        a: "Sim. O iPhone na sua rede doméstica avalia a qualidade da rota do provedor, revelando se a rede está sofrendo com engarrafamento de dados."
+      },
+      {
+        q: "Como o app é classificado na App Store?",
+        a: "Disponível gratuitamente para iOS 17 ou superior."
+      }
+    ]
+  },
+  {
+    slug: "palworld",
+    name: "Palworld",
+    file: "palworld",
+    category: "casual",
+    categoryLabel: "Sobrevivência / Co-op",
+    platforms: "PC · Xbox",
+    isMobileNative: false,
+    infra: "dedicated",
+    summary: "Sobrevivência multiplayer com captura de criaturas e construção de bases em mundo aberto.",
+    netProfile: "Partidas em servidores dedicados ou cooperativo direto. Grande quantidade de entidades e construções sincronizadas pela rede simultaneamente.",
+    lagSymptoms: [
+      "Pals parados sem responder a comandos de trabalho ou combate",
+      "Atraso no arremesso e registro de captura de esferas",
+      "Dessincronia na física de construção de estruturas de base",
+      "Inimigos em masmorras se teletransportando durante ataques"
+    ],
+    guidance: "Confira o status de estabilidade no Lagcheck antes de entrar no servidor dedicado com amigos para evitar perda de itens por desconexão.",
+    faq: [
+      {
+        q: "Como o app avalia conexões para Palworld?",
+        a: "Ele mede a qualidade do tráfego UDP em direção aos nós centrais de servidores em São Paulo, indicando a saúde geral da sua rede."
+      },
+      {
+        q: "Preciso de conta para usar?",
+        a: "Não, o Lagcheck não exige contas, logins nem assinaturas."
+      },
+      {
+        q: "O teste é rápido?",
+        a: "Sim, medição completa em poucos segundos no iPhone."
+      }
+    ]
+  },
+  {
+    slug: "rainbow-six-siege",
+    name: "Rainbow Six Siege",
+    file: "rainbowsix",
+    category: "fps",
+    categoryLabel: "FPS / Tático",
+    platforms: "PC · PlayStation · Xbox",
+    isMobileNative: false,
+    infra: "aws",
+    summary: "FPS tático da Ubisoft onde destruição de cenários e linhas de visão exigem conexão sólida.",
+    netProfile: "A precisão dos ângulos de visão através de frestas e paredes destruídas não tolera jitter. Servidores dedicados regionais com alto volume de validações de física.",
+    lagSymptoms: [
+      "Rubber-banding ao passar por brechas abertas na parede ou janelas barricadas",
+      "Morrer antes mesmo do operador inimigo aparecer no ângulo da câmera",
+      "Atraso ao ativar o desarmador ou usar gadgets táticos",
+      "Ícones amarelos e vermelhos de conexão no canto inferior direito da tela"
+    ],
+    guidance: "Faça o check no iPhone no Wi-Fi antes de começar sua partida ranqueada no PC ou console para saber se a operadora está oscilando.",
+    faq: [
+      {
+        q: "O que o teste do Lagcheck mede para o Rainbow Six?",
+        a: "Latência UDP, estabilidade de milissegundos e descarte de pacotes até os datacenters de referência de São Paulo."
+      },
+      {
+        q: "O resultado diz se devo jogar ranqueada?",
+        a: "Sim. O veredito semântico diz com clareza se as condições estão recomendadas ou se o melhor é evitar a ranked no momento."
+      },
+      {
+        q: "Funciona em qualquer iPhone com iOS 17?",
+        a: "Sim, projetado nativamente para iOS 17 ou superior."
+      }
+    ]
+  },
+  {
+    slug: "rust",
+    name: "Rust",
+    file: "rust",
+    category: "casual",
+    categoryLabel: "Sobrevivência PvP",
+    platforms: "PC · PlayStation · Xbox",
+    isMobileNative: false,
+    infra: "dedicated",
+    summary: "Sobrevivência PvP hardcore onde perder um tiroteio por lag significa perder horas de saque.",
+    netProfile: "Servidores dedicados de alta população com milhares de construções e tiros calculados por balística. Perda de pacotes resulta em invalidação de tiros.",
+    lagSymptoms: [
+      "Mensagens de 'projectile invalid' no console de combate ao acertar tiros em inimigos",
+      "Delay ao abrir portas, trancas de código e caixas de inventário",
+      "Congelamento súbito durante trocas de tiros com armas automáticas como AK-47",
+      "Teleportes ao descer de cavalos, minicopters ou barcos em alta velocidade"
+    ],
+    guidance: "Confira seu status no Lagcheck no iPhone antes de sair da base para um raid ou confronto no Rust.",
+    faq: [
+      {
+        q: "Por que 'projectile invalid' acontece no Rust?",
+        a: "Quando há atraso de pacotes (jitter ou ping elevado), o servidor rejeita o tiro porque na linha do tempo do servidor o inimigo já se moveu. O Lagcheck mede essas variações."
+      },
+      {
+        q: "O teste mede o servidor específico do Rust onde jogo?",
+        a: "Ele mede a rota de referência regional em São Paulo, indicando se sua operadora e rede local estão operando de forma estável."
+      },
+      {
+        q: "O app é gratuito?",
+        a: "Sim, 100% gratuito e sem publicidade."
+      }
+    ]
+  }
 ];
 
 function getRouteText(infra) {
-  const base = "O Lagcheck mede a rota UDP até o beacon AWS GameLift em São Paulo (sa-east-1).";
-  if (infra === "fort") return "O Fortnite tem crossplay e usa a mesma infraestrutura em nuvem em várias plataformas. " + base;
-  if (infra === "ded") return "Neste jogo o servidor costuma ser escolhido pelo operador de cada mundo ou servidor, sem destino fixo para teste. " + base;
-  if (infra === "rbx") return "No Roblox a instância depende da experiência e da sessão, sem destino fixo para teste. " + base;
-  return "O matchmaking deste jogo é privado e a distribuidora não publica destino de teste. " + base;
+  const base = "O Lagcheck mede a rota UDP até beacons de referência de infraestrutura em São Paulo (sa-east-1).";
+  if (infra === "valve") return "A Valve utiliza a infraestrutura Steam Datagram Relay (SDR) e servidores oficiais em São Paulo. " + base;
+  if (infra === "riot") return "A Riot Games opera em rede própria (Riot Direct) e nuvem regional. " + base;
+  if (infra === "ea") return "A EA Sports e Respawn hospedam instâncias de jogos em datacenters em São Paulo. " + base;
+  if (infra === "mobile") return "O jogo roda nativamente no mesmo smartphone. O app mede a rota UDP direta no aparelho. " + base;
+  if (infra === "dedicated") return "Neste jogo as partidas operam em servidores comunitários ou dedicados. " + base;
+  if (infra === "roblox") return "No Roblox, cada experiência aloca instâncias dinâmicas na nuvem. " + base;
+  return "Muitos títulos competitivos rodam sobre a infraestrutura da AWS. " + base;
 }
 
 const COMMON_CSS = `
-body {
+:root {
+  --bg: #0B0D10;
+  --bg-surface-1: #15181E;
+  --bg-surface-2: #1E232B;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(124, 58, 237, 0.45);
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --brand-purple: #7C3AED;
+  --brand-purple-hover: #9055FF;
+  --brand-purple-glow: rgba(124, 58, 237, 0.25);
+  --accent-solar: #FF5A36;
+  --status-ready: #10B981;
+  --status-ready-bg: rgba(16, 185, 129, 0.12);
+  --status-caution: #F59E0B;
+  --status-caution-bg: rgba(245, 158, 11, 0.12);
+  --status-unstable: #FF5A36;
+  --status-unstable-bg: rgba(255, 90, 54, 0.12);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
-  background: oklch(0.12 0.01 260);
-  color: oklch(0.955 0.006 260);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 0;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
 }
-a { color: inherit; text-decoration: none; }
-a:hover { color: oklch(0.78 0.12 299); }
-* { box-sizing: border-box; }
-@keyframes fl { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-18px); } }
-@keyframes fll { 0%, 100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(14px); } }
-@keyframes flr { 0%, 100% { transform: rotate(6deg) translateY(0); } 50% { transform: rotate(8deg) translateY(-14px); } }
-@keyframes ring { 0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
-@keyframes mq { to { transform: translateX(-50%); } }
-@keyframes gx { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.585 0.214 299 / 0.5); } 50% { box-shadow: 0 0 0 14px oklch(0.585 0.214 299 / 0); } }
-@keyframes blink { 50% { opacity: 0.25; } }
-@keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
-@keyframes kb { to { transform: scale(1.12); } }
-[data-rv] { opacity: 0; transform: translateY(46px) scale(0.97); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
-[data-rv].in { opacity: 1; transform: none; }
-[data-rv]:nth-child(2) { transition-delay: 0.12s; }
-[data-rv]:nth-child(3) { transition-delay: 0.24s; }
-.hi { animation: rise 0.9s cubic-bezier(0.2, 0, 0, 1) both; }
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; }
-  [data-rv] { opacity: 1; transform: none; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  background: var(--bg);
+  overflow-x: hidden;
 }
-::-webkit-scrollbar { display: none; }
-.btn-appstore {
-  display: inline-block;
-  transition: transform 0.2s, opacity 0.2s;
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
 }
-.btn-appstore:hover {
+
+a:hover {
+  color: var(--brand-purple-hover);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Acessibilidade: Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  background: var(--brand-purple);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  z-index: 999;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 20px;
+}
+
+/* Foco visível WCAG */
+:focus-visible {
+  outline: 2px solid var(--brand-purple);
+  outline-offset: 3px;
+}
+
+/* HEADER COMPACTO & NAVEGAÇÃO RESPONSIVA */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11, 13, 16, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 124px;
+  height: auto;
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.desktop-nav a {
+  padding: 6px 0;
+  position: relative;
+}
+
+.desktop-nav a:hover,
+.desktop-nav a.active {
+  color: var(--text-primary);
+}
+
+.desktop-nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--brand-purple);
+  border-radius: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-header-cta:hover {
+  background: var(--brand-purple-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* BOTÃO MENU HAMBÚRGUER (MOBILE) */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+}
+
+.menu-bar {
+  width: 20px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* DRAWER / OVERLAY MOBILE */
+.mobile-nav-drawer {
+  display: none;
+  position: fixed;
+  top: 73px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 13, 16, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 99;
+  padding: 24px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-subtle);
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mobile-nav-drawer.open {
+  display: flex;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mobile-link {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mobile-link:hover {
+  color: #fff;
+}
+
+.mobile-nav-footer {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-mobile-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+}
+
+.mobile-nav-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-menu-btn {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-header-cta {
+    display: none;
+  }
+}
+
+/* BOTÕES GLOBAIS */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px var(--brand-purple-glow);
+}
+
+.btn-primary:hover {
+  background: var(--brand-purple-hover);
+  color: #fff;
   transform: translateY(-2px);
-  opacity: 0.95;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: #252b35;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* TIPOGRAFIA & HERO */
+.gradient-text {
+  background: linear-gradient(90deg, #A78BFA, #38BDF8, #F43F5E, #A78BFA);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A78BFA;
+  margin-bottom: 14px;
+}
+
+/* BADGES DE VEREDITO */
+.verdict-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.verdict-pill.ready {
+  background: var(--status-ready-bg);
+  color: var(--status-ready);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.verdict-pill.unstable {
+  background: var(--status-unstable-bg);
+  color: var(--status-unstable);
+  border: 1px solid rgba(255, 90, 54, 0.3);
+}
+
+.verdict-pill.caution {
+  background: var(--status-caution-bg);
+  color: var(--status-caution);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* CARDS E SURFACES */
+.card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 28px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+}
+
+/* PLATFORM CALLOUT (PC x CONSOLE x IPHONE) */
+.platform-notice {
+  margin: 24px 0;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #D1D5DB;
+}
+
+.platform-notice b {
+  color: #fff;
+}
+
+.platform-notice-mobile {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+/* ANIMAÇÃO DE REVELAÇÃO */
+[data-rv] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-rv].in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  [data-rv] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* FOOTER UNIFICADO */
+.site-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: #080A0D;
+  padding: 56px 22px 40px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer-brand {
+  max-width: 320px;
+}
+
+.footer-brand p {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.footer-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+}
+
+.footer-col h4 {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.footer-col a:hover {
+  color: var(--text-primary);
+}
+
+.footer-bottom {
+  padding-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.footer-bottom a {
+  color: var(--text-secondary);
 }
 `;
 
-const TELEMETRY_AND_CONVERSION_SCRIPT = `
+const COMMON_JS = `
 <script>
 (function() {
-  // Observador de animações de scroll
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        io.unobserve(e.target);
+  'use strict';
+
+  // 1. Menu Mobile Drawer com Gestão de Foco e Acessibilidade
+  var menuBtn = document.getElementById('mobile-menu-btn');
+  var mobileDrawer = document.getElementById('mobile-nav');
+
+  if (menuBtn && mobileDrawer) {
+    function toggleMenu(open) {
+      var isOpen = typeof open === 'boolean' ? open : !mobileDrawer.classList.contains('open');
+      menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuBtn.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
+      mobileDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      if (isOpen) {
+        mobileDrawer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        mobileDrawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    }
+
+    menuBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    // Fechar ao clicar em qualquer link
+    mobileDrawer.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        toggleMenu(false);
+      });
+    });
+
+    // Fechar com Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && mobileDrawer.classList.contains('open')) {
+        toggleMenu(false);
+        menuBtn.focus();
       }
     });
-  }, { threshold: 0.12 });
-  function scan() {
-    document.querySelectorAll('[data-rv]:not(.in)').forEach(function(el) { io.observe(el); });
-  }
-  scan();
-  setInterval(scan, 800);
 
-  // 1. Telemetria anônima de visitas para o informe diário do Discord
+    // Fechar ao clicar fora
+    document.addEventListener('click', function(e) {
+      if (mobileDrawer.classList.contains('open') && !mobileDrawer.contains(e.target) && !menuBtn.contains(e.target)) {
+        toggleMenu(false);
+      }
+    });
+  }
+
+  // 2. Animação de Scroll via IntersectionObserver (executa 1 vez, sem polling no DOM)
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('[data-rv]').forEach(function(el) {
+      observer.observe(el);
+    });
+  } else {
+    document.querySelectorAll('[data-rv]').forEach(function(el) {
+      el.classList.add('in');
+    });
+  }
+
+  // 3. Telemetria anônima de Visita (/v1/visit)
   try {
-    var visitPayload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
+    var visitPayload = JSON.stringify({
+      path: window.location.pathname,
+      ref: document.referrer || undefined
+    });
     if (navigator.sendBeacon) {
       navigator.sendBeacon('/v1/visit', visitPayload);
     } else {
@@ -111,153 +1292,269 @@ const TELEMETRY_AND_CONVERSION_SCRIPT = `
     }
   } catch(e) {}
 
-  // 2. Registro de CONVERSÃO ao clicar para baixar na App Store (dispara relatório Discord)
+  // 4. Tracking correto de CONVERSÃO (App Store Click -> /v1/click)
+  // Sem e-mails fictícios e sem corromper a waitlist de leads
   document.addEventListener('click', function(e) {
     var target = e.target.closest('a[data-track-conversion="appstore"]');
     if (!target) return;
 
     try {
-      var convPayload = JSON.stringify({
-        email: 'appstore_download@click.local',
+      var clickPayload = JSON.stringify({
+        event: 'appstore_click',
+        page: window.location.pathname,
+        gameId: document.body.getAttribute('data-game-id') || undefined,
+        source: new URLSearchParams(window.location.search).get('utm_source') || 'web_download',
         platform: 'ios',
-        source: new URLSearchParams(location.search).get('utm_source') || 'web_download',
-        utm: Object.fromEntries(new URLSearchParams(location.search).entries()),
+        utm: Object.fromEntries(new URLSearchParams(window.location.search).entries()),
         createdAt: new Date().toISOString()
       });
 
       if (navigator.sendBeacon) {
-        navigator.sendBeacon('/v1/waitlist', convPayload);
+        navigator.sendBeacon('/v1/click', clickPayload);
       } else {
-        fetch('/v1/waitlist', {
+        fetch('/v1/click', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: convPayload,
+          body: clickPayload,
           keepalive: true
         }).catch(function() {});
       }
     } catch(err) {}
   });
+
+  // 5. Busca e Filtro de Jogos em Tempo Real (/jogos/)
+  var searchInput = document.getElementById('game-search');
+  var filterButtons = document.querySelectorAll('.filter-btn');
+  var gameCards = document.querySelectorAll('.game-card');
+  var emptyState = document.getElementById('games-empty-state');
+
+  if (searchInput && gameCards.length) {
+    var activeCategory = 'all';
+
+    function filterGames() {
+      var query = searchInput.value.trim().toLowerCase();
+      var visibleCount = 0;
+
+      gameCards.forEach(function(card) {
+        var name = (card.getAttribute('data-name') || '').toLowerCase();
+        var cat = card.getAttribute('data-category') || '';
+        var matchesQuery = !query || name.includes(query);
+        var matchesCat = (activeCategory === 'all') || (cat === activeCategory);
+
+        if (matchesQuery && matchesCat) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    searchInput.addEventListener('input', filterGames);
+
+    filterButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        filterButtons.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeCategory = btn.getAttribute('data-filter') || 'all';
+        filterGames();
+      });
+    });
+  }
 })();
 </script>
 `;
 
 function buildHeader(activePage = '') {
   return `
-<header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px max(22px,calc((100% - 1200px)/2));background:oklch(0.12 0.01 260 / 0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid oklch(0.25 0.012 260)">
-  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:124px;display:block"></a>
-  <nav style="display:flex;gap:24px;font-size:13px;color:oklch(0.75 0.014 260)">
-    <a href="/jogos/" style="${activePage === 'jogos' ? 'color:oklch(0.955 0.006 260);font-weight:700;' : ''}">Jogos</a>
-    <a href="/#casos">Casos de uso</a>
-    <a href="/#concorrentes">Comparativo</a>
-    <a href="/#combo">Linka</a>
-    <a href="/#como">Como funciona</a>
-    <a href="/#veredito">Veredito</a>
-    <a href="/#faq">Dúvidas</a>
-  </nav>
-  <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="padding:9px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:oklch(0.98 0 0);font-size:13px;font-weight:700">Baixar na App Store</a>
+<a href="#conteudo-principal" class="skip-link">Pular para o conteúdo principal</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="brand-link" aria-label="Lagcheck Home">
+      <img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" class="brand-logo" width="124" height="28">
+    </a>
+
+    <nav class="desktop-nav" aria-label="Navegação principal">
+      <a href="/jogos/" class="${activePage === 'jogos' ? 'active' : ''}">Jogos</a>
+      <a href="/#como">Como funciona</a>
+      <a href="/#faq">Dúvidas</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-header-cta" aria-label="Baixar na App Store">
+        <svg width="15" height="18" viewBox="0 0 170 170" fill="currentColor" aria-hidden="true">
+          <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.85-11.93-14.42-6.52-10.11-11.75-21.43-15.68-33.95-3.93-12.52-5.9-24.18-5.9-34.98 0-14.15 3.58-25.92 10.74-35.31 7.16-9.39 16.27-14.2 27.33-14.42 4.9 0 10.3 1.34 16.22 4.01 5.92 2.68 9.77 4.07 11.55 4.18 1.56 0 5.48-1.46 11.76-4.39 6.27-2.92 11.79-4.26 16.55-4.01 12.72.63 22.74 5.28 30.06 13.97-11.08 6.74-16.51 15.99-16.3 27.75.22 9.24 3.86 17.02 10.92 23.34 7.07 6.33 15.42 9.85 25.06 10.57-2.35 7.18-5.26 14.65-8.73 22.4zM119.22 33.3c0-7.39 2.67-14.23 8.01-20.52 5.34-6.29 11.96-10.55 19.86-12.78.33 1.33.49 2.44.49 3.34 0 7.39-2.78 14.41-8.34 21.05-5.56 6.64-12.28 10.63-20.16 11.97-.22-1.12-.34-2.14-.34-3.06z"/>
+        </svg>
+        Baixar na App Store
+      </a>
+      <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav">
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav-drawer" id="mobile-nav" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Menu de navegação">
+    <div class="mobile-nav-links">
+      <a href="/" class="mobile-link">Início</a>
+      <a href="/jogos/" class="mobile-link">Catálogo de Jogos (${GAMES.length})</a>
+      <a href="/#demonstracao" class="mobile-link">Demonstração do Resultado</a>
+      <a href="/#como" class="mobile-link">Como funciona</a>
+      <a href="/#speedtest" class="mobile-link">Speedtest vs Lagcheck</a>
+      <a href="/#transparencia" class="mobile-link">O que é medido</a>
+      <a href="/#faq" class="mobile-link">Dúvidas frequentes</a>
+      <a href="/support/" class="mobile-link">Suporte Oficial</a>
+      <a href="/privacy/" class="mobile-link">Privacidade</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-mobile-download">
+        Baixar grátis na App Store →
+      </a>
+      <p class="mobile-nav-subtext">Disponível para iPhone (iOS 17+)</p>
+    </div>
+  </div>
 </header>
 `;
 }
 
 function buildFooter() {
   return `
-<footer style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;max-width:1200px;margin:auto;padding:36px 22px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);border-top:1px solid oklch(0.2 0.012 260)">
-  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:110px"></a>
-  <nav style="display:flex;gap:18px">
-    <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Baixar o Lagcheck</a>
-    <a href="${LINKA_APP_STORE_URL}" target="_blank" rel="noopener noreferrer">Baixar o Linka</a>
-    <a href="/jogos/">Jogos</a>
-    <a href="/support/">Suporte</a>
-    <a href="/privacy/">Privacidade</a>
-  </nav>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" width="118" height="26"></a>
+        <p>Diagnóstico determinístico de estabilidade e latência para jogadores competitivos no iPhone.</p>
+        <div style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);font-size:12px;color:var(--text-muted)">
+          <span>Ecossistema</span> <a href="${SIGNALLQ_URL}" target="_blank" rel="noopener noreferrer" style="color:#A78BFA;font-weight:700">SignallQ →</a>
+        </div>
+      </div>
+
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Produto</h4>
+          <ul>
+            <li><a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Lagcheck iOS (App Store)</a></li>
+            <li><a href="${LINKA_APP_STORE_URL}" target="_blank" rel="noopener noreferrer">Linka Speedtest (iOS)</a></li>
+            <li><a href="https://linka-speedtest.web.app/" target="_blank" rel="noopener noreferrer">Linka Speedtest (Web)</a></li>
+            <li><a href="${SIGNALLQ_URL}" target="_blank" rel="noopener noreferrer">SignallQ Android</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Explorar</h4>
+          <ul>
+            <li><a href="/jogos/">Catálogo de Jogos (20)</a></li>
+            <li><a href="/#como">Como funciona</a></li>
+            <li><a href="/#demonstracao">Demonstração</a></li>
+            <li><a href="/#faq">Dúvidas sobre lag</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Institucional</h4>
+          <ul>
+            <li><a href="/support/">Suporte e Contato</a></li>
+            <li><a href="/privacy/">Política de Privacidade</a></li>
+            <li><a href="mailto:suporte@signallq.com">suporte@signallq.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Lagcheck. Todos os direitos reservados. Lagcheck é parte do ecossistema <a href="${SIGNALLQ_URL}" target="_blank" rel="noopener noreferrer">SignallQ</a>.</p>
+      <p>Marcas e nomes de jogos pertencem a suas respectivas publicadoras e foram citados para identificação de rota.</p>
+    </div>
+  </div>
 </footer>
 `;
 }
 
-// 1. GERAR A HOME (web/index.html)
+// 1. GERAR A HOMEPAGE (web/index.html)
 function generateHome() {
-  const compRows = [
-    { a: 'App', b: 'Foco principal', c: 'Resposta que entrega', d: 'Modelo', bg: 'oklch(0.2 0.02 260)', fg: 'oklch(0.675 0.014 260)', fg2: 'oklch(0.675 0.014 260)' },
-    { a: 'Lagcheck', b: 'Qualidade da rota para jogar', c: 'Veredito: pronto para ranked ou não', d: 'Grátis no iPhone', bg: 'oklch(0.2 0.06 299)', fg: 'oklch(0.9 0.1 299)', fg2: 'oklch(0.8 0.012 260)', hl: true },
-    { a: 'Speedtest (Ookla)', b: 'Velocidade de banda', c: 'Download, upload e ping pontual', d: 'Teste de velocidade', bg: 'oklch(0.12 0.01 260)', fg: 'oklch(0.955 0.006 260)', fg2: 'oklch(0.8 0.012 260)' },
-    { a: 'Fast.com', b: 'Velocidade de download', c: 'Quanto de banda você tem agora', d: 'Teste de velocidade', bg: 'oklch(0.12 0.01 260)', fg: 'oklch(0.955 0.006 260)', fg2: 'oklch(0.8 0.012 260)' },
-    { a: 'ExitLag', b: 'Otimização de rota', c: 'Tenta melhorar o caminho até o servidor', d: 'Assinatura paga', bg: 'oklch(0.12 0.01 260)', fg: 'oklch(0.955 0.006 260)', fg2: 'oklch(0.8 0.012 260)' },
-    { a: 'NoPing', b: 'Otimização de rota', c: 'Tenta reduzir ping e instabilidade', d: 'Assinatura paga', bg: 'oklch(0.12 0.01 260)', fg: 'oklch(0.955 0.006 260)', fg2: 'oklch(0.8 0.012 260)' }
-  ];
+  const featuredGames = GAMES.slice(0, 8);
 
-  const marqueeGames = [...GAMES.slice(0, 12), ...GAMES.slice(0, 12)];
-
-  const marqueeHtml = marqueeGames.map(g => `
-    <a href="/jogos/${g.slug}/" style="flex:0 0 auto;width:196px;display:block">
-      <div style="width:196px;height:196px;border-radius:22px;overflow:hidden;transition:transform .3s;background:oklch(0.2 0.012 260);box-shadow:0 14px 30px #0006">
-        <img src="/assets/games/${g.file}.jpg" alt="${g.name}" style="width:100%;height:100%;object-fit:cover;display:block">
+  const featuredGamesHtml = featuredGames.map(g => `
+    <a href="/jogos/${g.slug}/" class="card" style="display:flex;flex-direction:column;padding:16px;border-radius:20px;text-decoration:none">
+      <div style="aspect-ratio:1;border-radius:14px;overflow:hidden;background:#15181E;margin-bottom:14px">
+        <picture>
+          <source srcset="/assets/games/${g.file}-thumb.webp" type="image/webp">
+          <img src="/assets/games/${g.file}.jpg" alt="${g.name}" loading="lazy" decoding="async" width="480" height="480" style="width:100%;height:100%;object-fit:cover">
+        </picture>
       </div>
-      <div style="margin-top:12px;font-weight:700;font-size:15px;letter-spacing:-.01em">${g.name}</div>
-      <div style="margin-top:3px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">Pronto para check</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <h3 style="font-size:17px;font-weight:700;color:#fff">${g.name}</h3>
+        <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${g.platforms}</p>
+      <span style="font-size:12px;font-weight:700;color:#A78BFA;margin-top:auto">Ver guia e rota →</span>
     </a>
   `).join('');
 
   const steps = [
-    { n: '01', t: 'Escolha o jogo', d: 'Comece pelo jogo que você vai abrir agora.', bg: 'linear-gradient(160deg,oklch(0.28 0.12 299),oklch(0.18 0.04 280))' },
-    { n: '02', t: 'Faça o check', d: 'Em cerca de 25–35 segundos, observamos a rota em repouso e sob carga.', bg: 'linear-gradient(160deg,oklch(0.24 0.09 270),oklch(0.17 0.03 260))' },
-    { n: '03', t: 'Receba o veredito', d: 'Pronto para Ranked, condições instáveis ou um sinal honesto para evitar ranked.', bg: 'linear-gradient(160deg,oklch(0.3 0.1 330),oklch(0.18 0.04 290))' }
+    {
+      n: '01',
+      t: 'Escolha o jogo',
+      d: 'Selecione o título que você vai abrir ou a rota regional de referência.',
+      bg: 'linear-gradient(145deg, rgba(124,58,237,0.18), rgba(21,24,30,0.85))'
+    },
+    {
+      n: '02',
+      t: 'O app envia pacotes UDP reais',
+      d: 'Aferição determinística da rota em repouso e sob carga concorrente de bufferbloat.',
+      bg: 'linear-gradient(145deg, rgba(56,189,248,0.15), rgba(21,24,30,0.85))'
+    },
+    {
+      n: '03',
+      t: 'Receba o veredito direto',
+      d: 'Pronto para Ranked, Condições instáveis ou sinal honesto para evitar a fila competitiva.',
+      bg: 'linear-gradient(145deg, rgba(244,63,94,0.15), rgba(21,24,30,0.85))'
+    }
   ];
 
   const stepsHtml = steps.map(s => `
-    <article data-rv="1" style="min-height:340px;padding:30px;border-radius:30px;background:${s.bg};display:flex;flex-direction:column;justify-content:space-between;overflow:hidden">
-      <span style="font:12px ui-monospace,monospace;letter-spacing:.1em;color:oklch(0.85 0.08 299)">${s.n}</span>
+    <article data-rv="1" class="card" style="background:${s.bg};display:flex;flex-direction:column;justify-content:space-between;min-height:240px">
+      <span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#A78BFA;letter-spacing:0.1em">${s.n}</span>
       <div>
-        <h3 style="margin:0;font:850 34px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">${s.t}</h3>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.45;color:oklch(0.85 0.01 260)">${s.d}</p>
+        <h3 style="font-size:22px;font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:8px">${s.t}</h3>
+        <p style="font-size:15px;line-height:1.5;color:var(--text-secondary)">${s.d}</p>
       </div>
     </article>
   `).join('');
 
-  const uses = [
-    { n: '01', t: 'Ranked' },
-    { n: '02', t: 'Casual' },
-    { n: '03', t: 'Party / Discord' },
-    { n: '04', t: 'Streaming + jogo' }
+  const faqList = [
+    {
+      q: 'Por que estou com lag no jogo se minha internet é de 500 Mega?',
+      a: 'Velocidade de download (largura de banda) mede o volume de dados por segundo, bom para baixar arquivos. Já os jogos online transmitem pacotes UDP minúsculos em tempo real: o que importa é a consistência da rota, a oscilação de milissegundos (jitter) e a ausência de descarte de pacotes sob carga (bufferbloat).'
+    },
+    {
+      q: 'O que o veredito do Lagcheck significa na prática?',
+      a: 'Em vez de exigir que você interprete dezenas de números complexos, o app resume tudo em uma conclusão direta: ● PRONTO PARA RANKED (rota sólida), ▲ CONDIÇÕES INSTÁVEIS (oscilações perceptíveis) ou ▲ EU EVITARIA RANKED AGORA (perda severa de pacotes ou saturação de rede).'
+    },
+    {
+      q: 'O Lagcheck promete zero lag ou diminui meu ping?',
+      a: 'Não. O Lagcheck não é um otimizador de rotas nem faz promessas milagrosas. O app é um instrumento confiável de medição e diagnóstico preventivo: ele mede sua conexão real antes de você entrar na fila para evitar perda de pontos.'
+    },
+    {
+      q: 'Posso usar no iPhone mesmo jogando no PC ou console?',
+      a: 'Sim! Ao conectar o iPhone na mesma rede Wi-Fi da sua residência, o Lagcheck diagnostica a saúde geral da sua rede local e a rota de saída da sua operadora para São Paulo. Se o teste acusar instabilidade, seu PC ou console também será afetado.'
+    },
+    {
+      q: 'O app é gratuito? Precisa de cadastro?',
+      a: 'O Lagcheck é 100% gratuito na App Store para iPhone (iOS 17+). Não exige cadastro, login, e-mail nem exibe anúncios.'
+    }
   ];
 
-  const usesHtml = uses.map(u => `
-    <article data-rv="1" style="min-height:190px;padding:26px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;justify-content:space-between">
-      <span style="font:12px ui-monospace,monospace;color:oklch(0.78 0.12 299)">${u.n}</span>
-      <h3 style="margin:0;font:850 28px/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">${u.t}</h3>
-    </article>
-  `).join('');
-
-  const compTableHtml = compRows.map(r => `
-    <div style="padding:18px 20px;background:${r.bg};font:850 17px ui-rounded,system-ui,sans-serif;letter-spacing:-.03em;color:${r.fg}">${r.a}</div>
-    <div style="padding:18px 20px;background:${r.bg};font-size:14px;line-height:1.4;color:${r.fg2}">${r.b}</div>
-    <div style="padding:18px 20px;background:${r.bg};font-size:14px;line-height:1.4;color:${r.fg2}">${r.c}</div>
-    <div style="padding:18px 20px;background:${r.bg};font-size:14px;line-height:1.4;color:${r.fg2}">${r.d}</div>
-  `).join('');
-
-  const awsFacts = [
-    { k: 'Protocolo', v: 'UDP real' },
-    { k: 'Destino', v: 'AWS GameLift · sa-east-1' },
-    { k: 'Regiões', v: '21 no mundo' },
-    { k: 'Fase 2', v: 'Medição sob carga' }
-  ];
-
-  const awsFactsHtml = awsFacts.map(f => `
-    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 16px;border-radius:14px;background:oklch(0.12 0.01 260 / 0.7);border:1px solid oklch(0.3 0.014 260)">
-      <span style="color:oklch(0.675 0.014 260)">${f.k}</span>
-      <b style="font-weight:600;text-align:right">${f.v}</b>
-    </div>
-  `).join('');
-
-  const faq = [
-    { q: 'Por que estou com lag no jogo?', a: 'Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga. É isso que um check focado em jogo separa.' },
-    { q: 'Como saber se posso jogar ranked?', a: 'Faça um check antes da fila. O veredito não promete zero lag: indica quando os sinais observados pedem cautela.' },
-    { q: 'Speedtest mostra lag de verdade?', a: 'Ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão.' }
-  ];
-
-  const faqHtml = faq.map(f => `
-    <article data-rv="1" style="padding:28px;border-radius:24px;background:oklch(0.2 0.012 260)">
-      <h3 style="margin:0;font:800 20px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">${f.q}</h3>
-      <p style="margin:12px 0 0;color:oklch(0.72 0.014 260);font-size:15px;line-height:1.5">${f.a}</p>
+  const faqHtml = faqList.map(f => `
+    <article data-rv="1" class="card" style="padding:24px">
+      <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:10px">${f.q}</h3>
+      <p style="font-size:15px;line-height:1.6;color:var(--text-secondary)">${f.a}</p>
     </article>
   `).join('');
 
@@ -301,21 +1598,11 @@ function generateHome() {
       {
         "@type": "FAQPage",
         "mainEntity": [
-          {
+${faqList.map(f => `          {
             "@type": "Question",
-            "name": "Por que estou com lag no jogo?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Velocidade pode estar boa e a rota ainda oscilar, perder pacotes ou piorar sob carga." }
-          },
-          {
-            "@type": "Question",
-            "name": "Como saber se posso jogar ranked?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Faça um check antes da fila. O veredito indica quando os sinais observados pedem cautela." }
-          },
-          {
-            "@type": "Question",
-            "name": "Speedtest mostra lag de verdade?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Ele ajuda a entender a conexão, mas não substitui medir estabilidade, jitter, perda e comportamento sob pressão." }
-          }
+            "name": ${JSON.stringify(f.q)},
+            "acceptedAnswer": { "@type": "Answer", "text": ${JSON.stringify(f.a)} }
+          }`).join(',\n')}
         ]
       }
     ]
@@ -324,194 +1611,277 @@ function generateHome() {
   <style>${COMMON_CSS}</style>
 </head>
 <body>
-<div style="min-width:320px;overflow:hidden">
   ${buildHeader()}
 
-  <!-- HERO SECTION -->
-  <section id="inicio" style="position:relative;padding:92px 22px 0;text-align:center;background:radial-gradient(ellipse 60% 50% at 50% 38%,oklch(0.3 0.13 299 / 0.45),transparent 70%)">
-    <p class="hi" style="margin:0 0 18px;font:11px ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Disponível na App Store para iPhone</p>
-    <h1 class="hi" style="animation-delay:.12s;margin:0 auto;max-width:900px;font:900 clamp(48px,8.6vw,112px)/.92 ui-rounded,'Arial Rounded MT Bold',system-ui,sans-serif;letter-spacing:-.06em;text-wrap:balance">
-      Sua conexão está pronta para o <span style="background:linear-gradient(90deg,oklch(0.7 0.2 299),oklch(0.75 0.17 200),oklch(0.7 0.2 330),oklch(0.7 0.2 299));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx 4s linear infinite">ranked</span>?
-    </h1>
-    <p class="hi" style="animation-delay:.24s;margin:26px auto 0;max-width:560px;font-size:20px;line-height:1.4;color:oklch(0.75 0.014 260);letter-spacing:-.01em">
-      O Lagcheck mede latência, jitter e perda de pacotes e diz se vale entrar na partida agora.
-    </p>
-    <div class="hi" style="animation-delay:.36s;gap:14px;align-items:center;flex-wrap:wrap;display:flex;justify-content:center;margin-top:34px">
-      <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore" style="display:inline-flex;gap:14px;align-items:center;text-decoration:none">
-        <span style="display:inline-flex;gap:9px;align-items:center;padding:10px 16px;border-radius:999px;border:1px solid oklch(0.3 0.014 260);font:11px ui-monospace,monospace;color:oklch(0.75 0.014 260)">
-          <i style="width:8px;height:8px;border-radius:50%;background:oklch(0.76 0.15 150);animation:blink 1.2s infinite;display:inline-block"></i>check em 25–35 s
-        </span>
-        <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
-      </a>
-    </div>
-
-    <!-- MOCKUPS FLUTUANTES COM RADAR RINGS -->
-    <div style="position:relative;height:clamp(420px,52vw,620px);margin:64px auto 0;max-width:900px;overflow:hidden">
-      <div style="position:absolute;left:50%;top:260px;width:520px;height:520px;border-radius:50%;border:2px solid oklch(0.585 0.214 299);animation:ring 3.6s ease-out infinite"></div>
-      <div style="position:absolute;left:50%;top:260px;width:520px;height:520px;border-radius:50%;border:2px solid oklch(0.585 0.214 299);animation:ring 3.6s ease-out 1.8s infinite"></div>
-      <img src="/assets/app-games.webp" alt="Tela de jogos do Lagcheck" style="position:absolute;left:4%;top:60px;width:min(36%,300px);border-radius:34px;border:1px solid oklch(0.37 0.012 260);animation:fll 6s ease-in-out infinite;opacity:.7;box-shadow:0 38px 90px #0008">
-      <img src="/assets/app-home.webp" alt="Tela inicial do Lagcheck" style="position:absolute;left:50%;top:0;width:min(42%,340px);animation:fl 5s ease-in-out infinite;border-radius:38px;border:1px solid oklch(0.4 0.012 260);box-shadow:0 38px 90px #000a;z-index:2">
-      <img src="/assets/app-result.webp" alt="Tela de resultado de medição" style="position:absolute;right:4%;top:60px;width:min(36%,300px);border-radius:34px;border:1px solid oklch(0.37 0.012 260);animation:flr 7s ease-in-out infinite;opacity:.9;box-shadow:0 38px 90px #0008">
-    </div>
-  </section>
-
-  <!-- MARQUEE INFINITO DE JOGOS -->
-  <section id="jogos" style="padding:90px 0 20px;background:oklch(0.12 0.01 260)">
-    <div style="max-width:1200px;margin:auto;padding:0 22px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap">
-        <h2 style="margin:0;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Escolha o jogo. Faça o check.</h2>
-        <a href="/jogos/" style="font:11px ui-monospace,monospace;color:oklch(0.78 0.12 299);text-decoration:none">Ver todos os 20 jogos →</a>
-      </div>
-    </div>
-    <div style="overflow:hidden;padding:34px 0 20px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)">
-      <div style="display:flex;gap:16px;width:max-content;animation:mq 50s linear infinite" onmouseover="this.style.animationPlayState='paused'" onmouseout="this.style.animationPlayState='running'">
-        ${marqueeHtml}
-      </div>
-    </div>
-  </section>
-
-  <!-- COMO FUNCIONA -->
-  <section id="como" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <h2 style="margin:0 0 34px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:700px">Um check que respeita o que acontece na partida.</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-      ${stepsHtml}
-    </div>
-  </section>
-
-  <!-- CASOS DE USO -->
-  <section id="casos" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">O mesmo check, decisões diferentes</p>
-    <h2 style="margin:0 0 34px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:700px">O ranked vem primeiro. O resto ganha contexto.</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
-      ${usesHtml}
-    </div>
-  </section>
-
-  <!-- VEREDITO -->
-  <section id="veredito" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
-      <article data-rv="1" style="padding:44px;border-radius:30px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;gap:22px">
-        <span style="align-self:flex-start;padding:7px 12px;border-radius:999px;background:oklch(0.76 0.15 150 / 0.14);font:11px ui-monospace,monospace;color:oklch(0.76 0.15 150)">● veredito</span>
-        <h3 style="margin:0;font:900 clamp(36px,5vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Pronto para Ranked</h3>
-        <p style="margin:0;max-width:420px;font-size:17px;line-height:1.45;color:oklch(0.75 0.014 260)">O veredito vem primeiro. Os detalhes aparecem quando você precisa entender ou agir: latência, jitter, perda e rota.</p>
-      </article>
-      <article data-rv="1" style="padding:44px;border-radius:30px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);display:flex;flex-direction:column;gap:22px">
-        <span style="align-self:flex-start;padding:7px 12px;border-radius:999px;background:oklch(0.684 0.196 35 / 0.14);font:11px ui-monospace,monospace;color:oklch(0.75 0.17 35)">● honesto</span>
-        <h3 style="margin:0;font:900 clamp(36px,5vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Condições instáveis</h3>
-        <p style="margin:0;max-width:420px;font-size:17px;line-height:1.45;color:oklch(0.75 0.014 260)">Sem prometer zero lag. Quando os sinais pedem cautela, o app diz — e nunca preenche métricas que não mediu.</p>
-      </article>
-    </div>
-    <p style="margin:34px 0 16px;max-width:680px;font-size:17px;line-height:1.5;color:oklch(0.72 0.014 260)">
-      Se você quer testar ping no Fortnite, Free Fire ou COD Mobile, velocidade sozinha não mostra a história completa. O Lagcheck observa latência, jitter e perda de pacotes para responder se sua conexão está boa para ranked naquele momento.
-    </p>
-    <div data-rv="1" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:oklch(0.3 0.014 260);border:1px solid oklch(0.3 0.014 260);border-radius:30px;overflow:hidden">
-      <div style="padding:34px;background:oklch(0.12 0.01 260)">
-        <h4 style="margin:0;font:800 26px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Speedtest</h4>
-        <p style="margin:12px 0 18px;color:oklch(0.675 0.014 260);line-height:1.45">Mede a velocidade da conexão em um momento.</p>
-        <div style="font:12px ui-monospace,monospace;line-height:2;color:oklch(0.8 0.01 260)">— Download<br>— Upload<br>— Ping pontual</div>
-      </div>
-      <div style="padding:34px;background:oklch(0.16 0.03 299)">
-        <h4 style="margin:0;font:800 26px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Lagcheck</h4>
-        <p style="margin:12px 0 18px;color:oklch(0.8 0.02 299);line-height:1.45">Mede o que importa para jogar naquela rota.</p>
-        <div style="font:12px ui-monospace,monospace;line-height:2">— Latência<br>— Jitter<br>— Perda de pacotes<br>— Comportamento sob carga</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- COMPARATIVO COM CONCORRENTES -->
-  <section id="concorrentes" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Quadro comparativo</p>
-    <h2 style="margin:0 0 14px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em;max-width:760px">Cada app responde uma pergunta diferente.</h2>
-    <p style="margin:0 0 30px;max-width:620px;font-size:16px;line-height:1.5;color:oklch(0.72 0.014 260)">
-      Testes de velocidade medem banda. Otimizadores de rota vendem uma solução. O Lagcheck responde antes da fila: dá para jogar agora?
-    </p>
-    <div data-rv="1" style="overflow-x:auto;border-radius:26px;border:1px solid oklch(0.3 0.014 260)">
-      <div style="min-width:760px;display:grid;grid-template-columns:1.1fr 1.3fr 1.5fr 1fr;gap:1px;background:oklch(0.3 0.014 260)">
-        ${compTableHtml}
-      </div>
-    </div>
-    <p style="margin:14px 0 0;font:11px ui-monospace,monospace;color:oklch(0.6 0.014 260)">
-      Marcas citadas pertencem a seus respectivos donos. Comparação por foco de produto, não por desempenho.
-    </p>
-  </section>
-
-  <!-- INFRAESTRUTURA AWS -->
-  <section id="aws" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <div data-rv="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px;align-items:center;padding:clamp(28px,5vw,56px);border-radius:32px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260))">
-      <div>
-        <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Onde o ping é medido</p>
-        <h2 style="margin:0;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Latência real até a infraestrutura AWS em São Paulo.</h2>
-        <p style="margin:18px 0 0;font-size:16px;line-height:1.5;color:oklch(0.8 0.014 260)">
-          Muitos jogos online rodam seus servidores na AWS. O Lagcheck envia pacotes UDP para os beacons de ping do AWS GameLift em 21 regiões e mede a rota real entre o seu iPhone e o datacenter regional, sem depender de ICMP.
+  <main id="conteudo-principal">
+    <!-- 1. HERO COM VALOR CLARO E PROVAS DO APP -->
+    <section id="inicio" style="position:relative;padding:80px 22px 40px;text-align:center;background:radial-gradient(ellipse 70% 50% at 50% 35%, rgba(124,58,237,0.25), transparent 75%)">
+      <div style="max-width:920px;margin:0 auto">
+        <span class="eyebrow hi">Disponível na App Store para iPhone</span>
+        <h1 class="hi" style="font-size:clamp(38px,7vw,84px);font-weight:900;line-height:1.02;letter-spacing:-0.05em;margin-bottom:24px;text-wrap:balance">
+          Sua conexão está pronta para o <span class="gradient-text">ranked</span>?
+        </h1>
+        <p class="hi" style="font-size:clamp(17px,2.2vw,21px);line-height:1.5;color:var(--text-secondary);max-width:640px;margin:0 auto 36px">
+          Descubra se sua conexão está estável para jogar online. O Lagcheck analisa indicadores como latência, jitter e perda de pacotes e explica o que os resultados significam.
         </p>
-        <p style="margin:14px 0 0;font-size:14px;line-height:1.5;color:oklch(0.7 0.014 260)">
-          Transparência: é uma rota de referência regional, não o servidor da sua próxima partida.
-        </p>
-      </div>
-      <div style="display:grid;gap:10px;font:12px ui-monospace,monospace">
-        ${awsFactsHtml}
-      </div>
-    </div>
-  </section>
 
-  <!-- FAQ -->
-  <section id="faq" style="max-width:1200px;margin:auto;padding:90px 22px 0">
-    <h2 style="margin:0 0 30px;font:850 clamp(30px,4vw,48px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Dúvidas sobre lag</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-      ${faqHtml}
-    </div>
-  </section>
-
-  <!-- COMBO LINKA + LAGCHECK -->
-  <section id="combo" style="max-width:1200px;margin:90px auto 0;padding:0 22px">
-    <div data-rv="1" style="padding:clamp(28px,5vw,60px);border-radius:34px;background:radial-gradient(ellipse 60% 90% at 50% 0%,oklch(0.3 0.12 299 / 0.5),transparent 70%),oklch(0.17 0.015 260);border:1px solid oklch(0.3 0.014 260);text-align:center">
-      <p style="margin:0 0 13px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">A dobradinha</p>
-      <h2 style="margin:0 auto;max-width:760px;font:900 clamp(34px,5vw,60px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">
-        Velocidade e estabilidade. O combo completo antes da fila.
-      </h2>
-      <div style="display:flex;align-items:stretch;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:40px">
-        <div style="flex:1 1 280px;max-width:380px;padding:30px;border-radius:26px;background:oklch(0.12 0.01 260);border:1px solid oklch(0.3 0.014 260);text-align:left">
-          <img src="/assets/linka-icon.png" alt="Linka: Wi-Fi e Internet" style="width:56px;height:56px;border-radius:16px;object-fit:cover;display:block">
-          <h3 style="margin:18px 0 0;font:850 30px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Linka</h3>
-          <p style="margin:10px 0 0;font-size:15px;line-height:1.45;color:oklch(0.75 0.014 260)">Teste de velocidade da sua internet. Saiba quanta banda você tem.</p>
-          <a href="${LINKA_APP_STORE_URL}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:20px;padding:12px 20px;border-radius:13px;background:oklch(0.2 0.03 260);border:1px solid oklch(0.4 0.014 260);color:#fff;font-weight:800;font-size:14px">Baixar o Linka na App Store →</a>
-          <div style="margin-top:12px"><a href="https://linka-speedtest.web.app/" target="_blank" rel="noopener noreferrer" style="font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);text-decoration:underline">Ou testar velocidade na web</a></div>
+        <!-- CTAS PRINCIPAIS -->
+        <div class="hi" style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:14px;margin-bottom:28px">
+          <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" aria-label="Baixar na App Store">
+            <svg width="20" height="24" viewBox="0 0 170 170" fill="currentColor" aria-hidden="true">
+              <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.85-11.93-14.42-6.52-10.11-11.75-21.43-15.68-33.95-3.93-12.52-5.9-24.18-5.9-34.98 0-14.15 3.58-25.92 10.74-35.31 7.16-9.39 16.27-14.2 27.33-14.42 4.9 0 10.3 1.34 16.22 4.01 5.92 2.68 9.77 4.07 11.55 4.18 1.56 0 5.48-1.46 11.76-4.39 6.27-2.92 11.79-4.26 16.55-4.01 12.72.63 22.74 5.28 30.06 13.97-11.08 6.74-16.51 15.99-16.3 27.75.22 9.24 3.86 17.02 10.92 23.34 7.07 6.33 15.42 9.85 25.06 10.57-2.35 7.18-5.26 14.65-8.73 22.4zM119.22 33.3c0-7.39 2.67-14.23 8.01-20.52 5.34-6.29 11.96-10.55 19.86-12.78.33 1.33.49 2.44.49 3.34 0 7.39-2.78 14.41-8.34 21.05-5.56 6.64-12.28 10.63-20.16 11.97-.22-1.12-.34-2.14-.34-3.06z"/>
+            </svg>
+            Baixar grátis na App Store
+          </a>
+          <a href="#demonstracao" class="btn-secondary">
+            Ver demonstração do app ↓
+          </a>
         </div>
-        <div style="align-self:center;font:900 44px ui-rounded,system-ui,sans-serif;color:oklch(0.585 0.214 299);animation:blink 1.6s infinite">+</div>
-        <div style="flex:1 1 280px;max-width:380px;padding:30px;border-radius:26px;background:oklch(0.2 0.06 299);border:1px solid oklch(0.585 0.214 299 / 0.6);text-align:left">
-          <img src="/assets/app-home.webp" alt="Lagcheck App" style="width:56px;height:56px;border-radius:16px;object-fit:cover;object-position:top">
-          <h3 style="margin:18px 0 0;font:850 30px ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">Lagcheck</h3>
-          <p style="margin:10px 0 0;font-size:15px;line-height:1.45;color:oklch(0.85 0.02 299)">Veredito de lag para jogar. Saiba se a conexão aguenta o ranked agora.</p>
-          <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="display:inline-block;margin-top:20px;padding:12px 20px;border-radius:13px;background:oklch(0.585 0.214 299);color:#fff;font-weight:800;font-size:14px">Baixar na App Store</a>
+
+        <!-- MICRO-PONTOS DE CONFIANÇA -->
+        <div class="hi" style="display:flex;flex-wrap:wrap;justify-content:center;gap:18px;font-size:13px;font-family:var(--font-mono);color:var(--text-muted)">
+          <span>✓ Para iPhone (iOS 17+)</span>
+          <span>✓ 100% gratuito</span>
+          <span>✓ Sem cadastro nem login</span>
+          <span>✓ Diagnóstico em segundos</span>
         </div>
       </div>
-      <p style="margin:30px auto 0;max-width:540px;font-size:15px;line-height:1.5;color:oklch(0.72 0.014 260)">
-        Primeiro a banda, depois a rota. Um número alto de download não garante partida estável, e uma rota boa não resolve internet lenta.
-      </p>
-    </div>
-  </section>
 
-  <!-- ACESSO / DOWNLOAD APP STORE -->
-  <section id="acesso" style="margin-top:100px;padding:110px 22px;text-align:center;background:radial-gradient(ellipse 70% 80% at 50% 100%,oklch(0.3 0.13 299 / 0.5),transparent 70%),oklch(0.15 0.012 260)">
-    <div data-rv="1" style="max-width:640px;margin:auto">
-      <img src="/assets/app-home.webp" alt="App Lagcheck" style="width:120px;border-radius:26px;margin-bottom:28px;animation:glow 2.4s infinite;border:1px solid oklch(0.4 0.012 260)">
-      <h2 style="margin:0;font:900 clamp(38px,6vw,64px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em">Faça o check antes da próxima fila.</h2>
-      <p style="margin:18px 0 32px;color:oklch(0.75 0.014 260);font-size:17px;line-height:1.45">
-        Disponível agora na App Store para iPhone. Gratuito e sem anúncios.
-      </p>
-      
-      <!-- BOTÃO APP STORE -->
-      <div style="display:flex;justify-content:center">
-        <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore" style="display:inline-block">
-          <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
+      <!-- CAPTURAS REAIS DO APP COM HIERARQUIA VISUAL -->
+      <div style="position:relative;max-width:960px;margin:56px auto 0;display:flex;justify-content:center;align-items:flex-end;gap:clamp(10px,2vw,24px)">
+        <div style="width:28%;max-width:240px;opacity:0.75;transform:translateY(24px) scale(0.95);transition:opacity 0.2s">
+          <img src="/assets/app-games.webp" alt="Seleção de Jogos no Lagcheck" width="600" height="1300" loading="eager" style="border-radius:28px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 20px 50px rgba(0,0,0,0.6)">
+        </div>
+        <div style="width:40%;max-width:340px;z-index:2">
+          <img src="/assets/app-home.webp" alt="Tela Principal do Lagcheck no iPhone" width="600" height="1300" loading="eager" fetchpriority="high" style="border-radius:34px;border:1px solid rgba(124,58,237,0.5);box-shadow:0 24px 70px rgba(0,0,0,0.8), 0 0 35px rgba(124,58,237,0.25)">
+        </div>
+        <div style="width:28%;max-width:240px;opacity:0.85;transform:translateY(24px) scale(0.95)">
+          <img src="/assets/app-result.webp" alt="Veredito e Análise no Lagcheck" width="600" height="1300" loading="eager" style="border-radius:28px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 20px 50px rgba(0,0,0,0.6)">
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. DEMONSTRAÇÃO DO RESULTADO REAL (HIERARQUIA EM 5 NÍVEIS) -->
+    <section id="demonstracao" style="max-width:1100px;margin:80px auto 0;padding:0 22px">
+      <div style="text-align:center;max-width:680px;margin:0 auto 48px">
+        <span class="eyebrow">Experiência Real</span>
+        <h2 style="font-size:clamp(30px,4.5vw,48px);font-weight:800;letter-spacing:-0.04em;margin-bottom:14px">
+          Não é apenas um número de ping. É um veredito compreensível.
+        </h2>
+        <p style="font-size:17px;color:var(--text-secondary);line-height:1.5">
+          O Lagcheck organiza o resultado em uma conclusão direta para que você saiba instantaneamente se vale a pena puxar a fila agora.
+        </p>
+      </div>
+
+      <div data-rv="1" class="card" style="padding:clamp(24px,4vw,48px);background:linear-gradient(145deg, #15181E, #11141A);border-color:rgba(124,58,237,0.3)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:36px;align-items:center">
+          <div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+              <span class="verdict-pill ready">● PRONTO PARA RANKED</span>
+              <span style="font-size:12px;font-family:var(--font-mono);color:var(--text-muted)">São Paulo · AWS sa-east-1</span>
+            </div>
+            <h3 style="font-size:26px;font-weight:800;color:#fff;margin-bottom:12px;letter-spacing:-0.03em">
+              Sua rota está estável e sem perdas de pacotes.
+            </h3>
+            <p style="font-size:16px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px">
+              A latência de ida e volta e a variação entre pacotes (jitter) estão dentro dos parâmetros ideais para partidas de alta competitividade.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px">
+              <div style="padding:14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+                <span style="display:block;font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">LATÊNCIA MÉDIA</span>
+                <b style="font-size:22px;color:#fff">18 ms</b>
+              </div>
+              <div style="padding:14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+                <span style="display:block;font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">JITTER (OSCILAÇÃO)</span>
+                <b style="font-size:22px;color:var(--status-ready)">1.8 ms</b>
+              </div>
+              <div style="padding:14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+                <span style="display:block;font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">PERDA DE PACOTES</span>
+                <b style="font-size:22px;color:var(--status-ready)">0.0%</b>
+              </div>
+              <div style="padding:14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+                <span style="display:block;font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">SOB CARGA</span>
+                <b style="font-size:22px;color:#fff">+3 ms</b>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" style="padding:12px 24px;font-size:15px">
+                Fazer meu primeiro check →
+              </a>
+              <span style="font-size:13px;color:var(--text-muted)">Grátis para iPhone</span>
+            </div>
+          </div>
+
+          <!-- EXEMPLO COMPARATIVO DE ALERTA -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="padding:22px;border-radius:18px;background:rgba(255,90,54,0.06);border:1px solid rgba(255,90,54,0.25)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span class="verdict-pill unstable" style="font-size:11px;padding:4px 10px">▲ CONDIÇÕES INSTÁVEIS</span>
+              </div>
+              <p style="font-size:14px;color:#F3F4F6;line-height:1.5;margin-bottom:8px">
+                <b>Alerta de Bufferbloat:</b> O ping saltou de 20 ms para 114 ms sob carga. Alguém na rede pode estar assistindo vídeo ou fazendo downloads pesados.
+              </p>
+              <span style="font-size:12px;font-family:var(--font-mono);color:var(--accent-solar)">Orientação: Evite ranked agora ou use cabo/Wi-Fi 5 GHz exclusivo.</span>
+            </div>
+
+            <div style="padding:22px;border-radius:18px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span class="verdict-pill caution" style="font-size:11px;padding:4px 10px">▲ EU EVITARIA RANKED AGORA</span>
+              </div>
+              <p style="font-size:14px;color:#F3F4F6;line-height:1.5;margin-bottom:8px">
+                <b>Perda de pacotes detectada (3.8%):</b> Disparos e comandos falharão na sincronização.
+              </p>
+              <span style="font-size:12px;font-family:var(--font-mono);color:var(--status-caution)">Orientação: Reinicie o modem ou espere a rota da operadora estabilizar.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. COMO O LAGCHECK FUNCIONA -->
+    <section id="como" style="max-width:1100px;margin:90px auto 0;padding:0 22px">
+      <div style="max-width:680px;margin-bottom:40px">
+        <span class="eyebrow">Diagnóstico Limpo</span>
+        <h2 style="font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.04em">
+          Um check projetado para a realidade do jogo.
+        </h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+        ${stepsHtml}
+      </div>
+    </section>
+
+    <!-- 4. JOGOS POPULARES -->
+    <section id="jogos" style="max-width:1100px;margin:90px auto 0;padding:0 22px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:36px">
+        <div>
+          <span class="eyebrow">Catálogo</span>
+          <h2 style="font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.04em">
+            Jogos populares suportados
+          </h2>
+        </div>
+        <a href="/jogos/" style="font-size:14px;font-weight:700;color:#A78BFA">Ver todos os ${GAMES.length} jogos →</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px">
+        ${featuredGamesHtml}
+      </div>
+
+      <div style="text-align:center;margin-top:36px">
+        <a href="/jogos/" class="btn-secondary" style="padding:12px 24px">
+          Explorar hub completo com busca e filtros (${GAMES.length} jogos) →
         </a>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- 5. POR QUE O SPEEDTEST TRADICIONAL NÃO RESPONDE TUDO -->
+    <section id="speedtest" style="max-width:1100px;margin:90px auto 0;padding:0 22px">
+      <div style="max-width:680px;margin-bottom:36px">
+        <span class="eyebrow">Velocidade x Estabilidade</span>
+        <h2 style="font-size:clamp(28px,4vw,44px);font-weight:800;letter-spacing:-0.04em">
+          Por que testes de velocidade comuns não resolvem seu ranked.
+        </h2>
+        <p style="font-size:16px;color:var(--text-secondary);line-height:1.6;margin-top:10px">
+          Um download rápido não impede tiros que não registram nem teleportes causados por jitter.
+        </p>
+      </div>
+
+      <div data-rv="1" class="card" style="padding:0;overflow:hidden">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:rgba(255,255,255,0.06)">
+          <div style="padding:32px;background:var(--bg-surface-1)">
+            <h3 style="font-size:20px;font-weight:800;color:#9CA3AF;margin-bottom:12px">Speedtest tradicional</h3>
+            <p style="font-size:14px;color:var(--text-muted);line-height:1.5;margin-bottom:20px">Mede quanta banda cabe na sua linha para baixar arquivos e carregar vídeos.</p>
+            <ul style="list-style:none;font-size:13px;font-family:var(--font-mono);color:var(--text-muted);display:flex;flex-direction:column;gap:8px">
+              <li>— Velocidade de download (Mbps)</li>
+              <li>— Velocidade de upload (Mbps)</li>
+              <li>— Ping pontual e estático via TCP/HTTP</li>
+              <li>✕ Não diagnostica jitter milissegundo a milissegundo</li>
+            </ul>
+          </div>
+
+          <div style="padding:32px;background:linear-gradient(145deg, rgba(124,58,237,0.14), rgba(21,24,30,0.95))">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <h3 style="font-size:22px;font-weight:800;color:#fff">Lagcheck (Ping Gamer)</h3>
+              <span class="verdict-pill ready" style="font-size:10px;padding:3px 8px">Foco em jogos</span>
+            </div>
+            <p style="font-size:14px;color:#D1D5DB;line-height:1.5;margin-bottom:20px">Mede a estabilidade da rota que seus pacotes de jogo percorrem.</p>
+            <ul style="list-style:none;font-size:13px;font-family:var(--font-mono);color:#E5E7EB;display:flex;flex-direction:column;gap:8px">
+              <li>✓ Pacotes UDP contínuos (o protocolo real dos jogos)</li>
+              <li>✓ Jitter (oscilação milissegundo a milissegundo)</li>
+              <li>✓ Perda de pacotes e estabilidade sob carga (bufferbloat)</li>
+              <li>✓ Veredito claro: pronto para ranked ou não</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. TRANSPARÊNCIA SOBRE O QUE É MEDIDO -->
+    <section id="transparencia" style="max-width:1100px;margin:90px auto 0;padding:0 22px">
+      <div data-rv="1" class="card" style="padding:clamp(28px,4vw,48px);background:linear-gradient(135deg, rgba(124,58,237,0.15), rgba(21,24,30,0.95))">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;align-items:center">
+          <div>
+            <span class="eyebrow">Transparência Técnica</span>
+            <h2 style="font-size:clamp(26px,3.8vw,38px);font-weight:800;letter-spacing:-0.03em;margin-bottom:14px">
+              Onde e como sua conexão é medida.
+            </h2>
+            <p style="font-size:15px;line-height:1.6;color:var(--text-secondary);margin-bottom:16px">
+              O Lagcheck mede a rota UDP real entre seu iPhone e beacons de referência regional em São Paulo (como AWS GameLift sa-east-1).
+            </p>
+            <p style="font-size:14px;line-height:1.6;color:var(--text-muted)">
+              Transparência honesta: o teste avalia a rota regional de saída da sua operadora e rede local. Não prometemos medir servidores privados fechados de jogos sem evidência direta.
+            </p>
+          </div>
+
+          <!-- AVISO PARA PC E CONSOLES -->
+          <div class="platform-notice" style="margin:0">
+            <h4 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px">Joga no PC ou Console?</h4>
+            <p style="font-size:13px;color:#D1D5DB;line-height:1.5">
+              O Lagcheck é executado no seu iPhone. Se seu computador ou videogame compartilha a mesma conexão de internet e roteador, a medição no iPhone aponta com precisão se o provedor está com rota oscilando ou se o roteador está sofrendo com bufferbloat na residência.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. DÚVIDAS FREQUENTES (FAQ) -->
+    <section id="faq" style="max-width:1100px;margin:90px auto 0;padding:0 22px">
+      <div style="max-width:680px;margin-bottom:36px">
+        <span class="eyebrow">Tire suas dúvidas</span>
+        <h2 style="font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.04em">
+          Perguntas frequentes sobre conexão e lag
+        </h2>
+      </div>
+      <div style="display:grid;gap:14px">
+        ${faqHtml}
+      </div>
+    </section>
+
+    <!-- 8. CTA FINAL DE CONVERSÃO -->
+    <section id="baixar" style="margin-top:100px;padding:90px 22px;text-align:center;background:radial-gradient(ellipse 70% 60% at 50% 100%, rgba(124,58,237,0.3), transparent 75%)">
+      <div data-rv="1" style="max-width:640px;margin:0 auto">
+        <span class="eyebrow">Comece agora</span>
+        <h2 style="font-size:clamp(34px,5.5vw,56px);font-weight:900;letter-spacing:-0.05em;margin-bottom:18px">
+          Faça o check antes da sua próxima fila.
+        </h2>
+        <p style="font-size:17px;color:var(--text-secondary);margin-bottom:32px;line-height:1.5">
+          Baixe o Lagcheck gratuitamente na App Store para iPhone. Sem anúncios, sem cadastro e com veredito direto para o seu jogo.
+        </p>
+
+        <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" style="padding:16px 36px;font-size:17px" aria-label="Baixar na App Store">
+          <svg width="22" height="26" viewBox="0 0 170 170" fill="currentColor" aria-hidden="true">
+            <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.85-11.93-14.42-6.52-10.11-11.75-21.43-15.68-33.95-3.93-12.52-5.9-24.18-5.9-34.98 0-14.15 3.58-25.92 10.74-35.31 7.16-9.39 16.27-14.2 27.33-14.42 4.9 0 10.3 1.34 16.22 4.01 5.92 2.68 9.77 4.07 11.55 4.18 1.56 0 5.48-1.46 11.76-4.39 6.27-2.92 11.79-4.26 16.55-4.01 12.72.63 22.74 5.28 30.06 13.97-11.08 6.74-16.51 15.99-16.3 27.75.22 9.24 3.86 17.02 10.92 23.34 7.07 6.33 15.42 9.85 25.06 10.57-2.35 7.18-5.26 14.65-8.73 22.4zM119.22 33.3c0-7.39 2.67-14.23 8.01-20.52 5.34-6.29 11.96-10.55 19.86-12.78.33 1.33.49 2.44.49 3.34 0 7.39-2.78 14.41-8.34 21.05-5.56 6.64-12.28 10.63-20.16 11.97-.22-1.12-.34-2.14-.34-3.06z"/>
+          </svg>
+          Baixar grátis na App Store
+        </a>
+      </div>
+    </section>
+  </main>
 
   ${buildFooter()}
-</div>
-${TELEMETRY_AND_CONVERSION_SCRIPT}
+  ${COMMON_JS}
 </body>
 </html>
 `;
@@ -519,15 +1889,34 @@ ${TELEMETRY_AND_CONVERSION_SCRIPT}
 
 // 2. GERAR O HUB DE JOGOS (web/jogos/index.html)
 function generateJogosHub() {
+  const categories = [
+    { id: 'all', label: 'Todos' },
+    { id: 'br', label: 'Battle Royale' },
+    { id: 'fps', label: 'FPS / Tático' },
+    { id: 'moba', label: 'MOBA' },
+    { id: 'casual', label: 'Outros' }
+  ];
+
+  const categoriesHtml = categories.map((c, i) => `
+    <button type="button" class="filter-btn ${i === 0 ? 'active' : ''}" data-filter="${c.id}" style="padding:8px 16px;border-radius:999px;border:1px solid var(--border-subtle);background:${i === 0 ? 'var(--brand-purple)' : 'var(--bg-surface-2)'};color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+      ${c.label}
+    </button>
+  `).join('');
+
   const cardsHtml = GAMES.map(g => `
-    <a href="/jogos/${g.slug}/" style="display:block;border-radius:26px;overflow:hidden;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260);transition:transform .3s,border-color .3s">
-      <div style="aspect-ratio:1;overflow:hidden">
-        <img src="/assets/games/${g.file}.jpg" alt="${g.name}" style="width:100%;height:100%;object-fit:cover;display:block">
+    <a href="/jogos/${g.slug}/" class="card game-card" data-name="${g.name}" data-category="${g.category}" style="display:flex;flex-direction:column;padding:16px;border-radius:22px;text-decoration:none">
+      <div style="aspect-ratio:1;border-radius:16px;overflow:hidden;background:#15181E;margin-bottom:14px">
+        <picture>
+          <source srcset="/assets/games/${g.file}-thumb.webp" type="image/webp">
+          <img src="/assets/games/${g.file}.jpg" alt="${g.name}" loading="lazy" decoding="async" width="480" height="480" style="width:100%;height:100%;object-fit:cover">
+        </picture>
       </div>
-      <div style="padding:20px 22px 24px">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Testar ping no ${g.name}</h2>
-        <p style="margin:8px 0 0;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260)">${g.platforms}</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2 style="font-size:18px;font-weight:800;color:#fff">${g.name}</h2>
+        <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
       </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4">${g.platforms}</p>
+      <span style="font-size:13px;font-weight:700;color:#A78BFA;margin-top:auto">Ver guia de rota →</span>
     </a>
   `).join('');
 
@@ -562,41 +1951,99 @@ function generateJogosHub() {
     ]
   }
   </script>
-  <style>${COMMON_CSS}</style>
+  <style>${COMMON_CSS}
+  .filter-btn.active {
+    background: var(--brand-purple) !important;
+    border-color: var(--brand-purple) !important;
+  }
+  </style>
 </head>
 <body>
-<div>
   ${buildHeader('jogos')}
-  <main style="max-width:1100px;margin:auto;padding:70px 22px 90px">
-    <p style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299);animation:rise .8s both">Jogos</p>
-    <h1 style="margin:0;max-width:780px;font:900 clamp(42px,6.5vw,84px)/.93 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em;animation:rise .8s .1s both">
-      Escolha o jogo. Veja se a conexão aguenta.
-    </h1>
-    <p style="margin:22px 0 0;max-width:560px;font-size:19px;line-height:1.45;color:oklch(0.75 0.014 260);animation:rise .8s .2s both">
-      Guias para testar ping e entender o lag nos jogos mais jogados. Cada guia explica o que o check mede e por que a conexão pode falhar.
-    </p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:56px">
+
+  <main id="conteudo-principal" style="max-width:1100px;margin:0 auto;padding:60px 22px 100px">
+    <div style="max-width:760px;margin-bottom:36px">
+      <span class="eyebrow">Catálogo de Jogos</span>
+      <h1 style="font-size:clamp(36px,5.5vw,64px);font-weight:900;letter-spacing:-0.05em;line-height:1.05;margin-bottom:16px">
+        Escolha o jogo. Veja se a conexão aguenta.
+      </h1>
+      <p style="font-size:18px;color:var(--text-secondary);line-height:1.5">
+        Guias específicos para diagnosticar latência, jitter e perda de pacotes antes de iniciar sua partida nos títulos mais populares.
+      </p>
+    </div>
+
+    <!-- BARRA DE BUSCA E FILTROS INTERATIVOS -->
+    <div style="margin-bottom:40px;display:flex;flex-direction:column;gap:18px">
+      <div>
+        <label for="game-search" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0">Buscar jogo</label>
+        <input type="search" id="game-search" placeholder="Buscar jogo por nome (ex: Fortnite, Valorant, CS2)..." style="width:100%;max-width:540px;padding:14px 20px;border-radius:14px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);color:#fff;font-size:15px;outline:none">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${categoriesHtml}
+      </div>
+    </div>
+
+    <!-- GRID DE JOGOS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px">
       ${cardsHtml}
     </div>
+
+    <!-- ESTADO VAZIO -->
+    <div id="games-empty-state" style="display:none;text-align:center;padding:60px 20px">
+      <h3 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Nenhum jogo encontrado com esse termo.</h3>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px">Você pode usar o Lagcheck no iPhone com a rota de referência geral para qualquer jogo.</p>
+    </div>
+
+    <!-- CALLOUT CONTEXTUAL -->
+    <div class="card" style="margin-top:60px;padding:32px;background:linear-gradient(135deg, rgba(124,58,237,0.12), rgba(21,24,30,0.9))">
+      <h3 style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">Não achou o título que você joga?</h3>
+      <p style="font-size:15px;color:var(--text-secondary);line-height:1.5;margin-bottom:18px">
+        O Lagcheck mede a rota UDP até servidores de referência da AWS em São Paulo. Essa infraestrutura é a mesma usada por centenas de jogos modernos, servindo como termômetro confiável para qualquer partida.
+      </p>
+      <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" style="padding:10px 20px;font-size:14px">
+        Baixar Lagcheck na App Store →
+      </a>
+    </div>
   </main>
+
   ${buildFooter()}
-</div>
-${TELEMETRY_AND_CONVERSION_SCRIPT}
+  ${COMMON_JS}
 </body>
 </html>
 `;
 }
 
-// 3. GERAR PÁGINA INDIVIDUAL DE JOGO (web/jogos/<slug>/index.html)
+// 3. GERAR PÁGINAS INDIVIDUAIS DOS 20 JOGOS (web/jogos/<slug>/index.html)
 function generateGamePage(game) {
-  const others = GAMES.filter(g => g.slug !== game.slug).slice(0, 6);
+  const others = GAMES.filter(g => g.slug !== game.slug).slice(0, 5);
   const othersHtml = others.map(o => `
-    <a href="/jogos/${o.slug}/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no ${o.name}
+    <a href="/jogos/${o.slug}/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      ${o.name}
     </a>
   `).join('');
 
   const routeText = getRouteText(game.infra);
+
+  const symptomsHtml = game.lagSymptoms.map(s => `
+    <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
+      ✕ ${s}
+    </li>
+  `).join('');
+
+  const faqHtml = game.faq.map(f => `
+    <article class="card" style="padding:22px">
+      <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">${f.q}</h3>
+      <p style="font-size:14px;line-height:1.6;color:var(--text-secondary)">${f.a}</p>
+    </article>
+  `).join('');
+
+  const platformNotice = game.isMobileNative
+    ? `<div class="platform-notice platform-notice-mobile">
+        <b>Diagnóstico no mesmo aparelho:</b> Como o ${game.name} é jogado diretamente no iPhone, a medição do Lagcheck reflete com exatidão a qualidade da sua conexão Wi-Fi ou dados móveis (4G/5G) no momento em que você jogar.
+       </div>`
+    : `<div class="platform-notice">
+        <b>Diagnóstico via iPhone para PC/Console:</b> O Lagcheck é executado no iPhone. Estando conectado na mesma rede doméstica da sua casa, ele verifica se o roteador ou o provedor estão apresentando perda de pacotes e oscilação de rota antes de você entrar na fila competitiva no PC ou console.
+       </div>`;
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -604,7 +2051,7 @@ function generateGamePage(game) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Testar ping no ${game.name} | Lagcheck</title>
-  <meta name="description" content="Teste o ping e o lag no ${game.name}: latência, jitter e perda de pacotes antes de entrar na partida. Veredito em 25–35 segundos no Lagcheck para iPhone.">
+  <meta name="description" content="Descubra se sua conexão aguenta a ranked no ${game.name}. Medição determinística de latência, jitter e perda de pacotes no iPhone.">
   <meta name="robots" content="index,follow">
   <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/jogos/${game.slug}/">
@@ -615,7 +2062,7 @@ function generateGamePage(game) {
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Lagcheck">
   <meta property="og:title" content="Testar ping no ${game.name} | Lagcheck">
-  <meta property="og:description" content="Teste o ping e o lag no ${game.name}: latência, jitter e perda de pacotes antes de entrar na partida. Veredito em 25–35 segundos no Lagcheck para iPhone.">
+  <meta property="og:description" content="Descubra se sua conexão aguenta a ranked no ${game.name}. Veredito honesto no Lagcheck para iPhone.">
   <meta property="og:url" content="https://lagcheck.signallq.com/jogos/${game.slug}/">
   <meta property="og:image" content="https://lagcheck.signallq.com/assets/games/${game.file}.jpg">
   <meta name="twitter:card" content="summary_large_image">
@@ -628,7 +2075,7 @@ function generateGamePage(game) {
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Lagcheck", "item": "https://lagcheck.signallq.com/" },
           { "@type": "ListItem", "position": 2, "name": "Jogos", "item": "https://lagcheck.signallq.com/jogos/" },
-          { "@type": "ListItem", "position": 3, "name": "${game.name}", "item": "https://lagcheck.signallq.com/jogos/${game.slug}/" }
+          { "@type": "ListItem", "position": 3, "name": ${JSON.stringify(game.name)}, "item": "https://lagcheck.signallq.com/jogos/${game.slug}/" }
         ]
       },
       {
@@ -643,21 +2090,11 @@ function generateGamePage(game) {
       {
         "@type": "FAQPage",
         "mainEntity": [
-          {
+${game.faq.map(f => `          {
             "@type": "Question",
-            "name": "Como testar o ping no ${game.name}?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Abra o Lagcheck no iPhone, escolha ${game.name} e faça o check. Em cerca de 25–35 segundos você recebe o veredito." }
-          },
-          {
-            "@type": "Question",
-            "name": "Por que o ${game.name} dá lag mesmo com internet rápida?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Velocidade não é estabilidade. Jitter, perda de pacotes e fila no roteador sob carga causam lag mesmo com banda alta." }
-          },
-          {
-            "@type": "Question",
-            "name": "O Lagcheck mostra o ping oficial do ${game.name}?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Não. Ele mede uma rota de referência regional e diz isso com clareza, sem prometer o ping da próxima partida." }
-          }
+            "name": ${JSON.stringify(f.q)},
+            "acceptedAnswer": { "@type": "Answer", "text": ${JSON.stringify(f.a)} }
+          }`).join(',\n')}
         ]
       }
     ]
@@ -665,118 +2102,123 @@ function generateGamePage(game) {
   </script>
   <style>${COMMON_CSS}</style>
 </head>
-<body>
-<div>
+<body data-game-id="${game.slug}">
   ${buildHeader('jogos')}
 
-  <!-- HERO DO JOGO -->
-  <section style="position:relative;min-height:clamp(560px,88vh,820px);display:flex;align-items:flex-end;overflow:hidden;background:oklch(0.12 0.01 260)">
-    <img src="/assets/games/${game.file}.jpg" alt="Capa de ${game.name}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;transform:scale(1.04);animation:kb 18s ease-in-out infinite alternate">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,oklch(0.12 0.01 260 / 0.55) 0%,oklch(0.12 0.01 260 / 0.1) 30%,oklch(0.12 0.01 260 / 0.7) 70%,oklch(0.12 0.01 260) 100%)"></div>
-    <div style="position:relative;width:100%;max-width:1100px;margin:auto;padding:0 22px 64px">
-      <nav aria-label="Trilha" style="margin-bottom:26px;font:11px ui-monospace,monospace;color:oklch(0.85 0.01 260)">
-        <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / ${game.name}
-      </nav>
-      <p class="hi" style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.85 0.1 299)">${game.platforms}</p>
-      <h1 class="hi" style="animation-delay:.1s;margin:0;max-width:900px;font:900 clamp(46px,8vw,112px)/.9 ui-rounded,system-ui,sans-serif;letter-spacing:-.065em;text-wrap:balance;text-shadow:0 4px 40px #0008">
-        Testar ping no ${game.name}
-      </h1>
-      <p class="hi" style="animation-delay:.2s;margin:24px 0 0;max-width:560px;font-size:20px;line-height:1.4;color:oklch(0.92 0.008 260)">
-        Descubra se sua conexão está estável antes de entrar na fila de ${game.name}. O Lagcheck mede latência, jitter e perda de pacotes e entrega um veredito claro.
-      </p>
-      <div class="hi" style="animation-delay:.3s;margin-top:32px">
-        <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore">
-          <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
-        </a>
+  <main id="conteudo-principal">
+    <!-- HERO COM CAPA OTIMIZADA E CONTEXTO -->
+    <section style="position:relative;min-height:clamp(460px,70vh,680px);display:flex;align-items:flex-end;background:#0B0D10;overflow:hidden">
+      <picture style="position:absolute;inset:0;width:100%;height:100%">
+        <source srcset="/assets/games/${game.file}.webp" type="image/webp">
+        <img src="/assets/games/${game.file}.jpg" alt="Capa ilustrativa de ${game.name}" fetchpriority="high" width="1280" height="720" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0.38">
+      </picture>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(11,13,16,0.6) 0%, rgba(11,13,16,0.2) 40%, #0B0D10 100%)"></div>
+
+      <div style="position:relative;width:100%;max-width:1100px;margin:0 auto;padding:40px 22px 60px">
+        <nav aria-label="Trilha de navegação" style="margin-bottom:20px;font-size:12px;font-family:var(--font-mono);color:var(--text-muted)">
+          <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / <span style="color:#fff">${game.name}</span>
+        </nav>
+        <span class="eyebrow">${game.platforms}</span>
+        <h1 style="font-size:clamp(36px,6vw,76px);font-weight:900;letter-spacing:-0.05em;line-height:1.02;margin-bottom:16px;max-width:860px">
+          Testar ping no ${game.name}
+        </h1>
+        <p style="font-size:clamp(16px,2vw,20px);color:#D1D5DB;max-width:620px;line-height:1.5;margin-bottom:28px">
+          ${game.summary} Descubra se sua conexão está estável antes de iniciar a partida.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+          <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" aria-label="Baixar na App Store">
+            Baixar grátis na App Store
+          </a>
+          <span style="font-size:13px;font-family:var(--font-mono);color:var(--text-muted)">Diagnóstico no iPhone</span>
+        </div>
       </div>
+    </section>
+
+    <!-- DETALHES DE REDE DO JOGO -->
+    <div style="max-width:1100px;margin:0 auto;padding:50px 22px 90px">
+      ${platformNotice}
+
+      <!-- O QUE O CHECK MEDE -->
+      <section style="margin-top:40px">
+        <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
+          O que o check analisa para ${game.name}
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:#A78BFA;display:block;margin-bottom:6px">LATÊNCIA REAL</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Ping de ida e volta</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Tempo que os pacotes UDP levam para ir e voltar do destino regional.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--status-caution);display:block;margin-bottom:6px">OSCILAÇÃO</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Jitter entre pacotes</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">A variação do tempo de resposta que causa micro-stutters e tiros desincronizados.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--status-unstable);display:block;margin-bottom:6px">DESCARTE</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Perda de pacotes</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Pacotes perdidos que geram teleportes e comandos não registrados.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:#38BDF8;display:block;margin-bottom:6px">BUFFERBLOAT</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Comportamento sob carga</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Como a rota reage caso alguém assista streaming ou faça download na mesma rede.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- SINTOMAS COMUNS E ROTA -->
+      <section style="margin-top:60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+        <div class="card" style="padding:28px">
+          <span class="eyebrow" style="color:var(--status-unstable)">Sintomas na partida</span>
+          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Como o lag se manifesta no ${game.name}</h3>
+          <ul style="list-style:none">
+            ${symptomsHtml}
+          </ul>
+        </div>
+
+        <div class="card" style="padding:28px;background:linear-gradient(145deg, rgba(124,58,237,0.12), rgba(21,24,30,0.95))">
+          <span class="eyebrow">Infraestrutura</span>
+          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Rota medida e destino</h3>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.6;margin-bottom:18px">
+            ${routeText}
+          </p>
+          <div style="padding:14px;border-radius:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.5">
+            <b>Recomendação prática:</b> ${game.guidance}
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ ESPECÍFICA DO JOGO -->
+      <section style="margin-top:60px">
+        <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
+          Perguntas sobre lag no ${game.name}
+        </h2>
+        <div style="display:grid;gap:14px">
+          ${faqHtml}
+        </div>
+      </section>
+
+      <!-- OUTROS JOGOS -->
+      <section style="margin-top:60px;padding-top:40px;border-top:1px solid var(--border-subtle)">
+        <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:16px">Verificar outros jogos</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          ${othersHtml}
+          <a href="/jogos/" style="font-size:13px;font-weight:700;color:#A78BFA">Ver todos os ${GAMES.length} →</a>
+        </div>
+      </section>
     </div>
-  </section>
-
-  <main style="max-width:1100px;margin:auto;padding:70px 22px 0">
-    <!-- MÉTRICAS -->
-    <section style="padding:0 0 70px">
-      <h2 style="margin:0 0 26px;font:850 clamp(28px,3.6vw,42px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">
-        O que o check mede para ${game.name}
-      </h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Latência</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Tempo de ida e volta dos pacotes UDP até o destino regional.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Jitter</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">A oscilação da latência, responsável por micro-travamentos e tiros que não conectam.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Perda de pacotes</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Pacotes perdidos no percurso, que viram teleportes, rubber-banding e ações atrasadas.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Sob carga</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Como a rota reage se alguém estiver assistindo streaming ou baixando algo na mesma rede.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ROTA & CAUSAS -->
-    <section style="padding:0 0 70px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
-      <article style="padding:34px;border-radius:28px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260))">
-        <p style="margin:0 0 10px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Rota medida</p>
-        <h2 style="margin:0;font:850 28px/1.05 ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Referência AWS · São Paulo</h2>
-        <p style="margin:14px 0 0;font-size:15px;line-height:1.5;color:oklch(0.8 0.014 260)">${routeText}</p>
-        <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:oklch(0.65 0.014 260)">É uma rota de referência regional, não o servidor da sua próxima partida.</p>
-      </article>
-      <article style="padding:34px;border-radius:28px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <p style="margin:0 0 10px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.675 0.014 260)">Causas comuns de lag</p>
-        <ul style="margin:0;padding:0;list-style:none;font-size:15px;line-height:1.5;color:oklch(0.8 0.012 260)">
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Wi-Fi congestionado, canal saturado ou sinal fraco</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Bufferbloat: ping que explode quando a rede entra sob carga</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Rota instável ou degradação na operadora (ISP)</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Dados móveis com cobertura instável ou troca de torre</li>
-        </ul>
-      </article>
-    </section>
-
-    <!-- FAQ DO JOGO -->
-    <section style="padding:0 0 70px">
-      <h2 style="margin:0 0 24px;font:850 clamp(28px,3.6vw,42px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">
-        Dúvidas sobre lag no ${game.name}
-      </h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Como testar o ping no ${game.name}?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Abra o Lagcheck no iPhone, escolha ${game.name} e faça o check. Em cerca de 25–35 segundos você recebe o veredito.</p>
-        </article>
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Por que o ${game.name} dá lag mesmo com internet rápida?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Velocidade não é estabilidade. Jitter, perda de pacotes e fila no roteador sob carga causam lag mesmo com banda alta.</p>
-        </article>
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">O Lagcheck mostra o ping oficial do ${game.name}?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Não. Ele mede uma rota de referência regional e diz isso com clareza, sem prometer o ping da próxima partida.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- OUTROS JOGOS -->
-    <section style="padding:0 0 90px">
-      <h2 style="margin:0 0 20px;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Outros jogos</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        ${othersHtml}
-        <a href="/jogos/" style="padding:12px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:#fff;font-weight:700;font-size:14px">Ver todos →</a>
-      </div>
-    </section>
   </main>
 
   ${buildFooter()}
-</div>
-${TELEMETRY_AND_CONVERSION_SCRIPT}
+  ${COMMON_JS}
 </body>
 </html>
 `;
 }
 
-// 4. GERAR SUPORTE (web/support/index.html e web/support.html)
+// 4. GERAR PÁGINAS DE SUPORTE (web/support/index.html e web/support.html)
 function generateSupport() {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -784,7 +2226,7 @@ function generateSupport() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Suporte Oficial | Lagcheck</title>
-  <meta name="description" content="Central de suporte e ajuda do Lagcheck para iPhone. Tire dúvidas sobre a medição de rota UDP, diagnósticos e vereditos.">
+  <meta name="description" content="Central de suporte oficial do Lagcheck para iPhone. Tire dúvidas sobre a medição de rota UDP, diagnósticos e vereditos.">
   <meta name="robots" content="index,follow">
   <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/support/">
@@ -802,59 +2244,59 @@ function generateSupport() {
   <style>${COMMON_CSS}</style>
 </head>
 <body>
-<div>
   ${buildHeader('support')}
-  <main style="max-width:900px;margin:auto;padding:70px 22px 100px">
-    <p style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299);animation:rise .8s both">Suporte Oficial</p>
-    <h1 style="margin:0;font:900 clamp(40px,6vw,72px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em;animation:rise .8s .1s both">
-      Como podemos ajudar?
+
+  <main id="conteudo-principal" style="max-width:900px;margin:0 auto;padding:60px 22px 100px">
+    <span class="eyebrow">Atendimento</span>
+    <h1 style="font-size:clamp(36px,5vw,60px);font-weight:900;letter-spacing:-0.05em;line-height:1.05;margin-bottom:18px">
+      Central de Suporte Oficial
     </h1>
-    <p style="margin:22px 0 0;max-width:640px;font-size:19px;line-height:1.45;color:oklch(0.75 0.014 260);animation:rise .8s .2s both">
-      O Lagcheck está disponível na App Store para iPhone (iOS 17+). Se você tiver alguma dúvida técnica sobre sua medição, rotas ou feedback do app, fale com nosso time.
+    <p style="font-size:18px;color:var(--text-secondary);line-height:1.5;margin-bottom:44px">
+      O Lagcheck está disponível na App Store para iPhone (iOS 17+). Se tiver dúvidas sobre os diagnósticos de rota UDP ou vereditos, conte com nosso time.
     </p>
 
-    <div style="display:grid;gap:18px;margin-top:52px">
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O que o Lagcheck mede exatamente?</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          Latência real (ping UDP), jitter (oscilação), descarte de pacotes (packet loss) e comportamento da rota sob carga concorrente (bufferbloat), entregando um veredito honesto antes da sua partida.
+    <div style="display:grid;gap:18px">
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">O que o Lagcheck mede exatamente?</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          O app envia pacotes UDP contínuos e mede a latência de ida e volta (ping), a oscilação de milissegundos entre pacotes (jitter), a perda de pacotes e o enfileiramento da rota sob carga concorrente (bufferbloat).
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O app mede o servidor do meu jogo ou uma rota de referência?</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          O Lagcheck envia pacotes UDP para beacons regionais de referência (como AWS GameLift em São Paulo). Ele avalia a qualidade da rota e da sua rede local de forma determinística, sem inventar números.
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">O app mede o servidor exato da minha próxima partida?</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          O Lagcheck mede uma rota determinística até beacons de referência regional em São Paulo (como AWS GameLift sa-east-1). Ele não invade a infraestrutura privada dos jogos nem inventa números: avalia a integridade do seu enlace regional.
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">O que fazer quando o resultado der "Condições instáveis"?</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          Recomendamos evitar filas ranqueadas no momento. Verifique se há downloads ativos na rede, aproxime-se do roteador Wi-Fi (ou prefira a banda 5 GHz) ou reinicie o modem caso a oscilação persista.
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">O que fazer se o veredito for "Condições instáveis"?</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          Recomendamos evitar filas ranqueadas no momento. Aproxime-se do roteador Wi-Fi (preferindo a banda 5 GHz), verifique se há downloads ativos na sua rede doméstica ou reinicie o modem se a oscilação continuar.
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260));border:1px solid oklch(0.35 0.02 299);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+      <article class="card" style="background:linear-gradient(135deg, rgba(124,58,237,0.18), rgba(21,24,30,0.95));border-color:rgba(124,58,237,0.4);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px">
         <div>
-          <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Precisa falar com a gente?</h2>
-          <p style="margin:8px 0 0;font-size:15px;color:oklch(0.85 0.01 260)">Nosso canal oficial de atendimento por e-mail.</p>
+          <h2 style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px">Fale diretamente com nosso time</h2>
+          <p style="font-size:14px;color:var(--text-secondary)">Canal oficial de atendimento por e-mail para usuários do app.</p>
         </div>
-        <a href="mailto:suporte@signallq.com" style="padding:14px 22px;border-radius:14px;background:oklch(0.585 0.214 299);color:#fff;font-weight:700;font-size:15px;text-decoration:none">
+        <a href="mailto:suporte@signallq.com" class="btn-primary" style="padding:12px 24px;font-size:15px">
           suporte@signallq.com →
         </a>
       </article>
     </div>
   </main>
+
   ${buildFooter()}
-</div>
-${TELEMETRY_AND_CONVERSION_SCRIPT}
+  ${COMMON_JS}
 </body>
 </html>
 `;
 }
 
-// 5. GERAR PRIVACIDADE (web/privacy/index.html e web/privacy.html)
+// 5. GERAR PÁGINAS DE PRIVACIDADE (web/privacy/index.html e web/privacy.html)
 function generatePrivacy() {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -880,53 +2322,60 @@ function generatePrivacy() {
   <style>${COMMON_CSS}</style>
 </head>
 <body>
-<div>
   ${buildHeader('privacy')}
-  <main style="max-width:900px;margin:auto;padding:70px 22px 100px">
-    <p style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.78 0.12 299);animation:rise .8s both">Privacidade Oficial</p>
-    <h1 style="margin:0;font:900 clamp(40px,6vw,72px)/.95 ui-rounded,system-ui,sans-serif;letter-spacing:-.06em;animation:rise .8s .1s both">
-      Privacidade em primeiro lugar.
+
+  <main id="conteudo-principal" style="max-width:900px;margin:0 auto;padding:60px 22px 100px">
+    <span class="eyebrow">Transparência</span>
+    <h1 style="font-size:clamp(36px,5vw,60px);font-weight:900;letter-spacing:-0.05em;line-height:1.05;margin-bottom:18px">
+      Privacidade em Primeiro Lugar
     </h1>
-    <p style="margin:22px 0 0;max-width:640px;font-size:19px;line-height:1.45;color:oklch(0.75 0.014 260);animation:rise .8s .2s both">
-      O Lagcheck foi projetado com respeito absoluto aos seus dados. Sem contas, sem anúncios e sem rastreamento de navegação.
+    <p style="font-size:18px;color:var(--text-secondary);line-height:1.5;margin-bottom:44px">
+      O Lagcheck foi desenvolvido com respeito rigoroso à privacidade dos jogadores. Sem contas, sem anúncios de terceiros e sem rastreamento intrusivo.
     </p>
 
-    <div style="display:grid;gap:18px;margin-top:52px">
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Zero Coleta de Dados Pessoais</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          O app não exige cadastro, e-mail, login ou número de telefone. Você baixa e mede imediatamente, sem qualquer identificação de usuário.
+    <div style="display:grid;gap:18px">
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Zero Coleta de Dados Pessoais</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          O aplicativo não exige criação de conta, nome, e-mail, telefone ou autenticação de redes sociais. Você abre o aplicativo e realiza suas medições imediatamente de forma anônima.
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Armazenamento Local no iPhone (SwiftData)</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          O histórico das suas medições de rede fica armazenado exclusivamente no armazenamento local seguro do seu próprio iPhone. Seus dados nunca são vendidos ou compartilhados.
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Armazenamento Local no iPhone (SwiftData)</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          O histórico das suas medições de rede fica armazenado exclusivamente no armazenamento seguro do seu próprio iPhone. Os dados de medição nunca são comercializados com terceiros.
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Diagnóstico Técnico Anônimo</h2>
-        <p style="margin:12px 0 0;font-size:16px;line-height:1.5;color:oklch(0.75 0.014 260)">
-          Para manter a estabilidade do serviço e aprimorar as rotas, enviamos telemetria técnica agregada estritamente anônima (como versão do iOS e tempos de resposta agregados), sem registrar endereços de IP ou informações de identificação pessoal.
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Telemetria Técnica e Minimização</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          Tanto o app quanto este site utilizam telemetria mínima agregada estritamente para monitorar a saúde da infraestrutura e conversão de produto (ex.: versão do iOS, identificadores de instalação técnicos gerados aleatoriamente e cliques na App Store). Não armazenamos endereços de IP de forma permanente e não correlacionamos dados técnicos com a identidade civil de jogadores.
         </p>
       </article>
 
-      <article style="padding:32px;border-radius:26px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260));border:1px solid oklch(0.35 0.02 299);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+      <article class="card">
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Ausência de Publicidade no MVP</h2>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
+          O aplicativo não inclui nenhum SDK de redes de anúncios nem rastreadores de publicidade comportamental em seu binário atual.
+        </p>
+      </article>
+
+      <article class="card" style="background:linear-gradient(135deg, rgba(124,58,237,0.18), rgba(21,24,30,0.95));border-color:rgba(124,58,237,0.4);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px">
         <div>
-          <h2 style="margin:0;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Dúvidas sobre seus dados?</h2>
-          <p style="margin:8px 0 0;font-size:15px;color:oklch(0.85 0.01 260)">Fale com nosso encarregado de privacidade.</p>
+          <h2 style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px">Dúvidas sobre seus dados?</h2>
+          <p style="font-size:14px;color:var(--text-secondary)">Entre em contato com nossa equipe pelo canal oficial de privacidade.</p>
         </div>
-        <a href="mailto:suporte@signallq.com" style="padding:14px 22px;border-radius:14px;background:oklch(0.585 0.214 299);color:#fff;font-weight:700;font-size:15px;text-decoration:none">
+        <a href="mailto:suporte@signallq.com" class="btn-primary" style="padding:12px 24px;font-size:15px">
           suporte@signallq.com →
         </a>
       </article>
     </div>
   </main>
+
   ${buildFooter()}
-</div>
-${TELEMETRY_AND_CONVERSION_SCRIPT}
+  ${COMMON_JS}
 </body>
 </html>
 `;
@@ -959,7 +2408,7 @@ Sitemap: https://lagcheck.signallq.com/sitemap.xml
 }
 
 // EXECUÇÃO DO BUILD
-console.log('🚀 Iniciando geração da webpage do Lagcheck (App Store Live)...');
+console.log('🚀 Iniciando geração do site comercial Lagcheck (App Store Live & Dark Competitive UI)...');
 
 // Escreve index.html
 fs.writeFileSync(path.join(WEB_DIR, 'index.html'), generateHome(), 'utf8');
@@ -977,7 +2426,7 @@ for (const game of GAMES) {
   fs.mkdirSync(gameDir, { recursive: true });
   fs.writeFileSync(path.join(gameDir, 'index.html'), generateGamePage(game), 'utf8');
 }
-console.log(`✅ 20 páginas de jogos geradas em web/jogos/<slug>/index.html`);
+console.log(`✅ ${GAMES.length} páginas de jogos geradas em web/jogos/<slug>/index.html`);
 
 // Escreve Suporte (index.html e fallback raiz)
 const supportDir = path.join(WEB_DIR, 'support');
@@ -1001,4 +2450,3 @@ fs.writeFileSync(path.join(WEB_DIR, 'robots.txt'), generateRobots(), 'utf8');
 console.log('✅ sitemap.xml e robots.txt atualizados');
 
 console.log('🏁 Build concluído com sucesso!');
-

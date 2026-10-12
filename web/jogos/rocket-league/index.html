@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Testar ping no Rocket League | Lagcheck</title>
-  <meta name="description" content="Teste o ping e o lag no Rocket League: latência, jitter e perda de pacotes antes de entrar na partida. Veredito em 25–35 segundos no Lagcheck para iPhone.">
+  <meta name="description" content="Descubra se sua conexão aguenta a ranked no Rocket League. Medição determinística de latência, jitter e perda de pacotes no iPhone.">
   <meta name="robots" content="index,follow">
   <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/jogos/rocket-league/">
@@ -15,7 +15,7 @@
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Lagcheck">
   <meta property="og:title" content="Testar ping no Rocket League | Lagcheck">
-  <meta property="og:description" content="Teste o ping e o lag no Rocket League: latência, jitter e perda de pacotes antes de entrar na partida. Veredito em 25–35 segundos no Lagcheck para iPhone.">
+  <meta property="og:description" content="Descubra se sua conexão aguenta a ranked no Rocket League. Veredito honesto no Lagcheck para iPhone.">
   <meta property="og:url" content="https://lagcheck.signallq.com/jogos/rocket-league/">
   <meta property="og:image" content="https://lagcheck.signallq.com/assets/games/rocketleague.jpg">
   <meta name="twitter:card" content="summary_large_image">
@@ -45,18 +45,18 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "Como testar o ping no Rocket League?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Abra o Lagcheck no iPhone, escolha Rocket League e faça o check. Em cerca de 25–35 segundos você recebe o veredito." }
+            "name": "Por que o Rocket League sofre tanto com pequenas oscilações de ping?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Porque a trajetória da bola e dos veículos é simulada a 120 Hz no servidor. Qualquer pacote atrasado força o cliente a corrigir a posição dos objetos, causando o famoso desvio fantasma." }
           },
           {
             "@type": "Question",
-            "name": "Por que o Rocket League dá lag mesmo com internet rápida?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Velocidade não é estabilidade. Jitter, perda de pacotes e fila no roteador sob carga causam lag mesmo com banda alta." }
+            "name": "O Lagcheck avalia a perda de pacotes?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Sim. O app mede a porcentagem exata de pacotes UDP descartados na rota de referência regional em São Paulo." }
           },
           {
             "@type": "Question",
-            "name": "O Lagcheck mostra o ping oficial do Rocket League?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Não. Ele mede uma rota de referência regional e diz isso com clareza, sem prometer o ping da próxima partida." }
+            "name": "Posso confiar no veredito?",
+            "acceptedAnswer": { "@type": "Answer", "text": "O veredito é determinístico e derivado de regras transparentes: se houver perda ou jitter alto, ele indicará 'Condições instáveis' ou que evitaria ranked." }
           }
         ]
       }
@@ -64,221 +64,866 @@
   }
   </script>
   <style>
-body {
+:root {
+  --bg: #0B0D10;
+  --bg-surface-1: #15181E;
+  --bg-surface-2: #1E232B;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(124, 58, 237, 0.45);
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --brand-purple: #7C3AED;
+  --brand-purple-hover: #9055FF;
+  --brand-purple-glow: rgba(124, 58, 237, 0.25);
+  --accent-solar: #FF5A36;
+  --status-ready: #10B981;
+  --status-ready-bg: rgba(16, 185, 129, 0.12);
+  --status-caution: #F59E0B;
+  --status-caution-bg: rgba(245, 158, 11, 0.12);
+  --status-unstable: #FF5A36;
+  --status-unstable-bg: rgba(255, 90, 54, 0.12);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
-  background: oklch(0.12 0.01 260);
-  color: oklch(0.955 0.006 260);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 0;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
 }
-a { color: inherit; text-decoration: none; }
-a:hover { color: oklch(0.78 0.12 299); }
-* { box-sizing: border-box; }
-@keyframes fl { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-18px); } }
-@keyframes fll { 0%, 100% { transform: rotate(-6deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(14px); } }
-@keyframes flr { 0%, 100% { transform: rotate(6deg) translateY(0); } 50% { transform: rotate(8deg) translateY(-14px); } }
-@keyframes ring { 0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
-@keyframes mq { to { transform: translateX(-50%); } }
-@keyframes gx { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.585 0.214 299 / 0.5); } 50% { box-shadow: 0 0 0 14px oklch(0.585 0.214 299 / 0); } }
-@keyframes blink { 50% { opacity: 0.25; } }
-@keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
-@keyframes kb { to { transform: scale(1.12); } }
-[data-rv] { opacity: 0; transform: translateY(46px) scale(0.97); transition: opacity 0.8s cubic-bezier(0.2, 0, 0, 1), transform 0.8s cubic-bezier(0.2, 0, 0, 1); }
-[data-rv].in { opacity: 1; transform: none; }
-[data-rv]:nth-child(2) { transition-delay: 0.12s; }
-[data-rv]:nth-child(3) { transition-delay: 0.24s; }
-.hi { animation: rise 0.9s cubic-bezier(0.2, 0, 0, 1) both; }
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; }
-  [data-rv] { opacity: 1; transform: none; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  background: var(--bg);
+  overflow-x: hidden;
 }
-::-webkit-scrollbar { display: none; }
-.btn-appstore {
-  display: inline-block;
-  transition: transform 0.2s, opacity 0.2s;
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
 }
-.btn-appstore:hover {
+
+a:hover {
+  color: var(--brand-purple-hover);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Acessibilidade: Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  background: var(--brand-purple);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  z-index: 999;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 20px;
+}
+
+/* Foco visível WCAG */
+:focus-visible {
+  outline: 2px solid var(--brand-purple);
+  outline-offset: 3px;
+}
+
+/* HEADER COMPACTO & NAVEGAÇÃO RESPONSIVA */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11, 13, 16, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 124px;
+  height: auto;
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.desktop-nav a {
+  padding: 6px 0;
+  position: relative;
+}
+
+.desktop-nav a:hover,
+.desktop-nav a.active {
+  color: var(--text-primary);
+}
+
+.desktop-nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--brand-purple);
+  border-radius: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-header-cta:hover {
+  background: var(--brand-purple-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* BOTÃO MENU HAMBÚRGUER (MOBILE) */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+}
+
+.menu-bar {
+  width: 20px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* DRAWER / OVERLAY MOBILE */
+.mobile-nav-drawer {
+  display: none;
+  position: fixed;
+  top: 73px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 13, 16, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 99;
+  padding: 24px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-subtle);
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mobile-nav-drawer.open {
+  display: flex;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mobile-link {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mobile-link:hover {
+  color: #fff;
+}
+
+.mobile-nav-footer {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-mobile-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+}
+
+.mobile-nav-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-menu-btn {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-header-cta {
+    display: none;
+  }
+}
+
+/* BOTÕES GLOBAIS */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px var(--brand-purple-glow);
+}
+
+.btn-primary:hover {
+  background: var(--brand-purple-hover);
+  color: #fff;
   transform: translateY(-2px);
-  opacity: 0.95;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: #252b35;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* TIPOGRAFIA & HERO */
+.gradient-text {
+  background: linear-gradient(90deg, #A78BFA, #38BDF8, #F43F5E, #A78BFA);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A78BFA;
+  margin-bottom: 14px;
+}
+
+/* BADGES DE VEREDITO */
+.verdict-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.verdict-pill.ready {
+  background: var(--status-ready-bg);
+  color: var(--status-ready);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.verdict-pill.unstable {
+  background: var(--status-unstable-bg);
+  color: var(--status-unstable);
+  border: 1px solid rgba(255, 90, 54, 0.3);
+}
+
+.verdict-pill.caution {
+  background: var(--status-caution-bg);
+  color: var(--status-caution);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* CARDS E SURFACES */
+.card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 28px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+}
+
+/* PLATFORM CALLOUT (PC x CONSOLE x IPHONE) */
+.platform-notice {
+  margin: 24px 0;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #D1D5DB;
+}
+
+.platform-notice b {
+  color: #fff;
+}
+
+.platform-notice-mobile {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+/* ANIMAÇÃO DE REVELAÇÃO */
+[data-rv] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-rv].in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  [data-rv] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* FOOTER UNIFICADO */
+.site-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: #080A0D;
+  padding: 56px 22px 40px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer-brand {
+  max-width: 320px;
+}
+
+.footer-brand p {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.footer-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+}
+
+.footer-col h4 {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.footer-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.footer-col a:hover {
+  color: var(--text-primary);
+}
+
+.footer-bottom {
+  padding-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.footer-bottom a {
+  color: var(--text-secondary);
 }
 </style>
 </head>
-<body>
-<div>
+<body data-game-id="rocket-league">
   
-<header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px max(22px,calc((100% - 1200px)/2));background:oklch(0.12 0.01 260 / 0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid oklch(0.25 0.012 260)">
-  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:124px;display:block"></a>
-  <nav style="display:flex;gap:24px;font-size:13px;color:oklch(0.75 0.014 260)">
-    <a href="/jogos/" style="color:oklch(0.955 0.006 260);font-weight:700;">Jogos</a>
-    <a href="/#casos">Casos de uso</a>
-    <a href="/#concorrentes">Comparativo</a>
-    <a href="/#combo">Linka</a>
-    <a href="/#como">Como funciona</a>
-    <a href="/#veredito">Veredito</a>
-    <a href="/#faq">Dúvidas</a>
-  </nav>
-  <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" style="padding:9px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:oklch(0.98 0 0);font-size:13px;font-weight:700">Baixar na App Store</a>
+<a href="#conteudo-principal" class="skip-link">Pular para o conteúdo principal</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="brand-link" aria-label="Lagcheck Home">
+      <img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" class="brand-logo" width="124" height="28">
+    </a>
+
+    <nav class="desktop-nav" aria-label="Navegação principal">
+      <a href="/jogos/" class="active">Jogos</a>
+      <a href="/#como">Como funciona</a>
+      <a href="/#faq">Dúvidas</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-header-cta" aria-label="Baixar na App Store">
+        <svg width="15" height="18" viewBox="0 0 170 170" fill="currentColor" aria-hidden="true">
+          <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.85-11.93-14.42-6.52-10.11-11.75-21.43-15.68-33.95-3.93-12.52-5.9-24.18-5.9-34.98 0-14.15 3.58-25.92 10.74-35.31 7.16-9.39 16.27-14.2 27.33-14.42 4.9 0 10.3 1.34 16.22 4.01 5.92 2.68 9.77 4.07 11.55 4.18 1.56 0 5.48-1.46 11.76-4.39 6.27-2.92 11.79-4.26 16.55-4.01 12.72.63 22.74 5.28 30.06 13.97-11.08 6.74-16.51 15.99-16.3 27.75.22 9.24 3.86 17.02 10.92 23.34 7.07 6.33 15.42 9.85 25.06 10.57-2.35 7.18-5.26 14.65-8.73 22.4zM119.22 33.3c0-7.39 2.67-14.23 8.01-20.52 5.34-6.29 11.96-10.55 19.86-12.78.33 1.33.49 2.44.49 3.34 0 7.39-2.78 14.41-8.34 21.05-5.56 6.64-12.28 10.63-20.16 11.97-.22-1.12-.34-2.14-.34-3.06z"/>
+        </svg>
+        Baixar na App Store
+      </a>
+      <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav">
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav-drawer" id="mobile-nav" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Menu de navegação">
+    <div class="mobile-nav-links">
+      <a href="/" class="mobile-link">Início</a>
+      <a href="/jogos/" class="mobile-link">Catálogo de Jogos (20)</a>
+      <a href="/#demonstracao" class="mobile-link">Demonstração do Resultado</a>
+      <a href="/#como" class="mobile-link">Como funciona</a>
+      <a href="/#speedtest" class="mobile-link">Speedtest vs Lagcheck</a>
+      <a href="/#transparencia" class="mobile-link">O que é medido</a>
+      <a href="/#faq" class="mobile-link">Dúvidas frequentes</a>
+      <a href="/support/" class="mobile-link">Suporte Oficial</a>
+      <a href="/privacy/" class="mobile-link">Privacidade</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-mobile-download">
+        Baixar grátis na App Store →
+      </a>
+      <p class="mobile-nav-subtext">Disponível para iPhone (iOS 17+)</p>
+    </div>
+  </div>
 </header>
 
 
-  <!-- HERO DO JOGO -->
-  <section style="position:relative;min-height:clamp(560px,88vh,820px);display:flex;align-items:flex-end;overflow:hidden;background:oklch(0.12 0.01 260)">
-    <img src="/assets/games/rocketleague.jpg" alt="Capa de Rocket League" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;transform:scale(1.04);animation:kb 18s ease-in-out infinite alternate">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,oklch(0.12 0.01 260 / 0.55) 0%,oklch(0.12 0.01 260 / 0.1) 30%,oklch(0.12 0.01 260 / 0.7) 70%,oklch(0.12 0.01 260) 100%)"></div>
-    <div style="position:relative;width:100%;max-width:1100px;margin:auto;padding:0 22px 64px">
-      <nav aria-label="Trilha" style="margin-bottom:26px;font:11px ui-monospace,monospace;color:oklch(0.85 0.01 260)">
-        <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / Rocket League
-      </nav>
-      <p class="hi" style="margin:0 0 16px;font:11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:oklch(0.85 0.1 299)">PC · PlayStation · Xbox · Switch</p>
-      <h1 class="hi" style="animation-delay:.1s;margin:0;max-width:900px;font:900 clamp(46px,8vw,112px)/.9 ui-rounded,system-ui,sans-serif;letter-spacing:-.065em;text-wrap:balance;text-shadow:0 4px 40px #0008">
-        Testar ping no Rocket League
-      </h1>
-      <p class="hi" style="animation-delay:.2s;margin:24px 0 0;max-width:560px;font-size:20px;line-height:1.4;color:oklch(0.92 0.008 260)">
-        Descubra se sua conexão está estável antes de entrar na fila de Rocket League. O Lagcheck mede latência, jitter e perda de pacotes e entrega um veredito claro.
-      </p>
-      <div class="hi" style="animation-delay:.3s;margin-top:32px">
-        <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" aria-label="Baixar na App Store" class="btn-appstore">
-          <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/pt-br?size=250x83" alt="Baixar na App Store" style="height:56px;display:block">
-        </a>
+  <main id="conteudo-principal">
+    <!-- HERO COM CAPA OTIMIZADA E CONTEXTO -->
+    <section style="position:relative;min-height:clamp(460px,70vh,680px);display:flex;align-items:flex-end;background:#0B0D10;overflow:hidden">
+      <picture style="position:absolute;inset:0;width:100%;height:100%">
+        <source srcset="/assets/games/rocketleague.webp" type="image/webp">
+        <img src="/assets/games/rocketleague.jpg" alt="Capa ilustrativa de Rocket League" fetchpriority="high" width="1280" height="720" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0.38">
+      </picture>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(11,13,16,0.6) 0%, rgba(11,13,16,0.2) 40%, #0B0D10 100%)"></div>
+
+      <div style="position:relative;width:100%;max-width:1100px;margin:0 auto;padding:40px 22px 60px">
+        <nav aria-label="Trilha de navegação" style="margin-bottom:20px;font-size:12px;font-family:var(--font-mono);color:var(--text-muted)">
+          <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / <span style="color:#fff">Rocket League</span>
+        </nav>
+        <span class="eyebrow">PC · PlayStation · Xbox · Switch</span>
+        <h1 style="font-size:clamp(36px,6vw,76px);font-weight:900;letter-spacing:-0.05em;line-height:1.02;margin-bottom:16px;max-width:860px">
+          Testar ping no Rocket League
+        </h1>
+        <p style="font-size:clamp(16px,2vw,20px);color:#D1D5DB;max-width:620px;line-height:1.5;margin-bottom:28px">
+          Futebol acrobático com carros em física de simulação calculada em tempo real no servidor. Descubra se sua conexão está estável antes de iniciar a partida.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+          <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" aria-label="Baixar na App Store">
+            Baixar grátis na App Store
+          </a>
+          <span style="font-size:13px;font-family:var(--font-mono);color:var(--text-muted)">Diagnóstico no iPhone</span>
+        </div>
       </div>
+    </section>
+
+    <!-- DETALHES DE REDE DO JOGO -->
+    <div style="max-width:1100px;margin:0 auto;padding:50px 22px 90px">
+      <div class="platform-notice">
+        <b>Diagnóstico via iPhone para PC/Console:</b> O Lagcheck é executado no iPhone. Estando conectado na mesma rede doméstica da sua casa, ele verifica se o roteador ou o provedor estão apresentando perda de pacotes e oscilação de rota antes de você entrar na fila competitiva no PC ou console.
+       </div>
+
+      <!-- O QUE O CHECK MEDE -->
+      <section style="margin-top:40px">
+        <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
+          O que o check analisa para Rocket League
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:#A78BFA;display:block;margin-bottom:6px">LATÊNCIA REAL</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Ping de ida e volta</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Tempo que os pacotes UDP levam para ir e voltar do destino regional.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--status-caution);display:block;margin-bottom:6px">OSCILAÇÃO</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Jitter entre pacotes</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">A variação do tempo de resposta que causa micro-stutters e tiros desincronizados.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:var(--status-unstable);display:block;margin-bottom:6px">DESCARTE</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Perda de pacotes</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Pacotes perdidos que geram teleportes e comandos não registrados.</p>
+          </article>
+          <article class="card" style="padding:22px">
+            <span style="font-size:11px;font-family:var(--font-mono);color:#38BDF8;display:block;margin-bottom:6px">BUFFERBLOAT</span>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">Comportamento sob carga</h3>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">Como a rota reage caso alguém assista streaming ou faça download na mesma rede.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- SINTOMAS COMUNS E ROTA -->
+      <section style="margin-top:60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+        <div class="card" style="padding:28px">
+          <span class="eyebrow" style="color:var(--status-unstable)">Sintomas na partida</span>
+          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Como o lag se manifesta no Rocket League</h3>
+          <ul style="list-style:none">
+            
+    <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
+      ✕ Bola 'fantasma' que parece mudar de direção no ar após ser rebatida por outro carro
+    </li>
+  
+    <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
+      ✕ Colisões de carros desajustadas em disputas aéreas e no kick-off inicial
+    </li>
+  
+    <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
+      ✕ Ícones triangulares vermelhos de variação de latência e perda de pacotes na tela
+    </li>
+  
+    <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
+      ✕ Carro saindo do chão e caindo de volta bruscamente ao coletar boost de 100%
+    </li>
+  
+          </ul>
+        </div>
+
+        <div class="card" style="padding:28px;background:linear-gradient(145deg, rgba(124,58,237,0.12), rgba(21,24,30,0.95))">
+          <span class="eyebrow">Infraestrutura</span>
+          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Rota medida e destino</h3>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.6;margin-bottom:18px">
+            Muitos títulos competitivos rodam sobre a infraestrutura da AWS. O Lagcheck mede a rota UDP até beacons de referência de infraestrutura em São Paulo (sa-east-1).
+          </p>
+          <div style="padding:14px;border-radius:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.5">
+            <b>Recomendação prática:</b> Faça o check no iPhone para checar o nível de jitter na sua rede antes de disputar partidas competitivas no Rocket League.
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ ESPECÍFICA DO JOGO -->
+      <section style="margin-top:60px">
+        <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
+          Perguntas sobre lag no Rocket League
+        </h2>
+        <div style="display:grid;gap:14px">
+          
+    <article class="card" style="padding:22px">
+      <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">Por que o Rocket League sofre tanto com pequenas oscilações de ping?</h3>
+      <p style="font-size:14px;line-height:1.6;color:var(--text-secondary)">Porque a trajetória da bola e dos veículos é simulada a 120 Hz no servidor. Qualquer pacote atrasado força o cliente a corrigir a posição dos objetos, causando o famoso desvio fantasma.</p>
+    </article>
+  
+    <article class="card" style="padding:22px">
+      <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">O Lagcheck avalia a perda de pacotes?</h3>
+      <p style="font-size:14px;line-height:1.6;color:var(--text-secondary)">Sim. O app mede a porcentagem exata de pacotes UDP descartados na rota de referência regional em São Paulo.</p>
+    </article>
+  
+    <article class="card" style="padding:22px">
+      <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">Posso confiar no veredito?</h3>
+      <p style="font-size:14px;line-height:1.6;color:var(--text-secondary)">O veredito é determinístico e derivado de regras transparentes: se houver perda ou jitter alto, ele indicará 'Condições instáveis' ou que evitaria ranked.</p>
+    </article>
+  
+        </div>
+      </section>
+
+      <!-- OUTROS JOGOS -->
+      <section style="margin-top:60px;padding-top:40px;border-top:1px solid var(--border-subtle)">
+        <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:16px">Verificar outros jogos</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          
+    <a href="/jogos/fortnite/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      Fortnite
+    </a>
+  
+    <a href="/jogos/free-fire/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      Free Fire
+    </a>
+  
+    <a href="/jogos/cod-mobile/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      COD Mobile
+    </a>
+  
+    <a href="/jogos/valorant/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      Valorant
+    </a>
+  
+    <a href="/jogos/counter-strike-2/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--bg-surface-2);border:1px solid var(--border-subtle);font-size:13px;font-weight:600;color:#fff">
+      Counter-Strike 2
+    </a>
+  
+          <a href="/jogos/" style="font-size:13px;font-weight:700;color:#A78BFA">Ver todos os 20 →</a>
+        </div>
+      </section>
     </div>
-  </section>
-
-  <main style="max-width:1100px;margin:auto;padding:70px 22px 0">
-    <!-- MÉTRICAS -->
-    <section style="padding:0 0 70px">
-      <h2 style="margin:0 0 26px;font:850 clamp(28px,3.6vw,42px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">
-        O que o check mede para Rocket League
-      </h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Latência</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Tempo de ida e volta dos pacotes UDP até o destino regional.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Jitter</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">A oscilação da latência, responsável por micro-travamentos e tiros que não conectam.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Perda de pacotes</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Pacotes perdidos no percurso, que viram teleportes, rubber-banding e ações atrasadas.</p>
-        </article>
-        <article style="padding:24px;border-radius:22px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-          <h3 style="margin:0;font:850 20px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Sob carga</h3>
-          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Como a rota reage se alguém estiver assistindo streaming ou baixando algo na mesma rede.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ROTA & CAUSAS -->
-    <section style="padding:0 0 70px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
-      <article style="padding:34px;border-radius:28px;background:linear-gradient(135deg,oklch(0.22 0.06 299),oklch(0.16 0.02 260))">
-        <p style="margin:0 0 10px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.78 0.12 299)">Rota medida</p>
-        <h2 style="margin:0;font:850 28px/1.05 ui-rounded,system-ui,sans-serif;letter-spacing:-.045em">Referência AWS · São Paulo</h2>
-        <p style="margin:14px 0 0;font-size:15px;line-height:1.5;color:oklch(0.8 0.014 260)">O matchmaking deste jogo é privado e a distribuidora não publica destino de teste. O Lagcheck mede a rota UDP até o beacon AWS GameLift em São Paulo (sa-east-1).</p>
-        <p style="margin:12px 0 0;font-size:13px;line-height:1.5;color:oklch(0.65 0.014 260)">É uma rota de referência regional, não o servidor da sua próxima partida.</p>
-      </article>
-      <article style="padding:34px;border-radius:28px;background:oklch(0.2 0.012 260);border:1px solid oklch(0.3 0.014 260)">
-        <p style="margin:0 0 10px;font:11px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:oklch(0.675 0.014 260)">Causas comuns de lag</p>
-        <ul style="margin:0;padding:0;list-style:none;font-size:15px;line-height:1.5;color:oklch(0.8 0.012 260)">
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Wi-Fi congestionado, canal saturado ou sinal fraco</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Bufferbloat: ping que explode quando a rede entra sob carga</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Rota instável ou degradação na operadora (ISP)</li>
-          <li style="padding:11px 0;border-top:1px solid oklch(0.3 0.014 260)">Dados móveis com cobertura instável ou troca de torre</li>
-        </ul>
-      </article>
-    </section>
-
-    <!-- FAQ DO JOGO -->
-    <section style="padding:0 0 70px">
-      <h2 style="margin:0 0 24px;font:850 clamp(28px,3.6vw,42px)/1 ui-rounded,system-ui,sans-serif;letter-spacing:-.05em">
-        Dúvidas sobre lag no Rocket League
-      </h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Como testar o ping no Rocket League?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Abra o Lagcheck no iPhone, escolha Rocket League e faça o check. Em cerca de 25–35 segundos você recebe o veredito.</p>
-        </article>
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Por que o Rocket League dá lag mesmo com internet rápida?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Velocidade não é estabilidade. Jitter, perda de pacotes e fila no roteador sob carga causam lag mesmo com banda alta.</p>
-        </article>
-        <article style="padding:26px;border-radius:22px;background:oklch(0.2 0.012 260)">
-          <h3 style="margin:0;font:800 19px/1.1 ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">O Lagcheck mostra o ping oficial do Rocket League?</h3>
-          <p style="margin:12px 0 0;font-size:14px;line-height:1.5;color:oklch(0.72 0.014 260)">Não. Ele mede uma rota de referência regional e diz isso com clareza, sem prometer o ping da próxima partida.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- OUTROS JOGOS -->
-    <section style="padding:0 0 90px">
-      <h2 style="margin:0 0 20px;font:850 24px ui-rounded,system-ui,sans-serif;letter-spacing:-.04em">Outros jogos</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        
-    <a href="/jogos/fortnite/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no Fortnite
-    </a>
-  
-    <a href="/jogos/free-fire/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no Free Fire
-    </a>
-  
-    <a href="/jogos/cod-mobile/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no COD Mobile
-    </a>
-  
-    <a href="/jogos/valorant/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no Valorant
-    </a>
-  
-    <a href="/jogos/counter-strike-2/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no Counter-Strike 2
-    </a>
-  
-    <a href="/jogos/apex-legends/" style="padding:12px 18px;border-radius:999px;border:1px solid oklch(0.35 0.014 260);font-weight:700;font-size:14px">
-      Testar ping no Apex Legends
-    </a>
-  
-        <a href="/jogos/" style="padding:12px 18px;border-radius:999px;background:oklch(0.585 0.214 299);color:#fff;font-weight:700;font-size:14px">Ver todos →</a>
-      </div>
-    </section>
   </main>
 
   
-<footer style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;max-width:1200px;margin:auto;padding:36px 22px;font:11px ui-monospace,monospace;color:oklch(0.675 0.014 260);border-top:1px solid oklch(0.2 0.012 260)">
-  <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" style="width:110px"></a>
-  <nav style="display:flex;gap:18px">
-    <a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Baixar o Lagcheck</a>
-    <a href="https://apps.apple.com/app/id6808479321" target="_blank" rel="noopener noreferrer">Baixar o Linka</a>
-    <a href="/jogos/">Jogos</a>
-    <a href="/support/">Suporte</a>
-    <a href="/privacy/">Privacidade</a>
-  </nav>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" aria-label="Lagcheck Home"><img src="/assets/lagcheck-wordmark-light.svg" alt="Lagcheck" width="118" height="26"></a>
+        <p>Diagnóstico determinístico de estabilidade e latência para jogadores competitivos no iPhone.</p>
+        <div style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);font-size:12px;color:var(--text-muted)">
+          <span>Ecossistema</span> <a href="https://signallq.com" target="_blank" rel="noopener noreferrer" style="color:#A78BFA;font-weight:700">SignallQ →</a>
+        </div>
+      </div>
+
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Produto</h4>
+          <ul>
+            <li><a href="https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore">Lagcheck iOS (App Store)</a></li>
+            <li><a href="https://apps.apple.com/app/id6808479321" target="_blank" rel="noopener noreferrer">Linka Speedtest (iOS)</a></li>
+            <li><a href="https://linka-speedtest.web.app/" target="_blank" rel="noopener noreferrer">Linka Speedtest (Web)</a></li>
+            <li><a href="https://signallq.com" target="_blank" rel="noopener noreferrer">SignallQ Android</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Explorar</h4>
+          <ul>
+            <li><a href="/jogos/">Catálogo de Jogos (20)</a></li>
+            <li><a href="/#como">Como funciona</a></li>
+            <li><a href="/#demonstracao">Demonstração</a></li>
+            <li><a href="/#faq">Dúvidas sobre lag</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Institucional</h4>
+          <ul>
+            <li><a href="/support/">Suporte e Contato</a></li>
+            <li><a href="/privacy/">Política de Privacidade</a></li>
+            <li><a href="mailto:suporte@signallq.com">suporte@signallq.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Lagcheck. Todos os direitos reservados. Lagcheck é parte do ecossistema <a href="https://signallq.com" target="_blank" rel="noopener noreferrer">SignallQ</a>.</p>
+      <p>Marcas e nomes de jogos pertencem a suas respectivas publicadoras e foram citados para identificação de rota.</p>
+    </div>
+  </div>
 </footer>
 
-</div>
-
+  
 <script>
 (function() {
-  // Observador de animações de scroll
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        io.unobserve(e.target);
+  'use strict';
+
+  // 1. Menu Mobile Drawer com Gestão de Foco e Acessibilidade
+  var menuBtn = document.getElementById('mobile-menu-btn');
+  var mobileDrawer = document.getElementById('mobile-nav');
+
+  if (menuBtn && mobileDrawer) {
+    function toggleMenu(open) {
+      var isOpen = typeof open === 'boolean' ? open : !mobileDrawer.classList.contains('open');
+      menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuBtn.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
+      mobileDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      if (isOpen) {
+        mobileDrawer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        mobileDrawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    }
+
+    menuBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    // Fechar ao clicar em qualquer link
+    mobileDrawer.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        toggleMenu(false);
+      });
+    });
+
+    // Fechar com Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && mobileDrawer.classList.contains('open')) {
+        toggleMenu(false);
+        menuBtn.focus();
       }
     });
-  }, { threshold: 0.12 });
-  function scan() {
-    document.querySelectorAll('[data-rv]:not(.in)').forEach(function(el) { io.observe(el); });
-  }
-  scan();
-  setInterval(scan, 800);
 
-  // 1. Telemetria anônima de visitas para o informe diário do Discord
+    // Fechar ao clicar fora
+    document.addEventListener('click', function(e) {
+      if (mobileDrawer.classList.contains('open') && !mobileDrawer.contains(e.target) && !menuBtn.contains(e.target)) {
+        toggleMenu(false);
+      }
+    });
+  }
+
+  // 2. Animação de Scroll via IntersectionObserver (executa 1 vez, sem polling no DOM)
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('[data-rv]').forEach(function(el) {
+      observer.observe(el);
+    });
+  } else {
+    document.querySelectorAll('[data-rv]').forEach(function(el) {
+      el.classList.add('in');
+    });
+  }
+
+  // 3. Telemetria anônima de Visita (/v1/visit)
   try {
-    var visitPayload = JSON.stringify({ path: window.location.pathname, ref: document.referrer || undefined });
+    var visitPayload = JSON.stringify({
+      path: window.location.pathname,
+      ref: document.referrer || undefined
+    });
     if (navigator.sendBeacon) {
       navigator.sendBeacon('/v1/visit', visitPayload);
     } else {
@@ -291,32 +936,79 @@ a:hover { color: oklch(0.78 0.12 299); }
     }
   } catch(e) {}
 
-  // 2. Registro de CONVERSÃO ao clicar para baixar na App Store (dispara relatório Discord)
+  // 4. Tracking correto de CONVERSÃO (App Store Click -> /v1/click)
+  // Sem e-mails fictícios e sem corromper a waitlist de leads
   document.addEventListener('click', function(e) {
     var target = e.target.closest('a[data-track-conversion="appstore"]');
     if (!target) return;
 
     try {
-      var convPayload = JSON.stringify({
-        email: 'appstore_download@click.local',
+      var clickPayload = JSON.stringify({
+        event: 'appstore_click',
+        page: window.location.pathname,
+        gameId: document.body.getAttribute('data-game-id') || undefined,
+        source: new URLSearchParams(window.location.search).get('utm_source') || 'web_download',
         platform: 'ios',
-        source: new URLSearchParams(location.search).get('utm_source') || 'web_download',
-        utm: Object.fromEntries(new URLSearchParams(location.search).entries()),
+        utm: Object.fromEntries(new URLSearchParams(window.location.search).entries()),
         createdAt: new Date().toISOString()
       });
 
       if (navigator.sendBeacon) {
-        navigator.sendBeacon('/v1/waitlist', convPayload);
+        navigator.sendBeacon('/v1/click', clickPayload);
       } else {
-        fetch('/v1/waitlist', {
+        fetch('/v1/click', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: convPayload,
+          body: clickPayload,
           keepalive: true
         }).catch(function() {});
       }
     } catch(err) {}
   });
+
+  // 5. Busca e Filtro de Jogos em Tempo Real (/jogos/)
+  var searchInput = document.getElementById('game-search');
+  var filterButtons = document.querySelectorAll('.filter-btn');
+  var gameCards = document.querySelectorAll('.game-card');
+  var emptyState = document.getElementById('games-empty-state');
+
+  if (searchInput && gameCards.length) {
+    var activeCategory = 'all';
+
+    function filterGames() {
+      var query = searchInput.value.trim().toLowerCase();
+      var visibleCount = 0;
+
+      gameCards.forEach(function(card) {
+        var name = (card.getAttribute('data-name') || '').toLowerCase();
+        var cat = card.getAttribute('data-category') || '';
+        var matchesQuery = !query || name.includes(query);
+        var matchesCat = (activeCategory === 'all') || (cat === activeCategory);
+
+        if (matchesQuery && matchesCat) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    searchInput.addEventListener('input', filterGames);
+
+    filterButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        filterButtons.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeCategory = btn.getAttribute('data-filter') || 'all';
+        filterGames();
+      });
+    });
+  }
 })();
 </script>
 

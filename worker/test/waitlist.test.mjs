@@ -212,3 +212,46 @@ test("POST /v1/report/test triggers daily report to Discord", async () => {
   }
 });
 
+test("POST /v1/click tracks App Store clicks without fake email", async () => {
+  const kvMap = new Map();
+  const mockEnv = {
+    WAITLIST_KV: {
+      get: async (key) => kvMap.get(key) || null,
+      put: async (key, val) => kvMap.set(key, val)
+    }
+  };
+
+  const payload = {
+    event: "appstore_click",
+    page: "/jogos/valorant/",
+    gameId: "valorant",
+    source: "game_hero",
+    platform: "ios"
+  };
+
+  const response = await handleRequest(new Request("https://example.workers.dev/v1/click", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }), mockEnv);
+
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.status, "ok");
+  assert.equal(data.event, "appstore_click");
+
+  const total = JSON.parse(kvMap.get("stats:total"));
+  assert.equal(total.clicks, 1);
+});
+
+test("OPTIONS /v1/click responds with CORS preflight headers", async () => {
+  const response = await handleRequest(new Request("https://example.workers.dev/v1/click", {
+    method: "OPTIONS"
+  }));
+
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.ok(response.headers.get("access-control-allow-methods").includes("POST"));
+});
+
+
