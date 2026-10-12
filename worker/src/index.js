@@ -480,13 +480,71 @@ export async function handleAppStoreClick(request, env = {}) {
 // IDs de projetos nao sao segredos; o Bearer e mantido apenas em env.VERCEL_TOKEN.
 const VERCEL_TEAM_ID = "team_VCRx5oIQ20HUO84QLL62RStN";
 const VERCEL_PROJECTS = [
-  { name: "SignallQ", id: "prj_XxQs4bRAtAczAwULNqDzAWgQTkpE", url: "https://signallq.com", color: 0x5b21d6 },
-  { name: "Lagcheck", id: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU", url: "https://lagcheck.signallq.com", color: 0x7c3aed },
-  { name: "Linka", id: "prj_7BpZVVugGOf644g81XxOCLKnDRe0", url: "https://linka.signallq.com", color: 0x0284c7 }
+  {
+    name: "SignallQ",
+    slug: "signallq",
+    id: "prj_XxQs4bRAtAczAwULNqDzAWgQTkpE",
+    title: "SIGNALLQ | Diagnóstico de Internet",
+    url: "https://signallq.com",
+    color: 0x5b21d6
+  },
+  {
+    name: "Lagcheck",
+    slug: "lagcheck",
+    id: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU",
+    title: "LAGCHECK | Gaming Network",
+    url: "https://lagcheck.signallq.com",
+    color: 0x7c3aed
+  },
+  {
+    name: "Linka",
+    slug: "linka",
+    id: "prj_7BpZVVugGOf644g81XxOCLKnDRe0",
+    title: "LINKA | Speedtest & Assist",
+    url: "https://linka.signallq.com",
+    color: 0x102245
+  }
 ];
 
 function brazilDate(date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function brazilDayMonth(dateStr) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}`;
+}
+
+const SPARK_BARS = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+
+export function generateSparkline(days) {
+  if (!Array.isArray(days) || days.length === 0) return null;
+  const values = days.map((d) => (d && Number.isFinite(d.visitors) ? d.visitors : null));
+  if (values.some((v) => v === null)) return null; // dados ausentes em algum dia
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (max === min) {
+    const bar = max === 0 ? " " : "▄";
+    return values.map(() => bar).join("");
+  }
+  return values.map((v) => {
+    const fraction = (v - min) / (max - min);
+    const index = Math.min(Math.floor(fraction * SPARK_BARS.length), SPARK_BARS.length - 1);
+    return SPARK_BARS[index];
+  }).join("");
+}
+
+export function formatDelta(current, previous) {
+  if (!Number.isFinite(current) || !Number.isFinite(previous)) return "Sem base comparável";
+  if (previous === 0) {
+    if (current === 0) return "▬ 0%";
+    return "Sem base comparável";
+  }
+  const pct = ((current - previous) / previous) * 100;
+  const formatted = Math.abs(pct).toFixed(1).replace(".", ",");
+  if (pct > 0.04) return `▲ +${formatted}%`;
+  if (pct < -0.04) return `▼ -${formatted}%`;
+  return "▬ 0%";
 }
 
 async function vercelAnalyticsQuery(env, projectId, resource, since, until, dimension) {
@@ -511,36 +569,74 @@ async function vercelAnalyticsQuery(env, projectId, resource, since, until, dime
   return response.json();
 }
 
-function formatVercelDimension(data, name) {
+function formatVercelNumberedPages(data) {
   if (!Array.isArray(data) || data.length === 0) return "Sem registros no período.";
-  return data.slice(0, 3).map((row) => {
-    const label = String(row?.[name] ?? "Não identificado")
+  return data.slice(0, 3).map((row, idx) => {
+    const path = String(row?.requestPath ?? row?.path ?? "Não identificado")
       .replace(/[\r\n*_]/g, " ")
       .replace(/@/g, "@\u200b")
-      .slice(0, 85);
-    const quantity = Number(row?.pageviews ?? row?.count ?? 0);
-    return "• " + label + ": " + (Number.isFinite(quantity) ? quantity : 0);
+      .slice(0, 75);
+    const views = Number(row?.pageviews ?? row?.count ?? 0);
+    return `${idx + 1}. \`${path}\` — ${Number.isFinite(views) ? views : 0}`;
   }).join("\n").slice(0, 950);
 }
 
-async function readProjectAnalytics(env, project, since, until) {
-  const counts = await vercelAnalyticsQuery(env, project.id, "count", since, until);
-  const visits = Number(counts?.data?.visitors);
-  const pageviews = Number(counts?.data?.pageviews);
-  if (!Number.isFinite(visits) || !Number.isFinite(pageviews)) {
-    throw new Error("Resposta de contagem inesperada da Vercel");
+function formatVercelBulletedReferrers(data) {
+  if (!Array.isArray(data) || data.length === 0) return "Sem registros no período.";
+  return data.slice(0, 3).map((row) => {
+    const host = String(row?.referrerHostname ?? row?.referrer ?? "Direto / Não identificado")
+      .replace(/[\r\n*_]/g, " ")
+      .replace(/@/g, "@\u200b")
+      .slice(0, 75);
+    const views = Number(row?.pageviews ?? row?.count ?? 0);
+    return `• **${host}** — ${Number.isFinite(views) ? views : 0}`;
+  }).join("\n").slice(0, 950);
+}
+
+async function readProjectAnalytics(env, project, referenceDays) {
+  // referenceDays: array de 7 objetos { dateStr, since, until }, ordenados do mais antigo ao mais recente (D-7 a D-1).
+  const d1 = referenceDays[6]; // D-1
+  const d2 = referenceDays[5]; // D-2
+
+  // 1. Consultas diárias dos últimos 7 dias para sparkline e comparação D-1 / D-2
+  const dailyCounts = await Promise.all(
+    referenceDays.map(async (day) => {
+      try {
+        const res = await vercelAnalyticsQuery(env, project.id, "count", day.since, day.until);
+        const visitors = Number(res?.data?.visitors);
+        const pageviews = Number(res?.data?.pageviews);
+        return {
+          dateStr: day.dateStr,
+          visitors: Number.isFinite(visitors) ? visitors : null,
+          pageviews: Number.isFinite(pageviews) ? pageviews : null
+        };
+      } catch (err) {
+        return { dateStr: day.dateStr, visitors: null, pageviews: null };
+      }
+    })
+  );
+
+  const d1Count = dailyCounts[6];
+  const d2Count = dailyCounts[5];
+
+  if (d1Count.visitors === null || d1Count.pageviews === null) {
+    throw new Error("Contagem D-1 indisponível na Vercel");
   }
 
-  // Dados auxiliares nao podem derrubar a contagem principal.
-  const [pages, referrers] = await Promise.allSettled([
-    vercelAnalyticsQuery(env, project.id, "aggregate", since, until, "requestPath"),
-    vercelAnalyticsQuery(env, project.id, "aggregate", since, until, "referrerHostname")
+  // 2. Páginas e referrers do dia D-1
+  const [pagesRes, referrersRes] = await Promise.allSettled([
+    vercelAnalyticsQuery(env, project.id, "aggregate", d1.since, d1.until, "requestPath"),
+    vercelAnalyticsQuery(env, project.id, "aggregate", d1.since, d1.until, "referrerHostname")
   ]);
+
   return {
-    visitors: visits,
-    pageviews,
-    pages: pages.status === "fulfilled" ? formatVercelDimension(pages.value?.data, "requestPath") : "Indisponível",
-    referrers: referrers.status === "fulfilled" ? formatVercelDimension(referrers.value?.data, "referrerHostname") : "Indisponível"
+    visitorsD1: d1Count.visitors,
+    pageviewsD1: d1Count.pageviews,
+    visitorsD2: d2Count.visitors,
+    pageviewsD2: d2Count.pageviews,
+    history7d: dailyCounts,
+    pages: pagesRes.status === "fulfilled" ? formatVercelNumberedPages(pagesRes.value?.data) : "Indisponível",
+    referrers: referrersRes.status === "fulfilled" ? formatVercelBulletedReferrers(referrersRes.value?.data) : "Indisponível"
   };
 }
 
@@ -554,53 +650,108 @@ export async function sendDailyReport(env, now = new Date()) {
     return;
   }
 
-  // Relatorio do dia civil anterior em horario de Brasilia (UTC-3).
-  const yesterday = brazilDate(new Date(now.getTime() - 24 * 60 * 60 * 1000));
-  const today = brazilDate(now);
-  const since = new Date(yesterday + "T00:00:00-03:00").toISOString();
-  const until = new Date(new Date(today + "T00:00:00-03:00").getTime() - 1).toISOString();
+  // Montagem rigorosa dos últimos 7 dias civis (D-7 a D-1) em Brasília (America/Sao_Paulo)
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const referenceDays = [];
+  for (let offset = 7; offset >= 1; offset--) {
+    const dayDate = new Date(now.getTime() - offset * MS_PER_DAY);
+    const dateStr = brazilDate(dayDate);
+    const nextDate = brazilDate(new Date(dayDate.getTime() + MS_PER_DAY));
+    const since = new Date(dateStr + "T00:00:00-03:00").toISOString();
+    const until = new Date(new Date(nextDate + "T00:00:00-03:00").getTime() - 1).toISOString();
+    referenceDays.push({ dateStr, since, until });
+  }
+
+  const d1DateStr = referenceDays[6].dateStr;
+  const d7DateStr = referenceDays[0].dateStr;
 
   const results = await Promise.allSettled(
-    VERCEL_PROJECTS.map((project) => readProjectAnalytics(env, project, since, until))
+    VERCEL_PROJECTS.map((project) => readProjectAnalytics(env, project, referenceDays))
   );
-  const dailyLagcheck = await getStats(env, "stats:daily:" + yesterday);
+
+  const dailyLagcheck = await getStats(env, "stats:daily:" + d1DateStr);
   const clicks = Number(dailyLagcheck.clicks || 0);
+
   const embeds = VERCEL_PROJECTS.map((project, index) => {
     const result = results[index];
     if (result.status !== "fulfilled") {
       console.warn("Vercel Analytics indisponivel para " + project.name + ": " + result.reason?.message);
       return {
-        title: project.name + " — dados indisponíveis",
+        title: project.title + " — dados indisponíveis",
         url: project.url,
         color: project.color,
-        description: "A consulta à Vercel falhou. Verifique o token, o escopo e o script de Analytics. Não substituir por zero ou contagem local."
+        description: "A consulta à Vercel falhou. Verifique o token, o escopo e o script de Analytics. Não substituir por zero ou contagem local.",
+        footer: { text: "Fonte: Vercel Web Analytics · Período D-1: " + d1DateStr }
       };
     }
-    const analytics = result.value;
+
+    const data = result.value;
+    const deltaVisitors = formatDelta(data.visitorsD1, data.visitorsD2);
+    const spark = generateSparkline(data.history7d);
+    const sparkText = spark
+      ? `\`${spark}\`\n${brazilDayMonth(d7DateStr)} → ${brazilDayMonth(d1DateStr)}`
+      : "Histórico insuficiente";
+
     const fields = [
-      { name: "Visitantes únicos", value: String(analytics.visitors), inline: true },
-      { name: "Visualizações de página", value: String(analytics.pageviews), inline: true },
-      { name: "Páginas mais acessadas", value: analytics.pages, inline: false },
-      { name: "Origens de tráfego", value: analytics.referrers, inline: false }
+      { name: "👥 Visitantes únicos", value: String(data.visitorsD1), inline: true },
+      { name: "📄 Visualizações", value: String(data.pageviewsD1), inline: true },
+      { name: "📊 Variação vs ontem", value: deltaVisitors, inline: true },
+      { name: "Tendência dos últimos 7 dias", value: sparkText, inline: false }
     ];
-    if (project.name === "Lagcheck") {
+
+    if (project.slug === "lagcheck") {
+      const clickCount = Number.isFinite(clicks) ? clicks : 0;
+      let aquisicaoText = `🍎 Cliques na App Store: **${clickCount}**`;
+      if (data.visitorsD1 > 0) {
+        const ratePer100 = ((clickCount / data.visitorsD1) * 100).toFixed(1).replace(".", ",");
+        aquisicaoText += `\n**Cliques por 100 visitantes:** ${ratePer100}`;
+      }
+      aquisicaoText += `\n*Nota: Cliques na App Store representam intenção de instalação, não downloads confirmados.*`;
+
       fields.push({
-        name: "Cliques na App Store (medição separada)",
-        value: Number.isFinite(clicks) ? String(clicks) + " cliques; não equivalem a instalações." : "Indisponível",
+        name: "Aquisição",
+        value: aquisicaoText,
+        inline: false
+      });
+      fields.push({
+        name: "Páginas de maior interesse",
+        value: data.pages,
+        inline: false
+      });
+    } else {
+      fields.push({
+        name: "Páginas mais acessadas",
+        value: data.pages,
         inline: false
       });
     }
+
+    fields.push({
+      name: "Principais origens",
+      value: data.referrers,
+      inline: false
+    });
+
     return {
-      title: project.name + " — Web Analytics",
+      title: project.title,
       url: project.url,
       color: project.color,
-      fields
+      fields,
+      footer: {
+        text: `Vercel Web Analytics · D-1: ${d1DateStr} (09h BRT)`
+      }
     };
   });
 
   const payload = {
     username: "SignallQ Analytics",
-    content: "Relatório diário de sites (D-1: " + yesterday + ", Brasília). Fonte: Vercel Web Analytics.",
+    content: [
+      "📊 **RELATÓRIO DIÁRIO — ECOSSISTEMA SIGNALLQ**",
+      "",
+      `📅 Período: ${d1DateStr}`,
+      "🕘 Gerado às 09h · Brasília",
+      "📡 Fonte: Vercel Web Analytics"
+    ].join("\n"),
     embeds
   };
 

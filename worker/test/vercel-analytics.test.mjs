@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handleRequest, sendDailyReport } from "../src/index.js";
+import { handleRequest, sendDailyReport, generateSparkline, formatDelta } from "../src/index.js";
 
 const DISCORD_URL = "https://discord.com/api/webhooks/test";
 const TOKEN = "secret-test-token";
@@ -66,42 +66,115 @@ function setupFetch({ failingProject } = {}) {
   };
 }
 
-test("scheduled report uses Vercel metrics for all sites, not KV visits", async () => {
+test("sparkline unit tests: crescente, decrescente, estavel, zeros e ausentes", () => {
+  // Crescente
+  const inc = generateSparkline([
+    { visitors: 10 }, { visitors: 20 }, { visitors: 30 },
+    { visitors: 40 }, { visitors: 50 }, { visitors: 60 }, { visitors: 70 }
+  ]);
+  assert.equal(inc.length, 7);
+  assert.equal(inc[0], " ");
+  assert.equal(inc[6], "█");
+
+  // Decrescente
+  const dec = generateSparkline([
+    { visitors: 70 }, { visitors: 60 }, { visitors: 50 },
+    { visitors: 40 }, { visitors: 30 }, { visitors: 20 }, { visitors: 10 }
+  ]);
+  assert.equal(dec.length, 7);
+  assert.equal(dec[0], "█");
+  assert.equal(dec[6], " ");
+
+  // Estável com valores > 0
+  const flat = generateSparkline([
+    { visitors: 15 }, { visitors: 15 }, { visitors: 15 },
+    { visitors: 15 }, { visitors: 15 }, { visitors: 15 }, { visitors: 15 }
+  ]);
+  assert.equal(flat, "▄▄▄▄▄▄▄");
+
+  // Todos zeros
+  const zeros = generateSparkline([
+    { visitors: 0 }, { visitors: 0 }, { visitors: 0 },
+    { visitors: 0 }, { visitors: 0 }, { visitors: 0 }, { visitors: 0 }
+  ]);
+  assert.equal(zeros, "       ");
+
+  // Dados ausentes
+  assert.equal(generateSparkline([{ visitors: 10 }, { visitors: null }]), null);
+  assert.equal(generateSparkline([]), null);
+  assert.equal(generateSparkline(null), null);
+});
+
+test("formatDelta unit tests: percentual, queda, estabilidade e divisao por zero", () => {
+  assert.equal(formatDelta(114, 100), "▲ +14,0%");
+  assert.equal(formatDelta(91.5, 100), "▼ -8,5%");
+  assert.equal(formatDelta(100, 100), "▬ 0%");
+  assert.equal(formatDelta(0, 0), "▬ 0%");
+  assert.equal(formatDelta(15, 0), "Sem base comparável");
+  assert.equal(formatDelta(null, 10), "Sem base comparável");
+  assert.equal(formatDelta(10, null), "Sem base comparável");
+});
+
+test("scheduled report delivers formatted 3-product dashboard with sparklines and acquisition", async () => {
   const mock = setupFetch();
   try {
+    // Simula execução às 09:00 BRT em 11/10/2026 (D-1 = 10/10/2026)
     await sendDailyReport(mockEnv(), new Date("2026-10-11T12:00:00.000Z"));
-    assert.equal(mock.calls.length, 9);
-    assert.equal(mock.calls[0].parsed.searchParams.get("since"), "2026-10-10T03:00:00.000Z");
-    assert.equal(mock.calls[0].parsed.searchParams.get("until"), "2026-10-11T02:59:59.999Z");
+    // 3 projetos * (7 contagens diárias + 2 agregações) = 3 * 9 = 27 chamadas
+    assert.equal(mock.calls.length, 27);
     assert.equal(mock.discordMessages.length, 1);
     const report = mock.discordMessages[0];
     assert.equal(report.embeds.length, 3);
-    assert.ok(report.content.includes("Vercel Web Analytics"));
-    const signallq = report.embeds[0];
-    const lagcheck = report.embeds[1];
-    const linka = report.embeds[2];
-    assert.ok(signallq.title.includes("SignallQ"));
-    assert.ok(signallq.fields.some(x => x.name === "Visitantes únicos" && x.value === "20"));
-    assert.ok(signallq.fields.some(x => x.name === "Visualizações de página" && x.value === "55"));
-    assert.ok(signallq.fields.some(x => x.value.includes("/jogos/fortnite/")));
-    assert.ok(lagcheck.fields.some(x => x.name === "Visitantes únicos" && x.value === "13"));
-    assert.ok(lagcheck.fields.some(x => x.value.includes("7 cliques; não equivalem a instalações")));
-    assert.ok(linka.title.includes("Linka"));
-    assert.ok(linka.fields.some(x => x.name === "Visitantes únicos" && x.value === "8"));
-    assert.ok(linka.fields.some(x => x.name === "Visualizações de página" && x.value === "19"));
+    assert.ok(report.content.includes("RELATÓRIO DIÁRIO — ECOSSISTEMA SIGNALLQ"));
+    assert.ok(report.content.includes("Período: 2026-10-10"));
+
+    const [signallq, lagcheck, linka] = report.embeds;
+
+    // 1. SignallQ
+    assert.equal(signallq.title, "SIGNALLQ | Diagnóstico de Internet");
+    assert.equal(signallq.color, 0x5b21d6);
+    assert.ok(signallq.fields.some(x => x.name.includes("Visitantes únicos") && x.value === "20"));
+    assert.ok(signallq.fields.some(x => x.name.includes("Visualizações") && x.value === "55"));
+    assert.ok(signallq.fields.some(x => x.name.includes("Variação vs ontem") && x.value === "▬ 0%"));
+    assert.ok(signallq.fields.some(x => x.name.includes("Tendência dos últimos 7 dias")));
+    assert.ok(signallq.fields.some(x => x.name.includes("Páginas mais acessadas")));
+    assert.ok(signallq.fields.some(x => x.name.includes("Principais origens")));
+
+    // 2. Lagcheck
+    assert.equal(lagcheck.title, "LAGCHECK | Gaming Network");
+    assert.equal(lagcheck.color, 0x7c3aed);
+    assert.ok(lagcheck.fields.some(x => x.name.includes("Visitantes únicos") && x.value === "13"));
+    assert.ok(lagcheck.fields.some(x => x.name.includes("Visualizações") && x.value === "34"));
+    const aquisicao = lagcheck.fields.find(x => x.name === "Aquisição");
+    assert.ok(aquisicao.value.includes("7"));
+    assert.ok(aquisicao.value.includes("Cliques por 100 visitantes"));
+    assert.ok(aquisicao.value.includes("53,8"));
+    assert.ok(aquisicao.value.includes("não downloads confirmados"));
+    assert.ok(lagcheck.fields.some(x => x.name.includes("Páginas de maior interesse")));
+
+    // 3. Linka
+    assert.equal(linka.title, "LINKA | Speedtest & Assist");
+    assert.equal(linka.color, 0x102245);
+    assert.ok(linka.fields.some(x => x.name.includes("Visitantes únicos") && x.value === "8"));
+    assert.ok(linka.fields.some(x => x.name.includes("Visualizações") && x.value === "19"));
+    assert.ok(linka.fields.some(x => x.name.includes("Tendência dos últimos 7 dias")));
+
+    // Nenhum segredo exposto
     assert.ok(!JSON.stringify(report).includes(TOKEN));
   } finally {
     mock.restore();
   }
 });
 
-test("Vercel errors are marked unavailable, not silently counted as zero", async () => {
+test("Vercel errors on single project mark only that embed as unavailable", async () => {
   const mock = setupFetch({ failingProject: "prj_GuijE4Exyc2TplaUG6a22XlbK2gU" });
   try {
     await sendDailyReport(mockEnv(), new Date("2026-10-11T12:00:00.000Z"));
     assert.equal(mock.discordMessages.length, 1);
-    assert.ok(mock.discordMessages[0].embeds[1].title.includes("indisponíveis"));
-    assert.ok(mock.discordMessages[0].embeds[0].fields.some(x => x.value === "20"));
+    const [signallq, lagcheck, linka] = mock.discordMessages[0].embeds;
+    assert.ok(lagcheck.title.includes("dados indisponíveis"));
+    assert.ok(signallq.fields.some(x => x.value === "20"));
+    assert.ok(linka.fields.some(x => x.value === "8"));
   } finally {
     mock.restore();
   }
