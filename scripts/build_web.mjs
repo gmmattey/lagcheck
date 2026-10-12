@@ -3,6 +3,18 @@ import path from 'node:path';
 
 const ROOT_DIR = process.cwd();
 const WEB_DIR = path.join(ROOT_DIR, 'web');
+
+// Script oficial do Web Analytics para paginas HTML estaticas.
+const VERCEL_ANALYTICS_SCRIPT = [
+  '  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>',
+  '  <script defer src="/_vercel/insights/script.js"></script>'
+].join("\n");
+
+function withVercelAnalytics(html) {
+  if (!html.includes("</head>")) throw new Error("HTML without head");
+  return html.replace("</head>", VERCEL_ANALYTICS_SCRIPT + "\n</head>");
+}
+
 const APP_STORE_URL = "https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960";
 const LINKA_APP_STORE_URL = "https://apps.apple.com/app/id6808479321";
 const SIGNALLQ_URL = "https://signallq.com";
@@ -1274,23 +1286,7 @@ const COMMON_JS = `
     });
   }
 
-  // 3. Telemetria anônima de Visita (/v1/visit)
-  try {
-    var visitPayload = JSON.stringify({
-      path: window.location.pathname,
-      ref: document.referrer || undefined
-    });
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon('/v1/visit', visitPayload);
-    } else {
-      fetch('/v1/visit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: visitPayload,
-        keepalive: true
-      }).catch(function() {});
-    }
-  } catch(e) {}
+  // 3. Pageviews e visitantes: Vercel Web Analytics (script no head).
 
   // 4. Tracking correto de CONVERSÃO (App Store Click -> /v1/click)
   // Sem e-mails fictícios e sem corromper a waitlist de leads
@@ -2411,27 +2407,27 @@ Sitemap: https://lagcheck.signallq.com/sitemap.xml
 console.log('🚀 Iniciando geração do site comercial Lagcheck (App Store Live & Dark Competitive UI)...');
 
 // Escreve index.html
-fs.writeFileSync(path.join(WEB_DIR, 'index.html'), generateHome(), 'utf8');
+fs.writeFileSync(path.join(WEB_DIR, 'index.html'), withVercelAnalytics(generateHome()), 'utf8');
 console.log('✅ Home gerada: web/index.html');
 
 // Escreve web/jogos/index.html
 const jogosDir = path.join(WEB_DIR, 'jogos');
 fs.mkdirSync(jogosDir, { recursive: true });
-fs.writeFileSync(path.join(jogosDir, 'index.html'), generateJogosHub(), 'utf8');
+fs.writeFileSync(path.join(jogosDir, 'index.html'), withVercelAnalytics(generateJogosHub()), 'utf8');
 console.log('✅ Hub de jogos gerado: web/jogos/index.html');
 
 // Escreve páginas individuais dos 20 jogos
 for (const game of GAMES) {
   const gameDir = path.join(jogosDir, game.slug);
   fs.mkdirSync(gameDir, { recursive: true });
-  fs.writeFileSync(path.join(gameDir, 'index.html'), generateGamePage(game), 'utf8');
+  fs.writeFileSync(path.join(gameDir, 'index.html'), withVercelAnalytics(generateGamePage(game)), 'utf8');
 }
 console.log(`✅ ${GAMES.length} páginas de jogos geradas em web/jogos/<slug>/index.html`);
 
 // Escreve Suporte (index.html e fallback raiz)
 const supportDir = path.join(WEB_DIR, 'support');
 fs.mkdirSync(supportDir, { recursive: true });
-const supportHtml = generateSupport();
+const supportHtml = withVercelAnalytics(generateSupport());
 fs.writeFileSync(path.join(supportDir, 'index.html'), supportHtml, 'utf8');
 fs.writeFileSync(path.join(WEB_DIR, 'support.html'), supportHtml, 'utf8');
 console.log('✅ Suporte gerado em web/support/index.html e web/support.html');
@@ -2439,7 +2435,7 @@ console.log('✅ Suporte gerado em web/support/index.html e web/support.html');
 // Escreve Privacidade (index.html e fallback raiz)
 const privacyDir = path.join(WEB_DIR, 'privacy');
 fs.mkdirSync(privacyDir, { recursive: true });
-const privacyHtml = generatePrivacy();
+const privacyHtml = withVercelAnalytics(generatePrivacy());
 fs.writeFileSync(path.join(privacyDir, 'index.html'), privacyHtml, 'utf8');
 fs.writeFileSync(path.join(WEB_DIR, 'privacy.html'), privacyHtml, 'utf8');
 console.log('✅ Privacidade gerada em web/privacy/index.html e web/privacy.html');
