@@ -589,6 +589,8 @@ img {
   color: var(--text-secondary);
 }
 </style>
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   
@@ -808,23 +810,7 @@ img {
     });
   }
 
-  // 3. Telemetria anônima de Visita (/v1/visit)
-  try {
-    var visitPayload = JSON.stringify({
-      path: window.location.pathname,
-      ref: document.referrer || undefined
-    });
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon('/v1/visit', visitPayload);
-    } else {
-      fetch('/v1/visit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: visitPayload,
-        keepalive: true
-      }).catch(function() {});
-    }
-  } catch(e) {}
+  // 3. Pageviews e visitantes por Vercel Web Analytics.
 
   // 4. Tracking correto de CONVERSÃO (App Store Click -> /v1/click)
   // Sem e-mails fictícios e sem corromper a waitlist de leads

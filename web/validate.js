@@ -59,6 +59,10 @@ console.log('\n--- 2. Verificação dos 20 Jogos e Imagens de Alta Resolução -
 GAMES.forEach(slug => {
   const gameHtml = path.join(WEB_DIR, 'jogos', slug, 'index.html');
   assert(fs.existsSync(gameHtml), `Página do jogo existe: jogos/${slug}/index.html`);
+  if (fs.existsSync(gameHtml)) {
+    const html = fs.readFileSync(gameHtml, 'utf8');
+    assert(html.includes('/_vercel/insights/script.js'), `Vercel Analytics: script no jogo ${slug}`);
+  }
 });
 
 const gameImages = fs.readdirSync(path.join(WEB_DIR, 'assets', 'games'));
@@ -73,7 +77,8 @@ assert(indexHtml.includes('property="og:image" content="https://lagcheck.signall
 assert(indexHtml.includes('"@type": "MobileApplication"'), 'Schema Home: MobileApplication presente');
 assert(indexHtml.includes('"@type": "FAQPage"'), 'Schema Home: FAQPage presente');
 assert(indexHtml.includes('name="apple-itunes-app"'), 'ASO Home: Smart App Banner configurado');
-assert(indexHtml.includes('/v1/visit'), 'Telemetria Home: Endpoint /v1/visit presente');
+assert(indexHtml.includes('/_vercel/insights/script.js'), 'Vercel Analytics: script oficial na homepage');
+assert(!indexHtml.includes("sendBeacon('/v1/visit'"), 'Vercel Analytics: sem coleta redundante de visitas na Home');
 assert(indexHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'ASO Home: Link oficial do Lagcheck id6818706960 presente');
 assert(indexHtml.includes('https://apps.apple.com/app/id6808479321'), 'Linka: Link de download na App Store presente');
 assert(indexHtml.includes('https://linka.signallq.com'), 'Linka: Link oficial linka.signallq.com presente');
@@ -99,7 +104,9 @@ assert(supportHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Suporte: He
 
 const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy', 'index.html'), 'utf-8');
 assert(privacyHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'Privacidade: Link oficial do Lagcheck id6818706960 presente');
-assert(privacyHtml.includes('Zero Coleta de Dados Pessoais'), 'Privacidade: Conformidade oficial App Store');
+assert(privacyHtml.includes('Sem Cadastro Obrigatório'), 'Privacidade: sem afirmação absoluta de zero coleta');
+assert(privacyHtml.includes('Vercel Web Analytics'), 'Privacidade: identifica o uso da Vercel');
+assert(privacyHtml.includes('clique não confirma uma instalação'), 'Privacidade: distingue clique de instalação');
 assert(privacyHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Privacidade: Header oficial com wordmark presente');
 
 console.log('\n--- 6. Verificação de SEO, Conteúdo Específico e Schemas nos Jogos ---');
@@ -107,7 +114,8 @@ const valorantHtml = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'valorant', 'in
 assert(valorantHtml.includes('Testar ping no Valorant | Lagcheck'), 'SEO Jogo: Title personalizado de Valorant');
 assert(valorantHtml.includes('"@type": "BreadcrumbList"'), 'Schema Jogo: BreadcrumbList presente');
 assert(valorantHtml.includes('"@type": "FAQPage"'), 'Schema Jogo: FAQPage presente');
-assert(valorantHtml.includes('/v1/visit'), 'Telemetria Jogo: Endpoint /v1/visit presente');
+assert(valorantHtml.includes('/_vercel/insights/script.js'), 'Vercel Analytics: script oficial nas páginas de jogos');
+assert(!valorantHtml.includes("sendBeacon('/v1/visit'"), 'Vercel Analytics: sem coleta redundante nos jogos');
 assert(valorantHtml.includes('/v1/click'), 'Conversão Jogo: Endpoint /v1/click presente');
 assert(valorantHtml.includes('https://lagcheck.signallq.com/jogos/valorant/'), 'SEO Jogo: Canonical URL exata');
 

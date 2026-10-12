@@ -1,0 +1,41 @@
+name: Lagcheck Web & Worker CI
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "worker/**"
+      - "scripts/build_web.mjs"
+      - ".github/workflows/analytics-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "worker/**"
+      - "scripts/build_web.mjs"
+      - ".github/workflows/analytics-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Install Worker dev dependencies
+        run: npm ci --prefix worker
+      - name: Regenerate static pages
+        run: node scripts/build_web.mjs
+      - name: Validate HTML and routes
+        run: node web/validate.js
+      - name: Worker unit tests (including Vercel/Discord)
+        run: npm test --prefix worker
