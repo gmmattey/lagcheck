@@ -101,7 +101,9 @@ assert(supportHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Suporte: He
 
 const privacyHtml = fs.readFileSync(path.join(WEB_DIR, 'privacy', 'index.html'), 'utf-8');
 assert(privacyHtml.includes('https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960'), 'Privacidade: Link oficial do Lagcheck id6818706960 presente');
-assert(privacyHtml.includes('Zero Coleta de Dados Pessoais'), 'Privacidade: Conformidade oficial App Store');
+assert(privacyHtml.includes('Sem Cadastro Obrigatório'), 'Privacidade: sem afirmação absoluta de zero coleta');
+assert(privacyHtml.includes('Vercel Web Analytics'), 'Privacidade: identifica o uso da Vercel');
+assert(privacyHtml.includes('clique não confirma uma instalação'), 'Privacidade: distingue clique de instalação');
 assert(privacyHtml.includes('/assets/lagcheck-wordmark-light.svg'), 'Privacidade: Header oficial com wordmark presente');
 
 console.log('\n--- 6. Verificação de SEO, Conteúdo Específico e Schemas nos Jogos ---');
