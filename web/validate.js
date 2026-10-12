@@ -121,6 +121,13 @@ assert(!mcHtml.includes('tiros que não conectam'), 'Minecraft: Sem descrição 
 assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'games', 'valorant-thumb.webp')), 'Performance: Thumbnail WebP gerado para Valorant');
 assert(fs.existsSync(path.join(WEB_DIR, 'assets', 'games', 'valorant.webp')), 'Performance: Hero WebP gerado para Valorant');
 
+const warzoneHtml = fs.readFileSync(path.join(WEB_DIR, 'jogos', 'warzone', 'index.html'), 'utf-8');
+assert(warzoneHtml.includes('Testar ping no Call of Duty: Warzone | Lagcheck'), 'Warzone: Renomeado para Call of Duty: Warzone no title');
+assert(warzoneHtml.includes('"name": "Call of Duty: Warzone"'), 'Warzone: Renomeado para Call of Duty: Warzone nos metadados');
+
+assert(indexHtml.includes('class="platform-icons-row"'), 'Visual: Ícones de plataformas renderizados nos cards da Home');
+assert(indexHtml.includes('class="badge-gamelift"'), 'Visual: Badge discreto AWS GameLift renderizado nos títulos compatíveis');
+
 console.log('\n--- 7. Verificação do Sitemap e Robots ---');
 const sitemapXml = fs.readFileSync(path.join(WEB_DIR, 'sitemap.xml'), 'utf-8');
 assert(sitemapXml.includes('https://lagcheck.signallq.com/'), 'Sitemap: Contém URL da Home');

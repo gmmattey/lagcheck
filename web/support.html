@@ -418,6 +418,56 @@ img {
   border-color: var(--border-hover);
 }
 
+/* ÍCONES DE PLATAFORMAS NOS CARDS */
+.platform-icons-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.card:hover .platform-icon-wrap {
+  color: var(--text-secondary);
+}
+
+.platform-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* BADGE AWS GAMELIFT DISCRETO */
+.badge-gamelift {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 153, 0, 0.08);
+  border: 1px solid rgba(255, 153, 0, 0.22);
+  color: #FFB347;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.badge-gamelift-icon {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
+}
+
 /* PLATFORM CALLOUT (PC x CONSOLE x IPHONE) */
 .platform-notice {
   margin: 24px 0;

@@ -407,7 +407,7 @@ export const GAMES = [
   },
   {
     slug: "warzone",
-    name: "Warzone",
+    name: "Call of Duty: Warzone",
     file: "warzone",
     category: "br",
     categoryLabel: "Battle Royale",
@@ -680,6 +680,35 @@ function getRouteText(infra) {
   if (infra === "dedicated") return "Neste jogo as partidas operam em servidores comunitários ou dedicados. " + base;
   if (infra === "roblox") return "No Roblox, cada experiência aloca instâncias dinâmicas na nuvem. " + base;
   return "Muitos títulos competitivos rodam sobre a infraestrutura da AWS. " + base;
+}
+
+// Ícones oficiais e semânticos de plataformas de jogos (vetoriais, discretos)
+const PLATFORM_ICONS = {
+  iphone: `<span class="platform-icon-wrap" title="iPhone (iOS)" aria-label="iPhone"><svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.65-.79 1.09-1.89.97-2.99-1 .04-2.19.67-2.88 1.48-.61.71-1.14 1.83-1 2.92 1.12.09 2.26-.62 2.91-1.41z"/></svg></span>`,
+  pc: `<span class="platform-icon-wrap" title="PC (Windows / Steam)" aria-label="PC"><svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.951-1.801"/></svg></span>`,
+  playstation: `<span class="platform-icon-wrap" title="PlayStation (PS4 / PS5)" aria-label="PlayStation"><svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.957 15.688c-.02-.857-.616-1.543-1.638-1.925l-4.717-1.748c-.283-.105-.443-.16-.443-.16.899-.586 1.432-1.393 1.432-2.316 0-1.884-2.138-3.328-5.068-3.411-.328-.009-.652.008-.969.053v1.984c.264-.041.536-.062.812-.062 1.849 0 3.072.84 3.072 1.886 0 .979-1.07 1.764-2.735 1.879l-1.149.076v-7.91h-2.195v14.073c-.92-.258-1.56-.632-1.56-1.066 0-.671 1.258-1.259 3.018-1.428l.737-.07v-1.996c-.347.014-.701.045-1.059.09-3.21.411-5.045 1.782-5.045 3.42 0 1.895 2.383 3.328 5.764 3.398l1.6-.037v-2.072c-.179.014-.359.022-.541.022-2.158 0-3.666-.849-3.666-1.886 0-.829.97-1.554 2.457-1.786l1.75-.246v2.176l4.673 1.733c2.083.771 3.454.492 4.093-.578.411-.689.479-1.52.479-2.385m-4.66-1.394l2.766 1.025c.571.214.898.549.907.973 0 .521-.439.99-1.258.99-.441 0-.946-.11-1.488-.313l-3.394-1.258 2.467-1.417z"/></svg></span>`,
+  xbox: `<span class="platform-icon-wrap" title="Xbox (One / Series X|S)" aria-label="Xbox"><svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.524 4.545c2.146-2.043 4.954-3.176 8.014-3.176 3.033 0 5.867 1.133 8.014 3.176-1.277 1.259-2.903 2.502-4.629 3.473-1.03-1.006-2.128-1.905-3.385-1.905-1.282 0-2.38 0.899-3.41 1.905-1.727-.971-3.352-2.214-4.604-3.473zm14.779 14.86c-1.879 1.79-4.328 2.825-7.147 2.825-2.82 0-5.269-1.035-7.148-2.825 1.171-1.309 2.57-2.613 4.148-3.642 1.341 1.144 2.88 2.052 4.606 2.052 1.751 0 3.265-.908 4.606-2.052 1.578 1.029 2.977 2.333 4.935 3.642zm3.172-3.173c.995-1.854 1.525-3.957 1.525-6.232 0-2.223-.53-4.326-1.525-6.18-1.417 1.632-3.085 3.033-4.832 4.172.932 1.332 1.545 2.757 1.954 4.129 1.488 1.196 2.576 2.658 2.878 4.111zm-19.95 0c.302-1.453 1.39-2.915 2.878-4.111.409-1.372 1.022-2.797 1.954-4.129-1.747-1.139-3.415-2.54-4.832-4.172-.995 1.854-1.525 3.957-1.525 6.18 0 2.275.53 4.378 1.525 6.232z"/></svg></span>`,
+  switch: `<span class="platform-icon-wrap" title="Nintendo Switch" aria-label="Nintendo Switch"><svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.929 1.666v20.668h4.542c3.559 0 6.529-2.97 6.529-6.529V8.195c0-3.559-2.97-6.529-6.529-6.529h-4.542zm3.905 4.962a1.99 1.99 0 1 1 0 3.98 1.99 1.99 0 0 1 0-3.98zM6.529 1.666C2.97 1.666 0 4.636 0 8.195v7.61c0 3.559 2.97 6.529 6.529 6.529h4.542V1.666H6.529zm.661 10.38a1.99 1.99 0 1 1 0-3.98 1.99 1.99 0 0 1 0 3.98z"/></svg></span>`
+};
+
+function renderPlatformIcons(platformsStr) {
+  const p = (platformsStr || '').toLowerCase();
+  const icons = [];
+  if (p.includes('iphone') || p.includes('ios')) icons.push(PLATFORM_ICONS.iphone);
+  if (p.includes('pc') || p.includes('steam')) icons.push(PLATFORM_ICONS.pc);
+  if (p.includes('playstation') || p.includes('ps4') || p.includes('ps5')) icons.push(PLATFORM_ICONS.playstation);
+  if (p.includes('xbox')) icons.push(PLATFORM_ICONS.xbox);
+  if (p.includes('switch')) icons.push(PLATFORM_ICONS.switch);
+
+  if (icons.length === 0) {
+    return `<span class="platforms-text-fallback">${platformsStr}</span>`;
+  }
+  return `<div class="platform-icons-row" aria-label="Plataformas suportadas: ${platformsStr}">${icons.join('')}</div>`;
+}
+
+function renderAwsBadge(infra) {
+  if (infra !== 'aws') return '';
+  return `<span class="badge-gamelift" title="Medição regional via beacon oficial AWS GameLift (sa-east-1)" aria-label="Medição oficial AWS GameLift"><svg class="badge-gamelift-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.04 15.65c-2.31 1.7-5.59 2.6-8.48 2.6-4.04 0-7.68-1.54-10.43-4.12-.22-.2-.05-.48.21-.34 3.01 1.63 6.64 2.6 10.36 2.6 2.56 0 5.46-.71 8.08-2.18.39-.22.68.21.26.44zm1.09-1.21c-.29-.38-1.92-.18-2.65-.09-.22.03-.26-.14-.06-.28 1.3-.92 3.44-.65 3.69-.34.25.32-.07 2.47-1.3 3.49-.19.16-.37.07-.29-.14.26-.7 1.01-2.13.61-2.64zM12.98 3.56c-.52-1.34-1.46-2.06-2.6-2.06-1.58 0-2.73 1.33-2.73 3.16 0 2.21 1.64 3.86 3.84 3.86 1.04 0 1.95-.44 2.53-1.18v.98c0 .87-.49 1.37-1.35 1.37-.77 0-1.23-.41-1.37-1.04-.04-.19-.18-.28-.38-.28h-1.02c-.2 0-.34.14-.32.34.28 1.44 1.48 2.38 3.14 2.38 1.83 0 2.92-1.05 2.92-2.85V3.8c0-.2-.14-.34-.34-.34h-.99c-.19 0-.33.14-.33.34v.24c0 .03 0 .07 0 .11-.32-.38-.7-.59-1.01-.59zm-.78 3.62c-.93 0-1.74-.75-1.74-1.95 0-1.12.75-1.89 1.71-1.89.91 0 1.67.75 1.67 1.93 0 1.15-.75 1.91-1.64 1.91z"/></svg>AWS GameLift</span>`;
 }
 
 const COMMON_CSS = `
@@ -1079,6 +1108,56 @@ img {
 
 .card:hover {
   border-color: var(--border-hover);
+}
+
+/* ÍCONES DE PLATAFORMAS NOS CARDS */
+.platform-icons-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.card:hover .platform-icon-wrap {
+  color: var(--text-secondary);
+}
+
+.platform-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* BADGE AWS GAMELIFT DISCRETO */
+.badge-gamelift {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 153, 0, 0.08);
+  border: 1px solid rgba(255, 153, 0, 0.22);
+  color: #FFB347;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.badge-gamelift-icon {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
 }
 
 /* PLATFORM CALLOUT (PC x CONSOLE x IPHONE) */
@@ -1481,7 +1560,10 @@ function buildFooter() {
 function generateHome() {
   const featuredGames = GAMES.slice(0, 8);
 
-  const featuredGamesHtml = featuredGames.map(g => `
+  const featuredGamesHtml = featuredGames.map(g => {
+    const awsBadge = renderAwsBadge(g.infra);
+    const platformIcons = renderPlatformIcons(g.platforms);
+    return `
     <a href="/jogos/${g.slug}/" class="card" style="display:flex;flex-direction:column;padding:16px;border-radius:20px;text-decoration:none">
       <div style="aspect-ratio:1;border-radius:14px;overflow:hidden;background:#15181E;margin-bottom:14px">
         <picture>
@@ -1489,14 +1571,18 @@ function generateHome() {
           <img src="/assets/games/${g.file}.jpg" alt="${g.name}" loading="lazy" decoding="async" width="480" height="480" style="width:100%;height:100%;object-fit:cover">
         </picture>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <h3 style="font-size:17px;font-weight:700;color:#fff">${g.name}</h3>
-        <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h3 style="font-size:17px;font-weight:700;color:#fff;line-height:1.25">${g.name}</h3>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${awsBadge}
+          <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
+        </div>
       </div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${g.platforms}</p>
+      ${platformIcons}
       <span style="font-size:12px;font-weight:700;color:#A78BFA;margin-top:auto">Ver guia e rota →</span>
     </a>
-  `).join('');
+  `;
+  }).join('');
 
   const steps = [
     {
@@ -1904,7 +1990,10 @@ function generateJogosHub() {
     </button>
   `).join('');
 
-  const cardsHtml = GAMES.map(g => `
+  const cardsHtml = GAMES.map(g => {
+    const awsBadge = renderAwsBadge(g.infra);
+    const platformIcons = renderPlatformIcons(g.platforms);
+    return `
     <a href="/jogos/${g.slug}/" class="card game-card" data-name="${g.name}" data-category="${g.category}" style="display:flex;flex-direction:column;padding:16px;border-radius:22px;text-decoration:none">
       <div style="aspect-ratio:1;border-radius:16px;overflow:hidden;background:#15181E;margin-bottom:14px">
         <picture>
@@ -1912,14 +2001,18 @@ function generateJogosHub() {
           <img src="/assets/games/${g.file}.jpg" alt="${g.name}" loading="lazy" decoding="async" width="480" height="480" style="width:100%;height:100%;object-fit:cover">
         </picture>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <h2 style="font-size:18px;font-weight:800;color:#fff">${g.name}</h2>
-        <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <h2 style="font-size:18px;font-weight:800;color:#fff;line-height:1.25">${g.name}</h2>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${awsBadge}
+          <span style="font-size:10px;font-family:var(--font-mono);color:#A78BFA;background:rgba(124,58,237,0.12);padding:2px 8px;border-radius:4px">${g.categoryLabel}</span>
+        </div>
       </div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4">${g.platforms}</p>
+      ${platformIcons}
       <span style="font-size:13px;font-weight:700;color:#A78BFA;margin-top:auto">Ver guia de rota →</span>
     </a>
-  `).join('');
+  `;
+  }).join('');
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">

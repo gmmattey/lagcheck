@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Testar ping no Warzone | Lagcheck</title>
-  <meta name="description" content="Descubra se sua conexão aguenta a ranked no Warzone. Medição determinística de latência, jitter e perda de pacotes no iPhone.">
+  <title>Testar ping no Call of Duty: Warzone | Lagcheck</title>
+  <meta name="description" content="Descubra se sua conexão aguenta a ranked no Call of Duty: Warzone. Medição determinística de latência, jitter e perda de pacotes no iPhone.">
   <meta name="robots" content="index,follow">
   <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/jogos/warzone/">
@@ -14,8 +14,8 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Lagcheck">
-  <meta property="og:title" content="Testar ping no Warzone | Lagcheck">
-  <meta property="og:description" content="Descubra se sua conexão aguenta a ranked no Warzone. Veredito honesto no Lagcheck para iPhone.">
+  <meta property="og:title" content="Testar ping no Call of Duty: Warzone | Lagcheck">
+  <meta property="og:description" content="Descubra se sua conexão aguenta a ranked no Call of Duty: Warzone. Veredito honesto no Lagcheck para iPhone.">
   <meta property="og:url" content="https://lagcheck.signallq.com/jogos/warzone/">
   <meta property="og:image" content="https://lagcheck.signallq.com/assets/games/warzone.jpg">
   <meta name="twitter:card" content="summary_large_image">
@@ -28,7 +28,7 @@
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Lagcheck", "item": "https://lagcheck.signallq.com/" },
           { "@type": "ListItem", "position": 2, "name": "Jogos", "item": "https://lagcheck.signallq.com/jogos/" },
-          { "@type": "ListItem", "position": 3, "name": "Warzone", "item": "https://lagcheck.signallq.com/jogos/warzone/" }
+          { "@type": "ListItem", "position": 3, "name": "Call of Duty: Warzone", "item": "https://lagcheck.signallq.com/jogos/warzone/" }
         ]
       },
       {
@@ -37,7 +37,7 @@
         "operatingSystem": "iOS 17.0+",
         "applicationCategory": "UtilitiesApplication",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
-        "description": "App que diagnostica latência, jitter e perda de pacotes para Warzone antes do ranked.",
+        "description": "App que diagnostica latência, jitter e perda de pacotes para Call of Duty: Warzone antes do ranked.",
         "url": "https://apps.apple.com/br/app/lagcheck-teste-de-ping-gamer/id6818706960"
       },
       {
@@ -462,6 +462,56 @@ img {
   border-color: var(--border-hover);
 }
 
+/* ÍCONES DE PLATAFORMAS NOS CARDS */
+.platform-icons-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.card:hover .platform-icon-wrap {
+  color: var(--text-secondary);
+}
+
+.platform-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* BADGE AWS GAMELIFT DISCRETO */
+.badge-gamelift {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 153, 0, 0.08);
+  border: 1px solid rgba(255, 153, 0, 0.22);
+  color: #FFB347;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.badge-gamelift-icon {
+  width: 11px;
+  height: 11px;
+  display: inline-block;
+}
+
 /* PLATFORM CALLOUT (PC x CONSOLE x IPHONE) */
 .platform-notice {
   margin: 24px 0;
@@ -641,17 +691,17 @@ img {
     <section style="position:relative;min-height:clamp(460px,70vh,680px);display:flex;align-items:flex-end;background:#0B0D10;overflow:hidden">
       <picture style="position:absolute;inset:0;width:100%;height:100%">
         <source srcset="/assets/games/warzone.webp" type="image/webp">
-        <img src="/assets/games/warzone.jpg" alt="Capa ilustrativa de Warzone" fetchpriority="high" width="1280" height="720" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0.38">
+        <img src="/assets/games/warzone.jpg" alt="Capa ilustrativa de Call of Duty: Warzone" fetchpriority="high" width="1280" height="720" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0.38">
       </picture>
       <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(11,13,16,0.6) 0%, rgba(11,13,16,0.2) 40%, #0B0D10 100%)"></div>
 
       <div style="position:relative;width:100%;max-width:1100px;margin:0 auto;padding:40px 22px 60px">
         <nav aria-label="Trilha de navegação" style="margin-bottom:20px;font-size:12px;font-family:var(--font-mono);color:var(--text-muted)">
-          <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / <span style="color:#fff">Warzone</span>
+          <a href="/">Lagcheck</a> / <a href="/jogos/">Jogos</a> / <span style="color:#fff">Call of Duty: Warzone</span>
         </nav>
         <span class="eyebrow">PC · PlayStation · Xbox</span>
         <h1 style="font-size:clamp(36px,6vw,76px);font-weight:900;letter-spacing:-0.05em;line-height:1.02;margin-bottom:16px;max-width:860px">
-          Testar ping no Warzone
+          Testar ping no Call of Duty: Warzone
         </h1>
         <p style="font-size:clamp(16px,2vw,20px);color:#D1D5DB;max-width:620px;line-height:1.5;margin-bottom:28px">
           Battle Royale massivo em grande escala com intenso tráfego de dados e tiroteios decisivos no Gulag. Descubra se sua conexão está estável antes de iniciar a partida.
@@ -675,7 +725,7 @@ img {
       <!-- O QUE O CHECK MEDE -->
       <section style="margin-top:40px">
         <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
-          O que o check analisa para Warzone
+          O que o check analisa para Call of Duty: Warzone
         </h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
           <article class="card" style="padding:22px">
@@ -705,7 +755,7 @@ img {
       <section style="margin-top:60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
         <div class="card" style="padding:28px">
           <span class="eyebrow" style="color:var(--status-unstable)">Sintomas na partida</span>
-          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Como o lag se manifesta no Warzone</h3>
+          <h3 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:14px">Como o lag se manifesta no Call of Duty: Warzone</h3>
           <ul style="list-style:none">
             
     <li style="padding:12px 0;border-top:1px solid var(--border-subtle);font-size:15px;line-height:1.5;color:#E5E7EB">
@@ -742,7 +792,7 @@ img {
       <!-- FAQ ESPECÍFICA DO JOGO -->
       <section style="margin-top:60px">
         <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.03em;margin-bottom:24px">
-          Perguntas sobre lag no Warzone
+          Perguntas sobre lag no Call of Duty: Warzone
         </h2>
         <div style="display:grid;gap:14px">
           
