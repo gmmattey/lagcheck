@@ -1286,7 +1286,7 @@ const COMMON_JS = `
     });
   }
 
-  // 3. Pageviews e visitantes: Vercel Web Analytics (script no head).
+  // 3. Pageviews e visitantes por Vercel Web Analytics.
 
   // 4. Tracking correto de CONVERSÃO (App Store Click -> /v1/click)
   // Sem e-mails fictícios e sem corromper a waitlist de leads
