@@ -19,12 +19,12 @@ final class DeepLinkParserTests: XCTestCase {
         let invalidUrl = URL(string: "lagcheck://check?game=valorant&platform=smartfridge")!
         XCTAssertEqual(DeepLinkParser.parse(url: invalidUrl), .quickCheck(gameID: "valorant", platform: nil))
 
-        let encodedUrl = URL(string: "https://lagcheck.app/check?GAME=call%20of%20duty")!
+        let encodedUrl = URL(string: "https://lagcheck.signallq.com/check?GAME=call%20of%20duty")!
         XCTAssertEqual(DeepLinkParser.parse(url: encodedUrl), .quickCheck(gameID: "call of duty", platform: nil))
     }
 
     func testParsesUniversalLinkWithGame() {
-        let url = URL(string: "https://lagcheck.app/check?game=fortnite")!
+        let url = URL(string: "https://lagcheck.signallq.com/check?game=fortnite")!
         let result = DeepLinkParser.parse(url: url)
         XCTAssertEqual(result, .quickCheck(gameID: "fortnite", platform: nil))
     }
@@ -54,11 +54,17 @@ final class DeepLinkParserTests: XCTestCase {
         let badScheme = URL(string: "noping://check")!
         XCTAssertNil(DeepLinkParser.parse(url: badScheme))
 
-        let plainHttp = URL(string: "http://lagcheck.app/check")!
+        let plainHttp = URL(string: "http://lagcheck.signallq.com/check")!
         XCTAssertNil(DeepLinkParser.parse(url: plainHttp))
 
         let badDomain = URL(string: "https://evil.com/check")!
         XCTAssertNil(DeepLinkParser.parse(url: badDomain))
+
+        let oldDomain = URL(string: "https://lagcheck.app/check")!
+        XCTAssertNil(DeepLinkParser.parse(url: oldDomain))
+
+        let undocumentedRoute = URL(string: "https://lagcheck.signallq.com/games")!
+        XCTAssertNil(DeepLinkParser.parse(url: undocumentedRoute))
 
         let arbitraryHost = URL(string: "lagcheck://arbitraryhost")!
         XCTAssertNil(DeepLinkParser.parse(url: arbitraryHost))
