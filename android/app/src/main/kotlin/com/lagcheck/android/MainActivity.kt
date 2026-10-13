@@ -225,9 +225,6 @@ class MainActivity : ComponentActivity() {
                             onOpenHistory = {
                                 viewModel.navigateTo(Screen.History)
                             },
-                            onOpenSettings = {
-                                viewModel.navigateTo(Screen.Settings)
-                            },
                             onOpenLatestResult = {
                                 viewModel.openLatestResult()
                             },

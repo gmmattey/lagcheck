@@ -58,7 +58,6 @@ fun HomeScreen(
     onStartCheck: () -> Unit,
     onOpenGames: () -> Unit,
     onOpenHistory: () -> Unit,
-    onOpenSettings: () -> Unit,
     onOpenLatestResult: () -> Unit,
     onOpenNetworkCockpit: () -> Unit = {},
     /** Problema reportado na rede do console escolhido. Nulo = nada a avisar. */
@@ -93,7 +92,6 @@ fun HomeScreen(
     ) {
         // 1. Topline: Wordmark oficial (88px) + Ícone de Rede + Botão '…' (Ajustes)
         HomeTopBar(
-            onOpenSettings = onOpenSettings,
             onOpenNetworkCockpit = onOpenNetworkCockpit,
             modifier = Modifier.padding(top = 8.dp)
         )

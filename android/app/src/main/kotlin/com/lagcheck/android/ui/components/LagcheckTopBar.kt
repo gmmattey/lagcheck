@@ -34,7 +34,6 @@ import com.lagcheck.core.designsystem.theme.LagCheckTypography
  */
 @Composable
 fun HomeTopBar(
-    onOpenSettings: () -> Unit,
     onOpenNetworkCockpit: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -70,21 +69,6 @@ fun HomeTopBar(
                         color = LagCheckColors.TextSecondary
                     )
                 }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable { onOpenSettings() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "…",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LagCheckColors.TextPrimary
-                )
             }
         }
     }

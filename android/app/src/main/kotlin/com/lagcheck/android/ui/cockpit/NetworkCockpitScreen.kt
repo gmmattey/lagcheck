@@ -81,26 +81,6 @@ fun NetworkCockpitScreen(
         Toast.makeText(context, tr("Dados da rede copiados!"), Toast.LENGTH_SHORT).show()
     }
 
-    fun exportReport() {
-        if (isProbing) return
-        val file = NetworkReportPdfExporter.export(context, tr("Dados da Rede"), sections)
-        if (file == null) {
-            Toast.makeText(context, tr("Não deu para gerar o relatório."), Toast.LENGTH_SHORT).show()
-            return
-        }
-        val shared = runCatching {
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "application/pdf"
-                putExtra(Intent.EXTRA_SUBJECT, tr("LagCheck - Dados da Rede"))
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            context.startActivity(Intent.createChooser(shareIntent, tr("Exportar Relatório")))
-        }.isSuccess
-        if (!shared) Toast.makeText(context, tr("Não deu para gerar o relatório."), Toast.LENGTH_SHORT).show()
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -133,15 +113,7 @@ fun NetworkCockpitScreen(
                 color = LagCheckColors.TextPrimary
             )
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable(enabled = !isProbing) { exportReport() }
-                    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                    .padding(horizontal = 7.dp, vertical = 6.dp)
-            ) {
-                Text(text = tr("PDF"), fontSize = 14.sp, color = if (isProbing) LagCheckColors.TextMuted else LagCheckColors.AccentPrimary)
-            }
+            Spacer(modifier = Modifier.size(48.dp))
         }
 
         Spacer(modifier = Modifier.height(20.dp))
