@@ -572,12 +572,12 @@
   Concluídas a Fase 1 (Viralidade Discord, ASO e Bufferbloat Score) e a Fase 2 (Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17), o LagCheck avança para a **Fase 3 (P2)** para transformar o app em um elemento onipresente do ecossistema do jogador e eliminar atrito na call do Discord/lobby:
   1. *Descoberta Sazonal & Editorial (Item 7):* Atração de tráfego orgânico na App Store via *In-App Events* sincronizados com os calendários das temporadas de Ranked dos principais jogos competitivos, sem infligir marcas de terceiros e a custo zero.
   2. *Acesso por Voz e Busca Nativa (Item 8):* Permitir que o jogador busque por "ping", "valorant", "lag", "ranked" no CoreSpotlight do iOS e execute comandos por voz na Siri (*"E aí Siri, testar conexão no LagCheck"*), acionando medições específicas ou atalhos para jogos específicos.
-  3. *Fricção Zero na Call do Discord (Item 9):* Quando um jogador envia um link de teste na call (`lagcheck.app/check?game=valorant`), o amigo no iPhone não pode ter o atrito de baixar 30 MB da App Store. O link abre instantaneamente o **App Clip** (`LagCheckClip`), executando o teste de rota real em menos de 2 segundos, com banner nativo para o app completo.
+  3. *Fricção Zero na Call do Discord (Item 9):* Quando um jogador envia um link de teste na call (`lagcheck.signallq.com/check?game=valorant`), o amigo no iPhone não pode ter o atrito de baixar 30 MB da App Store. O link abre instantaneamente o **App Clip** (`LagCheckClip`), executando o teste de rota real em menos de 2 segundos, com banner nativo para o app completo.
 - **Decisão:**
   1. **In-App Events Sazonais (Item 7):**
      - Estruturação do catálogo de eventos sazonais no App Store Connect sincronizados com seasons (ex: *"Nova Season de Ranked"*).
      - Artes autorais LagCheck (Dark Competitive UI), sem logotipos, capas ou personagens de terceiros (`docs/18`).
-     - Deeplink canônico universal: `https://lagcheck.app/check?game={game_id}` mapeado para acionamento direto do jogo no app.
+     - Deeplink canônico universal: `https://lagcheck.signallq.com/check?game={game_id}` mapeado para acionamento direto do jogo no app. Atualizado em 12 de outubro de 2026 por autorização explícita de Luiz; os hosts `lagcheck.app`, `www.lagcheck.app` e `check.lagcheck.app` deixam de ser aceitos como Universal Links.
   2. **CoreSpotlight & Siri Shortcuts (Item 8):**
      - `SpotlightIndexCoordinator` indexa os títulos do catálogo localmente com palavras-chave relevantes (`ping`, `lag`, `ranked`, `rotas`, nome do jogo).
      - Suporte a deep links parametrizados por jogo (`lagcheck://check?game={id}`) e tratamento gracioso quando o jogo não for encontrado (cai na Home).
@@ -586,7 +586,7 @@
      - Criação do target `LagCheckClip` (tipo `app-clip`) vinculado aos módulos `NolaggyDomain`, `NolaggyInfrastructure` e `NolaggyDesign`.
      - Exclusão estrita do SwiftData do App Clip para manter binário ultraleve (< 15 MB descompactado, limite estrito Apple HIG).
      - Tela única e direta: abre, executa o check real UDP do jogo especificado na URL, exibe o veredito semântico e convida a instalar o app completo para histórico e widgets.
-     - Suporte a `apple-app-site-association` configurado para `appclips: [{ apps: ["com.lagcheck.app.Clip"] }]`.
+     - Suporte a `apple-app-site-association` em `lagcheck.signallq.com`, configurado para o App ID `2Z4T8228GR.com.lagcheck.app.Clip`.
   4. **Paridade & Integridade:**
      - A lógica de interpretação de URLs de jogos e modelos de indexação mantém paridade e regras determinísticas em pure domain.
 - **Critérios de validação e aceite:**

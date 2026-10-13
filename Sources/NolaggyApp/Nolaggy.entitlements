@@ -12,7 +12,7 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:lagcheck.app</string>
+		<string>applinks:lagcheck.signallq.com</string>
 	</array>
 </dict>
 </plist>

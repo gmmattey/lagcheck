@@ -518,7 +518,7 @@ public struct CheckCompletoResultView: View {
             isWiFi: isWiFi
         ) {
             let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
-            let shareText = "🎮 LagCheck · \(gameName)\n\(quote)\nhttps://lagcheck.app"
+            let shareText = "🎮 LagCheck · \(gameName)\n\(quote)\nhttps://lagcheck.signallq.com"
             if let image = UIImage(contentsOfFile: cardURL.path) {
                 UIPasteboard.general.image = image
                 self.activeShareDestination = .discord(items: [image, shareText])
@@ -554,7 +554,7 @@ public struct CheckCompletoResultView: View {
             *\(AppLocalization.string("result.weight.title", comment: "")):* \(verdictLabel)
             ⏱ *\(pingLabel):* \(pingStr) | *\(jitterLabel):* \(jitterStr) | *\(lossLabel):* \(lossStr)
             \(quote)
-            https://lagcheck.app
+            https://lagcheck.signallq.com
             """
 
             if let image = UIImage(contentsOfFile: cardURL.path) {

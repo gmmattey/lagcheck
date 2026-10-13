@@ -11,7 +11,7 @@ public enum AppDeepLink: Equatable, Sendable {
 /// Parser puro e determinístico de URLs externas para navegação e automação (Decisão 76).
 public enum DeepLinkParser {
     
-    /// Analisa qualquer URL (esquema personalizado `lagcheck://` ou universal `https://lagcheck.app/...`).
+    /// Analisa qualquer URL (esquema personalizado `lagcheck://` ou Universal Link canônico).
     public static func parse(url: URL) -> AppDeepLink? {
         let scheme = url.scheme?.lowercased()
         guard scheme == "lagcheck" || scheme == "https" else {
@@ -21,9 +21,13 @@ public enum DeepLinkParser {
         let host = url.host?.lowercased() ?? ""
         let path = url.path.lowercased()
         
-        // Verifica se é um Universal Link (ex: https://lagcheck.app/...)
+        // Universal Links são uma superfície pública estrita. O esquema
+        // personalizado preserva as automações internas já existentes.
         if scheme == "https" {
-            guard host == "lagcheck.app" || host == "www.lagcheck.app" || host == "check.lagcheck.app" else {
+            guard host == "lagcheck.signallq.com" else {
+                return nil
+            }
+            guard path == "/check" || path == "/check/" || path == "/quicktest" || path == "/quicktest/" else {
                 return nil
             }
         }
