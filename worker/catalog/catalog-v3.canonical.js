@@ -101,7 +101,29 @@ export const catalogExpansionGames = [
   ["dead-by-daylight", "Dead by Daylight", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
   ["for-honor", "For Honor", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
   ["borderlands-3", "Borderlands 3", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
-  ["new-world", "New World: Aeternum", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"]
+  ["new-world", "New World: Aeternum", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["squid-game-unleashed", "Squid Game: Unleashed", ["iphone", "playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["warhammer-darktide", "Warhammer 40,000: Darktide", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["marvel-snap", "MARVEL SNAP", ["iphone", "pc"], "MOBILE_REALTIME"],
+  ["the-outlast-trials", "The Outlast Trials", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["tribes-of-midgard", "Tribes of Midgard", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
+  ["crossfar", "Crossfar", ["pc"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["lost-rift", "Lost Rift", ["pc"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["star-wars-hunters", "Star Wars: Hunters", ["iphone", "nintendo"], "MOBILE_REALTIME"],
+  ["rematch", "Rematch", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["predecessor", "Predecessor", ["playstation", "xbox", "pc"], "MOBILE_REALTIME"],
+  ["super-mega-baseball-4", "Super Mega Baseball 4", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
+  ["marauders", "Marauders", ["pc"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["legacy-steel-and-sorcery", "Legacy: Steel & Sorcery", ["pc"], "CASUAL_REALTIME"],
+  ["ninjala", "Ninjala", ["nintendo"], "CASUAL_REALTIME"],
+  ["roller-champions", "Roller Champions", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
+  ["ghost-recon-breakpoint", "Ghost Recon Breakpoint", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["dark-alliance", "Dungeons & Dragons: Dark Alliance", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["wolcen-lords-of-mayhem", "Wolcen: Lords of Mayhem", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
+  ["streamline", "Streamline", ["pc"], "CASUAL_REALTIME"],
+  ["tacticool", "Tacticool", ["iphone", "pc"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["ghost-war", "Ghost War", ["iphone"], "MOBILE_REALTIME"],
+  ["overwatch-2", "Overwatch 2", ["playstation", "xbox", "pc", "nintendo"], "BATTLE_ROYALE_COMPETITIVE"]
 ];
 
 export function buildCandidateCatalog(manifest) {

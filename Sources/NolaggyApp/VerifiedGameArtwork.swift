@@ -65,7 +65,29 @@ struct VerifiedGameArtwork: View {
             ("pubg", "GamePubg"),
             ("callofduty", "GameCodm"),
             ("codm", "GameCodm"),
-            ("wildrift", "GameWildRift")
+            ("wildrift", "GameWildRift"),
+            ("squidgame", "GameSquidGameUnleashed"),
+            ("darktide", "GameWarhammerDarktide"),
+            ("marvelsnap", "GameMarvelSnap"),
+            ("outlast", "GameTheOutlastTrials"),
+            ("midgard", "GameTribesOfMidgard"),
+            ("crossfar", "GameCrossfar"),
+            ("lostrift", "GameLostRift"),
+            ("starwarshunters", "GameStarWarsHunters"),
+            ("rematch", "GameRematch"),
+            ("predecessor", "GamePredecessor"),
+            ("supermegabaseball", "GameSuperMegaBaseball4"),
+            ("marauders", "GameMarauders"),
+            ("steelandsorcery", "GameLegacySteelAndSorcery"),
+            ("ninjala", "GameNinjala"),
+            ("rollerchampions", "GameRollerChampions"),
+            ("breakpoint", "GameGhostReconBreakpoint"),
+            ("darkalliance", "GameDarkAlliance"),
+            ("wolcen", "GameWolcenLordsOfMayhem"),
+            ("streamline", "GameStreamline"),
+            ("tacticool", "GameTacticool"),
+            ("ghostwar", "GameGhostWar"),
+            ("overwatch", "GameOverwatch2")
         ]
         for (key, assetName) in mapping {
             if id.contains(key) {
