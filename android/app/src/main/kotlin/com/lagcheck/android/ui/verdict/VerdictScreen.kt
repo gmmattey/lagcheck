@@ -27,6 +27,10 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.lagcheck.android.data.LagCheckDiscordCardExporter
+import com.lagcheck.android.share.ShareMediaScene
+import com.lagcheck.android.share.ShareMediaSheet
 import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PdfDocumentIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
@@ -73,6 +79,8 @@ fun VerdictScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    var showShareMedia by remember { mutableStateOf(false) }
+    val shareScene = remember(evaluation, game) { ShareMediaScene.from(game.name, game.drawableResName, evaluation) }
 
     val verdictColor = when (evaluation.verdict) {
         GameReadinessVerdict.READY -> LagCheckColors.Good
@@ -315,6 +323,26 @@ fun VerdictScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Cards 1200x630 / 1080x1920 e vídeo 9:16 para as redes (só com veredito).
+            if (shareScene != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(LagCheckColors.Surface)
+                        .clickable { showShareMedia = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = tr("Cards e vídeo para as redes"),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LagCheckColors.TextPrimary
+                    )
+                }
+            }
+
             // 8. Ações Utilitárias Compactas: Discord, WhatsApp e PDF
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -395,5 +423,9 @@ fun VerdictScreen(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+    }
+
+    if (showShareMedia && shareScene != null) {
+        ShareMediaSheet(scene = shareScene, onDismiss = { showShareMedia = false })
     }
 }

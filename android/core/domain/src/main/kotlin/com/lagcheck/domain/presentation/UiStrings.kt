@@ -119,6 +119,29 @@ object UiStrings {
         t("Afeta: %s", "Affects: %s", "Afecta a: %s")
         // endregion
 
+        // region Cards e vídeo de compartilhamento (Decisão 80)
+        t("Resposta", "Response", "Respuesta")
+        t("Jitter", "Jitter", "Jitter")
+        t("Check · %s", "Check · %s", "Check · %s")
+        t("Check", "Check", "Check")
+        t("Medido com pacotes UDP reais.", "Measured with real UDP packets.", "Medido con paquetes UDP reales.")
+        t("Teste a sua conexão no Lagcheck.", "Test your connection on Lagcheck.", "Prueba tu conexión en Lagcheck.")
+        t("Escolha seu jogo.", "Pick your game.", "Elige tu juego.")
+        t("Procurando o servidor mais próximo…", "Finding the nearest server…", "Buscando el servidor más cercano…")
+        t("Testando os reflexos da sua rede.", "Testing your network’s reflexes.", "Probando los reflejos de tu red.")
+        t("Cada milissegundo conta em %s.", "Every millisecond counts in %s.", "Cada milisegundo cuenta en %s.")
+        t("Enchendo a fila para ver se aguenta a pressão.", "Filling the queue to see if it holds under pressure.", "Llenando la cola para ver si aguanta la presión.")
+        t("Quase lá. Preparando seu veredito.", "Almost there. Preparing your verdict.", "Casi listo. Preparando tu veredicto.")
+        t("Cards e vídeo para as redes", "Cards and video for social", "Tarjetas y video para redes")
+        t("Gere um card ou um vídeo com o seu resultado. Só os números medidos aparecem.", "Create a card or a video with your result. Only measured numbers appear.", "Crea una tarjeta o un video con tu resultado. Solo aparecen los números medidos.")
+        t("Card 1200×630 (WhatsApp, Telegram, X)", "1200×630 card (WhatsApp, Telegram, X)", "Tarjeta 1200×630 (WhatsApp, Telegram, X)")
+        t("Card 1080×1920 (Status, Stories, TikTok)", "1080×1920 card (Status, Stories, TikTok)", "Tarjeta 1080×1920 (Estados, Stories, TikTok)")
+        t("Vídeo 9:16 para TikTok e Reels", "9:16 video for TikTok and Reels", "Video 9:16 para TikTok y Reels")
+        t("Gerando o vídeo…", "Creating the video…", "Creando el video…")
+        t("Não foi possível gerar o arquivo. Tente de novo.", "Could not create the file. Try again.", "No se pudo crear el archivo. Inténtalo de nuevo.")
+        t("Testei minha conexão para jogar %s no Lagcheck. Teste a sua: https://lagcheck.signallq.com", "I tested my connection to play %s on Lagcheck. Test yours: https://lagcheck.signallq.com", "Probé mi conexión para jugar %s en Lagcheck. Prueba la tuya: https://lagcheck.signallq.com")
+        // endregion
+
         for ((pt, en, es) in SCREEN_STRINGS) t(pt, en, es)
     }
 }

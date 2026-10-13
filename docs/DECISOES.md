@@ -83,6 +83,7 @@
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
+| [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
 
 
 
@@ -694,6 +695,23 @@
 - **Critérios de validação e aceite:**
   - Telas Android alinhadas ao protótipo, sem mudar score, veredito, thresholds ou catálogo;
   - Validação em emulador ao final; hardware físico segue necessário para rede/ciclo de vida.
+
+#### Decisão 81
+- **Data:** 13 de outubro de 2026.
+- **Título:** Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Marco (Product Lead), Rian (Android), Renan (Design), Breno (QA) e Luiz (aprovação).
+- **Contexto e Problema:**
+  O resultado precisa ser compartilhável nas redes (Instagram, WhatsApp, Discord, TikTok) com imagem e vídeo, como no gerador do site (`gmmattey/sites`, `sites/signallq/src/lib/share` e `lib/video`).
+- **Decisão:**
+  1. A tela de resultado abre a folha "Cards e vídeo para as redes" com o card 1200×630 (link preview), o card 1080×1920 (Status, Stories, TikTok) e o vídeo 9:16 de 14 s (escolha do jogo, medição com as respostas reais, resultado).
+  2. Tudo é gerado no aparelho e entregue ao seletor do sistema, sem rede e sem servidor; só números medidos aparecem, e resultado inconclusivo não gera arquivo.
+  3. Identidade LagCheck: wordmark oficial, **Google Sans Flex**, rótulo "CHECK" (e não "Teste gamer", termo do SignallQ), selo do Google Play e QR da loja (ZXing core, Apache-2.0, só geração local).
+  4. Os cartões mostram `lagcheck.signallq.com`; trocar pela URL oficial da loja quando houver publicação.
+  5. PDF segue só no resultado; o "…" da Home e o PDF dos Dados da Rede saem.
+- **Critérios de validação e aceite:**
+  - Emulador: card e vídeo (14 s, 1080×1920, 30 fps) gerados e abertos no seletor; fontes em Google Sans Flex;
+  - Validar em aparelho físico e nos apps de destino (Instagram, WhatsApp, TikTok) antes de release.
 
 ## Como Registrar Novas Decisões
 
