@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val viewModel: MainViewModel by viewModels()
+    private val ads by lazy { com.lagcheck.android.ads.AdsController(this) }
 
     override fun onStop() {
         artworkForeground = false
@@ -131,6 +133,26 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Anúncios (Decisão 82): só Home e Histórico, nunca durante um check, nunca sem consentimento.
+            val canRequestAds by ads.canRequestAds.collectAsState()
+            val privacyOptionsRequired by ads.privacyOptionsRequired.collectAsState()
+            androidx.compose.runtime.LaunchedEffect(currentScreen is Screen.Home) {
+                if (currentScreen is Screen.Home) ads.start()
+            }
+            val showBanner = com.lagcheck.session.ads.AdPolicy.shouldShowBanner(
+                com.lagcheck.session.ads.AdContext(
+                    enabled = ads.enabled,
+                    placement = when (currentScreen) {
+                        is Screen.Home -> com.lagcheck.session.ads.AdPlacement.HOME
+                        is Screen.History -> com.lagcheck.session.ads.AdPlacement.HISTORY
+                        else -> null
+                    },
+                    canRequestAds = canRequestAds,
+                    measuring = currentScreen is Screen.Measurement || currentScreen is Screen.RegionalSelection ||
+                        currentScreen is Screen.ConnectionRequired
+                )
+            )
+
             val isHomeOrGames = currentScreen is Screen.Home || currentScreen is Screen.GameSelection ||
                 currentScreen is Screen.History || currentScreen is Screen.Settings
 
@@ -145,6 +167,8 @@ class MainActivity : ComponentActivity() {
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
                     if (isHomeOrGames) {
+                        Column {
+                        if (showBanner) com.lagcheck.android.ads.BannerAdSlot()
                         NavigationBar(
                             containerColor = LagCheckColors.Surface.copy(alpha = 0.9f)
                         ) {
@@ -189,6 +213,7 @@ class MainActivity : ComponentActivity() {
                                 label = { Text(tr("Configurações")) },
                                 colors = tabColors
                             )
+                        }
                         }
                     }
                 }
@@ -372,6 +397,8 @@ class MainActivity : ComponentActivity() {
                             onRegionSelected = { viewModel.setManualRegionId(it) },
                             onOpenHistory = { viewModel.navigateTo(Screen.History) },
                             onClearHistory = { viewModel.clearHistory() },
+                            privacyOptionsRequired = privacyOptionsRequired,
+                            onOpenPrivacyOptions = { ads.showPrivacyOptions() },
                             onBack = { viewModel.navigateTo(Screen.Home) }
                         )
                     }

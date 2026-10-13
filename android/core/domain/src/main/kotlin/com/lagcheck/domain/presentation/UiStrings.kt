@@ -38,6 +38,11 @@ object UiStrings {
     fun entry(pt: String, language: ReadinessLanguage): String? = table[pt]?.let { if (language == ReadinessLanguage.EN) it.en else it.es }
 
     init {
+        // region Anúncios (Decisão 82)
+        t("Anúncio", "Ad", "Anuncio")
+        t("Opções de privacidade", "Privacy options", "Opciones de privacidad")
+        // endregion
+
         // region Histórico (protótipo Android, Decisão 80)
         t("Confirmando referência regional…", "Confirming regional reference…", "Confirmando referencia regional…")
         t("Sem rota viável", "No viable route", "Sin ruta viable")

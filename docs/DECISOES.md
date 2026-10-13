@@ -84,6 +84,7 @@
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
+| [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, desligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` falsa por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
 
 
 
@@ -712,6 +713,31 @@
 - **Critérios de validação e aceite:**
   - Emulador: card e vídeo (14 s, 1080×1920, 30 fps) gerados e abertos no seletor; fontes em Google Sans Flex;
   - Validar em aparelho físico e nos apps de destino (Instagram, WhatsApp, TikTok) antes de release.
+
+#### Decisão 82
+- **Data:** 13 de outubro de 2026.
+- **Título:** Anúncios no Android (AdMob), desligados no beta.
+- **Status Atual:** **Vigente (Implementado, desligado).**
+- **Frentes envolvidas:** Marco (Product Lead), Rian (Android), Iury (rede/telemetria), Breno (QA) e Luiz (autorização).
+- **Contexto e Problema:**
+  O plano "Anúncios no iOS e no Android" (MVP1.1) pede banner adaptativo do AdMob só na Home e no Histórico, com consentimento via UMP e sem ATT. O dono do produto autorizou implementar no Android, **desligado enquanto o app estiver em beta**. Isso suspende, só para o Android, a regra de manter SDK e IDs de anúncio fora do binário do MVP1.
+- **Decisão:**
+  1. **Chave de build:** `ADS_ENABLED` é falso por padrão. Só liga com `-Plagcheck.adsEnabled=true`. Desligado, não há consentimento, inicialização, requisição nem espaço reservado.
+  2. **Regras que não mudam** (`AdPolicy`, JVM puro, testada): só Home e Histórico; nunca durante a medição (pré-leitura, repouso, carga, consentimento de dados móveis); nunca sem `canRequestAds`; fora de Resultado, Detalhes, Jogos e Configurações.
+  3. **Banner** adaptativo ancorado acima da barra inferior, com altura reservada desde o primeiro render e rótulo "Anúncio / Ad"; falha de carga deixa a área vazia.
+  4. **Consentimento:** UMP a cada abertura, na Home; "Opções de privacidade" aparece em Configurações quando o UMP exigir. Sem ATT.
+  5. **IDs:** só os IDs de teste do Google até haver IDs reais; os reais entram por `lagcheck.admobAppId` e `lagcheck.admobBannerUnitId`, sem mudar código.
+  6. **Custo e binário:** AdMob não tem custo recorrente; o APK de release fica em torno de 55 MB. O SDK 25.x exige `-Xskip-metadata-version-check` enquanto o Kotlin do projeto for o 2.0.20.
+- **Pendências antes de ligar (release com anúncios):**
+  - Listings dizem "Zero ads / Zero intrusive ads": reescrever;
+  - `docs/03` e a política de privacidade (`web/privacy`) precisam citar AdMob, UMP e ID de publicidade;
+  - Data safety e declaração do ID de publicidade no Play Console; permissão `AD_ID` já está no manifesto;
+  - Criar o app e a unidade de banner no AdMob e conferir `app-ads.txt`;
+  - Confirmar que nenhum dado de anúncio cruza com a telemetria do Worker;
+  - Validar UMP por região (UE, EUA), TalkBack e anúncio que falha, em aparelho físico.
+- **Critérios de validação e aceite:**
+  - Desligado: nenhum log do SDK e nenhum espaço reservado (validado no emulador);
+  - Ligado em debug: banner de teste carrega em Home e Histórico e não aparece nas outras telas.
 
 ## Como Registrar Novas Decisões
 

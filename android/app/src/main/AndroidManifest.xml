@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
+    <!-- Anúncios (Decisão 82): ID de publicidade para o AdMob; só usado com ADS_ENABLED e consentimento. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
     <!-- Telemetria física de rádio sem rastreamento de localização (Android 13+) -->
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES"
@@ -38,6 +41,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

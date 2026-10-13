@@ -58,6 +58,9 @@ fun SettingsScreen(
     onOpenHistory: () -> Unit,
     onClearHistory: () -> Unit,
     onBack: () -> Unit,
+    /** Só quando o UMP exigir (anúncios ligados). */
+    privacyOptionsRequired: Boolean = false,
+    onOpenPrivacyOptions: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -158,6 +161,13 @@ fun SettingsScreen(
                 title = tr("Licenças de código aberto"),
                 onClick = { showLicensesSheet = true }
             )
+
+            if (privacyOptionsRequired) {
+                SettingRow(
+                    title = tr("Opções de privacidade"),
+                    onClick = onOpenPrivacyOptions
+                )
+            }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
