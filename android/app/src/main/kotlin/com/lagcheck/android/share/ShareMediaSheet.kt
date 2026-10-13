@@ -10,6 +10,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -43,6 +49,8 @@ import androidx.core.content.FileProvider
 import com.lagcheck.android.ui.AppLocale
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
+import com.lagcheck.core.designsystem.components.SocialNetwork
+import com.lagcheck.core.designsystem.components.SocialNetworkIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import java.io.File
 import kotlinx.coroutines.CancellationException
@@ -52,74 +60,80 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** Formato que a pessoa escolhe antes de tocar numa rede. */
+private enum class ShareFormat(val label: String, val previewKind: ShareMediaRenderer.Kind) {
+    LINK("Link", ShareMediaRenderer.Kind.PREVIEW),
+    STORY("Stories", ShareMediaRenderer.Kind.STORY),
+    VIDEO("Vídeo", ShareMediaRenderer.Kind.STORY)
+}
+
 /**
- * Folha "Cards e vídeo para as redes": gera, sob demanda, os cards 1200x630 e 1080x1920 e o vídeo 9:16 do
- * resultado e abre o compartilhamento nativo com o arquivo. Nada é gerado antes do toque (Decisão 80).
+ * Folha "Compartilhar": escolhe o formato (link 1200×630, Stories 1080×1920 ou vídeo 9:16 de 14 s) e toca no ícone
+ * da rede. O arquivo é gerado só depois do toque e vai direto para o app da rede (ou para o seletor do sistema).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareMediaSheet(scene: ShareMediaScene, onDismiss: () -> Unit) {
+fun ShareMediaSheet(scene: ShareMediaScene, highlighted: SocialNetwork? = null, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var format by remember { mutableStateOf(ShareFormat.LINK) }
     var preview by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    var working by remember { mutableStateOf<String?>(null) }
+    var working by remember { mutableStateOf<SocialNetwork?>(null) }
     var progress by remember { mutableFloatStateOf(0f) }
     var failed by remember { mutableStateOf(false) }
     var job by remember { mutableStateOf<Job?>(null) }
 
-    LaunchedEffect(scene) {
+    LaunchedEffect(scene, format.previewKind) {
         preview = withContext(Dispatchers.Default) {
             val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = false)
-            val jpg = ShareMediaRenderer.jpeg(ShareMediaRenderer.Kind.PREVIEW, scene, images)
-            BitmapFactory.decodeByteArray(jpg, 0, jpg.size)
+            val jpg = ShareMediaRenderer.jpeg(format.previewKind, scene, images)
+            BitmapFactory.decodeByteArray(jpg, 0, jpg.size, BitmapFactory.Options().apply { inSampleSize = if (format.previewKind == ShareMediaRenderer.Kind.STORY) 2 else 1 })
         }
     }
 
     fun caption() = trf("Testei minha conexão para jogar %s no Lagcheck. Teste a sua: https://lagcheck.signallq.com", scene.gameName)
 
-    fun share(file: File, mime: String) {
+    fun send(file: File, mime: String, network: SocialNetwork) {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        val intent = Intent(Intent.ACTION_SEND).apply {
+        val base = Intent(Intent.ACTION_SEND).apply {
             type = mime
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(Intent.EXTRA_TEXT, caption())
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, tr("Compartilhar")))
-    }
-
-    fun runCard(kind: ShareMediaRenderer.Kind, name: String, id: String) {
-        failed = false
-        working = id
-        job = scope.launch {
-            try {
-                val file = withContext(Dispatchers.Default) {
-                    val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = false)
-                    val bytes = ShareMediaRenderer.jpeg(kind, scene, images)
-                    File(context.cacheDir, "share/$name").apply { parentFile?.mkdirs(); writeBytes(bytes) }
-                }
-                share(file, "image/jpeg")
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Throwable) {
-                failed = true
-            } finally {
-                working = null
-            }
+        val pkg = network.packageName
+        val installed = pkg != null && context.packageManager.getLaunchIntentForPackage(pkg) != null
+        if (installed) {
+            // Direto para o app da rede; se ele recusar o arquivo, cai no seletor do sistema.
+            val direct = Intent(base).setPackage(pkg)
+            try { context.startActivity(direct); return } catch (_: android.content.ActivityNotFoundException) {}
         }
+        context.startActivity(Intent.createChooser(base, tr("Compartilhar")))
     }
 
-    fun runVideo() {
+    fun run(network: SocialNetwork) {
+        if (working != null) return
         failed = false
-        working = "video"
+        working = network
         progress = 0f
+        val chosen = format
         job = scope.launch {
             try {
-                val file = withContext(Dispatchers.Default) {
-                    val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = true)
-                    ShareVideoRenderer.render(context, scene, images, isCancelled = { !isActive }, onProgress = { progress = it })
+                val (file, mime) = withContext(Dispatchers.Default) {
+                    when (chosen) {
+                        ShareFormat.VIDEO -> {
+                            val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = true)
+                            ShareVideoRenderer.render(context, scene, images, isCancelled = { !isActive }, onProgress = { progress = it }) to "video/mp4"
+                        }
+                        else -> {
+                            val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = false)
+                            val name = if (chosen == ShareFormat.LINK) "lagcheck-card-1200x630.jpg" else "lagcheck-card-1080x1920.jpg"
+                            val bytes = ShareMediaRenderer.jpeg(chosen.previewKind, scene, images)
+                            File(context.cacheDir, "share/$name").apply { parentFile?.mkdirs(); writeBytes(bytes) } to "image/jpeg"
+                        }
+                    }
                 }
-                share(file, "video/mp4")
+                send(file, mime, network)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ShareVideoRenderer.Cancelled) {
@@ -137,35 +151,76 @@ fun ShareMediaSheet(scene: ShareMediaScene, onDismiss: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
                 .padding(bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(tr("Cards e vídeo para as redes"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
+            Text(tr("Compartilhar"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
             preview?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(16.dp))
-                )
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .heightIn(max = 300.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(16.dp))
+                    )
+                }
             }
-            Text(
-                tr("Gere um card ou um vídeo com o seu resultado. Só os números medidos aparecem."),
-                fontSize = 13.sp,
-                color = LagCheckColors.TextSecondary
-            )
-            ActionRow(tr("Card 1200×630 (WhatsApp, Telegram, X)"), working == "preview", working == null, primary = false) {
-                runCard(ShareMediaRenderer.Kind.PREVIEW, "lagcheck-card-1200x630.jpg", "preview")
+            // Formato: Link · Stories · Vídeo
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(LagCheckColors.Surface)
+                    .padding(4.dp)
+            ) {
+                ShareFormat.entries.forEach { f ->
+                    val selected = f == format
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(if (selected) LagCheckColors.AccentPrimary else androidx.compose.ui.graphics.Color.Transparent)
+                            .clickable(enabled = working == null) { format = f },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            tr(f.label),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (selected) androidx.compose.ui.graphics.Color.White else LagCheckColors.TextSecondary
+                        )
+                    }
+                }
             }
-            ActionRow(tr("Card 1080×1920 (Status, Stories, TikTok)"), working == "story", working == null, primary = false) {
-                runCard(ShareMediaRenderer.Kind.STORY, "lagcheck-card-1080x1920.jpg", "story")
+            // Redes: só o ícone, com o nome para o leitor de tela
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                SocialNetwork.entries.forEach { n ->
+                    val desc = if (n == SocialNetwork.MORE) tr("Mais apps") else n.label
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .then(if (n == highlighted) Modifier.border(2.dp, LagCheckColors.AccentPrimary, androidx.compose.foundation.shape.CircleShape) else Modifier)
+                            .semantics { contentDescription = desc }
+                            .clickable(enabled = working == null) { run(n) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SocialNetworkIcon(n, size = 52.dp)
+                        if (working == n) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(52.dp),
+                                color = androidx.compose.ui.graphics.Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+                }
             }
-            ActionRow(tr("Vídeo 9:16 para TikTok e Reels"), working == "video", working == null, primary = true) { runVideo() }
-            if (working == "video") {
+            if (working != null && format == ShareFormat.VIDEO) {
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier
@@ -178,35 +233,11 @@ fun ShareMediaSheet(scene: ShareMediaScene, onDismiss: () -> Unit) {
                     fontSize = 13.sp,
                     color = LagCheckColors.TextSecondary,
                     modifier = Modifier
-                        .heightIn48()
+                        .defaultMinSize(minHeight = 48.dp)
                         .clickable { job?.cancel() }
                 )
             }
             if (failed) Text(tr("Não foi possível gerar o arquivo. Tente de novo."), fontSize = 13.sp, color = LagCheckColors.CoralWarning)
         }
-    }
-}
-
-private fun Modifier.heightIn48() = this.height(48.dp)
-
-@Composable
-private fun ActionRow(title: String, busy: Boolean, enabled: Boolean, primary: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (primary) LagCheckColors.AccentPrimary else LagCheckColors.Surface)
-            .border(1.dp, if (primary) LagCheckColors.AccentPrimary else LagCheckColors.BorderStrong, RoundedCornerShape(14.dp))
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Text(
-            text = if (busy) "$title…" else title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = if (primary) androidx.compose.ui.graphics.Color.White else LagCheckColors.TextPrimary
-        )
     }
 }

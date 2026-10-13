@@ -210,7 +210,7 @@ fun GameSelectionScreen(
                                 maxLines = 1
                             )
                             Spacer(modifier = Modifier.height(5.dp))
-                            com.lagcheck.core.designsystem.components.PlatformGlyph(platform = check.platform)
+                            com.lagcheck.core.designsystem.components.PlatformGlyph(platform = "Mobile")
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

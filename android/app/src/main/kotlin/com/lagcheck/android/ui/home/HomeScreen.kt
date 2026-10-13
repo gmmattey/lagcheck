@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,7 +58,6 @@ fun HomeScreen(
     latestCheck: CheckHistoryItem?,
     onStartCheck: () -> Unit,
     onOpenGames: () -> Unit,
-    onOpenHistory: () -> Unit,
     onOpenLatestResult: () -> Unit,
     onOpenNetworkCockpit: () -> Unit = {},
     /** Problema reportado na rede do console escolhido. Nulo = nada a avisar. */
@@ -91,22 +91,27 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Topline: Wordmark oficial (88px) + Ícone de Rede + Botão '…' (Ajustes)
-        HomeTopBar(
-            onOpenNetworkCockpit = onOpenNetworkCockpit,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+        HomeTopBar(modifier = Modifier.padding(top = 8.dp))
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 2. Network Row: Pílula central com ponto pulsante verde/âmbar
+        // 2. Pílula de rede: toque abre os Dados da Rede
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            RadioSignalPill(
-                label = radioLabel,
-                isWarning = isRadioWarning
-            )
+            Box(
+                modifier = Modifier
+                    .defaultMinSize(minHeight = 48.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .clickable { onOpenNetworkCockpit() },
+                contentAlignment = Alignment.Center
+            ) {
+                RadioSignalPill(
+                    label = radioLabel,
+                    isWarning = isRadioWarning
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(15.dp))
@@ -215,7 +220,8 @@ fun HomeScreen(
 
         val lastColor = when (latestCheck?.verdict) {
             GameReadinessVerdict.READY -> LagCheckColors.Good
-            GameReadinessVerdict.CAUTION, GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
+            GameReadinessVerdict.CAUTION -> LagCheckColors.SemanticCaution
+            GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
             else -> LagCheckColors.TextMuted
         }
 
@@ -252,30 +258,6 @@ fun HomeScreen(
             ) {
                 Text(
                     text = tr("Trocar jogo"),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = LagCheckColors.TextMuted
-                )
-                Text(
-                    text = " ›",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = LagCheckColors.TextPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.padding(horizontal = 14.dp))
-
-            // Histórico ›
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable { onOpenHistory() }
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = tr("Histórico"),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LagCheckColors.TextMuted

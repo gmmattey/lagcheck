@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.components.SecondaryScreenHeader
+import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
@@ -175,11 +176,11 @@ fun HistoryScreen(
                             .padding(horizontal = 20.dp, vertical = 18.dp)
                     ) {
                         listOf(
-                            historyItems.size.toString() to tr("checks"),
-                            historyItems.count { it.verdict == GameReadinessVerdict.READY }.toString() to tr("prontos p/ Ranked"),
-                            groupedByGame.size.toString() to tr("jogos")
-                        ).forEach { (value, label) ->
-                            Column(modifier = Modifier.weight(1f)) {
+                            Triple(historyItems.size.toString(), tr("checks"), 0.8f),
+                            Triple(historyItems.count { it.verdict == GameReadinessVerdict.READY }.toString(), tr("prontos p/ Ranked"), 1.5f),
+                            Triple(groupedByGame.size.toString(), tr("jogos"), 0.8f)
+                        ).forEach { (value, label, w) ->
+                            Column(modifier = Modifier.weight(w)) {
                                 Text(text = value, fontSize = 26.sp, fontWeight = FontWeight.Medium, color = LagCheckColors.TextPrimary)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(text = label, fontSize = 12.sp, color = LagCheckColors.TextMuted)
@@ -232,9 +233,7 @@ fun HistoryScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        checks.firstOrNull()?.platform?.let {
-                                            com.lagcheck.core.designsystem.components.PlatformGlyph(platform = it)
-                                        }
+                                        com.lagcheck.core.designsystem.components.PlatformGlyph(platform = "Mobile")
                                         Text(
                                             text = if (checks.size == 1) tr("1 check") else trf("%d checks", checks.size),
                                             fontSize = 12.sp,
@@ -243,8 +242,8 @@ fun HistoryScreen(
                                     }
                                 }
                             }
-                            checks.forEach { item ->
-                                HistoryRowItem(item = item, onClick = { onSelectCheck(item) })
+                            checks.forEachIndexed { index, item ->
+                                HistoryRowItem(item = item, showDivider = index < checks.lastIndex, onClick = { onSelectCheck(item) })
                             }
                         }
                     }
@@ -357,6 +356,7 @@ fun HistoryScreen(
 @Composable
 private fun HistoryRowItem(
     item: CheckHistoryItem,
+    showDivider: Boolean = true,
     onClick: () -> Unit
 ) {
     val chipColor = when (item.verdict) {
@@ -376,7 +376,7 @@ private fun HistoryRowItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = 0.5.dp, color = Color.White.copy(alpha = 0.08f))
+            .then(if (showDivider) Modifier.rowDivider() else Modifier)
             .clickable { onClick() }
             .padding(vertical = 12.dp)
     ) {

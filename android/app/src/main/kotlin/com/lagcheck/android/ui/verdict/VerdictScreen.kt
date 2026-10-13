@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +46,8 @@ import com.lagcheck.android.share.ShareMediaScene
 import com.lagcheck.android.share.ShareMediaSheet
 import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PdfDocumentIcon
+import com.lagcheck.core.designsystem.components.SocialNetwork
+import com.lagcheck.core.designsystem.components.SocialNetworkIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
@@ -80,6 +84,7 @@ fun VerdictScreen(
 ) {
     val context = LocalContext.current
     var showShareMedia by remember { mutableStateOf(false) }
+    var shareNetwork by remember { mutableStateOf<SocialNetwork?>(null) }
     val shareScene = remember(evaluation, game) { ShareMediaScene.from(game.name, game.drawableResName, evaluation) }
 
     val verdictColor = when (evaluation.verdict) {
@@ -323,101 +328,34 @@ fun VerdictScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Cards 1200x630 / 1080x1920 e vídeo 9:16 para as redes (só com veredito).
-            if (shareScene != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(percent = 50))
-                        .background(LagCheckColors.Surface)
-                        .clickable { showShareMedia = true },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = tr("Cards e vídeo para as redes"),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = LagCheckColors.TextPrimary
-                    )
-                }
-            }
-
-            // 8. Ações Utilitárias Compactas: Discord, WhatsApp e PDF
+            // Compartilhar: só os ícones das redes (só com veredito); toque abre a folha com a rede em destaque.
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Discord
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(percent = 50))
-                        .background(LagCheckColors.Surface)
-                        .clickable { shareToDiscord() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        DiscordLogo(size = 15.dp)
-                        Text(
-                            text = "Discord",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = LagCheckColors.TextPrimary
-                        )
+                if (shareScene != null) {
+                    SocialNetwork.entries.filter { it != SocialNetwork.MORE }.forEach { n ->
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .semantics { contentDescription = n.label }
+                                .clickable { shareNetwork = n; showShareMedia = true },
+                            contentAlignment = Alignment.Center
+                        ) { SocialNetworkIcon(n, size = 48.dp) }
                     }
                 }
-
-                // WhatsApp
+                // PDF: disponível só no resultado
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(percent = 50))
+                        .size(48.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
                         .background(LagCheckColors.Surface)
-                        .clickable { shareToWhatsApp() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        WhatsAppLogo(size = 15.dp)
-                        Text(
-                            text = "WhatsApp",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = LagCheckColors.TextPrimary
-                        )
-                    }
-                }
-
-                // PDF
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(percent = 50))
-                        .background(LagCheckColors.Surface)
+                        .semantics { contentDescription = tr("PDF") }
                         .clickable { exportPDF() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        PdfDocumentIcon(size = 13.dp, color = LagCheckColors.TextSecondary)
-                        Text(
-                            text = tr("PDF"),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = LagCheckColors.TextSecondary
-                        )
-                    }
+                    PdfDocumentIcon(size = 18.dp, color = LagCheckColors.TextSecondary)
                 }
             }
         }
@@ -426,6 +364,6 @@ fun VerdictScreen(
     }
 
     if (showShareMedia && shareScene != null) {
-        ShareMediaSheet(scene = shareScene, onDismiss = { showShareMedia = false })
+        ShareMediaSheet(scene = shareScene, highlighted = shareNetwork, onDismiss = { showShareMedia = false })
     }
 }

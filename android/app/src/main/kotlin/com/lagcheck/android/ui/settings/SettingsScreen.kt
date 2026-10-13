@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.ui.components.SecondaryScreenHeader
+import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.android.ui.tr
@@ -65,6 +66,8 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     var showLanguageSheet by remember { mutableStateOf(false) }
+    var showIconSheet by remember { mutableStateOf(false) }
+    var currentIcon by remember { mutableStateOf(com.lagcheck.android.data.AppIconManager.current(context)) }
     var showDeleteConfirmSheet by remember { mutableStateOf(false) }
     var showRegionSheet by remember { mutableStateOf(false) }
     var showLicensesSheet by remember { mutableStateOf(false) }
@@ -95,6 +98,12 @@ fun SettingsScreen(
                 title = tr("Idioma"),
                 value = currentLanguage,
                 onClick = { showLanguageSheet = true }
+            )
+
+            SettingRow(
+                title = tr("Ícone do app"),
+                value = tr(currentIcon.title),
+                onClick = { showIconSheet = true }
             )
 
             if (regionCandidates.isNotEmpty()) {
@@ -227,6 +236,55 @@ fun SettingsScreen(
             }
         }
 
+        // Sheet Seletor de Ícone do app (Decisão 83)
+        if (showIconSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showIconSheet = false },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                containerColor = LagCheckColors.Surface,
+                dragHandle = {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp, bottom = 18.dp)
+                            .size(width = 35.dp, height = 4.dp)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(LagCheckColors.Border)
+                    )
+                }
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp)) {
+                    Text(tr("Ícone do app"), style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp), color = LagCheckColors.TextPrimary)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(tr("O launcher atualiza em alguns segundos."), fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    com.lagcheck.android.data.AppIcon.entries.forEach { icon ->
+                        val selected = icon == currentIcon
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(72.dp)
+                                .rowDivider()
+                                .clickable {
+                                    com.lagcheck.android.data.AppIconManager.set(context, icon)
+                                    currentIcon = icon
+                                    showIconSheet = false
+                                },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconPreview(icon)
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(tr(icon.title), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary)
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(tr(icon.subtitle), fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                            }
+                            if (selected) Text("✓", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.AccentPrimary)
+                        }
+                    }
+                }
+            }
+        }
+
         // Sheet Seletor de Idioma
         if (showLanguageSheet) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -265,7 +323,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
+                                .rowDivider()
                                 .clickable {
                                     onLanguageSelected(lang)
                                     showLanguageSheet = false
@@ -334,7 +392,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
+                                .rowDivider()
                                 .clickable {
                                     onRegionSelected(if (candidate.id == "automatic") null else candidate.id)
                                     showRegionSheet = false
@@ -526,4 +584,28 @@ private fun SettingRowDestructive(
 /** Abre um link no navegador. Sem navegador disponível, não faz nada (nunca derruba o app). */
 private fun openUrl(context: android.content.Context, url: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+}
+
+/** Miniatura redonda do ícone: glifo roxo sobre o fundo escuro, ou mascote sobre o brilho roxo. */
+@Composable
+private fun IconPreview(icon: com.lagcheck.android.data.AppIcon) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(androidx.compose.foundation.shape.CircleShape)
+            .background(
+                if (icon.foreground == null) androidx.compose.ui.graphics.Brush.linearGradient(listOf(LagCheckColors.Background, LagCheckColors.Background))
+                else androidx.compose.ui.graphics.Brush.radialGradient(
+                    0f to androidx.compose.ui.graphics.Color(0xFF3B2A78),
+                    1f to LagCheckColors.Background
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(icon.foreground ?: com.lagcheck.android.R.mipmap.ic_launcher_foreground),
+            contentDescription = null,
+            modifier = Modifier.size(if (icon.foreground == null) 48.dp else 62.dp)
+        )
+    }
 }

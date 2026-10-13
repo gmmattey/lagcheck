@@ -92,7 +92,7 @@ fun CheckHistoryItemDetailsScreen(
         // Contexto disponível de modo compacto
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "${item.gameName} · ${item.platform} · $dateFormatted",
+                text = "${item.gameName} · Mobile · $dateFormatted",
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )

@@ -84,7 +84,8 @@
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
-| [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, desligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` falsa por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
+| [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
+| [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 
 
 
@@ -710,19 +711,22 @@
   3. Identidade LagCheck: wordmark oficial, **Google Sans Flex**, rótulo "CHECK" (e não "Teste gamer", termo do SignallQ), selo do Google Play e QR da loja (ZXing core, Apache-2.0, só geração local).
   4. Os cartões mostram `lagcheck.signallq.com`; trocar pela URL oficial da loja quando houver publicação.
   5. PDF segue só no resultado; o "…" da Home e o PDF dos Dados da Rede saem.
+  6. **Compartilhar por ícones (13/10/2026):** a tela de resultado mostra só os ícones oficiais de WhatsApp, Telegram, TikTok, X e Instagram (mais o PDF), sem botões de texto; o toque abre a folha com a rede em destaque, onde se escolhe Link, Stories ou Vídeo e o arquivo vai direto ao app da rede (ou ao seletor do sistema se não estiver instalado). Discord e WhatsApp em pílula saem.
+  7. Home sem o ícone de Dados da Rede e sem o atalho duplicado de Histórico: a pílula de rede ("Wi-Fi · ms") abre os Dados da Rede.
+  8. Histórico e catálogo mostram sempre o celular como aparelho; as linhas usam só uma linha fina embaixo (sem caixa em volta).
 - **Critérios de validação e aceite:**
   - Emulador: card e vídeo (14 s, 1080×1920, 30 fps) gerados e abertos no seletor; fontes em Google Sans Flex;
   - Validar em aparelho físico e nos apps de destino (Instagram, WhatsApp, TikTok) antes de release.
 
 #### Decisão 82
 - **Data:** 13 de outubro de 2026.
-- **Título:** Anúncios no Android (AdMob), desligados no beta.
-- **Status Atual:** **Vigente (Implementado, desligado).**
+- **Título:** Anúncios no Android (AdMob).
+- **Status Atual:** **Vigente (Implementado, ligado).** Nasceu desligado no beta; em 13/10/2026 o Luiz mandou deixar ligado.
 - **Frentes envolvidas:** Marco (Product Lead), Rian (Android), Iury (rede/telemetria), Breno (QA) e Luiz (autorização).
 - **Contexto e Problema:**
   O plano "Anúncios no iOS e no Android" (MVP1.1) pede banner adaptativo do AdMob só na Home e no Histórico, com consentimento via UMP e sem ATT. O dono do produto autorizou implementar no Android, **desligado enquanto o app estiver em beta**. Isso suspende, só para o Android, a regra de manter SDK e IDs de anúncio fora do binário do MVP1.
 - **Decisão:**
-  1. **Chave de build:** `ADS_ENABLED` é falso por padrão. Só liga com `-Plagcheck.adsEnabled=true`. Desligado, não há consentimento, inicialização, requisição nem espaço reservado.
+  1. **Chave de build:** `ADS_ENABLED` é verdadeiro por padrão e desliga com `-Plagcheck.adsEnabled=false`. Desligado, não há consentimento, inicialização, requisição nem espaço reservado. **Enquanto só houver IDs de teste, os anúncios exibidos são de teste do Google: trocar pelos IDs reais antes de qualquer distribuição.**
   2. **Regras que não mudam** (`AdPolicy`, JVM puro, testada): só Home e Histórico; nunca durante a medição (pré-leitura, repouso, carga, consentimento de dados móveis); nunca sem `canRequestAds`; fora de Resultado, Detalhes, Jogos e Configurações.
   3. **Banner** adaptativo ancorado acima da barra inferior, com altura reservada desde o primeiro render e rótulo "Anúncio / Ad"; falha de carga deixa a área vazia.
   4. **Consentimento:** UMP a cada abertura, na Home; "Opções de privacidade" aparece em Configurações quando o UMP exigir. Sem ATT.
@@ -737,7 +741,18 @@
   - Validar UMP por região (UE, EUA), TalkBack e anúncio que falha, em aparelho físico.
 - **Critérios de validação e aceite:**
   - Desligado: nenhum log do SDK e nenhum espaço reservado (validado no emulador);
-  - Ligado em debug: banner de teste carrega em Home e Histórico e não aparece nas outras telas.
+  - Ligado: banner de teste carrega em Home e Histórico e não aparece nas outras telas.
+
+#### Decisão 83
+- **Data:** 13 de outubro de 2026.
+- **Título:** Ícone do app com mascote no Android.
+- **Status Atual:** **Vigente (Implementado).** Substitui a exclusão do mascote registrada na Decisão 80 (item 10).
+- **Frentes envolvidas:** Marco (Product Lead), Renan (Design), Rian (Android) e Luiz (aprovação).
+- **Decisão:**
+  1. Configurações → "Ícone do app" oferece Clássico (glifo roxo) e três ícones com o mascote: Joinha, Piscadinha e Comemorando.
+  2. Cada opção é um `activity-alias` do launcher; só um fica habilitado e o sistema é a fonte da verdade. O Clássico é o padrão. A troca não reinstala o app, e o launcher atualiza em alguns segundos (alguns launchers fecham o app ao trocar).
+  3. Os mascotes são ícones adaptativos (primeiro plano 432 px sobre fundo com brilho roxo), vindos do protótipo `Lagcheck - Prototipos.zip`.
+- **Critérios de validação e aceite:** troca confirmada no emulador; validar nos launchers reais (Samsung One UI, Pixel) antes de release.
 
 ## Como Registrar Novas Decisões
 

@@ -247,9 +247,6 @@ class MainActivity : ComponentActivity() {
                                 gamesOpenedFromHome = true
                                 viewModel.navigateTo(Screen.GameSelection)
                             },
-                            onOpenHistory = {
-                                viewModel.navigateTo(Screen.History)
-                            },
                             onOpenLatestResult = {
                                 viewModel.openLatestResult()
                             },

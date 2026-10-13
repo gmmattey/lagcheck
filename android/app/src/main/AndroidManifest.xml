@@ -22,6 +22,15 @@
         android:name="android.permission.ACCESS_FINE_LOCATION"
         android:maxSdkVersion="32" />
 
+    <!-- Visibilidade dos apps das redes para compartilhar direto no app (Decisão 81). -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.twitter.android" />
+        <package android:name="com.instagram.android" />
+    </queries>
+
     <application
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="false"
@@ -36,11 +45,61 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Material.NoActionBar">
+        </activity>
+
+        <!-- Ícone do app (Decisão 83): um alias por ícone; só um fica habilitado. O Clássico é o padrão. -->
+        <activity-alias
+            android:name=".icon.ClassicIcon"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="LagCheck"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".icon.ThumbsIcon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_thumbs"
+            android:roundIcon="@mipmap/ic_launcher_thumbs"
+            android:label="LagCheck"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".icon.WinkIcon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_wink"
+            android:roundIcon="@mipmap/ic_launcher_wink"
+            android:label="LagCheck"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".icon.CheerIcon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_cheer"
+            android:roundIcon="@mipmap/ic_launcher_cheer"
+            android:label="LagCheck"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />

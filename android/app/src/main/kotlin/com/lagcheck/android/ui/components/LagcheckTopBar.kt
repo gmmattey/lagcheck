@@ -34,14 +34,13 @@ import com.lagcheck.core.designsystem.theme.LagCheckTypography
  */
 @Composable
 fun HomeTopBar(
-    onOpenNetworkCockpit: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -51,26 +50,6 @@ fun HomeTopBar(
                 .width(110.dp)
                 .height(30.dp)
         )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            if (onOpenNetworkCockpit != null) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .clickable { onOpenNetworkCockpit() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    NetworkCockpitIcon(
-                        size = 19.dp,
-                        color = LagCheckColors.TextSecondary
-                    )
-                }
-            }
-        }
     }
 }
 

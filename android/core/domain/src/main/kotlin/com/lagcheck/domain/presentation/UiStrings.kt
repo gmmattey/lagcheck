@@ -38,6 +38,24 @@ object UiStrings {
     fun entry(pt: String, language: ReadinessLanguage): String? = table[pt]?.let { if (language == ReadinessLanguage.EN) it.en else it.es }
 
     init {
+        // region Compartilhar por ícones (Decisão 81)
+        t("Link", "Link", "Enlace")
+        t("Stories", "Stories", "Stories")
+        t("Vídeo", "Video", "Video")
+        t("Mais apps", "More apps", "Más apps")
+        // endregion
+
+        // region Ícone do app (Decisão 83)
+        t("Ícone do app", "App icon", "Ícono de la app")
+        t("O launcher atualiza em alguns segundos.", "The launcher updates in a few seconds.", "El launcher se actualiza en unos segundos.")
+        t("Clássico", "Classic", "Clásico")
+        t("Joinha", "Thumbs up", "Pulgar arriba")
+        t("Piscadinha", "Wink", "Guiño")
+        t("Comemorando", "Cheering", "Celebrando")
+        t("Glifo roxo", "Purple glyph", "Glifo morado")
+        t("Mascote", "Mascot", "Mascota")
+        // endregion
+
         // region Anúncios (Decisão 82)
         t("Anúncio", "Ad", "Anuncio")
         t("Opções de privacidade", "Privacy options", "Opciones de privacidad")

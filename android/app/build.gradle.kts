@@ -17,9 +17,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Anúncios (MVP1.1, Decisão 82): desligados no beta. Liga com -Plagcheck.adsEnabled=true.
+        // Anúncios (MVP1.1, Decisão 82): LIGADOS por padrão (decisão do Luiz); desliga com -Plagcheck.adsEnabled=false.
         // Sem IDs reais, o app usa só os IDs de teste do Google (nunca gera tráfego real).
-        val adsEnabled = (project.findProperty("lagcheck.adsEnabled") as String?) == "true"
+        val adsEnabled = (project.findProperty("lagcheck.adsEnabled") as String?) != "false"
         buildConfigField("boolean", "ADS_ENABLED", adsEnabled.toString())
         manifestPlaceholders["admobAppId"] =
             (project.findProperty("lagcheck.admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
