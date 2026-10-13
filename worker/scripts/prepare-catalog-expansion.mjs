@@ -7,7 +7,18 @@ const root = new URL("../../", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("../catalog/artwork-manifest.json", import.meta.url)));
 const assets = [
   ["dead-by-daylight", "DeadByDaylight"], ["for-honor", "ForHonor"],
-  ["borderlands-3", "Borderlands3"], ["new-world", "NewWorld"]
+  ["borderlands-3", "Borderlands3"], ["new-world", "NewWorld"],
+  ["squid-game-unleashed", "SquidGameUnleashed"], ["warhammer-darktide", "WarhammerDarktide"],
+  ["marvel-snap", "MarvelSnap"], ["the-outlast-trials", "TheOutlastTrials"],
+  ["tribes-of-midgard", "TribesOfMidgard"], ["crossfar", "Crossfar"],
+  ["lost-rift", "LostRift"], ["star-wars-hunters", "StarWarsHunters"],
+  ["rematch", "Rematch"], ["predecessor", "Predecessor"],
+  ["super-mega-baseball-4", "SuperMegaBaseball4"], ["marauders", "Marauders"],
+  ["legacy-steel-and-sorcery", "LegacySteelAndSorcery"], ["ninjala", "Ninjala"],
+  ["roller-champions", "RollerChampions"], ["ghost-recon-breakpoint", "GhostReconBreakpoint"],
+  ["dark-alliance", "DarkAlliance"], ["wolcen-lords-of-mayhem", "WolcenLordsOfMayhem"],
+  ["streamline", "Streamline"], ["tacticool", "Tacticool"],
+  ["ghost-war", "GhostWar"], ["overwatch-2", "Overwatch2"]
 ];
 for (const [id, asset] of assets) {
   const source = new URL(`../catalog/assets/games/${id}.png`, import.meta.url);
@@ -33,4 +44,4 @@ ${manifest.items.map(item => "    " + JSON.stringify(item).replaceAll('":', '": 
 }\n`;
 await writeFile(new URL("../catalog/artwork-manifest.json", import.meta.url), manifestJSON);
 await writeFile(new URL("../catalog/catalog-v3.candidate.json", import.meta.url), JSON.stringify(buildCandidateCatalog(manifest)) + "\n");
-console.log("Prepared 26-game unsigned candidate and four local image sets.");
+console.log("Prepared 48-game unsigned candidate and 26 local image sets.");
