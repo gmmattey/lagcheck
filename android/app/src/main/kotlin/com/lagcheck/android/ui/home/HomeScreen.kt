@@ -33,7 +33,9 @@ import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.components.HomeTopBar
 import com.lagcheck.android.ui.components.PlatformHealthBanner
 import com.lagcheck.network.health.PlatformHealth
+import com.lagcheck.core.designsystem.components.PlatformGlyph
 import com.lagcheck.core.designsystem.components.PrimaryButton
+import com.lagcheck.core.designsystem.components.WifiIcon
 import com.lagcheck.core.designsystem.components.RadioSignalPill
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -164,12 +166,22 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(9.dp))
 
-            // Plataforma e conexão: "PlayStation · Wi-Fi"
-            Text(
-                text = "$platform · $connectionType",
-                style = LagCheckTypography.Subtext.copy(fontSize = 14.sp),
-                color = LagCheckColors.TextMuted
-            )
+            // Plataforma e conexão em glifos: "[celular] [Wi-Fi]" (Decisão 80)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PlatformGlyph(platform = platform, size = 18.dp)
+                if (connectionType.contains("Wi-Fi", ignoreCase = true)) {
+                    WifiIcon(size = 18.dp, color = LagCheckColors.TextMuted)
+                } else if (connectionType.isNotBlank() && connectionType != "—") {
+                    Text(
+                        text = connectionType,
+                        style = LagCheckTypography.Subtext.copy(fontSize = 14.sp),
+                        color = LagCheckColors.TextMuted
+                    )
+                }
+            }
         }
 
         if (platformHealth != null) {

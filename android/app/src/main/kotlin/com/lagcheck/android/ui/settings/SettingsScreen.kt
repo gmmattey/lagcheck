@@ -86,6 +86,8 @@ fun SettingsScreen(
             // 1. Grupo: Preferências
             SettingsSectionHeader(title = tr("PREFERÊNCIAS"))
 
+            SettingsGroup {
+
             SettingRow(
                 title = tr("Idioma"),
                 value = currentLanguage,
@@ -105,11 +107,14 @@ fun SettingsScreen(
                     onClick = { showRegionSheet = true }
                 )
             }
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // 2. Grupo: Histórico
             SettingsSectionHeader(title = tr("HISTÓRICO"))
+
+            SettingsGroup {
 
             SettingRow(
                 title = tr("Histórico"),
@@ -121,11 +126,14 @@ fun SettingsScreen(
                 subtext = tr("Remove todos os checks salvos neste dispositivo"),
                 onClick = { showDeleteConfirmSheet = true }
             )
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // 3. Grupo: Sobre o Lagcheck
             SettingsSectionHeader(title = tr("SOBRE O LAGCHECK"))
+
+            SettingsGroup {
 
             // Versão real do pacote instalado (antes era o texto fixo "1.0.0 (build 1)")
             val versionText = remember {
@@ -137,8 +145,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f)),
+                    .height(56.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -156,11 +163,14 @@ fun SettingsScreen(
                 title = tr("Licenças de código aberto"),
                 onClick = { showLicensesSheet = true }
             )
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // 4. Grupo: Suporte
             SettingsSectionHeader(title = tr("SUPORTE"))
+
+            SettingsGroup {
 
             SettingRow(
                 title = tr("Suporte"),
@@ -180,6 +190,7 @@ fun SettingsScreen(
                     }
                 }
             )
+            }
 
             Spacer(modifier = Modifier.height(48.dp))
         }
@@ -187,7 +198,7 @@ fun SettingsScreen(
         if (showLicensesSheet) {
             val licenseText = remember(context) {
                 runCatching {
-                    context.assets.open("licenses/nunito-OFL.txt").bufferedReader().use { it.readText() }
+                    context.assets.open("licenses/google-sans-flex-OFL.txt").bufferedReader().use { it.readText() }
                 }.getOrDefault("—")
             }
             ModalBottomSheet(
@@ -383,7 +394,7 @@ fun SettingsScreen(
                         color = LagCheckColors.TextMuted
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -394,8 +405,8 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(11.dp))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
+                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                                 .clickable { showDeleteConfirmSheet = false },
                             contentAlignment = Alignment.Center
                         ) {
@@ -412,7 +423,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
                                 .background(LagCheckColors.CoralWarning)
                                 .clickable {
                                     showDeleteConfirmSheet = false
@@ -445,6 +456,18 @@ private fun SettingsSectionHeader(title: String) {
     )
 }
 
+/** Grupo de linhas dentro de um cartão Surface com raio 26 (protótipo Android). */
+@Composable
+private fun SettingsGroup(content: @Composable () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp))
+            .background(LagCheckColors.Surface)
+            .padding(horizontal = 20.dp)
+    ) { content() }
+}
+
 @Composable
 private fun SettingRow(
     title: String,
@@ -455,8 +478,7 @@ private fun SettingRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .clickable { onClick() }
-            .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f)),
+            .clickable { onClick() },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -482,8 +504,7 @@ private fun SettingRowDestructive(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clickable { onClick() }
-            .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f)),
+            .clickable { onClick() },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

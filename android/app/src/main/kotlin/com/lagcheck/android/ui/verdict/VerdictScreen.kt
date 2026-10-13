@@ -178,14 +178,14 @@ fun VerdictScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Top bar: Fechar e Contexto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .height(64.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -219,73 +219,53 @@ fun VerdictScreen(
             color = LagCheckColors.TextMuted
         )
 
-        Spacer(modifier = Modifier.height(13.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // 3. Veredito Manchete (com indicador tático de telemetria)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            VerdictIndicatorBadge(
-                verdict = evaluation.verdict,
-                size = 18.dp
-            )
-            Text(
-                text = evaluation.headline.removePrefix("● ").removePrefix("▲ ").removePrefix("— "),
-                style = LagCheckTypography.VerdictHero,
-                color = verdictColor
-            )
-        }
+        // 3. Veredito Manchete: indicador acima, headline 44sp black
+        VerdictIndicatorBadge(
+            verdict = evaluation.verdict,
+            size = 18.dp
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = evaluation.headline.removePrefix("● ").removePrefix("▲ ").removePrefix("— "),
+            style = LagCheckTypography.VerdictHero.copy(fontSize = 44.sp, lineHeight = 46.sp),
+            color = verdictColor
+        )
 
-        Spacer(modifier = Modifier.height(19.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 4. Frase do veredito
         Text(
             text = evaluation.subtitle,
             style = LagCheckTypography.BodySemibold,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Medium,
             color = LagCheckColors.TextPrimary,
-            lineHeight = 20.sp
+            lineHeight = 24.sp
         )
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // 5. Métricas Inline em Monoespaçado: "31 ms · 3 ms jitter · 0,4% perda"
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = pingText,
-                style = LagCheckTypography.MonoData,
-                fontWeight = FontWeight.SemiBold,
-                color = LagCheckColors.TextPrimary
-            )
-            Text(text = "·", style = LagCheckTypography.MonoData, color = LagCheckColors.TextMuted)
-            Text(
-                text = jitterText,
-                style = LagCheckTypography.MonoData,
-                fontWeight = FontWeight.SemiBold,
-                color = LagCheckColors.TextPrimary
-            )
-            Text(text = "·", style = LagCheckTypography.MonoData, color = LagCheckColors.TextMuted)
-            Text(
-                text = lossText,
-                style = LagCheckTypography.MonoData,
-                fontWeight = FontWeight.SemiBold,
-                color = LagCheckColors.TextPrimary
-            )
-        }
+        // 5. Métricas inline em mono: "28 ms · 2 ms jitter · 0.0% perda"
+        Text(
+            text = "$pingText · $jitterText · $lossText",
+            style = LagCheckTypography.MonoData,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = LagCheckColors.TextMuted
+        )
 
-        Spacer(modifier = Modifier.height(27.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // 6. Card "O que mais pesou"
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(15.dp))
+                .clip(RoundedCornerShape(24.dp))
                 .background(LagCheckColors.Surface)
-                .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(15.dp))
-                .padding(15.dp)
+                .padding(horizontal = 20.dp, vertical = 18.dp)
         ) {
             Column {
                 Text(
@@ -293,11 +273,11 @@ fun VerdictScreen(
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = evaluation.primaryWeight,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = LagCheckColors.TextPrimary
                 )
             }
@@ -308,32 +288,32 @@ fun VerdictScreen(
         // 7. Ações Principais: "Ver detalhes" antes de "Testar novamente"
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(16.dp))
-                    .clickable { onDetails() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = tr("Ver detalhes"),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LagCheckColors.TextPrimary
-                )
-            }
-
             PrimaryButton(
                 text = tr("Testar novamente"),
                 onClick = onRetry,
                 height = 56.dp
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(LagCheckColors.Surface)
+                    .clickable { onDetails() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = tr("Ver detalhes"),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = LagCheckColors.TextPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // 8. Ações Utilitárias Compactas: Discord, WhatsApp e PDF
             Row(
@@ -344,10 +324,9 @@ fun VerdictScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(11.dp))
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(percent = 50))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { shareToDiscord() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -358,8 +337,8 @@ fun VerdictScreen(
                         DiscordLogo(size = 15.dp)
                         Text(
                             text = "Discord",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -369,10 +348,9 @@ fun VerdictScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(11.dp))
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(percent = 50))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { shareToWhatsApp() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -383,8 +361,8 @@ fun VerdictScreen(
                         WhatsAppLogo(size = 15.dp)
                         Text(
                             text = "WhatsApp",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -394,10 +372,9 @@ fun VerdictScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(11.dp))
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(percent = 50))
                         .background(LagCheckColors.Surface)
-                        .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(11.dp))
                         .clickable { exportPDF() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -408,8 +385,8 @@ fun VerdictScreen(
                         PdfDocumentIcon(size = 13.dp, color = LagCheckColors.TextSecondary)
                         Text(
                             text = tr("PDF"),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = LagCheckColors.TextSecondary
                         )
                     }

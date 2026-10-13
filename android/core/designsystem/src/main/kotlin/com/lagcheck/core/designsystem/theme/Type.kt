@@ -11,18 +11,24 @@ import com.lagcheck.core.designsystem.R
 
 /**
  * 3 Pilhas Tipográficas Canônicas do Lagcheck (Open Design / Brand Spec / Decisões 53 e 66).
- * 1. Display: Manchete de veredito, títulos de tela (rounded / bold sans).
- * 2. Corpo: Sans-serif para contexto, listas e ações.
- * 3. Mono: Cockpit de telemetria, kickers, pings, jitter, perda de pacotes e fases.
+ * 1. Display: Manchete de veredito, títulos de tela (Google Sans Flex bold).
+ * 2. Corpo: contexto, listas e ações.
+ * 3. Dados: cockpit de telemetria, kickers, pings, jitter e fases, em algarismos tabulares.
+ * Tudo em Google Sans Flex (Decisão 80).
  */
 @OptIn(ExperimentalTextApi::class)
 object LagCheckTypography {
-    // O SwiftUI usa .rounded nos títulos. Nunito cobre esse papel no Android sem substituir o corpo nativo.
-    private val RoundedDisplay = FontFamily(
-        Font(R.font.nunito_variable, FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
-        Font(R.font.nunito_variable, FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
-        Font(R.font.nunito_variable, FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(900)))
+    /** Google Sans Flex (OFL, a mesma do SignallQ) é a única família do app: títulos, corpo e números (algarismos tabulares via `tnum`). */
+    val GoogleSans = FontFamily(
+        listOf(
+            FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold,
+            FontWeight.Bold, FontWeight.ExtraBold, FontWeight.Black
+        ).map { w ->
+            Font(R.font.google_sans_flex_variable, w, variationSettings = FontVariation.Settings(FontVariation.weight(w.weight)))
+        }
     )
+    private val RoundedDisplay = GoogleSans
+    private const val TABULAR = "tnum"
 
     // 04 · Veredito Hero
     val VerdictHero = TextStyle(
@@ -53,7 +59,8 @@ object LagCheckTypography {
 
     // Detalhes Score (Lagcheck Score 86)
     val ScoreNumber = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = GoogleSans,
+        fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.Bold,
         fontSize = 45.sp,
         lineHeight = 45.sp,
@@ -80,7 +87,7 @@ object LagCheckTypography {
 
     // Primary CTA Button ("Checar agora", "Testar novamente")
     val CtaPrimary = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = GoogleSans,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 17.sp,
         lineHeight = 22.sp,
@@ -89,14 +96,14 @@ object LagCheckTypography {
 
     // Secondary Button / Text
     val BodyMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = GoogleSans,
         fontWeight = FontWeight.Normal,
         fontSize = 15.sp,
         lineHeight = 20.sp
     )
 
     val BodySemibold = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = GoogleSans,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         lineHeight = 22.sp,
@@ -104,7 +111,7 @@ object LagCheckTypography {
     )
 
     val Subtext = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = GoogleSans,
         fontWeight = FontWeight.Normal,
         fontSize = 13.sp,
         lineHeight = 18.sp
@@ -112,7 +119,8 @@ object LagCheckTypography {
 
     // Monospace Kickers e Indicadores ("RESULTADO DO CHECK", "FAVORITOS")
     val MonoKicker = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = GoogleSans,
+        fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.SemiBold,
         fontSize = 11.sp,
         lineHeight = 14.sp,
@@ -121,14 +129,16 @@ object LagCheckTypography {
 
     // Monospace Data (Métricas: "31 ms · 3 ms jitter · 0,4% perda", "Fase 1 de 2 · Repouso")
     val MonoData = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = GoogleSans,
+        fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp
     )
 
     val MonoSmall = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = GoogleSans,
+        fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.Normal,
         fontSize = 10.sp,
         lineHeight = 14.sp

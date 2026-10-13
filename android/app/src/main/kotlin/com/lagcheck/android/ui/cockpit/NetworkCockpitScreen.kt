@@ -223,8 +223,8 @@ fun NetworkCockpitScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(percent = 50))
+                .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(percent = 50))
                 .clickable { copyData() },
             contentAlignment = Alignment.Center
         ) {
@@ -295,9 +295,8 @@ private fun SectionCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(15.dp))
+                .clip(RoundedCornerShape(24.dp))
                 .background(LagCheckColors.Surface)
-                .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(15.dp))
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

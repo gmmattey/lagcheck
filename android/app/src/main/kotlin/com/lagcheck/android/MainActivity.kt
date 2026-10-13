@@ -228,8 +228,10 @@ class MainActivity : ComponentActivity() {
                             onBack = {
                                 viewModel.navigateTo(Screen.Home)
                             },
-                            onGameSelected = { game, platform, conn, declaredLink ->
-                                viewModel.startCheck(game, platform, conn, declaredLink)
+                            onGameSelected = { game ->
+                                viewModel.chooseGame(game)
+                                gamesOpenedFromHome = false
+                                viewModel.navigateTo(Screen.Home)
                             },
                             onStartGeneralCheck = {
                                 val generalGame = OfficialGameCatalog.findById("fortnite").copy(
@@ -238,7 +240,7 @@ class MainActivity : ComponentActivity() {
                                     category = "Rota de Referência",
                                     drawableResName = ""
                                 )
-                                viewModel.startCheck(generalGame, "Android", "Wi-Fi")
+                                viewModel.startCheck(generalGame, "Mobile", "")
                             }
                         )
                     }

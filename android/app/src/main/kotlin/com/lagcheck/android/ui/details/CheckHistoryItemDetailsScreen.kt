@@ -123,9 +123,8 @@ fun CheckHistoryItemDetailsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(13.dp))
+                .clip(RoundedCornerShape(22.dp))
                 .background(LagCheckColors.Surface)
-                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
         ) {
             HistoryDetailRow(
                 label = if (item.idleP50 != null) tr("Ping P50 (Repouso)") else tr("Latência P50"),
@@ -204,7 +203,8 @@ private fun HistoryDetailRow(
             )
             Text(
                 text = value,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.GoogleSans,
+                style = androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum"),
                 fontSize = 15.sp,
                 color = LagCheckColors.TextPrimary
             )

@@ -130,8 +130,8 @@ fun CheckCockpitScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(13.dp))
-                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                            .clip(RoundedCornerShape(percent = 50))
+                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                             .clickable { onRetry() }
                             .height(48.dp)
                             .padding(horizontal = 19.dp),
@@ -238,7 +238,7 @@ fun CheckCockpitScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clip(RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
                                 .background(LagCheckColors.AccentPrimary)
                                 .clickable { onConfirmMobileData() },
                             contentAlignment = Alignment.Center
@@ -255,7 +255,7 @@ fun CheckCockpitScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clip(RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
                                 .clickable { onCancel() },
                             contentAlignment = Alignment.Center
                         ) {

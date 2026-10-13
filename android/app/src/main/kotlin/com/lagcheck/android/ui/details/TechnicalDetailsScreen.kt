@@ -120,9 +120,8 @@ fun TechnicalDetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(13.dp))
+                .clip(RoundedCornerShape(22.dp))
                 .background(LagCheckColors.Surface)
-                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
                 .padding(horizontal = 13.dp, vertical = 12.dp)
         ) {
             Column {
@@ -352,9 +351,8 @@ fun TechnicalDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(13.dp))
+                    .clip(RoundedCornerShape(22.dp))
                     .background(LagCheckColors.Surface)
-                    .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
                     .padding(horizontal = 16.dp)
             ) {
                 Column {
@@ -432,9 +430,8 @@ private fun MetricBox(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(11.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(LagCheckColors.Surface)
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(11.dp))
             .padding(horizontal = 11.dp, vertical = 10.dp)
     ) {
         Column {
@@ -442,7 +439,8 @@ private fun MetricBox(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.GoogleSans,
+                style = androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum"),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
                 color = LagCheckColors.TextPrimary
@@ -461,9 +459,8 @@ private fun EvidenceRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(13.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(LagCheckColors.Surface)
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
             .padding(13.dp)
     ) {
         Column {

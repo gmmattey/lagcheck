@@ -245,7 +245,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val selected = available.firstOrNull { it.id == preferencesRepository.selectedGameId.value }
             ?: available.firstOrNull() ?: return
         _selectedGame.value = selected
-        if (_selectedPlatform.value !in selected.platforms) _selectedPlatform.value = selected.platforms.first()
+        // Sem escolha de dispositivo (Decisão 80): Mobile quando o jogo tem contexto Mobile, senão o primeiro.
+        val routePlatform = selected.platforms.firstOrNull { it.equals("Mobile", ignoreCase = true) } ?: selected.platforms.first()
+        if (_selectedPlatform.value != routePlatform) _selectedPlatform.value = routePlatform
     }
 
     /** Catálogo vigente. Sem nenhum válido, tenta uma atualização na hora antes de desistir (nunca inventa destino). */
@@ -304,6 +306,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         preferencesRepository.setSelectedGame(game.id)
         preferencesRepository.setSelectedPlatform(platform)
         refreshPlatformHealth()
+    }
+
+    /**
+     * Escolhe o jogo atual sem perguntar dispositivo (Decisão 80): o aparelho é o celular.
+     * A plataforma de rota vem do catálogo: Mobile quando existir, senão o primeiro contexto do jogo.
+     */
+    fun chooseGame(game: CatalogGame) {
+        val platform = game.platforms.firstOrNull { it.equals("Mobile", ignoreCase = true) }
+            ?: game.platforms.firstOrNull()
+            ?: "Mobile"
+        selectGame(game, platform, _selectedConnectionType.value, null)
     }
 
     fun setLanguage(lang: String) {

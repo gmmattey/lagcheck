@@ -38,6 +38,14 @@ object UiStrings {
     fun entry(pt: String, language: ReadinessLanguage): String? = table[pt]?.let { if (language == ReadinessLanguage.EN) it.en else it.es }
 
     init {
+        // region Histórico (protótipo Android, Decisão 80)
+        t("checks", "checks", "checks")
+        t("jogos", "games", "juegos")
+        t("1 check", "1 check", "1 check")
+        t("%d checks", "%d checks", "%d checks")
+        t("prontos p/ Ranked", "Ranked-ready", "listos p/ Ranked")
+        // endregion
+
         // region Cockpit (Dados da Rede)
         t("Fechar", "Close", "Cerrar")
         t("Dados da Rede", "Network Data", "Datos de la Red")

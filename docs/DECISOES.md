@@ -82,6 +82,7 @@
 | [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
+| [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
 
 
 
@@ -671,6 +672,26 @@
   - Validador correlacionado com nonce/timestamp sem bypass de identidade;
   - Paridade sincronizada nos clientes iOS e Android com testes unitários puros;
   - Validação independente via Claude Code aprovada antes de qualquer merge de código de produção.
+
+#### Decisão 80
+- **Data:** 13 de outubro de 2026.
+- **Título:** Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Marco (Product Lead), Renan (Product Designer), Rian (Android/iOS), Breno (QA) e Luiz (aprovação).
+- **Contexto e Problema:**
+  O design Android (22 telas, One UI) foi redesenhado no Claude Design e passa a divergir do protótipo iOS. A jornada também mudou: o Android mede a partir do próprio celular, então perguntar "onde você joga?" e "como o console está conectado?" deixou de fazer sentido.
+- **Decisão:**
+  1. `design-system/prototypes/android-reference/source/LagCheck Android.dc.html` é a referência visual canônica do **Android**. O iOS mantém `ios-reference/` e suas referências, sem alteração.
+  2. **Sem seleção de dispositivo no Android:** tocar num jogo do catálogo o define como jogo atual e volta ao Início; "Checar agora" inicia o check. A plataforma de rota vem do catálogo (Mobile quando o jogo tem contexto Mobile; caso contrário, o primeiro contexto disponível). Não há vínculo declarado de equipamento externo.
+  3. **Capas dos jogos:** as capas são arte autoral do dono do produto (Luiz) e **ficam** no app; a restrição a arte licenciada de terceiros do `docs/18` não se aplica a elas. As imagens do protótipo não são copiadas para o repositório.
+  4. **Tipografia:** **Google Sans Flex** (OFL; o mesmo arquivo usado no SignallQ) é a única família do Android, em títulos, corpo e números (algarismos tabulares). Nunito, Roboto e fontes monoespaçadas saem do app.
+  5. **Plataformas:** PlayStation, Xbox e Switch usam os logos oficiais (Simple Icons, CC0); celular e PC usam glifos genéricos, como no iOS.
+  6. **Sem Quick vs. Deep:** há um único check (repouso + carga) e a UI não distingue modos. Identificadores internos versionados (`deep-load-impact-v2`, `DeepCheck*`) e o Worker `nolaggy-deep-check` não mudam.
+  7. **Check Geral** permanece no fim da tela Jogos para quem não achar o jogo na lista (a lista nunca pode ser um beco sem saída). É um adendo ao protótipo, restilizado com os mesmos tokens; usa a rota regional de referência.
+  8. Mascote (`robot-*`), ícones alternativos e Plano de Anúncios ficam **fora** desta entrega: dependem de decisão própria. O MVP1 segue sem anúncios.
+- **Critérios de validação e aceite:**
+  - Telas Android alinhadas ao protótipo, sem mudar score, veredito, thresholds ou catálogo;
+  - Validação em emulador ao final; hardware físico segue necessário para rede/ciclo de vida.
 
 ## Como Registrar Novas Decisões
 

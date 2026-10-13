@@ -149,8 +149,8 @@ fun HistoryScreen(
 
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(percent = 50))
+                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                                 .clickable { onGoToHome() }
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
                         ) {
@@ -164,67 +164,89 @@ fun HistoryScreen(
                     }
                 }
             } else {
-                // 3. Grupos por Jogo
+                // 3. Resumo: checks · prontos · jogos
+                item(key = "summary") {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(26.dp))
+                            .background(LagCheckColors.Surface)
+                            .padding(horizontal = 20.dp, vertical = 18.dp)
+                    ) {
+                        listOf(
+                            historyItems.size.toString() to tr("checks"),
+                            historyItems.count { it.verdict == GameReadinessVerdict.READY }.toString() to tr("prontos p/ Ranked"),
+                            groupedByGame.size.toString() to tr("jogos")
+                        ).forEach { (value, label) ->
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = value, fontSize = 26.sp, fontWeight = FontWeight.Medium, color = LagCheckColors.TextPrimary)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(text = label, fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                            }
+                        }
+                    }
+                }
+
+                // 4. Um cartão por jogo, com seus checks dentro
                 groupedByGame.forEach { (gameId, checks) ->
                     val catalogGame = catalogGames.firstOrNull { it.id == gameId }
                         ?: (OfficialGameCatalog.games + OfficialGameCatalog.pendingExpansion).firstOrNull { it.id == gameId }
                         ?: com.lagcheck.domain.model.CatalogGame(gameId, checks.first().gameName, "Online", drawableResName = "")
 
-                    // Header do grupo do jogo
-                    item(key = "header_$gameId") {
-                        Spacer(modifier = Modifier.height(15.dp))
-                        Row(
+                    item(key = "group_$gameId") {
+                        Column(
                             modifier = Modifier
+                                .padding(top = 10.dp)
                                 .fillMaxWidth()
-                                .height(56.dp)
-                                .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
-                                .padding(bottom = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .clip(RoundedCornerShape(26.dp))
+                                .background(LagCheckColors.Surface)
+                                .padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 4.dp)
                         ) {
-                            // Capa 38x46
-                            Box(
+                            Row(
                                 modifier = Modifier
-                                    .size(width = 38.dp, height = 46.dp)
-                                    .clip(RoundedCornerShape(7.dp))
-                                    .background(LagCheckColors.Surface)
-                                    .border(1.dp, LagCheckColors.Border, RoundedCornerShape(7.dp))
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp, bottom = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(LagCheckColors.Panel)
+                                ) {
+                                    com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = catalogGame.name,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = LagCheckColors.TextPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        checks.firstOrNull()?.platform?.let {
+                                            com.lagcheck.core.designsystem.components.PlatformGlyph(platform = it)
+                                        }
+                                        Text(
+                                            text = if (checks.size == 1) tr("1 check") else trf("%d checks", checks.size),
+                                            fontSize = 12.sp,
+                                            color = LagCheckColors.TextMuted
+                                        )
+                                    }
+                                }
                             }
-
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = catalogGame.name,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = LagCheckColors.TextPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    text = trf("%s · última plataforma", checks.firstOrNull()?.platform ?: "—"),
-                                    style = LagCheckTypography.MonoSmall,
-                                    color = LagCheckColors.TextMuted
-                                )
+                            checks.forEach { item ->
+                                HistoryRowItem(item = item, onClick = { onSelectCheck(item) })
                             }
-
-                            Text(
-                                text = "›",
-                                fontSize = 18.sp,
-                                color = LagCheckColors.TextMuted
-                            )
                         }
-                    }
-
-                    // Itens do histórico para este jogo
-                    items(checks, key = { it.id }) { item ->
-                        HistoryRowItem(
-                            item = item,
-                            onClick = { onSelectCheck(item) }
-                        )
                     }
                 }
 
@@ -292,8 +314,8 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(11.dp))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
+                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                                 .clickable { showConfirmDeleteSheet = false },
                             contentAlignment = Alignment.Center
                         ) {
@@ -310,7 +332,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(11.dp))
+                                .clip(RoundedCornerShape(percent = 50))
                                 .background(LagCheckColors.CoralWarning)
                                 .clickable {
                                     showConfirmDeleteSheet = false
@@ -337,16 +359,11 @@ private fun HistoryRowItem(
     item: CheckHistoryItem,
     onClick: () -> Unit
 ) {
-    val symbolColor = when (item.verdict) {
+    val chipColor = when (item.verdict) {
         GameReadinessVerdict.READY -> LagCheckColors.Good
-        GameReadinessVerdict.CAUTION, GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
+        GameReadinessVerdict.CAUTION -> LagCheckColors.SemanticCaution
+        GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
         GameReadinessVerdict.INCONCLUSIVE -> LagCheckColors.TextMuted
-    }
-
-    val symbol = when (item.verdict) {
-        GameReadinessVerdict.READY -> "●"
-        GameReadinessVerdict.CAUTION, GameReadinessVerdict.NOT_READY -> "▲"
-        GameReadinessVerdict.INCONCLUSIVE -> "—"
     }
 
     val headlineText = when (item.verdict) {
@@ -356,40 +373,33 @@ private fun HistoryRowItem(
         GameReadinessVerdict.INCONCLUSIVE -> tr("Inconclusivo")
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
+            .border(width = 0.5.dp, color = Color.White.copy(alpha = 0.08f))
             .clickable { onClick() }
-            .border(width = 0.5.dp, color = LagCheckColors.Border.copy(alpha = 0.5f))
-            .padding(vertical = 11.dp),
-        verticalAlignment = Alignment.Top
+            .padding(vertical = 12.dp)
     ) {
-        Text(
-            text = symbol,
-            fontSize = 13.sp,
-            color = symbolColor,
-            modifier = Modifier.padding(top = 1.dp, end = 8.dp)
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = headlineText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = LagCheckColors.TextPrimary
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = item.formattedDate,
-                fontSize = 11.sp,
-                color = LagCheckColors.TextMuted
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = item.metricsString,
-                style = LagCheckTypography.MonoSmall,
-                color = LagCheckColors.TextMuted
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(26.dp)
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(chipColor.copy(alpha = 0.15f))
+                    .padding(horizontal = 11.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Box(Modifier.size(7.dp).clip(CircleShape).background(chipColor))
+                Text(text = headlineText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = chipColor)
+            }
+            Text(text = item.formattedDate, fontSize = 12.sp, color = LagCheckColors.TextMuted)
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = item.metricsString, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
     }
 }
