@@ -39,7 +39,12 @@ object UiStrings {
 
     init {
         // region Histórico (protótipo Android, Decisão 80)
+        t("Confirmando referência regional…", "Confirming regional reference…", "Confirmando referencia regional…")
+        t("Sem rota viável", "No viable route", "Sin ruta viable")
+        t("O LagCheck não conseguiu resposta das rotas de referência para sua região.", "LagCheck didn't get a response from the reference routes for your region.", "LagCheck no obtuvo respuesta de las rutas de referencia para tu región.")
+        t("Voltar para o Início", "Back to Home", "Volver al Inicio")
         t("checks", "checks", "checks")
+        t("Configurações", "Settings", "Configuración")
         t("jogos", "games", "juegos")
         t("1 check", "1 check", "1 check")
         t("%d checks", "%d checks", "%d checks")

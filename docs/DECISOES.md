@@ -688,7 +688,9 @@
   5. **Plataformas:** PlayStation, Xbox e Switch usam os logos oficiais (Simple Icons, CC0); celular e PC usam glifos genéricos, como no iOS.
   6. **Sem Quick vs. Deep:** há um único check (repouso + carga) e a UI não distingue modos. Identificadores internos versionados (`deep-load-impact-v2`, `DeepCheck*`) e o Worker `nolaggy-deep-check` não mudam.
   7. **Check Geral** permanece no fim da tela Jogos para quem não achar o jogo na lista (a lista nunca pode ser um beco sem saída). É um adendo ao protótipo, restilizado com os mesmos tokens; usa a rota regional de referência.
-  8. Mascote (`robot-*`), ícones alternativos e Plano de Anúncios ficam **fora** desta entrega: dependem de decisão própria. O MVP1 segue sem anúncios.
+  8. **Barra inferior do Android com 4 abas:** Início · Jogos · Histórico · Configurações (determinação do Luiz). Isso **substitui, só no Android**, as 2 abas das Decisões 50/51 e do protótipo; o iOS mantém `Início | Jogos`. A tela Ajustes passa a se chamar Configurações.
+  9. **Movimento e métricas One UI (Android):** transições de tela com curva suave (slide curto + fade para navegação hierárquica, fade-through entre abas) e gesto de voltar preditivo; texto mínimo de 12 sp, alvos de toque de 48 dp e margens laterais de 24 dp (grade de 8 dp). Isso ajusta o protótipo (10–11 sp, 44 dp, 22 dp), que foi desenhado fora dessas métricas.
+  10. Mascote (`robot-*`), ícones alternativos e Plano de Anúncios ficam **fora** desta entrega: dependem de decisão própria. O MVP1 segue sem anúncios.
 - **Critérios de validação e aceite:**
   - Telas Android alinhadas ao protótipo, sem mudar score, veredito, thresholds ou catálogo;
   - Validação em emulador ao final; hardware físico segue necessário para rede/ciclo de vida.

@@ -73,7 +73,7 @@ fun CheckCockpitScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp)
+                .padding(horizontal = 24.dp)
         ) {
             // Topo: "Cancelar" (esquerda) + Nome do Jogo (direita em mono)
             Row(
@@ -87,7 +87,7 @@ fun CheckCockpitScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
                         .clickable { onCancel() }
-                        .defaultMinSize(minWidth = 44.dp, minHeight = 44.dp)
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         .padding(horizontal = 7.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -161,7 +161,7 @@ fun CheckCockpitScreen(
                     textDetailLoad = tr("Simulando tráfego simultâneo para detectar oscilações."),
                     textPhaseRest = tr("Fase 1 de 2 · Repouso"),
                     textPhaseLoad = tr("Fase 2 de 2 · Carga"),
-                    textNodeDevice = if (platform.equals("Mobile", ignoreCase = true) || platform.equals("iPhone", ignoreCase = true) || platform.equals("Android", ignoreCase = true)) tr("Seu Celular") else platform,
+                    textNodeDevice = tr("Seu Celular"), // o aparelho que mede é sempre o celular (Decisão 80)
                     textNodeLocalSubtitle = tr("Rede local"),
                     textNodeServer = tr("Região Gamer"),
                     modifier = Modifier.fillMaxWidth()
@@ -191,7 +191,7 @@ fun CheckCockpitScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
+                        .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

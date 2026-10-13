@@ -102,7 +102,7 @@ fun GameSelectionScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp)
+                .padding(horizontal = 24.dp)
         ) {
             // 1. Barra de Topo: Voltar + Wordmark
             item {
@@ -117,7 +117,7 @@ fun GameSelectionScreen(
                     if (showBackButton) {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .clickable { onBack() },
                             contentAlignment = Alignment.CenterStart
@@ -129,18 +129,18 @@ fun GameSelectionScreen(
                             )
                         }
                     } else {
-                        Spacer(modifier = Modifier.size(44.dp))
+                        Spacer(modifier = Modifier.size(48.dp))
                     }
 
                     Image(
                         painter = painterResource(id = R.drawable.wordmark_primary),
                         contentDescription = "lagcheck",
                         modifier = Modifier
-                            .width(88.dp)
-                            .height(20.dp)
+                            .width(110.dp)
+                            .height(30.dp)
                     )
 
-                    Spacer(modifier = Modifier.size(44.dp))
+                    Spacer(modifier = Modifier.size(48.dp))
                 }
             }
 
@@ -250,7 +250,7 @@ fun GameSelectionScreen(
                         if (searchQuery.isNotEmpty()) {
                             Box(
                                 modifier = Modifier
-                                    .size(44.dp)
+                                    .size(48.dp)
                                     .clip(CircleShape)
                                     .clickable { searchQuery = "" },
                                 contentAlignment = Alignment.Center
@@ -314,7 +314,7 @@ fun GameSelectionScreen(
                             .clip(RoundedCornerShape(percent = 50))
                             .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(percent = 50))
                             .clickable { onStartGeneralCheck() }
-                            .defaultMinSize(minHeight = 44.dp)
+                            .defaultMinSize(minHeight = 48.dp)
                             .padding(horizontal = 18.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -419,7 +419,7 @@ private fun CatalogRowItem(
         val favLabel = if (isFavorite) tr("Remover dos favoritos") else tr("Favoritar")
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .clickable { onToggleFavorite() }
                 .semantics { contentDescription = favLabel },

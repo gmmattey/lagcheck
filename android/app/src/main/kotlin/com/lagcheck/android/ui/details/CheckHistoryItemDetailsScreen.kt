@@ -52,7 +52,7 @@ fun CheckHistoryItemDetailsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 22.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // Header de volta/título "Detalhes" com alvo 44dp
@@ -60,12 +60,12 @@ fun CheckHistoryItemDetailsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
-                .height(44.dp),
+                .height(48.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .clickable { onClose() },
                 contentAlignment = Alignment.CenterStart
@@ -84,7 +84,7 @@ fun CheckHistoryItemDetailsScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.size(44.dp))
+            Spacer(modifier = Modifier.size(48.dp))
         }
 
         Spacer(modifier = Modifier.height(16.dp))

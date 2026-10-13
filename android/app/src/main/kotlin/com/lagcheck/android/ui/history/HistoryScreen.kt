@@ -82,13 +82,13 @@ fun HistoryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp)
+                .padding(horizontal = 24.dp)
         ) {
             // 1. Header Canônico: Voltar '‹' + Histórico + Limpar
             item {
                 SecondaryScreenHeader(
                     title = tr("Histórico"),
-                    onBack = onBack,
+                    onBack = null,
                     trailingAction = {
                         if (historyItems.isNotEmpty()) {
                             Text(
@@ -286,7 +286,7 @@ fun HistoryScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
+                        .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                 ) {
                     Text(

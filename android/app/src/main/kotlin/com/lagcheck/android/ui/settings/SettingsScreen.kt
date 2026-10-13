@@ -74,13 +74,13 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header Canônico: Voltar '‹' + Ajustes
             SecondaryScreenHeader(
-                title = tr("Ajustes"),
-                onBack = onBack
+                title = tr("Configurações"),
+                onBack = null
             )
 
             // 1. Grupo: Preferências
@@ -115,11 +115,6 @@ fun SettingsScreen(
             SettingsSectionHeader(title = tr("HISTÓRICO"))
 
             SettingsGroup {
-
-            SettingRow(
-                title = tr("Histórico"),
-                onClick = onOpenHistory
-            )
 
             SettingRowDestructive(
                 title = tr("Apagar histórico"),
@@ -205,7 +200,7 @@ fun SettingsScreen(
                 onDismissRequest = { showLicensesSheet = false },
                 containerColor = LagCheckColors.Surface
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).padding(bottom = 24.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
                     Text(
                         text = tr("Licenças de código aberto"),
                         style = LagCheckTypography.SectionHeader,
@@ -243,7 +238,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
+                        .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
@@ -309,7 +304,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
+                        .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
@@ -377,7 +372,7 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
+                        .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
@@ -511,7 +506,7 @@ private fun SettingRowDestructive(
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.CoralWarning)
             Spacer(modifier = Modifier.height(3.dp))
-            Text(text = subtext, fontSize = 11.sp, color = LagCheckColors.TextMuted)
+            Text(text = subtext, fontSize = 12.sp, color = LagCheckColors.TextMuted)
         }
 
         Text(text = "›", fontSize = 20.sp, color = LagCheckColors.TextMuted)

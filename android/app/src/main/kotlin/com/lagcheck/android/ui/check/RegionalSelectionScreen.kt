@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.lagcheck.android.ui.tr
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,35 +39,15 @@ fun RegionalSelectionScreen(
 ) {
     val language by viewModel.language.collectAsState()
 
-    val txtConfirming = when (language) {
-        "pt-BR" -> "Confirmando referência regional…"
-        "es" -> "Confirmando referencia regional…"
-        else -> "Confirming regional reference…"
-    }
+    val txtConfirming = tr("Confirmando referência regional…")
 
-    val txtNoViableTitle = when (language) {
-        "pt-BR" -> "Sem rota viável"
-        "es" -> "Sin ruta viable"
-        else -> "No viable route"
-    }
+    val txtNoViableTitle = tr("Sem rota viável")
 
-    val txtNoViableMsg = when (language) {
-        "pt-BR" -> "O LagCheck não conseguiu resposta das rotas de referência para sua região."
-        "es" -> "LagCheck no obtuvo respuesta de las rutas de referencia para tu región."
-        else -> "LagCheck didn't get a response from the reference routes for your region."
-    }
+    val txtNoViableMsg = tr("O LagCheck não conseguiu resposta das rotas de referência para sua região.")
 
-    val txtRetry = when (language) {
-        "pt-BR" -> "Testar novamente"
-        "es" -> "Probar de nuevo"
-        else -> "Test again"
-    }
+    val txtRetry = tr("Testar novamente")
 
-    val txtBack = when (language) {
-        "pt-BR" -> "Voltar para o Início"
-        "es" -> "Volver al Inicio"
-        else -> "Back to Home"
-    }
+    val txtBack = tr("Voltar para o Início")
 
     Column(
         modifier = Modifier
@@ -149,7 +130,7 @@ fun RegionalSelectionScreen(
 
                     TextButton(
                         onClick = onBack,
-                        modifier = Modifier.height(44.dp)
+                        modifier = Modifier.height(48.dp)
                     ) {
                         Text(
                             text = txtBack,

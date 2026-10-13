@@ -49,8 +49,8 @@ fun HomeTopBar(
             painter = painterResource(id = R.drawable.wordmark_primary),
             contentDescription = "lagcheck",
             modifier = Modifier
-                .width(88.dp)
-                .height(20.dp)
+                .width(110.dp)
+                .height(30.dp)
         )
 
         Row(
@@ -60,7 +60,7 @@ fun HomeTopBar(
             if (onOpenNetworkCockpit != null) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .clickable { onOpenNetworkCockpit() },
                     contentAlignment = Alignment.Center
@@ -74,7 +74,7 @@ fun HomeTopBar(
 
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .clickable { onOpenSettings() },
                 contentAlignment = Alignment.Center
@@ -101,7 +101,7 @@ fun HomeTopBar(
 fun SecondaryScreenHeader(
     title: String,
     subtitle: String? = null,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
     trailingAction: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -118,24 +118,28 @@ fun SecondaryScreenHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.CenterStart
-            ) {
-                ChevronLeftIcon(
-                    size = 20.dp,
-                    color = LagCheckColors.TextPrimary,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
+            if (onBack != null) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .clickable { onBack() },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    ChevronLeftIcon(
+                        size = 20.dp,
+                        color = LagCheckColors.TextPrimary,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.size(48.dp))
             }
 
             if (trailingAction != null) {
                 trailingAction()
             } else {
-                Spacer(modifier = Modifier.size(44.dp))
+                Spacer(modifier = Modifier.size(48.dp))
             }
         }
 

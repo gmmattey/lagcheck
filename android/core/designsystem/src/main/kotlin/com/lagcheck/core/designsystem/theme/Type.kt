@@ -122,8 +122,8 @@ object LagCheckTypography {
         fontFamily = GoogleSans,
         fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.8.sp
     )
 
@@ -132,7 +132,7 @@ object LagCheckTypography {
         fontFamily = GoogleSans,
         fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
+        fontSize = 12.sp,
         lineHeight = 16.sp
     )
 
@@ -140,8 +140,8 @@ object LagCheckTypography {
         fontFamily = GoogleSans,
         fontFeatureSettings = TABULAR,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.sp,
-        lineHeight = 14.sp
+        fontSize = 12.sp,
+        lineHeight = 16.sp
     )
 
     // Compatibilidade reversa com componentes existentes

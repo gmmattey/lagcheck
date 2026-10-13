@@ -105,7 +105,7 @@ fun NetworkCockpitScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 22.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Top bar
@@ -121,7 +121,7 @@ fun NetworkCockpitScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onClose() }
-                    .defaultMinSize(minWidth = 44.dp, minHeight = 44.dp)
+                    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     .padding(horizontal = 7.dp, vertical = 6.dp)
             ) {
                 Text(text = tr("Fechar"), fontSize = 14.sp, color = LagCheckColors.TextMuted)
@@ -137,7 +137,7 @@ fun NetworkCockpitScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .clickable(enabled = !isProbing) { exportReport() }
-                    .defaultMinSize(minWidth = 44.dp, minHeight = 44.dp)
+                    .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     .padding(horizontal = 7.dp, vertical = 6.dp)
             ) {
                 Text(text = tr("PDF"), fontSize = 14.sp, color = if (isProbing) LagCheckColors.TextMuted else LagCheckColors.AccentPrimary)
@@ -181,7 +181,7 @@ fun NetworkCockpitScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(LagCheckColors.AccentPrimary.copy(alpha = 0.1f))
                         .clickable { onRefresh() }
-                        .defaultMinSize(minWidth = 44.dp, minHeight = 44.dp)
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
@@ -247,7 +247,7 @@ fun NetworkCockpitScreen(
             containerColor = LagCheckColors.Surface
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).padding(bottom = 32.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(row.label, style = LagCheckTypography.SectionHeader, color = LagCheckColors.TextPrimary)
@@ -271,7 +271,7 @@ fun NetworkCockpitScreen(
 @Composable
 private fun UseCaseRow(row: CockpitDataRow, enabled: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 44.dp).clickable(enabled = enabled, onClick = onClick),
+        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp).clickable(enabled = enabled, onClick = onClick),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

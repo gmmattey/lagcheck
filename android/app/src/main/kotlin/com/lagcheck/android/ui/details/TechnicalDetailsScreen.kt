@@ -81,7 +81,7 @@ fun TechnicalDetailsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 22.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header: "Detalhes Técnicos" (esquerda) + "Fechar" (direita)
@@ -100,7 +100,7 @@ fun TechnicalDetailsScreen(
 
             Box(
                 modifier = Modifier
-                    .height(44.dp)
+                    .height(48.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onClose() }
                     .padding(horizontal = 7.dp),

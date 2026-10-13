@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -128,7 +131,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            val isHomeOrGames = currentScreen is Screen.Home || currentScreen is Screen.GameSelection
+            val isHomeOrGames = currentScreen is Screen.Home || currentScreen is Screen.GameSelection ||
+                currentScreen is Screen.History || currentScreen is Screen.Settings
 
             val artworkAllowed = artworkForeground && (currentScreen is Screen.Home || currentScreen is Screen.GameSelection || currentScreen is Screen.History)
             androidx.compose.runtime.SideEffect {
@@ -144,6 +148,13 @@ class MainActivity : ComponentActivity() {
                         NavigationBar(
                             containerColor = LagCheckColors.Surface.copy(alpha = 0.9f)
                         ) {
+                            val tabColors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = LagCheckColors.AccentPrimary,
+                                selectedTextColor = LagCheckColors.AccentPrimary,
+                                unselectedIconColor = LagCheckColors.TextMuted,
+                                unselectedTextColor = LagCheckColors.TextMuted,
+                                indicatorColor = LagCheckColors.Surface
+                            )
                             NavigationBarItem(
                                 selected = currentScreen is Screen.Home,
                                 onClick = {
@@ -152,13 +163,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 icon = { Icon(Icons.Filled.Home, contentDescription = null) },
                                 label = { Text(tr("Início")) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = LagCheckColors.AccentPrimary,
-                                    selectedTextColor = LagCheckColors.AccentPrimary,
-                                    unselectedIconColor = LagCheckColors.TextMuted,
-                                    unselectedTextColor = LagCheckColors.TextMuted,
-                                    indicatorColor = LagCheckColors.Surface
-                                )
+                                colors = tabColors
                             )
                             NavigationBarItem(
                                 selected = currentScreen is Screen.GameSelection,
@@ -168,13 +173,21 @@ class MainActivity : ComponentActivity() {
                                 },
                                 icon = { GamepadTabIcon(selected = currentScreen is Screen.GameSelection) },
                                 label = { Text(tr("Jogos")) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = LagCheckColors.AccentPrimary,
-                                    selectedTextColor = LagCheckColors.AccentPrimary,
-                                    unselectedIconColor = LagCheckColors.TextMuted,
-                                    unselectedTextColor = LagCheckColors.TextMuted,
-                                    indicatorColor = LagCheckColors.Surface
-                                )
+                                colors = tabColors
+                            )
+                            NavigationBarItem(
+                                selected = currentScreen is Screen.History,
+                                onClick = { viewModel.navigateTo(Screen.History) },
+                                icon = { HistoryTabIcon(selected = currentScreen is Screen.History) },
+                                label = { Text(tr("Histórico")) },
+                                colors = tabColors
+                            )
+                            NavigationBarItem(
+                                selected = currentScreen is Screen.Settings,
+                                onClick = { viewModel.navigateTo(Screen.Settings) },
+                                icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                                label = { Text(tr("Configurações")) },
+                                colors = tabColors
                             )
                         }
                     }
@@ -187,7 +200,13 @@ class MainActivity : ComponentActivity() {
                         .padding(innerPadding)
                         .safeDrawingPadding()
                 ) {
-                when (val screen = currentScreen) {
+                AnimatedContent(
+                    targetState = currentScreen,
+                    // Mesma classe de tela = mesmo conteúdo: o progresso da medição atualiza sem transição.
+                    contentKey = { it::class },
+                    transitionSpec = { oneUiScreenTransition(initialState, targetState) }
+                ) { screen ->
+                when (screen) {
                     is Screen.Home -> {
                         HomeScreen(
                             selectedGame = selectedGame,
@@ -372,6 +391,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+                }
             }
             }
         }
@@ -410,5 +430,54 @@ private fun GamepadTabIcon(selected: Boolean) {
         drawLine(color, Offset(size.width * 0.18f, size.height * 0.55f), Offset(size.width * 0.38f, size.height * 0.55f), stroke)
         drawCircle(color, radius = stroke * 0.75f, center = Offset(size.width * 0.68f, size.height * 0.47f))
         drawCircle(color, radius = stroke * 0.75f, center = Offset(size.width * 0.78f, size.height * 0.60f))
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun HistoryTabIcon(selected: Boolean) {
+    val color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextMuted
+    Canvas(modifier = Modifier.size(24.dp)) {
+        val stroke = 2.dp.toPx()
+        drawCircle(color, radius = size.width * 0.4f, center = center, style = Stroke(width = stroke))
+        drawLine(color, center, Offset(center.x, size.height * 0.28f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        drawLine(color, center, Offset(size.width * 0.66f, size.height * 0.58f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    }
+}
+
+// Movimento no estilo One UI: curva "sine" suave, deslocamento curto e fade; abas usam fade-through.
+private val OneUiEasing = androidx.compose.animation.core.CubicBezierEasing(0.33f, 0f, 0.67f, 1f)
+private const val OneUiSlideMillis = 400
+private const val OneUiFadeMillis = 200
+
+private fun screenDepth(screen: Screen): Int = when (screen) {
+    is Screen.Home, is Screen.GameSelection, is Screen.History, is Screen.Settings -> 0
+    is Screen.NetworkCockpit, is Screen.HistoryDetails, is Screen.RegionalSelection, is Screen.ConnectionRequired -> 1
+    is Screen.Measurement -> 2
+    is Screen.Verdict -> 3
+    is Screen.TechnicalDetails -> 4
+}
+
+private fun oneUiScreenTransition(
+    from: Screen,
+    to: Screen
+): androidx.compose.animation.ContentTransform {
+    val fromDepth = screenDepth(from)
+    val toDepth = screenDepth(to)
+    val slide = androidx.compose.animation.core.tween<androidx.compose.ui.unit.IntOffset>(OneUiSlideMillis, easing = OneUiEasing)
+    val fadeIn = androidx.compose.animation.core.tween<Float>(OneUiFadeMillis, delayMillis = 90, easing = OneUiEasing)
+    val fadeOut = androidx.compose.animation.core.tween<Float>(90, easing = OneUiEasing)
+    return when {
+        toDepth > fromDepth ->
+            (androidx.compose.animation.slideInHorizontally(slide) { it / 3 } + androidx.compose.animation.fadeIn(fadeIn))
+                .togetherWith(androidx.compose.animation.slideOutHorizontally(slide) { -it / 4 } + androidx.compose.animation.fadeOut(fadeOut))
+                .apply { targetContentZIndex = 1f }
+        toDepth < fromDepth ->
+            (androidx.compose.animation.slideInHorizontally(slide) { -it / 4 } + androidx.compose.animation.fadeIn(fadeIn))
+                .togetherWith(androidx.compose.animation.slideOutHorizontally(slide) { it / 3 } + androidx.compose.animation.fadeOut(fadeOut))
+                .apply { targetContentZIndex = 0f }
+        else ->
+            (androidx.compose.animation.fadeIn(fadeIn) + androidx.compose.animation.scaleIn(
+                androidx.compose.animation.core.tween(OneUiSlideMillis, easing = OneUiEasing), initialScale = 0.94f
+            )).togetherWith(androidx.compose.animation.fadeOut(fadeOut))
     }
 }

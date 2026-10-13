@@ -88,7 +88,7 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 22.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Topline: Wordmark oficial (88px) + Ícone de Rede + Botão '…' (Ajustes)
@@ -124,7 +124,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .height(204.dp)
                     .layout { measurable, constraints ->
-                        val bleed = 22.dp.roundToPx()
+                        val bleed = 24.dp.roundToPx()
                         val expandedWidth = constraints.maxWidth + bleed * 2
                         val placeable = measurable.measure(
                             constraints.copy(
@@ -161,7 +161,8 @@ fun HomeScreen(
             Text(
                 text = selectedGame.name,
                 style = LagCheckTypography.HomeGameTitle,
-                color = LagCheckColors.TextPrimary
+                color = LagCheckColors.TextPrimary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(9.dp))
@@ -171,7 +172,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PlatformGlyph(platform = platform, size = 18.dp)
+                PlatformGlyph(platform = "Mobile", size = 18.dp) // o aparelho que mede é sempre o celular (Decisão 80)
                 if (connectionType.contains("Wi-Fi", ignoreCase = true)) {
                     WifiIcon(size = 18.dp, color = LagCheckColors.TextMuted)
                 } else if (connectionType.isNotBlank() && connectionType != "—") {

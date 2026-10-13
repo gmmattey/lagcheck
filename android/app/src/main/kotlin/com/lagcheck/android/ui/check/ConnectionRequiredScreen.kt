@@ -35,7 +35,7 @@ import com.lagcheck.core.designsystem.theme.LagCheckTypography
 @Composable
 fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = 22.dp),
+        modifier = Modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
@@ -44,7 +44,7 @@ fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.defaultMinSize(minWidth = 44.dp, minHeight = 44.dp).clickable(onClick = onBack),
+                modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp).clickable(onClick = onBack),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(tr("Cancelar"), fontSize = 14.sp, color = LagCheckColors.TextSecondary)

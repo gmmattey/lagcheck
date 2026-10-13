@@ -191,7 +191,7 @@ fun VerdictScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onClose() },
                 contentAlignment = Alignment.Center
@@ -204,7 +204,7 @@ fun VerdictScreen(
             }
 
             Text(
-                text = listOf(game.name, evaluation.platform, regionLabel).filter { it.isNotBlank() }.joinToString(" · "),
+                text = listOf(game.name, "Mobile", regionLabel).filter { it.isNotBlank() }.joinToString(" · "),
                 style = LagCheckTypography.MonoData,
                 color = LagCheckColors.TextMuted
             )
