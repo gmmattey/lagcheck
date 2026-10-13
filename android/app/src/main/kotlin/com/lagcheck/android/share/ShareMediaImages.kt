@@ -7,7 +7,7 @@ import com.lagcheck.domain.presentation.ReadinessLanguage
 /** Imagens dos cards e do vídeo. A arte é a autoral local do jogo; sem ela, o fundo é liso. */
 internal class ShareMediaImages(val art: Bitmap?, val wordmark: Bitmap?, val badge: Bitmap?, val tiles: List<Bitmap?>) {
     companion object {
-        const val STORE_URL = "https://play.google.com/store/apps/details?id=com.buildea.lagcheck"
+        const val STORE_URL = "https://play.google.com/store/apps/details?id=com.lagcheck.app"
 
         /** Artes da grade da primeira cena do vídeo (sem o jogo escolhido). */
         private val gridDrawables = listOf(

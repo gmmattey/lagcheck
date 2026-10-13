@@ -578,7 +578,7 @@
      - Estruturação do catálogo de eventos sazonais no App Store Connect sincronizados com seasons (ex: *"Nova Season de Ranked"*).
      - Artes autorais LagCheck (Dark Competitive UI), sem logotipos, capas ou personagens de terceiros (`docs/18`).
      - Deeplink canônico universal: `https://lagcheck.signallq.com/check?game={game_id}` mapeado para acionamento direto do jogo no app. Atualizado em 12 de outubro de 2026 por autorização explícita de Luiz; os hosts `lagcheck.app`, `www.lagcheck.app` e `check.lagcheck.app` deixam de ser aceitos como Universal Links.
-     - Android declara as mesmas rotas com `android:autoVerify`; a associação do host será publicada somente com o SHA-256 do certificado de assinatura de produção do pacote `com.buildea.lagcheck` na Play Console.
+     - Android declara as mesmas rotas com `android:autoVerify`; a associação do host será publicada somente com o SHA-256 do certificado de assinatura de produção do pacote `com.lagcheck.app` na Play Console.
   2. **CoreSpotlight & Siri Shortcuts (Item 8):**
      - `SpotlightIndexCoordinator` indexa os títulos do catálogo localmente com palavras-chave relevantes (`ping`, `lag`, `ranked`, `rotas`, nome do jogo).
      - Suporte a deep links parametrizados por jogo (`lagcheck://check?game={id}`) e tratamento gracioso quando o jogo não for encontrado (cai na Home).

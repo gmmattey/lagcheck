@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,11 +11,13 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.buildea.lagcheck"
+        applicationId = "com.lagcheck.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // Versão do produto (MAJOR.MINOR.PATCH) e build crescente. Sobrescreva com
+        // -Plagcheck.versionName=1.0.1 -Plagcheck.versionCode=2 (ver scripts/android-release.sh).
+        versionCode = ((project.findProperty("lagcheck.versionCode") as String?) ?: "1").toInt()
+        versionName = (project.findProperty("lagcheck.versionName") as String?) ?: "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -29,8 +33,29 @@ android {
         )
     }
 
+    // Assinatura de release (chave de upload do Play App Signing). Fica FORA do repositório:
+    // ~/Projetos/lagcheck-release/keys/lagcheck-upload.properties (ou -Plagcheck.signing.properties=<caminho>).
+    // Sem o arquivo, o release sai sem assinatura (útil para CI e para quem não tem a chave).
+    val signingProps = Properties()
+    val signingFile = File(
+        (project.findProperty("lagcheck.signing.properties") as String?)
+            ?: "${System.getProperty("user.home")}/Projetos/lagcheck-release/keys/lagcheck-upload.properties"
+    )
+    val hasSigning = signingFile.exists().also { if (it) signingFile.inputStream().use(signingProps::load) }
+    if (hasSigning) {
+        signingConfigs {
+            create("release") {
+                storeFile = File(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasSigning) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
