@@ -36,6 +36,23 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Mesmas rotas públicas do App Clip/iOS. O app abre a Home e
+                 nunca inicia uma medição apenas por dados da URL. A
+                 verificação depende do assetlinks.json assinado com o
+                 certificado de produção da Play Console. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="lagcheck.signallq.com"
+                    android:pathPrefix="/check" />
+                <data
+                    android:scheme="https"
+                    android:host="lagcheck.signallq.com"
+                    android:pathPrefix="/quicktest" />
+            </intent-filter>
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"

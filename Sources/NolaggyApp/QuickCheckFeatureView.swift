@@ -377,6 +377,10 @@ struct QuickCheckFeatureView: View {
         .onOpenURL { url in
             handleIncomingURL(url)
         }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+            guard let url = userActivity.webpageURL else { return }
+            handleIncomingURL(url)
+        }
         .onContinueUserActivity(CSSearchableItemActionType) { userActivity in
             guard let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String else { return }
             let prefix = "lagcheck.game."
@@ -392,7 +396,7 @@ struct QuickCheckFeatureView: View {
 
     /// Trata chamadas de deep link externas (esquema nativo ou Universal Links).
     /// Suporta:
-    /// - `lagcheck://check?game=valorant` ou `https://lagcheck.app/check?game=valorant`: inicia o teste para o jogo.
+    /// - `lagcheck://check?game=valorant` ou `https://lagcheck.signallq.com/check?game=valorant`: inicia o teste para o jogo.
     /// - `lagcheck://quicktest`: inicia o teste imediatamente em 1 toque na Home.
     /// - `lagcheck://network`: abre a aba de Dados da Rede (Cockpit).
     /// - `lagcheck://games`: navega para o catálogo de jogos.
