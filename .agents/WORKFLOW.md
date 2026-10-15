@@ -90,6 +90,13 @@ Se a causa raiz revelar problema arquitetural, registrar análise estrutural e a
 
 ## 3. Matriz de Responsabilidades (Quem chamar)
 
+### Nico (App Growth & Store Creative Director; alias temporário: StoreGrowth)
+- Coordena evidência de descoberta, ficha, criativos, conversão, ativação, retenção e receita;
+- Roteia ASO, publicação Apple/Google, experimentos, reviews e analytics sem duplicar as skills especializadas;
+- Pode pesquisar, auditar, capturar telas controladas, preparar criativos/metadados e validar arquivos locais;
+- Não publica, altera preço/privacidade, responde publicamente, gasta ou cria integrações externas sem autorização explícita do Luiz;
+- Integra a conclusão com Marco quando a proposta alterar promessa de produto, monetização, escopo ou priorização.
+
 ### Marco (Product Lead & Integração)
 - Ponto de contato único com Luiz;
 - Triagem, priorização e escopo do MVP P0/P1 (*Lagcheck Competitive Redesign + Ready Check*);

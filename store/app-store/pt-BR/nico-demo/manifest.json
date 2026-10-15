@@ -1,0 +1,38 @@
+{
+  "product": "LagCheck",
+  "store": "app-store",
+  "locale": "pt-BR",
+  "profile": "appstore-iphone-6.3-portrait",
+  "brand": {
+    "wordmark": "design-system/assets/brand/wordmark-purple-master.png",
+    "style": "gamer"
+  },
+  "screens": [
+    {
+      "order": 1,
+      "source": "source/lagcheck-valid-result.png",
+      "source_platform": "ios",
+      "source_evidence": "simulator_capture",
+      "output": "final/01-condicao-antes-da-fila.png",
+      "headline": "CONFIRA A CONDIÇÃO\nANTES DA FILA",
+      "supporting_copy": "Uma leitura clara da conexão antes da partida.",
+      "objective": "Apresentar a decisão que o app entrega antes de jogar.",
+      "feature": "Tela de resultado em cenário controlado de UI.",
+      "variant": "benefit",
+      "hypothesis": "Uma mensagem de benefício direto melhora a compreensão da proposta na primeira captura."
+    },
+    {
+      "order": 2,
+      "source": "source/lagcheck-valid-result.png",
+      "source_platform": "ios",
+      "source_evidence": "simulator_capture",
+      "output": "final/02-sem-adivinhar.png",
+      "headline": "SEM CHUTAR\nA CONEXÃO",
+      "supporting_copy": "Veja a leitura antes de entrar na partida.",
+      "objective": "Testar uma narrativa de problema evitado sem alegar resultado futuro.",
+      "feature": "Tela de resultado em cenário controlado de UI.",
+      "variant": "problem",
+      "hypothesis": "Uma abordagem de incerteza evitada gera mais interesse que uma mensagem de benefício direto."
+    }
+  ]
+}

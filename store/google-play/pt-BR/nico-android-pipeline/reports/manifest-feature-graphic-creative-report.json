@@ -1,0 +1,46 @@
+{
+  "valid": true,
+  "profile": "google-play-feature-graphic",
+  "errors": [],
+  "warnings": [],
+  "screens": [
+    {
+      "order": 1,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/nico-android-pipeline/source/android-check-flow.png",
+      "source_platform": "android",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/nico-android-pipeline/final/feature-graphic-rota.png",
+      "source_evidence": "emulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "google-play-feature-graphic",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/nico-android-pipeline/final/feature-graphic-rota.png",
+          "format": "PNG",
+          "width": 1024,
+          "height": 500,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    }
+  ],
+  "generated_on": "2026-10-15",
+  "exports": [
+    {
+      "valid": true,
+      "profile": "google-play-feature-graphic",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/nico-android-pipeline/final/feature-graphic-rota.png",
+        "format": "PNG",
+        "width": 1024,
+        "height": 500,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "state": "ready_for_review"
+}

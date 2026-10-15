@@ -1,0 +1,11 @@
+{
+  "platform": "ios",
+  "locale": "pt-BR",
+  "metadata": {
+    "name": "LagCheck",
+    "subtitle": "Teste sua conexão",
+    "keywords": "ping,latência,jitter,redeb",
+    "promotional_text": "Confira a estabilidade da conexão antes da partida.",
+    "description": "Medição de conexão para ajudar a entender as condições antes de jogar."
+  }
+}

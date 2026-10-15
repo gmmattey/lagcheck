@@ -1,0 +1,25 @@
+{
+  "product": "LagCheck",
+  "store": "google-play",
+  "locale": "pt-BR",
+  "profile": "google-play-feature-graphic",
+  "brand": {
+    "wordmark": "design-system/assets/brand/wordmark-purple-master.png",
+    "style": "gamer"
+  },
+  "screens": [
+    {
+      "order": 1,
+      "source": "source/android-check-flow.png",
+      "source_platform": "android",
+      "source_evidence": "emulator_capture",
+      "output": "final/feature-graphic-rota.png",
+      "headline": "LEITURA DA ROTA\nANTES DA PARTIDA",
+      "supporting_copy": "Medição clara para decidir com mais contexto.",
+      "objective": "Apresentar o benefício do check no formato de feature graphic do Google Play.",
+      "feature": "Fluxo Android de medição em repouso, capturado no emulador.",
+      "variant": "benefit",
+      "hypothesis": "Uma peça ampla com o fluxo real comunica o propósito do app sem depender de arte de jogo."
+    }
+  ]
+}

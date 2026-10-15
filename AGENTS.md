@@ -51,6 +51,7 @@ Ao iniciar uma sessão ou demanda dentro deste repositório, o orquestrador prin
 | **Iury** | Network & Edge Systems Engineer | Qualidade de rede, medição UDP determinística, STUN RFC 5389, RFC 4737, `GameReadinessVerdict`, Cloudflare Worker e custo zero. |
 | **Breno** | QA & Reliability | Validação técnica independente, testes automatizados, build Xcode, regressão e validação em hardware físico (iPhone real). |
 | **Camillo** | Principal Engineer transversal | Arquiteto sistêmico Buildea; conduz o Gate Arquitetural Obrigatório via `.agents/architecture-plan.md` em APIs, persistência, Workers ou motor UDP. |
+| **Nico** | App Growth & Store Creative Director | Crescimento, ASO, operações de loja e produção local de criativos; prepara materiais e evidência sem publicar, alterar dados comerciais ou identidade aprovada sem Luiz. |
 | **Dono do produto** | Direção de negócio (Luiz) | Aprovação de escopo, posicionamento de marca, monetização, preço e autorização de release/publicação. |
 
 ### Roteamento e Pistas de Execução (Lanes)
