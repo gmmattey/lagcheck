@@ -1,0 +1,25 @@
+{
+  "product": "LagCheck",
+  "store": "google-play",
+  "locale": "pt-BR",
+  "profile": "google-play-feature-graphic",
+  "brand": {
+    "wordmark": "../../../../design-system/assets/brand/wordmark-purple-master.png",
+    "style": "gamer"
+  },
+  "screens": [
+    {
+      "order": 1,
+      "source": "final/feature-graphic.png",
+      "source_platform": "android",
+      "source_evidence": "manual_input",
+      "output": "final/feature-graphic.png",
+      "alt_text": "Rota visual entre celular, Wi-Fi e região de referência com mascote LagCheck como apoio.",
+      "headline": "ROTA ANTES DA PARTIDA",
+      "objective": "Apresentar a leitura de rota sem arte ou marca de jogos de terceiros.",
+      "feature": "Fluxo celular, Wi-Fi e região de referência com assinatura do mascote.",
+      "variant": "benefit",
+      "hypothesis": "Um visual proprietário de rota comunica a proposta sem depender de propriedade intelectual de jogos."
+    }
+  ]
+}

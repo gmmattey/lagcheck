@@ -1,0 +1,68 @@
+{
+  "product": "LagCheck",
+  "store": "google-play",
+  "locale": "pt-BR",
+  "profile": "google-play-phone-portrait",
+  "brand": {
+    "wordmark": "../../../../design-system/assets/brand/wordmark-purple-master.png",
+    "style": "gamer"
+  },
+  "screens": [
+    {
+      "order": 1,
+      "source": "source/01-repouso.png",
+      "source_platform": "android",
+      "source_evidence": "emulator_capture",
+      "output": "final/01-leitura-em-repouso.png",
+      "alt_text": "Check Geral medindo a rota em repouso entre celular, Wi-Fi e região de referência.",
+      "headline": "LEITURA EM\nREPOUSO",
+      "supporting_copy": "A rota é medida antes da carga.",
+      "objective": "Mostrar a primeira fase real do Check Geral.",
+      "feature": "Medição da rota em repouso no Android.",
+      "variant": "benefit",
+      "hypothesis": "A fase visual de repouso torna o check mais concreto do que uma promessa genérica."
+    },
+    {
+      "order": 2,
+      "source": "source/02-carga.png",
+      "source_platform": "android",
+      "source_evidence": "emulator_capture",
+      "output": "final/02-leitura-sob-carga.png",
+      "alt_text": "Check Geral avaliando a rota sob carga para observar oscilações.",
+      "headline": "LEITURA SOB\nCARGA",
+      "supporting_copy": "O check observa oscilações com a rede em uso.",
+      "objective": "Explicar a segunda fase real do Check Geral.",
+      "feature": "Avaliação sob carga no Android.",
+      "variant": "benefit",
+      "hypothesis": "Explicar a segunda fase reduz a expectativa de um teste de velocidade comum."
+    },
+    {
+      "order": 3,
+      "source": "source/03-veredito.png",
+      "source_platform": "android",
+      "source_evidence": "emulator_capture",
+      "output": "final/03-veredito-direto.png",
+      "alt_text": "Resultado do Check Geral indicando condições instáveis e métricas da sessão.",
+      "headline": "VEREDITO\nDIRETO",
+      "supporting_copy": "A leitura mostra quando a rota oscilou.",
+      "objective": "Apresentar um resultado proporcional a dados medidos.",
+      "feature": "Veredito Condições Instáveis do Check Geral.",
+      "variant": "problem",
+      "hypothesis": "Um veredito honesto e não perfeito aumenta a confiança no diagnóstico."
+    },
+    {
+      "order": 4,
+      "source": "source/04-detalhes.png",
+      "source_platform": "android",
+      "source_evidence": "emulator_capture",
+      "output": "final/04-detalhes-da-rota.png",
+      "alt_text": "Detalhes técnicos do Check Geral com latência, jitter, perda e região de referência.",
+      "headline": "DETALHES\nDA ROTA",
+      "supporting_copy": "Latência, jitter, perda e evidência da sessão.",
+      "objective": "Mostrar métricas e região de referência sem prometer ping de jogo.",
+      "feature": "Detalhes técnicos da mesma sessão Android.",
+      "variant": "benefit",
+      "hypothesis": "Métricas reais dão contexto ao veredito sem virar a promessa principal."
+    }
+  ]
+}

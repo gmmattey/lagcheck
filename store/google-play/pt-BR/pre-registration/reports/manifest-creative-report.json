@@ -1,0 +1,148 @@
+{
+  "valid": true,
+  "profile": "google-play-phone-portrait",
+  "errors": [],
+  "warnings": [],
+  "screens": [
+    {
+      "order": 1,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/source/01-repouso.png",
+      "source_platform": "android",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png",
+      "source_evidence": "emulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "google-play-phone-portrait",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png",
+          "format": "PNG",
+          "width": 1080,
+          "height": 1920,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "order": 2,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/source/02-carga.png",
+      "source_platform": "android",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png",
+      "source_evidence": "emulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "google-play-phone-portrait",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png",
+          "format": "PNG",
+          "width": 1080,
+          "height": 1920,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "order": 3,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/source/03-veredito.png",
+      "source_platform": "android",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png",
+      "source_evidence": "emulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "google-play-phone-portrait",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png",
+          "format": "PNG",
+          "width": 1080,
+          "height": 1920,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "order": 4,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/source/04-detalhes.png",
+      "source_platform": "android",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png",
+      "source_evidence": "emulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "google-play-phone-portrait",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png",
+          "format": "PNG",
+          "width": 1080,
+          "height": 1920,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    }
+  ],
+  "generated_on": "2026-10-15",
+  "exports": [
+    {
+      "valid": true,
+      "profile": "google-play-phone-portrait",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png",
+        "format": "PNG",
+        "width": 1080,
+        "height": 1920,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "valid": true,
+      "profile": "google-play-phone-portrait",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png",
+        "format": "PNG",
+        "width": 1080,
+        "height": 1920,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "valid": true,
+      "profile": "google-play-phone-portrait",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png",
+        "format": "PNG",
+        "width": 1080,
+        "height": 1920,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "valid": true,
+      "profile": "google-play-phone-portrait",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png",
+        "format": "PNG",
+        "width": 1080,
+        "height": 1920,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "state": "ready_for_review"
+}

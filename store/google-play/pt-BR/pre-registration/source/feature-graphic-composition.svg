@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="leftShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0B0D10" stop-opacity="0.98"/>
+      <stop offset="0.54" stop-color="#0B0D10" stop-opacity="0.78"/>
+      <stop offset="0.78" stop-color="#0B0D10" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0B0D10" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="purpleGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <image href="feature-background-generated.png" x="0" y="0" width="1024" height="500" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="1024" height="500" fill="url(#leftShade)"/>
+  <rect x="52" y="150" width="54" height="4" rx="2" fill="#7C3AED" filter="url(#purpleGlow)"/>
+  <image href="wordmark-purple-master.png" x="52" y="48" width="184" height="39" preserveAspectRatio="xMinYMid meet"/>
+  <text x="52" y="220" fill="#F4F5F7" font-family="Arial, sans-serif" font-size="37" font-weight="700" letter-spacing="-1.1">ROTA ANTES</text>
+  <text x="52" y="262" fill="#F4F5F7" font-family="Arial, sans-serif" font-size="37" font-weight="700" letter-spacing="-1.1">DA PARTIDA</text>
+  <text x="52" y="306" fill="#B9C0CC" font-family="Arial, sans-serif" font-size="16" font-weight="400">Celular · Wi-Fi · Região de referência</text>
+  <image href="robot-thumbs.png" x="824" y="160" width="170" height="180" preserveAspectRatio="xMidYMid meet"/>
+  <rect x="0" y="498" width="1024" height="2" fill="#7C3AED" opacity="0.65"/>
+</svg>
