@@ -109,7 +109,7 @@ Se a causa raiz revelar problema arquitetural, registrar análise estrutural e a
 - Integra a conclusão com Giam e Marco quando a proposta alterar promessa de produto, monetização, escopo ou priorização.
 
 ### Marco (Estratégia de Produto & Integração)
-- Ponto de contato único com Luiz;
+- Ponto de integração estratégica e de escalonamento de decisões de negócio ao Luiz; a porta de entrada operacional e o aceite de produto são do Giam;
 - Triagem, priorização, trade-offs e escopo estratégico do MVP P0/P1 (*Lagcheck Competitive Redesign + Ready Check*);
 - Escalonamento de decisões de negócio a Luiz e resolução de conflitos entre frentes;
 - Voz do produto, copy (PT-BR, EN, ES) e tom honesto;
