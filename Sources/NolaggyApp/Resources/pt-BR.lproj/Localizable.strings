@@ -128,6 +128,11 @@
 "settings.section.privacy" = "PRIVACIDADE";
 "settings.section.about" = "SOBRE";
 "settings.language" = "Idioma";
+"share.card.ready" = "Card pronto para compartilhar";
+"share.card.retry" = "Preparar card novamente";
+"share.card.preparing" = "Preparando card";
+"share.card.failed" = "Falha ao preparar o card";
+"share.card.open_hint" = "Abre as opções de compartilhamento";
 "settings.region.title" = "Região de referência";
 "settings.region.automatic" = "Automática";
 "settings.region.explanation" = "A região usada em cada medição é escolhida automaticamente com base na sua rede no momento do teste. Escolher uma região aqui só troca essa preferência quando ela for uma candidata válida para o jogo medido; caso contrário, a medição volta a escolher automaticamente.";
@@ -844,17 +849,17 @@
 "telemetry.loss_format %@" = "%@% perda";
 "catalog.recent.just_now" = "agora";
 
-"exporter.discord.official_tag" = "● ATESTADO OFICIAL DE ROTA";
+"exporter.discord.official_tag" = "MEDIÇÃO DA ROTA";
 "exporter.discord.wifi_iphone" = "WI-FI OBSERVADO NO IPHONE";
 "exporter.discord.cellular" = "REDE CELULAR OBSERVADA";
 "exporter.discord.ping_label" = "LATÊNCIA (PING)";
 "exporter.discord.jitter_label" = "OSCILAÇÃO (JITTER)";
 "exporter.discord.loss_label" = "PERDA DE PACOTES";
 "exporter.discord.real_udp_sampling" = "Amostragem real UDP";
-"exporter.discord.footer %@" = "TESTADO EM: %@ · DADOS BRUTOS SEM ESTIMATIVA · LAGCHECK.APP";
-"exporter.discord.quote.ready" = "“Rota 100% lisa. Se perder no ranked hoje a culpa é sua.”";
-"exporter.discord.quote.caution" = "“Oscilação detectada. Joga por sua conta e risco, vai ter micro-teleporte.”";
-"exporter.discord.quote.not_ready" = "“Nem me chama pra jogar hoje. A conexão ta instavel demais pro ranked.”";
+"exporter.discord.footer" = "ROTA DE REFERÊNCIA MEDIDA · LAGCHECK.APP";
+"exporter.discord.quote.ready" = "“Condições medidas nesta rota de referência.”";
+"exporter.discord.quote.caution" = "“Esta rota medida teve oscilação.”";
+"exporter.discord.quote.not_ready" = "“Esta rota medida está instável agora.”";
 "exporter.discord.quote.inconclusive" = "“Amostras insuficientes na rota de rede. Verifique seu sinal.”";
 
 "exporter.pdf.loss_column" = "PERDA";

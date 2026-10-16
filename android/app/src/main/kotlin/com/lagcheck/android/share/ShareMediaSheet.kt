@@ -73,7 +73,12 @@ private enum class ShareFormat(val label: String, val previewKind: ShareMediaRen
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareMediaSheet(scene: ShareMediaScene, highlighted: SocialNetwork? = null, onDismiss: () -> Unit) {
+fun ShareMediaSheet(
+    scene: ShareMediaScene,
+    preparedLinkCard: File,
+    highlighted: SocialNetwork? = null,
+    onDismiss: () -> Unit
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var format by remember { mutableStateOf(ShareFormat.LINK) }
@@ -126,10 +131,14 @@ fun ShareMediaSheet(scene: ShareMediaScene, highlighted: SocialNetwork? = null, 
                             ShareVideoRenderer.render(context, scene, images, isCancelled = { !isActive }, onProgress = { progress = it }) to "video/mp4"
                         }
                         else -> {
-                            val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = false)
-                            val name = if (chosen == ShareFormat.LINK) "lagcheck-card-1200x630.jpg" else "lagcheck-card-1080x1920.jpg"
-                            val bytes = ShareMediaRenderer.jpeg(chosen.previewKind, scene, images)
-                            File(context.cacheDir, "share/$name").apply { parentFile?.mkdirs(); writeBytes(bytes) } to "image/jpeg"
+                            if (chosen == ShareFormat.LINK) {
+                                preparedLinkCard to "image/jpeg"
+                            } else {
+                                val images = ShareMediaImages.load(context, scene, AppLocale.language, withTiles = false)
+                                val name = if (chosen == ShareFormat.LINK) "lagcheck-card-1200x630.jpg" else "lagcheck-card-1080x1920.jpg"
+                                val bytes = ShareMediaRenderer.jpeg(chosen.previewKind, scene, images)
+                                File(context.cacheDir, "share/$name").apply { parentFile?.mkdirs(); writeBytes(bytes) } to "image/jpeg"
+                            }
                         }
                     }
                 }

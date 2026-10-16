@@ -87,6 +87,7 @@
 | [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
+| [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
 
 
 
@@ -772,6 +773,20 @@
   - `AGENTS.md`, `docs/05-governanca-e-fluxo-de-trabalho.md`, `.agents/WORKFLOW.md`, o Cartão de Missão e as skills/perfis de Marco e Giam descrevem uma mesma divisão de responsabilidades;
   - cada lane declara onde entra o aceite de Giam sem bloquear a estabilização de hot lane;
   - nenhum documento atribui a Giam autorização de negócio ou publicação, nem transfere a Marco o aceite operacional da missão.
+
+#### Decisão 85
+- **Data:** 15 de outubro de 2026.
+- **Título:** Retirada do gate entre MVP1 e MVP1.1.
+- **Status Atual:** **Vigente (Produto).** Substitui as travas de escopo pós-MVP1 descritas em `docs/01-funcional.md` §13.1 e `docs/05-governanca-e-fluxo-de-trabalho.md` §7.4.
+- **Frentes envolvidas:** Luiz (dono do produto), Giam (Product Owner Operacional) e Marco (estratégia e priorização).
+- **Contexto e Problema:** A separação por gate entre MVP1 e MVP1.1 atrasava iniciativas de evolução já coerentes com a proposta do LagCheck, mesmo quando fossem locais, de custo operacional zero e sem alterar a integridade da medição.
+- **Decisão:**
+  1. Não existe mais gate de produto que condicione a entrada de escopo de MVP1.1, retenção, compartilhamento ou mecanismo de retorno a um período mínimo em produção ou à revisão prévia de telemetria.
+  2. Telemetria agregada e retenção continuam instrumentos de priorização e aprendizado, nunca autorização implícita para dados pessoais, novos endpoints, promessa diagnóstica ou publicação.
+  3. Cada iniciativa continua exigindo decisão registrada quando alterar promessa, arquitetura, privacidade, custo, regras de medição ou escopo de plataforma; o Cartão de Missão, a lane aplicável e a evidência proporcional permanecem obrigatórios.
+- **Critérios de validação e aceite:**
+  - `docs/01-funcional.md` e `docs/05-governanca-e-fluxo-de-trabalho.md` deixam claro que dados de retenção informam prioridade, sem bloquear escopo;
+  - nenhuma regra de integridade diagnóstica, custo operacional zero, consentimento ou autorização de publicação é removida.
 
 ## Como Registrar Novas Decisões
 

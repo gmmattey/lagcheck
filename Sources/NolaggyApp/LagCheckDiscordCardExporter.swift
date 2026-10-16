@@ -5,9 +5,12 @@ import NolaggyApplication
 import NolaggyDesign
 
 /// Gerador do Card Viral de Alta Fidelidade para Discord, WhatsApp e Redes Sociais.
-/// Gera uma imagem PNG em 1200x675 (16:9, padrão de preview do Discord/Twitter)
+/// Gera um JPEG em 1200x630, o formato de preview de link do LagCheck.
 /// com estética Dark Competitive UI, tipografia pesada e números de corrida.
 public enum LagCheckDiscordCardExporter {
+
+    private static let preparationLock = NSLock()
+    public static let linkCardSize = CGSize(width: 1200, height: 630)
 
     public static func generateDiscordShareCard(
         gameName: String,
@@ -17,15 +20,16 @@ public enum LagCheckDiscordCardExporter {
         jitterMs: Double?,
         packetLossPercentage: Double?,
         bufferbloatGradeText: String?,
-        isWiFi: Bool
+        isWiFi: Bool,
+        outputURL: URL? = nil
     ) -> URL? {
-        let width: CGFloat = 1200
-        let height: CGFloat = 675
+        let width = linkCardSize.width
+        let height = linkCardSize.height
         let bounds = CGRect(x: 0, y: 0, width: width, height: height)
 
         let renderer = UIGraphicsImageRenderer(bounds: bounds)
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("LagCheck_\(gameName.replacingOccurrences(of: " ", with: "_"))_\(Int(Date().timeIntervalSince1970)).png")
+        let tempURL = outputURL ?? FileManager.default.temporaryDirectory
+            .appendingPathComponent("LagCheck_\(gameName.replacingOccurrences(of: " ", with: "_"))_\(UUID().uuidString).jpg")
 
         let image = renderer.image { ctx in
             let cg = ctx.cgContext
@@ -86,18 +90,18 @@ public enum LagCheckDiscordCardExporter {
 
             switch verdict {
             case .ready:
-                verdictText = "● \(AppLocalization.string("game_readiness.verdict.ready.headline", comment: ""))"
+                verdictText = AppLocalization.string("game_readiness.verdict.ready.headline", comment: "")
                 verdictColor = UIColor(NLColor.semanticReady)
             case .caution:
-                verdictText = "▲ \(AppLocalization.string("game_readiness.verdict.caution.headline", comment: ""))"
+                verdictText = AppLocalization.string("game_readiness.verdict.caution.headline", comment: "")
                 verdictColor = UIColor(NLColor.semanticCaution)
             case .notReady:
-                verdictText = "■ \(AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: ""))"
+                verdictText = AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: "")
                 // Decisão Renan: #EF4444 não é token oficial; colapsado para coralSolar
                 // (Decisão 66 reserva Coral Solar para atenção/erro — não cabe um segundo vermelho).
                 verdictColor = UIColor(NLColor.coralSolar)
             case .inconclusive:
-                verdictText = "— \(AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: ""))"
+                verdictText = AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: "")
                 verdictColor = UIColor.lightGray
             }
 
@@ -106,8 +110,20 @@ public enum LagCheckDiscordCardExporter {
                 .font: UIFont.systemFont(ofSize: 46, weight: .black),
                 .foregroundColor: verdictColor
             ]
+            switch verdict {
+            case .ready:
+                cg.setFillColor(verdictColor.cgColor)
+                cg.fillEllipse(in: CGRect(x: 75, y: 205, width: 18, height: 18))
+            case .caution:
+                cg.setFillColor(verdictColor.cgColor)
+                cg.move(to: CGPoint(x: 84, y: 201)); cg.addLine(to: CGPoint(x: 94, y: 221)); cg.addLine(to: CGPoint(x: 74, y: 221)); cg.closePath(); cg.fillPath()
+            case .notReady:
+                cg.setFillColor(verdictColor.cgColor)
+                cg.fill(CGRect(x: 76, y: 204, width: 17, height: 17))
+            case .inconclusive: break
+            }
             let verdictString = NSAttributedString(string: verdictText, attributes: verdictAttrs)
-            verdictString.draw(at: CGPoint(x: 75, y: 190))
+            verdictString.draw(at: CGPoint(x: 106, y: 190))
 
             // Frase do Discord (A Regra do Discord)
             let quoteAttrs: [NSAttributedString.Key: Any] = [
@@ -183,23 +199,66 @@ public enum LagCheckDiscordCardExporter {
 
             // 6. Rodapé com Carimbo de Autenticidade
             let footY: CGFloat = height - 90
-            let dateStr = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short)
             let footAttrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.monospacedSystemFont(ofSize: 13, weight: .semibold),
                 .foregroundColor: UIColor(white: 0.4, alpha: 1.0)
             ]
-            let footText = NSAttributedString(string: String(format: AppLocalization.string("exporter.discord.footer %@", comment: ""), dateStr.uppercased()), attributes: footAttrs)
+            let footText = NSAttributedString(string: AppLocalization.string("exporter.discord.footer", comment: ""), attributes: footAttrs)
             footText.draw(at: CGPoint(x: 75, y: footY))
         }
 
         // Salvar em disco para share sheet
-        guard let data = image.pngData() else { return nil }
+        guard let data = image.jpegData(compressionQuality: 0.9) else { return nil }
         do {
             try data.write(to: tempURL)
             return tempURL
         } catch {
             return nil
         }
+    }
+
+    /// Prepara apenas o card estático de link para um snapshot de Check já concluído.
+    /// O cache é temporário e a chave inclui a medição, evitando reutilizar um reteste anterior.
+    public static func prepareDiscordShareCard(
+        snapshotKey: String,
+        gameName: String,
+        regionName: String,
+        verdict: GameReadinessVerdict,
+        pingMs: Double?,
+        jitterMs: Double?,
+        packetLossPercentage: Double?,
+        bufferbloatGradeText: String?,
+        isWiFi: Bool
+    ) -> URL? {
+        guard verdict != .inconclusive else { return nil }
+
+        preparationLock.lock()
+        defer { preparationLock.unlock() }
+
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("lagcheck-share-\(stableIdentifier(snapshotKey)).jpg")
+        if FileManager.default.fileExists(atPath: url.path) { return url }
+
+        return generateDiscordShareCard(
+            gameName: gameName,
+            regionName: regionName,
+            verdict: verdict,
+            pingMs: pingMs,
+            jitterMs: jitterMs,
+            packetLossPercentage: packetLossPercentage,
+            bufferbloatGradeText: bufferbloatGradeText,
+            isWiFi: isWiFi,
+            outputURL: url
+        )
+    }
+
+    private static func stableIdentifier(_ value: String) -> String {
+        var hash: UInt64 = 1_469_598_103_934_665_603
+        for byte in value.utf8 {
+            hash ^= UInt64(byte)
+            hash &*= 1_099_511_628_211
+        }
+        return String(hash, radix: 16)
     }
 
     public static func gamerQuote(for verdict: GameReadinessVerdict) -> String {

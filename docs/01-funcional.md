@@ -535,11 +535,11 @@ Anúncios recompensados e qualquer recurso que venda "otimização" ficam fora d
 
 Os requisitos de publicidade acima não são critério de aceite do MVP1; passam a ser critérios do MVP1.1.
 
-Estes oito critérios são exclusivamente funcionais e técnicos. **O MVP1 não tem critério de aceite de retenção, engajamento ou modelo de negócio** — isso é deliberado: o objetivo desta versão é fundação técnica sólida, superfície enxuta e identidade de produto definida, não prova de que o produto se sustenta comercialmente. Notificação, widget, Live Activity ou qualquer outro mecanismo de retorno ao app foram avaliados e conscientemente adiados para depois do MVP1 (ver §7.8); a ausência deles no MVP1 não deve ser lida como falha de escopo, e o eventual baixo retorno de usuários no MVP1 não deve ser lido, sozinho, como invalidação do conceito.
+Estes oito critérios são exclusivamente funcionais e técnicos. Dados de retenção, engajamento e negócio continuam úteis para priorização, mas não bloqueiam por si só uma evolução de escopo aprovada. Notificação, widget, Live Activity ou outro mecanismo de retorno exigem decisão, Cartão de Missão e evidência proporcionais; sua entrada não altera os critérios de honestidade diagnóstica, custo zero ou consentimento aplicáveis (Decisão 85).
 
-### 13.1 Critério de saída do MVP1
+### 13.1 Sinais de priorização após o MVP1
 
-Antes de comprometer escopo do MVP1.1, a equipe revisa os dados agregados do App Store Connect e a telemetria mínima já autorizada em `POST /v1/telemetry` (retenção e reteste, sem PII/IP, SSID, BSSID, amostras brutas, IDFA ou localização). Essa revisão, e não a qualidade técnica do código, é o sinal que decide se o MVP1.1 segue como planejado, é ajustado ou é adiado. A declaração pública e de App Store deve permanecer coerente com esse contrato; ver `docs/62`.
+Dados agregados do App Store Connect e a telemetria mínima já autorizada em `POST /v1/telemetry` (retenção e reteste, sem PII/IP, SSID, BSSID, amostras brutas, IDFA ou localização) ajudam a ordenar melhorias. Eles não são gate para iniciar MVP1.1 nem substituem decisão de produto, revisão de privacidade, evidência técnica ou autorização de publicação. A declaração pública e de App Store deve permanecer coerente com esse contrato; ver `docs/62`.
 
 ## 14. Decisões pendentes
 
@@ -547,4 +547,4 @@ Antes de comprometer escopo do MVP1.1, a equipe revisa os dados agregados do App
 - Textos de recomendação por causa e por idioma.
 - Critérios para oferecer automaticamente o Deep Check.
 - Qual recurso (ou conjunto de recursos) do MVP2 justifica cobrança de assinatura anual — ver §11. Sem essa definição, o MVP2 não entra em escopo de arquitetura.
-- Se/quando notificação, widget ou outro mecanismo de retorno entram em escopo, e em qual versão — hoje intencionalmente fora do MVP1 (ver §13).
+- Priorização e recorte de notificação, widget ou outro mecanismo de retorno; cada um exige decisão registrada e evidência proporcional (Decisão 85).

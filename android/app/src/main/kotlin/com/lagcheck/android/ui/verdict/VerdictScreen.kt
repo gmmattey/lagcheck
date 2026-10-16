@@ -7,9 +7,11 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,15 +31,18 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,6 +51,8 @@ import androidx.core.content.FileProvider
 import com.lagcheck.android.data.LagCheckDiscordCardExporter
 import com.lagcheck.android.share.ShareMediaScene
 import com.lagcheck.android.share.ShareMediaSheet
+import com.lagcheck.android.share.PreparedShareCard
+import com.lagcheck.android.share.PreparedShareCardSnapshot
 import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PdfDocumentIcon
 import com.lagcheck.core.designsystem.components.SocialNetwork
@@ -61,6 +70,9 @@ import com.lagcheck.android.ui.AppLocale
 import com.lagcheck.domain.presentation.RouteReport
 import com.lagcheck.android.data.RouteReportPdfExporter
 import com.lagcheck.android.ui.trf
+import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 04 · Veredito.
@@ -86,6 +98,35 @@ fun VerdictScreen(
     var showShareMedia by remember { mutableStateOf(false) }
     var shareNetwork by remember { mutableStateOf<SocialNetwork?>(null) }
     val shareScene = remember(evaluation, game) { ShareMediaScene.from(game.name, game.drawableResName, evaluation) }
+    val shareSnapshot = remember(shareScene, evaluation.timestamp, AppLocale.language) {
+        shareScene?.let { PreparedShareCardSnapshot.from(it, AppLocale.language.name, evaluation.timestamp.toString()) }
+    }
+    var preparedLinkCard by remember(shareSnapshot) { mutableStateOf<File?>(null) }
+    var sharePreparationFailed by remember(shareSnapshot) { mutableStateOf(false) }
+    var sharePreparationAttempt by remember(shareSnapshot) { mutableStateOf(0) }
+    var previewBitmap by remember(preparedLinkCard) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val shareStateLabel = when {
+        sharePreparationFailed -> when (AppLocale.language.name) { "EN" -> "Share card failed"; "ES" -> "Error al preparar la tarjeta"; else -> "Falha ao preparar o card" }
+        preparedLinkCard != null -> when (AppLocale.language.name) { "EN" -> "Share card ready"; "ES" -> "Tarjeta lista para compartir"; else -> "Card pronto para compartilhar" }
+        else -> when (AppLocale.language.name) { "EN" -> "Preparing share card"; "ES" -> "Preparando tarjeta"; else -> "Preparando card" }
+    }
+    val retryLabel = when (AppLocale.language.name) { "EN" -> "Prepare card again"; "ES" -> "Preparar tarjeta de nuevo"; else -> "Preparar card novamente" }
+
+    // Aguarda a primeira composição do veredito e só então prepara o card de link fora da UI.
+    LaunchedEffect(shareSnapshot, sharePreparationAttempt) {
+        preparedLinkCard = null
+        sharePreparationFailed = false
+        val snapshot = shareSnapshot ?: return@LaunchedEffect
+        withFrameNanos { }
+        preparedLinkCard = runCatching { withContext(Dispatchers.Default) { PreparedShareCard.prepare(context, snapshot) } }
+            .onFailure { sharePreparationFailed = true }.getOrNull()
+    }
+    LaunchedEffect(preparedLinkCard) {
+        previewBitmap = preparedLinkCard?.takeIf { it.isFile }?.let { file ->
+            withContext(Dispatchers.Default) { android.graphics.BitmapFactory.decodeFile(file.path) }
+        }
+        if (preparedLinkCard != null && previewBitmap == null) sharePreparationFailed = true
+    }
 
     val verdictColor = when (evaluation.verdict) {
         GameReadinessVerdict.READY -> LagCheckColors.Good
@@ -260,6 +301,55 @@ fun VerdictScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Única prévia do JPEG já preparado: fica abaixo do veredito, antes da telemetria.
+        if (shareScene != null) {
+            val previewLabel = when {
+                sharePreparationFailed -> "$shareStateLabel. $retryLabel"
+                previewBitmap != null -> "${tr("Compartilhar resultado")}: ${evaluation.headline}, ${game.name}, $regionLabel. $shareStateLabel"
+                else -> shareStateLabel
+            }
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 360.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .aspectRatio(1200f / 630f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LagCheckColors.Surface)
+                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(8.dp))
+                    .semantics { contentDescription = previewLabel }
+                    .then(
+                        when {
+                            previewBitmap != null -> Modifier.clickable(
+                                onClickLabel = tr("Abrir opções de compartilhamento")
+                            ) { shareNetwork = SocialNetwork.MORE; showShareMedia = true }
+                            sharePreparationFailed -> Modifier.clickable(
+                                onClickLabel = retryLabel
+                            ) { sharePreparationAttempt += 1 }
+                            else -> Modifier
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                previewBitmap?.let {
+                    Image(
+                        it.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                if (sharePreparationFailed) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(shareStateLabel, color = LagCheckColors.TextSecondary)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(retryLabel, color = LagCheckColors.TextSecondary)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
         // 5. Métricas inline em mono: "28 ms · 2 ms jitter · 0.0% perda"
         Text(
             text = "$pingText · $jitterText · $lossText",
@@ -339,8 +429,8 @@ fun VerdictScreen(
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
-                                .semantics { contentDescription = n.label }
-                                .clickable { shareNetwork = n; showShareMedia = true },
+                                .semantics { contentDescription = "${n.label}. $shareStateLabel" }
+                                .clickable(enabled = preparedLinkCard != null) { shareNetwork = n; showShareMedia = true },
                             contentAlignment = Alignment.Center
                         ) { SocialNetworkIcon(n, size = 48.dp) }
                     }
@@ -363,7 +453,13 @@ fun VerdictScreen(
         Spacer(modifier = Modifier.height(32.dp))
     }
 
-    if (showShareMedia && shareScene != null) {
-        ShareMediaSheet(scene = shareScene, highlighted = shareNetwork, onDismiss = { showShareMedia = false })
+    val cardForSharing = preparedLinkCard
+    if (showShareMedia && shareScene != null && cardForSharing != null) {
+        ShareMediaSheet(
+            scene = shareScene,
+            preparedLinkCard = cardForSharing,
+            highlighted = shareNetwork,
+            onDismiss = { showShareMedia = false }
+        )
     }
 }
