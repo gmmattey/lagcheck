@@ -124,6 +124,13 @@
 "settings.section.privacy" = "PRIVACIDADE";
 "settings.section.about" = "SOBRE";
 "settings.language" = "Idioma";
+"settings.reminder.title" = "Lembrete pré-partida";
+"settings.reminder.no_game" = "Escolha um jogo para ativar.";
+"settings.reminder.time" = "Horário";
+"settings.reminder.summary %@ %@" = "Todos os dias às %@ · %@";
+"settings.reminder.on" = "ligado";
+"settings.reminder.off" = "desligado";
+"settings.reminder.open_system_settings" = "Abrir Ajustes do aparelho";
 "share.card.ready" = "Card pronto para compartilhar";
 "share.card.retry" = "Preparar card novamente";
 "share.card.preparing" = "Preparando card";

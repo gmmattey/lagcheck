@@ -1,10 +1,14 @@
 package com.lagcheck.android
 
 import android.os.Bundle
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -54,6 +58,7 @@ import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.domain.model.OfficialGameCatalog
 
 class MainActivity : ComponentActivity() {
+    companion object { const val EXTRA_REMINDER_GAME_ID = "pre_match_reminder_game_id" }
     private var artworkForeground by mutableStateOf(false)
 
     override fun onStart() {
@@ -61,8 +66,21 @@ class MainActivity : ComponentActivity() {
         artworkForeground = true
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            viewModel.refreshReminderPermission(ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+        }
+    }
+
     private val viewModel: MainViewModel by viewModels()
     private val ads by lazy { com.lagcheck.android.ads.AdsController(this) }
+    private var enableReminderAfterPermission = false
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted && enableReminderAfterPermission) viewModel.enableReminder()
+        else if (enableReminderAfterPermission) viewModel.reminderPermissionDenied()
+        enableReminderAfterPermission = false
+    }
 
     override fun onStop() {
         artworkForeground = false
@@ -74,6 +92,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
 
         // Idioma inicial já na primeira composição (sem piscar em PT-BR antes de trocar).
         AppLocale.language = viewModel.language.value.toAppLanguage()
@@ -94,6 +113,8 @@ class MainActivity : ComponentActivity() {
             val localReportLoading by viewModel.localReportLoading.collectAsState()
             val platformHealth by viewModel.platformHealth.collectAsState()
             val favorites by viewModel.favorites.collectAsState()
+            val reminderEnabled by viewModel.reminderEnabledState.collectAsState()
+            val reminderPermissionDenied by viewModel.reminderPermissionDenied.collectAsState()
 
             // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
             androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -394,6 +415,20 @@ class MainActivity : ComponentActivity() {
                             onRegionSelected = { viewModel.setManualRegionId(it) },
                             onOpenHistory = { viewModel.navigateTo(Screen.History) },
                             onClearHistory = { viewModel.clearHistory() },
+                            reminderEnabled = reminderEnabled,
+                            reminderHour = viewModel.reminderHour(),
+                            reminderMinute = viewModel.reminderMinute(),
+                            reminderGameName = selectedGame.name,
+                            reminderPermissionDenied = reminderPermissionDenied,
+                            onReminderToggle = { enabled ->
+                                if (!enabled) viewModel.disableReminder()
+                                else if (android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) viewModel.enableReminder()
+                                else { enableReminderAfterPermission = true; notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }
+                            },
+                            onReminderTimeChanged = viewModel::changeReminderTime,
+                            onOpenNotificationSettings = {
+                                startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName))
+                            },
                             privacyOptionsRequired = privacyOptionsRequired,
                             onOpenPrivacyOptions = { ads.showPrivacyOptions() },
                             onBack = { viewModel.navigateTo(Screen.Home) }
@@ -417,8 +452,13 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
+    }
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
+    }
     private fun launchPlayReviewFlow() {
         try {
             val manager = com.google.android.play.core.review.ReviewManagerFactory.create(this)
@@ -434,7 +474,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @androidx.compose.runtime.Composable
 private fun GamepadTabIcon(selected: Boolean) {
     val color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextMuted

@@ -89,6 +89,7 @@
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
 | [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
+| [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (Autorizada)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
 
 
 
@@ -800,6 +801,24 @@
 - **Critérios de validação e aceite:**
   - `docs/01-funcional.md` e `docs/05-governanca-e-fluxo-de-trabalho.md` deixam claro que dados de retenção informam prioridade, sem bloquear escopo;
   - nenhuma regra de integridade diagnóstica, custo operacional zero, consentimento ou autorização de publicação é removida.
+
+#### Decisão 87
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Lembrete local pré-partida, configurado pela pessoa.
+- **Status Atual:** **Vigente (Autorizada).**
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Rian (iOS e Android), Renan (experiência) e Breno (QA).
+- **Decisão:**
+  1. O LagCheck oferece, somente após escolha explícita da pessoa, um lembrete local diário em um horário configurado. O recurso começa desligado, não observa outros apps, não aprende rotina, não usa push, não cria conta, não chama Worker nem envia telemetria.
+  2. Só pode ser ativado quando houver um jogo selecionado. A notificação usa copy curta e abre o LagCheck no contexto desse jogo, pronto para a pessoa iniciar o Check; ela nunca dispara medição por conta própria.
+  3. Há no máximo um lembrete por dia. A pessoa pode mudar o horário ou desligar o recurso nos Ajustes a qualquer momento; ao desligar, os agendamentos locais são removidos.
+  4. A permissão do sistema é pedida somente pela ação de ativar. Se negada, o recurso permanece desligado, explica o estado sem culpa e oferece o caminho às Configurações do sistema; não há repetição automática do prompt.
+  5. A implementação respeita as permissões e limites nativos de iOS e Android, além de PT-BR, inglês e espanhol. Não afirma que a rede está pronta e não substitui um Check atual.
+- **Critérios de validação e aceite:**
+  - teste de agendamento, remarcação, desligamento e abertura no jogo correto nos dois clientes;
+  - validação em aparelhos iOS e Android do prompt, permissão negada, toque na notificação em app frio e em segundo plano, e cancelamento/retorno;
+  - Dynamic Type/font scale, VoiceOver/TalkBack, contraste e alvo de 44 pt/dp na configuração;
+  - nenhuma atividade de rede ou medição automática causada pelo lembrete.
 
 ## Como Registrar Novas Decisões
 

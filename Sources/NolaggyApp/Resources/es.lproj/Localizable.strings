@@ -124,6 +124,13 @@
 "settings.section.privacy" = "PRIVACIDAD";
 "settings.section.about" = "ACERCA DE";
 "settings.language" = "Idioma";
+"settings.reminder.title" = "Recordatorio antes de jugar";
+"settings.reminder.no_game" = "Elige un juego para activarlo.";
+"settings.reminder.time" = "Hora";
+"settings.reminder.summary %@ %@" = "Todos los días a las %@ · %@";
+"settings.reminder.on" = "activado";
+"settings.reminder.off" = "desactivado";
+"settings.reminder.open_system_settings" = "Abrir ajustes del dispositivo";
 "settings.region.title" = "Región de referencia";
 "settings.region.automatic" = "Automática";
 "settings.region.explanation" = "La región utilizada en cada medición se elige automáticamente según tu red al momento de la prueba. Elegir una región aquí solo cambia esta preferencia cuando sea una candidata válida para el juego probado; de lo contrario, la medición vuelve a elegir automáticamente.";

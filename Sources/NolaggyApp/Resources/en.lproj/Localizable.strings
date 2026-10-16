@@ -124,6 +124,13 @@
 "settings.section.privacy" = "PRIVACY";
 "settings.section.about" = "ABOUT";
 "settings.language" = "Language";
+"settings.reminder.title" = "Pre-match reminder";
+"settings.reminder.no_game" = "Pick a game to enable it.";
+"settings.reminder.time" = "Time";
+"settings.reminder.summary %@ %@" = "Every day at %@ · %@";
+"settings.reminder.on" = "on";
+"settings.reminder.off" = "off";
+"settings.reminder.open_system_settings" = "Open device settings";
 "settings.region.title" = "Reference region";
 "settings.region.automatic" = "Automatic";
 "settings.region.explanation" = "The region used in each check is chosen automatically based on your network at the time of the test. Picking a region here only overrides that choice when it's a valid candidate for the game being measured; otherwise the check falls back to choosing automatically.";

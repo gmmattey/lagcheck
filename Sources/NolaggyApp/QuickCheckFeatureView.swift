@@ -185,6 +185,8 @@ struct QuickCheckFeatureView: View {
                                 showingSettings = false
                                 showingHistory = true
                             },
+                            selectedGameID: selectedGameID,
+                            selectedGameName: selectedGameID.flatMap { id in availableGames.first(where: { $0.id == id })?.name },
                             onDismiss: {
                                 showingSettings = false
                             }
@@ -294,6 +296,7 @@ struct QuickCheckFeatureView: View {
             if phase == .active {
                 Task { @MainActor in
                     await refreshLiveNetworkSignal()
+                    _ = await PreMatchReminderStore.shared.revalidatePermission()
                 }
             }
             guard phase == .background else { return }
@@ -377,6 +380,19 @@ struct QuickCheckFeatureView: View {
         .onOpenURL { url in
             handleIncomingURL(url)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .lagCheckReminderOpened)) { note in
+            guard let gameID = note.userInfo?["gameID"] as? String,
+                  let game = availableGames.first(where: { $0.id == gameID }) else { return }
+            selectedTab = .home
+            selectedGameID = game.id
+            presentation = .context
+        }
+        .onAppear { consumePendingPreMatchReminder() }
+        .onChange(of: availableGames.map(\.id)) { _, ids in
+            let reminder = PreMatchReminderStore.shared.value
+            if reminder.enabled, let gameID = reminder.gameID, !ids.contains(gameID) { PreMatchReminderStore.shared.disable() }
+            consumePendingPreMatchReminder()
+        }
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
             guard let url = userActivity.webpageURL else { return }
             handleIncomingURL(url)
@@ -429,6 +445,13 @@ struct QuickCheckFeatureView: View {
         case .home:
             selectedTab = .home
         }
+    }
+
+    private func consumePendingPreMatchReminder() {
+        guard let gameID = UserDefaults.standard.string(forKey: "pendingPreMatchReminderGameID"),
+              let game = availableGames.first(where: { $0.id == gameID }) else { return }
+        UserDefaults.standard.removeObject(forKey: "pendingPreMatchReminderGameID")
+        selectedTab = .home; selectedGameID = game.id; presentation = .context
     }
 
     @ViewBuilder

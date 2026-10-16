@@ -124,6 +124,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val historyRepository = HistoryRepository(application)
     private val preferencesRepository = PreferencesRepository(application)
+    private val preMatchReminder = com.lagcheck.android.data.PreMatchReminder(application)
+    private val _reminderEnabled = MutableStateFlow(preMatchReminder.enabled)
+    val reminderEnabledState: StateFlow<Boolean> = _reminderEnabled.asStateFlow()
+    private val _reminderPermissionDenied = MutableStateFlow(preMatchReminder.permissionDenied)
+    val reminderPermissionDenied: StateFlow<Boolean> = _reminderPermissionDenied.asStateFlow()
+    private var pendingReminderGameID: String? = null
     private val reviewPromptStore = com.lagcheck.android.data.PreferencesReviewPromptStore(application)
     private val reviewPromptCoordinator = com.lagcheck.session.ReviewPromptCoordinator(
         store = reviewPromptStore,
@@ -242,6 +248,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun publishCatalog(payload: CatalogPayload?) {
         _catalogPayload.value = payload
         val available = payload?.let(com.lagcheck.session.CatalogPresentation::games) ?: return
+        preMatchReminder.clearIfGameUnavailable(available.mapTo(mutableSetOf()) { it.id })
+        _reminderEnabled.value = preMatchReminder.enabled
+        pendingReminderGameID?.let { pending ->
+            available.firstOrNull { it.id == pending }?.let { game ->
+                pendingReminderGameID = null; chooseGame(game); navigateTo(Screen.Home)
+            }
+        }
         val selected = available.firstOrNull { it.id == preferencesRepository.selectedGameId.value }
             ?: available.firstOrNull() ?: return
         _selectedGame.value = selected
@@ -321,6 +334,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setLanguage(lang: String) {
         preferencesRepository.setLanguage(lang)
+        if (preMatchReminder.enabled) preMatchReminder.gameId?.let { preMatchReminder.schedule(it, preMatchReminder.hour, preMatchReminder.minute) }
+    }
+
+    fun reminderEnabled(): Boolean = _reminderEnabled.value
+    fun reminderHour(): Int = preMatchReminder.hour
+    fun reminderMinute(): Int = preMatchReminder.minute
+    fun enableReminder() { preMatchReminder.markPermissionGranted(); preMatchReminder.schedule(_selectedGame.value.id); _reminderEnabled.value = true; _reminderPermissionDenied.value = false }
+    fun changeReminderTime(hour: Int, minute: Int) { preMatchReminder.gameId?.let { preMatchReminder.schedule(it, hour, minute) } }
+    fun disableReminder() { preMatchReminder.cancel(); _reminderEnabled.value = false }
+    fun reminderPermissionDenied() { preMatchReminder.markPermissionDenied(); _reminderEnabled.value = false; _reminderPermissionDenied.value = true }
+    fun refreshReminderPermission(granted: Boolean) {
+        if (granted) { preMatchReminder.markPermissionGranted(); _reminderPermissionDenied.value = false }
+        else if (preMatchReminder.enabled || preMatchReminder.permissionDenied) reminderPermissionDenied()
+    }
+    fun openReminderGame(gameId: String) {
+        val game = games.value.firstOrNull { it.id == gameId }
+        if (game == null) pendingReminderGameID = gameId else { chooseGame(game); navigateTo(Screen.Home) }
     }
 
     fun clearHistory() {
