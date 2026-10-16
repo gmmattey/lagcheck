@@ -8,11 +8,17 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
     public let kind: MeasurementKind
     public let resolvedContext: ResolvedMeasurementContext
     public let profileRuleVersion: String
-    public let result: QualityResult
+    /// Presente apenas quando a medição atingiu amostras UDP suficientes para
+    /// calcular um score. Um check inconclusivo preserva seus diagnósticos sem
+    /// fabricar uma nota.
+    public let result: QualityResult?
+    /// Métricas factuais de um check que terminou por dados UDP insuficientes.
+    /// Não há score, classe de resultado ou causa principal nesse caso.
+    public let inconclusiveDiagnostics: QualityMetrics?
     /// O Deep Check preserva o complemento de carga sem amostras brutas.
     /// Em Quick Check este campo permanece nulo.
     public let deepCheck: DeepCheckResult?
-    public let primaryCause: ResultPrimaryCauseKey
+    public let primaryCause: ResultPrimaryCauseKey?
     public let readinessVerdict: GameReadinessVerdict?
     public let readinessRuleVersion: String?
 
@@ -22,9 +28,10 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         kind: MeasurementKind = .quick,
         resolvedContext: ResolvedMeasurementContext,
         profileRuleVersion: String,
-        result: QualityResult,
+        result: QualityResult? = nil,
+        inconclusiveDiagnostics: QualityMetrics? = nil,
         deepCheck: DeepCheckResult? = nil,
-        primaryCause: ResultPrimaryCauseKey,
+        primaryCause: ResultPrimaryCauseKey? = nil,
         readinessVerdict: GameReadinessVerdict? = nil,
         readinessRuleVersion: String? = GameReadinessEvaluator.version
     ) {
@@ -34,10 +41,30 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         self.resolvedContext = resolvedContext
         self.profileRuleVersion = profileRuleVersion
         self.result = result
+        self.inconclusiveDiagnostics = inconclusiveDiagnostics
         self.deepCheck = deepCheck
         self.primaryCause = primaryCause
         self.readinessVerdict = readinessVerdict
         self.readinessRuleVersion = readinessRuleVersion
+    }
+
+    /// Registra o término normal de uma medição sem o mínimo de respostas UDP.
+    /// Cancelamentos, troca de rede e medições parciais nunca chegam a este fato.
+    public static func completedInconclusive(
+        resolvedContext: ResolvedMeasurementContext,
+        diagnostics: QualityMetrics,
+        kind: MeasurementKind = .quick,
+        completedAt: Date = Date()
+    ) -> MeasurementHistoryEntry {
+        MeasurementHistoryEntry(
+            completedAt: completedAt,
+            kind: kind,
+            resolvedContext: resolvedContext,
+            profileRuleVersion: resolvedContext.profileRuleVersion,
+            inconclusiveDiagnostics: diagnostics,
+            readinessVerdict: .inconclusive,
+            readinessRuleVersion: GameReadinessEvaluator.version
+        )
     }
 
     public static func completedQuickCheck(
@@ -98,6 +125,10 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
     }
 
     public var isInconclusive: Bool {
-        result.metrics.validResponseCount < 10 || readinessVerdict == .inconclusive
+        result == nil || (result?.metrics.validResponseCount ?? 0) < 10 || readinessVerdict == .inconclusive
+    }
+
+    public var metrics: QualityMetrics? {
+        result?.metrics ?? inconclusiveDiagnostics
     }
 }

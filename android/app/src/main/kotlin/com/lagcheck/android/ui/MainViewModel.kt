@@ -505,10 +505,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     metrics = metrics
                 )
 
-                // Só resultado concluído entra no histórico (inconclusivo não vira registro, como no iOS).
-                if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
-                    historyRepository.recordCheck(targetGame, evaluation)
-                }
+                // Um resultado final, inclusive inconclusivo por amostra insuficiente,
+                // entra no ritual. Cancelamentos e troca de rede retornam antes daqui.
+                historyRepository.recordCheck(
+                    game = targetGame,
+                    evaluation = evaluation,
+                    profileRuleVersion = selectedContext.profileRuleVersion,
+                    regionId = selectedContext.regionId,
+                    observedNetwork = radioSnapshot?.transportType?.name,
+                    validResponseCount = result.restSamples.count { it.isValidResponse }
+                )
 
                 // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
                 // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e cancelável se sair da tela/background

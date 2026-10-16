@@ -252,10 +252,7 @@ struct HomeStateEditorialHero: View {
 
     @ViewBuilder
     private func stateContentForEntry(_ entry: MeasurementHistoryEntry) -> some View {
-        let result = entry.result
-        if result.metrics.validResponseCount == 0 {
-            inconclusiveStateContent
-        } else {
+        if let result = entry.result {
             let isHealthy = result.resultClass == .excellent || result.resultClass == .great
             let isUnstable = result.resultClass == .unstable
             let statusColor = isHealthy ? NLColor.scoreExcellent : (isUnstable ? NLColor.scoreUnstable : NLColor.scoreLagRisk)
@@ -293,6 +290,8 @@ struct HomeStateEditorialHero: View {
                     Spacer()
                 }
             }
+        } else {
+            inconclusiveStateContent
         }
     }
 
@@ -373,10 +372,10 @@ struct HomeStateEditorialHero: View {
     private var accessibilitySummary: String {
         let gameName = game?.name ?? AppLocalization.string("home.hero.no_game_selected", comment: "")
         if let lastEntry {
-            if lastEntry.result.metrics.validResponseCount == 0 {
+            if lastEntry.isInconclusive {
                 return "\(gameName), \(regionName), \(AppLocalization.string("home.hero.inconclusive_title", comment: ""))"
             } else {
-                return "\(gameName), \(regionName), Score \(lastEntry.result.finalScore), \(relativeTimeString(for: lastEntry.completedAt))"
+                return "\(gameName), \(regionName), Score \(lastEntry.result?.finalScore ?? 0), \(relativeTimeString(for: lastEntry.completedAt))"
             }
         } else {
             return "\(gameName), \(regionName), \(AppLocalization.string("home.hero.ready_title", comment: ""))"
@@ -517,7 +516,7 @@ private struct HomeRecentCompactCard: View {
                             .foregroundStyle(NLColor.textSecondary)
                     } else {
                         HStack(spacing: NLSpacing.xs) {
-                            let score = lastEntry.result.finalScore
+                            let score = lastEntry.result?.finalScore ?? 0
                             Text("\(score)")
                                 .font(NLTypography.captionStrong)
                                 .foregroundStyle(score >= 80 ? NLColor.scoreExcellent : (score >= 60 ? NLColor.scoreUnstable : NLColor.scoreLagRisk))
@@ -555,7 +554,7 @@ private struct HomeRecentCompactCard: View {
     }
 
     private var isInconclusive: Bool {
-        lastEntry.result.metrics.validResponseCount < 10
+        lastEntry.isInconclusive
     }
 
     private var accessibilityLabel: String {
@@ -567,7 +566,7 @@ private struct HomeRecentCompactCard: View {
             )
             return "\(game.name), \(status)"
         }
-        return "\(game.name), Score \(lastEntry.result.finalScore), \(time)"
+        return "\(game.name), Score \(lastEntry.result?.finalScore ?? 0), \(time)"
     }
 }
 
@@ -722,8 +721,8 @@ struct HomeDecisionCard: View {
 
     private var hasValidMeasurement: Bool {
         guard let latestEntry else { return false }
-        return latestEntry.result.metrics.validResponseCount >= 10
-            && latestEntry.result.metrics.p50Milliseconds != nil
+        return latestEntry.metrics?.validResponseCount ?? 0 >= 10
+            && latestEntry.metrics?.p50Milliseconds != nil
     }
 
     private var isRecent: Bool {
@@ -852,8 +851,7 @@ struct HomeDecisionCard: View {
     private var decisionContent: some View {
         if isMeasuring {
             decisionText(title: "home.decision.measuring.title", message: "home.cta.measuring", symbol: "wave.3.forward")
-        } else if let latestEntry, showsCurrentResult {
-            let result = latestEntry.result
+        } else if let latestEntry, let result = latestEntry.result, showsCurrentResult {
             HStack(alignment: .firstTextBaseline, spacing: NLSpacing.md) {
                 Text("\(result.finalScore)")
                     .font(.system(size: 40, weight: .bold, design: .rounded))
@@ -1582,7 +1580,7 @@ private struct CatalogRecentTestsSection: View {
 
     private func measurementStatus(for entry: MeasurementHistoryEntry) -> String {
         let relativeTime = relativeTime(for: entry.completedAt)
-        guard entry.result.metrics.validResponseCount >= 10 else {
+        guard !entry.isInconclusive, let result = entry.result else {
             return String(
                 format: AppLocalization.string("catalog.recent.inconclusive_time", comment: ""),
                 relativeTime
@@ -1590,7 +1588,7 @@ private struct CatalogRecentTestsSection: View {
         }
         return String(
             format: AppLocalization.string("catalog.recent.score_time", comment: ""),
-            entry.result.finalScore,
+            result.finalScore,
             relativeTime
         )
     }

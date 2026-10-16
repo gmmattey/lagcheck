@@ -17,6 +17,7 @@ struct HistoryView: View {
 
     @State private var showingClearConfirmation: Bool = false
     @State private var selectedEntryForDetails: MeasurementHistoryEntry? = nil
+    @State private var selectedRitualWindow: HistoryRitualSummary.Window = .fourteenDays
 
     private var groupedGames: [(gameID: String, name: String, latest: MeasurementHistoryEntry, entries: [MeasurementHistoryEntry])] {
         let grouped = Dictionary(grouping: entries, by: { $0.resolvedContext.context.gameID })
@@ -54,6 +55,9 @@ struct HistoryView: View {
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, 40)
                 } else {
+                    ritualWindowPicker
+                        .padding(.horizontal, NLSpacing.md)
+
                     // Grupos por jogo
                     VStack(spacing: 24) {
                         ForEach(groupedGames, id: \.gameID) { group in
@@ -135,6 +139,17 @@ struct HistoryView: View {
                 alignment: .bottom
             )
 
+            if let summary = HistoryRitualSummary(entries: group.entries, window: selectedRitualWindow), summary.hasEnoughEvidence {
+                ritualSummary(summary)
+                    .padding(.vertical, 12)
+                    .overlay(
+                        Rectangle()
+                            .fill(NLColor.borderStrong)
+                            .frame(height: 1),
+                        alignment: .bottom
+                    )
+            }
+
             // Lista de Medições do Jogo
             VStack(spacing: 0) {
                 ForEach(group.entries) { entry in
@@ -142,6 +157,52 @@ struct HistoryView: View {
                 }
             }
         }
+    }
+
+    private var ritualWindowPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(HistoryRitualSummary.Window.allCases, id: \.rawValue) { window in
+                Button {
+                    selectedRitualWindow = window
+                } label: {
+                    Text(ritualWindowTitle(window))
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(selectedRitualWindow == window ? NLColor.textPrimary : NLColor.textSecondary)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, 12)
+                        .background(
+                            Capsule()
+                                .fill(selectedRitualWindow == window ? NLColor.backgroundRaised : NLColor.surface)
+                        )
+                        .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(ritualWindowTitle(window))
+                .accessibilityAddTraits(selectedRitualWindow == window ? .isSelected : [])
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func ritualSummary(_ summary: HistoryRitualSummary) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(String(format: AppLocalization.string("history.ritual.ready_count", comment: ""), summary.readyCount, summary.comparableCount))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(NLColor.textPrimary)
+            Text(String(format: AppLocalization.string("history.ritual.breakdown", comment: ""), summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount))
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(NLColor.textTertiary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func ritualWindowTitle(_ window: HistoryRitualSummary.Window) -> String {
+        let key: String = switch window {
+        case .sevenDays: "history.ritual.window_7"
+        case .fourteenDays: "history.ritual.window_14"
+        case .thirtyDays: "history.ritual.window_30"
+        }
+        return AppLocalization.string(key, comment: "")
     }
 
     private func historyItemRow(entry: MeasurementHistoryEntry) -> some View {
@@ -345,17 +406,17 @@ struct HistoryView: View {
     }
 
     private func formatPing(_ entry: MeasurementHistoryEntry) -> String {
-        guard let p50 = entry.result.metrics.p50Milliseconds else { return "—" }
+        guard let p50 = entry.metrics?.p50Milliseconds else { return "—" }
         return "\(Int(p50.rounded()))"
     }
 
     private func formatJitter(_ entry: MeasurementHistoryEntry) -> String {
-        guard let jitter = entry.result.metrics.jitterMilliseconds else { return "—" }
+        guard let jitter = entry.metrics?.jitterMilliseconds else { return "—" }
         return "\(Int(jitter.rounded()))"
     }
 
     private func formatLoss(_ entry: MeasurementHistoryEntry) -> String {
-        let loss = entry.result.metrics.packetLossPercentage
+        guard let loss = entry.metrics?.packetLossPercentage else { return "—" }
         if loss <= 0.05 { return "0" }
         return String(format: "%.1f", loss)
     }

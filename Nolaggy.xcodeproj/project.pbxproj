@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0254A05ECE5678A17B9BF55B /* DirectPlatformHealthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */; };
-		0325AB22B48BC8EC004F54AE /* MeasurementHistorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53020A17F9893FFE79C96464 /* MeasurementHistorySummary.swift */; };
+		0325AB22B48BC8EC004F54AE /* HistoryRitualSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53020A17F9893FFE79C96464 /* HistoryRitualSummary.swift */; };
 		04652A84407369ED5E89B807 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74877992225BB8A92D7D2E7A /* WidgetKit.framework */; };
 		0567D6E8990444FBBB50E191 /* DebugCatalogBase.json in Resources */ = {isa = PBXBuildFile; fileRef = 6576A75DB0E9DE75A62268E5 /* DebugCatalogBase.json */; };
 		05A956C89CE5E65A013CCDAA /* RemoteArtworkLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50722D68C7C44A43C44716E /* RemoteArtworkLoaderTests.swift */; };
@@ -68,7 +68,7 @@
 		35245537BBB3687D50D12555 /* SampleQualityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D026C90CB6B8BC0E38D07650 /* SampleQualityEvaluator.swift */; };
 		352D086ED7B18C8038490D24 /* MeasurementPulse.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE867574BCC1C67171FECFF0 /* MeasurementPulse.swift */; };
 		35F4353CA22B4C05AECFFF61 /* VoiceChatSuitabilityEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */; };
-		36BFBADA18930D99184BB71D /* MeasurementHistorySummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */; };
+		36BFBADA18930D99184BB71D /* HistoryRitualSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FDC9143CA48690E5375C172 /* HistoryRitualSummaryTests.swift */; };
 		3799BCBBCB822AE535C0E4D1 /* MeasurementHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB88BE6374E5B27EE81215E /* MeasurementHistoryRepository.swift */; };
 		37D401813372231FA91C49F2 /* InMemoryAnalyticsTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD10F339F713470FFB0C9F7 /* InMemoryAnalyticsTracker.swift */; };
 		392E2A849538B8E4283A4889 /* NolaggyApplication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B00F528B6024D0DCC0CA19 /* NolaggyApplication.framework */; };
@@ -550,7 +550,7 @@
 		2A828FE7884262D4FFBAFE0A /* NLStroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLStroke.swift; sourceTree = "<group>"; };
 		2B99EB7D33E547A006A994B1 /* NolaggyDomainTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyDomainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C47012986A5FAFCFF41DCED /* LagCheckClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LagCheckClip.entitlements; sourceTree = "<group>"; };
-		2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistorySummaryTests.swift; sourceTree = "<group>"; };
+		2FDC9143CA48690E5375C172 /* HistoryRitualSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRitualSummaryTests.swift; sourceTree = "<group>"; };
 		2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluator.swift; sourceTree = "<group>"; };
 		3124C8561614308016F7B9B1 /* InsightBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBanner.swift; sourceTree = "<group>"; };
 		3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistoryEntry.swift; sourceTree = "<group>"; };
@@ -584,7 +584,7 @@
 		51691B9C7D5F278315F11757 /* NolaggyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NolaggyApp.swift; sourceTree = "<group>"; };
 		51857D2532B9BEBBEA2241E1 /* VoiceChatSuitabilityEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluatorTests.swift; sourceTree = "<group>"; };
 		5265FA2DEC99B49E357332D7 /* UserDefaultsRegionalPreferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsRegionalPreferenceRepository.swift; sourceTree = "<group>"; };
-		53020A17F9893FFE79C96464 /* MeasurementHistorySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistorySummary.swift; sourceTree = "<group>"; };
+		53020A17F9893FFE79C96464 /* HistoryRitualSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRitualSummary.swift; sourceTree = "<group>"; };
 		54072B3FEE951DD276E836EF /* QualityEvaluatorExpandedProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityEvaluatorExpandedProfileTests.swift; sourceTree = "<group>"; };
 		56D3E11571E026399E1DA00B /* GameDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDetailView.swift; sourceTree = "<group>"; };
 		599DCEB5C40F3BD33F2A643E /* WiFiBandModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiBandModels.swift; sourceTree = "<group>"; };
@@ -1172,7 +1172,7 @@
 				2138CB13125F69726F372980 /* GlobalProbeRegistryTests.swift */,
 				AD335860B8DC9D718367A514 /* HighImpactOptimizationTests.swift */,
 				B225CDDE298069693148DAE1 /* MeasurementHistoryEntryTests.swift */,
-				2FDC9143CA48690E5375C172 /* MeasurementHistorySummaryTests.swift */,
+				2FDC9143CA48690E5375C172 /* HistoryRitualSummaryTests.swift */,
 				C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */,
 				4CF1560550C5773C40B48251 /* PlatformHealthTests.swift */,
 				54072B3FEE951DD276E836EF /* QualityEvaluatorExpandedProfileTests.swift */,
@@ -1313,7 +1313,7 @@
 				5F59ABE1787BB4E9581AFF31 /* GlobalProbeRegistry.swift */,
 				C8B2BA86D3C500060AB09D16 /* HighImpactOptimization.swift */,
 				3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */,
-				53020A17F9893FFE79C96464 /* MeasurementHistorySummary.swift */,
+				53020A17F9893FFE79C96464 /* HistoryRitualSummary.swift */,
 				BB4F6FA557BB871F89C0BC2E /* MeasurementModels.swift */,
 				8882C17210EFB462A3D887C1 /* NATTopologyModels.swift */,
 				C13CEE41EBF8FE561BB153BF /* PilotCatalog.swift */,
@@ -1704,7 +1704,7 @@
 				6A61F91AA7E34DC7DE4EE356 /* GlobalProbeRegistry.swift in Sources */,
 				2E9D41587BC99F27D2694C93 /* HighImpactOptimization.swift in Sources */,
 				4F90461F45BAD41ECCCC8851 /* MeasurementHistoryEntry.swift in Sources */,
-				0325AB22B48BC8EC004F54AE /* MeasurementHistorySummary.swift in Sources */,
+				0325AB22B48BC8EC004F54AE /* HistoryRitualSummary.swift in Sources */,
 				E23D85CB2E9F92D5E1A53AC3 /* MeasurementModels.swift in Sources */,
 				E3148A97110449D0D5BB04E5 /* NATTopologyModels.swift in Sources */,
 				51489160362A69B664682E7C /* PilotCatalog.swift in Sources */,
@@ -1938,7 +1938,7 @@
 				637CD081A2093D001151D790 /* GlobalProbeRegistryTests.swift in Sources */,
 				1F30AA8C548C4319F02102A1 /* HighImpactOptimizationTests.swift in Sources */,
 				5E82936D04A2DCB7DF73ABA9 /* MeasurementHistoryEntryTests.swift in Sources */,
-				36BFBADA18930D99184BB71D /* MeasurementHistorySummaryTests.swift in Sources */,
+				36BFBADA18930D99184BB71D /* HistoryRitualSummaryTests.swift in Sources */,
 				A34E467C72A7383D1AB86EA8 /* NATTopologyTests.swift in Sources */,
 				6086D77F16DB16C8A9C24E6C /* PlatformHealthTests.swift in Sources */,
 				0840BFFFBE9522527173B112 /* QualityEvaluatorExpandedProfileTests.swift in Sources */,

@@ -292,6 +292,14 @@ public actor DeepCheckSessionCoordinator {
         if case let .completed(result) = evaluation {
             // O histórico recebe somente o fato final: repouso e complemento agregado de carga.
             try? await historyRepository.save(.completedDeepCheck(resolvedContext: session.resolvedContext, result: result))
+        } else if case let .inconclusive(_, diagnostics) = evaluation {
+            try? await historyRepository.save(
+                .completedInconclusive(
+                    resolvedContext: session.resolvedContext,
+                    diagnostics: diagnostics,
+                    kind: .deep
+                )
+            )
         }
         state = .completed(session, evaluation, availability)
     }

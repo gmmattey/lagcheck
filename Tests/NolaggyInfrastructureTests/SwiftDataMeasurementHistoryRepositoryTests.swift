@@ -49,7 +49,7 @@ final class SwiftDataMeasurementHistoryRepositoryTests: XCTestCase {
         XCTAssertEqual(loaded.first?.resolvedContext.context.gameID, GameContext.genericGamingID)
         XCTAssertEqual(loaded.first?.resolvedContext.context.platform, .playstation)
         XCTAssertEqual(loaded.first?.resolvedContext.context.declaredExternalLink, .ethernet)
-        XCTAssertEqual(loaded.first?.result.finalScore, 98)
+        XCTAssertEqual(loaded.first?.result?.finalScore, 98)
     }
 
     private func makeEntry(date: Date) -> MeasurementHistoryEntry {

@@ -111,10 +111,6 @@
 "history.equipment.wifi" = "Equipamento: Wi-Fi";
 "history.equipment.ethernet" = "Equipamento: cabo";
 "history.equipment.not_declared" = "Equipamento: não informado";
-"history.seven_day_average %@" = "Média de 7 dias: %@";
-"history.trend.improving" = "Em melhora";
-"history.trend.worsening" = "Em piora";
-"history.trend.stable" = "Estável";
 "navigation.home" = "Início";
 "navigation.games" = "Jogos";
 "navigation.network" = "Rede";
@@ -779,6 +775,11 @@
 "history.sheet.delete_message" = "Esta ação não pode ser desfeita.";
 "common.cancel" = "Cancelar";
 "history.sheet.delete_confirm" = "Apagar";
+"history.ritual.window_7" = "Últimos 7 dias";
+"history.ritual.window_14" = "Últimos 14 dias";
+"history.ritual.window_30" = "Últimos 30 dias";
+"history.ritual.ready_count" = "Pronto em %d de %d checks";
+"history.ritual.breakdown" = "Instável: %d · Evitaria: %d · Inconclusivos: %d";
 "catalog.generic_gaming_card.subtitle" = "Rota regional neutra de referência";
 "network.offline" = "Sem conexão";
 "network.cellular" = "Rede móvel";

@@ -72,6 +72,9 @@ object UiStrings {
         t("1 check", "1 check", "1 check")
         t("%d checks", "%d checks", "%d checks")
         t("prontos p/ Ranked", "Ranked-ready", "listos p/ Ranked")
+        t("Últimos %d dias", "Last %d days", "Últimos %d días")
+        t("Pronto em %d de %d checks", "Ready in %d of %d checks", "Listo en %d de %d checks")
+        t("Instável: %d · Evitaria: %d · Inconclusivos: %d", "Unstable: %d · Avoid: %d · Inconclusive: %d", "Inestable: %d · Evitaría: %d · No concluyentes: %d")
         // endregion
 
         // region Cockpit (Dados da Rede)

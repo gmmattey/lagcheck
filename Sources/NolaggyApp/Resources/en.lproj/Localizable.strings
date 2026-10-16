@@ -111,10 +111,6 @@
 "history.equipment.wifi" = "Equipment: Wi-Fi";
 "history.equipment.ethernet" = "Equipment: cable";
 "history.equipment.not_declared" = "Equipment: not declared";
-"history.seven_day_average %@" = "7-day average: %@";
-"history.trend.improving" = "Improving";
-"history.trend.worsening" = "Worsening";
-"history.trend.stable" = "Stable";
 "navigation.home" = "Home";
 "navigation.games" = "Games";
 "navigation.network" = "Network";
@@ -774,6 +770,11 @@
 "history.sheet.delete_message" = "This action cannot be undone.";
 "common.cancel" = "Cancel";
 "history.sheet.delete_confirm" = "Delete";
+"history.ritual.window_7" = "Last 7 days";
+"history.ritual.window_14" = "Last 14 days";
+"history.ritual.window_30" = "Last 30 days";
+"history.ritual.ready_count" = "Ready in %d of %d checks";
+"history.ritual.breakdown" = "Unstable: %d · Avoid: %d · Inconclusive: %d";
 "common.done" = "Done";
 "catalog.generic_gaming_card.subtitle" = "Neutral regional reference route";
 "network.offline" = "No connection";

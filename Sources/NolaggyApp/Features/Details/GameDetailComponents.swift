@@ -364,14 +364,32 @@ struct GameDetailExclusiveHistoryCard: View {
         .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: 1))
     }
 
+    @ViewBuilder
     private func latestMeasurement(_ entry: MeasurementHistoryEntry) -> some View {
+        if entry.isInconclusive {
+            HStack(spacing: NLSpacing.sm) {
+                Circle().fill(NLColor.textTertiary).frame(width: 8, height: 8)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("game_readiness.verdict.inconclusive.headline"))
+                        .font(NLTypography.captionStrong)
+                        .foregroundStyle(NLColor.textPrimary)
+                    Text(formattedDate(entry.completedAt))
+                        .font(NLTypography.caption)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                Spacer()
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
+            .overlay(RoundedRectangle(cornerRadius: NLRadius.controlSmall).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
+        } else if let result = entry.result {
         HStack(spacing: NLSpacing.sm) {
             Circle()
-                .fill(scoreColor(entry.result.resultClass))
+                .fill(scoreColor(result.resultClass))
                 .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(verdictTitle(entry.result.resultClass))
+                Text(verdictTitle(result.resultClass))
                     .font(NLTypography.captionStrong)
                     .foregroundStyle(NLColor.textPrimary)
 
@@ -383,9 +401,9 @@ struct GameDetailExclusiveHistoryCard: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 1) {
-                Text("\(entry.result.finalScore)")
+                Text("\(result.finalScore)")
                     .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(scoreColor(entry.result.resultClass))
+                    .foregroundStyle(scoreColor(result.resultClass))
 
                 Text(LocalizedStringKey("game_detail.history.score_label"))
                     .font(.system(size: 9, weight: .bold))
@@ -396,6 +414,7 @@ struct GameDetailExclusiveHistoryCard: View {
         .padding(10)
         .background(Color.black.opacity(0.4), in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
         .overlay(RoundedRectangle(cornerRadius: NLRadius.controlSmall).stroke(Color.white.opacity(0.06), lineWidth: 0.5))
+        }
     }
 
     private func scoreColor(_ resultClass: ResultClass) -> Color {

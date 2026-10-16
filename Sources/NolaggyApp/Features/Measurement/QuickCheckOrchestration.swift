@@ -174,7 +174,8 @@ extension QuickCheckFeatureView {
 
                     // Decisão 75 (Fase 2 / Item 6): Gravação do snapshot real para Widgets iOS 17
                     if let verdict = entry.readinessVerdict, verdict != .inconclusive,
-                       let p50 = entry.result.metrics.p50Milliseconds, p50 > 0 {
+                       let metrics = entry.result?.metrics,
+                       let p50 = metrics.p50Milliseconds, p50 > 0 {
                         let name = gameName(for: entry)
                         let isPt = AppLocalization.locale.identifier.lowercased().hasPrefix("pt")
                         let region = GlobalProbeRegistry.friendlyLabel(for: entry.resolvedContext.regionID, isPortuguese: isPt)
@@ -184,8 +185,8 @@ extension QuickCheckFeatureView {
                             regionLabel: region,
                             verdict: verdict,
                             rttMedianMs: p50,
-                            jitterMs: entry.result.metrics.jitterMilliseconds ?? 0.0,
-                            packetLossPercentage: entry.result.metrics.packetLossPercentage,
+                            jitterMs: metrics.jitterMilliseconds ?? 0.0,
+                            packetLossPercentage: metrics.packetLossPercentage,
                             bufferbloatGrade: entry.deepCheck?.metrics.loadImpact?.bufferbloatGrade.rawValue,
                             capturedAt: Date()
                         )

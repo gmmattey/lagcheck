@@ -123,7 +123,7 @@ struct QuickCheckFeatureView: View {
             initialPartialSamples = []
             initialSelectedRegionalContext = entry.resolvedContext
         } else if let fixture {
-            initialPresentation = .result(fixture.result)
+            initialPresentation = .result(fixture.result!)
             initialCompletedEntry = fixture
             initialHistory = [fixture]
             initialPartialSamples = UITestFixtures.validSamples

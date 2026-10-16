@@ -194,6 +194,7 @@ Esta área atende pessoas que querem evidência técnica profunda sem poluir o v
 O histórico é local e organizado por prontidão e títulos de jogos (Decisão 50). Em vez de apresentar uma lista de números e scores abstratos, foca na estabilidade do jogo:
 - Lista os últimos vereditos (Ready, Caution, Not Ready) por jogo e plataforma;
 - Cada jogo mantém no máximo 100 medições e resultados com mais de 90 dias são removidos automaticamente;
+- Para cada jogo, o ritual local de Histórico pode resumir os últimos 7, 14 ou 30 dias somente quando houver pelo menos 3 Checks válidos e comparáveis em 2 dias. O resumo informa a quantidade de vereditos observados; inconclusivos aparecem separados e nunca são tratados como falha ou entram na fração de prontidão. Não prevê a conexão, não aponta causa e não compara contextos distintos;
 - A pessoa pode apagar todo o histórico nas configurações;
 - Permite disparar um novo Check do jogo a partir de qualquer entrada histórica.
 

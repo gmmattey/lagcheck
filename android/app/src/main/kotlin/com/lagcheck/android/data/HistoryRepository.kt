@@ -35,19 +35,33 @@ class HistoryRepository(private val context: Context) {
 
         try {
             val jsonText = historyFile.readText()
-            _history.value = HistoryMapper.fromJson(jsonText)
+            val loaded = HistoryMapper.fromJson(jsonText)
+            val retained = applyRetention(loaded)
+            _history.value = retained
+            if (retained != loaded) saveHistoryToDisk(retained)
         } catch (e: Exception) {
             _history.value = emptyList()
         }
     }
 
-    fun recordCheck(game: CatalogGame, evaluation: GameReadinessEvaluation) {
+    fun recordCheck(
+        game: CatalogGame,
+        evaluation: GameReadinessEvaluation,
+        profileRuleVersion: String,
+        regionId: String,
+        observedNetwork: String?,
+        validResponseCount: Int?
+    ) {
         val newItem = CheckHistoryItem(
             gameId = game.id,
             gameName = game.name,
             platform = evaluation.platform,
             connectionType = evaluation.connectionType,
             declaredExternalLink = evaluation.declaredExternalLink?.name,
+            profileRuleVersion = profileRuleVersion,
+            regionId = regionId,
+            observedNetwork = observedNetwork,
+            validResponseCount = validResponseCount,
             timestamp = evaluation.timestamp,
             verdict = evaluation.verdict,
             score = evaluation.score,
@@ -68,8 +82,7 @@ class HistoryRepository(private val context: Context) {
             loadP99 = evaluation.metrics?.load?.p99Milliseconds,
             loadSpikeCount = evaluation.metrics?.load?.spikeCount
         )
-        // Mantém até 100 checks por jogo conforme especificação
-        val updated = (listOf(newItem) + _history.value).take(100)
+        val updated = applyRetention(listOf(newItem) + _history.value, now = newItem.timestamp)
         _history.value = updated
         saveHistoryToDisk(updated)
     }
@@ -88,6 +101,33 @@ class HistoryRepository(private val context: Context) {
         } catch (e: Exception) {
             // Ignora falha de gravação sem travar a UI
         }
+    }
+
+    /** A política de retenção é de dado local, não da UI: 90 dias e 100 checks por jogo. */
+    private fun applyRetention(items: List<CheckHistoryItem>, now: Long = System.currentTimeMillis()): List<CheckHistoryItem> {
+        return HistoryRetentionPolicy.apply(items, now)
+    }
+}
+
+internal object HistoryRetentionPolicy {
+    private const val RETENTION_DAYS = 90L
+    private const val DAY_MILLIS = 86_400_000L
+    private const val MAX_CHECKS_PER_GAME = 100
+
+    fun apply(items: List<CheckHistoryItem>, now: Long): List<CheckHistoryItem> {
+        val cutoff = now - RETENTION_DAYS * DAY_MILLIS
+        val retainedByGame = mutableMapOf<String, Int>()
+        return items.asSequence()
+            .filter { it.timestamp >= cutoff }
+            .sortedByDescending { it.timestamp }
+            .filter { item ->
+                val count = retainedByGame[item.gameId] ?: 0
+                if (count >= MAX_CHECKS_PER_GAME) false else {
+                    retainedByGame[item.gameId] = count + 1
+                    true
+                }
+            }
+            .toList()
     }
 }
 
@@ -138,6 +178,10 @@ object HistoryMapper {
                     platform = obj.getString("platform"),
                     connectionType = obj.getString("connectionType"),
                     declaredExternalLink = obj.optString("declaredExternalLink").takeIf { it == "WIFI" || it == "ETHERNET" },
+                    profileRuleVersion = obj.optString("profileRuleVersion").takeIf { it.isNotBlank() },
+                    regionId = obj.optString("regionId").takeIf { it.isNotBlank() },
+                    observedNetwork = obj.optString("observedNetwork").takeIf { it.isNotBlank() },
+                    validResponseCount = optionalCount(obj, "validResponseCount"),
                     timestamp = obj.getLong("timestamp"),
                     verdict = GameReadinessVerdict.valueOf(obj.getString("verdict")),
                     score = obj.getInt("score"),
@@ -173,6 +217,10 @@ object HistoryMapper {
                 put("platform", item.platform)
                 put("connectionType", item.connectionType)
                 put("declaredExternalLink", item.declaredExternalLink ?: JSONObject.NULL)
+                put("profileRuleVersion", item.profileRuleVersion ?: JSONObject.NULL)
+                put("regionId", item.regionId ?: JSONObject.NULL)
+                put("observedNetwork", item.observedNetwork ?: JSONObject.NULL)
+                put("validResponseCount", item.validResponseCount ?: JSONObject.NULL)
                 put("timestamp", item.timestamp)
                 put("verdict", item.verdict.name)
                 put("score", item.score)

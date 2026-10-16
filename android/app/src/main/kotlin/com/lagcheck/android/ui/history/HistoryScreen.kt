@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
+import com.lagcheck.android.data.HistoryRitualSummary
 import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
@@ -69,6 +70,7 @@ fun HistoryScreen(
 ) {
     val context = LocalContext.current
     var showConfirmDeleteSheet by remember { mutableStateOf(false) }
+    var selectedRitualWindow by remember { mutableStateOf(14) }
 
     // Agrupamento por jogo idêntico ao protótipo
     val groupedByGame = remember(historyItems) {
@@ -165,6 +167,10 @@ fun HistoryScreen(
                     }
                 }
             } else {
+                item(key = "ritual_window") {
+                    RitualWindowPicker(selectedWindow = selectedRitualWindow, onSelected = { selectedRitualWindow = it })
+                }
+
                 // 3. Resumo: checks · prontos · jogos
                 item(key = "summary") {
                     Spacer(modifier = Modifier.height(14.dp))
@@ -242,6 +248,29 @@ fun HistoryScreen(
                                     }
                                 }
                             }
+
+                            HistoryRitualSummary.forEntries(checks, selectedRitualWindow)
+                                ?.takeIf { it.hasEnoughEvidence }
+                                ?.let { summary ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 12.dp)
+                                    ) {
+                                        Text(
+                                            text = trf("Pronto em %d de %d checks", summary.readyCount, summary.comparableCount),
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = LagCheckColors.TextPrimary
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = trf("Instável: %d · Evitaria: %d · Inconclusivos: %d", summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount),
+                                            style = LagCheckTypography.MonoSmall,
+                                            color = LagCheckColors.TextMuted
+                                        )
+                                    }
+                                }
                             checks.forEachIndexed { index, item ->
                                 HistoryRowItem(item = item, showDivider = index < checks.lastIndex, onClick = { onSelectCheck(item) })
                             }
@@ -348,6 +377,36 @@ fun HistoryScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RitualWindowPicker(selectedWindow: Int, onSelected: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 14.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(7, 14, 30).forEach { days ->
+            val selected = days == selectedWindow
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(if (selected) LagCheckColors.Panel else LagCheckColors.Surface)
+                    .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
+                    .clickable { onSelected(days) }
+                    .height(44.dp)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = trf("Últimos %d dias", days),
+                    style = LagCheckTypography.MonoSmall,
+                    color = if (selected) LagCheckColors.TextPrimary else LagCheckColors.TextMuted
+                )
             }
         }
     }

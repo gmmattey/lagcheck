@@ -88,6 +88,7 @@
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
+| [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
 
 
 
@@ -534,7 +535,7 @@
 
 - **Data:** 6 de outubro de 2026.
 - **Título:** Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping Real por Datacenter, Isolador de Causa Raiz e Widgets Interativos iOS 17.
-- **Status Atual:** **Vigente (Em implementação).**
+- **Status Atual:** **Vigente (Implementado localmente; validação visual pendente).**
 - **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer / Gate Arquitetural), Iury (Network & Edge Systems), Rian (iOS), Renan (Design System & Dark Competitive UI), Breno (QA & Reliability) e Luiz (aprovação).
 - **Contexto e Problema:** Após a aprovação da Fase 1 (Card Viral Discord, ASO e Bufferbloat Score), o LagCheck inicia a **Fase 2 (P1)** focada em diferenciação técnica inatacável e retenção diária pré-jogo. A proposta resolve 3 dores centrais dos jogadores competitivos:
   1. *Onde o ping está sendo medido?* Provar rotas e datacenters reais (AWS GameLift, PlayFab QoS, Valve A2S e status oficial Riot) com total conformidade de termos de serviço, sem promessas não comprovadas de IPs de matchmaking fechado.
@@ -784,6 +785,18 @@
   1. Não existe mais gate de produto que condicione a entrada de escopo de MVP1.1, retenção, compartilhamento ou mecanismo de retorno a um período mínimo em produção ou à revisão prévia de telemetria.
   2. Telemetria agregada e retenção continuam instrumentos de priorização e aprendizado, nunca autorização implícita para dados pessoais, novos endpoints, promessa diagnóstica ou publicação.
   3. Cada iniciativa continua exigindo decisão registrada quando alterar promessa, arquitetura, privacidade, custo, regras de medição ou escopo de plataforma; o Cartão de Missão, a lane aplicável e a evidência proporcional permanecem obrigatórios.
+
+#### Decisão 86
+- **Data:** 16 de outubro de 2026.
+- **Título:** Ritual honesto do Histórico por jogo.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Luiz (aprovação), Giam (aceite operacional), Marco (priorização), Camillo (gate), Iury (contrato), Rian (clientes), Renan (UI) e Breno (QA).
+- **Decisão:**
+  1. O Histórico passa a oferecer, por jogo, janelas locais de 7, 14 e 30 dias com a frase factual `Pronto em X de Y checks comparáveis` e contagem separada de `Instável`, `Evitaria` e `Inconclusivo`.
+  2. Um Check só participa da fração quando for válido e comparável: mesma combinação de jogo, plataforma, vínculo externo declarado, rede observada, região e versão de regra. Exige ao menos 3 Checks em 2 dias da janela. Inconclusivo não é falha e não entra no denominador. Se a sessão terminar normalmente por respostas UDP insuficientes, o Histórico preserva esse fato e suas métricas sem score nem causa; cancelamento, troca de rede e parcial continuam descartados.
+  3. Ficam expressamente fora: melhor horário, previsão, média de score, comparação de jogos/contextos e atribuição a Wi-Fi, roteador, operadora ou qualquer causa. O resumo não substitui o Check atual antes da partida.
+  4. Os dois clientes aplicam 90 dias e no máximo 100 registros por jogo. Snapshot Android legado sem os fatos de comparabilidade é preservado para consulta, mas não gera resumo até haver nova medição completa.
+  5. Não há nova chamada de rede, Worker, telemetria, PII, SDK ou custo recorrente.
 - **Critérios de validação e aceite:**
   - `docs/01-funcional.md` e `docs/05-governanca-e-fluxo-de-trabalho.md` deixam claro que dados de retenção informam prioridade, sem bloquear escopo;
   - nenhuma regra de integridade diagnóstica, custo operacional zero, consentimento ou autorização de publicação é removida.
