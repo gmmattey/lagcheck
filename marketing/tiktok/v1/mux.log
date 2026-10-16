@@ -1,0 +1,65 @@
+marketing/tiktok/v1/mux.swift:8:133: warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+ 6 | let composition=AVMutableComposition(), video=AVURLAsset(url:silent), audio=AVURLAsset(url:audioURL)
+ 7 | let range=CMTimeRange(start:.zero,duration:CMTime(seconds:duration,preferredTimescale:600))
+ 8 | try composition.addMutableTrack(withMediaType:.video,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:video.tracks(withMediaType:.video)[0],at:.zero)
+   |                                                                                                                                     `- warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+ 9 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+
+marketing/tiktok/v1/mux.swift:9:133: warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+ 7 | let range=CMTimeRange(start:.zero,duration:CMTime(seconds:duration,preferredTimescale:600))
+ 8 | try composition.addMutableTrack(withMediaType:.video,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:video.tracks(withMediaType:.video)[0],at:.zero)
+ 9 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+   |                                                                                                                                     `- warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+
+marketing/tiktok/v1/mux.swift:11:8: warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+ 9 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+   |        `- warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+13 | print("FINAL: "+export.outputURL!.path)
+
+marketing/tiktok/v1/mux.swift:11:77: warning: 'outputFileType' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+ 9 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+   |                                                                             `- warning: 'outputFileType' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+13 | print("FINAL: "+export.outputURL!.path)
+
+marketing/tiktok/v1/mux.swift:12:44: warning: 'exportAsynchronously(completionHandler:)' was deprecated in macOS 15.0 [#DeprecatedDeclaration]
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+   |                                            `- warning: 'exportAsynchronously(completionHandler:)' was deprecated in macOS 15.0 [#DeprecatedDeclaration]
+13 | print("FINAL: "+export.outputURL!.path)
+14 | 
+
+marketing/tiktok/v1/mux.swift:12:112: warning: 'status' was deprecated in macOS 15.0: Use states(updateInterval:) instead [#DeprecatedDeclaration]
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+   |                                                                                                                `- warning: 'status' was deprecated in macOS 15.0: Use states(updateInterval:) instead [#DeprecatedDeclaration]
+13 | print("FINAL: "+export.outputURL!.path)
+14 | 
+
+marketing/tiktok/v1/mux.swift:12:173: warning: 'error' was deprecated in macOS 15.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+10 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+   |                                                                                                                                                                             `- warning: 'error' was deprecated in macOS 15.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+13 | print("FINAL: "+export.outputURL!.path)
+14 | 
+
+marketing/tiktok/v1/mux.swift:13:24: warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+11 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+12 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+13 | print("FINAL: "+export.outputURL!.path)
+   |                        `- warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+14 | 
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+FINAL: /Users/giammattey/Projetos/lagcheck/marketing/tiktok/v1/lagcheck-tiktok-18s.mp4

@@ -1,0 +1,112 @@
+marketing/tiktok/v1/render.swift:70:13: warning: 'AVAssetWriterInputPixelBufferAdaptor' was deprecated in macOS 27.0: Use AVAssetWriter.inputPixelBufferReceiver(for:pixelBufferAttributes:) instead [#DeprecatedDeclaration]
+ 68 | let writer=try AVAssetWriter(outputURL:silent,fileType:.mp4)
+ 69 | let input=AVAssetWriterInput(mediaType:.video,outputSettings:[AVVideoCodecKey:AVVideoCodecType.h264,AVVideoWidthKey:W,AVVideoHeightKey:H,AVVideoCompressionPropertiesKey:[AVVideoAverageBitRateKey:8000000,AVVideoExpectedSourceFrameRateKey:30]])
+ 70 | let adapter=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32ARGB,kCVPixelBufferWidthKey as String:W,kCVPixelBufferHeightKey as String:H,kCVPixelBufferCGImageCompatibilityKey as String:true,kCVPixelBufferCGBitmapContextCompatibilityKey as String:true])
+    |             `- warning: 'AVAssetWriterInputPixelBufferAdaptor' was deprecated in macOS 27.0: Use AVAssetWriter.inputPixelBufferReceiver(for:pixelBufferAttributes:) instead [#DeprecatedDeclaration]
+ 71 | writer.add(input);writer.startWriting();writer.startSession(atSourceTime:.zero)
+ 72 | for frame in 0..<Int(duration*Double(fps)) {
+
+marketing/tiktok/v1/render.swift:71:8: warning: 'add' was deprecated in macOS 27.0: Use the appropriate AVAssetWriter.inputReceiver(for:...) overload for your input and optional adaptor instead [#DeprecatedDeclaration]
+ 69 | let input=AVAssetWriterInput(mediaType:.video,outputSettings:[AVVideoCodecKey:AVVideoCodecType.h264,AVVideoWidthKey:W,AVVideoHeightKey:H,AVVideoCompressionPropertiesKey:[AVVideoAverageBitRateKey:8000000,AVVideoExpectedSourceFrameRateKey:30]])
+ 70 | let adapter=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32ARGB,kCVPixelBufferWidthKey as String:W,kCVPixelBufferHeightKey as String:H,kCVPixelBufferCGImageCompatibilityKey as String:true,kCVPixelBufferCGBitmapContextCompatibilityKey as String:true])
+ 71 | writer.add(input);writer.startWriting();writer.startSession(atSourceTime:.zero)
+    |        `- warning: 'add' was deprecated in macOS 27.0: Use the appropriate AVAssetWriter.inputReceiver(for:...) overload for your input and optional adaptor instead [#DeprecatedDeclaration]
+ 72 | for frame in 0..<Int(duration*Double(fps)) {
+ 73 |  autoreleasepool {
+
+marketing/tiktok/v1/render.swift:71:26: warning: 'startWriting()' was deprecated in macOS 27.0: Use start() instead [#DeprecatedDeclaration]
+ 69 | let input=AVAssetWriterInput(mediaType:.video,outputSettings:[AVVideoCodecKey:AVVideoCodecType.h264,AVVideoWidthKey:W,AVVideoHeightKey:H,AVVideoCompressionPropertiesKey:[AVVideoAverageBitRateKey:8000000,AVVideoExpectedSourceFrameRateKey:30]])
+ 70 | let adapter=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32ARGB,kCVPixelBufferWidthKey as String:W,kCVPixelBufferHeightKey as String:H,kCVPixelBufferCGImageCompatibilityKey as String:true,kCVPixelBufferCGBitmapContextCompatibilityKey as String:true])
+ 71 | writer.add(input);writer.startWriting();writer.startSession(atSourceTime:.zero)
+    |                          `- warning: 'startWriting()' was deprecated in macOS 27.0: Use start() instead [#DeprecatedDeclaration]
+ 72 | for frame in 0..<Int(duration*Double(fps)) {
+ 73 |  autoreleasepool {
+
+marketing/tiktok/v1/render.swift:74:15: warning: 'isReadyForMoreMediaData' was deprecated in macOS 27.0: Use the input receiver's async append(...) method instead [#DeprecatedDeclaration]
+ 72 | for frame in 0..<Int(duration*Double(fps)) {
+ 73 |  autoreleasepool {
+ 74 |  while !input.isReadyForMoreMediaData {Thread.sleep(forTimeInterval:0.005)}
+    |               `- warning: 'isReadyForMoreMediaData' was deprecated in macOS 27.0: Use the input receiver's async append(...) method instead [#DeprecatedDeclaration]
+ 75 |  var pb:CVPixelBuffer?;CVPixelBufferPoolCreatePixelBuffer(nil,adapter.pixelBufferPool!,&pb)
+ 76 |  CVPixelBufferLockBaseAddress(pb!,[])
+
+marketing/tiktok/v1/render.swift:111:133: warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+109 | let composition=AVMutableComposition(), video=AVURLAsset(url:silent), audio=AVURLAsset(url:audioURL)
+110 | let range=CMTimeRange(start:.zero,duration:CMTime(seconds:duration,preferredTimescale:600))
+111 | try composition.addMutableTrack(withMediaType:.video,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:video.tracks(withMediaType:.video)[0],at:.zero)
+    |                                                                                                                                     `- warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+112 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+
+marketing/tiktok/v1/render.swift:112:133: warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+110 | let range=CMTimeRange(start:.zero,duration:CMTime(seconds:duration,preferredTimescale:600))
+111 | try composition.addMutableTrack(withMediaType:.video,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:video.tracks(withMediaType:.video)[0],at:.zero)
+112 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+    |                                                                                                                                     `- warning: 'tracks(withMediaType:)' was deprecated in macOS 13.0: Use loadTracks(withMediaType:) instead [#DeprecatedDeclaration]
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+
+marketing/tiktok/v1/render.swift:114:8: warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+112 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+    |        `- warning: 'outputURL' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+115 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+116 | print("FINAL: "+export.outputURL!.path)
+
+marketing/tiktok/v1/render.swift:114:77: warning: 'outputFileType' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+112 | try composition.addMutableTrack(withMediaType:.audio,preferredTrackID:kCMPersistentTrackID_Invalid)!.insertTimeRange(range,of:audio.tracks(withMediaType:.audio)[0],at:.zero)
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+    |                                                                             `- warning: 'outputFileType' was deprecated in macOS 27.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+115 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+116 | print("FINAL: "+export.outputURL!.path)
+
+marketing/tiktok/v1/render.swift:115:44: warning: 'exportAsynchronously(completionHandler:)' was deprecated in macOS 15.0 [#DeprecatedDeclaration]
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+115 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+    |                                            `- warning: 'exportAsynchronously(completionHandler:)' was deprecated in macOS 15.0 [#DeprecatedDeclaration]
+116 | print("FINAL: "+export.outputURL!.path)
+117 | 
+
+marketing/tiktok/v1/render.swift:115:112: warning: 'status' was deprecated in macOS 15.0: Use states(updateInterval:) instead [#DeprecatedDeclaration]
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+115 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+    |                                                                                                                `- warning: 'status' was deprecated in macOS 15.0: Use states(updateInterval:) instead [#DeprecatedDeclaration]
+116 | print("FINAL: "+export.outputURL!.path)
+117 | 
+
+marketing/tiktok/v1/render.swift:115:173: warning: 'error' was deprecated in macOS 15.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+113 | let export=AVAssetExportSession(asset:composition,presetName:AVAssetExportPresetHighestQuality)!
+114 | export.outputURL=URL(fileURLWithPath:dir+"/lagcheck-tiktok-18s.mp4");export.outputFileType = .mp4;export.shouldOptimizeForNetworkUse=true
+115 | let done=DispatchSemaphore(value:0);export.exportAsynchronously{done.signal()};done.wait();precondition(export.status == .completed,"Mux failed: \(String(describing:export.error))")
+    |                                                                                                                                                                             `- warning: 'error' was deprecated in macOS 15.0: Use export(to:as:) async throws instead [#DeprecatedDeclaration]
+116 | print("FINAL: "+export.outputURL!.path)
+117 | 
+
+2026-10-08 00:48:46.394 swift-frontend[17668:202320] Audio files cannot be non-interleaved. Ignoring setting AVLinearPCMIsNonInterleaved YES.
+render/render.swift:115: Precondition failed: Mux failed: Optional(Error Domain=AVFoundationErrorDomain Code=-11800 "The operation could not be completed" UserInfo={NSLocalizedFailureReason=An unknown error occurred (-12842), NSLocalizedDescription=The operation could not be completed, NSUnderlyingError=0x78aa52da10 {Error Domain=NSOSStatusErrorDomain Code=-12842 "(null)"}})
+Stack dump:
+0.	Program arguments: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -interpret marketing/tiktok/v1/render.swift -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -no-color-diagnostics -Xcc -fno-color-diagnostics -new-driver-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-driver -empty-abi-descriptor -no-auto-bridging-header-chaining -module-name render -disable-clang-spi -target-sdk-version 27.0 -target-sdk-name macosx27.0 -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/local/lib/swift/host/plugins#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/lib/swift/host/plugins -- /Users/giammattey/Projetos/lagcheck
+1.	Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+2.	Compiling with effective version 5.10
+3.	While running user code "marketing/tiktok/v1/render.swift"
+Stack dump without symbol names (ensure you have llvm-symbolizer in your PATH or set the environment var `LLVM_SYMBOLIZER_PATH` to point to it):
+0  swift-frontend           0x000000010776fbd0 llvm::sys::PrintStackTrace(llvm::raw_ostream&, int) + 56
+1  swift-frontend           0x000000010776d358 llvm::sys::RunSignalHandlers() + 172
+2  swift-frontend           0x00000001077701c8 SignalHandler(int, __siginfo*, void*) + 360
+3  libsystem_platform.dylib 0x00000001816bc144 _sigtramp + 56
+4  libswiftCore.dylib       0x0000000195d7cd4c $ss17_assertionFailure__4file4line5flagss5NeverOs12StaticStringV_SSAHSus6UInt32VtF + 216
+5  (error)                  0x000000011871eb0c
+6  swift-frontend           0x000000010140115c llvm::orc::runAsMain(int (*)(int, char**), llvm::ArrayRef<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>, std::__1::optional<llvm::StringRef>) + 908
+7  swift-frontend           0x00000001013094a0 swift::SwiftJIT::runMain(llvm::ArrayRef<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>) + 636
+8  swift-frontend           0x000000010131580c swift::RunImmediately(swift::CompilerInstance&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>> const&, swift::IRGenOptions const&, swift::SILOptions const&, std::__1::unique_ptr<swift::SILModule, std::__1::default_delete<swift::SILModule>>&&) + 964
+9  swift-frontend           0x0000000101287b7c processCommandLineAndRunImmediately(swift::CompilerInstance&, std::__1::unique_ptr<swift::SILModule, std::__1::default_delete<swift::SILModule>>&&, llvm::PointerUnion<swift::ModuleDecl*, swift::SourceFile*>, swift::FrontendObserver*, int&) + 484
+10 swift-frontend           0x0000000101280b98 performCompileStepsPostSILGen(swift::CompilerInstance&, std::__1::unique_ptr<swift::SILModule, std::__1::default_delete<swift::SILModule>>, llvm::PointerUnion<swift::ModuleDecl*, swift::SourceFile*>, swift::PrimarySpecificPaths const&, int&, swift::FrontendObserver*, llvm::ArrayRef<char const*>, llvm::ArrayRef<swift::PrimarySpecificPaths>) + 2408
+11 swift-frontend           0x000000010127fdd0 swift::performCompileStepsPostSema(swift::CompilerInstance&, int&, swift::FrontendObserver*, llvm::ArrayRef<char const*>) + 3944
+12 swift-frontend           0x0000000101285798 performCompile(swift::CompilerInstance&, int&, swift::FrontendObserver*, llvm::ArrayRef<char const*>) + 4268
+13 swift-frontend           0x0000000101281dc4 swift::performFrontend(llvm::ArrayRef<char const*>, char const*, void*, swift::FrontendObserver*) + 3776
+14 swift-frontend           0x0000000101201008 swift::mainEntry(int, char const**) + 5600
+15 dyld                     0x00000001812dbe80 start + 6688
