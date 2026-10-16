@@ -1,7 +1,7 @@
 # LagCheck — Registro Canônico de Decisões
 
 > **Autoridade:** Este é o **único documento oficial de decisões** de produto, arquitetura, design e infraestrutura do LagCheck.
-> **Regra de atualização:** Novas decisões não criam novos arquivos markdown soltos. Elas são registradas diretamente neste documento, em ordem cronológica crescente, após alinhamento entre Marco (Product Lead), as frentes responsáveis (Renan, Rian, Iury, Breno, Camillo) e autorização do dono do produto (Luiz).
+> **Regra de atualização:** Novas decisões não criam novos arquivos markdown soltos. Elas são registradas diretamente neste documento, em ordem cronológica crescente, após alinhamento entre Marco (estratégia e orquestração), Giam (Product Owner operacional), as frentes responsáveis (Renan, Rian, Iury, Breno, Camillo) e autorização do dono do produto (Luiz).
 >
 > **Relação de Precedência:** Decisões com ID numérico maior refinam, restringem ou **substituem** decisões anteriores quando houver conflito. A coluna "Status Atual" no índice e as notas em cada decisão sinalizam expressamente o que está ativo (**Vigente**) e o que foi **Superado / Substituído**.
 > Os arquivos históricos originais pontuais encontram-se preservados em `docs/archive/decisoes/` para fins de auditoria.
@@ -86,6 +86,7 @@
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
 | [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
+| [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 
 
 
@@ -754,6 +755,23 @@
   2. Cada opção é um `activity-alias` do launcher; só um fica habilitado e o sistema é a fonte da verdade. O Clássico é o padrão. A troca não reinstala o app, e o launcher atualiza em alguns segundos (alguns launchers fecham o app ao trocar).
   3. Os mascotes são ícones adaptativos (primeiro plano 432 px sobre fundo com brilho roxo), vindos do protótipo `Lagcheck - Prototipos.zip`.
 - **Critérios de validação e aceite:** troca confirmada no emulador; validar nos launchers reais (Samsung One UI, Pixel) antes de release.
+
+#### Decisão 84
+- **Data:** 15 de outubro de 2026.
+- **Título:** Giam como Product Owner Operacional e Gate de Qualidade da Squad.
+- **Status Atual:** **Vigente (Governança).** Refina a divisão de papéis da Decisão 63.
+- **Frentes envolvidas:** Giam (Product Owner Operacional), Marco (Estratégia de Produto e Orquestração), Luiz (dono do produto) e toda a squad.
+- **Contexto e Problema:** O modelo anterior tratava Giam como uma revisão independente e opcional, enquanto Marco acumulava estratégia, enquadramento de missão e aceite operacional. Isso duplicava responsabilidade de produto e deixava o último aceite sem uma dona/o operacional claro.
+- **Decisão:**
+  1. Giam passa a exercer no LagCheck o mesmo papel que exerce no Linka: representa Luiz operacionalmente, abre ou aprova o Cartão de Missão, define comportamento observável e critérios de aceite, e encerra a entrega com o veredito interno `APROVADO`, `APROVADO COM RESSALVAS`, `REPROVADO` ou `NÃO VALIDADO`.
+  2. Giam participa no começo e no fim de todo full flow, mudança sistêmica e candidato a release. Em fast lane, seu enquadramento e veredito são proporcionais ao risco; em hot lane, a restauração do caminho crítico vem primeiro e a revisão de Giam acontece após estabilização.
+  3. Marco passa a se concentrar em estratégia, prioridade, trade-offs, integração entre frentes e escalonamento de decisões de negócio a Luiz. Marco não concorre com o aceite operacional de Giam.
+  4. Breno mantém a validação técnica independente; Renan, Rian, Iury e Camillo mantêm autoridade em design, app mobile, integridade de rede e arquitetura. Giam consome essa evidência, sem dispensá-la ou inventar prova.
+  5. Luiz preserva a autoridade exclusiva sobre negócio, marca, monetização, preço, envio externo, release e publicação. O parecer interno de Giam não autoriza ação externa.
+- **Critérios de validação e aceite:**
+  - `AGENTS.md`, `docs/05-governanca-e-fluxo-de-trabalho.md`, `.agents/WORKFLOW.md`, o Cartão de Missão e as skills/perfis de Marco e Giam descrevem uma mesma divisão de responsabilidades;
+  - cada lane declara onde entra o aceite de Giam sem bloquear a estabilização de hot lane;
+  - nenhum documento atribui a Giam autorização de negócio ou publicação, nem transfere a Marco o aceite operacional da missão.
 
 ## Como Registrar Novas Decisões
 

@@ -8,7 +8,21 @@ description: >-
 
 # Iury — Network & Metrics Specialist Runbook
 
-This skill encapsulates network measurement, scoring rules, regional infrastructure, and diagnostic integrity for LagCheck.
+This skill encapsulates network measurement, scoring rules, regional
+infrastructure, and diagnostic integrity for LagCheck on iOS and Android.
+
+## Cross-platform contract
+
+- Read `docs/08-arquitetura-android.md` alongside `docs/03-especificacao-tecnica.md` whenever a change can reach both clients.
+- Shared Kotlin/Swift vectors, rule versions, sample validity, route eligibility,
+  verdict semantics, and catalog validation are the proof of deterministic
+  parity. A matching screen is not parity.
+- Android may expose additional observed radio facts. They never change a claim
+  about Wi-Fi band, router, route, or provider unless the documented isolated
+  evidence exists; absence of optional permission is simply unavailable data.
+- Before accepting a network change, require the task's Cartão de Missão to name
+  platform impact, rule version, vectors, contract tests, and the physical
+  validation still required.
 
 ## Key Principles & Guardrails
 - **Deterministic & Grounded Verdicts (`docs/03-especificacao-tecnica.md`, `docs/50`)**:

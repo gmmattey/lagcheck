@@ -15,15 +15,23 @@ O objetivo não é criar burocracia. É evitar três erros caros: prometer preci
 
 | Pessoa | Frente | Responsabilidade principal | Não decide sozinho |
 | --- | --- | --- | --- |
-| Marco | Produto e integração | Visão, escopo, prioridade, orquestrador de entrada e gatekeeper do MVP P0/P1 (*Lagcheck Competitive Redesign + Ready Check*) | Mudança de marca ou promessa pública sem aprovação do dono do produto |
-| Renan | Design de Produto | Design system **Dark Competitive UI**, jornada direta, estados, acessibilidade, assets e QA visual | Regras de veredito/score, escopo funcional ou arquitetura de medição |
-| Rian | iOS | Arquitetura SwiftUI, módulos, persistência SwiftData por vereditos/jogos, cliente de telemetria e entrega | Semântica das métricas, calibração de veredito ou alteração de jornada |
-| Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica e rotas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
-| Breno | QA & Reliability | Validação independente, suites de testes, análise estática, regressão e validação em hardware físico (iPhone com iOS 17+) | Aprovação de escopo de produto ou dispensa de testes obrigatórios |
-| Camillo | Arquitetura Transversal | Principal Engineer Buildea, conduz o Gate Arquitetural Obrigatório em APIs, persistência estrutural, contratos com Workers ou motor UDP | Não altera código rotineiro nem decide escopo funcional de produto |
+| Giam | Braço Direito do Luiz, Product Owner Operacional e Gate de Qualidade | Porta de entrada com o Luiz: entende a dor, abre o Cartão de Missão, define a pista e o aceite, repassa ao Marco e emite o veredito final pelas 7 perguntas | Negócio, preço, publicação, regra de rede ou dispensa de evidência obrigatória |
+| Marco | Capitão da Oficina, Estratégia e Orquestração | Recebe o Cartão de Missão do Giam, organiza a fila e prioridades, protege a mesa limpa, coordena as frentes na pista certa e devolve consolidado ao Giam | Aceite final de produto, mudança de marca ou promessa pública sem aprovação do dono do produto |
+| Renan | Design de Produto & Visual QA | Design system **Dark Competitive UI**, jornada direta, estados, acessibilidade, assets e QA visual em iOS/Android | Regras de veredito/score, escopo funcional ou arquitetura de medição |
+| Rian | Mobile Application Engineer | Composição e entrega do app em SwiftUI e Kotlin/Compose, ciclo de vida, persistência local e integrações de UI | Semântica das métricas, calibração de veredito ou alteração de jornada |
+| Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica, paridade de rede iOS/Android e Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
+| Breno | QA, Reliability & Caça-Bugs | Validação independente, suites de testes, análise estática, regressão e validação em hardware físico iOS/Android | Aprovação de escopo de produto ou dispensa de testes obrigatórios |
+| Camillo | Arquitetura Transversal | Principal Engineer Buildea, conduz o Gate Arquitetural Obrigatório em APIs, persistência, contratos, segurança e motor UDP nos dois clientes | Não altera código rotineiro nem decide escopo funcional de produto |
+| Nico | Growth & Store Creative | Evidência de loja, ASO, criativos, claims e prontidão de distribuição Apple/Google | Publicar, alterar preço, privacidade, Data safety ou campanhas sem autorização explícita de Luiz |
 | Dono do produto | Direção de negócio | Validação de hipótese de retenção, mudanças de escopo, monetização, marca e autorização de release (Luiz) | — |
 
-Marco é o ponto único de integração e interlocutor primário com o dono do produto (Luiz). Nenhuma frente abre trabalho que mude outra fronteira sem registrar a decisão e alinhar com Marco. Mudanças sistêmicas acionam o Gate Arquitetural de Camillo.
+**Giam** é o braço direito do Luiz na porta de entrada: ouve a necessidade, separa exploração de decisão, abre o enquadramento no Cartão de Missão, repassa ao **Marco** (que coordena a oficina com mesa limpa) e no fim encerra a entrega com o veredito de produto. Nenhuma frente abre trabalho que mude outra fronteira sem registrar a decisão e alinhar prioridade e impacto com Marco e Giam; mudanças sistêmicas acionam o Gate Arquitetural de Camillo.
+
+Este documento é a fonte operacional única da squad. `AGENTS.md` contém as
+regras de entrada do repositório e `.agents/WORKFLOW.md` é apenas um mapa
+rápido; ambos apontam para cá. Decisões de produto continuam exclusivamente em
+`docs/DECISOES.md` e prevalecem quando forem posteriores. Uma contradição é um
+bloqueio a ser resolvido, nunca uma licença para escolher a regra conveniente.
 
 ## 3. Princípios que não são negociáveis
 
@@ -52,11 +60,12 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 
 | Tipo de mudança | Proposta | Aprovação obrigatória | Evidência mínima |
 | --- | --- | --- | --- |
-| Jornada, texto de produto, escopo ou monetização | Marco ou Renan | Marco + dono do produto quando alterar negócio | Fluxo, estados e impacto no documento funcional |
-| Marca, tokens, componentes compartilhados ou acessibilidade | Renan | Renan + Marco | Especificação visual, contraste e estados afetados |
-| Score, perfis, thresholds, spikes, guardrails ou catálogo de regiões | Iury | Iury + Marco | Vetores de teste, versão da regra e linguagem honesta ao usuário |
-| Arquitetura, módulos, SDKs, armazenamento, segurança ou integração externa | Rian | Rian + Marco | Impacto técnico, testes e custo operacional |
-| Mudança que cruza duas ou mais frentes | Qualquer pessoa | Marco + responsáveis das frentes | Decisão registrada antes do código |
+| Jornada, texto de produto ou escopo | Giam, com Marco ou Renan | Giam; Luiz quando alterar negócio | Fluxo, estados e impacto no documento funcional |
+| Monetização, marca ou promessa pública | Marco ou Giam | Dono do produto | Fluxo, estados e impacto no documento funcional |
+| Tokens, componentes compartilhados ou acessibilidade | Renan | Renan + Giam | Especificação visual, contraste e estados afetados |
+| Score, perfis, thresholds, spikes, guardrails ou catálogo de regiões | Iury | Iury + Giam | Vetores de teste, versão da regra e linguagem honesta ao usuário |
+| Arquitetura, módulos, SDKs, armazenamento, segurança ou integração externa | Rian | Rian + Giam; Camillo quando sistêmico | Impacto técnico, testes e custo operacional |
+| Mudança que cruza duas ou mais frentes | Qualquer pessoa | Marco + Giam + responsáveis das frentes | Decisão registrada antes do código |
 | Publicação, alteração de preço, dados da App Store ou serviço pago | Marco | Dono do produto | Estado real da plataforma e autorização explícita |
 
 ## 5. Regras por frente
@@ -71,7 +80,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - Todo fluxo cumpre contraste adequado, alvo de toque de pelo menos 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor. O verde (`#22C55E`) é estritamente semântico para condição de prontidão, nunca cor da marca.
 - Veredito da partida (`● PRONTO PARA RANKED`, `▲ EU EVITARIA RANKED AGORA`), limitações e impacto sob carga devem ser imediatos e compreensíveis.
 
-### 5.2 iOS e entrega — Rian
+### 5.2 Entrega mobile — Rian
 
 - O domínio é puro: `NolaggyDomain` não importa SwiftUI, Network.framework, SwiftData, URLSession ou SDKs de anúncios.
 - O modelo de prontidão `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`) é o contrato semântico principal entregue à UI.
@@ -82,6 +91,13 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - SwiftData guarda o histórico estruturado por jogos e vereditos de prontidão.
 - Implementa cliente de telemetria anônima enxuto apontando para `POST /v1/telemetry` no Cloudflare Worker existente.
 - Mudança no domínio exige testes determinísticos; integração exige teste de contrato; jornada ou consentimento exige validação manual em iPhone.
+- No Android, `:app` compõe a interface e `:core:designsystem` fornece os
+  componentes Compose; domínio, catálogo, rede e sessão permanecem módulos JVM
+  sem UI. Permissão de rádio opcional ausente não bloqueia Check nem vira fato
+  diagnóstico.
+- Toda mudança mobile declara seu efeito em iOS e Android. Um comportamento
+  específico de plataforma é aceitável apenas quando está explícito no Cartão
+  de Missão e preserva a mesma promessa de produto.
 
 ### 5.3 Qualidade de rede & Borda — Iury
 
@@ -96,9 +112,14 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 
 - Breno atua com independência do desenvolvedor que codificou a solução.
 - Tenta provar falhas na implementação antes de liberar qualquer entrega.
-- Valida proporcionalmente: testes de unidade (`swift test`), análise estática, build limpo no Xcode, regressão e validação em hardware físico (iPhone com iOS 17+).
+- Valida proporcionalmente: testes de unidade/contrato, análise estática, build
+  limpo, regressão e validação em hardware físico iOS e Android quando o fluxo
+  depende de rede, permissões, ciclo de vida, compartilhamento ou rádio.
 - Testa cenários adversos de rede: perda de pacotes, oscilação de jitter, descarte por background, cancelamento gracioso e inexistência de vazamento de memória.
 - Breno não escreve o código do fix que está revisando, preservando a imparcialidade do QA.
+- O relatório separa inspeção estática, testes, simulador/emulador e aparelho
+  físico. O resultado é sempre `aprovado`, `aprovado com ressalvas` ou
+  `reprovado`, com o bloqueio e a prova nomeados.
 
 ### 5.5 Arquitetura Transversal — Camillo
 
@@ -106,11 +127,39 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - Conduz o **Gate Arquitetural Obrigatório** sempre que houver:
   1. Alteração de contratos ou rotas do Cloudflare Worker (`/v1/*`);
   2. Modificação ou criação de APIs e protocolos de rede;
-  3. Mudanças na persistência SwiftData com impacto estrutural ou migração de schema;
-  4. Alteração de responsabilidade ou contratos entre módulos (`NolaggyDomain`, `NolaggyApplication`, etc.);
+  3. Mudanças na persistência SwiftData, DataStore/armazenamento Android com impacto estrutural ou migração de schema;
+  4. Alteração de responsabilidade ou contratos entre módulos (`NolaggyDomain`, `:core:domain`, `:core:session`, etc.);
   5. Mudança estrutural no motor central de medição UDP;
   6. Integração cross-repo ou requisitos de segurança/privacidade com impacto sistêmico.
 - Elabora ou revisa o `.agents/architecture-plan.md` antes do início da implementação técnica.
+
+### 5.6 Growth e loja — Nico
+
+- Nico entra quando a missão toca descoberta, ficha de loja, criativos,
+  conversão, distribuição ou evidência de lançamento; não é um passo obrigatório
+  em ajustes internos sem efeito na loja.
+- Antes de uma submissão Apple/Google, prepara o pacote que confronta build,
+  claims, screenshots/criativos, privacidade, Data safety, consentimento e
+  anúncios com a evidência disponível. Material local preparado não é estado de
+  console, beta ou produção.
+- Não publica, sobe build, altera preço, dados legais ou campanha sem ordem
+  explícita do Luiz. Marco integra a conclusão quando a proposta muda promessa,
+  escopo, monetização ou prioridade.
+
+### 5.7 Product Owner operacional e gate de produto — Giam
+
+- Giam abre e encerra todo full flow, mudança sistêmica e candidato a release.
+  Em fast lane, enquadra e encerra proporcionalmente; em hot lane, revisa
+  depois que o fluxo crítico estiver estabilizado.
+- Ele abre ou aprova o Cartão de Missão, define comportamento observável e
+  critérios de aceite, e consome a evidência de Renan, Rian, Iury, Breno e
+  Camillo contra sete perguntas: necessidade, valor, coerência, experiência,
+  funcionamento E2E, qualidade e simplicidade.
+- Seu parecer é `APROVADO`, `APROVADO COM RESSALVAS`, `REPROVADO` ou `NÃO
+  VALIDADO`. Falta de prova vira `NÃO VALIDADO`, nunca aprovação por confiança.
+- Marco mantém estratégia, prioridade, trade-offs e o escalonamento ao Luiz;
+  Luiz mantém negócio, marca, monetização, release externo e publicação. Giam
+  não substitui QA, arquitetura ou revisão de rede.
 
 ## 6. Fluxo de trabalho e Pistas de Execução (Lanes)
 
@@ -122,25 +171,25 @@ Discussão de ideias, análises de viabilidade ou propostas de negócio com o Lu
 ### 6.2 Fast lane (Mudanças locais e cosméticas)
 Para copy, micro-ajuste visual de componente, bug isolado ou refatoração simples sem alteração de contrato:
 ```text
-Marco enquadra → Rian / Iury / Renan implementa → Renan/Breno valida
+Giam enquadra proporcionalmente → Rian / Iury / Renan implementa → Renan/Breno valida → Giam encerra
 ```
 
 ### 6.3 Full flow comum (Features regulares)
 Para novas features ou ajustes contidos em módulos existentes:
 ```text
-Marco define aceite → Renan desenha UI → Rian / Iury implementa → Breno valida → Marco confere aceite
+Giam define comportamento e aceite → Renan desenha UI → Rian / Iury implementa → Breno valida → Giam emite veredito interno
 ```
 
 ### 6.4 Full flow sistêmica (Gate de Camillo)
 Para mudanças que tocam APIs, persistência, Worker, motor central ou contratos:
 ```text
-Marco define requisitos → Camillo cria Architecture Plan → Rian / Iury implementa → Breno valida → Camillo confere aderência → Marco confere aceite
+Giam define problema e aceite → Camillo cria Architecture Plan → Rian / Iury implementa → Breno valida → Camillo confere aderência → Giam emite veredito interno
 ```
 
 ### 6.5 Hot lane (Incidentes críticos)
 Para build quebrado ou medição inoperante:
 ```text
-Fix cirúrgico por Rian/Iury → Breno valida caminho crítico → Restaurar build/release
+Fix cirúrgico por Rian/Iury → Breno valida caminho crítico → Restaurar build/release → Giam revisa após estabilização
 ```
 
 ### 6.6 Fontes de verdade e Documento Único de Decisões
@@ -170,22 +219,27 @@ Uma tarefa está pronta para execução quando possui, no mínimo:
 - critérios de aceite observáveis;
 - plano de validação proporcional ao risco.
 
-### 6.4 Execução e comunicação
+O registro mínimo é `.agents/templates/mission-card.md`. Sem Cartão de Missão
+preenchido, a demanda permanece em exploração; a exceção é Hot lane, que deve
+registrá-lo logo após estabilizar o fluxo crítico.
+
+### 6.8 Execução e comunicação
 
 Quem executa começa confirmando o entendimento do comportamento esperado, não a solução técnica. Durante o trabalho, atualiza apenas fatos relevantes: descoberta que muda escopo, bloqueio real, decisão necessária e evidência de validação.
 
 Uma frente não altera arquivo de outra por conveniência. Quando for inevitável, a mudança é proposta ao responsável, que revisa a fronteira e aprova a integração.
 
-### 6.5 Revisão cruzada
+### 6.9 Revisão cruzada
 
 | Mudança executada | Revisão obrigatória |
 | --- | --- |
-| Score, métricas, catálogo ou medição | Iury + Rian; Renan revisa linguagem e apresentação quando houver UI |
-| Tela, componente ou fluxo | Renan + Rian; Iury participa se explicar um resultado de rede |
-| Módulo, persistência, SDK, anúncio ou consentimento | Rian + Marco; Renan revisa se houver impacto visível |
-| Escopo, promessa, mercado ou monetização | Marco + dono do produto |
+| Score, métricas, catálogo ou medição | Iury + Rian; Renan revisa linguagem e apresentação quando houver UI; Breno valida vetores e ambiente aplicável |
+| Tela, componente ou fluxo | Renan + Rian; Iury participa se explicar um resultado de rede; Breno verifica o caminho afetado |
+| Módulo, persistência, SDK, anúncio ou consentimento | Rian + Giam + Camillo quando sistêmico; Renan revisa se houver impacto visível |
+| Escopo ou promessa | Giam + Marco; Luiz quando alterar negócio |
+| Mercado ou monetização | Marco + dono do produto |
 
-### 6.6 Definition of Done
+### 6.10 Definition of Done
 
 Uma entrega só está concluída quando:
 
@@ -195,7 +249,9 @@ Uma entrega só está concluída quando:
 - não há promessa maior que a evidência disponível;
 - acessibilidade e localização PT-BR/EN foram revisadas quando houver interface;
 - telas e interações de interface foram comparadas ao protótipo iOS canônico, no mesmo viewport;
-- o responsável da frente e Marco deram aceite para o tipo de mudança.
+- o responsável da frente e Giam deram aceite operacional para o tipo de mudança.
+- o Cartão de Missão foi encerrado com a evidência que sustenta cada critério,
+  pendências remanescentes e um veredito inequívoco.
 
 ## 7. Gates obrigatórios antes de marcos importantes
 
@@ -250,9 +306,9 @@ O projeto opera em ciclos curtos, guiados por marcos e não por cerimônias vazi
 
 | Momento | Participantes | Resultado |
 | --- | --- | --- |
-| Abertura de frente | Marco + responsáveis necessários | Escopo, dono, decisão pendente e critérios de aceite |
-| Checkpoint de risco | Responsável + Marco | Só ocorre quando houver descoberta que muda decisão, custo ou prazo |
-| Revisão de entrega | Responsável + revisores obrigatórios | Evidência, ajustes finais e aceite ou retorno claro |
+| Abertura de frente | Giam + responsáveis necessários; Marco quando houver prioridade ou trade-off | Escopo, dono, decisão pendente e critérios de aceite |
+| Checkpoint de risco | Responsável + Marco + Giam quando mudar aceite | Só ocorre quando houver descoberta que muda decisão, custo ou prazo |
+| Revisão de entrega | Giam + responsável + revisores obrigatórios | Evidência, ajustes finais e veredito ou retorno claro |
 | Fechamento de marco | Marco + dono do produto | Estado real: pronto, pendente, risco ou próximo passo |
 
 Status deve sempre dizer a verdade: “documentado”, “implementado localmente”, “validado em simulador”, “validado em iPhone físico”, “enviado ao TestFlight” e “publicado” são estados diferentes e não podem ser usados como sinônimos.

@@ -2,12 +2,14 @@
 
 **Status:** regra operacional da V1  
 **Idioma:** PT-BR  
-**Escopo:** iPhone, iOS 17 ou superior  
+**Escopo:** iPhone (iOS 17+) e Android (API 26+), com gates específicos por plataforma
 **Documentos relacionados:** [Governança e fluxo de trabalho](./05-governanca-e-fluxo-de-trabalho.md) · [Arquitetura](./02-arquitetura.md) · [Especificação técnica](./03-especificacao-tecnica.md)
 
 ## 1. Objetivo
 
-Este fluxo define como o LagCheck sai da máquina de desenvolvimento, passa por TestFlight e chega à App Store sem confundir estados diferentes de entrega.
+Este fluxo define como o LagCheck sai da máquina de desenvolvimento, passa
+pelas betas adequadas e chega às lojas sem confundir estados diferentes de
+entrega. TestFlight é o canal beta Apple; não é sinônimo de beta Android.
 
 Uma instalação local não é beta. Um build enviado ao App Store Connect não é distribuído. Um build distribuído pelo TestFlight não é produção. Um build aprovado pela Apple não está publicado até que a opção de release escolhida seja executada.
 
@@ -15,11 +17,14 @@ Uma instalação local não é beta. Um build enviado ao App Store Connect não 
 
 | Canal | Para quem | Como instala | Pode usar dados/serviços de produção? | Objetivo |
 | --- | --- | --- | --- | --- |
-| Debug | Time de desenvolvimento | Direto pelo Xcode em iPhone físico | Não por padrão | Construir e depurar rapidamente |
+| Debug | Time de desenvolvimento | Xcode/ADB em aparelho físico | Não por padrão | Construir e depurar rapidamente |
 | TestFlight | Time interno e beta testers autorizados | App TestFlight | Sim, com proteções e dados reais mínimos | Validar o release candidato em condições reais |
+| Google Play interno/fechado | Time interno ou testers Android autorizados | Google Play | Sim, com proteções e dados reais mínimos | Validar o AAB candidato em condições reais |
 | Produção | Público da App Store | App Store | Sim | Entregar uma versão aprovada e monitorada |
 
-O simulador ajuda a validar interface e lógica isolada, mas não substitui instalação Debug em iPhone para medir rede, permissões, ciclo de vida ou comportamento real do sistema.
+Simulador e emulador ajudam a validar interface e lógica isolada, mas não
+substituem instalação Debug em aparelho iOS ou Android para medir rede,
+permissões, ciclo de vida, rádio ou comportamento real do sistema.
 
 ## 3. Regra de versionamento
 
@@ -59,11 +64,12 @@ Debug serve para descobrir e corrigir problemas enquanto o trabalho está aconte
 
 - Instalação é feita pelo Xcode diretamente em um iPhone autorizado para desenvolvimento.
 - O esquema Debug usa assinatura de desenvolvimento e, se necessário, um bundle identifier próprio de desenvolvimento para coexistir com a versão TestFlight/produção. Essa separação será definida quando o projeto Xcode for criado.
-- Endpoints de teste, dados simulados e chaves de desenvolvimento ficam isolados da configuração de release. O MVP1 não contém SDK, ID ou configuração de anúncio.
+- Endpoints de teste, dados simulados e chaves de desenvolvimento ficam isolados da configuração de release. O iOS MVP1 não contém SDK, ID ou configuração de anúncio. Android segue a exceção da Decisão 82: nenhum release com anúncios avança enquanto consentimento, IDs, privacy/Data safety e validação física pendentes não tiverem evidência registrada.
 - Em iPhone físico, Debug, TestFlight e Produção usam o mesmo transporte real de medição aprovado para o catálogo vigente. `Noop` e fixtures existem somente no simulador ou em testes Debug explicitamente acionados; um binário Release nunca pode substituir UDP, observação de caminho ou carga do Deep por uma leitura sintética.
 - Debug pode usar catálogo-base e fixtures para reprodução. Quando usar o catálogo remoto, a tela deve indicar claramente o ambiente e não pode alterar catálogo de produção.
 - Não há distribuição de IPA, link público ou instalação em aparelho de cliente por esse canal.
-- Cada teste relevante registra iPhone, versão de iOS, conexão usada, versão/build e resultado observado.
+- Cada teste relevante registra plataforma, modelo/aparelho, versão do sistema,
+  conexão usada, versão/build e resultado observado.
 
 ### 4.2 Gate para considerar um item pronto para TestFlight
 
@@ -71,9 +77,9 @@ Antes de gerar o primeiro archive de um item, Rian confirma:
 
 1. build Debug compila sem falha;
 2. testes unitários e de contrato aplicáveis passaram;
-3. o fluxo foi exercitado em iPhone físico quando depende de rede, ciclo de vida ou permissões;
+3. o fluxo foi exercitado em aparelho físico da plataforma afetada quando depende de rede, ciclo de vida ou permissões;
 4. estados de erro, cancelamento e inconclusivo estão acessíveis e compreensíveis;
-5. nenhum segredo, endpoint interno ou mock será empacotado como release; AdMob, UMP e IDs de anúncio não fazem parte do binário MVP1.
+5. nenhum segredo, endpoint interno ou mock será empacotado como release; a exceção Android de AdMob/UMP só é permitida sob os gates pendentes da Decisão 82.
 
 ## 5. TestFlight — beta controlada
 
@@ -96,7 +102,7 @@ Archive Release
 
 ### 5.2 Regras de upload
 
-- Somente Rian prepara o archive; Marco autoriza o envio quando o gate de beta estiver atendido.
+- Somente Rian prepara o archive; Giam dá o veredito interno de prontidão quando o gate de beta estiver atendido, e Luiz autoriza qualquer envio externo.
 - O build é enviado com versão, build, notas de teste e foco de validação claros.
 - Primeiro passa por grupo interno. Grupo externo só recebe build que já teve o fluxo principal validado internamente.
 - Teste externo é uma decisão de produto: público, objetivo, idiomas, instruções e canal de feedback precisam ser definidos antes do convite.
@@ -116,15 +122,37 @@ Para um build ser aceito como release candidate, a evidência deve cobrir:
 - PT-BR e inglês, Dynamic Type e VoiceOver nos fluxos alterados;
 - validação explícita de que as limitações são comunicadas como estimativa quando a medição não é do dispositivo/jogo real.
 
-Rian registra a evidência técnica, Iury aprova qualquer alteração que afete a leitura de rede, Renan aprova experiência e acessibilidade afetadas, e Marco decide se o build segue ou volta para correção.
+Rian registra a evidência técnica, Breno faz a revisão independente do pacote,
+Iury aprova qualquer alteração que afete a leitura de rede, Renan aprova
+experiência e acessibilidade afetadas, e Giam decide o veredito interno de
+prontidão ou retorno para correção. Marco coordena prioridade e escalona a Luiz.
 
-## 6. Produção — App Store
+### 5.4 Android — validação interna/fechada do Google Play
+
+Um AAB Android só avança para teste interno ou fechado quando o Cartão de
+Missão contém versão/build, canal, objetivo e evidência de:
+
+- build e suites JVM aplicáveis; instalação em aparelho Android físico;
+- Check com cancelamento por rede, background e ação da pessoa;
+- ausência de dados de rádio quando a permissão opcional é negada, sem bloquear
+  a medição UDP;
+- PT-BR e inglês, TalkBack, escala de fonte e fluxo de compartilhamento quando
+  afetados;
+- comportamento real de permissões, `FileProvider`, launcher ou anúncio quando
+  o escopo os tocar;
+- separação explícita entre emulador, aparelho físico, track Play e produção.
+
+Rian registra a evidência técnica; Iury, Renan, Breno e Giam revisam as partes
+afetadas. Upload, promoção de track ou produção continuam exigindo autorização
+explícita do Luiz e confirmação do estado real no Play Console.
+
+## 6. Produção — lojas
 
 Produção é uma publicação deliberada. O build selecionado deve ser o release candidate aprovado no TestFlight, sem recompilação surpresa. Se qualquer código ou configuração mudar, nasce um novo build e ele volta pelo fluxo de TestFlight.
 
 ### 6.1 Preparação
 
-Antes de submeter para App Review, Marco confirma:
+Antes de submeter para App Review, Giam confirma a prontidão interna:
 
 1. versão e build finais registrados;
 2. build correto selecionado no App Store Connect;
@@ -138,13 +166,22 @@ No App Store Connect, a versão precisa estar completa, com o build correto asso
 
 ### 6.2 Publicação
 
-Para a primeira versão pública e para alterações de risco, o padrão é **release manual após aprovação**. Assim, um build aprovado fica em `Pending Developer Release` até Marco e o dono do produto confirmarem a publicação.
+Para a primeira versão pública e para alterações de risco, o padrão é **release manual após aprovação**. Assim, um build aprovado fica em `Pending Developer Release` até Giam emitir o parecer interno e o dono do produto confirmar a publicação.
 
 Apple permite release automático, agendado ou manual; a escolha manual mantém a decisão final com o time. Após acionar a publicação, a disponibilidade pode levar algum tempo para se propagar na App Store. [Opções de release da versão](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/select-an-app-store-version-release-option)
 
 Depois de publicado, Marco registra a hora, versão/build, países, link da loja e estado observado. “Aprovado” não é reportado como “publicado” antes de a versão estar efetivamente disponível.
 
-### 6.3 Monitoramento inicial
+### 6.3 Google Play
+
+Produção Android é uma promoção deliberada de um AAB já validado no canal de
+teste adequado; não é consequência de um build local ou de uma instalação por
+ADB. Antes de promover, Giam confirma a prontidão interna do build correto, listings, Data safety,
+política de privacidade, classificação de conteúdo, países, declarações de
+anúncio e autorização explícita do Luiz. Depois, registra a track, hora,
+versão/build e disponibilidade efetivamente observada.
+
+### 6.4 Monitoramento inicial
 
 Nas primeiras 48 horas, o time acompanha:
 
@@ -195,13 +232,13 @@ Cada ida para TestFlight ou Produção deve registrar:
 
 ```text
 Versão/build:       0.2.0 (57)
-Canal:              TestFlight interno | TestFlight externo | Produção
+Canal:              Debug iOS | Debug Android | TestFlight | Play interno/fechado | Produção
 Objetivo:           o que este build valida ou entrega
 Escopo:             principais mudanças
 Validações:         testes e aparelhos/rede usados
 Pendências/riscos:  o que permanece conhecido
 Decisão:            enviado | aceito | rejeitado | publicado
-Responsáveis:       Marco / Renan / Rian / Iury, conforme o caso
+Responsáveis:       Giam / Marco / Renan / Rian / Iury / Breno / Camillo, conforme o caso
 ```
 
 Esse registro é a fonte de verdade sobre o release. Não se presume que uma versão está em produção porque um archive foi criado, um upload começou ou uma automação terminou.
