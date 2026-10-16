@@ -90,31 +90,13 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
         let activeSession = await coordinator.currentSession()
         let state = await coordinator.sessionState()
         XCTAssertNil(activeSession)
-        XCTAssertEqual(
-            state,
-            .completed(
-                session,
-                .inconclusive(
-                    reason: .insufficientUDPResponses,
-                    diagnostics: QualityMetrics(
-                        validResponseCount: 0,
-                        timeoutCount: 30,
-                        invalidResponseCount: 0,
-                        p50Milliseconds: nil,
-                        p95Milliseconds: nil,
-                        p99Milliseconds: nil,
-                        jitterMilliseconds: nil,
-                        packetLossPercentage: 100,
-                        spikeCount: 0,
-                        severeSpikeCount: 0,
-                        spikeRatePercentage: 0,
-                        p95ToP50Ratio: nil,
-                        components: nil
-                    )
-                ),
-                nil
-            )
-        )
+        guard case let .completed(observedSession, .inconclusive(reason: .insufficientUDPResponses, diagnostics: diagnostics), entry?) = state else {
+            return XCTFail("Expected a final inconclusive snapshot")
+        }
+        XCTAssertEqual(observedSession, session)
+        XCTAssertEqual(diagnostics, emptyDiagnostics)
+        XCTAssertTrue(entry.isInconclusive)
+        XCTAssertNil(entry.result)
     }
 
     func testPresentationNeverExposesScoreForInconclusiveEvaluation() {
@@ -184,10 +166,10 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
         let saved = await repository.entries
         XCTAssertEqual(saved.count, 1)
         XCTAssertEqual(saved.first?.resolvedContext, resolved)
-        XCTAssertEqual(saved.first?.result.metrics.worstSpikeMilliseconds, 30)
+        XCTAssertEqual(saved.first?.result?.metrics.worstSpikeMilliseconds, 30)
     }
 
-    func testInconclusiveQuickCheckNeverPersistsSnapshot() async throws {
+    func testInconclusiveQuickCheckPersistsFinalSnapshotWithoutScore() async throws {
         let repository = RecordingHistoryRepository()
         let coordinator = MeasurementSessionCoordinator(
             transport: ImmediateTransport(samples: Array(repeating: ProbeSample(sequence: 0, outcome: .timeout), count: 30)),
@@ -198,7 +180,10 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(30))
 
         let saved = await repository.entries
-        XCTAssertTrue(saved.isEmpty)
+        XCTAssertEqual(saved.count, 1)
+        XCTAssertTrue(saved[0].isInconclusive)
+        XCTAssertNil(saved[0].result)
+        XCTAssertNil(saved[0].primaryCause)
     }
 
     func testPoorSampleQualityAbortsSessionEarly() async throws {

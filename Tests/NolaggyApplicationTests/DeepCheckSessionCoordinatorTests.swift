@@ -103,7 +103,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         let entries = await history.entries
         XCTAssertEqual(entries.count, 1)
         XCTAssertEqual(entries.first?.kind, .deep)
-        XCTAssertEqual(entries.first?.result.finalScore, 100)
+        XCTAssertEqual(entries.first?.result?.finalScore, 100)
         XCTAssertEqual(entries.first?.deepCheck?.metrics.loadImpact?.increaseMilliseconds, 50)
     }
 

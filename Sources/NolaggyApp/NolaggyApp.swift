@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
+@preconcurrency import UserNotifications
 import NolaggyApplication
 import NolaggyDomain
 import NolaggyInfrastructure
 
 @main
 struct NolaggyApp: App {
+    @UIApplicationDelegateAdaptor(ReminderAppDelegate.self) private var reminderDelegate
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -95,6 +98,22 @@ struct NolaggyApp: App {
             // navegável e a feature apresenta indisponibilidade explícita.
             catalogState = .unavailable
         }
+    }
+}
+
+extension Notification.Name { static let lagCheckReminderOpened = Notification.Name("lagCheckReminderOpened") }
+
+final class ReminderAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if let gameID = response.notification.request.content.userInfo["gameID"] as? String {
+            UserDefaults.standard.set(gameID, forKey: "pendingPreMatchReminderGameID")
+            NotificationCenter.default.post(name: .lagCheckReminderOpened, object: nil, userInfo: ["gameID": gameID])
+        }
+        completionHandler()
     }
 }
 

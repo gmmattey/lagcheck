@@ -87,6 +87,9 @@
 | [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
+| [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
+| [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
+| [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (Autorizada)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
 
 
 
@@ -533,7 +536,7 @@
 
 - **Data:** 6 de outubro de 2026.
 - **Título:** Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping Real por Datacenter, Isolador de Causa Raiz e Widgets Interativos iOS 17.
-- **Status Atual:** **Vigente (Em implementação).**
+- **Status Atual:** **Vigente (Implementado localmente; validação visual pendente).**
 - **Frentes envolvidas:** Marco (Product Lead), Camillo (Principal Engineer / Gate Arquitetural), Iury (Network & Edge Systems), Rian (iOS), Renan (Design System & Dark Competitive UI), Breno (QA & Reliability) e Luiz (aprovação).
 - **Contexto e Problema:** Após a aprovação da Fase 1 (Card Viral Discord, ASO e Bufferbloat Score), o LagCheck inicia a **Fase 2 (P1)** focada em diferenciação técnica inatacável e retenção diária pré-jogo. A proposta resolve 3 dores centrais dos jogadores competitivos:
   1. *Onde o ping está sendo medido?* Provar rotas e datacenters reais (AWS GameLift, PlayFab QoS, Valve A2S e status oficial Riot) com total conformidade de termos de serviço, sem promessas não comprovadas de IPs de matchmaking fechado.
@@ -772,6 +775,50 @@
   - `AGENTS.md`, `docs/05-governanca-e-fluxo-de-trabalho.md`, `.agents/WORKFLOW.md`, o Cartão de Missão e as skills/perfis de Marco e Giam descrevem uma mesma divisão de responsabilidades;
   - cada lane declara onde entra o aceite de Giam sem bloquear a estabilização de hot lane;
   - nenhum documento atribui a Giam autorização de negócio ou publicação, nem transfere a Marco o aceite operacional da missão.
+
+#### Decisão 85
+- **Data:** 15 de outubro de 2026.
+- **Título:** Retirada do gate entre MVP1 e MVP1.1.
+- **Status Atual:** **Vigente (Produto).** Substitui as travas de escopo pós-MVP1 descritas em `docs/01-funcional.md` §13.1 e `docs/05-governanca-e-fluxo-de-trabalho.md` §7.4.
+- **Frentes envolvidas:** Luiz (dono do produto), Giam (Product Owner Operacional) e Marco (estratégia e priorização).
+- **Contexto e Problema:** A separação por gate entre MVP1 e MVP1.1 atrasava iniciativas de evolução já coerentes com a proposta do LagCheck, mesmo quando fossem locais, de custo operacional zero e sem alterar a integridade da medição.
+- **Decisão:**
+  1. Não existe mais gate de produto que condicione a entrada de escopo de MVP1.1, retenção, compartilhamento ou mecanismo de retorno a um período mínimo em produção ou à revisão prévia de telemetria.
+  2. Telemetria agregada e retenção continuam instrumentos de priorização e aprendizado, nunca autorização implícita para dados pessoais, novos endpoints, promessa diagnóstica ou publicação.
+  3. Cada iniciativa continua exigindo decisão registrada quando alterar promessa, arquitetura, privacidade, custo, regras de medição ou escopo de plataforma; o Cartão de Missão, a lane aplicável e a evidência proporcional permanecem obrigatórios.
+
+#### Decisão 86
+- **Data:** 16 de outubro de 2026.
+- **Título:** Ritual honesto do Histórico por jogo.
+- **Status Atual:** **Vigente (Em implementação).**
+- **Frentes envolvidas:** Luiz (aprovação), Giam (aceite operacional), Marco (priorização), Camillo (gate), Iury (contrato), Rian (clientes), Renan (UI) e Breno (QA).
+- **Decisão:**
+  1. O Histórico passa a oferecer, por jogo, janelas locais de 7, 14 e 30 dias com a frase factual `Pronto em X de Y checks comparáveis` e contagem separada de `Instável`, `Evitaria` e `Inconclusivo`.
+  2. Um Check só participa da fração quando for válido e comparável: mesma combinação de jogo, plataforma, vínculo externo declarado, rede observada, região e versão de regra. Exige ao menos 3 Checks em 2 dias da janela. Inconclusivo não é falha e não entra no denominador. Se a sessão terminar normalmente por respostas UDP insuficientes, o Histórico preserva esse fato e suas métricas sem score nem causa; cancelamento, troca de rede e parcial continuam descartados.
+  3. Ficam expressamente fora: melhor horário, previsão, média de score, comparação de jogos/contextos e atribuição a Wi-Fi, roteador, operadora ou qualquer causa. O resumo não substitui o Check atual antes da partida.
+  4. Os dois clientes aplicam 90 dias e no máximo 100 registros por jogo. Snapshot Android legado sem os fatos de comparabilidade é preservado para consulta, mas não gera resumo até haver nova medição completa.
+  5. Não há nova chamada de rede, Worker, telemetria, PII, SDK ou custo recorrente.
+- **Critérios de validação e aceite:**
+  - `docs/01-funcional.md` e `docs/05-governanca-e-fluxo-de-trabalho.md` deixam claro que dados de retenção informam prioridade, sem bloquear escopo;
+  - nenhuma regra de integridade diagnóstica, custo operacional zero, consentimento ou autorização de publicação é removida.
+
+#### Decisão 87
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Lembrete local pré-partida, configurado pela pessoa.
+- **Status Atual:** **Vigente (Autorizada).**
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Rian (iOS e Android), Renan (experiência) e Breno (QA).
+- **Decisão:**
+  1. O LagCheck oferece, somente após escolha explícita da pessoa, um lembrete local diário em um horário configurado. O recurso começa desligado, não observa outros apps, não aprende rotina, não usa push, não cria conta, não chama Worker nem envia telemetria.
+  2. Só pode ser ativado quando houver um jogo selecionado. A notificação usa copy curta e abre o LagCheck no contexto desse jogo, pronto para a pessoa iniciar o Check; ela nunca dispara medição por conta própria.
+  3. Há no máximo um lembrete por dia. A pessoa pode mudar o horário ou desligar o recurso nos Ajustes a qualquer momento; ao desligar, os agendamentos locais são removidos.
+  4. A permissão do sistema é pedida somente pela ação de ativar. Se negada, o recurso permanece desligado, explica o estado sem culpa e oferece o caminho às Configurações do sistema; não há repetição automática do prompt.
+  5. A implementação respeita as permissões e limites nativos de iOS e Android, além de PT-BR, inglês e espanhol. Não afirma que a rede está pronta e não substitui um Check atual.
+- **Critérios de validação e aceite:**
+  - teste de agendamento, remarcação, desligamento e abertura no jogo correto nos dois clientes;
+  - validação em aparelhos iOS e Android do prompt, permissão negada, toque na notificação em app frio e em segundo plano, e cancelamento/retorno;
+  - Dynamic Type/font scale, VoiceOver/TalkBack, contraste e alvo de 44 pt/dp na configuração;
+  - nenhuma atividade de rede ou medição automática causada pelo lembrete.
 
 ## Como Registrar Novas Decisões
 

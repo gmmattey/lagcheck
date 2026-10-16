@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Anúncios (Decisão 82): ID de publicidade para o AdMob; só usado com ADS_ENABLED e consentimento. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
@@ -63,6 +64,7 @@
                     android:pathPrefix="/quicktest" />
             </intent-filter>
         </activity>
+        <receiver android:name=".data.PreMatchReminderReceiver" android:exported="false" />
 
         <!-- Ícone do app (Decisão 83): um alias por ícone; só um fica habilitado. O Clássico é o padrão. -->
         <activity-alias

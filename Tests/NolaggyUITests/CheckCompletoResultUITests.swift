@@ -45,6 +45,8 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(primaryAction.exists)
 
         XCTAssertTrue(app.buttons["check-completo-details"].exists)
+        XCTAssertTrue(app.buttons["check-completo-discord-share"].exists)
+        XCTAssertTrue(app.buttons["check-completo-whatsapp-share"].exists)
 
         // A jornada completa mantém uma única affordance de retorno na barra.
         let back = app.buttons["check-completo-back"]
@@ -121,6 +123,10 @@ final class CheckCompletoResultUITests: XCTestCase {
 
         // 4. Improve booster action must NOT exist on inconclusive
         XCTAssertFalse(app.buttons["check-completo-improve"].exists)
+
+        // Resultado inconclusivo não pode preparar nem oferecer card de compartilhamento.
+        XCTAssertFalse(app.buttons["check-completo-discord-share"].exists)
+        XCTAssertFalse(app.buttons["check-completo-whatsapp-share"].exists)
 
         saveScreenshot(named: "check_completo_inconclusive_pt_br")
     }

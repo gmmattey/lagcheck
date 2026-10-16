@@ -6,8 +6,8 @@ import NolaggyDomain
 /// As medições pertencem exclusivamente a cada jogo testado e não são generalizadas.
 extension QuickCheckFeatureView {
     func scoreState(for game: CatalogMeasurementJourney.Game) -> GameRowView.ScoreState {
-        if let entry = history.first(where: { $0.resolvedContext.context.gameID == game.id }) {
-            let result = entry.result
+        if let entry = history.first(where: { $0.resolvedContext.context.gameID == game.id }),
+           let result = entry.result {
             let classification: NLScoreClassification
             switch result.resultClass {
             case .excellent: classification = .excellent

@@ -14,7 +14,7 @@ final class MeasurementHistoryEntryTests: XCTestCase {
         XCTAssertEqual(entry.resolvedContext.catalogVersion, "pilot-2026.09.08.1")
         XCTAssertEqual(entry.profileRuleVersion, "pilot-2026.09.08.1")
         XCTAssertEqual(entry.resolvedContext.strategy, .genericRegion)
-        XCTAssertEqual(entry.result.metrics.worstSpikeMilliseconds, 120)
+        XCTAssertEqual(entry.result?.metrics.worstSpikeMilliseconds, 120)
     }
 
     func testCompletedDeepCheckPreservesRestResultAndOptionalLoadImpactWithoutSamples() throws {
@@ -41,5 +41,26 @@ final class MeasurementHistoryEntryTests: XCTestCase {
         XCTAssertEqual(entry.result, deepResult.restResult)
         XCTAssertEqual(entry.deepCheck?.metrics.loadImpact?.increaseMilliseconds, 63)
         XCTAssertEqual(restored, entry)
+    }
+
+    func testCompletedInconclusivePreservesDiagnosticsWithoutScoreOrCause() throws {
+        let context = try PilotCatalog.pilotBase.resolve(GameContext(gameID: "fortnite", market: "BR", platform: .iphone))
+        let diagnostics = QualityMetrics(
+            validResponseCount: 3, timeoutCount: 27, invalidResponseCount: 0,
+            p50Milliseconds: 32, p95Milliseconds: 40, p99Milliseconds: 40, jitterMilliseconds: 4,
+            packetLossPercentage: 90, spikeCount: 0, severeSpikeCount: 0, spikeRatePercentage: 0,
+            p95ToP50Ratio: 1.25, components: nil
+        )
+
+        let entry = MeasurementHistoryEntry.completedInconclusive(
+            resolvedContext: context,
+            diagnostics: diagnostics
+        )
+
+        XCTAssertTrue(entry.isInconclusive)
+        XCTAssertEqual(entry.readinessVerdict, .inconclusive)
+        XCTAssertNil(entry.result)
+        XCTAssertNil(entry.primaryCause)
+        XCTAssertEqual(entry.metrics, diagnostics)
     }
 }

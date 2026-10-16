@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import UserNotifications
 import NolaggyApplication
 import NolaggyDesign
 import NolaggyDomain
@@ -13,6 +14,8 @@ struct SettingsView: View {
     let onSelectRegion: (RegionalReferenceCandidate) -> Void
     let deleteHistory: () async throws -> Void
     let showHistory: () -> Void
+    let selectedGameID: String?
+    let selectedGameName: String?
     var showsBackHeader: Bool = true
     var onDismiss: (() -> Void)? = nil
 
@@ -24,6 +27,8 @@ struct SettingsView: View {
     @State private var showingDeleteSheet: Bool = false
     @State private var toastMessage: String? = nil
     @State private var showingToast: Bool = false
+    @State private var reminder = PreMatchReminderStore.shared.value
+    @State private var showingReminderTime = false
 
     private var currentLanguageName: String {
         switch selectedLanguage {
@@ -146,6 +151,38 @@ struct SettingsView: View {
                                 .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                             }
                             .accessibilityIdentifier("settings-region")
+                        }
+
+                        Divider().overlay(NLColor.borderStrong)
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(LocalizedStringKey("settings.reminder.title"))
+                                    .font(.system(size: 14, weight: .bold)).foregroundStyle(selectedGameID == nil ? NLColor.textTertiary : NLColor.textPrimary)
+                                if selectedGameID == nil {
+                                    Text(LocalizedStringKey("settings.reminder.no_game"))
+                                        .font(.system(size: 12)).foregroundStyle(NLColor.textTertiary)
+                                } else if reminder.enabled {
+                                    Text(reminder.summary(gameName: selectedGameName ?? ""))
+                                        .font(.system(size: 12)).foregroundStyle(NLColor.textTertiary)
+                                }
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(get: { reminder.enabled }, set: { toggleReminder($0) }))
+                                .labelsHidden().disabled(selectedGameID == nil)
+                                .accessibilityLabel(Text(reminderAccessibilityLabel))
+                        }
+                        .frame(minHeight: 56)
+                        .accessibilityIdentifier("settings-pre-match-reminder")
+
+                        if reminder.enabled {
+                            Button { showingReminderTime = true } label: {
+                                HStack { Text(LocalizedStringKey("settings.reminder.time")).font(.system(size: 14, weight: .bold)); Spacer(); Text(reminder.timeText).font(NLTypography.monospaceMetrics); Image(systemName: "chevron.right") }
+                                    .foregroundStyle(NLColor.textPrimary).frame(height: 56)
+                            }.buttonStyle(.plain)
+                        }
+                        if reminder.permissionDenied {
+                            Button(LocalizedStringKey("settings.reminder.open_system_settings")) { PreMatchReminderStore.shared.openSystemSettings() }
+                                .font(.system(size: 14, weight: .semibold)).foregroundStyle(NLColor.gamerPurple).frame(minHeight: 44)
                         }
                     }
                     .padding(.horizontal, NLSpacing.md)
@@ -298,6 +335,29 @@ struct SettingsView: View {
         .sheet(isPresented: $showingDeleteSheet) {
             deleteConfirmationSheet
         }
+        .sheet(isPresented: $showingReminderTime) { reminderTimeSheet }
+        .task { reminder = await PreMatchReminderStore.shared.revalidatePermission() }
+        .onChange(of: selectedLanguage) { _, _ in
+            if reminder.enabled { reminder = PreMatchReminderStore.shared.reschedule(hour: reminder.hour, minute: reminder.minute, language: AppLocalization.language) }
+        }
+    }
+
+    private var reminderAccessibilityLabel: String {
+        let state = reminder.enabled ? AppLocalization.string("settings.reminder.on", comment: "") : AppLocalization.string("settings.reminder.off", comment: "")
+        return "\(AppLocalization.string("settings.reminder.title", comment: "")), \(selectedGameName ?? ""), \(state)"
+    }
+
+    private func toggleReminder(_ enabled: Bool) {
+        guard enabled, let selectedGameID else { PreMatchReminderStore.shared.disable(); reminder = PreMatchReminderStore.shared.value; return }
+        Task { @MainActor in reminder = await PreMatchReminderStore.shared.enable(gameID: selectedGameID, language: AppLocalization.language) }
+    }
+
+    private var reminderTimeSheet: some View {
+        VStack(spacing: 16) {
+            DatePicker(LocalizedStringKey("settings.reminder.time"), selection: Binding(get: { reminder.date }, set: { date in
+                reminder = PreMatchReminderStore.shared.reschedule(hour: Calendar.current.component(.hour, from: date), minute: Calendar.current.component(.minute, from: date), language: AppLocalization.language)
+            }), displayedComponents: .hourAndMinute).datePickerStyle(.wheel)
+        }.padding().presentationDetents([.height(300)]).preferredColorScheme(.dark)
     }
 
     private func settingsRowButton(title: LocalizedStringKey, isLast: Bool = false, identifier: String? = nil, action: @escaping () -> Void) -> some View {
@@ -442,6 +502,39 @@ struct SettingsView: View {
             }
         }
     }
+}
+
+struct PreMatchReminderValue: Equatable {
+    var enabled = false; var hour = 20; var minute = 0; var gameID: String?; var permissionDenied = false
+    var timeText: String { String(format: "%02d:%02d", hour, minute) }
+    var date: Date { Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: .now) ?? .now }
+    func summary(gameName: String) -> String { String(format: AppLocalization.string("settings.reminder.summary %@ %@", comment: ""), timeText, gameName) }
+}
+
+@MainActor final class PreMatchReminderStore {
+    static let shared = PreMatchReminderStore()
+    private let center = UNUserNotificationCenter.current(); private let id = "lagcheck.pre-match-reminder"; private let defaults = UserDefaults.standard
+    var value: PreMatchReminderValue { PreMatchReminderValue(enabled: defaults.bool(forKey: "preMatchReminderEnabled"), hour: defaults.object(forKey: "preMatchReminderHour") as? Int ?? 20, minute: defaults.object(forKey: "preMatchReminderMinute") as? Int ?? 0, gameID: defaults.string(forKey: "preMatchReminderGame"), permissionDenied: defaults.bool(forKey: "preMatchReminderDenied")) }
+    func enable(gameID: String, language: AppLanguage) async -> PreMatchReminderValue {
+        let settings = await center.notificationSettings()
+        if settings.authorizationStatus == .notDetermined { _ = try? await center.requestAuthorization(options: [.alert, .sound]) }
+        let updated = await center.notificationSettings()
+        guard updated.authorizationStatus == .authorized || updated.authorizationStatus == .provisional else { defaults.set(true, forKey: "preMatchReminderDenied"); disable(); return value }
+        defaults.set(false, forKey: "preMatchReminderDenied"); defaults.set(gameID, forKey: "preMatchReminderGame"); defaults.set(true, forKey: "preMatchReminderEnabled"); return reschedule(hour: value.hour, minute: value.minute, language: language)
+    }
+    func reschedule(hour: Int, minute: Int, language: AppLanguage) -> PreMatchReminderValue {
+        guard let gameID = value.gameID else { return value }; center.removePendingNotificationRequests(withIdentifiers: [id]); defaults.set(hour, forKey: "preMatchReminderHour"); defaults.set(minute, forKey: "preMatchReminderMinute")
+        let content = UNMutableNotificationContent(); content.title = "LagCheck"; content.body = language == .en ? "Playing now? Run a Check first." : language == .es ? "¿Vas a jugar? Haz un Check antes." : "Vai jogar agora? Faça um Check antes."; content.sound = .default; content.userInfo = ["gameID": gameID]
+        var date = DateComponents(); date.hour = hour; date.minute = minute; center.add(UNNotificationRequest(identifier: id, content: content, trigger: UNCalendarNotificationTrigger(dateMatching: date, repeats: true))); return value
+    }
+    func disable() { center.removePendingNotificationRequests(withIdentifiers: [id]); defaults.set(false, forKey: "preMatchReminderEnabled"); defaults.removeObject(forKey: "preMatchReminderGame") }
+    func revalidatePermission() async -> PreMatchReminderValue {
+        let settings = await center.notificationSettings()
+        let allowed = settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional
+        if !allowed && (value.enabled || value.permissionDenied) { defaults.set(true, forKey: "preMatchReminderDenied"); disable() }
+        return value
+    }
+    func openSystemSettings() { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }
 }
 
 /// Identificador reservado para a opção "escolher automaticamente" dentro da

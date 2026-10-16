@@ -29,25 +29,48 @@ public struct CheckCompletoResultView: View {
     private enum ShareDestination: Identifiable {
         case discord(items: [Any])
         case whatsApp(items: [Any])
+        case link(items: [Any])
         case pdf(items: [Any])
 
         var id: String {
             switch self {
             case .discord: return "discord"
             case .whatsApp: return "whatsApp"
+            case .link: return "link"
             case .pdf: return "pdf"
             }
         }
 
         var items: [Any] {
             switch self {
-            case .discord(let items), .whatsApp(let items), .pdf(let items):
+            case .discord(let items), .whatsApp(let items), .link(let items), .pdf(let items):
                 return items
             }
         }
     }
 
     @State private var activeShareDestination: ShareDestination? = nil
+    @State private var preparedShareCardURL: URL? = nil
+    @State private var shareCardPreparationFailed = false
+    @State private var shareCardPreparationAttempt = 0
+    @State private var preparedSharePreview: UIImage? = nil
+
+    private struct ShareCardSnapshot: Equatable, Sendable {
+        let gameName: String
+        let regionName: String
+        let verdict: GameReadinessVerdict
+        let pingMs: Double?
+        let jitterMs: Double?
+        let packetLossPercentage: Double?
+        let bufferbloatGradeText: String?
+        let isWiFi: Bool
+        let localeIdentifier: String
+        let measurementIdentity: String
+
+        var cacheKey: String {
+            "\(gameName)|\(regionName)|\(verdict.rawValue)|\(pingMs ?? -1)|\(jitterMs ?? -1)|\(packetLossPercentage ?? -1)|\(bufferbloatGradeText ?? "—")|\(isWiFi)|\(localeIdentifier)|\(measurementIdentity)"
+        }
+    }
 
     public init(
         result: DeepCheckResult?,
@@ -130,6 +153,8 @@ public struct CheckCompletoResultView: View {
                         .foregroundStyle(NLColor.textPrimary)
                         .lineSpacing(4)
                         .padding(.top, 19)
+
+                    if evaluation.verdict != .inconclusive { sharePreview(evaluation: evaluation) }
 
                     // Métricas inline em tipografia monoespaçada
                     HStack(spacing: 6) {
@@ -218,6 +243,32 @@ public struct CheckCompletoResultView: View {
         .sheet(item: $activeShareDestination) { destination in
             ShareSheet(items: destination.items)
         }
+        .task(id: "\(shareCardSnapshot(evaluation: evaluation)?.cacheKey ?? "inconclusive"):\(shareCardPreparationAttempt)") {
+            preparedShareCardURL = nil
+            preparedSharePreview = nil
+            shareCardPreparationFailed = false
+            guard let snapshot = shareCardSnapshot(evaluation: evaluation) else { return }
+            // Deixa a manchete do veredito chegar à tela antes de ocupar CPU com o renderer.
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            let cardURL = await Task.detached(priority: .utility) {
+                LagCheckDiscordCardExporter.prepareDiscordShareCard(
+                    snapshotKey: snapshot.cacheKey,
+                    gameName: snapshot.gameName,
+                    regionName: snapshot.regionName,
+                    verdict: snapshot.verdict,
+                    pingMs: snapshot.pingMs,
+                    jitterMs: snapshot.jitterMs,
+                    packetLossPercentage: snapshot.packetLossPercentage,
+                    bufferbloatGradeText: snapshot.bufferbloatGradeText,
+                    isWiFi: snapshot.isWiFi
+                )
+            }.value
+            guard !Task.isCancelled else { return }
+            preparedShareCardURL = cardURL
+            shareCardPreparationFailed = cardURL == nil
+            preparedSharePreview = cardURL.flatMap { UIImage(contentsOfFile: $0.path) }
+        }
     }
 
     private func verdictSymbol(for verdict: GameReadinessVerdict) -> String {
@@ -226,6 +277,65 @@ public struct CheckCompletoResultView: View {
         case .caution, .notReady: return "▲"
         case .inconclusive: return "—"
         }
+    }
+
+    private func sharePreview(evaluation: GameReadinessEvaluation) -> some View {
+        let a11yLabel: String
+        if shareCardPreparationFailed {
+            a11yLabel = AppLocalization.string("share.card.failed", comment: "")
+        } else if preparedSharePreview != nil {
+            a11yLabel = "\(AppLocalization.string("share.card.ready", comment: "")): \(AppLocalization.string(evaluation.headlineKey, comment: "")), \(gameName), \(regionFriendlyName)"
+        } else {
+            a11yLabel = AppLocalization.string("share.card.preparing", comment: "")
+        }
+
+        return Group {
+            if shareCardPreparationFailed {
+                Button {
+                    preparedShareCardURL = nil
+                    preparedSharePreview = nil
+                    shareCardPreparationFailed = false
+                    shareCardPreparationAttempt += 1
+                } label: {
+                    VStack(spacing: 8) {
+                        Text(AppLocalization.string("share.card.failed", comment: ""))
+                        Text(AppLocalization.string("share.card.retry", comment: ""))
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundStyle(NLColor.textSecondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(AppLocalization.string("share.card.retry", comment: ""))
+            } else {
+                Button {
+                    guard let preparedShareCardURL, FileManager.default.fileExists(atPath: preparedShareCardURL.path) else {
+                        shareCardPreparationFailed = true
+                        return
+                    }
+                    activeShareDestination = .link(items: [preparedShareCardURL])
+                } label: {
+                    Group {
+                        if let preparedSharePreview {
+                            Image(uiImage: preparedSharePreview).resizable().scaledToFit()
+                        } else {
+                            RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous).fill(NLColor.surface)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .buttonStyle(.plain)
+                .disabled(preparedSharePreview == nil)
+                .accessibilityHint(AppLocalization.string("share.card.open_hint", comment: ""))
+            }
+        }
+        .frame(maxWidth: 360)
+        .aspectRatio(1200.0 / 630.0, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 1))
+        .accessibilityLabel(a11yLabel)
+        .padding(.top, 24)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private func weightText(evaluation: GameReadinessEvaluation) -> String {
@@ -507,16 +617,8 @@ public struct CheckCompletoResultView: View {
     }
 
     private func shareToDiscord(evaluation: GameReadinessEvaluation) {
-        if let cardURL = LagCheckDiscordCardExporter.generateDiscordShareCard(
-            gameName: gameName,
-            regionName: regionFriendlyName,
-            verdict: evaluation.verdict,
-            pingMs: evaluation.pingMs,
-            jitterMs: evaluation.jitterMs,
-            packetLossPercentage: evaluation.packetLossPercentage,
-            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
-            isWiFi: isWiFi
-        ) {
+        Task { @MainActor in
+            if let cardURL = await shareCardURL(evaluation: evaluation) {
             let quote = LagCheckDiscordCardExporter.gamerQuote(for: evaluation.verdict)
             let shareText = "🎮 LagCheck · \(gameName)\n\(quote)\nhttps://lagcheck.signallq.com"
             if let image = UIImage(contentsOfFile: cardURL.path) {
@@ -526,19 +628,12 @@ public struct CheckCompletoResultView: View {
                 self.activeShareDestination = .discord(items: [cardURL, shareText])
             }
         }
+        }
     }
 
     private func shareToWhatsApp(evaluation: GameReadinessEvaluation) {
-        if let cardURL = LagCheckDiscordCardExporter.generateDiscordShareCard(
-            gameName: gameName,
-            regionName: regionFriendlyName,
-            verdict: evaluation.verdict,
-            pingMs: evaluation.pingMs,
-            jitterMs: evaluation.jitterMs,
-            packetLossPercentage: evaluation.packetLossPercentage,
-            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
-            isWiFi: isWiFi
-        ) {
+        Task { @MainActor in
+            if let cardURL = await shareCardURL(evaluation: evaluation) {
             let pingStr = evaluation.pingMs.map { "\(Int(round($0))) ms" } ?? "—"
             let jitterStr = evaluation.jitterMs.map { String(format: "%.1f ms", $0) } ?? "—"
             let lossStr = evaluation.packetLossPercentage.map { String(format: "%.1f%%", $0) } ?? "—"
@@ -563,6 +658,7 @@ public struct CheckCompletoResultView: View {
             } else {
                 self.activeShareDestination = .whatsApp(items: [cardURL, whatsappText])
             }
+        }
         }
     }
 
@@ -599,6 +695,7 @@ public struct CheckCompletoResultView: View {
 
             // Ações Utilitárias Compactas: Discord, WhatsApp e PDF separados
             HStack(spacing: 8) {
+                if evaluation.verdict != .inconclusive {
                 // Botão Discord com ícone oficial
                 Button(action: { shareToDiscord(evaluation: evaluation) }) {
                     HStack(spacing: 6) {
@@ -617,6 +714,8 @@ public struct CheckCompletoResultView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-discord-share")
+                .accessibilityValue(shareCardAccessibilityValue)
+                .disabled(preparedShareCardURL == nil)
 
                 // Botão WhatsApp com ícone oficial
                 Button(action: { shareToWhatsApp(evaluation: evaluation) }) {
@@ -636,6 +735,9 @@ public struct CheckCompletoResultView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-whatsapp-share")
+                .accessibilityValue(shareCardAccessibilityValue)
+                .disabled(preparedShareCardURL == nil)
+                }
 
                 // Botão PDF
                 Button(action: { exportResultPDF(evaluation: evaluation) }) {
@@ -667,6 +769,41 @@ public struct CheckCompletoResultView: View {
     private func formattedMs(_ value: Double?) -> String {
         guard let value else { return "—" }
         return "\(Int(value.rounded()))"
+    }
+
+    private var shareCardAccessibilityValue: String {
+        if preparedShareCardURL != nil { return AppLocalization.string("share.card.ready", comment: "") }
+        if shareCardPreparationFailed { return AppLocalization.string("share.card.failed", comment: "") }
+        return AppLocalization.string("share.card.preparing", comment: "")
+    }
+
+    private func shareCardSnapshot(evaluation: GameReadinessEvaluation) -> ShareCardSnapshot? {
+        guard evaluation.verdict != .inconclusive, let result else { return nil }
+        return ShareCardSnapshot(
+            gameName: gameName,
+            regionName: regionFriendlyName,
+            verdict: evaluation.verdict,
+            pingMs: evaluation.pingMs,
+            jitterMs: evaluation.jitterMs,
+            packetLossPercentage: evaluation.packetLossPercentage,
+            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
+            isWiFi: isWiFi,
+            localeIdentifier: AppLocalization.locale.identifier,
+            measurementIdentity: measurementIdentity(for: result)
+        )
+    }
+
+    private func measurementIdentity(for result: DeepCheckResult) -> String {
+        let data = (try? JSONEncoder().encode(result)) ?? Data()
+        var hash: UInt64 = 1_469_598_103_934_665_603
+        for byte in data { hash ^= UInt64(byte); hash &*= 1_099_511_628_211 }
+        return String(hash, radix: 16)
+    }
+
+    @MainActor
+    private func shareCardURL(evaluation: GameReadinessEvaluation) async -> URL? {
+        if let preparedShareCardURL { return preparedShareCardURL }
+        return preparedShareCardURL
     }
 
     private func formattedLoss(_ loss: Double?) -> String {

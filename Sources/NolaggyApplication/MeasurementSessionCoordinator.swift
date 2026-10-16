@@ -298,6 +298,13 @@ public actor MeasurementSessionCoordinator {
             // Falha local de armazenamento nunca invalida um resultado de rede já concluído.
             try? await historyRepository.save(snapshot)
             entry = snapshot
+        } else if case let .inconclusive(_, diagnostics) = evaluation {
+            let snapshot = MeasurementHistoryEntry.completedInconclusive(
+                resolvedContext: session.resolvedContext,
+                diagnostics: diagnostics
+            )
+            try? await historyRepository.save(snapshot)
+            entry = snapshot
         } else {
             entry = nil
         }

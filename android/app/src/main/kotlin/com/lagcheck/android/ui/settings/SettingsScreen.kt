@@ -3,6 +3,7 @@ package com.lagcheck.android.ui.settings
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +44,7 @@ import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 import com.lagcheck.android.ui.MainViewModel.RegionCandidate
 
 /**
@@ -58,6 +61,14 @@ fun SettingsScreen(
     onRegionSelected: (String?) -> Unit,
     onOpenHistory: () -> Unit,
     onClearHistory: () -> Unit,
+    reminderEnabled: Boolean,
+    reminderHour: Int,
+    reminderMinute: Int,
+    reminderGameName: String?,
+    reminderPermissionDenied: Boolean,
+    onReminderToggle: (Boolean) -> Unit,
+    onReminderTimeChanged: (Int, Int) -> Unit,
+    onOpenNotificationSettings: () -> Unit,
     onBack: () -> Unit,
     /** Só quando o UMP exigir (anúncios ligados). */
     privacyOptionsRequired: Boolean = false,
@@ -71,6 +82,7 @@ fun SettingsScreen(
     var showDeleteConfirmSheet by remember { mutableStateOf(false) }
     var showRegionSheet by remember { mutableStateOf(false) }
     var showLicensesSheet by remember { mutableStateOf(false) }
+    var reminderIsEnabled by remember(reminderEnabled) { mutableStateOf(reminderEnabled) }
 
     Box(
         modifier = modifier
@@ -118,6 +130,23 @@ fun SettingsScreen(
                     value = regionLabel,
                     onClick = { showRegionSheet = true }
                 )
+            }
+            val hasGame = !reminderGameName.isNullOrBlank()
+            Row(modifier = Modifier.fillMaxWidth().height(if (reminderIsEnabled || !hasGame) 72.dp else 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(tr("Lembrete pré-partida"), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (hasGame) LagCheckColors.TextPrimary else LagCheckColors.TextMuted)
+                    if (!hasGame) Text(tr("Escolha um jogo para ativar."), fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                    else if (reminderIsEnabled) Text(trf("Todos os dias às %02d:%02d · %s", reminderHour, reminderMinute, reminderGameName), fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                }
+                Switch(checked = reminderIsEnabled, enabled = hasGame, onCheckedChange = { enabled -> reminderIsEnabled = enabled; onReminderToggle(enabled) }, modifier = Modifier.size(width = 52.dp, height = 44.dp))
+            }
+            if (reminderIsEnabled) {
+                SettingRow(title = tr("Horário"), value = String.format(java.util.Locale.getDefault(), "%02d:%02d", reminderHour, reminderMinute), onClick = {
+                    TimePickerDialog(context, { _, hour, minute -> onReminderTimeChanged(hour, minute) }, reminderHour, reminderMinute, true).show()
+                })
+            }
+            if (reminderPermissionDenied) {
+                SettingRow(title = tr("Abrir ajustes do aparelho"), onClick = onOpenNotificationSettings)
             }
             }
 

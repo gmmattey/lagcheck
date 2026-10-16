@@ -18,6 +18,11 @@ data class CheckHistoryItem(
     val platform: String,
     val connectionType: String,
     val declaredExternalLink: String? = null,
+    /** Campos de comparabilidade. Ausentes em snapshots antigos, que seguem visíveis mas não viram resumo. */
+    val profileRuleVersion: String? = null,
+    val regionId: String? = null,
+    val observedNetwork: String? = null,
+    val validResponseCount: Int? = null,
     val timestamp: Long,
     val verdict: GameReadinessVerdict,
     val score: Int,

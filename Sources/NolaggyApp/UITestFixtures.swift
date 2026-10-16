@@ -38,10 +38,9 @@ enum UITestFixtures {
             packetLossPercentage: 100, spikeCount: 0, severeSpikeCount: 0, spikeRatePercentage: 0,
             p95ToP50Ratio: nil, worstSpikeMilliseconds: nil, components: nil
         )
-        return MeasurementHistoryEntry(
-            completedAt: Date(), resolvedContext: context, profileRuleVersion: context.catalogVersion,
-            result: QualityResult(metrics: metrics, rawScore: 0, finalScore: 0, resultClass: .unstable, appliedGuardrails: []),
-            primaryCause: .packetLoss
+        return MeasurementHistoryEntry.completedInconclusive(
+            resolvedContext: context,
+            diagnostics: metrics
         )
     }
 
@@ -50,7 +49,7 @@ enum UITestFixtures {
     }
 
     static var validDeepResult: DeepCheckResult {
-        let rest = validEntry.result
+        let rest = validEntry.result!
         let load = QualityMetrics(
             validResponseCount: 30, timeoutCount: 0, invalidResponseCount: 0,
             p50Milliseconds: 91, p95Milliseconds: 116, p99Milliseconds: 128, jitterMilliseconds: 19,

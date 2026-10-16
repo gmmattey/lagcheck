@@ -280,11 +280,11 @@ Uma entrega só está concluída quando:
 5. Consentimento e banner validados sem bloquear o fluxo principal.
 6. Fluxos PT-BR/EN, Dynamic Type e VoiceOver revisados.
 
-### 7.4 Antes de comprometer escopo do MVP1.1
+### 7.4 Priorização de evolução após o MVP1
 
-1. Período mínimo em produção cumprido e dados agregados de App Store Connect revisados por Marco (sessões, retenção, instalação/desinstalação, avaliações) — ver Funcional §13.1.
-2. Decisão registrada sobre o recurso que justifica a assinatura anual do MVP2 (Funcional §14), mesmo que a resposta seja "ainda não sabemos, adiar o MVP2".
-3. Decisão registrada sobre se/quando um mecanismo de retorno (notificação, widget ou outro) entra em escopo, e em qual versão.
+1. Dados agregados de App Store Connect e telemetria mínima podem orientar prioridade, sem se tornarem gate de escopo — ver Funcional §13.1 e Decisão 85.
+2. Uma decisão registrada continua obrigatória para o recurso que justifica assinatura anual do MVP2, ou para declarar que ele permanece adiado.
+3. Notificação, widget ou outro mecanismo de retorno entram por decisão registrada, Cartão de Missão e evidência proporcional; não dependem de período mínimo em produção.
 
 ## 8. Mudanças de escopo e resolução de conflito
 

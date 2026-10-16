@@ -108,15 +108,16 @@ struct MeasurementDetailsView: View {
     }
 
     private var metricList: some View {
-        VStack(spacing: 1) {
-            detailRow("details.p50", milliseconds(entry.result.metrics.p50Milliseconds))
-            detailRow("details.p95", milliseconds(entry.result.metrics.p95Milliseconds))
-            detailRow("details.p99", milliseconds(entry.result.metrics.p99Milliseconds))
-            detailRow("quick_check.result.jitter", milliseconds(entry.result.metrics.jitterMilliseconds))
-            detailRow("quick_check.result.loss", percentage(entry.result.metrics.packetLossPercentage))
-            detailRow("quick_check.result.spikes", String(entry.result.metrics.spikeCount))
-            detailRow("details.worst_spike", milliseconds(entry.result.metrics.worstSpikeMilliseconds))
-            detailRow("details.spike_rate", percentage(entry.result.metrics.spikeRatePercentage))
+        let metrics = entry.metrics
+        return VStack(spacing: 1) {
+            detailRow("details.p50", milliseconds(metrics?.p50Milliseconds))
+            detailRow("details.p95", milliseconds(metrics?.p95Milliseconds))
+            detailRow("details.p99", milliseconds(metrics?.p99Milliseconds))
+            detailRow("quick_check.result.jitter", milliseconds(metrics?.jitterMilliseconds))
+            detailRow("quick_check.result.loss", percentage(metrics?.packetLossPercentage))
+            detailRow("quick_check.result.spikes", metrics.map { String($0.spikeCount) } ?? "—")
+            detailRow("details.worst_spike", milliseconds(metrics?.worstSpikeMilliseconds))
+            detailRow("details.spike_rate", percentage(metrics?.spikeRatePercentage))
             detailRow("details.confidence", confidenceLabel)
             detailRow("details.profile", entry.resolvedContext.profileID.rawValue)
             detailRow("details.rule_version", entry.profileRuleVersion)
@@ -173,7 +174,9 @@ struct MeasurementDetailsView: View {
     private var strategyLabel: String { AppLocalization.string(strategyKey, comment: "") }
     private var confidenceLabel: String { AppLocalization.string(confidenceKey, comment: "") }
     private var graphAccessibilitySummary: String {
-        let metrics = entry.result.metrics
+        guard let metrics = entry.metrics else {
+            return AppLocalization.string("details.history_graph_unavailable", comment: "")
+        }
         return String(
             format: AppLocalization.string("details.graph_accessibility", comment: ""),
             Int((metrics.p50Milliseconds ?? 0).rounded()),
@@ -182,5 +185,5 @@ struct MeasurementDetailsView: View {
         )
     }
     private func milliseconds(_ value: Double?) -> String { value.map { "\(Int($0.rounded())) ms" } ?? "—" }
-    private func percentage(_ value: Double) -> String { "\(Int(value.rounded()))%" }
+    private func percentage(_ value: Double?) -> String { value.map { "\(Int($0.rounded()))%" } ?? "—" }
 }

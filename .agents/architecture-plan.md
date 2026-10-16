@@ -149,3 +149,24 @@ A transparência de rota segue a regra do **"Gamer Não Lê"** e a integridade d
 5. [ ] Paridade de decodificação e testes confirmados em iOS e Android;
 6. [ ] Todos os testes unitários passando 100% verdes (`xcodebuild test`).
 
+---
+
+## 9. Gate — Issue #50: Ritual honesto do Histórico
+
+### Parecer de Camillo
+
+**can proceed with listed constraints**
+
+O trabalho é sistêmico porque corrige a retenção persistida no Android e acrescenta fatos de comparabilidade ao snapshot local. Não muda score, veredito, transporte UDP, catálogo, Worker, telemetria, privacidade ou custo.
+
+| Área | Contrato obrigatório |
+| --- | --- |
+| Semântica compartilhada | Janela de 7/14/30 dias; mínimo de 3 resultados válidos em 2 dias; mesma chave de contexto (jogo, plataforma, vínculo externo, rede observada, região e versão de regra); inconclusivos contados à parte. |
+| iOS | Nova regra pura de resumo no domínio; SwiftData mantém retenção atual de 90 dias/100 por jogo; `MeasurementHistorySummary` legado sem consumidor é removido depois de a nova regra estar coberta por testes. |
+| Android | `CheckHistoryItem` ganha versão, região e rede observada; JSON aceita ausência desses campos em snapshots existentes, que permanecem visíveis mas inelegíveis ao resumo; limpeza aplica 90 dias e 100 por jogo antes de salvar/carregar. |
+| UI | Cada cliente somente apresenta o resultado do contrato puro. Sem média de score, melhor horário, previsão, causa ou recomputação de veredito. |
+| Inconclusivo final | Uma sessão que chega ao fim por menos de 10 respostas UDP vira snapshot sem score e sem causa, contado separadamente. Cancelamento, troca de rede e parcial são descartados antes da persistência. |
+| Rollback | A remoção da UI não destrói registros. Os novos campos são opcionais na leitura de snapshots anteriores; não há migração de servidor. |
+
+**Riscos e provas obrigatórias:** vetores de inclusão/exclusão e retenção nos dois clientes; casos com legado, inconclusivo, contexto divergente e apagamento; inspeção de localização. Simulador/emulador valida somente composição e foco; hardware continua necessário para VoiceOver/TalkBack e escala real.
+

@@ -68,10 +68,18 @@ object UiStrings {
         t("Voltar para o Início", "Back to Home", "Volver al Inicio")
         t("checks", "checks", "checks")
         t("Configurações", "Settings", "Configuración")
+        t("Lembrete pré-partida", "Pre-match reminder", "Recordatorio antes de jugar")
+        t("Escolha um jogo para ativar.", "Pick a game to enable it.", "Elige un juego para activarlo.")
+        t("Todos os dias às %02d:%02d · %s", "Every day at %02d:%02d · %s", "Todos los días a las %02d:%02d · %s")
+        t("Horário", "Time", "Hora")
+        t("Abrir ajustes do aparelho", "Open device settings", "Abrir ajustes del dispositivo")
         t("jogos", "games", "juegos")
         t("1 check", "1 check", "1 check")
         t("%d checks", "%d checks", "%d checks")
         t("prontos p/ Ranked", "Ranked-ready", "listos p/ Ranked")
+        t("Últimos %d dias", "Last %d days", "Últimos %d días")
+        t("Pronto em %d de %d checks", "Ready in %d of %d checks", "Listo en %d de %d checks")
+        t("Instável: %d · Evitaria: %d · Inconclusivos: %d", "Unstable: %d · Avoid: %d · Inconclusive: %d", "Inestable: %d · Evitaría: %d · No concluyentes: %d")
         // endregion
 
         // region Cockpit (Dados da Rede)

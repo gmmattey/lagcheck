@@ -111,10 +111,6 @@
 "history.equipment.wifi" = "Equipment: Wi-Fi";
 "history.equipment.ethernet" = "Equipment: cable";
 "history.equipment.not_declared" = "Equipment: not declared";
-"history.seven_day_average %@" = "7-day average: %@";
-"history.trend.improving" = "Improving";
-"history.trend.worsening" = "Worsening";
-"history.trend.stable" = "Stable";
 "navigation.home" = "Home";
 "navigation.games" = "Games";
 "navigation.network" = "Network";
@@ -128,6 +124,13 @@
 "settings.section.privacy" = "PRIVACY";
 "settings.section.about" = "ABOUT";
 "settings.language" = "Language";
+"settings.reminder.title" = "Pre-match reminder";
+"settings.reminder.no_game" = "Pick a game to enable it.";
+"settings.reminder.time" = "Time";
+"settings.reminder.summary %@ %@" = "Every day at %@ · %@";
+"settings.reminder.on" = "on";
+"settings.reminder.off" = "off";
+"settings.reminder.open_system_settings" = "Open device settings";
 "settings.region.title" = "Reference region";
 "settings.region.automatic" = "Automatic";
 "settings.region.explanation" = "The region used in each check is chosen automatically based on your network at the time of the test. Picking a region here only overrides that choice when it's a valid candidate for the game being measured; otherwise the check falls back to choosing automatically.";
@@ -774,6 +777,11 @@
 "history.sheet.delete_message" = "This action cannot be undone.";
 "common.cancel" = "Cancel";
 "history.sheet.delete_confirm" = "Delete";
+"history.ritual.window_7" = "Last 7 days";
+"history.ritual.window_14" = "Last 14 days";
+"history.ritual.window_30" = "Last 30 days";
+"history.ritual.ready_count" = "Ready in %d of %d checks";
+"history.ritual.breakdown" = "Unstable: %d · Avoid: %d · Inconclusive: %d";
 "common.done" = "Done";
 "catalog.generic_gaming_card.subtitle" = "Neutral regional reference route";
 "network.offline" = "No connection";
@@ -844,17 +852,17 @@
 "telemetry.loss_format %@" = "%@% loss";
 "catalog.recent.just_now" = "just now";
 
-"exporter.discord.official_tag" = "● OFFICIAL ROUTE CERTIFICATE";
+"exporter.discord.official_tag" = "ROUTE MEASUREMENT";
 "exporter.discord.wifi_iphone" = "WI-FI OBSERVED ON IPHONE";
 "exporter.discord.cellular" = "CELLULAR DATA OBSERVED";
 "exporter.discord.ping_label" = "LATENCY (PING)";
 "exporter.discord.jitter_label" = "VARIATION (JITTER)";
 "exporter.discord.loss_label" = "PACKET LOSS";
 "exporter.discord.real_udp_sampling" = "Real UDP sampling";
-"exporter.discord.footer %@" = "TESTED ON: %@ · RAW DATA NO ESTIMATES · LAGCHECK.APP";
-"exporter.discord.quote.ready" = "“100% smooth route. If you lose in ranked today, it's on you.”";
-"exporter.discord.quote.caution" = "“Oscillation detected. Play at your own risk, micro-stutters ahead.”";
-"exporter.discord.quote.not_ready" = "“Don't even call me to play today. Connection is too unstable for ranked.”";
+"exporter.discord.footer" = "MEASURED REFERENCE ROUTE · LAGCHECK.APP";
+"exporter.discord.quote.ready" = "“Conditions measured on this reference route.”";
+"exporter.discord.quote.caution" = "“This measured route had variation.”";
+"exporter.discord.quote.not_ready" = "“This measured route is unstable right now.”";
 "exporter.discord.quote.inconclusive" = "“Insufficient samples along the route. Check your signal.”";
 
 "exporter.pdf.loss_column" = "LOSS";
@@ -864,3 +872,8 @@
 /* Bufferbloat e Estabilidade sob carga (Decisão 74) */
 "result.bufferbloat.label" = "UNDER LOAD:";
 "exporter.discord.bufferbloat_label" = "UNDER LOAD";
+"share.card.ready" = "Share card ready";
+"share.card.retry" = "Prepare card again";
+"share.card.preparing" = "Preparing share card";
+"share.card.failed" = "Share card failed";
+"share.card.open_hint" = "Opens sharing options";
