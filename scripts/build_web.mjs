@@ -2394,7 +2394,7 @@ function generatePrivacy() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacidade Oficial | Lagcheck</title>
-  <meta name="description" content="Política de privacidade oficial do app Lagcheck na App Store. Sem contas, sem anúncios e com dados locais no iPhone.">
+  <meta name="description" content="Política de privacidade oficial do LagCheck para iPhone e Android. Sem cadastro obrigatório e com transparência sobre dados técnicos e anúncios.">
   <meta name="robots" content="index,follow">
   <meta name="apple-itunes-app" content="app-id=6818706960">
   <link rel="canonical" href="https://lagcheck.signallq.com/privacy/">
@@ -2405,7 +2405,7 @@ function generatePrivacy() {
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Lagcheck">
   <meta property="og:title" content="Privacidade Oficial | Lagcheck">
-  <meta property="og:description" content="Política de privacidade oficial do app Lagcheck para iPhone.">
+  <meta property="og:description" content="Política de privacidade oficial do LagCheck para iPhone e Android.">
   <meta property="og:url" content="https://lagcheck.signallq.com/privacy/">
   <meta property="og:image" content="https://lagcheck.signallq.com/og.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -2420,7 +2420,7 @@ function generatePrivacy() {
       Privacidade em Primeiro Lugar
     </h1>
     <p style="font-size:18px;color:var(--text-secondary);line-height:1.5;margin-bottom:44px">
-      O Lagcheck foi desenvolvido para funcionar sem cadastro obrigatório e sem publicidade de terceiros. Abaixo explicamos quais dados técnicos podem ser utilizados pelo aplicativo e pelo site.
+      O LagCheck funciona sem cadastro obrigatório. Abaixo explicamos quais dados técnicos podem ser usados pelo aplicativo e pelo site, incluindo como a publicidade funciona no Android.
     </p>
 
     <div style="display:grid;gap:18px">
@@ -2432,23 +2432,23 @@ function generatePrivacy() {
       </article>
 
       <article class="card">
-        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Armazenamento Local no iPhone (SwiftData)</h2>
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Dados salvos no dispositivo</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          O histórico das suas medições de rede fica armazenado exclusivamente no armazenamento seguro do seu próprio iPhone. Os dados de medição nunca são comercializados com terceiros.
+          O histórico das suas medições fica no armazenamento do dispositivo. O LagCheck não exige conta para manter esse histórico e não vende dados de medição.
         </p>
       </article>
 
       <article class="card">
         <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Telemetria Técnica e Minimização</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          Este site utiliza o Vercel Web Analytics para medir visitas, visualizações de páginas e origens de tráfego. Os cliques para a App Store são contabilizados separadamente pelo serviço de apoio do Lagcheck; um clique não confirma uma instalação. O aplicativo utiliza informações técnicas de medição e pode enviar telemetria operacional associada a identificadores técnicos gerados no dispositivo. O objetivo é acompanhar a estabilidade do produto sem exigir dados cadastrais.
+          Este site utiliza o Vercel Web Analytics para medir visitas, visualizações de páginas e origens de tráfego. O aplicativo pode enviar telemetria operacional mínima para acompanhar a estabilidade do produto sem exigir nome, e-mail ou telefone. Um clique não confirma uma instalação.
         </p>
       </article>
 
       <article class="card">
-        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Ausência de Publicidade no MVP</h2>
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Publicidade no Android</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          O aplicativo não inclui nenhum SDK de redes de anúncios nem rastreadores de publicidade comportamental em seu binário atual.
+          No Android, o LagCheck pode mostrar banners do Google AdMob somente em Início e Histórico. Eles nunca aparecem durante a medição, no resultado ou nos detalhes. Quando aplicável, o Google User Messaging Platform (UMP) apresenta e gerencia as opções de consentimento. A publicidade não recebe as amostras, o score, o veredito, o jogo ou a região medidos pelo LagCheck.
         </p>
       </article>
 
