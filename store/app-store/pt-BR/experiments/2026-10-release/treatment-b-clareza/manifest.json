@@ -1,0 +1,25 @@
+{
+  "product": "LagCheck",
+  "store": "app-store",
+  "locale": "pt-BR",
+  "profile": "appstore-iphone-6.3-portrait",
+  "brand": {
+    "wordmark": "../../../../../../design-system/assets/brand/wordmark-purple-master.png",
+    "style": "gamer"
+  },
+  "screens": [
+    {
+      "order": 1,
+      "source": "../../../nico-demo/source/lagcheck-valid-result.png",
+      "source_platform": "ios",
+      "source_evidence": "simulator_capture",
+      "output": "final/01-resultado-claro.png",
+      "headline": "SUA CONEXÃO,\nUM RESULTADO CLARO.",
+      "supporting_copy": "Veja a leitura da rota antes de entrar na partida.",
+      "objective": "Testar se a clareza do resultado comunica melhor a proposta na primeira captura.",
+      "feature": "Resultado válido do Check em cenário controlado de simulador.",
+      "variant": "clarity",
+      "hypothesis": "Uma mensagem centrada na clareza do resultado aumenta a compreensão inicial sem transformar a leitura em ping de jogo."
+    }
+  ]
+}

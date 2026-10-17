@@ -1,0 +1,46 @@
+{
+  "valid": true,
+  "profile": "appstore-iphone-6.3-portrait",
+  "errors": [],
+  "warnings": [],
+  "screens": [
+    {
+      "order": 1,
+      "source": "/Users/giammattey/Projetos/lagcheck/store/app-store/pt-BR/experiments/2026-10-release/treatment-a-decisao/../../../nico-demo/source/lagcheck-valid-result.png",
+      "source_platform": "ios",
+      "output": "/Users/giammattey/Projetos/lagcheck/store/app-store/pt-BR/experiments/2026-10-release/treatment-a-decisao/final/01-antes-da-fila.png",
+      "source_evidence": "simulator_capture",
+      "status": "captured_controlled_scenario",
+      "output_validation": {
+        "valid": true,
+        "profile": "appstore-iphone-6.3-portrait",
+        "details": {
+          "path": "/Users/giammattey/Projetos/lagcheck/store/app-store/pt-BR/experiments/2026-10-release/treatment-a-decisao/final/01-antes-da-fila.png",
+          "format": "PNG",
+          "width": 1206,
+          "height": 2622,
+          "has_alpha": false
+        },
+        "errors": [],
+        "warnings": []
+      }
+    }
+  ],
+  "generated_on": "2026-10-16",
+  "exports": [
+    {
+      "valid": true,
+      "profile": "appstore-iphone-6.3-portrait",
+      "details": {
+        "path": "/Users/giammattey/Projetos/lagcheck/store/app-store/pt-BR/experiments/2026-10-release/treatment-a-decisao/final/01-antes-da-fila.png",
+        "format": "PNG",
+        "width": 1206,
+        "height": 2622,
+        "has_alpha": false
+      },
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "state": "ready_for_review"
+}
