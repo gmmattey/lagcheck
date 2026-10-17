@@ -1,8 +1,8 @@
 # Cartão de Missão — Integridade operacional, distribuição e crescimento
 
-**Data:** 16 de outubro de 2026  
-**Patrocínio:** Luiz — autorização de execução  
-**Aceite operacional:** Giam  
+**Data:** 16 de outubro de 2026
+**Patrocínio:** Luiz — autorização de execução
+**Aceite operacional:** Giam
 **Estratégia e orquestração:** Marco
 
 ## Problema da pessoa

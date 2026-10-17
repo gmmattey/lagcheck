@@ -1,6 +1,6 @@
 # Architecture Plan — Integridade operacional
 
-**Gate:** Camillo — `can proceed with listed constraints`  
+**Gate:** Camillo — `can proceed with listed constraints`
 **Missão:** `.agents/mission-card-operational-integrity-2026-10-16.md`
 
 ## Contrato preservado
