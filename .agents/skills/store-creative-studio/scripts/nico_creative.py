@@ -36,8 +36,37 @@ STYLE_PALETTES = {
     "corporate": ("#0D1724", (41, 101, 170, 65)),
     "editorial": ("#151117", (133, 79, 156, 65)),
 }
-FONT_BOLD = ["/System/Library/Fonts/Supplemental/Arial Bold.ttf", "/System/Library/Fonts/Supplemental/Arial.ttf"]
-FONT_REGULAR = ["/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Helvetica.ttf"]
+# Barlow Semi Condensed (SIL OFL 1.1), versionada em design-system/assets/fonts/. Arial fica só como fallback.
+FONT_DIR = Path(__file__).resolve().parents[4] / "design-system" / "assets" / "fonts" / "BarlowSemiCondensed"
+FONT_BOLD = [str(FONT_DIR / "BarlowSemiCondensed-BoldItalic.ttf"), "/System/Library/Fonts/Supplemental/Arial Bold.ttf"]
+FONT_REGULAR = [str(FONT_DIR / "BarlowSemiCondensed-SemiBold.ttf"), "/System/Library/Fonts/Supplemental/Arial.ttf"]
+HEADLINE_SCALE = float(os.environ.get("NICO_HS", "1.14"))  # condensada: cabe mais corpo na mesma largura
+SUPPORT_SCALE = float(os.environ.get("NICO_SS", "1.08"))
+
+
+# Ajuste de par (fração do corpo) para títulos em caixa alta: o Pillow sem raqm ignora o GPOS da Barlow.
+KERN_PAIRS: dict[str, float] = {
+    "LT": -0.07, "LV": -0.06, "LY": -0.07, "TA": -0.04, "AT": -0.04, "AV": -0.04, "VA": -0.04,
+    "OT": -0.02,
+}
+
+
+def kerned_width(text: str, text_font: ImageFont.FreeTypeFont, size: int) -> float:
+    total = 0.0
+    for index, char in enumerate(text):
+        total += text_font.getlength(char)
+        if index + 1 < len(text):
+            total += KERN_PAIRS.get(char + text[index + 1], 0.0) * size
+    return total
+
+
+def draw_kerned(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str, text_font: ImageFont.FreeTypeFont, size: int, fill: str) -> None:
+    x = float(xy[0])
+    for index, char in enumerate(text):
+        draw.text((round(x), xy[1]), char, font=text_font, fill=fill)
+        x += text_font.getlength(char)
+        if index + 1 < len(text):
+            x += KERN_PAIRS.get(char + text[index + 1], 0.0) * size
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
@@ -174,7 +203,7 @@ def fit(image: Image.Image, box: tuple[int, int]) -> Image.Image:
     return image.resize((max(1, round(image.width * scale)), max(1, round(image.height * scale))), Image.Resampling.LANCZOS)
 
 
-def draw_wrapped(draw: ImageDraw.ImageDraw, text: str, xy: tuple[int, int], max_width: int, text_font: ImageFont.FreeTypeFont, fill: str, spacing: int = 6) -> int:
+def draw_wrapped(draw: ImageDraw.ImageDraw, text: str, xy: tuple[int, int], max_width: int, text_font: ImageFont.FreeTypeFont, fill: str, spacing: int = 6, kern_size: int = 0) -> int:
     words = text.replace("\n", " \n ").split()
     lines: list[str] = []
     line = ""
@@ -185,7 +214,8 @@ def draw_wrapped(draw: ImageDraw.ImageDraw, text: str, xy: tuple[int, int], max_
                 line = ""
             continue
         candidate = word if not line else f"{line} {word}"
-        if draw.textbbox((0, 0), candidate, font=text_font)[2] <= max_width:
+        measured = kerned_width(candidate, text_font, kern_size) if kern_size else draw.textbbox((0, 0), candidate, font=text_font)[2]
+        if measured <= max_width:
             line = candidate
         else:
             if line:
@@ -195,7 +225,10 @@ def draw_wrapped(draw: ImageDraw.ImageDraw, text: str, xy: tuple[int, int], max_
         lines.append(line)
     y = xy[1]
     for line in lines:
-        draw.text((xy[0], y), line, font=text_font, fill=fill)
+        if kern_size:
+            draw_kerned(draw, (xy[0], y), line, text_font, kern_size, fill)
+        else:
+            draw.text((xy[0], y), line, font=text_font, fill=fill)
         box = draw.textbbox((xy[0], y), line, font=text_font)
         y = box[3] + spacing
     return y
@@ -243,8 +276,8 @@ def compose_screen(manifest: dict[str, Any], screen: dict[str, Any], base: Path)
     else:
         draw.text((margin, round(height * 0.05)), str(manifest.get("product", "")), font=font(round(width * .045), True), fill="#F4F5F7")
 
-    headline_size = round(width * (0.065 if horizontal else 0.075))
-    support_size = round(width * (0.028 if horizontal else 0.034))
+    headline_size = round(width * (0.065 if horizontal else 0.075) * HEADLINE_SCALE)
+    support_size = round(width * (0.028 if horizontal else 0.034) * SUPPORT_SCALE)
     if horizontal:
         text_x, text_y = margin, round(height * .27)
         text_width = round(width * .42)
@@ -253,7 +286,7 @@ def compose_screen(manifest: dict[str, Any], screen: dict[str, Any], base: Path)
         text_x, text_y = margin, round(height * .17)
         text_width = width - margin * 2
         source_box = (round(width * .105), round(height * .38), round(width * .79), round(height * .53))
-    after_headline = draw_wrapped(draw, str(screen["headline"]).upper(), (text_x, text_y), text_width, font(headline_size, True), "#F4F5F7", round(headline_size * .20))
+    after_headline = draw_wrapped(draw, str(screen["headline"]).upper(), (text_x, text_y), text_width, font(headline_size, True), "#F4F5F7", round(headline_size * .20), headline_size)
     supporting = str(screen.get("supporting_copy", ""))
     if supporting:
         draw_wrapped(draw, supporting, (text_x, after_headline + round(height * .014)), text_width, font(support_size), "#B9C0CC", round(support_size * .35))
