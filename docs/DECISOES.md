@@ -919,7 +919,7 @@
 - **Decisão:**
   1. Arte de jogo: vale a arte editorial autoral do catálogo assinado; a proibição de capa oficial, logo, personagem e arte licenciada de terceiros continua.
   2. Anúncios: Android com banner AdMob em Home e Histórico (Decisão 82), hoje com IDs de teste; iOS sem anúncios até decisão própria.
-- **Pendência:** confirmar com o Luiz se a arte exibida hoje na Home do Android Debug (relatada como de Fortnite) é a arte editorial autoral do catálogo. Se for arte oficial de terceiro, ela viola as Decisões 18 e 88 e precisa ser trocada.
+- **Confirmação do Luiz (16/10/2026):** toda a arte de jogo exibida no app é autoral. Não há pendência de arte de terceiros; o relato do Breno sobre a Home do Android Debug não é defeito.
 - **Critérios de validação e aceite:** `AGENTS.md` e `docs/DECISOES.md` sem contradição entre si.
 
 ## Como Registrar Novas Decisões
