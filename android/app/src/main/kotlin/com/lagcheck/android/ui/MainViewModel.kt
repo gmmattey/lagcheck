@@ -456,7 +456,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
 
-            val regionalSnapshot = MeasurementPlanner.planRegional(payload, targetGame.id, platform)
+            // Rota própria (Steam A2S) só entra após pré-validação completa de identidade; sem ela, vale a AWS assinada.
+            val regionalPlan = MeasurementPlanner.planRegionalAutomatic(payload, targetGame.id, platform, routePreflight)
+            val regionalSnapshot = regionalPlan?.snapshot
             if (regionalSnapshot == null || regionalSnapshot.candidates.isEmpty()) {
                 _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = false)
                 return@launch
@@ -483,7 +485,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } }
             val prefRegion = preferencesRepository.manualRegionId.value
-                ?.takeIf { id -> id != "automatic" && regionalSnapshot.candidates.any { it.regionId == id } }
+                ?.takeIf { id -> regionalPlan?.isGameOwned != true && id != "automatic" && regionalSnapshot.candidates.any { it.regionId == id } }
             val decision = try {
                 regionalPreReadCoordinator.select(regionalSnapshot, prefRegion)
             } catch (e: Exception) {
@@ -514,7 +516,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             measuring(0.04f, null, true)
             val regionLabel = payload.regions.firstOrNull { it.id == selectedContext.regionId }
                 ?.label?.get(readinessLanguage().catalogLabelKey()) ?: selectedContext.regionId
-            destinationLabel = regionLabel
+            destinationLabel = if (selectedContext.routeKind == com.lagcheck.catalog.RouteKind.GAME_OWNED) gameServerLabel() else regionLabel
 
             try {
                 var lastPing: Double? = null
@@ -542,7 +544,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     platform = platform,
                     connectionType = connectionType,
                     declaredExternalLink = declaredExternalLink,
-                    destinationName = "$regionLabel · rota regional de referência",
+                    destinationName = if (selectedContext.routeKind == com.lagcheck.catalog.RouteKind.GAME_OWNED) {
+                        gameServerLabel()
+                    } else "$regionLabel · rota regional de referência",
                     confidence = selectedContext.confidence,
                     latencySeries = result.latencySeries,
                     radio = radioSnapshot,
@@ -596,6 +600,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun readinessLanguage(): ReadinessLanguage = language.value.toAppLanguage()
+
+    /** Sem host/porta na UI: só a distinção entre servidor de jogo (rota própria validada) e referência regional. */
+    private fun gameServerLabel(): String = when (readinessLanguage()) {
+        ReadinessLanguage.PT_BR -> "Servidor de jogo"
+        ReadinessLanguage.EN -> "Game server"
+        ReadinessLanguage.ES -> "Servidor de juego"
+    }
 
     /** Chave do idioma nos rótulos de região do catálogo (`pt-BR`, `en`, `es`). */
     private fun ReadinessLanguage.catalogLabelKey(): String = when (this) {

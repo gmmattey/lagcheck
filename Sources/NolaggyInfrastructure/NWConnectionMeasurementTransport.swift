@@ -382,13 +382,11 @@ public final class SteamA2SRoutePreflight: GameRoutePreflighting, @unchecked Sen
         let connection = NWConnection(host: NWEndpoint.Host(candidate.destination.host), port: port, using: .udp)
         return await withCheckedContinuation { continuation in
             let completion = A2SPreflightCompletion(connection: connection, continuation: continuation)
+            let machine = A2SPreflightMachineBox(SteamA2SPreflightMachine(identity: identity))
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
-                    connection.send(content: SteamQueryA2SPayloadCodec.encodeInitialRequest(), completion: .contentProcessed { error in
-                        guard error == nil else { completion.finish(false); return }
-                        Self.receiveInfo(from: connection, identity: identity, completion: completion)
-                    })
+                    Self.send(machine.initialRequest, on: connection, machine: machine, completion: completion)
                 case .failed, .cancelled:
                     completion.finish(false)
                 default:
@@ -403,20 +401,31 @@ public final class SteamA2SRoutePreflight: GameRoutePreflighting, @unchecked Sen
         }
     }
 
-    private static func receiveInfo(from connection: NWConnection, identity: RemoteCatalogRouteIdentity, completion: A2SPreflightCompletion) {
-        connection.receiveMessage { data, _, _, error in
-            guard error == nil, let data else { completion.finish(false); return }
-            if let token = try? SteamQueryA2SPayloadCodec.decodeChallenge(data) {
-                connection.send(content: SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: token), completion: .contentProcessed { error in
-                    guard error == nil else { completion.finish(false); return }
-                    receiveInfo(from: connection, identity: identity, completion: completion)
-                })
-                return
+    private static func send(_ payload: Data, on connection: NWConnection, machine: A2SPreflightMachineBox, completion: A2SPreflightCompletion) {
+        connection.send(content: payload, completion: .contentProcessed { error in
+            guard error == nil else { completion.finish(false); return }
+            connection.receiveMessage { data, _, _, error in
+                switch machine.receive(error == nil ? data : nil) {
+                case let .send(next): send(next, on: connection, machine: machine, completion: completion)
+                case .accept: completion.finish(true)
+                case .reject: completion.finish(false)
+                }
             }
-            guard let info = try? SteamQueryA2SPayloadCodec.decodeInfo(data) else { completion.finish(false); return }
-            let nameMatches = identity.expectedServerNamePrefix.map { info.name.hasPrefix($0) } ?? true
-            completion.finish(info.appID == identity.expectedAppID && info.gameDirectory == identity.expectedGameDirectory && nameMatches)
-        }
+        })
+    }
+}
+
+private final class A2SPreflightMachineBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var machine: SteamA2SPreflightMachine
+
+    init(_ machine: SteamA2SPreflightMachine) { self.machine = machine }
+
+    var initialRequest: Data { machine.initialRequest }
+
+    func receive(_ datagram: Data?) -> SteamA2SPreflightMachine.Step {
+        lock.lock(); defer { lock.unlock() }
+        return machine.receive(datagram)
     }
 }
 

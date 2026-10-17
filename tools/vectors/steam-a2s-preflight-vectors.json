@@ -1,0 +1,336 @@
+{
+  "ruleVersion": "steam-a2s-preflight-1",
+  "description": "Vetores compartilhados iOS/Android. Eventos: hex de um datagrama recebido ou null para timeout. A primeira transmiss\u00e3o (A2S_INFO inicial) \u00e9 sempre impl\u00edcita e vem em expectedSends[0].",
+  "identity": {
+    "appID": 730,
+    "gameDirectory": "csgo",
+    "namePrefix": "Community"
+  },
+  "preflightVectors": [
+    {
+      "id": "challenge-then-valid-info",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "accept"
+    },
+    {
+      "id": "valid-info-without-challenge",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "accept"
+    },
+    {
+      "id": "valid-info-no-prefix-required",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": null
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4911416e797468696e670064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "accept"
+    },
+    {
+      "id": "challenge-token-max-uint32",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff41ffffffff",
+        "ffffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e6520517565727900ffffffff"
+      ],
+      "expectedDecision": "accept"
+    },
+    {
+      "id": "wrong-appid",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500b801050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "wrong-game-directory",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4911436f6d6d756e6974792042522023310064655f647573743200746600436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "wrong-name-prefix",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff49114f7468657220486f73740064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "timeout-before-any-response",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        null
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "timeout-after-challenge",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        null
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "truncated-info-before-appid",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "truncated-info-header-only",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff49"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "malformed-challenge-short",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff41010203"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "repeated-challenge",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff4178563412",
+        "ffffffff4101000000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900",
+        "ffffffff54536f7572636520456e67696e652051756572790078563412"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "wrong-header",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "feffffff4911436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "reject"
+    },
+    {
+      "id": "unexpected-response-type",
+      "identity": {
+        "appID": 730,
+        "gameDirectory": "csgo",
+        "namePrefix": "Community"
+      },
+      "events": [
+        "ffffffff6d11436f6d6d756e6974792042522023310064655f6475737432006373676f00436f756e7465722d537472696b6500da02050000"
+      ],
+      "expectedSends": [
+        "ffffffff54536f7572636520456e67696e6520517565727900"
+      ],
+      "expectedDecision": "reject"
+    }
+  ],
+  "routeDecisionVectors": [
+    {
+      "id": "no-candidate-validates-falls-back-to-aws",
+      "candidates": [
+        {
+          "id": "a",
+          "priority": 10,
+          "preflight": "reject"
+        },
+        {
+          "id": "b",
+          "priority": 20,
+          "preflight": "reject"
+        }
+      ],
+      "expectedRoute": "aws-fallback",
+      "note": "qualquer falha volta \u00e0 AWS assinada"
+    },
+    {
+      "id": "lowest-priority-validated-wins",
+      "candidates": [
+        {
+          "id": "b",
+          "priority": 20,
+          "preflight": "accept"
+        },
+        {
+          "id": "a",
+          "priority": 10,
+          "preflight": "accept"
+        }
+      ],
+      "expectedRoute": "a",
+      "note": "prioridade menor primeiro, independente da ordem da lista"
+    },
+    {
+      "id": "failed-first-then-second-wins",
+      "candidates": [
+        {
+          "id": "a",
+          "priority": 10,
+          "preflight": "reject"
+        },
+        {
+          "id": "b",
+          "priority": 20,
+          "preflight": "accept"
+        }
+      ],
+      "expectedRoute": "b",
+      "note": "falha de identidade passa ao pr\u00f3ximo candidato"
+    },
+    {
+      "id": "priority-tie-broken-by-id",
+      "candidates": [
+        {
+          "id": "b",
+          "priority": 10,
+          "preflight": "accept"
+        },
+        {
+          "id": "a",
+          "priority": 10,
+          "preflight": "accept"
+        }
+      ],
+      "expectedRoute": "a",
+      "note": "empate desempatado pelo id, nunca por RTT"
+    },
+    {
+      "id": "single-candidate-validated",
+      "candidates": [
+        {
+          "id": "a",
+          "priority": 10,
+          "preflight": "accept"
+        }
+      ],
+      "expectedRoute": "a",
+      "note": "\u00fanica rota pr\u00f3pria validada"
+    }
+  ]
+}

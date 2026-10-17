@@ -30,7 +30,9 @@ object CatalogSigningKeys {
 object RemoteCatalogVerifier {
     const val ROUTED_SCHEMA_VERSION = 3
     const val ALGORITHM = "Ed25519"
-    const val MAXIMUM_PAYLOAD_BYTES = 64 * 1024
+    // Decisão 89: o catálogo Schema 3 com 48 jogos ocupa ~73 KiB assinados.
+    // Mantém a mesma barreira explícita usada no iOS, sem aceitar payloads ilimitados.
+    const val MAXIMUM_PAYLOAD_BYTES = 128 * 1024
     private val MAX_VALIDITY: Duration = Duration.ofDays(30)
 
     fun verifyAndDecode(
@@ -182,7 +184,8 @@ object RemoteCatalogVerifier {
             precisionKey = o.string("precisionKey") ?: bad(),
             validUntil = o.string("validUntil"),
             selectionMaxCandidates = selection?.int("maxCandidates"),
-            candidates = candidates
+            candidates = candidates,
+            selectionMode = selection?.string("mode")
         )
     }
 
@@ -268,7 +271,8 @@ object RemoteCatalogVerifier {
             RouteKind.GAME_OWNED -> {
                 if (route.status == RouteStatus.ACTIVE) {
                     val candidates = route.candidates
-                    if (route.destination != null || route.selectionMaxCandidates != 3 || candidates.isNullOrEmpty() ||
+                    if (route.destination != null || route.selectionMode != "automaticValidatedCandidates" ||
+                        route.selectionMaxCandidates != 3 || candidates.isNullOrEmpty() ||
                         candidates.size > 3 ||
                         candidates.map { it.id }.toSet().size != candidates.size ||
                         candidates.map { "${it.destination.host}:${it.destination.port}" }.toSet().size != candidates.size ||
@@ -284,7 +288,7 @@ object RemoteCatalogVerifier {
 
     private fun validCandidate(c: RouteCandidate): Boolean {
         if (!validIdentifier(c.id) || c.priority < 0 || c.destination.protocolKind != ProbeProtocolKind.STEAM_A2S ||
-            !validIdentifier(c.regionId) || c.identity.appId <= 0 || c.identity.gameDirectory.isEmpty() ||
+            !validIdentifier(c.regionId) || c.identity.appId !in 1..0xFFFF || c.identity.gameDirectory.isEmpty() ||
             c.identity.gameDirectory.length > 80 || c.identity.gameDirectory != c.identity.gameDirectory.lowercase() ||
             c.identity.gameDirectory.contains('\u0000') || !isHttps(c.operatorEvidenceUrl)
         ) return false

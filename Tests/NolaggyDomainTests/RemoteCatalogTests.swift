@@ -25,11 +25,13 @@ final class RemoteCatalogTests: XCTestCase {
     func testPublishedDebugEnvelopeExposesOnlyItsSignedPlatformContexts() throws {
         let payload = try RemoteCatalogVerifier.verifyAndDecode(
             envelopeData: try publishedDebugEnvelopeData(),
-            now: ISO8601DateFormatter().date(from: "2026-09-19T16:00:00Z")!
+            now: ISO8601DateFormatter().date(from: "2026-10-20T00:00:00Z")!
         )
         XCTAssertEqual(payload.schemaVersion, 3)
-        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.09.19.1")
-        XCTAssertEqual(payload.games.count, 22)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.17.3")
+        XCTAssertEqual(payload.games.count, 48)
+        XCTAssertEqual(payload.regions.count, 21)
+        XCTAssertEqual(payload.regions.prefix(2).map(\.id), ["sa-east-1", "us-east-1"])
 
         let cs2 = try XCTUnwrap(payload.games.first(where: { $0.id == "cs2" }))
         XCTAssertEqual(cs2.contexts.flatMap(\.platforms), [.pc])
@@ -51,6 +53,23 @@ final class RemoteCatalogTests: XCTestCase {
         XCTAssertEqual(resolved.confidence, .medium)
     }
 
+    func testPublishedEnvelopePreReadsAllSignedRegionalReferences() throws {
+        let payload = try RemoteCatalogVerifier.verifyAndDecode(
+            envelopeData: try publishedDebugEnvelopeData(),
+            now: ISO8601DateFormatter().date(from: "2026-10-20T00:00:00Z")!
+        )
+        let snapshot = try RemoteCatalogVerifier.regionalSelectionSnapshot(
+            GameContext(gameID: "fortnite", market: "BR", platform: .iphone),
+            in: payload
+        )
+
+        XCTAssertEqual(snapshot.candidates.map(\.regionID), payload.regions.map(\.id))
+        XCTAssertEqual(Set(snapshot.candidates.map(\.priority)), [0])
+        XCTAssertEqual(snapshot.candidates.first?.resolvedContext.destination.host, "gamelift-ping.sa-east-1.api.aws")
+        XCTAssertEqual(snapshot.candidates.dropFirst().first?.resolvedContext.destination.host, "gamelift-ping.us-east-1.api.aws")
+        XCTAssertTrue(snapshot.candidates.allSatisfy { $0.resolvedContext.routeKind == .awsFallback })
+    }
+
     func testTamperedPayloadIsRejectedBeforeJSONValidation() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
         let payload = debugPayload()
@@ -67,6 +86,24 @@ final class RemoteCatalogTests: XCTestCase {
 
         XCTAssertThrowsError(try decode(envelope, publicKey: privateKey.publicKey)) { error in
             XCTAssertEqual(error as? RemoteCatalogError, .invalidSignature)
+        }
+    }
+
+    func testPayloadAbove128KiBIsRejectedBeforeSignatureOrJSONProcessing() throws {
+        let privateKey = Curve25519.Signing.PrivateKey()
+        let payload = Data(repeating: 0, count: RemoteCatalogVerifier.maximumPayloadBytes + 1)
+        let envelope = SignedCatalogEnvelope(
+            schemaVersion: 3,
+            catalogVersion: "oversized",
+            issuedAt: "2026-09-08T00:00:00Z",
+            expiresAt: "2026-10-08T00:00:00Z",
+            algorithm: "Ed25519",
+            payloadBase64: payload.base64EncodedString(),
+            signatureBase64: try privateKey.signature(for: payload).base64EncodedString()
+        )
+
+        XCTAssertThrowsError(try decode(envelope, publicKey: privateKey.publicKey)) { error in
+            XCTAssertEqual(error as? RemoteCatalogError, .payloadTooLarge)
         }
     }
 

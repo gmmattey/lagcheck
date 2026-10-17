@@ -439,7 +439,9 @@ public enum RemoteCatalogVerifier {
     public static let routedCatalogSchemaVersion = 3
     public static let supportedSchemaVersions: Set<Int> = [legacySchemaVersion, candidateRegionsSchemaVersion, routedCatalogSchemaVersion]
     public static let algorithm = "Ed25519"
-    public static let maximumPayloadBytes = 64 * 1024
+    // Decisão 89: o catálogo Schema 3 com 48 jogos ocupa ~73 KiB assinados.
+    // Mantemos uma barreira explícita e igual ao Android, sem aceitar payloads ilimitados.
+    public static let maximumPayloadBytes = 128 * 1024
 
     public static func verifyAndDecode(
         envelopeData: Data,
@@ -673,27 +675,36 @@ public enum RemoteCatalogVerifier {
             throw CatalogValidationError.unsupportedGame
         }
         if verifiedPayload.schemaVersion == routedCatalogSchemaVersion {
-            guard let route = selectedRoute(from: gameContext, regions: verifiedPayload.regions, now: Date()),
-                  let destination = resolvedDestination(for: route, regions: verifiedPayload.regions) else {
+            // Decisão 90: a AWS é uma referência regional, não um servidor de
+            // jogo. A rota assinada autoriza a classe da medição; todas as
+            // regiões assinadas são pré-lidas e a regra escolhe pelo RTT real.
+            guard let route = gameContext.routes?.first(where: {
+                $0.kind == .awsFallback && $0.status == .active && routeIsCurrent($0, now: Date())
+            }) else {
                 throw CatalogValidationError.unsupportedGame
             }
-            let resolved = ResolvedMeasurementContext(
-                context: context,
-                catalogVersion: verifiedPayload.catalogVersion,
-                profileID: profileID,
-                profileRuleVersion: profile.ruleVersion,
-                regionID: route.regionID,
-                destination: destination,
-                strategy: route.strategy,
-                confidence: route.confidence,
-                precisionKey: route.precisionKey,
-                routeID: route.id,
-                routeKind: route.kind
-            )
+            let candidates = try verifiedPayload.regions.map { region in
+                let resolved = ResolvedMeasurementContext(
+                    context: context,
+                    catalogVersion: verifiedPayload.catalogVersion,
+                    profileID: profileID,
+                    profileRuleVersion: profile.ruleVersion,
+                    regionID: region.id,
+                    destination: region.probe,
+                    strategy: route.strategy,
+                    confidence: route.confidence,
+                    precisionKey: route.precisionKey,
+                    routeID: route.id,
+                    routeKind: route.kind
+                )
+                // A ordem do catálogo não é sinal de proximidade. Empates
+                // reais caem no desempate estável da regra regional.
+                return try RegionalSelectionCandidate(resolvedContext: resolved, priority: 0)
+            }
             return try RegionalSelectionSnapshot(
                 catalogVersion: verifiedPayload.catalogVersion,
                 context: context,
-                candidates: [try RegionalSelectionCandidate(resolvedContext: resolved, priority: 0)]
+                candidates: candidates
             )
         }
         guard let measurement = gameContext.measurement else { throw CatalogValidationError.unsupportedGame }
@@ -740,10 +751,7 @@ public enum RemoteCatalogVerifier {
             throw RemoteCatalogError.unknownRegion
         }
 
-        let primaryRegionID = context.market == "BR" ? "sa-east-1" : "us-east-1"
-
-        let candidates = try verifiedPayload.regions.enumerated().map { index, region -> RegionalSelectionCandidate in
-            let priority = region.id == primaryRegionID ? 0 : (index + 1)
+        let candidates = try verifiedPayload.regions.map { region -> RegionalSelectionCandidate in
             let resolved = ResolvedMeasurementContext(
                 context: context,
                 catalogVersion: verifiedPayload.catalogVersion,
@@ -755,7 +763,7 @@ public enum RemoteCatalogVerifier {
                 confidence: .medium,
                 precisionKey: "regionalReference"
             )
-            return try RegionalSelectionCandidate(resolvedContext: resolved, priority: priority)
+            return try RegionalSelectionCandidate(resolvedContext: resolved, priority: 0)
         }
 
         return try RegionalSelectionSnapshot(

@@ -69,9 +69,22 @@ object RemoteCatalogResolver {
     ): List<ResolvedMeasurementContext> {
         validateStructure(context)
         if (context.isGenericGaming) {
-            // O catálogo v3 do iOS pré-lê somente a rota primária resolvida para o mercado.
-            val resolved = resolveGenericGaming(context, payload) as RemoteCatalogResolution.Available
-            return listOf(resolved.context)
+            val profileId = QualityProfileId.BATTLE_ROYALE_COMPETITIVE
+            val ruleVersion = payload.profiles.firstOrNull { it.id == profileId.rawValue }?.ruleVersion
+                ?: QualityEvaluator.ruleVersion(profileId)
+            return payload.regions.map { region ->
+                ResolvedMeasurementContext(
+                    context = context,
+                    catalogVersion = payload.catalogVersion,
+                    profileId = profileId,
+                    profileRuleVersion = ruleVersion,
+                    regionId = region.id,
+                    destination = region.probe,
+                    strategy = MeasurementStrategy.GENERIC_REGION,
+                    confidence = MeasurementConfidence.MEDIUM,
+                    precisionKey = "regionalReference"
+                )
+            }
         }
 
         val game = payload.games.firstOrNull { it.id == context.gameId } ?: return emptyList()
@@ -82,24 +95,29 @@ object RemoteCatalogResolver {
         val profileId = QualityProfileId.fromRaw(gameContext.profileId)
         if (profile == null || profileId == null) return emptyList()
 
-        val route = selectRoute(gameContext, payload.regions, now, excludingRouteIds) ?: return emptyList()
-        val destination = resolvedDestination(route, payload.regions) ?: return emptyList()
+        // Decisão 90: a AWS é referência regional. A rota ativa autoriza essa
+        // classe de medição e cada região assinada entra na pré-leitura; o
+        // vencedor vem da regra de P50, nunca do mercado ou da ordem da lista.
+        val route = gameContext.routes?.firstOrNull { r ->
+            r.id !in excludingRouteIds && r.kind == RouteKind.AWS_FALLBACK &&
+                r.status == RouteStatus.ACTIVE && isCurrent(r, now)
+        } ?: return emptyList()
 
-        return listOf(
+        return payload.regions.map {
             ResolvedMeasurementContext(
                 context = context,
                 catalogVersion = payload.catalogVersion,
                 profileId = profileId,
                 profileRuleVersion = profile.ruleVersion,
-                regionId = route.regionId,
-                destination = destination,
+                regionId = it.id,
+                destination = it.probe,
                 strategy = route.strategy,
                 confidence = route.confidence,
                 precisionKey = route.precisionKey,
                 routeId = route.id,
                 routeKind = route.kind
             )
-        )
+        }
     }
 
     private fun resolveGenericGaming(context: GameContext, payload: CatalogPayload): RemoteCatalogResolution {
@@ -125,8 +143,56 @@ object RemoteCatalogResolver {
     }
 
     /**
-     * Primeira rota ativa e vigente. Rota própria com candidatos A2S exige pré-validação de identidade que o
-     * Android ainda não faz (nenhuma está ativa no catálogo atual); nesse caso cai na AWS, igual ao `resolve` do iOS.
+     * Política automática de uma rota v3, sem abrir socket. Espelho de `automaticRoutePlan` do iOS: só candidatos
+     * assinados entram, em ordem (prioridade, id), e a aplicação precisa pré-validá-los antes de usar qualquer um.
+     * `null` quando não há contexto disponível ou AWS assinada vigente para voltar.
+     */
+    fun automaticRoutePlan(
+        context: GameContext,
+        payload: CatalogPayload,
+        now: Instant = Instant.now()
+    ): RoutePlan? {
+        if (payload.schemaVersion != RemoteCatalogVerifier.ROUTED_SCHEMA_VERSION) return null
+        validateStructure(context)
+        if (context.isGenericGaming) return null
+        val game = payload.games.firstOrNull { it.id == context.gameId } ?: return null
+        val gameContext = selectContext(game, context)?.takeIf { it.availableForMeasurement } ?: return null
+        val profile = payload.profiles.firstOrNull { it.id == gameContext.profileId } ?: return null
+        val profileId = QualityProfileId.fromRaw(gameContext.profileId) ?: return null
+        val routes = gameContext.routes ?: return null
+        val fallbackRoute = routes.firstOrNull {
+            it.kind == RouteKind.AWS_FALLBACK && it.status == RouteStatus.ACTIVE && isCurrent(it, now)
+        } ?: return null
+        val fallbackDestination = resolvedDestination(fallbackRoute, payload.regions) ?: return null
+
+        fun resolved(route: CatalogRoute, destination: ProbeDestination, routeId: String) = ResolvedMeasurementContext(
+            context = context,
+            catalogVersion = payload.catalogVersion,
+            profileId = profileId,
+            profileRuleVersion = profile.ruleVersion,
+            regionId = route.regionId,
+            destination = destination,
+            strategy = route.strategy,
+            confidence = route.confidence,
+            precisionKey = route.precisionKey,
+            routeId = routeId,
+            routeKind = route.kind
+        )
+
+        val owned = routes
+            .filter { it.kind == RouteKind.GAME_OWNED && it.status == RouteStatus.ACTIVE && isCurrent(it, now) }
+            .flatMap { route ->
+                route.candidates.orEmpty().map { c ->
+                    OwnedRouteCandidate(resolved(route, c.destination, route.id + "-" + c.id), c.identity, c.priority)
+                }
+            }
+            .sortedWith(compareBy({ it.priority }, { it.context.routeId }))
+        return RoutePlan(owned, resolved(fallbackRoute, fallbackDestination, fallbackRoute.id))
+    }
+
+    /**
+     * Primeira rota ativa e vigente. Rota própria com candidatos A2S nunca sai daqui: exige a pré-validação de
+     * identidade de `automaticRoutePlan`; sem ela, cai na AWS, igual ao `resolve` do iOS.
      */
     private fun selectRoute(
         ctx: CatalogGameContext,

@@ -32,7 +32,7 @@ test("GET /v1/catalog.json returns the immutable signed v3 envelope", async () =
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(envelope.schemaVersion, 3);
-  assert.equal(envelope.catalogVersion, "catalog-v3-2026.09.19.1");
+  assert.equal(envelope.catalogVersion, "catalog-v3-2026.10.17.3");
   assert.equal(envelope.algorithm, "Ed25519");
   assert.ok(envelope.payloadBase64.length > 0);
   assert.ok(envelope.signatureBase64.length > 0);
@@ -59,7 +59,7 @@ test("artwork is served only through an allowlisted static-asset path", async ()
 test("canonical v3 covers every artwork, platform context and signed AWS fallback", () => {
   const catalog = buildCanonicalCatalog();
   assert.equal(catalog.schemaVersion, 3);
-  assert.equal(catalog.games.length, 22);
+  assert.equal(catalog.games.length, 48);
   for (const game of catalog.games) {
     assert.match(game.artwork.path, /^artwork\/games\/[a-z0-9-]+\.(jpg|png)$/);
     assert.match(game.artwork.sha256, /^[a-f0-9]{64}$/);

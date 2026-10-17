@@ -128,7 +128,7 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(resolved?.routeKind, .gameOwned)
         XCTAssertEqual(resolved?.routeID, "community-br-community-br-second")
         XCTAssertEqual(resolved?.candidateID, "community-br-second")
-        XCTAssertEqual(resolved?.destination.host, "second.community.example")
+        XCTAssertEqual(resolved?.destination.host, "community-br-second.community.example")
     }
 
     func testAutomaticOwnedRouteFallsBackToSignedAWSWhenNoIdentityPasses() async throws {
@@ -144,6 +144,28 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(resolved?.routeKind, .awsFallback)
         XCTAssertEqual(resolved?.routeID, "aws-sa-east-1")
         XCTAssertEqual(resolved?.destination.protocolKind, .gameLiftPing)
+    }
+
+    /// Vetores de decisão compartilhados com Android (`tools/vectors/steam-a2s-preflight-vectors.json`).
+    func testRouteDecisionMatchesSharedVectors() async throws {
+        let vectors = try SharedRouteDecisionVectors.load()
+        XCTAssertEqual(vectors.routeDecisionVectors.count, 5)
+        for vector in vectors.routeDecisionVectors {
+            let payload = try routedPayload(candidates: vector.candidates.map { ($0.id, $0.priority) })
+            let accepted = Set(vector.candidates.filter { $0.preflight == "accept" }.map(\.id))
+            let resolved = try await AutomaticGameRouteResolver.resolve(
+                GameContext(gameID: "route-fixture", market: "BR", platform: .pc),
+                in: payload,
+                preflighting: StubRoutePreflight(acceptedRouteIDs: accepted)
+            )
+            if vector.expectedRoute == "aws-fallback" {
+                XCTAssertEqual(resolved?.routeKind, .awsFallback, vector.id)
+                XCTAssertEqual(resolved?.destination.protocolKind, .gameLiftPing, vector.id)
+            } else {
+                XCTAssertEqual(resolved?.routeKind, .gameOwned, vector.id)
+                XCTAssertEqual(resolved?.candidateID, vector.expectedRoute, vector.id)
+            }
+        }
     }
 
     func testNormalCatalogResolutionNeverMeasuresAutomaticCandidateWithoutPreflight() throws {
@@ -198,6 +220,10 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
     }
 
     private func routedPayload() throws -> RemoteCatalogPayload {
+        try routedPayload(candidates: [("community-br-first", 10), ("community-br-second", 20)])
+    }
+
+    private func routedPayload(candidates specs: [(id: String, priority: Int)]) throws -> RemoteCatalogPayload {
         let profile = RemoteCatalogProfile(id: "CASUAL_REALTIME", ruleVersion: "casual-realtime-2026.09.08.1")
         let region = RemoteCatalogRegion(
             id: "sa-east-1",
@@ -205,20 +231,17 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
             probe: try ProbeDestination(host: "gamelift-ping.sa-east-1.api.aws", port: 7770, protocolKind: .gameLiftPing)
         )
         let identity = RemoteCatalogRouteIdentity(expectedAppID: 730, expectedGameDirectory: "csgo", expectedServerNamePrefix: "Community")
-        let first = RemoteCatalogRouteCandidate(
-            id: "community-br-first", priority: 10,
-            destination: try ProbeDestination(host: "first.community.example", port: 27019, protocolKind: .steamA2S),
-            regionID: "sa-east-1", identity: identity, operatorEvidenceURL: "https://operator.example/first"
-        )
-        let second = RemoteCatalogRouteCandidate(
-            id: "community-br-second", priority: 20,
-            destination: try ProbeDestination(host: "second.community.example", port: 27020, protocolKind: .steamA2S),
-            regionID: "sa-east-1", identity: identity, operatorEvidenceURL: "https://operator.example/second"
-        )
+        let candidates = try specs.enumerated().map { index, spec in
+            RemoteCatalogRouteCandidate(
+                id: spec.id, priority: spec.priority,
+                destination: try ProbeDestination(host: "\(spec.id).community.example", port: UInt16(27019 + index), protocolKind: .steamA2S),
+                regionID: "sa-east-1", identity: identity, operatorEvidenceURL: "https://operator.example/\(spec.id)"
+            )
+        }
         let owned = RemoteCatalogRoute(
             id: "community-br", kind: .gameOwned, status: .active, regionID: "sa-east-1",
             strategy: .dedicatedServer, confidence: .high, precisionKey: "dedicatedServer",
-            selection: RemoteCatalogRouteSelection(candidates: [first, second])
+            selection: RemoteCatalogRouteSelection(candidates: candidates)
         )
         let fallback = RemoteCatalogRoute(
             id: "aws-sa-east-1", kind: .awsFallback, status: .active, regionID: "sa-east-1",
@@ -258,5 +281,18 @@ private struct StubRoutePreflight: GameRoutePreflighting {
     func validates(candidate: ResolvedMeasurementContext, identity: RemoteCatalogRouteIdentity) async -> Bool {
         guard let routeID = candidate.routeID else { return false }
         return acceptedRouteIDs.contains { routeID.hasSuffix($0) }
+    }
+}
+
+private struct SharedRouteDecisionVectors: Decodable {
+    struct Candidate: Decodable { let id: String; let priority: Int; let preflight: String }
+    struct Vector: Decodable { let id: String; let candidates: [Candidate]; let expectedRoute: String }
+    let routeDecisionVectors: [Vector]
+
+    static func load(file: StaticString = #filePath) throws -> SharedRouteDecisionVectors {
+        var url = URL(fileURLWithPath: "\(file)")
+        for _ in 0..<3 { url.deleteLastPathComponent() }
+        url.appendPathComponent("tools/vectors/steam-a2s-preflight-vectors.json")
+        return try JSONDecoder().decode(SharedRouteDecisionVectors.self, from: Data(contentsOf: url))
     }
 }
