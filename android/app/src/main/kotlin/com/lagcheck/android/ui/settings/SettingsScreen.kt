@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -615,7 +616,7 @@ private fun openUrl(context: android.content.Context, url: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
 }
 
-/** Miniatura redonda do ícone: glifo roxo sobre o fundo escuro, ou mascote sobre o brilho roxo. */
+/** Miniatura redonda do ícone: o Clássico mostra as camadas reais do ícone adaptativo; o mascote, sobre o brilho roxo. */
 @Composable
 private fun IconPreview(icon: com.lagcheck.android.data.AppIcon) {
     Box(
@@ -631,10 +632,24 @@ private fun IconPreview(icon: com.lagcheck.android.data.AppIcon) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(icon.foreground ?: com.lagcheck.android.R.mipmap.ic_launcher_foreground),
-            contentDescription = null,
-            modifier = Modifier.size(if (icon.foreground == null) 48.dp else 62.dp)
-        )
+        if (icon.foreground == null) {
+            // Camadas de 108 dp recortadas pela área visível de 72 dp, como o launcher faz.
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(com.lagcheck.android.R.mipmap.ic_launcher_background),
+                contentDescription = null,
+                modifier = Modifier.requiredSize(72.dp)
+            )
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(com.lagcheck.android.R.mipmap.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.requiredSize(72.dp)
+            )
+        } else {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(icon.foreground),
+                contentDescription = null,
+                modifier = Modifier.size(62.dp)
+            )
+        }
     }
 }
