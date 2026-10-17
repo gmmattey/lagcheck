@@ -37,6 +37,11 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["JITTER"].exists)
         XCTAssertTrue(app.staticTexts["PERDA"].exists)
 
+        // A prévia Link vem antes da telemetria, como na composição Android.
+        let sharePreview = app.buttons["check-completo-share-preview"]
+        XCTAssertTrue(sharePreview.waitForExistence(timeout: 3))
+        XCTAssertLessThan(sharePreview.frame.minY, app.staticTexts["PING"].frame.minY)
+
         // 4. O score numérico sai do hero (está na folha técnica secundária)
         XCTAssertFalse(app.staticTexts["check-completo-score"].exists)
 
@@ -128,6 +133,7 @@ final class CheckCompletoResultUITests: XCTestCase {
         // Resultado inconclusivo não pode preparar nem oferecer card de compartilhamento.
         XCTAssertFalse(app.buttons["check-completo-discord-share"].exists)
         XCTAssertFalse(app.buttons["check-completo-whatsapp-share"].exists)
+        XCTAssertFalse(app.buttons["check-completo-share-preview"].exists)
 
         saveScreenshot(named: "check_completo_inconclusive_pt_br")
     }

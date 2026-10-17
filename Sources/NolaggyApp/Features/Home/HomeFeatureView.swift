@@ -148,7 +148,7 @@ extension QuickCheckFeatureView {
             VStack(spacing: 0) {
                 // Topo minimalista: wordmark lagcheck à esquerda e menu … à direita
                 NolaggyAppHeader(
-                    openSettings: { showingSettings = true }
+                    openSettings: { selectedTab = .settings }
                 )
                 .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                 .padding(.top, NLSpacing.xs)
@@ -291,7 +291,7 @@ extension QuickCheckFeatureView {
                         .accessibilityIdentifier("home-shortcut-change-game")
 
                         Button {
-                            showingHistory = true
+                            selectedTab = .history
                         } label: {
                             HStack(spacing: 4) {
                                 Text(LocalizedStringKey("home.shortcuts.history"))

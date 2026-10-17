@@ -172,17 +172,27 @@ final class DeepCheckJourneyUITests: XCTestCase {
     }
 
     @MainActor
-    func testSettingsAndHistoryExposeExplicitReturnToHome() {
+    func testNativeTabBarExposesHomeGamesHistoryAndSettings() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR", "-ui-fixture-valid-result"]
         app.launchWithSystemLanguage()
 
         app.buttons["measurement-back"].tap()
-        app.buttons["Configurações"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Início"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.tabBars.buttons["Jogos"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Histórico"].exists)
+        XCTAssertTrue(app.tabBars.buttons["Ajustes"].exists)
+
+        app.tabBars.buttons["Ajustes"].tap()
         XCTAssertTrue(app.buttons["settings-language"].waitForExistence(timeout: 2))
-        app.buttons["settings-history"].tap()
+
+        // Histórico é raiz da sua própria aba; não depende mais de uma linha
+        // de Ajustes nem exibe volta artificial ao abrir pela tab bar.
+        app.tabBars.buttons["Histórico"].tap()
         XCTAssertTrue(app.staticTexts["Histórico"].waitForExistence(timeout: 2))
-        app.buttons["Início"].tap()
+        XCTAssertFalse(app.buttons["history-back"].exists)
+
+        app.tabBars.buttons["Início"].tap()
         XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
     }
 

@@ -794,6 +794,11 @@
 "history.ritual.window_30" = "Últimos 30 dias";
 "history.ritual.ready_count" = "Pronto em %d de %d checks";
 "history.ritual.breakdown" = "Instável: %d · Evitaria: %d · Inconclusivos: %d";
+"history.overview.checks" = "checks";
+"history.overview.ready" = "prontos p/ Ranked";
+"history.overview.games" = "jogos";
+"history.check.singular" = "%d check";
+"history.check.plural" = "%d checks";
 "catalog.generic_gaming_card.subtitle" = "Rota regional neutra de referência";
 "network.offline" = "Sem conexão";
 "network.cellular" = "Rede móvel";

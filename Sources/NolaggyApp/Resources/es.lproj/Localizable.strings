@@ -777,6 +777,11 @@
 "history.ritual.window_30" = "Últimos 30 días";
 "history.ritual.ready_count" = "Listo en %d de %d checks";
 "history.ritual.breakdown" = "Inestable: %d · Evitaría: %d · No concluyentes: %d";
+"history.overview.checks" = "checks";
+"history.overview.ready" = "listos para Ranked";
+"history.overview.games" = "juegos";
+"history.check.singular" = "%d check";
+"history.check.plural" = "%d checks";
 "common.done" = "Listo";
 "catalog.generic_gaming_card.subtitle" = "Ruta regional neutra de referencia";
 "network.offline" = "Sin conexión";

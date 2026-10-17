@@ -13,7 +13,6 @@ struct SettingsView: View {
     let manualRegionID: String?
     let onSelectRegion: (RegionalReferenceCandidate) -> Void
     let deleteHistory: () async throws -> Void
-    let showHistory: () -> Void
     let selectedGameID: String?
     let selectedGameName: String?
     var showsBackHeader: Bool = true
@@ -54,22 +53,24 @@ struct SettingsView: View {
                     // Barra superior e Título
                     NolaggyNamedScreenHeader(
                         title: LocalizedStringKey("navigation.settings"),
-                        leadingAction: {
+                        leadingAction: showsBackHeader ? {
                             if let onDismiss {
                                 onDismiss()
                             } else {
                                 dismiss()
                             }
-                        },
+                        } : nil,
                         leadingAccessibilityIdentifier: "settings-back"
                     )
 
                     // Seção 1: Preferências
                     VStack(alignment: .leading, spacing: 10) {
                         Text(LocalizedStringKey("settings.preferences.title"))
-                            .font(NLTypography.captionMonoUppercase)
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(NLColor.textTertiary)
 
+                        settingsGroup {
+                        VStack(spacing: 0) {
                         Button(action: { showingLanguageSheet = true }) {
                             HStack {
                                 Text(LocalizedStringKey("settings.language.title"))
@@ -79,7 +80,7 @@ struct SettingsView: View {
                                 Spacer()
 
                                 Text(currentLanguageName)
-                                    .font(NLTypography.monospaceMetrics)
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundStyle(NLColor.textTertiary)
 
                                 Image(systemName: "chevron.right")
@@ -89,7 +90,6 @@ struct SettingsView: View {
                             }
                             .frame(height: 56)
                             .contentShape(Rectangle())
-                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("settings-language")
@@ -139,7 +139,7 @@ struct SettingsView: View {
                                     Spacer()
 
                                     Text(regionDetailLabel)
-                                        .font(NLTypography.monospaceMetrics)
+                                        .font(.system(size: 14, weight: .medium))
                                         .foregroundStyle(NLColor.textTertiary)
 
                                     Image(systemName: "chevron.right")
@@ -149,12 +149,10 @@ struct SettingsView: View {
                                 }
                                 .frame(height: 56)
                                 .contentShape(Rectangle())
-                                .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                             }
                             .accessibilityIdentifier("settings-region")
                         }
 
-                        Divider().overlay(NLColor.borderStrong)
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(LocalizedStringKey("settings.reminder.title"))
@@ -177,7 +175,7 @@ struct SettingsView: View {
 
                         if reminder.enabled {
                             Button { showingReminderTime = true } label: {
-                                HStack { Text(LocalizedStringKey("settings.reminder.time")).font(.system(size: 14, weight: .bold)); Spacer(); Text(reminder.timeText).font(NLTypography.monospaceMetrics); Image(systemName: "chevron.right") }
+                                HStack { Text(LocalizedStringKey("settings.reminder.time")).font(.system(size: 14, weight: .bold)); Spacer(); Text(reminder.timeText).font(.system(size: 14, weight: .medium)); Image(systemName: "chevron.right") }
                                     .foregroundStyle(NLColor.textPrimary).frame(height: 56)
                             }.buttonStyle(.plain)
                         }
@@ -185,41 +183,20 @@ struct SettingsView: View {
                             Button(LocalizedStringKey("settings.reminder.open_system_settings")) { PreMatchReminderStore.shared.openSystemSettings() }
                                 .font(.system(size: 14, weight: .semibold)).foregroundStyle(NLColor.gamerPurple).frame(minHeight: 44)
                         }
+                        }
+                        }
                     }
                     .padding(.horizontal, NLSpacing.md)
 
-                    // Seção 2: Histórico
+                    // Seção 2: Histórico. A navegação para o histórico agora é
+                    // uma aba principal; aqui ficam só as ações desse dado.
                     VStack(alignment: .leading, spacing: 10) {
                         Text(LocalizedStringKey("settings.history.title"))
-                            .font(NLTypography.captionMonoUppercase)
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(NLColor.textTertiary)
 
-                        Button(action: {
-                            if let onDismiss {
-                                onDismiss()
-                            } else {
-                                dismiss()
-                            }
-                            showHistory()
-                        }) {
-                            HStack {
-                                Text(LocalizedStringKey("home.shortcuts.history"))
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundStyle(NLColor.textPrimary)
-
-                                Spacer()
-
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(NLColor.textTertiary)
-                            }
-                            .frame(height: 56)
-                            .contentShape(Rectangle())
-                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("settings-history")
-
+                        settingsGroup {
+                        VStack(spacing: 0) {
                         Button(action: { showingDeleteSheet = true }) {
                             HStack {
                                 VStack(alignment: .leading, spacing: 3) {
@@ -240,19 +217,22 @@ struct SettingsView: View {
                             }
                             .frame(height: 56)
                             .contentShape(Rectangle())
-                            .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("ajustes-apagar-historico")
+                        }
+                        }
                     }
                     .padding(.horizontal, NLSpacing.md)
 
                     // Seção 3: Sobre o LagCheck
                     VStack(alignment: .leading, spacing: 10) {
                         Text(LocalizedStringKey("settings.about.title"))
-                            .font(NLTypography.captionMonoUppercase)
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(NLColor.textTertiary)
 
+                        settingsGroup {
+                        VStack(spacing: 0) {
                         // Versão
                         HStack {
                             Text(LocalizedStringKey("settings.about.version"))
@@ -262,11 +242,10 @@ struct SettingsView: View {
                             Spacer()
 
                             Text(verbatim: "\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0")")
-                                .font(NLTypography.monospaceMetrics)
+                                .font(.system(size: 14, weight: .medium).monospacedDigit())
                                 .foregroundStyle(NLColor.textTertiary)
                         }
                         .frame(height: 56)
-                        .overlay(Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
 
                         // Termos de Uso
                         settingsRowButton(title: LocalizedStringKey("settings.about.terms")) {
@@ -290,15 +269,19 @@ struct SettingsView: View {
                         settingsRowButton(title: LocalizedStringKey("settings.about.licenses"), isLast: true) {
                             showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
                         }
+                        }
+                        }
                     }
                     .padding(.horizontal, NLSpacing.md)
 
                     // Seção 4: Suporte
                     VStack(alignment: .leading, spacing: 10) {
                         Text(LocalizedStringKey("settings.support.title"))
-                            .font(NLTypography.captionMonoUppercase)
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(NLColor.textTertiary)
 
+                        settingsGroup {
+                        VStack(spacing: 0) {
                         settingsRowButton(title: LocalizedStringKey("settings.support.feedback"), identifier: "ajustes-enviar-feedback") {
                             if let url = URL(string: "mailto:suporte@buildea.com?subject=LagCheck%20Feedback") {
                                 openURL(url)
@@ -307,6 +290,8 @@ struct SettingsView: View {
 
                         settingsRowButton(title: LocalizedStringKey("settings.support.rate"), isLast: true, identifier: "ajustes-avaliar") {
                             showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                        }
+                        }
                         }
                     }
                     .padding(.horizontal, NLSpacing.md)
@@ -382,17 +367,22 @@ struct SettingsView: View {
             }
             .frame(height: 56)
             .contentShape(Rectangle())
-            .overlay(isLast ? nil : Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier ?? "")
+    }
+
+    private func settingsGroup<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(.horizontal, 18)
+            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     // MARK: - Language Sheet
     private var languageSelectorSheet: some View {
         VStack(spacing: 0) {
             Text(LocalizedStringKey("settings.language.title"))
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(NLColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, NLSpacing.md)
@@ -446,7 +436,7 @@ struct SettingsView: View {
     private var deleteConfirmationSheet: some View {
         VStack(spacing: 0) {
             Text(LocalizedStringKey("settings.delete_history.confirmation.title"))
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(NLColor.textPrimary)
                 .padding(.top, NLSpacing.md)
                 .padding(.bottom, 8)

@@ -784,6 +784,11 @@
 "history.ritual.window_30" = "Last 30 days";
 "history.ritual.ready_count" = "Ready in %d of %d checks";
 "history.ritual.breakdown" = "Unstable: %d · Avoid: %d · Inconclusive: %d";
+"history.overview.checks" = "checks";
+"history.overview.ready" = "ready for Ranked";
+"history.overview.games" = "games";
+"history.check.singular" = "%d check";
+"history.check.plural" = "%d checks";
 "common.done" = "Done";
 "catalog.generic_gaming_card.subtitle" = "Neutral regional reference route";
 "network.offline" = "No connection";

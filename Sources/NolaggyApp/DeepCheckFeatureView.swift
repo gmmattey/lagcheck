@@ -11,8 +11,6 @@ struct DeepCheckFeatureView: View {
     @Environment(\.locale) private var locale
     @Environment(\.requestReview) private var requestReview
     @State private var presentation: Presentation = .intro
-    @State private var readinessEvaluation: GameReadinessEvaluation?
-    @State private var finalTrace: FinalDeepCheckTrace?
     @State private var samples: [ProbeSample] = []
     @State private var restSamples: [ProbeSample] = []
     @State private var coordinator: DeepCheckSessionCoordinator
@@ -21,7 +19,6 @@ struct DeepCheckFeatureView: View {
     @State private var boosterCoordinator: ConnectionBoosterCoordinator
     @State private var hasCellularConsent = false
     @State private var measurementStartTime: Date?
-    @State private var measurementCompletedAt: Date?
     @State private var hasTrackedTerminalEvent = false
     @State private var reviewPromptTask: Task<Void, Never>?
     @State private var displayProgress: Double = 0.04
@@ -58,22 +55,10 @@ struct DeepCheckFeatureView: View {
         _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
         if UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive") {
             _presentation = State(initialValue: .inconclusive)
-            _readinessEvaluation = State(initialValue: GameReadinessEvaluator.evaluate(deepCheckResult: nil, profile: resolvedContext.profileID))
-            _finalTrace = State(initialValue: nil)
-            _measurementCompletedAt = State(initialValue: Date())
         } else if usesFixture {
-            let fixtureResult = UITestFixtures.validDeepResult
-            _presentation = State(initialValue: .result(fixtureResult, .measured))
-            _readinessEvaluation = State(initialValue: GameReadinessEvaluator.evaluate(deepCheckResult: fixtureResult, profile: resolvedContext.profileID))
-            _finalTrace = State(initialValue: nil)
-            _measurementCompletedAt = State(initialValue: Date())
-        } else {
-            _readinessEvaluation = State(initialValue: nil)
-            _finalTrace = State(initialValue: nil)
-            _measurementCompletedAt = State(initialValue: nil)
-            if autoStart {
-                _presentation = State(initialValue: .measuring(.rest))
-            }
+            _presentation = State(initialValue: .result(UITestFixtures.validDeepResult, .measured))
+        } else if autoStart {
+            _presentation = State(initialValue: .measuring(.rest))
         }
     }
 
@@ -110,26 +95,29 @@ struct DeepCheckFeatureView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                reviewPromptTask?.cancel()
+                reviewPromptTask = nil
+            }
             guard phase == .background else { return }
-            reviewPromptTask?.cancel()
-            reviewPromptTask = nil
-            let traceSessionID = finalTrace?.sessionID
-            finalTrace = nil
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
-                if let traceSessionID {
-                    await coordinator.discardFinalDeepCheckTrace(for: traceSessionID)
-                }
                 await refreshState()
             }
         }
         .onDisappear {
             reviewPromptTask?.cancel()
             reviewPromptTask = nil
-            let traceSessionID = finalTrace?.sessionID
-            finalTrace = nil
-            if let traceSessionID {
-                Task { await coordinator.discardFinalDeepCheckTrace(for: traceSessionID) }
+        }
+        .sheet(isPresented: $showingDetails) {
+            if case let .result(result, _) = presentation {
+                TechnicalDetailsView(
+                    result: result,
+                    profileID: activeContext.profileID,
+                    gameName: gameName,
+                    regionName: friendlyRegion,
+                    onDismiss: { showingDetails = false }
+                )
             }
         }
         .sheet(isPresented: $showingBooster) {
@@ -262,15 +250,12 @@ struct DeepCheckFeatureView: View {
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
     }
 
-    @ViewBuilder
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
-        if let readinessEvaluation {
-            CheckCompletoResultView(
-                result: result,
-                profileID: activeContext.profileID,
-                evaluation: readinessEvaluation,
-            gameName: gameName,
+        CheckCompletoResultView(
+            result: result,
+            profileID: activeContext.profileID,
             gameID: activeContext.context.gameID,
+            gameName: gameName,
             platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
             destinationKind: destinationKind,
@@ -278,56 +263,40 @@ struct DeepCheckFeatureView: View {
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
             retry: restart,
-                exit: cancelOrDismiss
+            exit: cancelOrDismiss
+        )
+        .onAppear {
+            let evaluation = GameReadinessEvaluator.evaluate(
+                deepCheckResult: result,
+                profile: activeContext.profileID
             )
-            .sheet(isPresented: $showingDetails) {
-                NavigationStack {
-                    TechnicalDetailsView(
-                        result: result,
-                        evaluation: readinessEvaluation,
-                        gameName: gameName,
-                        regionName: friendlyRegion,
-                        measuredAt: measurementCompletedAt,
-                        confidence: activeContext.confidence,
-                        trace: finalTrace,
-                        onDismiss: { showingDetails = false }
-                    )
-                }
-                .presentationDetents([.large])
-            }
-            .onAppear {
-                analyticsTracker.track(.resultViewed(
-                    gameID: activeContext.context.gameID,
-                    platform: activeContext.context.platform.rawValue,
-                    resultClass: readinessEvaluation.verdict.rawValue
-                ))
-            }
+            analyticsTracker.track(.resultViewed(
+                gameID: activeContext.context.gameID,
+                platform: activeContext.context.platform.rawValue,
+                resultClass: evaluation.verdict.rawValue
+            ))
         }
     }
 
-    @ViewBuilder
     private var inconclusiveResultView: some View {
-        if let readinessEvaluation {
-            CheckCompletoResultView(
-                result: nil,
-                profileID: activeContext.profileID,
-                evaluation: readinessEvaluation,
-            gameName: gameName,
+        CheckCompletoResultView(
+            result: nil,
+            profileID: activeContext.profileID,
             gameID: activeContext.context.gameID,
+            gameName: gameName,
             platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
             retry: restart,
-                exit: cancelOrDismiss
-            )
-            .onAppear {
-                analyticsTracker.track(.resultViewed(
-                    gameID: activeContext.context.gameID,
-                    platform: activeContext.context.platform.rawValue,
-                    resultClass: GameReadinessVerdict.inconclusive.rawValue
-                ))
-            }
+            exit: cancelOrDismiss
+        )
+        .onAppear {
+            analyticsTracker.track(.resultViewed(
+                gameID: activeContext.context.gameID,
+                platform: activeContext.context.platform.rawValue,
+                resultClass: GameReadinessVerdict.inconclusive.rawValue
+            ))
         }
     }
 
@@ -414,8 +383,6 @@ struct DeepCheckFeatureView: View {
                 )
                 activeContext = session.resolvedContext
                 measurementStartTime = Date()
-                measurementCompletedAt = nil
-                finalTrace = nil
                 hasTrackedTerminalEvent = false
                 let networkType = activeContext.observedPhoneNetwork?.rawValue ?? "unknown"
                 analyticsTracker.track(.lagcheckStarted(
@@ -495,12 +462,7 @@ struct DeepCheckFeatureView: View {
         case .requiresWiFi: presentation = .requiresWiFi
         case .requiresCellularConsent: presentation = .cellularConsent
         case let .measuring(_, phase): presentation = .measuring(phase)
-        case let .completed(session, .completed(result), availability):
-            if readinessEvaluation == nil {
-                readinessEvaluation = GameReadinessEvaluator.evaluate(deepCheckResult: result, profile: activeContext.profileID)
-                measurementCompletedAt = Date()
-                finalTrace = await coordinator.finalDeepCheckTrace(for: session.id)
-            }
+        case let .completed(_, .completed(result), availability):
             presentation = .result(result, availability)
             let entry = MeasurementHistoryEntry.completedDeepCheck(resolvedContext: activeContext, result: result)
             let completedSamples = samples.isEmpty ? restSamples : samples
@@ -563,10 +525,6 @@ struct DeepCheckFeatureView: View {
             }
 
         case .completed:
-            if readinessEvaluation == nil {
-                readinessEvaluation = GameReadinessEvaluator.evaluate(deepCheckResult: nil, profile: activeContext.profileID)
-                measurementCompletedAt = Date()
-            }
             presentation = .inconclusive
             if !hasTrackedTerminalEvent {
                 hasTrackedTerminalEvent = true
@@ -600,10 +558,6 @@ struct DeepCheckFeatureView: View {
         ))
         samples = []
         restSamples = []
-        readinessEvaluation = nil
-        finalTrace = nil
-        measurementCompletedAt = nil
-        showingDetails = false
         hasTrackedTerminalEvent = false
         if autoStart {
             presentation = .measuring(.rest)
@@ -614,14 +568,8 @@ struct DeepCheckFeatureView: View {
     }
 
     private func cancelOrDismiss() {
-        let traceSessionID = finalTrace?.sessionID
-        finalTrace = nil
         Task { @MainActor in
-            if let session = await coordinator.currentSession() {
-                await coordinator.cancel(id: session.id)
-            } else if let traceSessionID {
-                await coordinator.discardFinalDeepCheckTrace(for: traceSessionID)
-            }
+            if let session = await coordinator.currentSession() { await coordinator.cancel(id: session.id) }
             dismiss()
         }
     }

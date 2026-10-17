@@ -23,14 +23,18 @@ struct QuickCheckFeatureView: View {
     @State var history: [MeasurementHistoryEntry] = []
     @State var showingDetails = false
     @State var destination: AppDestination = .home
-    @State var selectedTab: AppTab = ProcessInfo.processInfo.arguments.contains("-ui-fixture-games-tab") ? .games : .home
+    @State var selectedTab: AppTab = {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-ui-fixture-games-tab") { return .games }
+        if arguments.contains("-ui-fixture-history-tab") { return .history }
+        if arguments.contains("-ui-fixture-settings-tab") { return .settings }
+        return .home
+    }()
     /// A aba Jogos continua sendo um destino principal da tab bar. Quando a
     /// própria Home a abre como próximo passo, porém, oferecemos retorno
     /// explícito à Home sem criar uma segunda NavigationStack ou uma barra
     /// manual concorrendo com a barra nativa.
     @State var gamesReturnToHome = false
-    @State var showingSettings = false
-    @State var showingHistory = false
     @State var showingFavoritesSheet = false
     @State var deepCheckDestination: DeepCheckDestination?
     @State var showingRegionalSelection = false
@@ -174,38 +178,6 @@ struct QuickCheckFeatureView: View {
                         )
                         .toolbar(.hidden, for: .tabBar)
                     }
-                    .navigationDestination(isPresented: $showingSettings) {
-                        SettingsView(
-                            configuration: appConfiguration,
-                            regionCandidates: regionCandidates,
-                            manualRegionID: manualRegionID,
-                            onSelectRegion: selectRegionPreference,
-                            deleteHistory: deleteHistory,
-                            showHistory: {
-                                showingSettings = false
-                                showingHistory = true
-                            },
-                            selectedGameID: selectedGameID,
-                            selectedGameName: selectedGameID.flatMap { id in availableGames.first(where: { $0.id == id })?.name },
-                            onDismiss: {
-                                showingSettings = false
-                            }
-                        )
-                    }
-                    .navigationDestination(isPresented: $showingHistory) {
-                        HistoryView(
-                            entries: history,
-                            gameName: gameName(for:),
-                            retry: retryFromHistory,
-                            returnToHome: { showingHistory = false },
-                            openSettings: {
-                                showingHistory = false
-                                showingSettings = true
-                            },
-                            showsBackHeader: true,
-                            deleteHistory: deleteHistory
-                        )
-                    }
                     .navigationDestination(item: $selectedGameForDetails) { game in
                         GameDetailView(
                             game: game,
@@ -222,7 +194,7 @@ struct QuickCheckFeatureView: View {
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
-                                showingHistory = true
+                                selectedTab = .history
                             }
                         )
                     }
@@ -238,21 +210,6 @@ struct QuickCheckFeatureView: View {
                     .background(NolaggyScreenBackground())
                     .toolbarBackground(.hidden, for: .navigationBar)
                     .toolbarColorScheme(.dark, for: .navigationBar)
-                    .navigationDestination(isPresented: $showingHistory) {
-                        HistoryView(
-                            entries: history,
-                            gameName: gameName(for:),
-                            retry: retryFromHistory,
-                            returnToHome: { showingHistory = false },
-                            openSettings: {
-                                showingHistory = false
-                                showingSettings = true
-                            },
-                            showsBackHeader: true,
-                            deleteHistory: deleteHistory
-                        )
-                        .toolbar(.hidden, for: .tabBar)
-                    }
                     .navigationDestination(item: $selectedGameForDetails) { game in
                         GameDetailView(
                             game: game,
@@ -269,7 +226,7 @@ struct QuickCheckFeatureView: View {
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
-                                showingHistory = true
+                                selectedTab = .history
                             }
                         )
                     }
@@ -278,6 +235,48 @@ struct QuickCheckFeatureView: View {
                 Label(LocalizedStringKey("navigation.games"), systemImage: "gamecontroller.fill")
             }
             .tag(AppTab.games)
+
+            // Tab 3: Histórico. É um destino principal, não uma tela escondida
+            // atrás da Home ou de Ajustes.
+            NavigationStack {
+                HistoryView(
+                    entries: history,
+                    gameName: gameName(for:),
+                    retry: retryFromHistory,
+                    returnToHome: { selectedTab = .home },
+                    showsBackHeader: false,
+                    deleteHistory: deleteHistory
+                )
+                .background(NolaggyScreenBackground())
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
+            }
+            .tabItem {
+                Label(LocalizedStringKey("history.title"), systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90")
+            }
+            .tag(AppTab.history)
+
+            // Tab 4: Ajustes. Mantém a composição e os controles iOS, sem
+            // trazer recursos exclusivos do Android para esta plataforma.
+            NavigationStack {
+                SettingsView(
+                    configuration: appConfiguration,
+                    regionCandidates: regionCandidates,
+                    manualRegionID: manualRegionID,
+                    onSelectRegion: selectRegionPreference,
+                    deleteHistory: deleteHistory,
+                    selectedGameID: selectedGameID,
+                    selectedGameName: selectedGameID.flatMap { id in availableGames.first(where: { $0.id == id })?.name },
+                    showsBackHeader: false
+                )
+                .background(NolaggyScreenBackground())
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
+            }
+            .tabItem {
+                Label(LocalizedStringKey("navigation.settings"), systemImage: "gearshape.fill")
+            }
+            .tag(AppTab.settings)
         }
         .tint(NLColor.accentPrimary)
         .toolbarBackground(NLColor.backgroundRaised.opacity(0.9), for: .tabBar)
@@ -474,7 +473,7 @@ struct QuickCheckFeatureView: View {
     func header(title: LocalizedStringKey?, showsBack: Bool, showsSearch: Bool = false) -> some View {
         if !showsBack {
             NolaggyAppHeader(
-                openSettings: { showingSettings = true }
+                openSettings: { selectedTab = .settings }
             )
         } else {
             NolaggyBackHeader(action: back, accessibilityIdentifier: "measurement-back")

@@ -100,6 +100,7 @@
 | [95](#decisão-95) | Detalhes iOS na referência Android, com evidência diagnóstica preservada | **Vigente (execução autorizada)** | Amplia a Decisão 94 para `TechnicalDetailsView`; restringe atribuições locais aos fatos observados | Luiz / Giam / Marco / Renan / Rian / Iury / Breno |
 | [96](#decisão-96) | Anúncios nativos no Android em Home, Histórico, Jogos e Resultado | **Vigente (Implementado localmente; validação em aparelho pendente)** | Refina a Decisão 82: substitui banners adaptativos por Native Advanced nas quatro superfícies; recorte Android | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [97](#decisão-97) | AdMob Native Advanced também no iOS, com IDs de produção do app iOS | **Vigente (Implementado localmente; validação no Mac/iPhone pendente)** | Amplia a Decisão 96 ao iOS; Debug com IDs de teste, Release com App ID e quatro unidades iOS reais; sem distribuição implícita | Luiz / Giam / Marco / Camillo / Renan / Rian / Breno |
+| [98](#decisão-98) | Quatro destinos iOS e Resultado/compartilhamento pela referência Android | **Vigente (implementado localmente; validação física pendente)** | Resolve a divergência de integração: Início, Jogos, Histórico e Ajustes são destinos iOS de primeira classe; Resultado e card Link seguem o acabamento mais recente aprovado | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -998,6 +999,21 @@
   4. O anúncio é identificado como publicidade, mantém AdChoices e assets/CTA do SDK, é acessível em PT-BR e inglês e não imita recomendação ou veredito. No Resultado, aparece depois do veredito, métricas, explicação e ações essenciais. Nunca interfere na medição, score, histórico ou telemetria de produto.
   5. Esta decisão autoriza implementação local e configuração de IDs de produção. Não autoriza upload, TestFlight, App Store, publicação web ou alteração externa no AdMob.
 - **Critérios de validação e aceite:** build e teste iOS; inspeção de Debug e Release para os IDs corretos; ausência total de anúncio quando desligado ou sem `canRequestAds`; funcionamento em iPhone físico de consentimento regional, carga/falha, AdChoices, CTA, VoiceOver, Dynamic Type, navegação e retorno do background; atualização de privacidade, App Privacy e mensagens públicas antes da distribuição. Sem essa evidência, o release permanece não validado.
+
+#### Decisão 98
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Quatro destinos iOS e Resultado/compartilhamento pela referência Android.
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).** Resolve a divergência de integração entre as linhas paralelas de trabalho e refina as Decisões 51, 80, 94 e 95 somente na navegação e composição iOS.
+- **Frentes envolvidas:** Luiz (aprovação), Giam (aceite), Marco (orquestração), Renan (composição), Rian (iOS) e Breno (validação).
+- **Contexto e problema:** Histórico e Ajustes precisam ser destinos iOS de primeira classe. O Resultado, o card Link e as ações sociais têm uma composição iOS mais recente, aprovada pelo Luiz, que se aproxima da leitura Android sem transformar SwiftUI em uma cópia de Compose.
+- **Decisão:**
+  1. O iOS expõe **Início, Jogos, Histórico e Ajustes** em `TabView` com tab bar e símbolos SF nativos. Histórico e Ajustes são raízes, sem volta artificial; Android não é alterado por esta decisão.
+  2. Para Resultado, compartilhamento e ações sociais, prevalece a composição iOS mais recente: veredito primeiro, prévia Link local antes da telemetria, ações sociais secundárias e acabamento próximo ao Android. Ações, Safe Area, folha de compartilhamento, Dynamic Type e VoiceOver continuam nativos do iPhone.
+  3. O card Link 1200×630 usa somente arte editorial autorizada ou fallback neutro, dados do snapshot concluído e a rota observada. Resultado inconclusivo não cria card, prévia, PDF ou ação de compartilhamento.
+  4. A paridade é de ordem de leitura, profundidade e decisão; não autoriza copiar componentes Material, fatos de rádio Android, atribuição causal local, ping de servidor do jogo, QR ou URL de loja inexistente no iOS.
+  5. Native Ads continuam regidos pelas Decisões 96 e 97: surgem somente nos destinos permitidos e nunca tomam precedência sobre veredito, métricas, ações essenciais, Check, Detalhes ou estado inconclusivo.
+- **Critérios de validação e aceite:** as quatro abas iOS são navegáveis; Resultado conclusivo apresenta veredito antes de prévia, telemetria, ações e anúncio; o inconclusivo não prepara/compartilha artefato nem exibe anúncio; o JPEG preserva dados e arte autorizados; PT-BR/inglês, Dynamic Type, VoiceOver e alvos de 44 pt passam em simulador e iPhone físico. Build, teste, simulador e aparelho físico permanecem provas distintas.
 
 ## Como Registrar Novas Decisões
 

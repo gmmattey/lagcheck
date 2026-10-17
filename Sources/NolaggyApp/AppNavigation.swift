@@ -10,6 +10,8 @@ enum AppDestination: Hashable {
 enum AppTab: String, Hashable, CaseIterable {
     case home
     case games
+    case history
+    case settings
 }
 
 struct NolaggyAppConfiguration: Equatable {

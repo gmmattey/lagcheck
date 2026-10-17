@@ -11,7 +11,6 @@ struct HistoryView: View {
     let gameName: (MeasurementHistoryEntry) -> String
     let retry: (MeasurementHistoryEntry) -> Void
     let returnToHome: () -> Void
-    let openSettings: () -> Void
     var showsBackHeader: Bool = true
     var deleteHistory: (() async throws -> Void)? = nil
 
@@ -60,6 +59,9 @@ struct HistoryView: View {
                     ritualWindowPicker
                         .padding(.horizontal, NLSpacing.md)
 
+                    historyOverview
+                        .padding(.horizontal, NLSpacing.md)
+
                     // Grupos por jogo
                     VStack(spacing: 24) {
                         ForEach(groupedGames, id: \.gameID) { group in
@@ -70,7 +72,7 @@ struct HistoryView: View {
                         }
 
                         Text(LocalizedStringKey("history.device_storage_note"))
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.system(size: 10))
                             .foregroundStyle(NLColor.textTertiary)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
@@ -100,11 +102,11 @@ struct HistoryView: View {
             // Cabeçalho do Jogo
             HStack(spacing: 10) {
                 catalogCoverView(for: group.latest)
-                    .frame(width: 38, height: 46)
-                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .frame(width: 42, height: 42)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(NLColor.borderHairline, lineWidth: 1)
                     )
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -122,8 +124,8 @@ struct HistoryView: View {
                             .font(.system(size: 10))
                             .foregroundStyle(NLColor.textTertiary)
 
-                        Text(LocalizedStringKey("history.last_platform"))
-                            .font(.system(size: 10, design: .monospaced))
+                        Text(verbatim: checkCountLabel(group.entries.count))
+                            .font(.system(size: 10))
                             .foregroundStyle(NLColor.textTertiary)
                     }
                     .lineLimit(1)
@@ -135,33 +137,51 @@ struct HistoryView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(NLColor.textTertiary)
             }
+            .padding(.top, 12)
             .padding(.bottom, 10)
             .contentShape(Rectangle())
-            .overlay(
-                Rectangle()
-                    .fill(NLColor.borderStrong)
-                    .frame(height: 1),
-                alignment: .bottom
-            )
 
             if let summary = HistoryRitualSummary(entries: group.entries, window: selectedRitualWindow), summary.hasEnoughEvidence {
                 ritualSummary(summary)
                     .padding(.vertical, 12)
-                    .overlay(
-                        Rectangle()
-                            .fill(NLColor.borderStrong)
-                            .frame(height: 1),
-                        alignment: .bottom
-                    )
             }
 
             // Lista de Medições do Jogo
             VStack(spacing: 0) {
-                ForEach(group.entries) { entry in
-                    historyItemRow(entry: entry)
+                ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
+                    historyItemRow(entry: entry, hasSeparator: index < group.entries.count - 1)
                 }
             }
         }
+        .padding(.horizontal, 18)
+        .padding(.top, 6)
+        .padding(.bottom, 4)
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+    }
+
+    /// Dá contexto ao histórico sem converter observações em previsão.
+    private var historyOverview: some View {
+        HStack(spacing: 0) {
+            historyOverviewMetric(value: "\(entries.count)", label: LocalizedStringKey("history.overview.checks"))
+            historyOverviewMetric(value: "\(entries.filter { !$0.isInconclusive && $0.readinessVerdict == .ready }.count)", label: LocalizedStringKey("history.overview.ready"))
+            historyOverviewMetric(value: "\(groupedGames.count)", label: LocalizedStringKey("history.overview.games"))
+        }
+        .padding(.vertical, 18)
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+    }
+
+    private func historyOverviewMetric(value: String, label: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(verbatim: value)
+                .font(.system(size: 26, weight: .medium).monospacedDigit())
+                .foregroundStyle(NLColor.textPrimary)
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(NLColor.textTertiary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 18)
     }
 
     private var ritualWindowPicker: some View {
@@ -171,7 +191,7 @@ struct HistoryView: View {
                     selectedRitualWindow = window
                 } label: {
                     Text(ritualWindowTitle(window))
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(selectedRitualWindow == window ? NLColor.textPrimary : NLColor.textSecondary)
                         .frame(minHeight: 44)
                         .padding(.horizontal, 12)
@@ -195,7 +215,7 @@ struct HistoryView: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(NLColor.textPrimary)
             Text(String(format: AppLocalization.string("history.ritual.breakdown", comment: ""), summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount))
-                .font(.system(size: 10, design: .monospaced))
+                .font(.system(size: 10))
                 .foregroundStyle(NLColor.textTertiary)
         }
         .accessibilityElement(children: .combine)
@@ -210,58 +230,46 @@ struct HistoryView: View {
         return AppLocalization.string(key, comment: "")
     }
 
-    private func historyItemRow(entry: MeasurementHistoryEntry) -> some View {
+    private func historyItemRow(entry: MeasurementHistoryEntry, hasSeparator: Bool) -> some View {
         Button(action: {
             selectedEntryForDetails = entry
         }) {
-            HStack(alignment: .center, spacing: 10) {
-                Text(symbolForEntry(entry))
-                    .font(.system(size: 13, weight: .bold))
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    HStack(spacing: 7) {
+                        Circle()
+                            .fill(colorForEntry(entry))
+                            .frame(width: 7, height: 7)
+                        Text(verdictTitleForEntry(entry))
+                            .font(.system(size: 12, weight: .semibold))
+                    }
                     .foregroundStyle(colorForEntry(entry))
-                    .frame(width: 15, alignment: .leading)
+                    .padding(.horizontal, 11)
+                    .frame(height: 26)
+                    .background(colorForEntry(entry).opacity(0.15), in: Capsule())
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(verdictTitleForEntry(entry))
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(NLColor.textPrimary)
+                    Spacer()
 
                     Text(entry.completedAt.formatted(date: .abbreviated, time: .shortened))
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundStyle(NLColor.textTertiary)
-
-                    // Métricas inline
-                    let lossFormatted = String(format: AppLocalization.string("telemetry.loss_format %@", comment: ""), formatLoss(entry))
-                    Text(verbatim: "\(formatPing(entry)) ms · \(formatJitter(entry)) ms jitter · \(lossFormatted)")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(NLColor.textTertiary)
-                        .padding(.top, 2)
                 }
 
-                Spacer()
-
-                // Ícone da plataforma correspondente ao teste
-                Image(systemName: iconName(for: entry.resolvedContext.context.platform))
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(NLColor.textSecondary)
-                    .frame(width: 28, height: 28)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .stroke(NLColor.borderHairline, lineWidth: 1)
-                    )
-                    .accessibilityLabel(entry.resolvedContext.context.platform.displayName)
+                Text(verbatim: "\(formatPing(entry)) ms · \(formatJitter(entry)) ms jitter · \(formatLoss(entry))% \(AppLocalization.string("game_readiness.telemetry.loss", comment: ""))")
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundStyle(NLColor.textTertiary)
             }
-            .padding(.vertical, 11)
-            .frame(minHeight: 66)
+            .padding(.vertical, 12)
             .contentShape(Rectangle())
-            .overlay(
-                Rectangle()
-                    .fill(NLColor.borderStrong)
-                    .frame(height: 1),
-                alignment: .bottom
-            )
+            .overlay(hasSeparator ? Rectangle().fill(NLColor.borderStrong).frame(height: 1) : nil, alignment: .bottom)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(verdictTitleForEntry(entry)), \(entry.completedAt.formatted(date: .abbreviated, time: .shortened))")
+    }
+
+    private func checkCountLabel(_ count: Int) -> String {
+        let key = count == 1 ? "history.check.singular" : "history.check.plural"
+        return String(format: AppLocalization.string(key, comment: ""), count)
     }
 
     // MARK: - Estado Vazio (Mockup 06)
@@ -273,13 +281,13 @@ struct HistoryView: View {
                     .frame(width: 55, height: 55)
 
                 Text(verbatim: "—")
-                    .font(.system(size: 22, weight: .regular, design: .monospaced))
+                    .font(.system(size: 22, weight: .regular))
                     .foregroundStyle(NLColor.textTertiary)
             }
             .padding(.bottom, 12)
 
             Text(LocalizedStringKey("history.empty.title"))
-                .font(.system(size: 25, weight: .bold, design: .rounded))
+                .font(.system(size: 25, weight: .bold))
                 .foregroundStyle(NLColor.textPrimary)
 
             Text(LocalizedStringKey("history.empty.subtitle"))
@@ -311,7 +319,7 @@ struct HistoryView: View {
     private var deleteConfirmationSheet: some View {
         VStack(spacing: 0) {
             Text(LocalizedStringKey("history.sheet.delete_title"))
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(NLColor.textPrimary)
                 .padding(.top, NLSpacing.md)
                 .padding(.bottom, 8)
