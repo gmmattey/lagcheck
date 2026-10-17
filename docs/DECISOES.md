@@ -95,6 +95,7 @@
 | [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
 | [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [92](#decisão-92) | Wordmark com o símbolo modernizado e mono refeito a partir do primary | **Vigente (Implementado localmente; validação visual pendente)** | Revisa o item 5 da Decisão 91: primary, mono claro/escuro e PNGs de app passam a usar o mesmo símbolo e as mesmas letras | Luiz / Giam / Renan / Rian / Breno |
+| [93](#decisão-93) | AGENTS.md alinhado ao estado real de anúncios e arte de jogo | **Vigente (Documentação)** | Android com AdMob (Decisão 82) e arte editorial autoral do catálogo (Decisões 18, 44, 71 e 88); iOS segue sem anúncios | Luiz / Giam |
 
 
 
@@ -907,6 +908,19 @@
   3. Os PNGs de app (iOS, Android e Play) são regerados do novo primary, nos tamanhos que já existiam. `lagcheck-wordmark-light.svg` do design system deixa de apontar para um caminho inexistente.
   4. Redesenhar `lag` e `check` em vetor a partir da fonte original fica como pendência de marca.
 - **Critérios de validação e aceite:** wordmark legível em 24 e 40 px de altura; iOS e Android exibem o primary novo; as páginas web e o protótipo carregam os SVGs sem quebra; cada ambiente é prova separada.
+
+#### Decisão 93
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** AGENTS.md alinhado ao estado real de anúncios e arte de jogo.
+- **Status Atual:** **Vigente (Documentação).** Não altera produto: sincroniza instruções ao que as Decisões 18, 44, 71, 82 e 88 já estabeleceram.
+- **Frentes envolvidas:** Luiz (confirmação) e Giam (registro).
+- **Contexto e problema:** O `AGENTS.md` ainda dizia que publicidade não existe no MVP1 e que jogos não exibem arte. A Validação do ícone mostrou, na Home do Android Debug, a arte de jogo e o rótulo "Anúncio", e o Luiz confirmou que ambos fazem parte do app. As instruções contradiziam o código e as decisões vigentes.
+- **Decisão:**
+  1. Arte de jogo: vale a arte editorial autoral do catálogo assinado; a proibição de capa oficial, logo, personagem e arte licenciada de terceiros continua.
+  2. Anúncios: Android com banner AdMob em Home e Histórico (Decisão 82), hoje com IDs de teste; iOS sem anúncios até decisão própria.
+- **Pendência:** confirmar com o Luiz se a arte exibida hoje na Home do Android Debug (relatada como de Fortnite) é a arte editorial autoral do catálogo. Se for arte oficial de terceiro, ela viola as Decisões 18 e 88 e precisa ser trocada.
+- **Critérios de validação e aceite:** `AGENTS.md` e `docs/DECISOES.md` sem contradição entre si.
 
 ## Como Registrar Novas Decisões
 
