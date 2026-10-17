@@ -25,13 +25,13 @@ class DeepLinkParserTest {
         val invalidPlatform = DeepLinkParser.parse("lagcheck://check?game=valorant&platform=smartfridge")
         assertEquals(AppDeepLink.QuickCheck("valorant", null), invalidPlatform)
 
-        val encoded = DeepLinkParser.parse("https://lagcheck.app/check?GAME=call%20of%20duty")
+        val encoded = DeepLinkParser.parse("https://lagcheck.signallq.com/check?GAME=call%20of%20duty")
         assertEquals(AppDeepLink.QuickCheck("call of duty", null), encoded)
     }
 
     @Test
     fun testParsesUniversalLinkWithGame() {
-        val result = DeepLinkParser.parse("https://lagcheck.app/check?game=fortnite")
+        val result = DeepLinkParser.parse("https://lagcheck.signallq.com/check?game=fortnite")
         assertEquals(AppDeepLink.QuickCheck("fortnite", null), result)
     }
 
@@ -54,8 +54,9 @@ class DeepLinkParserTest {
     @Test
     fun testRejectsUnrecognizedSchemesAndDomains() {
         assertNull(DeepLinkParser.parse("noping://check"))
-        assertNull(DeepLinkParser.parse("http://lagcheck.app/check"))
+        assertNull(DeepLinkParser.parse("http://lagcheck.signallq.com/check"))
         assertNull(DeepLinkParser.parse("https://evil.com/check"))
+        assertNull(DeepLinkParser.parse("https://lagcheck.app/check"))
         assertNull(DeepLinkParser.parse("lagcheck://arbitraryhost"))
     }
 }

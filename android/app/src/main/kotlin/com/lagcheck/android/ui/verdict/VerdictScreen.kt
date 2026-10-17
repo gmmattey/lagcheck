@@ -158,7 +158,7 @@ fun VerdictScreen(
             isWiFi = evaluation.connectionType.contains("Wi-Fi", ignoreCase = true)
         )
         val quote = LagCheckDiscordCardExporter.gamerQuote(evaluation.verdict)
-        val shareText = "🎮 LagCheck · ${game.name}\n$quote\nhttps://lagcheck.app"
+        val shareText = "🎮 LagCheck · ${game.name}\n$quote\nhttps://lagcheck.signallq.com"
 
         // Copiar texto para o clipboard para facilidade no Discord
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -194,7 +194,7 @@ fun VerdictScreen(
             *${tr("Veredito")}:* ${evaluation.headline}
             ⏱ *Ping:* $pingText | *Jitter:* $jitterText | *${tr("Perda")}:* $lossText
             $quote
-            https://lagcheck.app
+            https://lagcheck.signallq.com
         """.trimIndent()
 
         val shareIntent = Intent(Intent.ACTION_SEND).apply {

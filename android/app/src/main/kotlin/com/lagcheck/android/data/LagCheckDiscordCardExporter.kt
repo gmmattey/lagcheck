@@ -186,7 +186,7 @@ object LagCheckDiscordCardExporter {
             textSize = 13f
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
         }
-        canvas.drawText(tr("lagcheck.app · Medição real determinística · Sem notas inventadas"), 75f, height - 70f, footerPaint)
+        canvas.drawText(tr("lagcheck.signallq.com · Medição real determinística · Sem notas inventadas"), 75f, height - 70f, footerPaint)
 
         // Salvar imagem no cache para compartilhamento seguro
         return try {
