@@ -4,6 +4,13 @@ import NolaggyApplication
 
 final class CloudflareWorkerAnalyticsTrackerTests: XCTestCase {
 
+    func testDefaultEndpointUsesTheActiveWorkerHost() {
+        XCTAssertEqual(
+            CloudflareWorkerAnalyticsTracker.defaultEndpointURL.absoluteString,
+            "https://nolaggy-deep-check.buildealabs.workers.dev/v1/telemetry"
+        )
+    }
+
     func testInstallationIDIsPersistedDeterministically() {
         let suiteName = "test.lagcheck.analytics.\(UUID().uuidString)"
         let userDefaults = UserDefaults(suiteName: suiteName)!

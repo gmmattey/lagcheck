@@ -38,6 +38,8 @@ android/
 ```
 Dependência: `domain ← catalog ← network ← session ← app`.
 
+O widget Android autorizado pela Decisão 88 será uma superfície de apresentação dentro de `:app` (provider/Glance ou equivalente nativo), sem transportar regras de rede para fora de `:core:session`. Ele lerá somente um snapshot privado gerado pelo app após Check válido: contexto para repetir a medição, valores observados e miniatura editorial da fonte oficial Android (`RemoteArtworkRepository` ou resource embarcado). Não usa App Group iOS, captura iOS, URL externa no render, Worker novo ou fetch em background; ao toque, entrega `gameId` e contexto ao `MainActivity`, que revalida catálogo e inicia o Check normal.
+
 ## 3. Paridade com o iOS (Decisão 68)
 
 O Kotlin é port do Swift, não reinterpretação. A fonte de verdade é `Sources/NolaggyDomain` e o catálogo v3 assinado.
@@ -45,7 +47,7 @@ O Kotlin é port do Swift, não reinterpretação. A fonte de verdade é `Source
 - **Regras:** `pilot-2026.09.08.1`, `mobile-realtime-2026.09.08.1`, `casual-realtime-2026.09.08.1`, `readiness-v2.0`, `spike-pattern-v1`, `sample-quality-v1`, `deep-load-impact-v2`. Os testes JVM carregam os vetores dos testes Swift.
 - **Veredito:** `READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`. Menos de 10 respostas UDP válidas é inconclusivo, sem fallback HTTP/ICMP e sem nota inventada.
 - **Medição:** repouso (30 probes, 1 a cada 500 ms, fechamento em 17 s) e depois carga (30 probes com `GET /v1/load` concorrente). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
-- **Destino:** o do catálogo assinado (`gameLiftPing`, `playFabQoS`, `steamA2S`). Hoje todas as rotas ativas são `awsFallback` em `sa-east-1`, com confiança média. Rotas `gameOwned` pendentes nunca são medidas.
+- **Destino:** o do catálogo assinado (`gameLiftPing`, `playFabQoS`, `steamA2S`). Hoje todas as rotas ativas são `awsFallback` em `sa-east-1`, com confiança média. Rotas `gameOwned` pendentes nunca são medidas. Rota própria Steam A2S ativa só vence após a pré-validação de identidade (`SteamA2sRoutePreflight`, contrato `steam-a2s-preflight-1`, vetores em `tools/vectors/`); qualquer falha volta à referência AWS assinada. Nenhuma rota própria está ativa no catálogo atual.
 - **Plataforma:** o catálogo v3 só publica `iphone|playstation|xbox|pc|nintendo`. O celular Android usa o contexto `iphone` (mesmas rotas) até o catálogo ganhar `android`.
 - **Fase 2 (implementada):** banda Wi-Fi (frequência real do Android), qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES. O gateway é medido, exibido e **entra no veredito** (Decisão 69; o iOS não usa o gateway no veredito, então pode haver divergência entre plataformas; reverter é o default de `LocalDiagnostics.gatewayInfluencesVerdict`). Sem resposta do roteador = não observável, nunca acusa o Wi-Fi. Recomendação sobre rota ou operadora só com primeiro salto comprovadamente limpo (Decisão 50).
 - **Decisão 69:** status das redes de console (PSN/Xbox/Nintendo, direto nos endpoints públicos, fail-open, aviso na Home), favoritos locais e relatório em PDF (`PdfDocument`, conteúdo em `RouteReport`).

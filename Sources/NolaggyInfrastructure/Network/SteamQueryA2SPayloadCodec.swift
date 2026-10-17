@@ -1,4 +1,5 @@
 import Foundation
+import NolaggyDomain
 
 public enum SteamQueryA2SError: Error, Equatable, Sendable {
     case invalidLength
@@ -107,5 +108,49 @@ public enum SteamQueryA2SPayloadCodec {
             return false
         }
         return data[s + 4] == responseTypeChallenge
+    }
+}
+
+/// Máquina pura da pré-validação de identidade (`steam-a2s-preflight-1`).
+/// Não abre socket: recebe datagramas ou timeout e diz qual é o próximo passo.
+/// Uma única troca de challenge é aceita; qualquer resposta ambígua, truncada
+/// ou com identidade divergente rejeita a rota e devolve a medição à AWS.
+public struct SteamA2SPreflightMachine: Sendable {
+    public enum Step: Equatable, Sendable {
+        case send(Data)
+        case accept
+        case reject
+    }
+
+    private enum Phase { case awaitingFirstResponse, awaitingInfoAfterChallenge, finished }
+
+    private let identity: RemoteCatalogRouteIdentity
+    private var phase: Phase = .awaitingFirstResponse
+
+    public init(identity: RemoteCatalogRouteIdentity) {
+        self.identity = identity
+    }
+
+    /// Primeiro datagrama a enviar: A2S_INFO sem challenge.
+    public var initialRequest: Data { SteamQueryA2SPayloadCodec.encodeInitialRequest() }
+
+    /// `nil` representa timeout ou falha de transporte.
+    public mutating func receive(_ datagram: Data?) -> Step {
+        guard let datagram, phase != .finished else { return finish(false) }
+        if phase == .awaitingFirstResponse, SteamQueryA2SPayloadCodec.isChallengeResponse(datagram) {
+            guard let token = try? SteamQueryA2SPayloadCodec.decodeChallenge(datagram) else { return finish(false) }
+            phase = .awaitingInfoAfterChallenge
+            return .send(SteamQueryA2SPayloadCodec.encodeAuthenticatedRequest(challengeToken: token))
+        }
+        guard let info = try? SteamQueryA2SPayloadCodec.decodeInfo(datagram) else { return finish(false) }
+        let nameMatches = identity.expectedServerNamePrefix.map { info.name.hasPrefix($0) } ?? true
+        return finish(info.appID == identity.expectedAppID
+            && info.gameDirectory == identity.expectedGameDirectory
+            && nameMatches)
+    }
+
+    private mutating func finish(_ accepted: Bool) -> Step {
+        phase = .finished
+        return accepted ? .accept : .reject
     }
 }

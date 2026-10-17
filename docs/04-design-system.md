@@ -153,7 +153,7 @@ Quando o MVP1.1 for autorizado, aplicar estas regras de layout:
 
 ## 12. Inventário de componentes
 
-Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`design-system/components.md`](../design-system/components.md). Resumo do inventário atualizado (Decisões 24, 34 e 35):
+Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`design-system/components.md`](../design-system/components.md). Resumo do inventário atualizado (Decisões 24, 34, 35 e 88):
 
 | Componente | Papel |
 | --- | --- |
@@ -166,6 +166,9 @@ Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`desig
 | `InsightBanner` | Explicação/causa em destaque da qualidade observada para a partida. |
 | `StatusMessage` | Estados de progresso, erro, cancelamento e inconclusivo. |
 | `EmptyState` | Ausência de histórico, catálogo indisponível, busca sem resultado. |
+| `GameReadinessWidget` | Superfície compacta de sistema: arte editorial autorizada do último Check válido, gradiente profundo, jogo/região, P50 monoespaçado e veredito por texto+forma. Home Screen usa arte como contexto; Lock Screen retangular usa miniatura; circular/inline priorizam legibilidade. |
+
+O `GameReadinessWidget` usa exclusivamente a arte editorial fornecida pelo catálogo validado da plataforma em que está instalado. A imagem recebe gradiente `background.deep` suficiente para não reduzir contraste do veredito e da P50; não há texto sobre área clara sem sobreposição. Resultado vencido, inconclusivo ou sem arte válida remove métricas e veredito, mantendo apenas a ação localizada de novo Check e identidade neutra. O widget não introduz uma cor de CTA: Roxo Gamer é reservado ao ícone/arte neutra e as cores semânticas aparecem acompanhadas por headline e indicador de forma.
 
 ### Navegação de retorno
 

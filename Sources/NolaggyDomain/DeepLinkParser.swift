@@ -2,7 +2,7 @@ import Foundation
 
 /// Tipos de ação mapeados a partir de Deep Links e Universal Links (Decisão 76).
 public enum AppDeepLink: Equatable, Sendable {
-    case quickCheck(gameID: String?, platform: Platform?)
+    case quickCheck(gameID: String?, platform: Platform?, declaredExternalLink: ExternalEquipmentLink?)
     case networkCockpit
     case gamesCatalog
     case home
@@ -39,11 +39,13 @@ public enum DeepLinkParser {
         let gameParam = queryItems.first(where: { $0.name.lowercased() == "game" || $0.name.lowercased() == "gameid" })?.value
         let platformParam = queryItems.first(where: { $0.name.lowercased() == "platform" })?.value
         let parsedPlatform: Platform? = platformParam.flatMap { Platform(rawValue: $0.lowercased()) }
+        let externalLinkParam = queryItems.first(where: { $0.name.lowercased() == "external_link" })?.value
+        let parsedExternalLink: ExternalEquipmentLink? = externalLinkParam.flatMap { ExternalEquipmentLink(rawValue: $0.lowercased()) }
         
         // 1. Rota de Medição / Check
         if host == "quicktest" || host == "test" || host == "check" ||
             path == "/quicktest" || path == "/test" || path == "/check" {
-            return .quickCheck(gameID: gameParam, platform: parsedPlatform)
+            return .quickCheck(gameID: gameParam, platform: parsedPlatform, declaredExternalLink: parsedExternalLink)
         }
         
         // 2. Rota de Catálogo de Jogos

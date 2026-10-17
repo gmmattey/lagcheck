@@ -1,4 +1,5 @@
 import XCTest
+@testable import NolaggyDomain
 @testable import NolaggyInfrastructure
 
 final class SteamQueryA2SPayloadCodecTests: XCTestCase {
@@ -79,4 +80,71 @@ final class SteamQueryA2SPayloadCodecTests: XCTestCase {
         XCTAssertEqual(info.gameDirectory, "csgo")
         XCTAssertEqual(info.appID, 730)
     }
+    // MARK: - Pré-validação de identidade (vetores compartilhados com Android)
+
+    func testPreflightMachineMatchesSharedVectors() throws {
+        let vectors = try SharedA2SVectors.load()
+        XCTAssertEqual(vectors.preflightVectors.count, 15)
+        for vector in vectors.preflightVectors {
+            var machine = SteamA2SPreflightMachine(identity: RemoteCatalogRouteIdentity(
+                expectedAppID: vector.identity.appID,
+                expectedGameDirectory: vector.identity.gameDirectory,
+                expectedServerNamePrefix: vector.identity.namePrefix
+            ))
+            var sends = [machine.initialRequest]
+            var decision: String?
+            for event in vector.events {
+                switch machine.receive(try event.map(SharedA2SVectors.data(fromHex:))) {
+                case let .send(payload): sends.append(payload)
+                case .accept: decision = "accept"
+                case .reject: decision = "reject"
+                }
+                if decision != nil { break }
+            }
+            XCTAssertEqual(decision, vector.expectedDecision, vector.id)
+            XCTAssertEqual(sends.map(SharedA2SVectors.hex), vector.expectedSends, vector.id)
+        }
+    }
+
+    func testPreflightMachineNeverAcceptsAfterRejecting() {
+        var machine = SteamA2SPreflightMachine(identity: RemoteCatalogRouteIdentity(expectedAppID: 730, expectedGameDirectory: "csgo"))
+        XCTAssertEqual(machine.receive(nil), .reject)
+        var info = Data([0xFF, 0xFF, 0xFF, 0xFF, 0x49, 0x11])
+        info.append("host\0map\0csgo\0game\0".data(using: .utf8)!)
+        info.append(contentsOf: [0xDA, 0x02])
+        XCTAssertEqual(machine.receive(info), .reject)
+    }
+}
+
+struct SharedA2SVectors: Decodable {
+    struct Identity: Decodable { let appID: UInt16; let gameDirectory: String; let namePrefix: String? }
+    struct Preflight: Decodable {
+        let id: String
+        let identity: Identity
+        let events: [String?]
+        let expectedSends: [String]
+        let expectedDecision: String
+    }
+    let preflightVectors: [Preflight]
+
+    static func load(file: StaticString = #filePath) throws -> SharedA2SVectors {
+        var url = URL(fileURLWithPath: "\(file)")
+        for _ in 0..<3 { url.deleteLastPathComponent() }
+        url.appendPathComponent("tools/vectors/steam-a2s-preflight-vectors.json")
+        return try JSONDecoder().decode(SharedA2SVectors.self, from: Data(contentsOf: url))
+    }
+
+    static func data(fromHex hex: String) throws -> Data {
+        var data = Data()
+        var index = hex.startIndex
+        while index < hex.endIndex {
+            let next = hex.index(index, offsetBy: 2)
+            guard let byte = UInt8(hex[index..<next], radix: 16) else { throw CocoaError(.coderInvalidValue) }
+            data.append(byte)
+            index = next
+        }
+        return data
+    }
+
+    static func hex(_ data: Data) -> String { data.map { String(format: "%02x", $0) }.joined() }
 }

@@ -58,7 +58,12 @@ import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.domain.model.OfficialGameCatalog
 
 class MainActivity : ComponentActivity() {
-    companion object { const val EXTRA_REMINDER_GAME_ID = "pre_match_reminder_game_id" }
+    companion object {
+        const val EXTRA_REMINDER_GAME_ID = "pre_match_reminder_game_id"
+        const val EXTRA_WIDGET_GAME_ID = "widget_game_id"
+        const val EXTRA_WIDGET_PLATFORM = "widget_platform"
+        const val EXTRA_WIDGET_EXTERNAL_LINK = "widget_external_link"
+    }
     private var artworkForeground by mutableStateOf(false)
 
     override fun onStart() {
@@ -93,6 +98,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
+        consumeWidgetCheck(intent)
 
         // Idioma inicial já na primeira composição (sem piscar em PT-BR antes de trocar).
         AppLocale.language = viewModel.language.value.toAppLanguage()
@@ -458,6 +464,13 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
+        consumeWidgetCheck(intent)
+    }
+
+    private fun consumeWidgetCheck(intent: android.content.Intent) {
+        val gameId = intent.getStringExtra(EXTRA_WIDGET_GAME_ID) ?: return
+        val platform = intent.getStringExtra(EXTRA_WIDGET_PLATFORM) ?: return
+        viewModel.startCheckFromWidget(gameId, platform, intent.getStringExtra(EXTRA_WIDGET_EXTERNAL_LINK))
     }
     private fun launchPlayReviewFlow() {
         try {

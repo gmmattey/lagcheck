@@ -3,7 +3,9 @@ package com.lagcheck.session
 import com.lagcheck.catalog.CatalogPayload
 import com.lagcheck.catalog.CatalogResolutionException
 import com.lagcheck.catalog.GameContext
+import com.lagcheck.catalog.GameRoutePreflighting
 import com.lagcheck.catalog.Platform
+import com.lagcheck.catalog.RouteKind
 import com.lagcheck.catalog.RemoteCatalogResolution
 import com.lagcheck.catalog.RemoteCatalogResolver
 import com.lagcheck.catalog.ResolvedMeasurementContext
@@ -88,10 +90,12 @@ object MeasurementPlanner {
             val contexts = RemoteCatalogResolver.resolveCandidates(context, payload, now)
             if (contexts.isEmpty()) null
             else {
-                val candidates = contexts.mapIndexed { index, ctx ->
+                val candidates = contexts.map { ctx ->
                     ResolvedCandidate(
                         regionId = ctx.regionId,
-                        priority = index,
+                        // A ordem assinada serve apenas para apresentação;
+                        // nunca pode escolher uma região num empate de RTT.
+                        priority = 0,
                         catalogVersion = payload.catalogVersion,
                         context = context,
                         resolvedContext = ctx
@@ -107,7 +111,72 @@ object MeasurementPlanner {
             null
         }
     }
+
+    /**
+     * Decisão 78/90: uma rota própria só vence após a pré-validação completa de identidade; senão vale a pré-leitura
+     * das regiões AWS assinadas (`planRegional`). Corre em segundo plano e não expõe host/porta.
+     */
+    suspend fun planRegionalAutomatic(
+        payload: CatalogPayload,
+        gameId: String,
+        platformLabel: String,
+        preflight: GameRoutePreflighting,
+        market: String = "BR",
+        now: Instant = Instant.now()
+    ): AutomaticRegionalPlan? {
+        val platform = PlatformLabels.toPlatform(platformLabel)
+        val context = if (gameId == PlatformLabels.GENERIC_GAME_ID) GameContext.genericGaming(market, platform)
+        else GameContext(gameId, market, platform)
+        val resolved = try {
+            AutomaticGameRouteResolver.resolve(context, payload, preflight, now)
+        } catch (_: CatalogResolutionException) {
+            null
+        }
+        if (resolved != null && resolved.routeKind == RouteKind.GAME_OWNED) {
+            val candidate = ResolvedCandidate(
+                regionId = resolved.regionId,
+                priority = 0,
+                catalogVersion = payload.catalogVersion,
+                context = context,
+                resolvedContext = resolved
+            )
+            return AutomaticRegionalPlan(
+                com.lagcheck.domain.rules.RegionalSelectionSnapshot(payload.catalogVersion, context, listOf(candidate)),
+                isGameOwned = true
+            )
+        }
+        val snapshot = planRegional(payload, gameId, platformLabel, market, now) ?: return null
+        return AutomaticRegionalPlan(snapshot, isGameOwned = false)
+    }
 }
+
+/**
+ * Resolve a rota de uma medição sem expor servidores na UI (espelho de `AutomaticGameRouteResolver` do iOS). Só
+ * candidatos A2S assinados são tentados, em ordem (prioridade, id); todo timeout, resposta inválida, challenge
+ * malformado ou identidade divergente passa ao próximo e, por fim, à AWS assinada. O score segue a sessão normal.
+ */
+object AutomaticGameRouteResolver {
+    suspend fun resolve(
+        context: GameContext,
+        payload: CatalogPayload,
+        preflight: GameRoutePreflighting,
+        now: Instant = Instant.now()
+    ): ResolvedMeasurementContext? {
+        val plan = RemoteCatalogResolver.automaticRoutePlan(context, payload, now)
+            ?: return (RemoteCatalogResolver.resolve(context, payload, now) as? RemoteCatalogResolution.Available)?.context
+        for (candidate in plan.ownedCandidates) {
+            if (candidate.context.destination.protocolKind != com.lagcheck.catalog.ProbeProtocolKind.STEAM_A2S) continue
+            if (preflight.validates(candidate.context, candidate.identity)) return candidate.context
+        }
+        return plan.fallback
+    }
+}
+
+/** Plano regional já decidido; `isGameOwned` indica rota própria validada (nunca vinda de preferência manual). */
+data class AutomaticRegionalPlan(
+    val snapshot: com.lagcheck.domain.rules.RegionalSelectionSnapshot<GameContext, ResolvedCandidate>,
+    val isGameOwned: Boolean
+)
 
 data class ResolvedCandidate(
     override val regionId: String,

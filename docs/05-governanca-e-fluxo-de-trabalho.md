@@ -236,6 +236,7 @@ Uma frente não altera arquivo de outra por conveniência. Quando for inevitáve
 | Score, métricas, catálogo ou medição | Iury + Rian; Renan revisa linguagem e apresentação quando houver UI; Breno valida vetores e ambiente aplicável |
 | Tela, componente ou fluxo | Renan + Rian; Iury participa se explicar um resultado de rede; Breno verifica o caminho afetado |
 | Módulo, persistência, SDK, anúncio ou consentimento | Rian + Giam + Camillo quando sistêmico; Renan revisa se houver impacto visível |
+| Widget multiplataforma, cache de arte ou toque que inicia Check | Giam + Camillo + Rian + Renan + Iury + Breno; exige Cartão de Missão, Architecture Plan e prova separada em iOS/Android |
 | Escopo ou promessa | Giam + Marco; Luiz quando alterar negócio |
 | Mercado ou monetização | Marco + dono do produto |
 

@@ -80,6 +80,7 @@ Antes de gerar o primeiro archive de um item, Rian confirma:
 3. o fluxo foi exercitado em aparelho físico da plataforma afetada quando depende de rede, ciclo de vida ou permissões;
 4. estados de erro, cancelamento e inconclusivo estão acessíveis e compreensíveis;
 5. nenhum segredo, endpoint interno ou mock será empacotado como release; a exceção Android de AdMob/UMP só é permitida sob os gates pendentes da Decisão 82.
+6. quando o escopo tocar widget, a arte e o deep link foram exercitados na plataforma correspondente, com catálogo/arte local válidos, expiração e fallback neutro; uma captura iOS não substitui prova Android, nem o contrário.
 
 ## 5. TestFlight — beta controlada
 
@@ -121,6 +122,7 @@ Para um build ser aceito como release candidate, a evidência deve cobrir:
 - persistência e exclusão de histórico conforme a regra da V1;
 - PT-BR e inglês, Dynamic Type e VoiceOver nos fluxos alterados;
 - validação explícita de que as limitações são comunicadas como estimativa quando a medição não é do dispositivo/jogo real.
+- quando houver widget: Home e Lock Screen iOS nas famílias suportadas; toque no jogo correto em app frio e em segundo plano; arte oficial da build iOS, expiração, fallback e VoiceOver.
 
 Rian registra a evidência técnica, Breno faz a revisão independente do pacote,
 Iury aprova qualquer alteração que afete a leitura de rede, Renan aprova
@@ -140,6 +142,7 @@ Missão contém versão/build, canal, objetivo e evidência de:
   afetados;
 - comportamento real de permissões, `FileProvider`, launcher ou anúncio quando
   o escopo os tocar;
+- quando houver widget: instalação/remoção, redimensionamento, arte oficial da build Android, expiração, fallback, toque que inicia o Check do jogo certo e TalkBack;
 - separação explícita entre emulador, aparelho físico, track Play e produção.
 
 Rian registra a evidência técnica; Iury, Renan, Breno e Giam revisam as partes

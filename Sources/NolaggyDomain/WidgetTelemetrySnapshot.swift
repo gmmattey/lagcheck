@@ -12,6 +12,9 @@ public struct WidgetTelemetrySnapshot: Codable, Equatable, Sendable {
     public let jitterMs: Double
     public let packetLossPercentage: Double
     public let bufferbloatGrade: String?
+    /// Contexto originalmente medido. Campos opcionais preservam snapshots de versões anteriores.
+    public let platformRawValue: String?
+    public let declaredExternalLinkRawValue: String?
     public let capturedAt: Date
 
     public init(
@@ -23,6 +26,8 @@ public struct WidgetTelemetrySnapshot: Codable, Equatable, Sendable {
         jitterMs: Double,
         packetLossPercentage: Double,
         bufferbloatGrade: String? = nil,
+        platform: Platform? = nil,
+        declaredExternalLink: ExternalEquipmentLink? = nil,
         capturedAt: Date = Date()
     ) {
         self.gameID = gameID
@@ -33,7 +38,14 @@ public struct WidgetTelemetrySnapshot: Codable, Equatable, Sendable {
         self.jitterMs = jitterMs
         self.packetLossPercentage = packetLossPercentage
         self.bufferbloatGrade = bufferbloatGrade
+        self.platformRawValue = platform?.rawValue
+        self.declaredExternalLinkRawValue = declaredExternalLink?.rawValue
         self.capturedAt = capturedAt
+    }
+
+    public var platform: Platform? { platformRawValue.flatMap(Platform.init(rawValue:)) }
+    public var declaredExternalLink: ExternalEquipmentLink? {
+        declaredExternalLinkRawValue.flatMap(ExternalEquipmentLink.init(rawValue:))
     }
 
     /// Avalia se a medição ainda é fresca para fins competitivos (TTL = 4 horas).

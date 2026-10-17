@@ -18,7 +18,14 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
         let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: Date())
         XCTAssertEqual(payload.schemaVersion, 3)
-        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.09.19.1")
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.17.3")
+    }
+
+    func testRenewedBundledCatalogStartsWithoutCacheAfterPreviousExpiry() throws {
+        let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
+        let afterPreviousExpiry = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-10-20T00:00:00Z"))
+        let payload = try RemoteCatalogVerifier.verifyAndDecode(envelopeData: data, now: afterPreviousExpiry)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.17.3")
     }
 
     func testLaunchFallsBackToBaseWhenCacheIsInvalid() async throws {

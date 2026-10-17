@@ -27,7 +27,7 @@ object DeepLinkParser {
         val path = uri.path?.lowercase().orEmpty()
 
         if (scheme == "https") {
-            if (host != "lagcheck.app" && host != "www.lagcheck.app" && host != "check.lagcheck.app") {
+            if (host != "lagcheck.signallq.com") {
                 return null
             }
         }

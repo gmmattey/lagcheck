@@ -7,5 +7,5 @@ package com.lagcheck.network.worker
 data class WorkerEndpoints(
     val loadUrl: String = "https://nolaggy-deep-check.buildealabs.workers.dev/v1/load",
     val catalogUrl: String = "https://nolaggy-deep-check.buildealabs.workers.dev/v1/catalog.json",
-    val telemetryUrl: String = "https://nolaggy-deep-check.giammattey.workers.dev/v1/telemetry"
+    val telemetryUrl: String = "https://nolaggy-deep-check.buildealabs.workers.dev/v1/telemetry"
 )

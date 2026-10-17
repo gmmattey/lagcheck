@@ -2,17 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { buildCandidateCatalog, buildCanonicalCatalog, catalogExpansionGames } from "../catalog/catalog-v3.canonical.js";
+import { buildCanonicalCatalog, catalogExpansionGames } from "../catalog/catalog-v3.canonical.js";
 
-test("expansion has 48 unique games and preserves existing contexts", async () => {
-  const manifest = JSON.parse(await readFile(new URL("../catalog/artwork-manifest.json", import.meta.url)));
-  const candidate = buildCandidateCatalog(manifest);
+test("canonical publication source has 48 unique games and preserves existing contexts", async () => {
+  const candidate = buildCanonicalCatalog();
   const persisted = JSON.parse(await readFile(new URL("../catalog/catalog-v3.candidate.json", import.meta.url)));
   assert.deepEqual(persisted, candidate);
   assert.equal(candidate.games.length, 48);
   assert.equal(new Set(candidate.games.map(game => game.id)).size, 48);
-  assert.deepEqual(candidate.games.slice(0, 22), buildCanonicalCatalog().games);
-  
+  assert.equal(candidate.regions.length, 21);
+  assert.deepEqual(candidate.regions.slice(0, 2).map(region => region.id), ["sa-east-1", "us-east-1"]);
+  assert.ok(candidate.regions.every(region =>
+    region.probe.host === `gamelift-ping.${region.id}.api.aws` &&
+    region.probe.port === 7770 && region.probe.protocolKind === "gameLiftPing"
+  ));
+
   for (const game of candidate.games.slice(22)) {
     const expansionEntry = catalogExpansionGames.find(entry => entry[0] === game.id);
     assert.ok(expansionEntry, `Expansion game missing: ${game.id}`);

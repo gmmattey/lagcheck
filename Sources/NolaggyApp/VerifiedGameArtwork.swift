@@ -39,64 +39,9 @@ struct VerifiedGameArtwork: View {
     }
 
     private var localAssetImage: Image? {
-        let id = game.id.lowercased().replacingOccurrences(of: "-", with: "")
-        let mapping: [(String, String)] = [
-            ("deadbydaylight", "GameDeadByDaylight"),
-            ("forhonor", "GameForHonor"),
-            ("borderlands3", "GameBorderlands3"),
-            ("newworld", "GameNewWorld"),
-            ("fortnite", "GameFortnite"),
-            ("valorant", "GameValorant"),
-            ("warzone", "GameWarzone"),
-            ("cs2", "GameCs2"),
-            ("leagueoflegends", "GameLeagueOfLegends"),
-            ("roblox", "GameRoblox"),
-            ("freefire", "GameFreeFire"),
-            ("apex", "GameApexLegends"),
-            ("rainbowsix", "GameRainbowSix"),
-            ("rocketleague", "GameRocketLeague"),
-            ("dota2", "GameDota2"),
-            ("minecraft", "GameMinecraft"),
-            ("brawlstars", "GameBrawlStars"),
-            ("bloodstrike", "GameBloodStrike"),
-            ("rust", "GameRust"),
-            ("palworld", "GamePalworld"),
-            ("eafc", "GameEaFc"),
-            ("pubg", "GamePubg"),
-            ("callofduty", "GameCodm"),
-            ("codm", "GameCodm"),
-            ("wildrift", "GameWildRift"),
-            ("squidgame", "GameSquidGameUnleashed"),
-            ("darktide", "GameWarhammerDarktide"),
-            ("marvelsnap", "GameMarvelSnap"),
-            ("outlast", "GameTheOutlastTrials"),
-            ("midgard", "GameTribesOfMidgard"),
-            ("crossfar", "GameCrossfar"),
-            ("lostrift", "GameLostRift"),
-            ("starwarshunters", "GameStarWarsHunters"),
-            ("rematch", "GameRematch"),
-            ("predecessor", "GamePredecessor"),
-            ("supermegabaseball", "GameSuperMegaBaseball4"),
-            ("marauders", "GameMarauders"),
-            ("steelandsorcery", "GameLegacySteelAndSorcery"),
-            ("ninjala", "GameNinjala"),
-            ("rollerchampions", "GameRollerChampions"),
-            ("breakpoint", "GameGhostReconBreakpoint"),
-            ("darkalliance", "GameDarkAlliance"),
-            ("wolcen", "GameWolcenLordsOfMayhem"),
-            ("streamline", "GameStreamline"),
-            ("tacticool", "GameTacticool"),
-            ("ghostwar", "GameGhostWar"),
-            ("overwatch", "GameOverwatch2")
-        ]
-        for (key, assetName) in mapping {
-            if id.contains(key) {
-                if UIImage(named: assetName, in: .main, with: nil) != nil {
-                    return Image(assetName, bundle: .main)
-                }
-            }
-        }
-        return nil
+        guard let assetName = GameArtworkAssetResolver.assetName(for: game.id),
+              UIImage(named: assetName, in: .main, with: nil) != nil else { return nil }
+        return Image(assetName, bundle: .main)
     }
 
     private var artworkIdentity: String {

@@ -17,13 +17,13 @@ struct LagCheckClipApp: App {
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
                     guard let webpageURL = activity.webpageURL else { return }
                     if let deepLink = DeepLinkParser.parse(url: webpageURL),
-                       case let .quickCheck(gameID, _) = deepLink {
+                       case let .quickCheck(gameID, _, _) = deepLink {
                         targetGameID = gameID
                     }
                 }
                 .onOpenURL { url in
                     if let deepLink = DeepLinkParser.parse(url: url),
-                       case let .quickCheck(gameID, _) = deepLink {
+                       case let .quickCheck(gameID, _, _) = deepLink {
                         targetGameID = gameID
                     }
                 }

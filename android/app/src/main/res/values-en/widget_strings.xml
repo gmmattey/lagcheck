@@ -1,0 +1,9 @@
+<resources>
+    <string name="widget_no_recent_check">NO RECENT CHECK</string>
+    <string name="widget_tap_to_measure">Tap to measure</string>
+    <string name="widget_ping_format">%1$d ms</string>
+    <string name="widget_ready">RANKED READY</string>
+    <string name="widget_caution">UNSTABLE CONDITIONS</string>
+    <string name="widget_not_ready">AVOID RANKED FOR NOW</string>
+    <string name="widget_inconclusive">INCONCLUSIVE</string>
+</resources>

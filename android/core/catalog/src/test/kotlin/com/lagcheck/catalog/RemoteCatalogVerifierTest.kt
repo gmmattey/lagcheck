@@ -19,6 +19,7 @@ import org.junit.Test
 class RemoteCatalogVerifierTest {
     private val kp = newKeyPair()
     private val key = rawPublicKeyBase64(kp)
+    private val realCatalogNow = Instant.parse("2026-10-20T00:00:00Z")
 
     private fun verify(env: ByteArray, now: Instant = NOW) = RemoteCatalogVerifier.verifyAndDecode(env, now, key)
     private fun expect(error: RemoteCatalogError, env: ByteArray, now: Instant = NOW) {
@@ -29,24 +30,29 @@ class RemoteCatalogVerifierTest {
     // region Envelope real publicado pelo Worker (assinado com a chave privada do dono do produto)
 
     @Test fun realPublishedEnvelopeVerifiesWithProductionKey() {
-        val p = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), NOW)
+        val p = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), realCatalogNow)
         assertThat(p.schemaVersion).isEqualTo(3)
-        assertThat(p.catalogVersion).isEqualTo("catalog-v3-2026.09.19.1")
-        assertThat(p.games).hasSize(22)
-        assertThat(p.regions.map { it.id }).containsExactly("sa-east-1")
+        assertThat(p.catalogVersion).isEqualTo("catalog-v3-2026.10.17.3")
+        assertThat(p.games).hasSize(48)
+        assertThat(p.regions.map { it.id }).containsExactly(
+            "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1",
+            "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "eu-north-1", "eu-south-1",
+            "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-southeast-1", "ap-southeast-2",
+            "ap-south-1", "ap-east-1", "me-south-1", "af-south-1"
+        ).inOrder()
         assertThat(p.profiles).hasSize(3)
     }
 
     @Test fun realEnvelopeIsRejectedAfterExpiry() {
         val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-10-19T15:30:01Z"))
+            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-11-16T01:03:54Z"))
         }
         assertThat(e.error).isEqualTo(RemoteCatalogError.EXPIRED)
     }
 
     @Test fun realEnvelopeIsRejectedBeforeIssue() {
         val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-09-19T15:29:59Z"))
+            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-10-17T00:19:59Z"))
         }
         assertThat(e.error).isEqualTo(RemoteCatalogError.EXPIRED)
     }
@@ -57,14 +63,14 @@ class RemoteCatalogVerifierTest {
         val payload = Base64.getDecoder().decode(b64).toString(Charsets.UTF_8).replace("sa-east-1", "us-east-1")
         val tampered = text.replace(b64, Base64.getEncoder().encodeToString(payload.toByteArray()))
         val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(tampered.toByteArray(), NOW)
+            RemoteCatalogVerifier.verifyAndDecode(tampered.toByteArray(), realCatalogNow)
         }
         assertThat(e.error).isEqualTo(RemoteCatalogError.INVALID_SIGNATURE)
     }
 
     @Test fun realEnvelopeUnderAnotherKeyIsRejected() {
         val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), NOW, key)
+            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), realCatalogNow, key)
         }
         assertThat(e.error).isEqualTo(RemoteCatalogError.INVALID_SIGNATURE)
     }
@@ -100,7 +106,7 @@ class RemoteCatalogVerifierTest {
         expect(RemoteCatalogError.VERSION_MISMATCH, envelope(payload(catalogVersion = "other"), kp, catalogVersion = "test-catalog"))
 
     @Test fun oversizedPayload() {
-        val big = payload(games = defaultGame(name = "x".repeat(70_000)))
+        val big = payload(games = defaultGame(name = "x".repeat(140_000)))
         expect(RemoteCatalogError.PAYLOAD_TOO_LARGE, envelope(big, kp))
     }
 
@@ -168,6 +174,35 @@ class RemoteCatalogVerifierTest {
             confidence = "high", precision = "dedicatedServer")
         val p = verify(envelope(payload(games = defaultGame(contexts = context(routes = "$owned,${route()}"))), kp))
         assertThat(p.games.single().contexts.single().routes).hasSize(2)
+    }
+
+    private fun activeOwnedRoute(
+        mode: String = "automaticValidatedCandidates", appId: Int = 730, evidence: String = "https://operator.example/pcap"
+    ): String {
+        val candidate = """{"id":"c1","priority":10,"host":"c1.community.example","queryPort":27015,"region":"g-br",""" +
+            """"expectedIdentity":{"appID":$appId,"gameDirectory":"csgo","namePrefix":"Community"},"operatorEvidenceURL":"$evidence"}"""
+        val selection = ""","selection":{"mode":"$mode","maxCandidates":3,"candidates":[$candidate]}"""
+        val owned = route(id = "g-owned", kind = "gameOwned", status = "active", region = "g-br", strategy = "dedicatedServer",
+            confidence = "high", precision = "dedicatedServer", extra = selection)
+        return "$owned,${route()}"
+    }
+
+    @Test fun activeOwnedRouteWithSignedSteamCandidateIsAcceptedAndKeepsIdentity() {
+        val p = verify(envelope(payload(games = defaultGame(contexts = context(routes = activeOwnedRoute()))), kp))
+        val owned = p.games.single().contexts.single().routes!!.first { it.kind == RouteKind.GAME_OWNED }
+        assertThat(owned.candidates!!.single().identity).isEqualTo(RouteIdentity(730, "csgo", "Community"))
+        assertThat(owned.candidates!!.single().operatorEvidenceUrl).isEqualTo("https://operator.example/pcap")
+    }
+
+    @Test fun activeOwnedRouteNeedsAutomaticValidatedSelectionMode() =
+        expect(RemoteCatalogError.INVALID_ROUTE, envelope(payload(games = defaultGame(contexts = context(routes = activeOwnedRoute(mode = "firstResponder")))), kp))
+
+    @Test fun activeOwnedCandidateNeedsHttpsOperatorEvidence() =
+        expect(RemoteCatalogError.INVALID_ROUTE, envelope(payload(games = defaultGame(contexts = context(routes = activeOwnedRoute(evidence = "http://operator.example")))), kp))
+
+    @Test fun activeOwnedCandidateAppIdMustFitA2SInfoSixteenBits() {
+        expect(RemoteCatalogError.INVALID_ROUTE, envelope(payload(games = defaultGame(contexts = context(routes = activeOwnedRoute(appId = 65_536)))), kp))
+        expect(RemoteCatalogError.INVALID_ROUTE, envelope(payload(games = defaultGame(contexts = context(routes = activeOwnedRoute(appId = 0)))), kp))
     }
 
     @Test fun duplicatePlatformInSameMarketIsRejected() =

@@ -80,6 +80,12 @@ extension QuickCheckFeatureView {
             in: catalog,
             preflighting: SteamA2SRoutePreflight()
         ) else { return nil }
+        // Uma rota própria só pode substituir a referência após a identidade
+        // passar na pré-validação. Sem isso, a Decisão 90 pré-lê as regiões
+        // AWS assinadas e escolhe pelo RTT observado.
+        guard resolved.routeKind == .gameOwned else {
+            return try? CatalogMeasurementJourney.regionalSnapshot(for: context, in: catalog, manualRegionID: manualRegionID)
+        }
         return try? RegionalSelectionSnapshot(
             catalogVersion: resolved.catalogVersion,
             context: context,
@@ -188,9 +194,20 @@ extension QuickCheckFeatureView {
                             jitterMs: metrics.jitterMilliseconds ?? 0.0,
                             packetLossPercentage: metrics.packetLossPercentage,
                             bufferbloatGrade: entry.deepCheck?.metrics.loadImpact?.bufferbloatGrade.rawValue,
+                            platform: entry.resolvedContext.context.platform,
+                            declaredExternalLink: entry.resolvedContext.context.declaredExternalLink,
                             capturedAt: Date()
                         )
-                        SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                        if WidgetArtworkSnapshotWriter.saveArtwork(forGameID: entry.resolvedContext.context.gameID) {
+                            SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                        } else {
+                            SharedAppGroupStore.shared.clearSnapshot()
+                        }
+                        WidgetArtworkSnapshotWriter.refreshWidget()
+                    } else {
+                        // Um novo resultado inconclusivo nunca reutiliza telemetria anterior como se fosse atual.
+                        SharedAppGroupStore.shared.clearSnapshot()
+                        WidgetArtworkSnapshotWriter.refreshWidget()
                     }
 
 

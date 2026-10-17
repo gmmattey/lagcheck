@@ -479,9 +479,19 @@ struct DeepCheckFeatureView: View {
                     jitterMs: result.restResult.metrics.jitterMilliseconds ?? 0.0,
                     packetLossPercentage: result.restResult.metrics.packetLossPercentage,
                     bufferbloatGrade: result.metrics.loadImpact?.bufferbloatGrade.rawValue,
+                    platform: activeContext.context.platform,
+                    declaredExternalLink: activeContext.context.declaredExternalLink,
                     capturedAt: Date()
                 )
-                SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                if WidgetArtworkSnapshotWriter.saveArtwork(forGameID: activeContext.context.gameID) {
+                    SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                } else {
+                    SharedAppGroupStore.shared.clearSnapshot()
+                }
+                WidgetArtworkSnapshotWriter.refreshWidget()
+            } else {
+                SharedAppGroupStore.shared.clearSnapshot()
+                WidgetArtworkSnapshotWriter.refreshWidget()
             }
 
             if !hasTrackedTerminalEvent {

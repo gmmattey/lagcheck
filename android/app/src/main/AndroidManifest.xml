@@ -65,6 +65,17 @@
             </intent-filter>
         </activity>
         <receiver android:name=".data.PreMatchReminderReceiver" android:exported="false" />
+        <receiver
+            android:name=".widget.LagCheckWidgetProvider"
+            android:exported="false"
+            android:label="LagCheck">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lagcheck_widget_info" />
+        </receiver>
 
         <!-- Ícone do app (Decisão 83): um alias por ícone; só um fica habilitado. O Clássico é o padrão. -->
         <activity-alias

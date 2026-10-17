@@ -1,3 +1,5 @@
+import artworkManifest from "./artwork-manifest.json" with { type: "json" };
+
 // Fonte canônica do schema 3. Não é um envelope e não pode ser servido ao app
 // antes de passar pelo assinador externo. Toda rota própria começa pendente até
 // ter host, codec e evidência validados; a AWS mantém cada título mensurável.
@@ -26,7 +28,7 @@ const artwork = {
   "rocket-league-sideswipe": ["rocket-league-sideswipe.png", "6cb85405784ae1bdfd459b3e5503540392a7025bba2e5f4807510dffc278dfda"]
 };
 
-const games = [
+const establishedGames = [
   ["fortnite", "Fortnite", ["iphone", "playstation", "xbox", "pc", "nintendo"], "BATTLE_ROYALE_COMPETITIVE"],
   ["call-of-duty-mobile", "Call of Duty: Mobile", ["iphone"], "BATTLE_ROYALE_COMPETITIVE"],
   ["free-fire", "Free Fire", ["iphone"], "BATTLE_ROYALE_COMPETITIVE"],
@@ -57,6 +59,32 @@ const profileVersions = {
   CASUAL_REALTIME: "casual-realtime-2026.09.08.1"
 };
 
+// Decisão 90: a referência é escolhida pela menor latência UDP observada,
+// entre regiões assinadas; nunca pelo país, idioma ou posição neste array.
+const globalProbeRegions = [
+  ["sa-east-1", "São Paulo", "São Paulo", "São Paulo"],
+  ["us-east-1", "Virgínia do Norte", "N. Virginia", "Virginia del Norte"],
+  ["us-east-2", "Ohio", "Ohio", "Ohio"],
+  ["us-west-1", "Norte da Califórnia", "N. California", "Norte de California"],
+  ["us-west-2", "Oregon", "Oregon", "Oregón"],
+  ["ca-central-1", "Canadá Central", "Central Canada", "Canadá Central"],
+  ["eu-central-1", "Frankfurt", "Frankfurt", "Fráncfort"],
+  ["eu-west-1", "Irlanda", "Ireland", "Irlanda"],
+  ["eu-west-2", "Londres", "London", "Londres"],
+  ["eu-west-3", "Paris", "Paris", "París"],
+  ["eu-north-1", "Estocolmo", "Stockholm", "Estocolmo"],
+  ["eu-south-1", "Milão", "Milan", "Milán"],
+  ["ap-northeast-1", "Tóquio", "Tokyo", "Tokio"],
+  ["ap-northeast-2", "Seul", "Seoul", "Seúl"],
+  ["ap-northeast-3", "Osaka", "Osaka", "Osaka"],
+  ["ap-southeast-1", "Cingapura", "Singapore", "Singapur"],
+  ["ap-southeast-2", "Sydney", "Sydney", "Sídney"],
+  ["ap-south-1", "Mumbai", "Mumbai", "Mumbai"],
+  ["ap-east-1", "Hong Kong", "Hong Kong", "Hong Kong"],
+  ["me-south-1", "Bahrein", "Bahrain", "Baréin"],
+  ["af-south-1", "Cidade do Cabo", "Cape Town", "Ciudad del Cabo"]
+];
+
 function routesFor(gameID, platform) {
   const key = `${gameID}-${platform}`;
   return [
@@ -71,32 +99,7 @@ function routesFor(gameID, platform) {
   ];
 }
 
-export function buildCanonicalCatalog() {
-  return {
-    schemaVersion: 3,
-    catalogVersion: "catalog-v3-2026.09.19.1",
-    assetBaseURL: "https://nolaggy-deep-check.buildealabs.workers.dev/",
-    profiles: Object.entries(profileVersions).map(([id, ruleVersion]) => ({ id, ruleVersion })),
-    regions: [{
-      id: "sa-east-1", label: { "pt-BR": "São Paulo", en: "São Paulo", es: "São Paulo" },
-      probe: { host: "gamelift-ping.sa-east-1.api.aws", port: 7770, protocolKind: "gameLiftPing" }
-    }],
-    games: games.map(([id, name, platforms, profileID]) => {
-      const [filename, sha256] = artwork[id];
-      return {
-        id, name,
-        artwork: { path: `artwork/games/${filename}`, sha256 },
-        rating: { status: "pendingVerification", sourceName: "Aguardando fonte editorial verificável" },
-        contexts: platforms.map(platform => ({
-          market: "BR", platforms: [platform], profileID, availability: "available", measurement: null,
-          routes: routesFor(id, platform)
-        }))
-      };
-    })
-  };
-}
-
-// Decisão 70: expansion authorized locally; never serve these unsigned bytes.
+// Decisão 89: estas expansões são parte da fonte canônica a ser assinada.
 export const catalogExpansionGames = [
   ["dead-by-daylight", "Dead by Daylight", ["playstation", "xbox", "pc", "nintendo"], "CASUAL_REALTIME"],
   ["for-honor", "For Honor", ["playstation", "xbox", "pc"], "CASUAL_REALTIME"],
@@ -126,20 +129,37 @@ export const catalogExpansionGames = [
   ["overwatch-2", "Overwatch 2", ["playstation", "xbox", "pc", "nintendo"], "BATTLE_ROYALE_COMPETITIVE"]
 ];
 
-export function buildCandidateCatalog(manifest) {
-  const catalog = buildCanonicalCatalog();
-  catalog.catalogVersion = "catalog-v3-2026.10.03.1";
-  for (const [id, name, platforms, profileID] of catalogExpansionGames) {
-    const item = manifest.items.find(item => item.gameID === id);
-    if (!item) throw new Error(`Missing artwork: ${id}`);
-    catalog.games.push({
-      id, name, artwork: { path: `artwork/games/${id}.png`, sha256: item.sha256 },
-      rating: { status: "pendingVerification", sourceName: "Aguardando fonte editorial verificável" },
-      contexts: platforms.map(platform => ({
-        market: "BR", platforms: [platform], profileID, availability: "available", measurement: null,
-        routes: routesFor(id, platform)
-      }))
-    });
-  }
-  return catalog;
+const expansionArtwork = new Map(artworkManifest.items.map(item => [item.gameID, item]));
+const publishedGames = [...establishedGames, ...catalogExpansionGames];
+
+function artworkFor(gameID) {
+  if (artwork[gameID]) return artwork[gameID];
+  const item = expansionArtwork.get(gameID);
+  if (!item) throw new Error(`Missing artwork: ${gameID}`);
+  return [item.path.split("/").at(-1), item.sha256];
+}
+
+export function buildCanonicalCatalog() {
+  return {
+    schemaVersion: 3,
+    catalogVersion: "catalog-v3-2026.10.17.3",
+    assetBaseURL: "https://nolaggy-deep-check.buildealabs.workers.dev/",
+    profiles: Object.entries(profileVersions).map(([id, ruleVersion]) => ({ id, ruleVersion })),
+    regions: globalProbeRegions.map(([id, ptBR, en, es]) => ({
+      id, label: { "pt-BR": ptBR, en, es },
+      probe: { host: `gamelift-ping.${id}.api.aws`, port: 7770, protocolKind: "gameLiftPing" }
+    })),
+    games: publishedGames.map(([id, name, platforms, profileID]) => {
+      const [filename, sha256] = artworkFor(id);
+      return {
+        id, name,
+        artwork: { path: `artwork/games/${filename}`, sha256 },
+        rating: { status: "pendingVerification", sourceName: "Aguardando fonte editorial verificável" },
+        contexts: platforms.map(platform => ({
+          market: "BR", platforms: [platform], profileID, availability: "available", measurement: null,
+          routes: routesFor(id, platform)
+        }))
+      };
+    })
+  };
 }

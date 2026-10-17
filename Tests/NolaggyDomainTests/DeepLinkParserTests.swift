@@ -6,27 +6,35 @@ final class DeepLinkParserTests: XCTestCase {
     func testParsesCustomSchemeQuickTest() {
         let url = URL(string: "lagcheck://quicktest")!
         let result = DeepLinkParser.parse(url: url)
-        XCTAssertEqual(result, .quickCheck(gameID: nil, platform: nil))
+        XCTAssertEqual(result, .quickCheck(gameID: nil, platform: nil, declaredExternalLink: nil))
     }
 
     func testParsesCustomSchemeCheckWithGameAndPlatform() {
         let url = URL(string: "lagcheck://check?game=valorant&platform=pc")!
         let result = DeepLinkParser.parse(url: url)
-        XCTAssertEqual(result, .quickCheck(gameID: "valorant", platform: .pc))
+        XCTAssertEqual(result, .quickCheck(gameID: "valorant", platform: .pc, declaredExternalLink: nil))
     }
 
     func testRejectsInvalidPlatformAndAcceptsEncodedGame() {
         let invalidUrl = URL(string: "lagcheck://check?game=valorant&platform=smartfridge")!
-        XCTAssertEqual(DeepLinkParser.parse(url: invalidUrl), .quickCheck(gameID: "valorant", platform: nil))
+        XCTAssertEqual(DeepLinkParser.parse(url: invalidUrl), .quickCheck(gameID: "valorant", platform: nil, declaredExternalLink: nil))
 
         let encodedUrl = URL(string: "https://lagcheck.signallq.com/check?GAME=call%20of%20duty")!
-        XCTAssertEqual(DeepLinkParser.parse(url: encodedUrl), .quickCheck(gameID: "call of duty", platform: nil))
+        XCTAssertEqual(DeepLinkParser.parse(url: encodedUrl), .quickCheck(gameID: "call of duty", platform: nil, declaredExternalLink: nil))
     }
 
     func testParsesUniversalLinkWithGame() {
         let url = URL(string: "https://lagcheck.signallq.com/check?game=fortnite")!
         let result = DeepLinkParser.parse(url: url)
-        XCTAssertEqual(result, .quickCheck(gameID: "fortnite", platform: nil))
+        XCTAssertEqual(result, .quickCheck(gameID: "fortnite", platform: nil, declaredExternalLink: nil))
+    }
+
+    func testParsesWidgetContextWithoutInventingUnsupportedValues() {
+        let url = URL(string: "lagcheck://check?game=valorant&platform=pc&external_link=ethernet")!
+        XCTAssertEqual(
+            DeepLinkParser.parse(url: url),
+            .quickCheck(gameID: "valorant", platform: .pc, declaredExternalLink: .ethernet)
+        )
     }
 
     func testParsesNetworkCockpit() {

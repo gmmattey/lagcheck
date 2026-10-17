@@ -9,6 +9,8 @@ public final class SharedAppGroupStore: @unchecked Sendable {
 
     public static let appGroupIdentifier = "group.com.lagcheck.app"
     public static let snapshotKey = "lagcheck.shared.telemetry.snapshot"
+    public static let artworkKey = "lagcheck.shared.telemetry.artwork"
+    public static let maximumArtworkBytes = 1_000_000
 
     private let userDefaults: UserDefaults
 
@@ -38,8 +40,27 @@ public final class SharedAppGroupStore: @unchecked Sendable {
         return try? decoder.decode(WidgetTelemetrySnapshot.self, from: data)
     }
 
+    /// A miniatura é um derivado local da arte já aprovada pelo cliente iOS.
+    /// O widget nunca baixa arte nem consulta o catálogo por conta própria.
+    @discardableResult
+    public func saveLatestArtwork(_ data: Data?) -> Bool {
+        guard let data, !data.isEmpty, data.count <= Self.maximumArtworkBytes else {
+            userDefaults.removeObject(forKey: Self.artworkKey)
+            return false
+        }
+        userDefaults.set(data, forKey: Self.artworkKey)
+        return true
+    }
+
+    public func loadLatestArtwork() -> Data? {
+        guard let data = userDefaults.data(forKey: Self.artworkKey),
+              !data.isEmpty, data.count <= Self.maximumArtworkBytes else { return nil }
+        return data
+    }
+
     /// Limpa o snapshot compartilhado (usado em testes ou reset de diagnóstico).
     public func clearSnapshot() {
         userDefaults.removeObject(forKey: SharedAppGroupStore.snapshotKey)
+        userDefaults.removeObject(forKey: SharedAppGroupStore.artworkKey)
     }
 }

@@ -170,3 +170,23 @@ O trabalho é sistêmico porque corrige a retenção persistida no Android e acr
 
 **Riscos e provas obrigatórias:** vetores de inclusão/exclusão e retenção nos dois clientes; casos com legado, inconclusivo, contexto divergente e apagamento; inspeção de localização. Simulador/emulador valida somente composição e foco; hardware continua necessário para VoiceOver/TalkBack e escala real.
 
+## 10. Gate — Issue #49: Widget de prontidão por jogo iOS e Android
+
+### Parecer de Camillo
+
+**can proceed with listed constraints**
+
+O recorte é sistêmico porque acrescenta uma superfície Android, um contrato de snapshot local derivado para cada plataforma, miniatura compartilhada com extensão/widget e retomada que pode iniciar medição. Não altera o algoritmo, score, veredito, catálogo remoto, Worker, telemetria, PII ou custo recorrente.
+
+| Área | Contrato obrigatório |
+| --- | --- |
+| Fonte de arte | Cada cliente usa exclusivamente seu catálogo assinado válido e cache/resource editorial autorizado. O widget jamais consome arte, arquivo, URL ou captura produzida pelo outro cliente. |
+| Snapshot | É derivado e substituível, escrito só ao final de Check válido. Inclui `gameID`, plataforma, vínculo externo, região, métricas observadas, veredito, instante e a referência local da miniatura. Não substitui histórico nem entra em telemetria. |
+| iOS | A extensão lê snapshot e miniatura já materializados no App Group; não baixa arte. O URL é `lagcheck://check?game={id}` e o app revalida contexto antes de iniciar. |
+| Android | O `AppWidgetProvider` em `:app` lê snapshot privado e resource editorial da própria build; não baixa arte. O `Intent` entrega o `gameID` para `MainActivity`, que resolve o contexto e dispara o fluxo normal. |
+| Expiração e falhas | Após quatro horas, inconclusivo, arte incompatível, catálogo inválido ou jogo removido, o widget não mostra P50/veredito como atual. Mostra CTA contextual somente quando o jogo ainda for resolúvel; caso contrário, identidade neutra. |
+| Concorrência e segurança | Não há medição/fetch em background. Toque explícito é a intenção do Check. Sessão já ativa, mudança de rede, contexto incompatível ou catálogo inválido preservam os guardrails existentes e mostram recuperação, nunca uma segunda sessão. |
+| Rollback | A remoção do widget/snapshot não afeta histórico, catálogo ou resultado. O snapshot pode ser apagado localmente; não existe migração/servidor. |
+
+**Riscos e provas obrigatórias:** teste de serialização, expiração, invalidação de arte e deep link por plataforma; render em tamanhos suportados; app frio/segundo plano; offline; troca de catálogo; Dynamic Type/VoiceOver no iOS e font scale/TalkBack/redimensionamento no Android; aparelhos físicos em ambas as plataformas. Uma captura ou build de uma plataforma não aprova a outra.
+

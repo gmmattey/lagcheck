@@ -10,7 +10,7 @@ class CatalogPresentationTest {
     private val root = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
         .first { File(it, "worker/catalog/catalog-v3.envelope.json").exists() }
     private val payload = RemoteCatalogVerifier.verifyAndDecode(
-        File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), Instant.parse("2026-10-03T12:00:00Z")
+        File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), Instant.parse("2026-10-20T00:00:00Z")
     )
 
     @Test fun unknownGameAppearsWithoutALocalRegistryEntry() {

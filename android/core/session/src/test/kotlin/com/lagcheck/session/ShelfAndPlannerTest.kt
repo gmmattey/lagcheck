@@ -12,7 +12,7 @@ import org.junit.Test
 
 /** Guarda de aderência: a prateleira da UI não pode se afastar do catálogo assinado. */
 class ShelfAndPlannerTest {
-    private val now = Instant.parse("2026-10-03T12:00:00Z")
+    private val now = Instant.parse("2026-10-20T00:00:00Z")
     private val root: File = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
         .first { File(it, "worker/catalog/catalog-v3.envelope.json").exists() }
     private val payload = RemoteCatalogVerifier.verifyAndDecode(File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), now)
@@ -48,9 +48,12 @@ class ShelfAndPlannerTest {
                 assertThat(shelf.id).isAnyOf("rainbow-six-mobile", "rocket-league-sideswipe")
                 continue
             }
-            val file = File(drawables, shelf.drawableResName + ".jpg")
-            assertThat(file.exists()).isTrue()
-            val sha = java.security.MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+            val file = listOf("jpg", "png")
+                .map { extension -> File(drawables, "${shelf.drawableResName}.$extension") }
+                .firstOrNull(File::exists)
+            assertThat(file).isNotNull()
+            val artworkFile = requireNotNull(file)
+            val sha = java.security.MessageDigest.getInstance("SHA-256").digest(artworkFile.readBytes()).joinToString("") { "%02x".format(it) }
             val declared = payload.games.first { it.id == shelf.id }.artwork!!.sha256
             assertThat(sha).isEqualTo(declared) // mesma arte autoral aprovada do catálogo (Decisões 18 e 44)
         }
@@ -89,6 +92,15 @@ class ShelfAndPlannerTest {
         val plan = MeasurementPlanner.plan(payload, PlatformLabels.GENERIC_GAME_ID, "Android", now = now) as PlanResult.Ready
         assertThat(plan.context.profileId).isEqualTo(QualityProfileId.BATTLE_ROYALE_COMPETITIVE)
         assertThat(plan.context.regionId).isEqualTo("sa-east-1")
+    }
+
+    @Test fun regionalPlanPreReadsEverySignedReferenceBeforeChoosing() {
+        val snapshot = MeasurementPlanner.planRegional(payload, "fortnite", "Mobile", now = now)!!
+
+        assertThat(snapshot.candidates.map { it.regionId }).isEqualTo(payload.regions.map { it.id })
+        assertThat(snapshot.candidates.map { it.priority }.toSet()).containsExactly(0)
+        assertThat(snapshot.candidates[0].resolvedContext.destination.host).isEqualTo("gamelift-ping.sa-east-1.api.aws")
+        assertThat(snapshot.candidates[1].resolvedContext.destination.host).isEqualTo("gamelift-ping.us-east-1.api.aws")
     }
 
     @Test fun unsupportedGamePlatformCombinationFailsExplicitly() {

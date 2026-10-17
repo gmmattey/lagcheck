@@ -19,7 +19,7 @@ criação no Play Console, revisão, pré-registro ativo ou publicação.
 
 | Campo | Valor |
 | --- | --- |
-| Nome | `LagCheck: Rota para Jogos` |
+| Nome | `LagCheck: Rota Gamer` |
 | Tipo | Aplicativo |
 | Categoria | Ferramentas |
 | Preço | Gratuito |
@@ -35,16 +35,16 @@ em minúsculas; `LagCheck` é usado em texto corrido e no nome do app.
 
 ## Metadados pt-BR
 
-### Nome do app (25/30)
+### Nome do app (20/30)
 
 ```text
-LagCheck: Rota para Jogos
+LagCheck: Rota Gamer
 ```
 
-### Descrição curta (64/80)
+### Descrição curta (33/80)
 
 ```text
-Veja latência, jitter e perda na rota antes de entrar no ranked.
+Sua conexão tá pronta para jogar?
 ```
 
 ### Descrição completa
@@ -87,20 +87,24 @@ O vídeo com Warzone enviado como referência não integra esta ficha. Ele usa
 propriedade de terceiros e o Google Play aceita vídeo de prévia apenas por URL
 do YouTube, não por MP4 enviado diretamente.
 
-## Data safety e privacidade — conferência antes do Console
+## Data safety e privacidade — rascunho para conferência antes do Console
 
 Esta ficha não substitui o formulário do Google Play Console. Antes de enviar
 ou ativar pré-registro, conferir o build de distribuição, o comportamento atual
 dos SDKs e as declarações dos fornecedores para preencher cada resposta.
 
-- Declarar que o app contém anúncios.
-- Revisar AdMob, UMP e a permissão `AD_ID` no formulário de Data safety com a
-  documentação atual do Google; não usar a declaração histórica de “sem
-  publicidade”.
-- Confirmar que dados de publicidade não incluem amostras, score, veredito,
-  jogo, região ou telemetria do Worker.
+- Declarar a telemetria que sai do dispositivo: identificador pseudônimo por
+  instalação e eventos de produto, podendo incluir jogo, plataforma e classe
+  de veredito. Não declarar como “sem coleta”.
+- No formulário, conferir a classificação de `App activity` e `Identifiers`,
+  finalidade de analytics, criptografia em trânsito, compartilhamento e
+  exclusão com o comportamento do Worker e do build final.
+- O Android atual contém integração de anúncios; revisar AdMob, UMP e a
+  permissão `AD_ID` no artefato distribuído e declarar suas práticas atuais.
+  Não misturar dados de publicidade com amostras, score, veredito, jogo, região
+  ou telemetria do Worker.
 - Conferir a política publicada em `/privacy/` e atualizar qualquer mudança de
-  SDK, finalidade ou fluxo de consentimento antes de distribuir um build.
+  SDK, finalidade, retenção ou fluxo de consentimento antes de distribuir um build.
 - Usar AAB assinado apenas para declarar dispositivos suportados no pré-registro;
   esse upload não disponibiliza o app para instalação.
 

@@ -63,7 +63,8 @@ data class CatalogRoute(
     val precisionKey: String,
     val validUntil: String?,
     val selectionMaxCandidates: Int?,
-    val candidates: List<RouteCandidate>?
+    val candidates: List<RouteCandidate>?,
+    val selectionMode: String? = null
 )
 
 data class CatalogGameContext(
@@ -150,3 +151,17 @@ class RemoteCatalogException(val error: RemoteCatalogError, cause: Throwable? = 
 class CatalogResolutionException(message: String) : Exception(message)
 
 internal fun String.toInstantOrNull(): Instant? = try { Instant.parse(this) } catch (_: Exception) { null }
+
+/** Candidato próprio já resolvido, ainda NÃO elegível: só vira rota depois da pré-validação de identidade. */
+data class OwnedRouteCandidate(val context: ResolvedMeasurementContext, val identity: RouteIdentity, val priority: Int)
+
+/** Política automática de uma rota v3: candidatos próprios assinados (ordem determinística) e a AWS assinada como retorno. */
+data class RoutePlan(val ownedCandidates: List<OwnedRouteCandidate>, val fallback: ResolvedMeasurementContext)
+
+/**
+ * Porta para a pré-validação de uma rota própria. Recebe só candidato do catálogo assinado; a implementação
+ * nunca descobre nem percorre outros hosts. Qualquer falha devolve `false`.
+ */
+fun interface GameRoutePreflighting {
+    suspend fun validates(candidate: ResolvedMeasurementContext, identity: RouteIdentity): Boolean
+}

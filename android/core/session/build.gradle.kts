@@ -17,6 +17,7 @@ dependencies {
     api(project(":core:network"))
     implementation(libs.kotlinx.coroutines.core)
 
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)

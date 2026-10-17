@@ -1,7 +1,6 @@
 package com.lagcheck.catalog
 
 import com.google.common.truth.Truth.assertThat
-import com.lagcheck.catalog.CatalogTestSupport.NOW
 import com.lagcheck.catalog.CatalogTestSupport.realEnvelopeBytes
 import com.lagcheck.domain.model.MeasurementConfidence
 import com.lagcheck.domain.model.QualityProfileId
@@ -11,10 +10,11 @@ import org.junit.Test
 
 /** Resolução contra o catálogo v3 real publicado. */
 class RemoteCatalogResolverTest {
-    private val payload = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), NOW)
+    private val catalogNow = Instant.parse("2026-10-20T00:00:00Z")
+    private val payload = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), catalogNow)
 
     private fun available(game: String, platform: Platform): ResolvedMeasurementContext =
-        (RemoteCatalogResolver.resolve(GameContext(game, "BR", platform), payload, NOW) as RemoteCatalogResolution.Available).context
+        (RemoteCatalogResolver.resolve(GameContext(game, "BR", platform), payload, catalogNow) as RemoteCatalogResolution.Available).context
 
     @Test fun fortniteOnMobileUsesAwsFallbackWithGameLiftBeacon() {
         val r = available("fortnite", Platform.MOBILE)
@@ -43,39 +43,44 @@ class RemoteCatalogResolverTest {
     @Test fun gameWithoutMobileContextIsUnsupported() {
         // Valorant só tem contexto de console/PC no catálogo.
         assertThrows(CatalogResolutionException::class.java) {
-            RemoteCatalogResolver.resolve(GameContext("valorant", "BR", Platform.MOBILE), payload, NOW)
+            RemoteCatalogResolver.resolve(GameContext("valorant", "BR", Platform.MOBILE), payload, catalogNow)
         }
     }
 
     @Test fun unknownGameIsUnsupported() {
         assertThrows(CatalogResolutionException::class.java) {
-            RemoteCatalogResolver.resolve(GameContext("nope", "BR", Platform.MOBILE), payload, NOW)
+            RemoteCatalogResolver.resolve(GameContext("nope", "BR", Platform.MOBILE), payload, catalogNow)
         }
     }
 
     @Test fun invalidRequestStructureIsRejected() {
-        assertThrows(CatalogResolutionException::class.java) { RemoteCatalogResolver.resolve(GameContext("Fortnite", "BR"), payload, NOW) }
-        assertThrows(CatalogResolutionException::class.java) { RemoteCatalogResolver.resolve(GameContext("fortnite", "br"), payload, NOW) }
+        assertThrows(CatalogResolutionException::class.java) { RemoteCatalogResolver.resolve(GameContext("Fortnite", "BR"), payload, catalogNow) }
+        assertThrows(CatalogResolutionException::class.java) { RemoteCatalogResolver.resolve(GameContext("fortnite", "br"), payload, catalogNow) }
     }
 
     @Test fun genericGamingUsesCompetitiveProfileAndSaoPaulo() {
-        val r = (RemoteCatalogResolver.resolve(GameContext.genericGaming(), payload, NOW) as RemoteCatalogResolution.Available).context
+        val r = (RemoteCatalogResolver.resolve(GameContext.genericGaming(), payload, catalogNow) as RemoteCatalogResolution.Available).context
         assertThat(r.regionId).isEqualTo("sa-east-1")
         assertThat(r.profileId).isEqualTo(QualityProfileId.BATTLE_ROYALE_COMPETITIVE)
         assertThat(r.confidence).isEqualTo(MeasurementConfidence.MEDIUM)
     }
 
-    @Test fun genericGamingPreReadsOnlyThePrimaryRouteForItsMarket() {
-        val brazil = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("BR"), payload, NOW)
-        val unitedStates = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("US"), payload, NOW)
-        assertThat(brazil.map { it.regionId }).containsExactly("sa-east-1")
-        // O catálogo publicado só contém SA; US usa o primeiro destino assinado.
-        assertThat(unitedStates.map { it.regionId }).containsExactly("sa-east-1")
+    @Test fun genericGamingPreReadsEverySignedRegionalReference() {
+        val brazil = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("BR"), payload, catalogNow)
+        val unitedStates = RemoteCatalogResolver.resolveCandidates(GameContext.genericGaming("US"), payload, catalogNow)
+        assertThat(brazil.map { it.regionId }).isEqualTo(payload.regions.map { it.id })
+        assertThat(unitedStates.map { it.regionId }).isEqualTo(payload.regions.map { it.id })
+    }
+
+    @Test fun gamePreReadsEverySignedRegionalReference() {
+        val candidates = RemoteCatalogResolver.resolveCandidates(GameContext("fortnite", "BR", Platform.MOBILE), payload, catalogNow)
+        assertThat(candidates.map { it.regionId }).isEqualTo(payload.regions.map { it.id })
+        assertThat(candidates[1].destination).isEqualTo(ProbeDestination("gamelift-ping.us-east-1.api.aws", 7770, ProbeProtocolKind.GAMELIFT_PING))
     }
 
     @Test fun excludingTheOnlyActiveRouteMakesItUnavailableInsteadOfInventingOne() {
         val r = RemoteCatalogResolver.resolve(
-            GameContext("fortnite", "BR", Platform.MOBILE), payload, NOW, excludingRouteIds = setOf("fortnite-iphone-aws")
+            GameContext("fortnite", "BR", Platform.MOBILE), payload, catalogNow, excludingRouteIds = setOf("fortnite-iphone-aws")
         )
         assertThat(r).isEqualTo(RemoteCatalogResolution.Unavailable)
     }
@@ -89,7 +94,7 @@ class RemoteCatalogResolverTest {
 
     @Test fun everyMobileGameInTheCatalogResolvesOrIsExplicitlyAbsent() {
         val resolvable = payload.games.mapNotNull { g ->
-            runCatching { RemoteCatalogResolver.resolve(GameContext(g.id, "BR", Platform.MOBILE), payload, NOW) }.getOrNull()?.let { g.id }
+            runCatching { RemoteCatalogResolver.resolve(GameContext(g.id, "BR", Platform.MOBILE), payload, catalogNow) }.getOrNull()?.let { g.id }
         }
         assertThat(resolvable).containsAtLeast(
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile", "brawl-stars", "wild-rift",
@@ -105,7 +110,7 @@ class RemoteCatalogResolverTest {
                 })
             }
         )
-        assertThat(RemoteCatalogResolver.resolve(GameContext("fortnite", "BR", Platform.MOBILE), expired, NOW))
+        assertThat(RemoteCatalogResolver.resolve(GameContext("fortnite", "BR", Platform.MOBILE), expired, catalogNow))
             .isEqualTo(RemoteCatalogResolution.Unavailable)
         assertThat(RemoteCatalogResolver.resolve(GameContext("fortnite", "BR", Platform.MOBILE), expired, Instant.parse("2026-09-30T00:00:00Z")))
             .isInstanceOf(RemoteCatalogResolution.Available::class.java)
