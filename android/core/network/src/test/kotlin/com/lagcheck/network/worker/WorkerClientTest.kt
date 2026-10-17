@@ -31,6 +31,11 @@ class WorkerClientTest {
         server.start()
     }
 
+    @Test fun defaultTelemetryEndpointUsesTheActiveWorkerHost() {
+        assertThat(WorkerEndpoints().telemetryUrl)
+            .isEqualTo("https://nolaggy-deep-check.buildealabs.workers.dev/v1/telemetry")
+    }
+
     @Test fun catalogFetchReturnsEnvelopeBytes() = runBlocking {
         route("/v1/catalog.json", body = """{"a":1}""".toByteArray(), contentType = "application/json")
         assertThat(HttpCatalogFetcher("$base/v1/catalog.json").fetchCatalog().toString(Charsets.UTF_8)).isEqualTo("""{"a":1}""")
@@ -114,7 +119,7 @@ class WorkerClientTest {
             override suspend fun load() = saved
             override suspend fun save(catalog: StoredCatalog) { saved = catalog }
         }
-        val repo = RemoteCatalogRepository(real, HttpCatalogFetcher("$base/v1/catalog.json"), cache, { Instant.parse("2026-10-03T12:00:00Z") })
+        val repo = RemoteCatalogRepository(real, HttpCatalogFetcher("$base/v1/catalog.json"), cache, { Instant.parse("2026-10-20T00:00:00Z") })
         assertThat(repo.refreshIfDue()).isTrue()
         assertThat(repo.loadedCatalogForLaunch().source).isEqualTo(CatalogSource.CACHED_REMOTE)
     }

@@ -8,7 +8,7 @@ Documento canônico contendo todos os metadados, regras de preenchimento e instr
 
 | Campo | Valor Exato | Observações |
 | :--- | :--- | :--- |
-| **Nome da Ficha** | `LagCheck: Teste de Ping Gamer` | 29 / 30 caracteres. |
+| **Nome da Ficha** | `LagCheck: Rota Gamer` | 20 / 30 caracteres. |
 | **Plataformas** | `iOS` | iPhone (iOS 17+). |
 | **Idioma Principal** | `Português (Brasil)` | Primary Language padrão. |
 | **Bundle ID** | `com.lagcheck.app` | Registrado em *Certificates, Identifiers & Profiles*. |
@@ -24,27 +24,25 @@ Documento canônico contendo todos os metadados, regras de preenchimento e instr
 
 ## 2. Metadados — Português (Brasil) [pt-BR]
 
-### Nome do App (29 / 30 car.)
+### Nome do App (20 / 30 car.)
 ```text
-LagCheck: Teste de Ping Gamer
+LagCheck: Rota Gamer
 ```
-*(Alternativa B: `LagCheck: Ping & Rota Gamer` — 27 car.)*
 
-### Subtítulo (28 / 30 car.)
+### Subtítulo (22 / 30 car.)
 ```text
-Latência, jitter e perda UDP
+Sua conexão tá pronta?
 ```
-*(Alternativa B de momento gamer: `Pronto para ranked? Teste rota` — 30 car.)*
 
-### Palavras-chave / Keywords (97 / 100 car.)
+### Palavras-chave / Keywords (85 / 100 car.)
 > **Regra:** Separadas apenas por vírgula, sem espaços, sem palavras do Nome/Subtítulo.
 ```text
-conexao,wifi,rota,bufferbloat,ranked,packet,loss,jogos,internet,estabilidade,rede,ms,speed,online
+latência,jitter,perda,bufferbloat,wifi,rede,conexão,teste,online,estabilidade,partida
 ```
 
 ### Texto Promocional (151 / 170 car.)
 ```text
-Descubra se a sua conexão aguenta a partida competitiva antes de perder pontos na ranked. Medição real de latência, jitter e oscilação de rota via UDP.
+Veja como a rota está antes da partida: latência, jitter e perda em uma infraestrutura de referência. Sem nota inventada quando faltam dados.
 ```
 
 ### Descrição Completa (pt-BR)
@@ -53,18 +51,18 @@ Sua internet pode ter 500 Mega para baixar filmes, mas oscilar e travar no meio 
 
 Velocidade de download não ganha jogo. O que define a sua partida online é a estabilidade dos pacotes UDP: latência média (ping), variação de milissegundos (jitter) e pacotes descartados pelo caminho (packet loss).
 
-O LagCheck mede a rota do seu iPhone até infraestruturas de referência gamer simulando o tráfego real de jogos. Nada de ping falso de navegador via HTTP ou notas inventadas.
+O LagCheck mede a rota do seu iPhone até uma infraestrutura de referência. Não é o ping oficial de um jogo; para console ou PC, a leitura é uma estimativa da conexão no mesmo ambiente. Nada de ping de navegador via HTTP ou notas inventadas.
 
 POR QUE O LAGCHECK É DIFERENTE?
 • Veredito Direto: Sem gráficos confusos ou textão na hora da partida. Você recebe um veredito claro e instantâneo: "Pronto para Ranked", "Evitaria Ranked Agora" ou "Condições Instáveis".
 • Teste de Rota Real sob Carga: Mede o repouso e simula o tráfego concorrente da sua casa para identificar bufferbloat (quando o ping explode se alguém abre um vídeo na rede).
-• Atestado Oficial para o Squad: Gere em 1 toque o Card Oficial de Conexão formatado para Discord e WhatsApp. Prove para seus amigos se a culpa do lag é da sua internet ou do servidor.
-• Diagnóstico Honesto: Identificamos se o gargalo está no alcance do seu Wi-Fi ou na rota externa, sem prometer milagres ou acusar sua operadora sem evidência técnica real.
+• Leitura para o Squad: Gere em 1 toque um card com a leitura daquela sessão para Discord e WhatsApp.
+• Diagnóstico Honesto: Mostra sintomas observados sem prometer milagres ou acusar Wi-Fi, operadora ou servidor sem evidência isolada.
 • Modo Console e PC: Meça a rota pelo iPhone e estime o comportamento para seu videogame ou computador no mesmo cômodo.
 
 TRANSPARÊNCIA TOTAL
 • Zero anúncios invasivos bloqueando seu teste.
-• Sem cadastro, sem login e sem coleta de dados pessoais ou histórico de navegação.
+• Sem cadastro ou login. A telemetria mínima de produto é pseudônima e não inclui nome, e-mail, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização.
 • Medição determinística: se a rede estiver instável demais para garantir precisão, o resultado é inconclusivo — nunca uma nota enganosa.
 
 Antes de dar ready na fila competitiva, faça o LagCheck.
@@ -74,25 +72,24 @@ Antes de dar ready na fila competitiva, faça o LagCheck.
 
 ## 3. Metadados — Inglês (EUA / Global) [en-US]
 
-### App Name (28 / 30 car.)
+### App Name (21 / 30 car.)
 ```text
-LagCheck: Gamer Ping & Route
+LagCheck: Gamer Route
 ```
 
-### Subtitle (27 / 30 car.)
+### Subtitle (24 / 30 car.)
 ```text
-Real UDP jitter & loss test
+Is your connection ready?
 ```
-*(Option B: `Ready for ranked? Check ping` — 28 car.)*
 
-### Keywords (100 / 100 car.)
+### Keywords (90 / 100 car.)
 ```text
-latency,jitter,packet,loss,bufferbloat,network,wifi,route,gaming,ready,check,speed,server,connection
+latency,jitter,loss,bufferbloat,network,wifi,connection,test,online,stability,match,packet
 ```
 
 ### Promotional Text (133 / 170 car.)
 ```text
-Know if your connection is ready for ranked before you queue. Real UDP latency, jitter, and bufferbloat route check without guessing.
+See how your route looks before you queue: latency, jitter, and packet loss to reference infrastructure. No made-up score when data is insufficient.
 ```
 
 ### Full Description (en-US)
@@ -101,18 +98,18 @@ Your internet might have 500 Mbps for video streaming, but still spike and stutt
 
 Download bandwidth doesn't win games. What actually dictates your match is real-time UDP packet stability: ping latency, millisecond jitter, and route packet loss.
 
-LagCheck benchmarks your route from your iPhone to reference gaming edge infrastructure, accurately simulating real multiplayer traffic. No fake HTTP browser pings, no arbitrary guesswork.
+LagCheck measures your route from your iPhone to reference infrastructure. It isn’t an official game-server ping; for console or PC, it is an estimate of the connection in the same environment. No browser HTTP ping, no arbitrary guesswork.
 
 WHY LAGCHECK IS DIFFERENT:
 • Instant Semantic Verdict: No confusing graphs or textbooks when you are in the lobby. Get a clear recommendation in seconds: "Ready for Ranked", "Avoid Ranked Right Now", or "Unstable Route Conditions".
 • Loaded Route Benchmark (Bufferbloat): Measures resting ping and simulates concurrent household traffic to expose bufferbloat spikes before you enter the queue.
-• Official Squad Proof Card: Export a dark, certified connection card formatted for Discord and WhatsApp in one tap. Prove whether the lag was your Wi-Fi or the server.
-• Honest Diagnostics: Pinpoint whether the bottleneck is your local Wi-Fi hop or the external gaming route, with zero false claims.
+• Squad Reading Card: Export a card with that session’s reading for Discord and WhatsApp in one tap.
+• Honest Diagnostics: Show observed symptoms without blaming Wi-Fi, an ISP, or a server without isolated evidence.
 • Console & PC Estimator: Benchmark the route room-by-room on your iPhone to gauge latency before turning on your console or PC rig.
 
 PRIVACY & INTEGRITY:
 • Zero intrusive ads interrupting your benchmarks.
-• No account, no login, and zero PII or browsing history collection.
+• No account or login. Minimal product telemetry is pseudonymous and excludes name, email, browsing history, raw network samples, SSID, BSSID, IDFA, and location.
 • Deterministic precision: if network conditions are insufficient for scientific confidence, we declare the test inconclusive rather than faking a score.
 
 Before you queue for competitive matches, run LagCheck.
@@ -134,6 +131,9 @@ Before you queue for competitive matches, run LagCheck.
 
 ## 5. Rótulos de Privacidade (App Privacy Nutrition Labels)
 
-- **Dados Coletados:** **Nenhum dado pessoal coletado** (Data Not Collected).
-- **Rastreamento de Terceiros:** Não (No Tracking).
-- **Telemetria de Produto:** Diagnóstico técnico anônimo e sem associação a identidade (`POST /v1/telemetry`), sem IP ou identificadores de publicidade (IDFA).
+Rascunho a conferir no build de distribuição antes de preencher o App Store Connect:
+
+- **Dados coletados:** `User ID` pseudônimo por instalação e `Product Interaction` (evento de produto; jogo, plataforma e classe de veredito quando aplicáveis), ambos para **Analytics**, não vinculados à identidade e sem tracking.
+- **Não enviados no payload:** nome, e-mail, telefone, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização.
+- **Transporte:** o app não envia IP no payload; metadados de rede necessários à entrega e proteção da solicitação podem ser processados pela infraestrutura.
+- **Rastreamento:** não. A declaração no Console deve refletir também qualquer SDK presente no arquivo distribuído.

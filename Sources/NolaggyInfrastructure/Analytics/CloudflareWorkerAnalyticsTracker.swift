@@ -8,7 +8,7 @@ import NolaggyApplication
 /// - Funil restrito: app_open, check_started, verdict_viewed, retest_started.
 /// - Fire-and-forget em segundo plano com timeout estrito de 3 segundos.
 public struct CloudflareWorkerAnalyticsTracker: AnalyticsTracker {
-    public static let defaultEndpointURL = URL(string: "https://nolaggy-deep-check.giammattey.workers.dev/v1/telemetry")!
+    public static let defaultEndpointURL = URL(string: "https://nolaggy-deep-check.buildealabs.workers.dev/v1/telemetry")!
     private static let installationIdDefaultsKey = "lagcheck.analytics.installation_id"
 
     private let endpointURL: URL

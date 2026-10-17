@@ -16,7 +16,8 @@ enum class TelemetryVerdict(val wire: String) { READY("ready"), CAUTION("caution
 enum class TelemetryPlatform(val wire: String) { PLAYSTATION("playstation"), XBOX("xbox"), PC("pc") }
 
 /**
- * `POST /v1/telemetry`. UUID anônimo de instalação, zero PII, zero IP. Fire-and-forget com timeout de 3 s:
+ * `POST /v1/telemetry`. UUID pseudônimo de instalação e campos mínimos de produto;
+ * o payload não contém PII nem IP. Fire-and-forget com timeout de 3 s:
  * telemetria jamais bloqueia medição, score, resultado ou histórico.
  */
 class TelemetryClient(private val url: String = WorkerEndpoints().telemetryUrl) {
