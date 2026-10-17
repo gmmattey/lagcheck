@@ -77,12 +77,13 @@
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 | [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
 | [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
-| [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente (Aprovada)** | Rotas ativas comprovadas, isolador de causa raiz sem falsos culpados e widgets interativos com App Group | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
+| [75](#decisão-75) | Fase 2 (P1) — Retenção & Diferenciação Técnica: Ping por Datacenter, Isolador de Causa Raiz e Widgets iOS 17 | **Vigente; widgets refinados pela Decisão 88** | A implementação existente permanece iOS; o recorte de widget por jogo e Android passa a ser o da Decisão 88 | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [76](#decisão-76) | Fase 3 (P2) — Ecossistema & Fricção Zero: In-App Events, Spotlight Search & Siri Shortcuts, e App Clip Instantâneo | **Vigente (Em implementação)** | CoreSpotlight, App Shortcuts por voz/busca, deeplinks dinâmicos de jogo e App Clip leve (<15MB) | Marco / Camillo / Rian / Renan / Breno / Luiz |
 | [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
+| [90](#decisão-90) | Referência regional global por proximidade medida | **Vigente (Em implementação)** | Refina as Decisões 16, 78 e 89: sem fixação em São Paulo | Marco / Iury / Rian / Camillo / Breno / Luiz |
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
 | [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
@@ -90,6 +91,8 @@
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
 | [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
 | [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (Autorizada)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
+| [88](#decisão-88) | Widget de prontidão por jogo — arte oficial por plataforma e Check direto | **Vigente (Implementado localmente; validação visual/física pendente)** | Refina a #49 e a Decisão 75: iOS e Android mostram a arte editorial do último Check válido e iniciam novo Check daquele contexto por toque explícito | Luiz / Giam / Marco / Camillo / Rian / Renan / Iury / Breno |
+| [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
 
 
 
@@ -819,6 +822,60 @@
   - validação em aparelhos iOS e Android do prompt, permissão negada, toque na notificação em app frio e em segundo plano, e cancelamento/retorno;
   - Dynamic Type/font scale, VoiceOver/TalkBack, contraste e alvo de 44 pt/dp na configuração;
   - nenhuma atividade de rede ou medição automática causada pelo lembrete.
+
+#### Decisão 88
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Widget de prontidão por jogo — arte oficial por plataforma e Check direto.
+- **Status Atual:** **Vigente (Implementado localmente; validação visual/física pendente).** Refina o item de widgets da Decisão 75 e substitui o recorte iOS-only/Live Activity proposto na issue #49.
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Camillo (gate), Rian (iOS e Android), Renan (experiência), Iury (integridade) e Breno (QA).
+- **Decisão:**
+  1. A #49 passa a entregar widget de prontidão por jogo em iOS 17+ e Android API 26+. A Home Screen mostra a arte editorial autorizada do último Check válido, jogo, região, P50 e veredito; a Lock Screen iOS retangular usa miniatura. Formatos compactos preservam telemetria legível e não são obrigados a exibir capa.
+  2. A fonte de arte é oficial **para a build e a plataforma em que o widget roda**: catálogo assinado válido mais cache/resource editorial do iOS para WidgetKit; catálogo assinado válido mais cache/resource editorial Android para o widget Android. Não há transferência de imagem, cache, captura ou URL de um cliente para o outro. Nunca usar capa, logo, personagem ou outro ativo oficial de terceiros.
+  3. O toque é intenção explícita: abre o app e inicia um novo Check do jogo, plataforma e vínculo externo exibidos, depois de revalidar o contexto pelo catálogo local atual. iOS usa `lagcheck://check?game={id}`; Android usa Intent/deep link equivalente. O widget não mede, não baixa arte e não atualiza dados em background.
+  4. Após quatro horas, em resultado inconclusivo, arte incompatível, catálogo inválido ou jogo removido, o widget não mostra P50 ou veredito antigo como atual. Mantém CTA contextual apenas se o jogo ainda puder ser resolvido; caso contrário, mostra identidade neutra do LagCheck. Nenhuma dessas situações inventa métrica ou diagnóstico.
+  5. Live Activity, Dynamic Island, StandBy, leaderboard e superfície social ficam fora desta issue. Qualquer retorno dessas ideias exige decisão e missão próprias.
+- **Critérios de validação e aceite:**
+  - snapshot e miniatura só vêm da fonte oficial da plataforma e expiram/invalida de forma segura;
+  - app frio e em segundo plano iniciam o Check do contexto correto por toque, sem segunda sessão;
+  - arte, expiração, fallback e deep link/Intent são testados separadamente em iOS e Android;
+  - Dynamic Type/VoiceOver e font scale/TalkBack, contraste, Lock/Home e redimensionamento aplicável têm prova em aparelhos físicos;
+  - nenhuma chamada nova ao Worker, telemetria, PII, SDK, regra de score/veredito ou custo recorrente é adicionada.
+
+#### Decisão 89
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Ativação coordenada do catálogo de 48 jogos por referência regional.
+- **Status Atual:** **Vigente (assinatura e publicação pendentes).** Refina o limite de ativação pendente da Decisão 70.
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Iury (integridade do catálogo), Rian (clientes) e Breno (validação).
+- **Contexto e Problema:** O catálogo v3 assinado em uso contém 22 jogos, mas há 26 títulos adicionais já preparados no candidato local, com artes autorais, plataformas e testes de consistência. Renovar somente os 22 preservaria a disponibilidade mínima, mas deixaria de fora jogos já autorizados sem um motivo de integridade.
+- **Decisão:**
+  1. O próximo envelope v3 assinado e as bases embarcadas iOS/Android passam a conter os 48 jogos do candidato local, com uma única versão coordenada.
+  2. Os 26 títulos adicionados usam exclusivamente a rota `awsFallback` ativa de São Paulo como **referência regional**. A rota `gameOwned` de cada contexto continua `pending`; o produto não chama essa leitura de ping, rota ou servidor oficial do jogo.
+  3. Não muda score, veredito, threshold, protocolo, endpoint, regra de seleção ou custo operacional. Não entra rota dedicada sem a evidência exigida pelas Decisões 37, 38/39 e 78.
+  4. A ativação exige assinatura Ed25519 com a chave vigente, cópia byte-idêntica do envelope para Worker/iOS/Android, testes de validação/resolução e verificação do Worker público. Distribuição de app e prova física continuam etapas separadas.
+- **Critérios de validação e aceite:**
+  - envelope schema 3 válido com 48 IDs únicos, 22 títulos existentes preservados e 26 expansões com arte/sha e plataformas do candidato;
+  - toda expansão resolve somente uma referência regional ativa e mantém rota própria pendente;
+  - os dois clientes validam o mesmo envelope e não apresentam o resultado como servidor do jogo;
+- publicação do Worker é confirmada pela versão, validade, assinatura e contagem pública; build, aparelho, TestFlight/Play e loja são reportados separadamente.
+
+#### Decisão 90
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Referência regional global por proximidade medida.
+- **Status Atual:** **Vigente (em implementação).** Refina as Decisões 16, 78 e 89 no que conflitar.
+- **Contexto e problema:** Um app multilíngue e distribuído globalmente não pode transformar São Paulo em destino obrigatório por uma limitação do catálogo. O jogador precisa receber a referência regional com menor latência observada entre os beacons autorizados, sem confundir a referência com o servidor oficial da partida.
+- **Decisão:**
+  1. O catálogo Schema 3 assinado lista todas as regiões AWS GameLift já homologadas no registro compartilhado iOS/Android. Nenhuma delas é apresentada como servidor do jogo.
+  2. Para cada contexto disponível, a rota `awsFallback` continua sendo uma referência regional genérica, mas a pré-leitura mede todas as regiões assinadas e escolhe exclusivamente pela regra `regional-selection-1`: respostas UDP válidas, P50 observado, estabilidade e desempate determinístico. País, idioma, GPS ou ordem no catálogo não decidem a região.
+  3. Preferência manual em Ajustes continua sendo um override explícito para uma região que esteja no mesmo catálogo assinado. Fora disso, o comportamento padrão é sempre automático.
+  4. Rotas `gameOwned` permanecem `pending`; esta decisão não ativa endpoint de jogo, não altera score, veredito, thresholds, Worker, telemetria, custo ou schema.
+- **Critérios de validação e aceite:**
+  - iOS e Android recebem o mesmo envelope, com a mesma lista ordenada de beacons e cópia byte-idêntica nas três bases;
+  - vetores dos dois clientes provam que a melhor P50 elegível vence, empate usa o desempate documentado e nenhuma resposta suficiente gera `inconclusivo`;
+  - o caminho de medição usa a região vencedora, enquanto a UI a chama de `Referência regional`;
+  - validação de rede em aparelho físico nas regiões acessíveis e publicação do Worker continuam provas separadas. Falha/ausência de resposta não cria fallback HTTP/ICMP nem resultado inventado.
 
 ## Como Registrar Novas Decisões
 

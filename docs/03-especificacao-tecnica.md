@@ -567,6 +567,12 @@ Modelos persistidos:
 
 Uma tarefa de manutenção remove registros com mais de 90 dias e conserva no máximo os 100 mais recentes por jogo. A ação “Apagar histórico” remove `MeasurementRecord` e dados derivados de recentes; não toca no catálogo-base.
 
+### 8.1 Contrato do snapshot de widget por jogo
+
+O snapshot de widget é derivado, local e substituível; não é um novo registro de histórico nem uma fonte de decisão diagnóstica. Só é escrito ao final de um Check válido e contém: `gameID`, nome localizado, plataforma, vínculo externo declarado, região, `GameReadinessVerdict`, P50, jitter, perda, bufferbloat opcional e instante de captura. A imagem é uma miniatura editorial já presente na própria build: JPEG reduzido no contêiner compartilhado do iOS e nome de resource no armazenamento privado Android.
+
+O iOS constrói `lagcheck://check?game={gameID}`; Android recebe o mesmo `gameID` no deep link/`Intent` canônico. Nos dois casos, o app deve recarregar o contexto a partir do catálogo local válido antes de abrir a sessão. Um snapshot com mais de quatro horas nunca exibe métricas ou veredito como atuais. Falha de arte, arte incompatível com a revisão atual, catálogo inválido ou jogo removido não aciona rede pelo widget e cai para identidade neutra/CTA recuperável.
+
 ## 9. Privacidade e publicidade planejada
 
 No MVP1 não há publicidade e, portanto, não há SDK Google Mobile Ads, UMP, ATT motivado por anúncios, `AdProvider`, ID de unidade, banner ou fluxo de consentimento publicitário. A privacidade do MVP1 se limita aos dados locais e ao catálogo assinado previstos neste documento.
@@ -597,6 +603,7 @@ Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produt
 | Transporte | Correlação de payload, timeout, duplicata, resposta tardia e cancelamento imediato de sockets/HTTP. |
 | Sessão | Check (Wi-Fi e Celular), consentimento de dados, troca de caminho (Wi-Fi ⇄ celular) com descarte total e carga falha. |
 | Persistência | Registro de histórico com versões normativas de regras, veredito semântico, causas primárias/secundárias e recomendações. |
+| Widget | Snapshot válido, expiração de quatro horas, invalidação por catálogo/arte, fonte oficial iOS e Android isolada, deep link para jogo correto e ausência de fetch/medição em background. |
 | UI | Dark Competitive UI: Hero Verdict de maior hierarquia, cockpit telemetria compacto, bloco "O que encontramos" e 1 a 3 cards de recomendação. |
 
 ### 11.1 Matriz de Testes Obrigatórios em iPhone Físico (Decisão 36)

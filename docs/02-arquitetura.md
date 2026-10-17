@@ -120,6 +120,15 @@ Há duas famílias de dados:
 
 O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede (`.wifi` ou `.cellular`), gateway probe result (`.stable`, `.degraded`, `.unobservable`), região, estratégia de medição, confiança, métricas agregadas, veredito de prontidão, score, causa primária, causas secundárias, recomendações geradas e versão das regras (`readiness-v2.0`, `deep-load-impact-v2`).
 
+### 3.6 Snapshot do widget por plataforma (Decisão 88)
+
+O widget não lê SwiftData/JSON de histórico diretamente nem busca imagem pela rede. Depois de um Check válido, a aplicação materializa um snapshot substituível com o contexto necessário para repetir a medição (jogo, plataforma, vínculo externo, região, métricas e veredito) e uma miniatura editorial derivada da fonte oficial daquele cliente.
+
+- **iOS:** o app resolve o contexto no catálogo assinado/cached do iOS e grava snapshot e miniatura no App Group do iOS; a extensão WidgetKit só lê esse material local.
+- **Android:** o app resolve o contexto no catálogo assinado/cached do Android e grava snapshot com o nome do resource editorial local no armazenamento privado; o `AppWidgetProvider` só lê esse material local e o resource da própria build.
+- A revisão de catálogo ou de arte invalida a representação anterior de modo gracioso: mantém CTA contextual sem métrica antiga quando o jogo ainda for reconhecido, ou cai na identidade neutra. Não há cache compartilhado entre plataformas, upload, telemetria nova, endpoint ou nova regra de veredito.
+- O deep link contém apenas o identificador local do jogo e o app revalida o contexto antes de iniciar o Check. Jogo ausente, catálogo inválido, contexto incompatível ou sessão já ativa não iniciam medição; o app mostra o estado recuperável correspondente.
+
 ## 4. Componentes e fronteiras
 
 ```mermaid

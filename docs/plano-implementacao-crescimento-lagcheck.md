@@ -28,7 +28,7 @@ flowchart LR
     subgraph Fase 2 [Fase 2: Onda P1 — Diferenciação e Retenção]
         D[Item 4: Ping Real por Datacenter]
         E[Item 5: Isolador de Causa Raiz]
-        F[Item 6: Widgets Interativos iOS 17]
+        F[Item 6: Widgets de Prontidão por Jogo iOS e Android]
     end
 
     subgraph Fase 3 [Fase 3: Onda P2 — Ecossistema e Fricção Zero]
@@ -125,15 +125,12 @@ flowchart LR
 
 ---
 
-### Item 6: Widgets Interativos & Lock Screen (iOS 17+)
-- **Objetivo:** Criar um ritual diário pré-game: o jogador vê o status da conexão na tela de bloqueio antes mesmo de sentar na cadeira.
-- **Responsáveis:** Renan (Design do Widget) e Rian (WidgetKit & App Intents).
-- **Módulos Afetados:** Novo target `NolaggyWidgetExtension` e App Group para leitura do último snapshot SwiftData.
-- **Especificação dos Widgets:**
-  - **Lock Screen Circular / Retangular:** Badge mínimo `SP: 16ms ● OK`.
-  - **Home Screen Small:** Card grafite com nome do jogo favorito, RTT P50 e botão interativo (App Intent) com ícone de *Refresh* para rodar re-check em background.
-  - **StandBy Mode:** Modo noturno/mesa com relógio e telemetria de rede de alto contraste.
-- **Critérios de Aceite:** Widget atualiza de forma eficiente via `WidgetCenter.shared.reloadTimelines()` sem drenar bateria; dados lidos de forma segura e imutável via App Group.
+### Item 6: Widgets de Prontidão por Jogo (iOS 17+ e Android API 26+)
+- **Objetivo:** Criar um ritual pré-game que mostre a arte editorial do último jogo medido e leve, por toque explícito, a um novo Check daquele mesmo contexto.
+- **Responsáveis:** Renan (experiência), Rian (WidgetKit/iOS e widget Android), Camillo (gate), Iury (integridade) e Breno (QA).
+- **Módulos afetados:** extensão `LagCheckWidget` e App Group no iOS; superfície nativa de widget em `android/app`; snapshots locais derivados do catálogo validado de cada plataforma.
+- **Especificação:** Home Screen usa arte editorial com gradiente profundo, jogo/região, P50 e veredito; Lock Screen retangular usa miniatura; formatos mínimos preservam legibilidade. A arte vem da fonte oficial da build instalada, nunca de cache/captura da outra plataforma. Toque abre o app e inicia o Check do jogo, plataforma e vínculo externo exibidos após revalidar o catálogo atual. Live Activity, StandBy e medição/fetch em background não entram no recorte.
+- **Critérios de aceite:** snapshot imutável e expirável; arte/fallback confiáveis offline; nenhum dado inventado; app frio/segundo plano abre no jogo correto; iOS e Android testados separadamente em simulador/emulador e aparelhos físicos, incluindo acessibilidade e redimensionamento.
 
 ---
 

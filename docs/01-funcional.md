@@ -1,6 +1,6 @@
 # LagCheck — documentação funcional
 
-**Status:** referência funcional; escopo atualizado pelas Decisões 67–69
+**Status:** referência funcional; escopo atualizado pelas Decisões 67–69 e 88
 **Idioma do documento:** PT-BR  
 **Sistema mínimo:** iOS 17; Android API 26 (Kotlin/Compose)
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
@@ -206,6 +206,16 @@ A navegação da V1 é enxuta e focada na ação (Decisão 50):
   2. **Jogos:** Catálogo com busca e filtros rápidos. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
 - **Histórico:** Acessível contextualmente na Home e pelo menu de Ajustes.
 - **Ajustes:** Acessível pelo menu `…`, permitindo consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
+
+### 7.9 Widget de prontidão por jogo (Decisão 88)
+
+O widget é um atalho para repetir uma medição, não um monitor em tempo real nem uma promessa sobre a próxima partida. iOS 17+ e Android API 26+ devem mostrar o último **Check válido** daquele app: arte editorial autorizada do jogo, nome, região, P50, veredito semântico e, quando houver, a nota de bufferbloat.
+
+- A arte é sempre a fonte oficial disponível na versão instalada daquela plataforma: no iOS, catálogo assinado validado e cache/asset do iOS; no Android, catálogo assinado validado e cache/resource do Android. Um cliente nunca recebe imagem, cache ou captura do outro.
+- O toque é uma intenção explícita de medir. Ele abre o app no mesmo jogo, plataforma e vínculo externo do Check exibido e inicia um novo Check somente após resolver esse contexto no catálogo válido atual. Não mede no background, não reutiliza o veredito antigo e não chama o Worker além do Check normal.
+- Se o resultado tiver mais de quatro horas, for inconclusivo, ou o jogo/arte não estiverem mais disponíveis no catálogo válido, o widget não mostra P50 nem veredito antigo. Mantém, quando possível, a arte editorial do jogo com CTA curto para novo Check; sem arte válida, usa identidade neutra do LagCheck.
+- A capa não pode ser logo, capa oficial, personagem ou arte licenciada de terceiro. É a arte editorial autoral já autorizada pelo catálogo (Decisões 18, 44 e 71).
+- Home Screen usa arte com gradiente escuro e veredito legível; Lock Screen retangular usa miniatura. As famílias iOS circular e inline preservam leitura de telemetria e não são forçadas a exibir arte ilegível. Live Activity/Dynamic Island não faz parte desta entrega.
 
 ## 8. Critérios de confiança e modulação da linguagem
 

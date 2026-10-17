@@ -119,6 +119,9 @@ Nunca mostrar score, “pronto para jogar” ou recomendação de partida em um 
 | Fallback busca vazia | Não encontrou seu jogo? Fazer Check Geral | Didn’t find your game? Run General Check | ¿No encontraste tu juego? Hacer Check General |
 | Histórico contextual | Último check | Recent check | Último check |
 | Trilho rápido | SEUS JOGOS | YOUR GAMES | TUS JUEGOS |
+| Widget sem leitura atual | FAÇA UM CHECK | RUN A CHECK | HAZ UN CHECK |
+| Widget sem jogo/arte válida | SEM CHECK RECENTE | NO RECENT CHECK | SIN CHECK RECIENTE |
+| Ação de atalho do widget | MEDIR [JOGO] | CHECK [GAME] | MEDIR [JUEGO] |
 
 ## 6. Regras de localização
 
@@ -128,6 +131,7 @@ Nunca mostrar score, “pronto para jogar” ou recomendação de partida em um 
 - Unidade e número seguem a localidade do sistema quando aplicável. Siglas técnicas, como `ms` e `%`, permanecem estáveis.
 - Texto de ação é curto. A interface deve acomodar PT-BR como caso de expansão, mas a copy não pode depender de truncamento.
 - Toda string nova passa por revisão de produto e design quando altera conclusão, risco, recomendação, consentimento ou confiança.
+- No widget, a capa identifica o contexto do jogo; ela nunca substitui a frase de veredito e não autoriza copy como “ping do jogo”. Para leitura vencida, a copy pede novo Check, sem sugerir que a condição antiga ainda vale.
 
 ## 7. Checklist de aprovação de copy
 
