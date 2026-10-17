@@ -48,9 +48,12 @@ class ShelfAndPlannerTest {
                 assertThat(shelf.id).isAnyOf("rainbow-six-mobile", "rocket-league-sideswipe")
                 continue
             }
-            val file = File(drawables, shelf.drawableResName + ".jpg")
-            assertThat(file.exists()).isTrue()
-            val sha = java.security.MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+            val file = listOf("jpg", "png")
+                .map { extension -> File(drawables, "${shelf.drawableResName}.$extension") }
+                .firstOrNull(File::exists)
+            assertThat(file).isNotNull()
+            val artworkFile = requireNotNull(file)
+            val sha = java.security.MessageDigest.getInstance("SHA-256").digest(artworkFile.readBytes()).joinToString("") { "%02x".format(it) }
             val declared = payload.games.first { it.id == shelf.id }.artwork!!.sha256
             assertThat(sha).isEqualTo(declared) // mesma arte autoral aprovada do catálogo (Decisões 18 e 44)
         }

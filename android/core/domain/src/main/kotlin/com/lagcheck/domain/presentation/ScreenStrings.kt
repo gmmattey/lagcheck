@@ -140,6 +140,8 @@ internal val SCREEN_STRINGS: List<Triple<String, String, String>> = listOf(
     Triple("Versão", "Version", "Versión"),
     Triple("Voltar", "Back", "Volver"),
     Triple("WI-FI OBSERVADO NO DISPOSITIVO", "WI-FI OBSERVED ON DEVICE", "WI-FI OBSERVADO EN EL DISPOSITIVO"),
+    Triple("Compartilhar resultado", "Share result", "Compartir resultado"),
+    Triple("Abrir opções de compartilhamento", "Open sharing options", "Abrir opciones para compartir"),
     Triple("lagcheck.signallq.com · Medição real determinística · Sem notas inventadas", "lagcheck.signallq.com · Real, deterministic measurement · No made-up scores", "lagcheck.signallq.com · Medición real y determinista · Sin notas inventadas"),
     Triple("mediana em repouso, via UDP", "median at rest, over UDP", "mediana en reposo, por UDP"),
     Triple("agora", "now", "ahora"),

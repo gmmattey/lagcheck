@@ -26,13 +26,8 @@ data class CatalogGame(
  * `res/drawable` (`drawableResName` vazio) caem no título tipográfico da UI, sem arte de terceiros (Decisão 18).
  */
 object OfficialGameCatalog {
-    /** Decisão 70: activate together with the externally signed 26-game envelope. */
-    val pendingExpansion: List<CatalogGame> = listOf(
-        CatalogGame("dead-by-daylight", "Dead by Daylight", "Sobrevivência / Terror", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_dead_by_daylight"),
-        CatalogGame("for-honor", "For Honor", "Combate Medieval", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_for_honor"),
-        CatalogGame("borderlands-3", "Borderlands 3", "FPS / Cooperação", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_borderlands_3"),
-        CatalogGame("new-world", "New World: Aeternum", "MMORPG", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_new_world")
-    )
+    /** A expansão da Decisão 89 já está no envelope Schema 3 assinado. */
+    val pendingExpansion: List<CatalogGame> = emptyList()
 
     val games: List<CatalogGame> = listOf(
         CatalogGame("fortnite", "Fortnite", "Battle Royale", listOf("PlayStation", "Xbox", "PC", "Nintendo", "Mobile"), drawableResName = "game_fortnite"),
@@ -56,7 +51,33 @@ object OfficialGameCatalog {
         CatalogGame("rust", "Rust", "Sobrevivência", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_rust"),
         CatalogGame("palworld", "Palworld", "Sobrevivência", listOf("Xbox", "PC"), drawableResName = "game_palworld"),
         CatalogGame("rainbow-six-mobile", "Rainbow Six Mobile", "FPS Tático Mobile", listOf("Mobile"), drawableResName = ""),
-        CatalogGame("rocket-league-sideswipe", "Rocket League Sideswipe", "Competitivo Mobile", listOf("Mobile"), drawableResName = "")
+        CatalogGame("rocket-league-sideswipe", "Rocket League Sideswipe", "Competitivo Mobile", listOf("Mobile"), drawableResName = ""),
+        CatalogGame("dead-by-daylight", "Dead by Daylight", "Sobrevivência / Terror", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_dead_by_daylight"),
+        CatalogGame("for-honor", "For Honor", "Combate Medieval", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_for_honor"),
+        CatalogGame("borderlands-3", "Borderlands 3", "FPS / Cooperação", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_borderlands_3"),
+        CatalogGame("new-world", "New World: Aeternum", "MMORPG", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_new_world"),
+        CatalogGame("squid-game-unleashed", "Squid Game: Unleashed", "Ação Competitiva", listOf("PlayStation", "Xbox", "PC", "Mobile"), drawableResName = "game_squid_game_unleashed"),
+        CatalogGame("warhammer-darktide", "Warhammer 40,000: Darktide", "Cooperação", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_warhammer_darktide"),
+        CatalogGame("marvel-snap", "MARVEL SNAP", "Cartas / Estratégia", listOf("PC", "Mobile"), drawableResName = "game_marvel_snap"),
+        CatalogGame("the-outlast-trials", "The Outlast Trials", "Sobrevivência / Terror", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_the_outlast_trials"),
+        CatalogGame("tribes-of-midgard", "Tribes of Midgard", "Ação / Cooperação", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_tribes_of_midgard"),
+        CatalogGame("crossfar", "Crossfar", "FPS Competitivo", listOf("PC"), drawableResName = "game_crossfar"),
+        CatalogGame("lost-rift", "Lost Rift", "Sobrevivência", listOf("PC"), drawableResName = "game_lost_rift"),
+        CatalogGame("star-wars-hunters", "Star Wars: Hunters", "Arena Competitiva", listOf("Nintendo", "Mobile"), drawableResName = "game_star_wars_hunters"),
+        CatalogGame("rematch", "Rematch", "Esportes", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_rematch"),
+        CatalogGame("predecessor", "Predecessor", "MOBA", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_predecessor"),
+        CatalogGame("super-mega-baseball-4", "Super Mega Baseball 4", "Esportes", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_super_mega_baseball_4"),
+        CatalogGame("marauders", "Marauders", "FPS / Extração", listOf("PC"), drawableResName = "game_marauders"),
+        CatalogGame("legacy-steel-and-sorcery", "Legacy: Steel & Sorcery", "RPG / Ação", listOf("PC"), drawableResName = "game_legacy_steel_and_sorcery"),
+        CatalogGame("ninjala", "Ninjala", "Ação Competitiva", listOf("Nintendo"), drawableResName = "game_ninjala"),
+        CatalogGame("roller-champions", "Roller Champions", "Esportes", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_roller_champions"),
+        CatalogGame("ghost-recon-breakpoint", "Ghost Recon Breakpoint", "FPS Tático", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_ghost_recon_breakpoint"),
+        CatalogGame("dark-alliance", "Dungeons & Dragons: Dark Alliance", "RPG / Ação", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_dark_alliance"),
+        CatalogGame("wolcen-lords-of-mayhem", "Wolcen: Lords of Mayhem", "RPG / Ação", listOf("PlayStation", "Xbox", "PC"), drawableResName = "game_wolcen_lords_of_mayhem"),
+        CatalogGame("streamline", "Streamline", "Ação Competitiva", listOf("PC"), drawableResName = "game_streamline"),
+        CatalogGame("tacticool", "Tacticool", "FPS Tático", listOf("PC", "Mobile"), drawableResName = "game_tacticool"),
+        CatalogGame("ghost-war", "Ghost War", "FPS Mobile", listOf("Mobile"), drawableResName = "game_ghost_war"),
+        CatalogGame("overwatch-2", "Overwatch 2", "FPS Competitivo", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_overwatch_2")
     )
 
     /** Ids do protótipo anterior que podem estar no histórico de quem já testou. */
