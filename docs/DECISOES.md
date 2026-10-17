@@ -93,6 +93,7 @@
 | [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (Autorizada)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
 | [88](#decisão-88) | Widget de prontidão por jogo — arte oficial por plataforma e Check direto | **Vigente (Implementado localmente; validação visual/física pendente)** | Refina a #49 e a Decisão 75: iOS e Android mostram a arte editorial do último Check válido e iniciam novo Check daquele contexto por toque explícito | Luiz / Giam / Marco / Camillo / Rian / Renan / Iury / Breno |
 | [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
+| [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -876,6 +877,21 @@
   - vetores dos dois clientes provam que a melhor P50 elegível vence, empate usa o desempate documentado e nenhuma resposta suficiente gera `inconclusivo`;
   - o caminho de medição usa a região vencedora, enquanto a UI a chama de `Referência regional`;
   - validação de rede em aparelho físico nas regiões acessíveis e publicação do Worker continuam provas separadas. Falha/ausência de resposta não cria fallback HTTP/ICMP nem resultado inventado.
+
+#### Decisão 91
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Ícone do app modernizado em iOS e Android.
+- **Status Atual:** **Vigente (Implementado localmente).** Substitui o ícone aprovado na V1 (glifo roxo chapado) e refina a Decisão 83 apenas no ícone Clássico.
+- **Frentes envolvidas:** Luiz (aprovação), Giam (aceite), Marco e Renan (design), Rian (integração) e Breno (validação).
+- **Contexto e problema:** O ícone chapado (uma cor sobre preto liso) parecia datado na loja, e o primeiro plano do Android estourava a zona segura de 66 dp (glifo a cerca de 36,5 dp do centro, limite 33 dp).
+- **Decisão:**
+  1. A versão modernizada do glifo (traço mais grosso, gradiente lilás para roxo, luz de borda, extrusão curta e brilho roxo na base do fundo) é o ícone oficial do LagCheck em iOS e Android. O joystick e as demais rotas exploradas ficam descartados.
+  2. iOS: master 1024 sem alpha e sem cantos arredondados, com variantes Dark e Tinted no catálogo `AppIcon`.
+  3. Android: ícone adaptativo com fundo e primeiro plano separados, glifo inteiro dentro da zona segura de 66 dp e camada monocromática para ícone temático. O Clássico do seletor da Decisão 83 passa a ser este ícone; os mascotes não mudam.
+  4. O teste A/B de loja fica adiado: o volume atual de impressões não sustenta Product Page Optimization nem Store Listing Experiments.
+  5. O wordmark e o símbolo compacto dentro dele **não** mudam nesta decisão. A diferença entre o glifo do ícone e o símbolo do wordmark fica como pendência de marca para o Luiz.
+- **Critérios de validação e aceite:** build iOS no simulador com Default, Dark e Tinted; emulador Android API 26 e 34 com ícones temáticos ligados; launchers Pixel e Samsung One UI; seletor de ícones da Decisão 83 intacto; leitura em 29 e 60 px sem confundir com os numerais 6 e 9. Cada ambiente é prova separada.
 
 ## Como Registrar Novas Decisões
 
