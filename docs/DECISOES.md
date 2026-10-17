@@ -903,10 +903,10 @@
 - **Frentes envolvidas:** Luiz (aprovação), Giam (aceite), Renan (design), Rian (integração) e Breno (validação).
 - **Contexto e problema:** O símbolo do wordmark ainda era o desenho antigo, diferente do ícone. Os wordmarks mono (claro e escuro) nunca tiveram o mesmo símbolo nem as mesmas letras do primary: usavam um símbolo angular e uma tipografia blocky próprios. Isso já estava errado antes da Decisão 91 e não havia sido apontado.
 - **Decisão:**
-  1. O wordmark primary oficial é o aprovado pelo Luiz: símbolo modernizado, `lag` branco e `check` roxo (Decisão 66). As letras seguem como pixels do master anterior; o primary ainda não é um master vetorial.
+  1. O wordmark primary oficial é o aprovado pelo Luiz: símbolo modernizado, `lag` branco e `check` roxo (Decisão 66). As letras `lag` e `check` foram vetorizadas a partir do master aprovado (traçado sem o contorno escuro do raster), e o primary agora é vetor completo. O `check` mantém a cor aprovada `#7C34FD`, levemente mais viva que o token Roxo Gamer `#7C3AED`.
   2. Os wordmarks mono claro e escuro passam a ser vetores derivados das letras do primary, com o mesmo símbolo, em tinta sólida `#15181E` e `#F4F5F7`. O desenho angular antigo do mono sai de uso.
   3. Os PNGs de app (iOS, Android e Play) são regerados do novo primary, nos tamanhos que já existiam. `lagcheck-wordmark-light.svg` do design system deixa de apontar para um caminho inexistente.
-  4. Redesenhar `lag` e `check` em vetor a partir da fonte original fica como pendência de marca.
+  4. O traçado vem do raster aprovado, sem a fonte original do lettering. Se a fonte original aparecer, o redesenho com ela substitui este traçado.
 - **Critérios de validação e aceite:** wordmark legível em 24 e 40 px de altura; iOS e Android exibem o primary novo; as páginas web e o protótipo carregam os SVGs sem quebra; cada ambiente é prova separada.
 
 #### Decisão 93
