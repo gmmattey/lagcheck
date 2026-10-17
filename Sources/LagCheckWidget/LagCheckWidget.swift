@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import UIKit
 import NolaggyDomain
 import NolaggyDesign
 import NolaggyInfrastructure
@@ -9,20 +10,20 @@ import NolaggyInfrastructure
 /// Lê dados reais via App Group; se não houver dados válidos e frescos (< 4h), apresenta estado semântico neutro.
 struct LagCheckTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> LagCheckWidgetEntry {
-        LagCheckWidgetEntry(date: Date(), snapshot: nil)
+        LagCheckWidgetEntry(date: Date(), snapshot: nil, artworkData: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LagCheckWidgetEntry) -> Void) {
         let store = SharedAppGroupStore.shared
         let snapshot = store.loadLatestSnapshot()
-        let entry = LagCheckWidgetEntry(date: Date(), snapshot: snapshot)
+        let entry = LagCheckWidgetEntry(date: Date(), snapshot: snapshot, artworkData: store.loadLatestArtwork())
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LagCheckWidgetEntry>) -> Void) {
         let store = SharedAppGroupStore.shared
         let snapshot = store.loadLatestSnapshot()
-        let entry = LagCheckWidgetEntry(date: Date(), snapshot: snapshot)
+        let entry = LagCheckWidgetEntry(date: Date(), snapshot: snapshot, artworkData: store.loadLatestArtwork())
 
         // Atualiza a cada 30 minutos ou sob demanda via reloadTimelines
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
@@ -35,9 +36,10 @@ struct LagCheckTimelineProvider: TimelineProvider {
 struct LagCheckWidgetEntry: TimelineEntry {
     let date: Date
     let snapshot: WidgetTelemetrySnapshot?
+    let artworkData: Data?
 
     var isValidAndFresh: Bool {
-        guard let snapshot = snapshot else { return false }
+        guard let snapshot = snapshot, let artworkData, UIImage(data: artworkData) != nil else { return false }
         return snapshot.isFresh(referenceDate: date)
     }
 }
@@ -49,13 +51,13 @@ struct LagCheckWidgetEntryView: View {
 
     var body: some View {
         Group {
-            if entry.isValidAndFresh, let snapshot = entry.snapshot {
-                validSnapshotView(snapshot: snapshot)
+            if entry.isValidAndFresh, let snapshot = entry.snapshot, let artworkData = entry.artworkData, let artwork = UIImage(data: artworkData) {
+                validSnapshotView(snapshot: snapshot, artwork: artwork)
             } else {
                 neutralEmptyView
             }
         }
-        .widgetURL(URL(string: "lagcheck://quicktest"))
+        .widgetURL(destinationURL)
         .containerBackground(NLColor.deep, for: .widget)
     }
 
@@ -63,7 +65,7 @@ struct LagCheckWidgetEntryView: View {
     // MARK: - Estado Válido e Real
 
     @ViewBuilder
-    private func validSnapshotView(snapshot: WidgetTelemetrySnapshot) -> some View {
+    private func validSnapshotView(snapshot: WidgetTelemetrySnapshot, artwork: UIImage) -> some View {
         switch family {
         case .accessoryCircular:
             VStack(spacing: 1) {
@@ -77,69 +79,75 @@ struct LagCheckWidgetEntryView: View {
             }
 
         case .accessoryRectangular:
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    VerdictIndicatorBadge(verdict: snapshot.verdict, size: 8)
-                    Text(snapshot.gameName.uppercased())
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(NLColor.textPrimary)
-                        .lineLimit(1)
+            HStack(spacing: 6) {
+                Image(uiImage: artwork)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 28, height: 28)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        VerdictIndicatorBadge(verdict: snapshot.verdict, size: 8)
+                        Text(snapshot.gameName.uppercased())
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(NLColor.textPrimary)
+                            .lineLimit(1)
+                    }
+                    Text(verbatim: "\(Int(snapshot.rttMedianMs)) ms · \(snapshot.regionLabel)")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(NLColor.textSecondary)
+                    Text(snapshot.verdict.defaultHeadline)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(colorForVerdict(snapshot.verdict))
                 }
-                Text(verbatim: "\(Int(snapshot.rttMedianMs)) ms · \(snapshot.regionLabel)")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(NLColor.textSecondary)
-                Text(snapshot.verdict.defaultHeadline)
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(colorForVerdict(snapshot.verdict))
             }
 
         case .accessoryInline:
             Text(verbatim: "\(snapshot.gameName): \(Int(snapshot.rttMedianMs))ms ● \(snapshot.verdict.defaultHeadline)")
 
         case .systemSmall:
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                // Header: Jogo e Região
-                HStack {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(snapshot.gameName.uppercased())
-                            .font(.system(size: 12, weight: .black))
-                            .foregroundStyle(NLColor.textPrimary)
-                            .lineLimit(1)
-                        Text(snapshot.regionLabel)
-                            .font(.system(size: 9, design: .monospaced))
-                            .foregroundStyle(NLColor.textTertiary)
+            ZStack {
+                Image(uiImage: artwork)
+                    .resizable()
+                    .scaledToFill()
+                    .overlay {
+                        LinearGradient(
+                            colors: [NLColor.deep.opacity(0.18), NLColor.deep.opacity(0.94)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                    .clipped()
+                VStack(alignment: .leading, spacing: NLSpacing.xs) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(snapshot.gameName.uppercased())
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundStyle(NLColor.textPrimary)
+                                .lineLimit(1)
+                            Text(snapshot.regionLabel)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundStyle(NLColor.textTertiary)
+                        }
+                        Spacer()
+                        VerdictIndicatorBadge(verdict: snapshot.verdict, size: 10)
                     }
                     Spacer()
-                    VerdictIndicatorBadge(verdict: snapshot.verdict, size: 10)
-                }
-
-                Spacer()
-
-                // Hero RTT Monoespaçado
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(verbatim: "\(Int(snapshot.rttMedianMs))")
-                        .font(.system(size: 32, weight: .black, design: .monospaced))
-                        .foregroundStyle(NLColor.textPrimary)
-                    Text("ms")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundStyle(NLColor.textTertiary)
-                }
-
-                // Veredito e Jitter
-                HStack {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        Text(verbatim: "\(Int(snapshot.rttMedianMs))")
+                            .font(.system(size: 32, weight: .black, design: .monospaced))
+                            .foregroundStyle(NLColor.textPrimary)
+                        Text("ms")
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .foregroundStyle(NLColor.textTertiary)
+                    }
                     Text(snapshot.verdict.defaultHeadline)
                         .font(.system(size: 10, weight: .heavy))
                         .foregroundStyle(colorForVerdict(snapshot.verdict))
                         .lineLimit(1)
-                    Spacer()
-                    if let grade = snapshot.bufferbloatGrade {
-                        Text(verbatim: grade)
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
-                            .foregroundStyle(NLColor.textSecondary)
-                    }
                 }
+                .padding(NLSpacing.sm)
             }
-            .padding(NLSpacing.sm)
 
         default:
             VStack(alignment: .leading, spacing: 4) {
@@ -232,6 +240,22 @@ struct LagCheckWidgetEntryView: View {
         case .notReady: return NLColor.coralSolar
         case .inconclusive: return NLColor.textSecondary
         }
+    }
+
+    private var destinationURL: URL? {
+        guard entry.isValidAndFresh, let snapshot = entry.snapshot else {
+            return URL(string: "lagcheck://quicktest")
+        }
+        var components = URLComponents()
+        components.scheme = "lagcheck"
+        components.host = "check"
+        var items = [
+            URLQueryItem(name: "game", value: snapshot.gameID)
+        ]
+        if let platform = snapshot.platform { items.append(URLQueryItem(name: "platform", value: platform.rawValue)) }
+        if let externalLink = snapshot.declaredExternalLink { items.append(URLQueryItem(name: "external_link", value: externalLink.rawValue)) }
+        components.queryItems = items
+        return components.url
     }
 }
 

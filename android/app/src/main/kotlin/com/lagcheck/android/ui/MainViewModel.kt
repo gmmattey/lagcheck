@@ -9,6 +9,7 @@ import com.lagcheck.android.data.HistoryRepository
 import com.lagcheck.android.data.NetworkPathWatcher
 import com.lagcheck.android.data.PreferencesRepository
 import com.lagcheck.android.data.PrefsInstallationIdStore
+import com.lagcheck.android.widget.WidgetSnapshotStore
 import com.lagcheck.android.data.toAppLanguage
 import com.lagcheck.catalog.CatalogPayload
 import com.lagcheck.catalog.RemoteCatalogRepository
@@ -48,6 +49,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** Por que um check foi cancelado. A tela diz a verdade sobre o motivo em vez de sempre dizer "a conexão mudou". */
@@ -106,6 +109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val localDiagnostics = LocalDiagnostics()
     private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport(), localDiagnostics)
     private val regionalPreReadCoordinator = com.lagcheck.session.RegionalPreReadCoordinator()
+    private val routePreflight = com.lagcheck.network.preflight.SteamA2sRoutePreflight()
     private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
@@ -353,6 +357,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (game == null) pendingReminderGameID = gameId else { chooseGame(game); navigateTo(Screen.Home) }
     }
 
+    /** Revalida o contexto do widget contra o catálogo vigente antes de iniciar um Check. */
+    fun startCheckFromWidget(gameId: String, platform: String, declaredExternalLink: String?) {
+        viewModelScope.launch {
+            val available = games.value.ifEmpty { games.filter { it.isNotEmpty() }.first() }
+            val game = available.firstOrNull { it.id == gameId } ?: return@launch
+            if (platform !in game.platforms) return@launch
+            val link = declaredExternalLink?.let {
+                runCatching { com.lagcheck.domain.model.ExternalEquipmentLink.valueOf(it) }.getOrNull()
+            }
+            startCheck(game, platform, _selectedConnectionType.value, link)
+        }
+    }
+
     fun clearHistory() {
         historyRepository.clearAll()
     }
@@ -545,6 +562,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     observedNetwork = radioSnapshot?.transportType?.name,
                     validResponseCount = result.restSamples.count { it.isValidResponse }
                 )
+                // O widget só recebe um resultado conclusivo com p50 real e a arte local do catálogo Android.
+                if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
+                    historyRepository.history.value.firstOrNull()?.let { item ->
+                        WidgetSnapshotStore(getApplication()).save(targetGame, item, regionLabel)
+                    }
+                } else {
+                    WidgetSnapshotStore(getApplication()).clear()
+                }
 
                 // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
                 // Disparo de delight oportuno: estritamente veredito READY, 3 checks acumulados e cancelável se sair da tela/background

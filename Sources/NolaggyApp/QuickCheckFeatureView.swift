@@ -421,13 +421,13 @@ struct QuickCheckFeatureView: View {
         guard let deepLink = DeepLinkParser.parse(url: url) else { return }
 
         switch deepLink {
-        case let .quickCheck(gameID, platform):
+        case let .quickCheck(gameID, platform, declaredExternalLink):
             selectedTab = .home
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 100_000_000)
                 if let gameID {
                     if let target = availableGames.first(where: { $0.id == gameID }) {
-                        startCheckDirectly(for: target, platform: platform)
+                        startCheckDirectly(for: target, platform: platform, declaredExternalLink: declaredExternalLink)
                     } else {
                         // Integridade diagnóstica (Decisão 50/76): Jogo desconhecido na URL
                         // NUNCA dispara teste silencioso de outro título; mantém na Home.

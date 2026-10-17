@@ -188,9 +188,20 @@ extension QuickCheckFeatureView {
                             jitterMs: metrics.jitterMilliseconds ?? 0.0,
                             packetLossPercentage: metrics.packetLossPercentage,
                             bufferbloatGrade: entry.deepCheck?.metrics.loadImpact?.bufferbloatGrade.rawValue,
+                            platform: entry.resolvedContext.context.platform,
+                            declaredExternalLink: entry.resolvedContext.context.declaredExternalLink,
                             capturedAt: Date()
                         )
-                        SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                        if WidgetArtworkSnapshotWriter.saveArtwork(forGameID: entry.resolvedContext.context.gameID) {
+                            SharedAppGroupStore.shared.saveLatestSnapshot(widgetSnapshot)
+                        } else {
+                            SharedAppGroupStore.shared.clearSnapshot()
+                        }
+                        WidgetArtworkSnapshotWriter.refreshWidget()
+                    } else {
+                        // Um novo resultado inconclusivo nunca reutiliza telemetria anterior como se fosse atual.
+                        SharedAppGroupStore.shared.clearSnapshot()
+                        WidgetArtworkSnapshotWriter.refreshWidget()
                     }
 
 

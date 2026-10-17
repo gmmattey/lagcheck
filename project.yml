@@ -75,6 +75,7 @@ targets:
       - target: LagCheckClip
       - sdk: AppIntents.framework
       - sdk: StoreKit.framework
+      - sdk: WidgetKit.framework
     sources:
       - path: Sources/NolaggyApp
       # Credencial de desenvolvimento local, ignorada pelo Git. O serviço
