@@ -11,7 +11,7 @@ Este documento não altera nem substitui os três documentos funcionais/técnico
 
 > **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
 >
-> **Atualização (Decisão 91):** o App Icon oficial é a versão modernizada do glifo (profundidade, gradiente lilás→roxo e brilho na base), com Dark e Tinted no iOS e primeiro plano dentro da zona segura de 66 dp, mais monocromático, no Android. O símbolo dentro do wordmark ainda usa o desenho anterior; alinhá-lo é pendência de marca do Luiz.
+> **Atualização (Decisão 91):** o App Icon oficial é a versão modernizada do glifo (profundidade, gradiente lilás→roxo e brilho na base), com Dark e Tinted no iOS e primeiro plano dentro da zona segura de 66 dp, mais monocromático, no Android. O wordmark também usa o símbolo novo, e os wordmarks mono foram refeitos a partir do primary (Decisão 92).
 
 > **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação.
 >

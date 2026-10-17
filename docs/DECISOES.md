@@ -94,6 +94,7 @@
 | [88](#decisão-88) | Widget de prontidão por jogo — arte oficial por plataforma e Check direto | **Vigente (Implementado localmente; validação visual/física pendente)** | Refina a #49 e a Decisão 75: iOS e Android mostram a arte editorial do último Check válido e iniciam novo Check daquele contexto por toque explícito | Luiz / Giam / Marco / Camillo / Rian / Renan / Iury / Breno |
 | [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
 | [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [92](#decisão-92) | Wordmark com o símbolo modernizado e mono refeito a partir do primary | **Vigente (Implementado localmente; validação visual pendente)** | Revisa o item 5 da Decisão 91: primary, mono claro/escuro e PNGs de app passam a usar o mesmo símbolo e as mesmas letras | Luiz / Giam / Renan / Rian / Breno |
 
 
 
@@ -892,6 +893,20 @@
   4. O teste A/B de loja fica adiado: o volume atual de impressões não sustenta Product Page Optimization nem Store Listing Experiments.
   5. O wordmark e o símbolo compacto dentro dele **não** mudam nesta decisão. A diferença entre o glifo do ícone e o símbolo do wordmark fica como pendência de marca para o Luiz.
 - **Critérios de validação e aceite:** build iOS no simulador com Default, Dark e Tinted; emulador Android API 26 e 34 com ícones temáticos ligados; launchers Pixel e Samsung One UI; seletor de ícones da Decisão 83 intacto; leitura em 29 e 60 px sem confundir com os numerais 6 e 9. Cada ambiente é prova separada.
+
+#### Decisão 92
+
+- **Data:** 16 de outubro de 2026.
+- **Título:** Wordmark com o símbolo modernizado e mono refeito.
+- **Status Atual:** **Vigente (Implementado localmente).** Revisa o item 5 da Decisão 91.
+- **Frentes envolvidas:** Luiz (aprovação), Giam (aceite), Renan (design), Rian (integração) e Breno (validação).
+- **Contexto e problema:** O símbolo do wordmark ainda era o desenho antigo, diferente do ícone. Os wordmarks mono (claro e escuro) nunca tiveram o mesmo símbolo nem as mesmas letras do primary: usavam um símbolo angular e uma tipografia blocky próprios. Isso já estava errado antes da Decisão 91 e não havia sido apontado.
+- **Decisão:**
+  1. O wordmark primary oficial é o aprovado pelo Luiz: símbolo modernizado, `lag` branco e `check` roxo (Decisão 66). As letras seguem como pixels do master anterior; o primary ainda não é um master vetorial.
+  2. Os wordmarks mono claro e escuro passam a ser vetores derivados das letras do primary, com o mesmo símbolo, em tinta sólida `#15181E` e `#F4F5F7`. O desenho angular antigo do mono sai de uso.
+  3. Os PNGs de app (iOS, Android e Play) são regerados do novo primary, nos tamanhos que já existiam. `lagcheck-wordmark-light.svg` do design system deixa de apontar para um caminho inexistente.
+  4. Redesenhar `lag` e `check` em vetor a partir da fonte original fica como pendência de marca.
+- **Critérios de validação e aceite:** wordmark legível em 24 e 40 px de altura; iOS e Android exibem o primary novo; as páginas web e o protótipo carregam os SVGs sem quebra; cada ambiente é prova separada.
 
 ## Como Registrar Novas Decisões
 
