@@ -1,3 +1,5 @@
 # Enforce LF for canonical JSON files required for deterministic Ed25519 signatures
 *.canonical.json text eol=lf
 *.envelope.json text eol=lf
+android/app/src/main/assets/catalog-base.json text eol=lf
+Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json text eol=lf

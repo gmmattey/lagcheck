@@ -1,13 +1,13 @@
 package com.lagcheck.session.ads
 
-/** Onde um banner pode aparecer. Nenhuma outra tela reserva espaço de anúncio. */
-enum class AdPlacement { HOME, HISTORY }
+/** Superfícies Android autorizadas para Native Advanced (Decisão 96). */
+enum class AdPlacement { HOME, HISTORY, GAMES, RESULT }
 
 /** Contexto avaliado pela política de anúncios. JVM puro: não conhece SDK nem UI. */
 data class AdContext(
-    /** Chave de build: desligada no beta; liga só quando o MVP1.1 for autorizado. */
+    /** Chave de build de publicidade. */
     val enabled: Boolean,
-    /** Tela atual como posição de banner; `null` para qualquer tela fora de Home e Histórico. */
+    /** `null` para Check, Detalhes, Configurações e demais telas excluídas. */
     val placement: AdPlacement?,
     /** Resultado do consentimento (UMP): sem isso não há requisição de anúncio. */
     val canRequestAds: Boolean,
@@ -15,8 +15,8 @@ data class AdContext(
     val measuring: Boolean
 )
 
-/** Regras que não mudam: só Home e Histórico, nunca durante a medição, nunca sem consentimento. */
+/** Native Advanced só nas quatro superfícies autorizadas, nunca durante Check ou sem UMP. */
 object AdPolicy {
-    fun shouldShowBanner(context: AdContext): Boolean =
+    fun shouldShowNative(context: AdContext): Boolean =
         context.enabled && context.placement != null && context.canRequestAds && !context.measuring
 }

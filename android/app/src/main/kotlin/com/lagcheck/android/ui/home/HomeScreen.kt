@@ -62,8 +62,10 @@ fun HomeScreen(
     onOpenNetworkCockpit: () -> Unit = {},
     /** Problema reportado na rede do console escolhido. Nulo = nada a avisar. */
     platformHealth: PlatformHealth? = null,
+    showNativeAd: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.HOME) else null
     val context = LocalContext.current
     val wifi = radioSnapshot?.wifiDetails
     val radioLabel = when {
@@ -271,6 +273,12 @@ fun HomeScreen(
             }
         }
 
+        if (nativeAd != null) {
+            com.lagcheck.android.ads.NativeAdSlot(
+                nativeAd,
+                Modifier.padding(top = 24.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(24.dp))
     }
 }

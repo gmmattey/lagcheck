@@ -140,18 +140,18 @@ Coberto na Seção 8. Reduzir Movimento é tratado como estado de primeira class
   - Números, unidades (`ms`, `%`) e formatos de data/hora seguem o `Locale` do sistema, não um formato fixo.
   - Nomes de jogos e regiões vêm do catálogo remoto já traduzidos (`label: { "pt-BR": ..., "en": ... }`, ver especificação técnica Seção 4.3) e não são recompostos pelo app.
 
-## 11. Referência futura — publicidade e consentimento (MVP1.1)
+## 11. Publicidade e consentimento
 
-`BannerAdSlot`, publicidade e consentimento não fazem parte do MVP1: não há SDK, tela, reserva de área, placeholder ou gate visual relacionado nesta entrega. Esta seção preserva somente o contrato de design para um MVP1.1 futuro, que exige decisão de produto e implementação própria.
+As Decisões 96 e 97 autorizam anúncios nativos em Home, Histórico, Jogos e Resultado no Android e no iOS.
 
-Quando o MVP1.1 for autorizado, aplicar estas regras de layout:
+Regras de layout para os dois clientes:
 
-- O `BannerAdSlot` só existe em **Home** e **Histórico**. Nenhuma outra tela reserva espaço para anúncio.
-- **Nunca** em Quick Check, Deep Check ou tela de Resultado — nem como placeholder vazio, nem condicionalmente.
-- A área é **reservada em layout desde o primeiro render**, com a altura do token `bannerAdSlot.heightStandard` (50pt) ou `heightLarge` (90pt) conforme o tamanho adaptativo retornado pelo SDK, para que o carregamento do anúncio nunca desloque conteúdo já visível (sem "layout shift").
-- Se o anúncio falhar ao carregar, a área permanece reservada e vazia (fundo `surfaceAd.background`) — o layout ao redor não deve recolher o espaço nem re-fluir.
-- O `BannerAdSlot` nunca cobre, sobrepõe ou fica adjacente sem margem (`adSlotMargin`) a: latência ao vivo, estado do teste, score, classificação, causa, recomendação, ou as ações "Testar novamente" / "Ver detalhes" / "Fazer Deep Check".
+- O anúncio nativo ocupa um módulo separado no fluxo de rolagem em **Home**, **Histórico**, **Jogos** e **Resultado**. Não é fixado acima da navegação inferior.
+- **Nunca** durante o Check, em Detalhes ou Configurações — nem como placeholder vazio, nem condicionalmente.
+- Sem consentimento, carregamento ou após falha, não há módulo ou rótulo publicitário vazio. A inserção de um anúncio carregado deve preservar a posição de rolagem e não deslocar controles essenciais.
+- O módulo nativo nunca cobre, sobrepõe ou fica adjacente sem margem (`adSlotMargin`) a latência ao vivo, estado do teste, score, classificação, causa, recomendação ou ações essenciais. No Resultado, aparece após o veredito, métricas, explicação e todas as ações, inclusive compartilhar.
 - Rótulo de identificação publicitária (`surfaceAd.label`, ex.: "Anúncio"/"Ad") é sempre visível, nunca estilizado para se parecer com conteúdo do LagCheck.
+- Preservar o AdChoices do SDK, patrocinador, texto e ação exigidos pelo formato nativo. A ação publicitária não assume a cor ou a posição da ação primária do app; TalkBack e VoiceOver anunciam publicidade antes dos assets e da ação.
 
 ## 12. Inventário de componentes
 
@@ -198,7 +198,7 @@ A entrada da vitrine para o contexto de um jogo usa uma navegação `NavigationS
 
 No contexto do jogo, plataforma e região aparecem como dois fatos escaneáveis. A limitação de precisão permanece obrigatória, mas é apresentada uma única vez em texto curto, sem repetir a mesma informação em frase, card e descrição.
 
-Referência de MVP1.1, fora do inventário e dos gates visuais do MVP1: `BannerAdSlot`, para publicidade em Home e Histórico somente. Não implementar ou reservar sua área antes da autorização específica do MVP1.1.
+`BannerAdSlot` é referência histórica de MVP1.1; as Decisões 96 e 97 adotam o módulo nativo nas quatro superfícies de cada plataforma.
 
 ### 12.1 Recorte aprovado do piloto de Quick Check
 
@@ -241,5 +241,5 @@ Convenções obrigatórias:
 4. **Dark mode fixo dentro do módulo**: componentes não devem ler `colorScheme`; todo token já resolve para o valor único da V1. Isso mantém o módulo pronto para, no futuro, ganhar um segundo tema sem reescrever componentes — mas essa extensão não faz parte do escopo desta V1.
 5. **Acessibilidade embutida no componente, não em quem o consome.** `accessibilityLabel`, `accessibilityValue`, tamanho mínimo de toque e comportamento em Dynamic Type grande são responsabilidade do componente (Seção 9), não recriados em cada tela que o usa.
 6. **Motion via tokens nomeados** (`NLMotion.scoreReveal`, etc.), nunca `withAnimation(.easeInOut(duration: 0.3))` solto em `Features`. Cada API de componente que anima expõe o estado final de forma síncrona quando `UIAccessibility.isReduceMotionEnabled` é verdadeiro.
-7. **Sem SDKs externos no módulo.** `LagCheckDesign` não importa Google Mobile Ads, SwiftData, Network nem nenhum adaptador de `Infrastructure`. `BannerAdSlot` é apenas uma referência visual futura do MVP1.1; não há componente, reserva de layout ou injeção de SDK a implementar no MVP1. Se essa frente for autorizada, a `View` do SDK deverá ficar fora do módulo, em `Features`/`App`, via closure ou `UIViewRepresentable`.
+7. **Sem SDKs externos no módulo.** `LagCheckDesign` não importa Google Mobile Ads, SwiftData, Network nem nenhum adaptador de `Infrastructure`. As Views do SDK das Decisões 96 e 97 ficam na camada de app em cada plataforma, fora do design system. `BannerAdSlot` é apenas referência histórica.
 8. **Geração a partir dos tokens JSON**: os arquivos em `Tokens/` devem ser gerados (manual ou por script) a partir de `design-system/tokens/*.json`, preservando os mesmos nomes semânticos (`NLColor.scoreExcellent`, `NLSpacing.resultConclusionToMetrics`, etc.), para que designer e engenheiro leiam o mesmo vocabulário nos dois lados.

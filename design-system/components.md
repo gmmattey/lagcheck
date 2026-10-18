@@ -408,42 +408,18 @@ public struct EmptyState: View {
 
 ---
 
-## `BannerAdSlot`
+## Módulo de anúncio nativo (Decisões 96 e 97)
 
-Área reservada de anúncio. Existe **apenas** para uso em Home e Histórico (Seção 11 do documento funcional). O componente em si não sabe nada sobre qualidade de conexão, score ou sessão de medição — apenas reserva espaço e hospeda a view do SDK injetada externamente.
+Home, Histórico, Jogos e Resultado podem inserir um módulo AdMob Native Advanced no fluxo de rolagem. A implementação pertence à camada de app de cada plataforma; `LagCheckDesign` não importa o SDK nem reserva espaço.
 
 **Anatomia**
-- Moldura com fundo `surfaceAd.background`, raio `adSlot`.
-- Rótulo "Anúncio"/"Ad" (`surfaceAd.label`), sempre visível, `caption`.
-- Slot de conteúdo (a view nativa do Google Mobile Ads é injetada por `Features`/`App`; o módulo `LagCheckDesign` nunca importa o SDK).
-- Placeholder vazio com a mesma altura reservada quando não há anúncio carregado.
+- Superfície separada do conteúdo funcional, com tokens `surfaceAd.background`, `surfaceAd.label` e margem `adSlotMargin`.
+- Rótulo localizado "Anúncio"/"Ad" visível antes dos assets publicitários.
+- Headline, mídia/ícone, patrocinador, CTA e AdChoices apresentados pelas views do SDK. Nenhum gesto do app sobrepõe CTA ou AdChoices.
 
-**Variantes**
-| Variante | Uso |
-| --- | --- |
-| `.home` | Posição fixa na Home |
-| `.history` | Posição fixa no Histórico |
+**Comportamento**
+- Renderizar somente após consentimento que permita requisição e anúncio carregado. Pendência, negativa, erro ou falta de inventário deixam a tela sem módulo, rótulo ou lacuna.
+- O módulo fica após conteúdo e ações essenciais; no Resultado, após veredito, métricas, explicação e todas as ações. Não aparece durante Check nem em Detalhes, Configurações, Widget ou App Clip.
+- VoiceOver e TalkBack anunciam o caráter publicitário antes dos assets. Texto ampliado deve crescer sem corte ou altura rígida. A ação do anúncio mantém o estilo do SDK e não usa a ênfase da ação primária do LagCheck.
 
-Ambas as variantes usam a mesma altura adaptativa (`heightStandard`/`heightLarge`); a distinção existe só para telemetria de posicionamento no lado de `Features`, não para uma aparência diferente.
-
-**Estados**
-- `.loaded(AnyView)` — SDK entregou criativo; a `AnyView` injetada é renderizada dentro da moldura.
-- `.empty` — nada carregado ainda ou falha de carregamento; mantém a altura reservada, sem conteúdo, sem re-tentativa visível ao usuário além do rótulo padrão.
-- `.consentPending` — Google UMP ainda não resolveu consentimento; slot permanece vazio (o `AdProvider` só é chamado após o UMP resolver, Seção 9 da especificação técnica).
-
-**API SwiftUI pretendida**
-```swift
-public struct BannerAdSlot<AdContent: View>: View {
-    public enum Placement { case home, history }
-
-    public init(
-        placement: Placement,
-        state: State,
-        @ViewBuilder adContent: () -> AdContent
-    )
-
-    public enum State { case loaded, empty, consentPending }
-}
-```
-- `accessibilityLabel` sempre inicia com "Anúncio"/"Advertisement" e nunca herda o grupo de acessibilidade do conteúdo funcional vizinho.
-- O componente nunca aceita um `action`/callback de toque próprio: qualquer interação é inteiramente do conteúdo do SDK injetado.
+`BannerAdSlot` e sua reserva fixa de altura são referências históricas, substituídas por este contrato.

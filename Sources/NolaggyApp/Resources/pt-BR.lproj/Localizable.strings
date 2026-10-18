@@ -747,6 +747,8 @@
 "settings.about.version" = "Versão";
 "settings.about.terms" = "Termos de Uso";
 "settings.about.privacy" = "Política de Privacidade";
+"settings.ads.privacy_options" = "Opções de privacidade dos anúncios";
+"ads.label" = "Anúncio";
 "settings.about.licenses" = "Licenças de código aberto";
 "settings.support.title" = "Suporte";
 "settings.support.feedback" = "Enviar feedback";

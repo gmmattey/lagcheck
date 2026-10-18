@@ -21,16 +21,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Anúncios (MVP1.1, Decisão 82): LIGADOS por padrão (decisão do Luiz); desliga com -Plagcheck.adsEnabled=false.
+        // Anúncios nativos (Decisão 94): desliga com -Plagcheck.adsEnabled=false.
         // Sem IDs reais, o app usa só os IDs de teste do Google (nunca gera tráfego real).
         val adsEnabled = (project.findProperty("lagcheck.adsEnabled") as String?) != "false"
         buildConfigField("boolean", "ADS_ENABLED", adsEnabled.toString())
         manifestPlaceholders["admobAppId"] =
             (project.findProperty("lagcheck.admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
-        buildConfigField(
-            "String", "ADMOB_BANNER_UNIT_ID",
-            "\"" + ((project.findProperty("lagcheck.admobBannerUnitId") as String?) ?: "ca-app-pub-3940256099942544/9214589741") + "\""
-        )
+        val testNativeUnitId = "ca-app-pub-3940256099942544/2247696110"
+        listOf("Home", "History", "Games", "Result").forEach { placement ->
+            val propertyName = "lagcheck.admobNative${placement}UnitId"
+            val unitId = (project.findProperty(propertyName) as String?) ?: testNativeUnitId
+            buildConfigField("String", "ADMOB_NATIVE_${placement.uppercase()}_UNIT_ID", "\"$unitId\"")
+        }
     }
 
     // Assinatura de release (chave de upload do Play App Signing). Fica FORA do repositório:

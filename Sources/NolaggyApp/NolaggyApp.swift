@@ -14,6 +14,7 @@ struct NolaggyApp: App {
     private let catalogRepository: RemoteCatalogRepository
     private let analyticsTracker: any AnalyticsTracker
     @State private var catalogState: CatalogState
+    @Environment(\.scenePhase) private var scenePhase
 
     private var currentLanguage: AppLanguage {
         AppLanguage(rawValue: selectedLanguage) ?? .system
@@ -71,6 +72,10 @@ struct NolaggyApp: App {
                 }
             }
             .environment(\.locale, currentLocale)
+            .task { IOSAdConsent.shared.updateForLaunchOrForeground() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { IOSAdConsent.shared.updateForLaunchOrForeground() }
+            }
             .task {
                 // A fixture mantém o mesmo catálogo assinado e a mesma jornada da
                 // aplicação, mas não permite que o refresh remoto recompose a Home

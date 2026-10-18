@@ -77,8 +77,10 @@ fun GameSelectionScreen(
     recentChecks: List<CheckHistoryItem> = emptyList(),
     favorites: FavoriteGames = FavoriteGames.EMPTY,
     onToggleFavorite: (CatalogGame) -> Unit = {},
+    showNativeAd: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.GAMES) else null
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
@@ -277,7 +279,17 @@ fun GameSelectionScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(filteredGames) { game ->
+            // A busca permanece acima; o anúncio não entra nos resultados filtrados.
+            if (nativeAd != null && searchQuery.isBlank()) {
+                item(key = "native_ad") {
+                    com.lagcheck.android.ads.NativeAdSlot(
+                        nativeAd,
+                        Modifier.padding(bottom = 16.dp)
+                    )
+                }
+            }
+
+            items(filteredGames, key = { it.id }) { game ->
                 CatalogRowItem(
                     game = game,
                     isFavorite = game.id in favorites,

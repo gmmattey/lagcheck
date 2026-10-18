@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FF0000000000000000000002 /* NativeAdSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000001 /* NativeAdSlot.swift */; };
+		FF0000000000000000000008 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = FF0000000000000000000006 /* GoogleMobileAds */; };
+		FF0000000000000000000009 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = FF0000000000000000000007 /* GoogleUserMessagingPlatform */; };
 		0254A05ECE5678A17B9BF55B /* DirectPlatformHealthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */; };
 		04652A84407369ED5E89B807 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74877992225BB8A92D7D2E7A /* WidgetKit.framework */; };
 		0567D6E8990444FBBB50E191 /* DebugCatalogBase.json in Resources */ = {isa = PBXBuildFile; fileRef = 6576A75DB0E9DE75A62268E5 /* DebugCatalogBase.json */; };
@@ -514,6 +517,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FF0000000000000000000001 /* NativeAdSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdSlot.swift; sourceTree = "<group>"; };
 		003E2D229A975C02E82CF843 /* DeepCheckDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckDetailsView.swift; sourceTree = "<group>"; };
 		02EE643C92A6639FBE8E2932 /* HistoryRitualSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRitualSummary.swift; sourceTree = "<group>"; };
 		06EA298B541FEECAD5A9D95D /* NolaggyInfrastructureTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyInfrastructureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -753,6 +757,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF0000000000000000000008 /* GoogleMobileAds in Frameworks */,
+				FF0000000000000000000009 /* GoogleUserMessagingPlatform in Frameworks */,
 				23C65C72EEA51979A71E49DC /* NolaggyDesign.framework in Frameworks */,
 				1FF545908A1418ECB0D2E7D0 /* NolaggyDomain.framework in Frameworks */,
 				D7B179426DBEFE4EBFB51412 /* NolaggyApplication.framework in Frameworks */,
@@ -886,6 +892,7 @@
 		297535453A23EB4239DBA050 /* NolaggyApp */ = {
 			isa = PBXGroup;
 			children = (
+				FF0000000000000000000003 /* Ads */,
 				0C07B37903F6BAAD97B319B2 /* AppLanguage.swift */,
 				3EC930648BB26F9F4CB801FB /* AppLocalization.swift */,
 				3E0918E16C3535038A933568 /* AppNavigation.swift */,
@@ -908,6 +915,14 @@
 			);
 			name = NolaggyApp;
 			path = Sources/NolaggyApp;
+			sourceTree = "<group>";
+		};
+		FF0000000000000000000003 /* Ads */ = {
+			isa = PBXGroup;
+			children = (
+				FF0000000000000000000001 /* NativeAdSlot.swift */,
+			);
+			path = Ads;
 			sourceTree = "<group>";
 		};
 		2A34FF42240A85715507D350 /* Products */ = {
@@ -1387,6 +1402,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2F7B7AC0893B2EE8A68E3E51 /* Build configuration list for PBXNativeTarget "Nolaggy" */;
 			buildPhases = (
+				FF000000000000000000000A /* Validate iOS AdMob configuration */,
 				BD377F1D49CE83B10E1B16D4 /* Sources */,
 				41F095878D7C4E4E5A46D760 /* Resources */,
 				1F0DDCD0EE82A62B656C3E65 /* Frameworks */,
@@ -1406,6 +1422,8 @@
 			);
 			name = Nolaggy;
 			packageProductDependencies = (
+				FF0000000000000000000006 /* GoogleMobileAds */,
+				FF0000000000000000000007 /* GoogleUserMessagingPlatform */,
 			);
 			productName = Nolaggy;
 			productReference = 75A42D8AE1C21B7EEEA5D10E /* Nolaggy.app */;
@@ -1647,6 +1665,10 @@
 			);
 			mainGroup = CDA9E9EBA3E62E559F57D6F2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */,
+				FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2A34FF42240A85715507D350 /* Products */;
 			projectDirPath = "";
@@ -1693,6 +1715,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FF000000000000000000000A /* Validate iOS AdMob configuration */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			inputPaths = ();
+			name = "Validate iOS AdMob configuration";
+			outputPaths = ();
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\nif [ \"$CONFIGURATION\" = Release ]; then\n  test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-5542349230926522~8215990145'\n  test \"$LAGCHECK_ADS_ENABLED\" = YES -o \"$LAGCHECK_ADS_ENABLED\" = NO\n  for unit in 4055030074 4883886853 2936380361 7813302529; do\n    grep -Fq \"ca-app-pub-5542349230926522/$unit\" \"$SRCROOT/Sources/NolaggyApp/Ads/NativeAdSlot.swift\"\n  done\nfi\nif [ \"$CONFIGURATION\" = Debug ]; then\n  test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-3940256099942544~1458002511'\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1040193B147703D822C43FE7 /* Sources */ = {
@@ -1831,6 +1867,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF0000000000000000000002 /* NativeAdSlot.swift in Sources */,
 				712A1EC53E26ACE28210FA87 /* AppLanguage.swift in Sources */,
 				542A898678FC4692A7E772D3 /* AppLocalization.swift in Sources */,
 				18A49CCD4B49EF685F73C9D9 /* AppNavigation.swift in Sources */,
@@ -2166,6 +2203,8 @@
 		3C8E352CAC908F2959E9FCE9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-5542349230926522~8215990145";
+				LAGCHECK_ADS_ENABLED = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/NolaggyApp/Nolaggy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2650,6 +2689,8 @@
 		E7DC7C44E1A76791A55DDDC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-3940256099942544~1458002511";
+				LAGCHECK_ADS_ENABLED = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/NolaggyApp/Nolaggy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2806,6 +2847,30 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+/* Begin XCRemoteSwiftPackageReference section */
+		FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {kind = exactVersion; version = 13.11.0; };
+		};
+		FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git";
+			requirement = {kind = exactVersion; version = 3.1.0; };
+		};
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+		FF0000000000000000000006 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */;
+			productName = GoogleMobileAds;
+		};
+		FF0000000000000000000007 /* GoogleUserMessagingPlatform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */;
+			productName = GoogleUserMessagingPlatform;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C8029F1A9A9E66DDB4272DF7 /* Project object */;
 }
