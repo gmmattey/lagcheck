@@ -182,6 +182,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lagcheck.app.Clip
+        # App Clip e app pai são exclusivos de iPhone; a Apple exige a mesma
+        # família de dispositivos nos dois bundles ao instalar em aparelho.
+        TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: "LagCheck Clip"
         INFOPLIST_KEY_CFBundleName: "LagCheck Clip"
