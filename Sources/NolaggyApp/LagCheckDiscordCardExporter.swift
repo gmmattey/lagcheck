@@ -1,277 +1,131 @@
 import SwiftUI
 import UIKit
 import NolaggyDomain
-import NolaggyApplication
 import NolaggyDesign
 
-/// Gerador do Card Viral de Alta Fidelidade para Discord, WhatsApp e Redes Sociais.
-/// Gera um JPEG em 1200x630, o formato de preview de link do LagCheck.
-/// com estética Dark Competitive UI, tipografia pesada e números de corrida.
+/// JPEG 1200×630 preparado somente para um snapshot conclusivo já medido.
 public enum LagCheckDiscordCardExporter {
-
     private static let preparationLock = NSLock()
     public static let linkCardSize = CGSize(width: 1200, height: 630)
 
-    public static func generateDiscordShareCard(
-        gameName: String,
-        regionName: String,
-        verdict: GameReadinessVerdict,
-        pingMs: Double?,
-        jitterMs: Double?,
-        packetLossPercentage: Double?,
-        bufferbloatGradeText: String?,
-        isWiFi: Bool,
-        outputURL: URL? = nil
-    ) -> URL? {
-        let width = linkCardSize.width
-        let height = linkCardSize.height
-        let bounds = CGRect(x: 0, y: 0, width: width, height: height)
+    public static func generateDiscordShareCard(gameName: String, gameID: String? = nil, regionName: String, verdict: GameReadinessVerdict, pingMs: Double?, jitterMs: Double?, packetLossPercentage: Double?, bufferbloatGradeText: String?, isWiFi: Bool, outputURL: URL? = nil) -> URL? {
+        guard verdict != .inconclusive, pingMs != nil, jitterMs != nil else { return nil }
+        let bounds = CGRect(origin: .zero, size: linkCardSize)
+        let output = outputURL ?? FileManager.default.temporaryDirectory.appendingPathComponent("LagCheck_\(UUID().uuidString).jpg")
+        let image = UIGraphicsImageRenderer(bounds: bounds).image { context in
+            let cg = context.cgContext
+            cg.setFillColor(UIColor(NLColor.deep).cgColor); cg.fill(bounds)
+            drawArtwork(forGameID: gameID, in: CGRect(x: 0, y: 0, width: 590, height: linkCardSize.height))
+            drawArtworkGradient(in: bounds, context: cg)
 
-        let renderer = UIGraphicsImageRenderer(bounds: bounds)
-        let tempURL = outputURL ?? FileManager.default.temporaryDirectory
-            .appendingPathComponent("LagCheck_\(gameName.replacingOccurrences(of: " ", with: "_"))_\(UUID().uuidString).jpg")
-
-        let image = renderer.image { ctx in
-            let cg = ctx.cgContext
-
-            // 1. Fundo Dark Profundo (#0B0D10)
-            cg.setFillColor(UIColor(NLColor.deep).cgColor)
-            cg.fill(bounds)
-
-            // 2. Painel Central com borda fina 1px
-            let cardInset = CGRect(x: 40, y: 40, width: width - 80, height: height - 80)
-            let cardPath = UIBezierPath(roundedRect: cardInset, cornerRadius: 24)
-            cg.setFillColor(UIColor(NLColor.surface).cgColor)
-            cardPath.fill()
-
-            // Borda do card
-            cg.setStrokeColor(UIColor(white: 1.0, alpha: 0.12).cgColor)
-            cg.setLineWidth(1.5)
-            cardPath.stroke()
-
-            // 3. Header: Wordmark lagcheck + Selo Oficial
-            let wordmarkAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 32, weight: .heavy),
-                .foregroundColor: UIColor.white
-            ]
-            let wordmark = NSAttributedString(string: "lagcheck", attributes: wordmarkAttrs)
-            wordmark.draw(at: CGPoint(x: 75, y: 75))
-
-            // Tag "ATESTADO DE ROTA"
-            let tagAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.monospacedSystemFont(ofSize: 15, weight: .bold),
-                .foregroundColor: UIColor(NLColor.gamerPurple)
-            ]
-            let tag = NSAttributedString(string: AppLocalization.string("exporter.discord.official_tag", comment: ""), attributes: tagAttrs)
-            tag.draw(at: CGPoint(x: 230, y: 85))
-
-            // Subtítulo da conexão
-            let connType = isWiFi
-                ? AppLocalization.string("exporter.discord.wifi_iphone", comment: "")
-                : AppLocalization.string("exporter.discord.cellular", comment: "")
-            let subAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.monospacedSystemFont(ofSize: 14, weight: .medium),
-                .foregroundColor: UIColor(white: 0.6, alpha: 1.0)
-            ]
-            let connString = NSAttributedString(string: "\(gameName.uppercased()) · \(regionName.uppercased()) · \(connType)", attributes: subAttrs)
-            connString.draw(at: CGPoint(x: 75, y: 125))
-
-            // Linha divisória
-            cg.setStrokeColor(UIColor(white: 1.0, alpha: 0.08).cgColor)
-            cg.setLineWidth(1)
-            cg.move(to: CGPoint(x: 75, y: 160))
-            cg.addLine(to: CGPoint(x: width - 75, y: 160))
-            cg.strokePath()
-
-            // 4. Veredito Central Gigante
-            let verdictText: String
-            let verdictColor: UIColor
-            let discordGamerQuote = gamerQuote(for: verdict)
-
-            switch verdict {
-            case .ready:
-                verdictText = AppLocalization.string("game_readiness.verdict.ready.headline", comment: "")
-                verdictColor = UIColor(NLColor.semanticReady)
-            case .caution:
-                verdictText = AppLocalization.string("game_readiness.verdict.caution.headline", comment: "")
-                verdictColor = UIColor(NLColor.semanticCaution)
-            case .notReady:
-                verdictText = AppLocalization.string("game_readiness.verdict.not_ready.headline", comment: "")
-                // Decisão Renan: #EF4444 não é token oficial; colapsado para coralSolar
-                // (Decisão 66 reserva Coral Solar para atenção/erro — não cabe um segundo vermelho).
-                verdictColor = UIColor(NLColor.coralSolar)
-            case .inconclusive:
-                verdictText = AppLocalization.string("game_readiness.verdict.inconclusive.headline", comment: "")
-                verdictColor = UIColor.lightGray
-            }
-
-            // Desenhar Badge do Veredito
-            let verdictAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 46, weight: .black),
-                .foregroundColor: verdictColor
-            ]
-            switch verdict {
-            case .ready:
-                cg.setFillColor(verdictColor.cgColor)
-                cg.fillEllipse(in: CGRect(x: 75, y: 205, width: 18, height: 18))
-            case .caution:
-                cg.setFillColor(verdictColor.cgColor)
-                cg.move(to: CGPoint(x: 84, y: 201)); cg.addLine(to: CGPoint(x: 94, y: 221)); cg.addLine(to: CGPoint(x: 74, y: 221)); cg.closePath(); cg.fillPath()
-            case .notReady:
-                cg.setFillColor(verdictColor.cgColor)
-                cg.fill(CGRect(x: 76, y: 204, width: 17, height: 17))
-            case .inconclusive: break
-            }
-            let verdictString = NSAttributedString(string: verdictText, attributes: verdictAttrs)
-            verdictString.draw(at: CGPoint(x: 106, y: 190))
-
-            // Frase do Discord (A Regra do Discord)
-            let quoteAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.italicSystemFont(ofSize: 22),
-                .foregroundColor: UIColor(white: 0.85, alpha: 1.0)
-            ]
-            let quoteString = NSAttributedString(string: discordGamerQuote, attributes: quoteAttrs)
-            quoteString.draw(at: CGPoint(x: 75, y: 255))
-
-            // 5. Bloco de Telemetria com 3 Colunas (Números de Velocímetro)
-            let teleY: CGFloat = 330
-            let colWidth: CGFloat = (width - 150) / 4
-
-            let pingStr = pingMs.map { "\(Int(round($0))) ms" } ?? "—"
-            let jitterStr = jitterMs.map { "\(String(format: "%.1f", $0)) ms" } ?? "—"
-            let lossStr = packetLossPercentage.map { "\(String(format: "%.1f", $0))%" } ?? "—"
-
-            let bbStr = bufferbloatGradeText ?? "—"
-            let bbColor: UIColor
-            if bbStr.starts(with: "A") || bbStr == "B" {
-                bbColor = verdictColor
-            } else if bbStr == "C" {
-                bbColor = UIColor(NLColor.semanticCaution)
-            } else {
-                bbColor = UIColor(NLColor.coralSolar)
-            }
+            let left: CGFloat = 610, right: CGFloat = 1140
+            if let wordmark = UIImage(named: "WordmarkPrimary") { wordmark.draw(in: aspectFitRect(image: wordmark, in: CGRect(x: left, y: 42, width: 160, height: 38))) }
+            draw("lagcheck.signallq.com", in: CGRect(x: left, y: 58, width: right - left, height: 28), font: .monospacedSystemFont(ofSize: 18, weight: .medium), color: UIColor(NLColor.textSecondary), alignment: .right)
+            draw(String(format: AppLocalization.string("share.card.kicker %@", comment: ""), gameName.uppercased()), at: CGPoint(x: left, y: 135), font: .monospacedSystemFont(ofSize: 18, weight: .bold), color: UIColor(NLColor.accentPrimary))
+            let headline = AppLocalization.string(headlineKey(for: verdict), comment: "")
+            drawWrapped(headline, in: CGRect(x: left, y: 170, width: right - left, height: 142), font: .systemFont(ofSize: 48, weight: .bold), color: UIColor(NLColor.textPrimary), lineHeight: 54)
 
             let metrics = [
-                (AppLocalization.string("exporter.discord.ping_label", comment: ""), pingStr, (pingMs ?? 999) <= 40 ? verdictColor : UIColor.white),
-                (AppLocalization.string("exporter.discord.jitter_label", comment: ""), jitterStr, (jitterMs ?? 999) <= 4.0 ? verdictColor : UIColor(NLColor.semanticCaution)),
-                (AppLocalization.string("exporter.discord.loss_label", comment: ""), lossStr, (packetLossPercentage ?? 999) == 0 ? verdictColor : UIColor(NLColor.coralSolar)),
-                (AppLocalization.string("exporter.discord.bufferbloat_label", comment: ""), bbStr, bbColor)
+                (AppLocalization.string("share.card.metric.response", comment: ""), formattedMilliseconds(pingMs), "ms"),
+                (AppLocalization.string("share.card.metric.jitter", comment: ""), formattedMilliseconds(jitterMs), "ms"),
+                (AppLocalization.string("share.card.metric.loss", comment: ""), formattedLoss(packetLossPercentage), "%")
             ]
-
-            for (index, item) in metrics.enumerated() {
-                let colX = 75 + (CGFloat(index) * colWidth)
-                let rectCol = CGRect(x: colX, y: teleY, width: colWidth - 20, height: 165)
-
-                // Fundo da coluna
-                let colPath = UIBezierPath(roundedRect: rectCol, cornerRadius: 16)
-                // Decisão Renan: #0E1014 era quase idêntico ao fundo (deep), não elevava a
-                // superfície. Colapsado para o token de card/contêiner da Decisão 51.
-                cg.setFillColor(UIColor(NLColor.surface).cgColor)
-                colPath.fill()
-                cg.setStrokeColor(UIColor(white: 1.0, alpha: 0.08).cgColor)
-                cg.setLineWidth(1)
-                colPath.stroke()
-
-                // Label
-                let labelAttrs: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.monospacedSystemFont(ofSize: 14, weight: .bold),
-                    .foregroundColor: UIColor(white: 0.5, alpha: 1.0)
-                ]
-                let labelStr = NSAttributedString(string: item.0, attributes: labelAttrs)
-                labelStr.draw(at: CGPoint(x: colX + 20, y: teleY + 22))
-
-                // Valor Grande Monoespaçado
-                let valAttrs: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.monospacedSystemFont(ofSize: 52, weight: .heavy),
-                    .foregroundColor: item.2
-                ]
-                let valStr = NSAttributedString(string: item.1, attributes: valAttrs)
-                valStr.draw(at: CGPoint(x: colX + 20, y: teleY + 65))
-
-                // Sub-legenda de honestidade
-                let subLegAttrs: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.systemFont(ofSize: 13, weight: .medium),
-                    .foregroundColor: UIColor(white: 0.45, alpha: 1.0)
-                ]
-                let subLegStr = NSAttributedString(string: AppLocalization.string("exporter.discord.real_udp_sampling", comment: ""), attributes: subLegAttrs)
-                subLegStr.draw(at: CGPoint(x: colX + 20, y: teleY + 128))
+            for (index, metric) in metrics.enumerated() {
+                drawMetric(label: metric.0, value: metric.1, unit: metric.1 == "—" ? "" : metric.2, in: CGRect(x: left + CGFloat(index) * 180, y: 346, width: 160, height: 94))
             }
-
-            // 6. Rodapé com Carimbo de Autenticidade
-            let footY: CGFloat = height - 90
-            let footAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.monospacedSystemFont(ofSize: 13, weight: .semibold),
-                .foregroundColor: UIColor(white: 0.4, alpha: 1.0)
-            ]
-            let footText = NSAttributedString(string: AppLocalization.string("exporter.discord.footer", comment: ""), attributes: footAttrs)
-            footText.draw(at: CGPoint(x: 75, y: footY))
+            drawPill(headline, tone: toneColor(for: verdict), in: CGRect(x: 48, y: 520, width: 390, height: 58))
+            draw(AppLocalization.string("share.card.udp_proof", comment: ""), at: CGPoint(x: left, y: 500), font: .systemFont(ofSize: 20, weight: .medium), color: UIColor(NLColor.textSecondary))
+            draw(regionName.uppercased(), at: CGPoint(x: left, y: 531), font: .monospacedSystemFont(ofSize: 17, weight: .semibold), color: UIColor(NLColor.textPrimary))
+            let connection = isWiFi ? AppLocalization.string("exporter.discord.wifi_iphone", comment: "") : AppLocalization.string("exporter.discord.cellular", comment: "")
+            draw(connection, in: CGRect(x: left, y: 531, width: right - left, height: 28), font: .monospacedSystemFont(ofSize: 14, weight: .medium), color: UIColor(NLColor.textTertiary), alignment: .right)
+            _ = bufferbloatGradeText
         }
-
-        // Salvar em disco para share sheet
         guard let data = image.jpegData(compressionQuality: 0.9) else { return nil }
-        do {
-            try data.write(to: tempURL)
-            return tempURL
-        } catch {
-            return nil
-        }
+        do { try data.write(to: output); return output } catch { return nil }
     }
 
-    /// Prepara apenas o card estático de link para um snapshot de Check já concluído.
-    /// O cache é temporário e a chave inclui a medição, evitando reutilizar um reteste anterior.
-    public static func prepareDiscordShareCard(
-        snapshotKey: String,
-        gameName: String,
-        regionName: String,
-        verdict: GameReadinessVerdict,
-        pingMs: Double?,
-        jitterMs: Double?,
-        packetLossPercentage: Double?,
-        bufferbloatGradeText: String?,
-        isWiFi: Bool
-    ) -> URL? {
-        guard verdict != .inconclusive else { return nil }
-
-        preparationLock.lock()
-        defer { preparationLock.unlock() }
-
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("lagcheck-share-\(stableIdentifier(snapshotKey)).jpg")
+    public static func prepareDiscordShareCard(snapshotKey: String, gameName: String, gameID: String? = nil, regionName: String, verdict: GameReadinessVerdict, pingMs: Double?, jitterMs: Double?, packetLossPercentage: Double?, bufferbloatGradeText: String?, isWiFi: Bool) -> URL? {
+        guard verdict != .inconclusive, pingMs != nil, jitterMs != nil else { return nil }
+        preparationLock.lock(); defer { preparationLock.unlock() }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("lagcheck-share-\(stableIdentifier(snapshotKey)).jpg")
         if FileManager.default.fileExists(atPath: url.path) { return url }
-
-        return generateDiscordShareCard(
-            gameName: gameName,
-            regionName: regionName,
-            verdict: verdict,
-            pingMs: pingMs,
-            jitterMs: jitterMs,
-            packetLossPercentage: packetLossPercentage,
-            bufferbloatGradeText: bufferbloatGradeText,
-            isWiFi: isWiFi,
-            outputURL: url
-        )
-    }
-
-    private static func stableIdentifier(_ value: String) -> String {
-        var hash: UInt64 = 1_469_598_103_934_665_603
-        for byte in value.utf8 {
-            hash ^= UInt64(byte)
-            hash &*= 1_099_511_628_211
-        }
-        return String(hash, radix: 16)
+        return generateDiscordShareCard(gameName: gameName, gameID: gameID, regionName: regionName, verdict: verdict, pingMs: pingMs, jitterMs: jitterMs, packetLossPercentage: packetLossPercentage, bufferbloatGradeText: bufferbloatGradeText, isWiFi: isWiFi, outputURL: url)
     }
 
     public static func gamerQuote(for verdict: GameReadinessVerdict) -> String {
         switch verdict {
-        case .ready:
-            return AppLocalization.string("exporter.discord.quote.ready", comment: "")
-        case .caution:
-            return AppLocalization.string("exporter.discord.quote.caution", comment: "")
-        case .notReady:
-            return AppLocalization.string("exporter.discord.quote.not_ready", comment: "")
-        case .inconclusive:
-            return AppLocalization.string("exporter.discord.quote.inconclusive", comment: "")
+        case .ready: return AppLocalization.string("exporter.discord.quote.ready", comment: "")
+        case .caution: return AppLocalization.string("exporter.discord.quote.caution", comment: "")
+        case .notReady: return AppLocalization.string("exporter.discord.quote.not_ready", comment: "")
+        case .inconclusive: return AppLocalization.string("exporter.discord.quote.inconclusive", comment: "")
         }
     }
-}
 
+    private static func drawArtwork(forGameID gameID: String?, in rect: CGRect) {
+        guard let gameID, let name = GameArtworkAssetResolver.assetName(for: gameID), let artwork = UIImage(named: name) else {
+            drawNeutralArtwork(in: rect)
+            return
+        }
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.saveGState()
+        context.clip(to: rect)
+        artwork.draw(in: aspectFillRect(image: artwork, in: rect))
+        context.restoreGState()
+    }
+    private static func drawNeutralArtwork(in rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.saveGState()
+        context.setFillColor(UIColor(NLColor.surface).cgColor)
+        context.fill(rect)
+        context.setStrokeColor(UIColor(NLColor.borderSubtle).cgColor)
+        context.setLineWidth(1)
+        context.stroke(rect.insetBy(dx: 20, dy: 20))
+        if let wordmark = UIImage(named: "WordmarkPrimary") {
+            wordmark.draw(in: aspectFitRect(image: wordmark, in: CGRect(x: rect.minX + 74, y: rect.midY - 40, width: rect.width - 148, height: 56)))
+        }
+        draw(AppLocalization.string("exporter.discord.official_tag", comment: "").uppercased(), at: CGPoint(x: rect.minX + 74, y: rect.midY + 42), font: .monospacedSystemFont(ofSize: 15, weight: .bold), color: UIColor(NLColor.textSecondary))
+        context.restoreGState()
+    }
+    private static func drawArtworkGradient(in bounds: CGRect, context: CGContext) {
+        let colors = [UIColor(NLColor.deep).withAlphaComponent(0.08).cgColor, UIColor(NLColor.deep).withAlphaComponent(0.36).cgColor, UIColor(NLColor.deep).withAlphaComponent(0.96).cgColor]
+        guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 0.42, 0.62]) else { return }
+        context.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: bounds.width, y: 0), options: [])
+    }
+    private static func drawMetric(label: String, value: String, unit: String, in rect: CGRect) {
+        draw(label.uppercased(), at: CGPoint(x: rect.minX, y: rect.minY), font: .monospacedSystemFont(ofSize: 13, weight: .bold), color: UIColor(NLColor.textTertiary))
+        draw(value, at: CGPoint(x: rect.minX, y: rect.minY + 25), font: .monospacedSystemFont(ofSize: 34, weight: .heavy), color: UIColor(NLColor.textPrimary))
+        if !unit.isEmpty { draw(unit, at: CGPoint(x: rect.minX, y: rect.minY + 67), font: .monospacedSystemFont(ofSize: 16, weight: .bold), color: UIColor(NLColor.textSecondary)) }
+    }
+    private static func drawPill(_ text: String, tone: UIColor, in rect: CGRect) {
+        let path = UIBezierPath(roundedRect: rect, cornerRadius: rect.height / 2)
+        UIColor(NLColor.deep).withAlphaComponent(0.75).setFill(); path.fill(); UIColor.white.withAlphaComponent(0.14).setStroke(); path.lineWidth = 1; path.stroke()
+        tone.setFill(); UIBezierPath(ovalIn: CGRect(x: rect.minX + 20, y: rect.midY - 8, width: 16, height: 16)).fill()
+        draw(text, at: CGPoint(x: rect.minX + 50, y: rect.minY + 17), font: .monospacedSystemFont(ofSize: 16, weight: .bold), color: tone)
+    }
+    private static func draw(_ text: String, at point: CGPoint, font: UIFont, color: UIColor) {
+        draw(text, in: CGRect(origin: point, size: CGSize(width: 700, height: 100)), font: font, color: color)
+    }
+    private static func draw(_ text: String, in rect: CGRect, font: UIFont, color: UIColor, alignment: NSTextAlignment = .left) {
+        let style = NSMutableParagraphStyle(); style.alignment = alignment
+        NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .paragraphStyle: style]).draw(in: rect)
+    }
+    private static func drawWrapped(_ text: String, in rect: CGRect, font: UIFont, color: UIColor, lineHeight: CGFloat) {
+        let style = NSMutableParagraphStyle(); style.lineBreakMode = .byWordWrapping; style.minimumLineHeight = lineHeight; style.maximumLineHeight = lineHeight
+        NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .paragraphStyle: style]).draw(in: rect)
+    }
+    private static func aspectFillRect(image: UIImage, in rect: CGRect) -> CGRect { let scale = max(rect.width / image.size.width, rect.height / image.size.height); let size = CGSize(width: image.size.width * scale, height: image.size.height * scale); return CGRect(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2, width: size.width, height: size.height) }
+    private static func aspectFitRect(image: UIImage, in rect: CGRect) -> CGRect { let scale = min(rect.width / image.size.width, rect.height / image.size.height); let size = CGSize(width: image.size.width * scale, height: image.size.height * scale); return CGRect(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2, width: size.width, height: size.height) }
+    private static func formattedMilliseconds(_ value: Double?) -> String { value.map { "\(Int($0.rounded()))" } ?? "—" }
+    private static func formattedLoss(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        if value <= 0.05 { return "0" }
+        let formatter = NumberFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+    private static func headlineKey(for verdict: GameReadinessVerdict) -> String { switch verdict { case .ready: return "game_readiness.verdict.ready.headline"; case .caution: return "game_readiness.verdict.caution.headline"; case .notReady: return "game_readiness.verdict.not_ready.headline"; case .inconclusive: return "game_readiness.verdict.inconclusive.headline" } }
+    private static func toneColor(for verdict: GameReadinessVerdict) -> UIColor { switch verdict { case .ready: return UIColor(NLColor.semanticReady); case .caution: return UIColor(NLColor.semanticCaution); case .notReady: return UIColor(NLColor.semanticNotReady); case .inconclusive: return UIColor(NLColor.textSecondary) } }
+    private static func stableIdentifier(_ value: String) -> String { var hash: UInt64 = 1_469_598_103_934_665_603; for byte in value.utf8 { hash ^= UInt64(byte); hash &*= 1_099_511_628_211 }; return String(hash, radix: 16) }
+}

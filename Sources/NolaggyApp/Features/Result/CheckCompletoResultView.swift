@@ -13,7 +13,9 @@ import NolaggyDomain
 public struct CheckCompletoResultView: View {
     public let result: DeepCheckResult?
     public let profileID: QualityProfileID
+    public let evaluation: GameReadinessEvaluation
     public let gameName: String
+    public let gameID: String?
     public let platform: Platform
     public let regionFriendlyName: String
     public let destinationKind: RouteDestinationKind
@@ -57,6 +59,7 @@ public struct CheckCompletoResultView: View {
 
     private struct ShareCardSnapshot: Equatable, Sendable {
         let gameName: String
+        let gameID: String?
         let regionName: String
         let verdict: GameReadinessVerdict
         let pingMs: Double?
@@ -68,14 +71,16 @@ public struct CheckCompletoResultView: View {
         let measurementIdentity: String
 
         var cacheKey: String {
-            "\(gameName)|\(regionName)|\(verdict.rawValue)|\(pingMs ?? -1)|\(jitterMs ?? -1)|\(packetLossPercentage ?? -1)|\(bufferbloatGradeText ?? "—")|\(isWiFi)|\(localeIdentifier)|\(measurementIdentity)"
+            "\(gameID ?? "neutral")|\(gameName)|\(regionName)|\(verdict.rawValue)|\(pingMs ?? -1)|\(jitterMs ?? -1)|\(packetLossPercentage ?? -1)|\(bufferbloatGradeText ?? "—")|\(isWiFi)|\(localeIdentifier)|\(measurementIdentity)"
         }
     }
 
     public init(
         result: DeepCheckResult?,
         profileID: QualityProfileID = .battleRoyaleCompetitive,
+        evaluation: GameReadinessEvaluation,
         gameName: String,
+        gameID: String? = nil,
         platform: Platform = .iphone,
         regionFriendlyName: String,
         destinationKind: RouteDestinationKind = .regionalReference,
@@ -87,7 +92,9 @@ public struct CheckCompletoResultView: View {
     ) {
         self.result = result
         self.profileID = profileID
+        self.evaluation = evaluation
         self.gameName = gameName
+        self.gameID = gameID
         self.platform = platform
         self.regionFriendlyName = regionFriendlyName
         self.destinationKind = destinationKind
@@ -99,12 +106,13 @@ public struct CheckCompletoResultView: View {
     }
 
     public var body: some View {
-        let evaluation = GameReadinessEvaluator.evaluate(deepCheckResult: result, profile: profileID)
+        let evaluation = self.evaluation
+        let shareAvailable = shareCardSnapshot(evaluation: evaluation) != nil
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Top bar: Fechar e Contexto
-                HStack {
+                HStack(alignment: .top) {
                     Button(action: exit) {
                         Image(systemName: "chevron.backward")
                             .font(.system(size: 17, weight: .semibold))
@@ -122,14 +130,16 @@ public struct CheckCompletoResultView: View {
                         .accessibilityIdentifier("measurement-back")
                     )
 
-                    Spacer()
+                    Spacer(minLength: NLSpacing.sm)
 
                     Text(verbatim: regionFriendlyName.isEmpty ? "\(gameName) · \(platform.displayName)" : "\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
                         .font(NLTypography.monospaceMetrics)
                         .foregroundStyle(NLColor.textTertiary)
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("check-completo-context")
                 }
-                .frame(height: 52)
+                .frame(minHeight: 52, alignment: .top)
 
                 // Veredito Protagonista (Mockup 04)
                 VStack(alignment: .leading, spacing: 0) {
@@ -139,13 +149,13 @@ public struct CheckCompletoResultView: View {
                         .padding(.top, 36)
                         .padding(.bottom, 13)
 
-                    HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: NLSpacing.sm) {
                         VerdictIndicatorBadge(verdict: evaluation.verdict, size: 18)
                         Text(LocalizedStringKey(evaluation.headlineKey))
                             .font(NLTypography.verdictHeroHeadline)
+                            .foregroundStyle(colorForVerdict(evaluation.verdict))
                             .accessibilityIdentifier("check-completo-verdict")
                     }
-                    .foregroundStyle(colorForVerdict(evaluation.verdict))
                     .fixedSize(horizontal: false, vertical: true)
 
                     Text(LocalizedStringKey(evaluation.subtitleKey))
@@ -154,30 +164,12 @@ public struct CheckCompletoResultView: View {
                         .lineSpacing(4)
                         .padding(.top, 19)
 
-                    if evaluation.verdict != .inconclusive { sharePreview(evaluation: evaluation) }
+                    if shareAvailable { sharePreview(evaluation: evaluation) }
 
-                    // Métricas inline em tipografia monoespaçada
-                    HStack(spacing: 6) {
-                        Text(verbatim: "\(formattedMs(evaluation.pingMs)) ms")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(NLColor.textPrimary)
-
-                        Text(verbatim: "·")
-                            .font(NLTypography.monospaceMetrics)
-                            .foregroundStyle(NLColor.textTertiary)
-
-                        Text(verbatim: "\(formattedMs(evaluation.jitterMs)) ms jitter")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(NLColor.textPrimary)
-
-                        Text(verbatim: "·")
-                            .font(NLTypography.monospaceMetrics)
-                            .foregroundStyle(NLColor.textTertiary)
-
-                        Text(verbatim: String(format: AppLocalization.string("telemetry.loss_format %@", comment: ""), formattedLoss(evaluation.packetLossPercentage)))
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(NLColor.textPrimary)
-                    }
+                    Text(verbatim: telemetrySummary(evaluation: evaluation))
+                        .font(NLTypography.monospaceMetrics.weight(.semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 22)
                     .background(
                         HStack(spacing: 0) {
@@ -189,26 +181,6 @@ public struct CheckCompletoResultView: View {
                         .opacity(0.001)
                         .clipped()
                     )
-
-                    if let grade = evaluation.metrics?.loadImpact?.bufferbloatGrade {
-                        HStack(spacing: 6) {
-                            Text(LocalizedStringKey("result.bufferbloat.label"))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(NLColor.textTertiary)
-                            Text(verbatim: "\(grade.rawValue)")
-                                .font(.system(size: 11, weight: .heavy, design: .monospaced))
-                                .foregroundStyle(
-                                    (grade == .aPlus || grade == .a || grade == .b)
-                                        ? colorForVerdict(.ready)
-                                        : ((grade == .c) ? NLColor.cautionYellow : NLColor.coralSolar)
-                                )
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(NLColor.surface, in: Capsule())
-                        .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
-                        .padding(.top, 12)
-                    }
 
                     // Card: O que mais pesou
                     VStack(alignment: .leading, spacing: 5) {
@@ -223,18 +195,18 @@ public struct CheckCompletoResultView: View {
                     }
                     .padding(15)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .background(NLColor.panel, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 15, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                            .stroke(NLColor.borderSubtle, lineWidth: 1)
                     )
                     .padding(.top, 27)
                 }
 
                 // Ações do Resultado
-                actionsSection(evaluation: evaluation)
+                actionsSection(evaluation: evaluation, shareAvailable: shareAvailable)
             }
-            .padding(.horizontal, NLSpacing.md)
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.bottom, NLSpacing.xl)
         }
         .background(NLColor.deep.ignoresSafeArea())
@@ -255,6 +227,7 @@ public struct CheckCompletoResultView: View {
                 LagCheckDiscordCardExporter.prepareDiscordShareCard(
                     snapshotKey: snapshot.cacheKey,
                     gameName: snapshot.gameName,
+                    gameID: snapshot.gameID,
                     regionName: snapshot.regionName,
                     verdict: snapshot.verdict,
                     pingMs: snapshot.pingMs,
@@ -664,38 +637,38 @@ public struct CheckCompletoResultView: View {
 
     // MARK: - 6. Ações
 
-    private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
+    private func actionsSection(evaluation: GameReadinessEvaluation, shareAvailable: Bool) -> some View {
         VStack(spacing: 10) {
-            // Botão Secundário: Ver detalhes
-            Button(action: showDetails) {
-                Text(LocalizedStringKey("result.details_button"))
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(NLColor.textPrimary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("check-completo-details")
-
-            // Botão Primário: Testar novamente
             Button(action: retry) {
                 Text(LocalizedStringKey("result.retest_button"))
-                    .font(.system(size: 16, weight: .heavy))
-                    .foregroundStyle(Color.white)
+                    .font(NLTypography.ctaButton)
+                    .foregroundStyle(NLColor.textOnAccent)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(NLColor.gamerPurple, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .frame(height: NLSizing.primaryButtonHeight)
+                    .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("check-completo-primary-action")
 
-            // Ações Utilitárias Compactas: Discord, WhatsApp e PDF separados
-            HStack(spacing: 8) {
-                if evaluation.verdict != .inconclusive {
+            if evaluation.verdict != .inconclusive {
+                Button(action: showDetails) {
+                    Text(LocalizedStringKey("result.details_button"))
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: NLSizing.touchTarget)
+                        .background(
+                            RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
+                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("check-completo-details")
+            }
+
+            if evaluation.verdict != .inconclusive {
+                HStack(spacing: NLSpacing.sm) {
+                if shareAvailable {
                 // Botão Discord com ícone oficial
                 Button(action: { shareToDiscord(evaluation: evaluation) }) {
                     HStack(spacing: 6) {
@@ -705,10 +678,10 @@ public struct CheckCompletoResultView: View {
                     }
                     .foregroundStyle(Color(red: 88/255, green: 101/255, blue: 242/255))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
                             .stroke(NLColor.borderStrong, lineWidth: 1)
                     )
                 }
@@ -726,10 +699,10 @@ public struct CheckCompletoResultView: View {
                     }
                     .foregroundStyle(Color(red: 37/255, green: 211/255, blue: 102/255))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
                             .stroke(NLColor.borderStrong, lineWidth: 1)
                     )
                 }
@@ -749,10 +722,10 @@ public struct CheckCompletoResultView: View {
                     }
                     .foregroundStyle(NLColor.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    .frame(minHeight: NLSizing.touchTarget)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        RoundedRectangle(cornerRadius: NLRadius.button, style: .continuous)
                             .stroke(NLColor.borderStrong, lineWidth: 1)
                     )
                 }
@@ -760,6 +733,7 @@ public struct CheckCompletoResultView: View {
                 .accessibilityIdentifier("check-completo-export-pdf")
             }
             .padding(.top, 4)
+            }
         }
         .padding(.top, 24)
     }
@@ -771,6 +745,21 @@ public struct CheckCompletoResultView: View {
         return "\(Int(value.rounded()))"
     }
 
+    private func telemetrySummary(evaluation: GameReadinessEvaluation) -> String {
+        let jitterLabel = AppLocalization.string("game_readiness.telemetry.jitter", comment: "").lowercased()
+        let lossLabel = AppLocalization.string("game_readiness.telemetry.loss", comment: "").lowercased()
+        let ping = telemetryValue(evaluation.pingMs, unit: "ms")
+        let jitter = "\(telemetryValue(evaluation.jitterMs, unit: "ms")) \(jitterLabel)"
+        let loss = "\(telemetryValue(evaluation.packetLossPercentage, unit: "%")) \(lossLabel)"
+        return "\(ping) · \(jitter) · \(loss)"
+    }
+
+    private func telemetryValue(_ value: Double?, unit: String) -> String {
+        guard let value else { return "—" }
+        let formatted = unit == "%" ? formattedLoss(value) : formattedMs(value)
+        return "\(formatted)\(unit == "%" ? "%" : " \(unit)")"
+    }
+
     private var shareCardAccessibilityValue: String {
         if preparedShareCardURL != nil { return AppLocalization.string("share.card.ready", comment: "") }
         if shareCardPreparationFailed { return AppLocalization.string("share.card.failed", comment: "") }
@@ -778,9 +767,13 @@ public struct CheckCompletoResultView: View {
     }
 
     private func shareCardSnapshot(evaluation: GameReadinessEvaluation) -> ShareCardSnapshot? {
-        guard evaluation.verdict != .inconclusive, let result else { return nil }
+        guard evaluation.verdict != .inconclusive,
+              evaluation.pingMs != nil,
+              evaluation.jitterMs != nil,
+              let result else { return nil }
         return ShareCardSnapshot(
             gameName: gameName,
+            gameID: gameID,
             regionName: regionFriendlyName,
             verdict: evaluation.verdict,
             pingMs: evaluation.pingMs,
@@ -811,7 +804,11 @@ public struct CheckCompletoResultView: View {
         if loss <= 0.05 {
             return "0"
         }
-        return String(format: "%.1f", loss)
+        let formatter = NumberFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter.string(from: NSNumber(value: loss)) ?? "\(loss)"
     }
 
     private func colorForVerdict(_ verdict: GameReadinessVerdict) -> Color {

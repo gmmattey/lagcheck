@@ -829,8 +829,10 @@
 "technical_details.local_hop_unobservable_detail" = "Sin medición directa de Wi-Fi o gateway en esta sesión.";
 "technical_details.external_route" = "Ruta externa";
 "technical_details.status_stable" = "Estable";
-"technical_details.external_route_detail %@" = "Ruta regional de referencia · %@ · bajo carga.";
+"technical_details.external_route_detail %@" = "Ruta regional de referencia · %@.";
+"technical_details.external_route_detail_load %@" = "Ruta regional de referencia · %@ · bajo carga.";
 "technical_details.confidence_good" = "Confianza: buena";
+"technical_details.confidence_medium" = "Confianza: media";
 "technical_details.test_duration_v1" = "27 s de prueba · regla de puntuación v1";
 "technical_details.finding.stability" = "Estabilidad";
 "technical_details.finding.load_behavior" = "Comportamiento bajo carga";
@@ -870,3 +872,15 @@
 "share.card.preparing" = "Preparando tarjeta";
 "share.card.failed" = "Error al preparar la tarjeta";
 "share.card.open_hint" = "Abre las opciones de compartir";
+"share.card.kicker %@" = "CHECK · %@";
+"share.card.metric.response" = "RESPUESTA";
+"share.card.metric.jitter" = "JITTER";
+"share.card.metric.loss" = "PÉRDIDA";
+"share.card.udp_proof" = "Medido con paquetes UDP reales.";
+"technical_details.chart_unavailable" = "El trazo no está disponible para esta medición.";
+
+"technical_details.score_heading" = "PUNTUACIÓN";
+
+"technical_details.status_measured" = "Medición completada";
+
+"technical_details.chart_accessibility" = "Trazos medidos separados por fase: reposo y bajo carga; los huecos son probes sin respuesta válida.";
