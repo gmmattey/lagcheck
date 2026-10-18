@@ -141,6 +141,12 @@ targets:
           - CFBundleURLName: com.lagcheck.app
             CFBundleURLSchemes:
               - lagcheck
+        GADApplicationIdentifier: "$(LAGCHECK_ADMOB_APP_ID)"
+        LagCheckAdsEnabled: "$(LAGCHECK_ADS_ENABLED)"
+        LagCheckPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
+        LagCheckSupportURL: "$(LAGCHECK_SUPPORT_URL)"
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
   LagCheckWidget:
     type: app-extension
     platform: iOS
@@ -156,8 +162,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lagcheck.app.widget
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: "LagCheck Widget"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Sources/LagCheckWidget/Info.plist
         MARKETING_VERSION: "1.0.2"
         CURRENT_PROJECT_VERSION: "3"
         CODE_SIGN_ENTITLEMENTS: Sources/LagCheckWidget/LagCheckWidget.entitlements

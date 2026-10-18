@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FF0000000000000000000002 /* NativeAdSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000001 /* NativeAdSlot.swift */; };
-		FF0000000000000000000008 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = FF0000000000000000000006 /* GoogleMobileAds */; };
-		FF0000000000000000000009 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = FF0000000000000000000007 /* GoogleUserMessagingPlatform */; };
 		0254A05ECE5678A17B9BF55B /* DirectPlatformHealthClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B8CB6B8E764A7D22DD1D9D /* DirectPlatformHealthClientTests.swift */; };
 		04652A84407369ED5E89B807 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74877992225BB8A92D7D2E7A /* WidgetKit.framework */; };
 		0567D6E8990444FBBB50E191 /* DebugCatalogBase.json in Resources */ = {isa = PBXBuildFile; fileRef = 6576A75DB0E9DE75A62268E5 /* DebugCatalogBase.json */; };
@@ -79,6 +76,7 @@
 		3FF81951C1E91E7616696C86 /* RootCauseIsolationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B78380B56CF8B9B43AC714F /* RootCauseIsolationModels.swift */; };
 		40175BF5A5881DBC8F148B9E /* MeasurementStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6F1151AD1EDFF3DF7E9454 /* MeasurementStatusView.swift */; };
 		40DB605179B3901ABD02B137 /* UITestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E088D2A263DD1FC232BF8B0 /* UITestFixtures.swift */; };
+		43AC11841F34ED92CBCE2157 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 81E1DFBF2D7A1C81E30A3E89 /* GoogleMobileAds */; };
 		43EF4A4C941813F3F4727F45 /* VocabularyGuardrail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE9827F20DE833BFFD97A19 /* VocabularyGuardrail.swift */; };
 		441F03754BBD8B518F1CFED9 /* RegionalPreferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BA4A153AB6FF4EE8B51F35 /* RegionalPreferenceRepository.swift */; };
 		44B31D9386DDE11C4659E055 /* GatewayProbeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17415AB3E8F34E9F2FD78443 /* GatewayProbeModels.swift */; };
@@ -183,6 +181,7 @@
 		A1187D393845671EE0DEDC79 /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
 		A15771D9235053CAB4FB58A9 /* StunPacketCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE8E3E60F92BDE3E4698B26 /* StunPacketCodecTests.swift */; };
 		A34E467C72A7383D1AB86EA8 /* NATTopologyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */; };
+		A57FD34BB08A91BE0134C6D1 /* NativeAdSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB8F2B98E8A3401C23E6C9 /* NativeAdSlot.swift */; };
 		A5B3153D67A507485CDDA209 /* LagCheckClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D3E11571E026399E1DA00B /* GameDetailView.swift */; };
 		A64EBEF2B9AB7F96111A1D34 /* RegionalSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47A23287EDA7FA08AD8031B7 /* RegionalSelection.swift */; };
@@ -235,6 +234,7 @@
 		D5740A2B6B385B09184D4E0D /* ConnectionBoosterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7612D2FB84BDDF747887D8 /* ConnectionBoosterSheet.swift */; };
 		D642548EDD8585674FAA048A /* NLMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EAB24444245D99FA2115234 /* NLMotion.swift */; };
 		D7B179426DBEFE4EBFB51412 /* NolaggyApplication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B00F528B6024D0DCC0CA19 /* NolaggyApplication.framework */; };
+		DA3B281792A5D83A53FBFCF9 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = A5B095CAB6FBA0D0B9C84C72 /* GoogleUserMessagingPlatform */; };
 		DC3B9CFF5BFF8803524B97B0 /* Oxanium-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 706E62AEBD5A087AA8631F00 /* Oxanium-OFL.txt */; };
 		DC8312EDC4C799D986C69923 /* GameReadinessDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1C76087B7A9B27123B5359 /* GameReadinessDomain.swift */; };
 		DE28FB2BA0E67FE882F52CA9 /* GeminiConnectionBoosterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D231D06024AFEC9FAAB47A /* GeminiConnectionBoosterService.swift */; };
@@ -517,7 +517,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FF0000000000000000000001 /* NativeAdSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdSlot.swift; sourceTree = "<group>"; };
 		003E2D229A975C02E82CF843 /* DeepCheckDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckDetailsView.swift; sourceTree = "<group>"; };
 		02EE643C92A6639FBE8E2932 /* HistoryRitualSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRitualSummary.swift; sourceTree = "<group>"; };
 		06EA298B541FEECAD5A9D95D /* NolaggyInfrastructureTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyInfrastructureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -558,6 +557,7 @@
 		2A828FE7884262D4FFBAFE0A /* NLStroke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NLStroke.swift; sourceTree = "<group>"; };
 		2B99EB7D33E547A006A994B1 /* NolaggyDomainTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NolaggyDomainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C47012986A5FAFCFF41DCED /* LagCheckClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LagCheckClip.entitlements; sourceTree = "<group>"; };
+		2FAB8F2B98E8A3401C23E6C9 /* NativeAdSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdSlot.swift; sourceTree = "<group>"; };
 		2FF0B03E419B721F37EDCCCA /* VoiceChatSuitabilityEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceChatSuitabilityEvaluator.swift; sourceTree = "<group>"; };
 		3124C8561614308016F7B9B1 /* InsightBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBanner.swift; sourceTree = "<group>"; };
 		3248A8E8CA246F5AA831CCC3 /* MeasurementHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementHistoryEntry.swift; sourceTree = "<group>"; };
@@ -690,6 +690,7 @@
 		C07F76E6CB6AABDDC047CBB9 /* StunProbeClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StunProbeClientTests.swift; sourceTree = "<group>"; };
 		C13B733DC0854BF2E87705DA /* DarkCompetitiveHomeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkCompetitiveHomeComponents.swift; sourceTree = "<group>"; };
 		C13CEE41EBF8FE561BB153BF /* PilotCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotCatalog.swift; sourceTree = "<group>"; };
+		C1C3E72DBE6A045B7B4920B4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C26BFCF85AF7AF313ACC788D /* NATTopologyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NATTopologyTests.swift; sourceTree = "<group>"; };
 		C45231AB7E47F541F804D4B0 /* MeasurementDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementDetailsView.swift; sourceTree = "<group>"; };
 		C4A2463DE7096D071FCE74C4 /* HomeCircularPulseGaugeHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCircularPulseGaugeHero.swift; sourceTree = "<group>"; };
@@ -757,12 +758,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF0000000000000000000008 /* GoogleMobileAds in Frameworks */,
-				FF0000000000000000000009 /* GoogleUserMessagingPlatform in Frameworks */,
 				23C65C72EEA51979A71E49DC /* NolaggyDesign.framework in Frameworks */,
 				1FF545908A1418ECB0D2E7D0 /* NolaggyDomain.framework in Frameworks */,
 				D7B179426DBEFE4EBFB51412 /* NolaggyApplication.framework in Frameworks */,
 				5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */,
+				43AC11841F34ED92CBCE2157 /* GoogleMobileAds in Frameworks */,
+				DA3B281792A5D83A53FBFCF9 /* GoogleUserMessagingPlatform in Frameworks */,
 				C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */,
 				24493F3A949F4A4355A992FA /* StoreKit.framework in Frameworks */,
 				91B2C0E45C28002ED245796D /* WidgetKit.framework in Frameworks */,
@@ -892,7 +893,6 @@
 		297535453A23EB4239DBA050 /* NolaggyApp */ = {
 			isa = PBXGroup;
 			children = (
-				FF0000000000000000000003 /* Ads */,
 				0C07B37903F6BAAD97B319B2 /* AppLanguage.swift */,
 				3EC930648BB26F9F4CB801FB /* AppLocalization.swift */,
 				3E0918E16C3535038A933568 /* AppNavigation.swift */,
@@ -909,20 +909,13 @@
 				1E088D2A263DD1FC232BF8B0 /* UITestFixtures.swift */,
 				3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */,
 				6B7379DC632F88C20E2F3AE2 /* WidgetArtworkSnapshotWriter.swift */,
+				6595CE6E44A78DA9788BA0B5 /* Ads */,
 				998AE6D78FF15628C1B74561 /* Features */,
 				EE0AEE884A680BBB35813A45 /* Intents */,
 				30D3E7CAC2B6BF06E72ECCCE /* Resources */,
 			);
 			name = NolaggyApp;
 			path = Sources/NolaggyApp;
-			sourceTree = "<group>";
-		};
-		FF0000000000000000000003 /* Ads */ = {
-			isa = PBXGroup;
-			children = (
-				FF0000000000000000000001 /* NativeAdSlot.swift */,
-			);
-			path = Ads;
 			sourceTree = "<group>";
 		};
 		2A34FF42240A85715507D350 /* Products */ = {
@@ -1004,6 +997,14 @@
 			path = Sources/NolaggyDesign;
 			sourceTree = "<group>";
 		};
+		6595CE6E44A78DA9788BA0B5 /* Ads */ = {
+			isa = PBXGroup;
+			children = (
+				2FAB8F2B98E8A3401C23E6C9 /* NativeAdSlot.swift */,
+			);
+			path = Ads;
+			sourceTree = "<group>";
+		};
 		690B5E309E0C40B3DC42DD84 /* History */ = {
 			isa = PBXGroup;
 			children = (
@@ -1015,6 +1016,7 @@
 		8005672EE99EDBEF9C52FEF1 /* LagCheckWidget */ = {
 			isa = PBXGroup;
 			children = (
+				C1C3E72DBE6A045B7B4920B4 /* Info.plist */,
 				730D34FE088EF7E77A7543B7 /* LagCheckWidget.entitlements */,
 				D73B484AD9A99BD58DF85F9D /* LagCheckWidget.swift */,
 			);
@@ -1402,7 +1404,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2F7B7AC0893B2EE8A68E3E51 /* Build configuration list for PBXNativeTarget "Nolaggy" */;
 			buildPhases = (
-				FF000000000000000000000A /* Validate iOS AdMob configuration */,
+				A3ACAF4F5D972CEA9C61B863 /* Validate iOS AdMob configuration */,
 				BD377F1D49CE83B10E1B16D4 /* Sources */,
 				41F095878D7C4E4E5A46D760 /* Resources */,
 				1F0DDCD0EE82A62B656C3E65 /* Frameworks */,
@@ -1422,8 +1424,8 @@
 			);
 			name = Nolaggy;
 			packageProductDependencies = (
-				FF0000000000000000000006 /* GoogleMobileAds */,
-				FF0000000000000000000007 /* GoogleUserMessagingPlatform */,
+				81E1DFBF2D7A1C81E30A3E89 /* GoogleMobileAds */,
+				A5B095CAB6FBA0D0B9C84C72 /* GoogleUserMessagingPlatform */,
 			);
 			productName = Nolaggy;
 			productReference = 75A42D8AE1C21B7EEEA5D10E /* Nolaggy.app */;
@@ -1666,8 +1668,8 @@
 			mainGroup = CDA9E9EBA3E62E559F57D6F2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */,
-				FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */,
+				BB3BB7AC896B9F7CD17C3D5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				01997039BEB8CAE98E44E7AC /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2A34FF42240A85715507D350 /* Products */;
@@ -1717,16 +1719,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		FF000000000000000000000A /* Validate iOS AdMob configuration */ = {
+		A3ACAF4F5D972CEA9C61B863 /* Validate iOS AdMob configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
-			inputPaths = ();
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
 			name = "Validate iOS AdMob configuration";
-			outputPaths = ();
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\nif [ \"$CONFIGURATION\" = Release ]; then\n  test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-5542349230926522~8215990145'\n  test \"$LAGCHECK_ADS_ENABLED\" = YES -o \"$LAGCHECK_ADS_ENABLED\" = NO\n  for unit in 4055030074 4883886853 2936380361 7813302529; do\n    grep -Fq \"ca-app-pub-5542349230926522/$unit\" \"$SRCROOT/Sources/NolaggyApp/Ads/NativeAdSlot.swift\"\n  done\nfi\nif [ \"$CONFIGURATION\" = Debug ]; then\n  test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-3940256099942544~1458002511'\nfi\n";
+			shellScript = "set -eu\ntest \"$CONFIGURATION\" != Release || {\n  test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-5542349230926522~8215990145'\n  test \"$LAGCHECK_ADS_ENABLED\" = YES -o \"$LAGCHECK_ADS_ENABLED\" = NO\n  for unit in 4055030074 4883886853 2936380361 7813302529; do\n    grep -Fq \"ca-app-pub-5542349230926522/$unit\" \"$SRCROOT/Sources/NolaggyApp/Ads/NativeAdSlot.swift\"\n  done\n}\ntest \"$CONFIGURATION\" != Debug || test \"$LAGCHECK_ADMOB_APP_ID\" = 'ca-app-pub-3940256099942544~1458002511'\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1867,7 +1876,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF0000000000000000000002 /* NativeAdSlot.swift in Sources */,
 				712A1EC53E26ACE28210FA87 /* AppLanguage.swift in Sources */,
 				542A898678FC4692A7E772D3 /* AppLocalization.swift in Sources */,
 				18A49CCD4B49EF685F73C9D9 /* AppNavigation.swift in Sources */,
@@ -1892,6 +1900,7 @@
 				1D2E950ED0F95C7AD799D84C /* MeasurementProgressView.swift in Sources */,
 				40175BF5A5881DBC8F148B9E /* MeasurementStatusView.swift in Sources */,
 				2E1656B09BB9353C72EE96CB /* MeasurementTransportFactory.swift in Sources */,
+				A57FD34BB08A91BE0134C6D1 /* NativeAdSlot.swift in Sources */,
 				093D55AB9DD9198D73989FD0 /* NetflixCatalogComponents.swift in Sources */,
 				16D4A0F395234D9766F8D6EF /* NetworkCockpitView.swift in Sources */,
 				CCDBF68C61A41115E49738E3 /* NolaggyApp.swift in Sources */,
@@ -2203,8 +2212,6 @@
 		3C8E352CAC908F2959E9FCE9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-5542349230926522~8215990145";
-				LAGCHECK_ADS_ENABLED = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/NolaggyApp/Nolaggy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2219,6 +2226,8 @@
 				INFOPLIST_KEY_NolaggySupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-5542349230926522~8215990145";
+				LAGCHECK_ADS_ENABLED = YES;
 				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
 				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2391,8 +2400,8 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Sources/LagCheckWidget/LagCheckWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 3;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "LagCheck Widget";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/LagCheckWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2467,8 +2476,8 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Sources/LagCheckWidget/LagCheckWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 3;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "LagCheck Widget";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/LagCheckWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2689,8 +2698,6 @@
 		E7DC7C44E1A76791A55DDDC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-3940256099942544~1458002511";
-				LAGCHECK_ADS_ENABLED = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/NolaggyApp/Nolaggy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2705,6 +2712,8 @@
 				INFOPLIST_KEY_NolaggySupportURL = "$(LAGCHECK_SUPPORT_URL)";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-3940256099942544~1458002511";
+				LAGCHECK_ADS_ENABLED = YES;
 				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
 				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2847,27 +2856,35 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
 /* Begin XCRemoteSwiftPackageReference section */
-		FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
-			requirement = {kind = exactVersion; version = 13.11.0; };
-		};
-		FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */ = {
+		01997039BEB8CAE98E44E7AC /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git";
-			requirement = {kind = exactVersion; version = 3.1.0; };
+			requirement = {
+				kind = exactVersion;
+				version = 3.1.0;
+			};
+		};
+		BB3BB7AC896B9F7CD17C3D5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = exactVersion;
+				version = 13.11.0;
+			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		FF0000000000000000000006 /* GoogleMobileAds */ = {
+		81E1DFBF2D7A1C81E30A3E89 /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FF0000000000000000000004 /* XCRemoteSwiftPackageReference "GoogleMobileAds" */;
+			package = BB3BB7AC896B9F7CD17C3D5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
 		};
-		FF0000000000000000000007 /* GoogleUserMessagingPlatform */ = {
+		A5B095CAB6FBA0D0B9C84C72 /* GoogleUserMessagingPlatform */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FF0000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleUserMessagingPlatform" */;
+			package = 01997039BEB8CAE98E44E7AC /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
 			productName = GoogleUserMessagingPlatform;
 		};
 /* End XCSwiftPackageProductDependency section */

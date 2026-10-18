@@ -20,9 +20,6 @@ extension QuickCheckFeatureView {
                 result.append(g)
             }
         }
-        if result.isEmpty {
-            return Array(nonGenericGames.prefix(4))
-        }
         return Array(result.prefix(4))
     }
 
@@ -306,6 +303,14 @@ extension QuickCheckFeatureView {
             .filter { seen.insert($0.id).inserted }
     }
 
+    /// Recorte exclusivo da nova vitrine Jogos. Outros fluxos seguem usando
+    /// `availableGames` e seus contextos históricos sem reinterpretação.
+    var gamesForDirectIPhoneSelection: [CatalogMeasurementJourney.Game] {
+        guard let remoteCatalog else { return [] }
+        let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
+        return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: .iphone)
+    }
+
     var selectedGameName: String {
         if effectiveGameID == GameContext.genericGamingID {
             return localizedString("generic_gaming.name")
@@ -513,32 +518,24 @@ extension QuickCheckFeatureView {
         HomeCatalogView(
             title: localizedString("navigation.games"),
             query: $gameQuery,
-            selectedCategory: $selectedCategory,
-            selectedPlatforms: $selectedPlatforms,
-            allGames: availableGames,
-            favoriteGames: favoriteGamesList,
-            recentItems: recentTestedItems,
+            allGames: gamesForDirectIPhoneSelection,
+            favoriteGames: favoriteGamesList.filter { favorite in
+                gamesForDirectIPhoneSelection.contains(where: { $0.id == favorite.id })
+            },
+            recentItems: recentTestedItems.filter { recent in
+                gamesForDirectIPhoneSelection.contains(where: { $0.id == recent.game.id })
+            },
             searchPlaceholder: localizedString("catalog.search.placeholder"),
             clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
-            categoryTitle: categoryTitle(for:),
-            filterTitle: { localizedString($0.localizationKey) },
-            platformsForGame: supportedPlatforms(for:),
-            platformFilterTitle: localizedString("catalog.platform_filter.title"),
-            platformsTitle: { game in
-                RemoteCatalogVerifier.allowedPlatforms(for: game.id)
-                    .sorted { $0.rawValue < $1.rawValue }
-                    .map(\.displayName)
-                    .joined(separator: " · ")
-            },
             onReturnToHome: gamesReturnToHome ? {
                 selectedTab = .home
             } : nil,
             onSelectGenericGaming: {
-                startGeneralGamingCheckDirectly()
+                startGeneralGamingCheckFromGames()
             },
             select: { game in
                 selectedGameID = game.id
-                startCheckDirectly(for: game)
+                startIPhoneCheckDirectly(for: game)
             }
         )
     }

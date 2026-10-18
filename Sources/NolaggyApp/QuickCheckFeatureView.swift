@@ -591,6 +591,22 @@ struct QuickCheckFeatureView: View {
         return nil
     }
 
+    /// Entrada exclusiva da vitrine Jogos da Decisão 102. Não compartilha a
+    /// política de fallback dos retestes, detalhes, widgets ou deep links.
+    func resolveIPhoneGameContext(_ game: CatalogMeasurementJourney.Game) -> ResolvedMeasurementContext? {
+        guard let remoteCatalog else { return nil }
+        let context = GameContext(
+            gameID: game.id,
+            market: game.context.market,
+            platform: .iphone,
+            declaredExternalLink: nil
+        )
+        guard case let .available(resolved) = try? RemoteCatalogVerifier.resolve(context, in: remoteCatalog) else {
+            return nil
+        }
+        return resolved
+    }
+
     func supportedPlatforms(for game: CatalogMeasurementJourney.Game) -> [Platform] {
         let order: [Platform] = [.iphone, .playstation, .xbox, .nintendo, .pc]
         if game.id == GameContext.genericGamingID {
@@ -631,6 +647,14 @@ struct QuickCheckFeatureView: View {
         }
     }
 
+    /// Ação de um toque da nova vitrine: revalida apenas o contexto iPhone
+    /// assinado; sem seleção de plataforma, vínculo ou fallback externo.
+    func startIPhoneCheckDirectly(for game: CatalogMeasurementJourney.Game) {
+        analyticsTracker.track(.gameSelected(gameID: game.id))
+        guard let resolved = resolveIPhoneGameContext(game) else { return }
+        openDeepCheck(resolvedContext: resolved)
+    }
+
     /// Inicia a medição de 1 toque diretamente da rota genérica de referência (Decisão 56).
     func startGeneralGamingCheckDirectly() {
         let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
@@ -641,6 +665,17 @@ struct QuickCheckFeatureView: View {
             localizedName: AppLocalization.string("generic_gaming.name", comment: "")
         )
         startCheckDirectly(for: genericGame)
+    }
+
+    func startGeneralGamingCheckFromGames() {
+        let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
+        let genericGame = CatalogMeasurementJourney.genericGamingGame(
+            market: market,
+            platform: .iphone,
+            declaredExternalLink: nil,
+            localizedName: AppLocalization.string("generic_gaming.name", comment: "")
+        )
+        startIPhoneCheckDirectly(for: genericGame)
     }
 }
 

@@ -19,8 +19,9 @@ public final class FavoriteGamesStore: ObservableObject {
         if let stored = UserDefaults.standard.stringArray(forKey: userDefaultsKey), !stored.isEmpty {
             self.favoriteGameIDs = Array(stored.prefix(Self.maxFavorites))
         } else {
-            // Padrão inicial com os 4 jogos competitivos mais populares
-            self.favoriteGameIDs = ["fortnite", "cs2", "valorant", "leagueoflegends"]
+            // Favoritos são uma escolha explícita da pessoa. Uma sugestão
+            // editorial aqui faria a vitrine mentir quando ainda não há dados.
+            self.favoriteGameIDs = []
         }
     }
 

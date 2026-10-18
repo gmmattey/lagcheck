@@ -655,6 +655,8 @@
 "games.subtitle" = "change whenever needed";
 "games.favorites" = "Favorites";
 "games.recent" = "Recently used";
+"games.all.title" = "All games (A–Z)";
+"games.select.accessibility_hint" = "Starts Check on iPhone";
 "games.catalog_title" = "Most played in Brazil";
 "games.assist.title" = "Can't find your game?";
 "games.assist.subtitle" = "Run a General Check with regional reference route";

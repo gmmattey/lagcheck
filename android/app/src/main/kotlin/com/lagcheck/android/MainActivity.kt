@@ -290,7 +290,9 @@ class MainActivity : ComponentActivity() {
 
                     is Screen.GameSelection -> {
                         GameSelectionScreen(
-                            allGames = catalogGames,
+                            allGames = catalogGames.filter { game ->
+                                game.platforms.any { it.equals("Mobile", ignoreCase = true) }
+                            },
                             showBackButton = gamesOpenedFromHome,
                             recentChecks = historyItems,
                             favorites = favorites,
@@ -299,9 +301,10 @@ class MainActivity : ComponentActivity() {
                                 viewModel.navigateTo(Screen.Home)
                             },
                             onGameSelected = { game ->
-                                viewModel.chooseGame(game)
-                                gamesOpenedFromHome = false
-                                viewModel.startCheck()
+                                if (viewModel.chooseIPhoneGame(game)) {
+                                    gamesOpenedFromHome = false
+                                    viewModel.startCheck()
+                                }
                             },
                             onStartGeneralCheck = {
                                 val generalGame = OfficialGameCatalog.findById("fortnite").copy(

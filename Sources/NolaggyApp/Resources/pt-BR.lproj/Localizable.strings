@@ -665,6 +665,8 @@
 "games.subtitle" = "trocar quando precisar";
 "games.favorites" = "Favoritos";
 "games.recent" = "Usados recentemente";
+"games.all.title" = "Todos os jogos (A–Z)";
+"games.select.accessibility_hint" = "Inicia o Check no iPhone";
 "games.catalog_title" = "Mais jogados no Brasil";
 "games.assist.title" = "Não encontrou o jogo?";
 "games.assist.subtitle" = "Faça um Check Geral com rota regional de referência";

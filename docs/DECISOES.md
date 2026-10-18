@@ -104,6 +104,7 @@
 | [99](#decisão-99) | Catálogo global local nos clientes | **Vigente (implementação local; conformidade do Worker pendente)** | 48 jogos e referências AWS GameLift entram no build assinado; o Worker não distribui catálogo, mas o fonte ainda expõe rotas extras registradas na Decisão 101 | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 | [100](#decisão-100) | Home imersiva por jogo e remoção do chrome redundante | **Vigente (implementado localmente; validação física pendente)** | A Home começa na arte editorial do jogo e mantém a decisão de Check em primeiro plano | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [101](#decisão-101) | Reconciliação do registro com o código em `main` | **Vigente (auditoria documental; correção sistêmica pendente)** | Separa fonte, contrato autorizado e evidência de runtime; expõe rotas extras do Worker e Gemini como conflitos | Giam / Marco / Camillo / Iury / Luiz |
+| [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Vigente (implementado localmente; runtime pendente)** | Refina a Decisão 80 para iOS e Android, sem alterar o contrato de catálogo, histórico ou medição | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -1058,6 +1059,19 @@
   1. A Decisão 99 substitui de fato o catálogo HTTP da Decisão 14 e a parte de catálogo remoto da Decisão 71. O catálogo local assinado é o único estado de cliente que pode ser tratado como corrente.
   2. As rotas extras e o caminho Gemini são achados de não conformidade, não autorização retroativa. Nenhuma pessoa deve ativá-los, depender deles em release ou ampliar seu escopo.
   3. Antes de qualquer correção de Worker, Gemini, privacidade, telemetria ou persistência, abrir missão **Full flow sistêmica** e Architecture Plan de Camillo. Luiz decide se cada capacidade será removida ou receberá nova autorização explícita.
+
+#### Decisão 102
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone.
+- **Status Atual:** **Vigente (implementado localmente; runtime pendente).** Refina a Decisão 80 para os dois clientes e a apresentação da Decisão 41, sem mudar o catálogo assinado, o motor UDP, persistência, histórico, widgets ou deep links.
+- **Frentes envolvidas:** Luiz (direção de produto), Giam (aceite), Marco (orquestração), Renan (experiência), Rian (iOS e Android) e Breno (QA).
+- **Decisão:**
+  1. Na aba **Jogos**, a pessoa escolhe somente o jogo. Não há escolha, filtro, texto ou ícone de plataforma, nem pergunta sobre Wi-Fi/cabo de equipamento externo, antes do Check.
+  2. Fora da busca, a vitrine usa três trilhos horizontais, nesta ordem: **Recentes** (somente histórico real), **Favoritos** (somente IDs escolhidos e persistidos pela pessoa) e **Todos os jogos** (catálogo válido em ordem alfabética pelo nome localizado). Se Recentes ou Favoritos não tiverem dados reais, o trilho correspondente não aparece.
+  3. Cada card tem arte editorial autorizada, nome localizado e ação direta para o Check. A busca substitui os trilhos por resultados alfabéticos e, sem resultado, oferece o Check Geral honesto. O anúncio Native Advanced, quando consentido e carregado, só entra depois de todo conteúdo essencial e nunca na busca ou no vazio.
+  4. A rota continua sendo a referência medida pelo iPhone; o iOS resolve e revalida o contexto iPhone pelo catálogo assinado antes da pré-leitura, como o Android já faz. Não há fallback silencioso para contexto de console/PC e os campos históricos existentes (`platform`, vínculo externo) não são apagados nem reinterpretados.
+- **Critérios de aceite:** mesma promessa e mesma ordem de informação em iOS e Android; interação e navegação nativas; PT-BR e inglês; alvos de 44 pt/dp, VoiceOver/TalkBack; busca, estado vazio e anúncio sem deslocar a escolha. Testes, simulador/emulador e aparelhos físicos são evidências separadas.
 - **Critérios de aceite desta reconciliação:** índice e texto não afirmam catálogo remoto, Gemini ou exclusividade de rotas que o fonte não sustenta; o registro preserva a diferença entre inspeção estática, testes, simulador, aparelho e distribuição; qualquer correção subsequente começa pelo gate arquitetural, sem mudança silenciosa de contrato.
 
 ## Como Registrar Novas Decisões

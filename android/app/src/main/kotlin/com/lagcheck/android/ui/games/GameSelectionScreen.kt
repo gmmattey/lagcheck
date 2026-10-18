@@ -4,8 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,13 +21,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,35 +33,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.R
-import com.lagcheck.core.designsystem.components.PrimaryButton
+import com.lagcheck.android.data.CheckHistoryItem
+import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.FavoriteGames
-import com.lagcheck.domain.model.OfficialGameCatalog
-import com.lagcheck.android.data.CheckHistoryItem
-import com.lagcheck.android.ui.tr
-import com.lagcheck.android.ui.trf
-import com.lagcheck.catalog.Platform
-import com.lagcheck.session.PlatformLabels
 
-/**
- * 02 · Trocar Jogo (Seleção de Jogos e Plataforma).
- * Paridade 1:1 com o protótipo de alta fidelidade Open Design (Screen 02 · Trocar jogo).
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Seleção direta: a tela só apresenta arte editorial e nome de jogos já conhecidos. */
 @Composable
 fun GameSelectionScreen(
     allGames: List<CatalogGame>,
@@ -73,382 +60,228 @@ fun GameSelectionScreen(
     onBack: () -> Unit,
     onGameSelected: (game: CatalogGame) -> Unit,
     onStartGeneralCheck: () -> Unit,
-    /** Últimos checks reais do histórico. Sem histórico, a seção de recentes não aparece. */
     recentChecks: List<CheckHistoryItem> = emptyList(),
     favorites: FavoriteGames = FavoriteGames.EMPTY,
     onToggleFavorite: (CatalogGame) -> Unit = {},
     showNativeAd: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.GAMES) else null
-    val context = LocalContext.current
+    val nativeAd = if (showNativeAd) {
+        com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.GAMES)
+    } else null
+    var searchOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-
-
-    val filteredGames = remember(searchQuery, allGames) {
-        if (searchQuery.isBlank()) allGames
-        else allGames.filter { it.name.contains(searchQuery, ignoreCase = true) || it.category.contains(searchQuery, ignoreCase = true) }
+    val focusRequester = remember { FocusRequester() }
+    val content = remember(allGames, recentChecks, favorites, searchQuery) {
+        gameSelectionContent(allGames, recentChecks, favorites, searchQuery)
     }
+    val hasSearchText = searchQuery.isNotBlank()
 
-    // Recentes saem do histórico real; favoritos, da escolha da pessoa (salva no aparelho).
-    val favoriteGames = remember(favorites, allGames) { favorites.resolve(allGames) }
-    val recentGames = remember(recentChecks, allGames) {
-        recentChecks.distinctBy { it.gameId }.mapNotNull { check -> allGames.firstOrNull { it.id == check.gameId }?.let { check to it } }.take(3)
-    }
+    LaunchedEffect(searchOpen) { if (searchOpen) focusRequester.requestFocus() }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(LagCheckColors.Background)
+    LazyColumn(
+        modifier = modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = 24.dp)
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-        ) {
-            // 1. Barra de Topo: Voltar + Wordmark
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (showBackButton) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .clickable { onBack() },
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            com.lagcheck.core.designsystem.components.ChevronLeftIcon(
-                                size = 20.dp,
-                                color = LagCheckColors.TextPrimary,
-                                modifier = Modifier.padding(start = 4.dp)
-                            )
-                        }
-                    } else {
-                        Spacer(modifier = Modifier.size(48.dp))
-                    }
-
-                    Image(
-                        painter = painterResource(id = R.drawable.wordmark_primary),
-                        contentDescription = "lagcheck",
-                        modifier = Modifier
-                            .width(110.dp)
-                            .height(30.dp)
-                    )
-
-                    Spacer(modifier = Modifier.size(48.dp))
-                }
-            }
-
-            // 2. Título de Seção: "Jogos"
-            item {
-                Spacer(modifier = Modifier.height(14.dp))
-                Text(
-                    text = tr("Jogos"),
-                    style = LagCheckTypography.PageTitle,
-                    color = LagCheckColors.TextPrimary
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-
-            // 2.5 Seção FAVORITOS
-            if (searchQuery.isBlank()) {
-                val favs = if (favoriteGames.isEmpty()) allGames.take(3) else favoriteGames
-                item {
-                    Text(
-                        text = tr("FAVORITOS"),
-                        style = LagCheckTypography.MonoKicker,
-                        color = LagCheckColors.TextMuted
-                    )
-                    Spacer(modifier = Modifier.height(11.dp))
-
-                    androidx.compose.foundation.lazy.LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(favs, key = { "favcard-${it.id}" }) { game ->
-                            FavoriteCard(
-                                game = game,
-                                onClick = { onGameSelected(game) }
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            }
-
-            // 3. Seção USADOS RECENTEMENTE (só quando há histórico real)
-            if (searchQuery.isBlank() && recentGames.isNotEmpty()) {
-                val (check, recentGame) = recentGames.first()
-                item {
-                    Text(
-                        text = tr("USADOS RECENTEMENTE"),
-                        style = LagCheckTypography.MonoKicker,
-                        color = LagCheckColors.TextMuted
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(LagCheckColors.Surface)
-                            .clickable { onGameSelected(recentGame) }
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = recentGame.name,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LagCheckColors.TextPrimary,
-                                maxLines = 1
-                            )
-                            Spacer(modifier = Modifier.height(5.dp))
-                            com.lagcheck.core.designsystem.components.PlatformGlyph(platform = "Mobile")
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = check.formattedDate,
-                                style = LagCheckTypography.MonoSmall,
-                                color = LagCheckColors.TextMuted
-                            )
-                            Text(
-                                text = "›",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LagCheckColors.TextMuted
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            }
-
-            // 5. Seção MAIS JOGADOS NO BRASIL (Catálogo Completo)
-            item {
-                Text(
-                    text = if (searchQuery.isBlank()) tr("JOGOS") else trf("RESULTADOS (%d)", filteredGames.size),
-                    style = LagCheckTypography.MonoKicker,
-                    color = LagCheckColors.TextMuted
-                )
-                Spacer(modifier = Modifier.height(11.dp))
+        item {
+            TopBar(showBackButton, onBack)
+            Spacer(Modifier.height(14.dp))
+            Text(tr("Jogos"), style = LagCheckTypography.PageTitle, color = LagCheckColors.TextPrimary)
+            Spacer(Modifier.height(16.dp))
+            if (searchOpen) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = { Text(tr("Buscar jogo"), color = LagCheckColors.TextMuted, fontSize = 14.sp) },
-                    leadingIcon = {
-                        com.lagcheck.core.designsystem.components.SearchIcon(size = 18.dp, color = LagCheckColors.TextMuted)
-                    },
+                    leadingIcon = { com.lagcheck.core.designsystem.components.SearchIcon(size = 18.dp, color = LagCheckColors.TextMuted) },
                     trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .clickable { searchQuery = "" },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                com.lagcheck.core.designsystem.components.CloseIcon(size = 16.dp, color = LagCheckColors.TextMuted)
-                            }
-                        }
+                        Box(
+                            Modifier.size(48.dp).clip(CircleShape).clickable {
+                                searchQuery = ""
+                                searchOpen = false
+                            }.semantics { contentDescription = tr("Fechar busca") },
+                            contentAlignment = Alignment.Center
+                        ) { com.lagcheck.core.designsystem.components.CloseIcon(size = 16.dp, color = LagCheckColors.TextMuted) }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 52.dp),
+                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp).focusRequester(focusRequester),
                     singleLine = true,
                     shape = RoundedCornerShape(percent = 50),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = LagCheckColors.Surface,
-                        unfocusedContainerColor = LagCheckColors.Surface,
-                        focusedBorderColor = LagCheckColors.AccentPrimary,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedTextColor = LagCheckColors.TextPrimary,
-                        unfocusedTextColor = LagCheckColors.TextPrimary,
-                        cursorColor = LagCheckColors.AccentPrimary
-                    )
+                    colors = searchFieldColors()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+            } else {
+                SearchTrigger { searchOpen = true }
             }
+            Spacer(Modifier.height(20.dp))
+        }
 
-            // A busca permanece acima; o anúncio não entra nos resultados filtrados.
-            if (nativeAd != null && searchQuery.isBlank()) {
+        if (hasSearchText) {
+            if (content.searchResults.isEmpty()) {
+                item { EmptySearch(onStartGeneralCheck) }
+            } else {
+                item { GameRail(trf("RESULTADOS (%d)", content.searchResults.size), content.searchResults, favorites, onToggleFavorite, onGameSelected) }
+            }
+        } else {
+            if (content.recentGames.isNotEmpty()) {
+                item { GameRail(tr("RECENTES"), content.recentGames, favorites, onToggleFavorite, onGameSelected) }
+            }
+            if (content.favoriteGames.isNotEmpty()) {
+                item { GameRail(tr("FAVORITOS"), content.favoriteGames, favorites, onToggleFavorite, onGameSelected) }
+            }
+            item { GameRail(tr("TODOS OS JOGOS A–Z"), content.allGames, favorites, onToggleFavorite, onGameSelected) }
+            // A escolha essencial terminou; anúncio nunca entra em busca ou vazio.
+            if (nativeAd != null) {
                 item(key = "native_ad") {
-                    com.lagcheck.android.ads.NativeAdSlot(
-                        nativeAd,
-                        Modifier.padding(bottom = 16.dp)
-                    )
+                    com.lagcheck.android.ads.NativeAdSlot(nativeAd, Modifier.padding(top = 8.dp, bottom = 32.dp))
                 }
-            }
-
-            items(filteredGames, key = { it.id }) { game ->
-                CatalogRowItem(
-                    game = game,
-                    isFavorite = game.id in favorites,
-                    onToggleFavorite = { onToggleFavorite(game) },
-                    onClick = { onGameSelected(game) }
-                )
-            }
-
-            // Jogo fora da lista: Check Geral com a rota regional de referência
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(LagCheckColors.Surface)
-                        .padding(22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = tr("Não encontrou o jogo?"),
-                        style = LagCheckTypography.SectionHeader,
-                        color = LagCheckColors.TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = tr("Faça um Check Geral com rota regional de referência"),
-                        style = LagCheckTypography.Subtext,
-                        color = LagCheckColors.TextMuted
-                    )
-                    Spacer(modifier = Modifier.height(18.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(percent = 50))
-                            .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(percent = 50))
-                            .clickable { onStartGeneralCheck() }
-                            .defaultMinSize(minHeight = 48.dp)
-                            .padding(horizontal = 18.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = tr("Fazer Check Geral"),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = LagCheckColors.TextPrimary
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(48.dp))
-            }
+            } else item { Spacer(Modifier.height(40.dp)) }
         }
     }
 }
 
 @Composable
-private fun FavoriteCard(
-    game: CatalogGame,
-    onClick: () -> Unit
-) {
-
-    Column(
-        modifier = Modifier
-            .size(width = 93.dp, height = 110.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(LagCheckColors.Surface)
-            .clickable { onClick() }
-            .padding(6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(width = 79.dp, height = 67.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(LagCheckColors.Panel)
-        ) {
-            com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
+private fun TopBar(showBackButton: Boolean, onBack: () -> Unit) {
+    Box(Modifier.fillMaxWidth().height(52.dp).padding(top = 8.dp)) {
+        if (showBackButton) {
+            Box(Modifier.size(48.dp).clip(CircleShape).clickable(onClick = onBack), Alignment.CenterStart) {
+                com.lagcheck.core.designsystem.components.ChevronLeftIcon(
+                    modifier = Modifier.padding(start = 4.dp),
+                    size = 20.dp,
+                    color = LagCheckColors.TextPrimary
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = game.name,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = LagCheckColors.TextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+        Image(
+            painter = painterResource(R.drawable.wordmark_primary), contentDescription = "lagcheck",
+            modifier = Modifier.width(110.dp).height(30.dp).align(Alignment.Center)
         )
     }
 }
 
 @Composable
-private fun CatalogRowItem(
-    game: CatalogGame,
-    isFavorite: Boolean,
-    onToggleFavorite: () -> Unit,
-    onClick: () -> Unit
-) {
-
+private fun SearchTrigger(onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(78.dp)
-            .clickable { onClick() }
-            .drawBehind {
-                val y = size.height - 0.25.dp.toPx()
-                drawLine(Color.White.copy(alpha = 0.08f), androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y), 0.5.dp.toPx())
-            }
-            .padding(vertical = 10.dp),
+        Modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp).clip(RoundedCornerShape(percent = 50))
+            .background(LagCheckColors.Surface).clickable(onClick = onClick)
+            .semantics { contentDescription = tr("Buscar jogo") }.padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Capa 46x56
-        Box(
-            modifier = Modifier
-                .size(width = 46.dp, height = 56.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(LagCheckColors.Surface)
-                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp))
-        ) {
+        com.lagcheck.core.designsystem.components.SearchIcon(size = 18.dp, color = LagCheckColors.TextMuted)
+        Spacer(Modifier.width(10.dp))
+        Text(tr("Buscar jogo"), color = LagCheckColors.TextMuted, fontSize = 14.sp)
+    }
+}
+
+@Composable
+private fun GameRail(
+    title: String,
+    games: List<CatalogGame>,
+    favorites: FavoriteGames,
+    onToggleFavorite: (CatalogGame) -> Unit,
+    onGameSelected: (CatalogGame) -> Unit
+) {
+    RailTitle(title)
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(games, key = { "rail-$title-${it.id}" }) { game ->
+            GameCard(game, game.id in favorites, onToggleFavorite, onGameSelected)
+        }
+    }
+    Spacer(Modifier.height(24.dp))
+}
+
+@Composable
+private fun RailTitle(title: String) {
+    Text(title, style = LagCheckTypography.MonoKicker, color = LagCheckColors.TextMuted)
+    Spacer(Modifier.height(11.dp))
+}
+
+@Composable
+private fun GameCard(
+    game: CatalogGame,
+    isFavorite: Boolean,
+    onToggleFavorite: (CatalogGame) -> Unit,
+    onClick: (CatalogGame) -> Unit
+) {
+    Column(
+        Modifier.width(140.dp).defaultMinSize(minHeight = 174.dp).clip(RoundedCornerShape(16.dp))
+            .background(LagCheckColors.Surface).clickable { onClick(game) }
+            .semantics { contentDescription = trf("Fazer Check de %s", game.name) }.padding(8.dp)
+    ) {
+        Box(Modifier.fillMaxWidth().height(116.dp).clip(RoundedCornerShape(10.dp)).background(LagCheckColors.Panel)) {
             com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
         }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Nome e Plataformas
-        Column(modifier = Modifier.weight(1f)) {
+        Spacer(Modifier.height(9.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = game.name,
-                fontSize = 16.sp,
+                game.name,
+                modifier = Modifier.width(76.dp),
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = LagCheckColors.TextPrimary,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(7.dp))
-            com.lagcheck.core.designsystem.components.PlatformGlyphRow(platforms = game.platforms)
+            Box(
+                Modifier.size(44.dp).clickable { onToggleFavorite(game) }
+                    .semantics { contentDescription = if (isFavorite) tr("Remover dos favoritos") else tr("Favoritar") },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(if (isFavorite) "★" else "☆", color = LagCheckColors.TextMuted, fontSize = 18.sp)
+            }
         }
-
-        // Estrela (alvo de 44 dp): o estado vai em texto, não só em cor.
-        val favLabel = if (isFavorite) tr("Remover dos favoritos") else tr("Favoritar")
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .clickable { onToggleFavorite() }
-                .semantics { contentDescription = favLabel },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = if (isFavorite) "★" else "☆",
-                fontSize = 20.sp,
-                color = if (isFavorite) LagCheckColors.SemanticCaution else LagCheckColors.TextMuted
-            )
-        }
-
-        Text(
-            text = "›",
-            fontSize = 20.sp,
-            color = LagCheckColors.TextMuted,
-            modifier = Modifier.padding(end = 4.dp)
-        )
     }
+}
+
+@Composable
+private fun EmptySearch(onStartGeneralCheck: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(LagCheckColors.Surface).padding(22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(tr("Nenhum jogo encontrado"), style = LagCheckTypography.SectionHeader, color = LagCheckColors.TextPrimary)
+        Spacer(Modifier.height(16.dp))
+        Box(
+            Modifier.defaultMinSize(minHeight = 48.dp).clip(RoundedCornerShape(percent = 50))
+                .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(percent = 50))
+                .clickable(onClick = onStartGeneralCheck).padding(horizontal = 18.dp),
+            contentAlignment = Alignment.Center
+        ) { Text(tr("Fazer Check Geral"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary) }
+    }
+    Spacer(Modifier.height(40.dp))
+}
+
+@Composable
+private fun searchFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = LagCheckColors.Surface, unfocusedContainerColor = LagCheckColors.Surface,
+    focusedBorderColor = LagCheckColors.AccentPrimary, unfocusedBorderColor = Color.Transparent,
+    focusedTextColor = LagCheckColors.TextPrimary, unfocusedTextColor = LagCheckColors.TextPrimary,
+    cursorColor = LagCheckColors.AccentPrimary
+)
+
+private data class GameSelectionContent(
+    val allGames: List<CatalogGame>,
+    val recentGames: List<CatalogGame>,
+    val favoriteGames: List<CatalogGame>,
+    val searchResults: List<CatalogGame>
+)
+
+private fun gameSelectionContent(
+    allGames: List<CatalogGame>,
+    recentChecks: List<CheckHistoryItem>,
+    favorites: FavoriteGames,
+    searchQuery: String
+): GameSelectionContent {
+    val alphabetical = allGames.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+    val recent = recentChecks
+        .distinctBy { it.gameId }
+        .mapNotNull { check -> alphabetical.firstOrNull { it.id == check.gameId } }
+        .take(3)
+    val query = searchQuery.trim()
+    val results = if (query.isEmpty()) alphabetical else alphabetical.filter {
+        it.name.contains(query, ignoreCase = true) || it.category.contains(query, ignoreCase = true)
+    }
+    return GameSelectionContent(
+        allGames = alphabetical,
+        recentGames = recent,
+        favoriteGames = favorites.resolve(alphabetical),
+        searchResults = results
+    )
 }
