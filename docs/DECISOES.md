@@ -82,6 +82,8 @@
 | [77](#decisão-77) | Sistema Unificado de Avaliação In-App (StoreKit & Google Play In-App Review) | **Vigente (Execução)** | Gatilho de delight (3 checks .ready), cooldown de 90 dias, 1 por versão, sem pre-prompts | Marco / Rian / Camillo / Renan / Breno / Luiz |
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
+| [80](#decisão-80) | Consulta de visitas dos três sites no Cloudflare Web Analytics pelo Worker existente | **Substituída pela 81** | Proposta anterior à correção de escopo | Marco / Camillo / Iury / Breno / Luiz |
+| [81](#decisão-81) | Worker Analytics separado, exclusivo do Cloudflare Web Analytics | **Implementada localmente; ativação pendente** | Três sites, sem consumo de dados da Vercel | Marco / Camillo / Iury / Breno / Luiz |
 
 
 
@@ -671,6 +673,27 @@
   - Validador correlacionado com nonce/timestamp sem bypass de identidade;
   - Paridade sincronizada nos clientes iOS e Android com testes unitários puros;
   - Validação independente via Claude Code aprovada antes de qualquer merge de código de produção.
+
+#### Decisão 80
+
+- **Data:** 12 de outubro de 2026.
+- **Título:** Consulta de visitas de SignallQ, LagCheck e Linka no Cloudflare Web Analytics pelo Worker existente.
+- **Status Atual:** **Substituída pela Decisão 81 antes de publicação.**
+- **Frentes envolvidas:** Marco, Camillo, Iury, Breno e Luiz.
+- **Contexto:** o Worker `nolaggy-deep-check` já envia relatório diário e análise semanal com métricas da Vercel. Os três sites estão sendo centralizados para futura hospedagem Cloudflare. Luiz pediu que o mesmo Worker consulte as visitas dos três sites no Cloudflare Analytics.
+- **Decisão:** usar leitura autenticada da API GraphQL do Cloudflare Web Analytics no Worker existente, sem criar endpoint público, Worker adicional ou cobrança recorrente. A fonte de cada site permanece Vercel até que o respectivo Cloudflare Web Analytics esteja configurado e validado. A seleção é explícita por site. Token de leitura fica em segredo do Worker, com escopo mínimo `Account Analytics: Read`; IDs públicos de conta/site ficam em variáveis de configuração. Falha de leitura mostra `indisponível`, sem substituir silenciosamente por outra fonte ou inventar zero.
+- **Semântica:** Cloudflare `sum.visits` representa **visitas**, e `count` representa **visualizações**. Visitas não são pessoas únicas e não são comparáveis diretamente a visitantes únicos da Vercel. Relatório, taxas, tendência e análise semanal devem rotular a fonte e usar denominadores honestos; não calcular variação entre fontes diferentes. O cache semanal inclui a configuração de fonte.
+- **Aceite:** três sites isolados por `siteTag` e hostname; GraphQL HTTP e erros no corpo tratados; ausência de dados distinta de zero válido; limites/amostragem comunicados; testes dos relatórios e regressão das rotas de medição, catálogo e telemetria. Ativação real requer Web Analytics dos três sites, credencial restrita, prova de acesso ao dataset na conta e publicação autorizada separadamente.
+
+#### Decisão 81
+
+- **Data:** 12 de outubro de 2026.
+- **Título:** Worker **Analytics** separado e exclusivo do Cloudflare Web Analytics.
+- **Status Atual:** **Implementada localmente; ativação e validação real pendentes (correção explícita de Luiz à Decisão 80).**
+- **Responsáveis:** Marco, Camillo, Iury, Breno e Luiz.
+- **Decisão:** criar `workers/analytics/` no repositório centralizado dos sites para consultar visitas e visualizações de SignallQ, LagCheck e Linka apenas no Cloudflare Web Analytics. O serviço chama-se **Analytics**; seu identificador técnico no Wrangler é `analytics`, conforme a restrição de minúsculas da ferramenta. Não incluir token, API, projeto, fallback, métrica ou dependência da Vercel neste novo Worker. O `nolaggy-deep-check` continua no repositório LagCheck e não é renomeado nem alterado por esta decisão.
+- **Contrato:** mapeamento explícito dos três domínios e respectivos `siteTag`, leitura autenticada da GraphQL Analytics API com token de escopo mínimo, execução por cron e relatório operacional com falhas isoladas por site. `sum.visits` é visitas, não pessoas únicas; `count` é visualizações. Não criar endpoint público de métricas.
+- **Gates:** validar o dataset, credenciais, retenção/amostragem e cota gratuita na conta real; testes de isolamento, erros e contagens ausentes; autorização separada para configurar segredos, publicar o Worker e desativar ou migrar o relatório antigo.
 
 ## Como Registrar Novas Decisões
 

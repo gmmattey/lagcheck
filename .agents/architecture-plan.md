@@ -149,3 +149,19 @@ A transparência de rota segue a regra do **"Gamer Não Lê"** e a integridade d
 5. [ ] Paridade de decodificação e testes confirmados em iOS e Android;
 6. [ ] Todos os testes unitários passando 100% verdes (`xcodebuild test`).
 
+---
+
+## Anexo — Decisão 80: leitura do Cloudflare Web Analytics
+
+**Histórico, substituído pela Decisão 81 antes de publicação.** Este anexo preserva integralmente o plano ainda aberto da Decisão 78 acima. A revisão arquitetural da Decisão 80 ocorreu antes da correção de Luiz.
+
+- **Contrato:** selecionar Vercel ou Cloudflare por site. Usar conta Cloudflare, `siteTag` e hostname esperado para isolar SignallQ, LagCheck e Linka. A credencial GraphQL é segredo de leitura; resposta HTTP 200 com `errors` é falha.
+- **Métricas:** `sum.visits` é visitas e `count` é visualizações. Não reaproveitar campo ou rótulo de visitantes únicos; não comparar períodos que mudaram de fornecedor. Contagem ausente ou erro é indisponível, zero só vem de consulta válida.
+- **Falha:** um site indisponível não impede os outros. O relatório não troca silenciosamente de fornecedor. A análise semanal recebe a fonte por produto e usa chave de cache que muda com a configuração de origem.
+- **Custo e segurança:** um único Worker, sem rota pública nova; consultas em cron e no endpoint manual já autenticado. Token restrito a `Account Analytics: Read`, sem log de token, corpo bruto ou dados pessoais. Verificar limites reais do dataset antes da ativação.
+- **Validação:** testes de isolamento dos três sites, erros HTTP/GraphQL, ausência versus zero, rótulos e denominadores, cache semanal e regressão de `/v1/load`, `/v1/catalog.json` e `/v1/telemetry`. Prova live e deploy são gates separados.
+
+## Anexo — Decisão 81: serviço Analytics separado
+
+Luiz definiu um novo Worker **Analytics**, exclusivo do Cloudflare Web Analytics. Camillo revisou a fronteira: `workers/analytics/` pertence ao repositório centralizado dos sites; `nolaggy-deep-check` e os contratos do app permanecem aqui. O plano de implementação, falhas e gates consta em `sites/.agents/architecture-plan.md`. Nenhuma publicação ou migração do relatório anterior é implicada pela implementação local.
+
