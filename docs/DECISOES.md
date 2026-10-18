@@ -96,6 +96,8 @@
 | [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [92](#decisão-92) | Wordmark com o símbolo modernizado e mono refeito a partir do primary | **Vigente (Implementado localmente; validação visual pendente)** | Revisa o item 5 da Decisão 91: primary, mono claro/escuro e PNGs de app passam a usar o mesmo símbolo e as mesmas letras | Luiz / Giam / Renan / Rian / Breno |
 | [93](#decisão-93) | AGENTS.md alinhado ao estado real de anúncios e arte de jogo | **Vigente (Documentação)** | Android com AdMob (Decisão 82) e arte editorial autoral do catálogo (Decisões 18, 44, 71 e 88); iOS segue sem anúncios | Luiz / Giam |
+| [94](#decisão-94) | Resultado iOS alinhado à hierarquia Android e card compartilhável local | **Vigente (execução autorizada)** | Refina a Decisão 80 no resultado iOS; preserva interações nativas e semântica de cada plataforma | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [95](#decisão-95) | Detalhes iOS na referência Android, com evidência diagnóstica preservada | **Vigente (execução autorizada)** | Amplia a Decisão 94 para `TechnicalDetailsView`; restringe atribuições locais aos fatos observados | Luiz / Giam / Marco / Renan / Rian / Iury / Breno |
 
 
 
@@ -921,6 +923,49 @@
   2. Anúncios: Android com banner AdMob em Home e Histórico (Decisão 82), hoje com IDs de teste; iOS sem anúncios até decisão própria.
 - **Confirmação do Luiz (16/10/2026):** toda a arte de jogo exibida no app é autoral. Não há pendência de arte de terceiros; o relato do Breno sobre a Home do Android Debug não é defeito.
 - **Critérios de validação e aceite:** `AGENTS.md` e `docs/DECISOES.md` sem contradição entre si.
+
+#### Decisão 94
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Resultado iOS alinhado à hierarquia Android e card compartilhável local.
+- **Status Atual:** **Vigente (execução autorizada).** Refina a Decisão 80 exclusivamente para a tela de resultado iOS e suas referências visuais. A regra de que Android tem protótipo próprio continua para suas telas e interações nativas.
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Renan (especificação e QA visual), Rian (iOS) e Breno (QA independente).
+- **Contexto e problema:** O resultado Android atingiu uma hierarquia mais direta e madura. No iOS, a jornada normal comprovada (`startCheckDirectly → openDeepCheck`) apresenta `CheckCompletoResultView`, que já usa o veredito canônico, mas mantém ações em ordem diversa. `ResultFeatureView` continua compilada como implementação legada e renderiza `presentation.result`, porém não há callsite comprovado de `startQuickCheck`. Sua composição ainda privilegia score, trilha e grade de métricas; se a missão incluir sua manutenção ou reentrada na jornada, ela precisa obedecer à mesma direção visual antes de ser exposta.
+- **Decisão:**
+  1. Android passa a ser a referência de **hierarquia e acabamento** para a tela de resultado iOS da jornada ativa. Paridade significa a mesma leitura do jogador, não cópia mecânica de Compose: iOS preserva Safe Area, navegação, `sheet` de compartilhamento, VoiceOver e demais interações nativas. Esta decisão não cria nem reativa callsite para o fluxo legado; se ele entrar no escopo de manutenção, recebe o mesmo alinhamento antes de voltar à jornada.
+  2. A composição iOS de resultado usa, nesta ordem: contexto discreto monoespaçado; kicker; `VerdictIndicatorBadge` separado; manchete de veredito limpa e dominante, sem score; subtítulo curto; telemetria monoespaçada de ping, jitter e perda; e um único painel `O QUE MAIS PESOU`. Campo não observado aparece como `—`. O painel mostra somente um sintoma ou achado observado; não atribui culpa a Wi-Fi, destino ou operadora.
+  3. `Testar novamente` é a ação primária roxa e vem antes de `Ver detalhes`. `Otimizar` sai da superfície principal. Compartilhamento e PDF são ações secundárias, disponíveis somente para resultado conclusivo e com alvo de toque mínimo de 44 pt no iOS.
+  4. O iOS prepara localmente, depois do primeiro frame, uma prévia de card compartilhável na proporção 1200×630 para resultado conclusivo. A prévia não compete com o veredito. Falha de preparação não remove nem degrada o resultado, e oferece recuperação clara. Não entram vídeo, formatos adicionais, folha de compartilhamento, ícones de destinos, telemetria de rádio, navegação ou outros comportamentos exclusivos do Android.
+  5. Esta decisão não altera `GameReadinessVerdict`, score, thresholds, motor UDP, Worker, SwiftData, catálogo, telemetria, privacidade, custo recorrente ou integridade diagnóstica. Resultado inconclusivo preserva o estado honesto, sem score, causa, PDF ou artefato de compartilhamento.
+  6. Renan atualiza a referência iOS versionada antes de a nova composição virar padrão. O protótipo Android continua sendo referência do Android; nenhuma mudança nele é requerida por esta decisão.
+- **Critérios de validação e aceite:**
+  - a jornada iOS ativa apresenta os quatro estados (`ready`, `caution`, `notReady`, `inconclusive`) com a mesma semântica e hierarquia do Android, sem alterar os dados apresentados;
+  - `ResultFeatureView` só exige o mesmo alinhamento visual quando for incluída na missão de manutenção; esta decisão não exige novo mapeamento de estado, nem cria callsite para ela;
+  - comparação renderizada lado a lado em iPhone e Android para os quatro estados, documentando apenas diferenças nativas aprovadas;
+  - card 1200×630 é preparado localmente após o primeiro frame para resultado conclusivo; erro de render permite recuperação e não bloqueia resultado, detalhes ou novo Check;
+  - `Testar novamente`, `Ver detalhes`, compartilhamento e PDF funcionam nos estados permitidos, com retorno e foco corretos;
+  - PT-BR e inglês, Dynamic Type AX1–AX5, VoiceOver, contraste e alvos de 44 pt passam em simulador e iPhone físico; build e regressão iOS são evidência separada da referência Android.
+
+#### Decisão 95
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Detalhes iOS na referência Android, com evidência diagnóstica preservada.
+- **Status Atual:** **Vigente (execução autorizada).** Amplia a Decisão 94 à transição `Resultado → Ver detalhes` da jornada iOS ativa. Refina as referências visuais da Decisão 80 e as limitações diagnósticas das Decisões 50 e 69 quando houver conflito de apresentação.
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Renan (especificação e QA visual), Rian (iOS), Iury (integridade diagnóstica) e Breno (QA independente).
+- **Contexto e problema:** Luiz aprovou as três capturas Android como referência 1:1 de experiência, composição e hierarquia também para os Detalhes iOS. A referência não pode converter fatos específicos do Android em fatos do iPhone. Uma captura combina `Sinal bom` com `Instabilidade no Wi-Fi local`: sinal de rádio, primeiro salto e rota UDP são leituras distintas. RSSI -43 dBm, Wi-Fi 5 GHz e PHY 433 Mbps podem coexistir com resposta degradada do gateway, mas não provam que o roteador causou a instabilidade; a consulta DNS do gateway pode ser encaminhada e inflar o RTT. Perda UDP na rota de referência também não identifica, sozinha, uma falha local.
+- **Decisão:**
+  1. A tela iOS ativa de Detalhes recebe a composição, densidade, hierarquia e transição observadas nas capturas Android: resumo compacto do veredito, score e métricas subordinados, gráfico condicional de repouso e carga, origem da evidência, achados observados e ação de retorno nativa. O iOS conserva `sheet`, navegação, Safe Area, Dynamic Type e VoiceOver próprios.
+  2. Resultado e Detalhes iOS consomem a mesma `GameReadinessEvaluation`. Detalhes não recalcula score, veredito, causa ou recomendação, e não introduz cópia livre, heurística ou estado paralelo.
+  3. Telemetria de rádio Android (RSSI, banda, PHY), gateway, NAT e recomendações específicas do Android não são reproduzidos no iOS por paridade visual. Só aparecem no iOS se já forem observados pelo próprio cliente, tiverem contrato autorizado e forem apresentados com sua origem e limite.
+  4. A origem da evidência permanece separada: sinal de rádio descreve apenas RF; primeiro salto só recebe estado quando houver probe isolado e correlacionado; ping, jitter, perda e impacto sob carga descrevem a rota UDP observada. Ausência de leitura aparece como `Não observável` ou `—`.
+  5. Nenhuma tela iOS afirma `Instabilidade no Wi-Fi local`, culpa o roteador, a operadora ou o destino, nem recomenda aproximação do roteador sem a evidência isolada exigida pela Decisão 50. Quando dados distintos coexistirem, a UI os mostra como observações independentes, sem inferir causalidade.
+  6. O escopo é a jornada ativa `CheckCompletoResultView → TechnicalDetailsView`. `ResultFeatureView` legado não é reativada, não ganha callsite e permanece fora desta extensão.
+- **Critérios de validação e aceite:**
+  - Resultado e Detalhes exibem o mesmo veredito, score quando aplicável, métricas e achados da mesma avaliação para os estados `ready`, `caution`, `notReady` e `inconclusive`;
+  - gráfico, métricas de carga, origem da evidência e recomendações aparecem somente quando os respectivos fatos existem; ausência não fabrica zero, causa ou diagnóstico;
+  - prova de que sinal de rádio, primeiro salto e rota UDP não são apresentados como uma única causa; em particular, nenhum texto local acusa Wi-Fi ou roteador sem probe isolado correlacionado;
+  - comparação lado a lado das três capturas Android e da renderização iOS registra fidelidade de composição e as diferenças justificadas por Apple ou por ausência de evidência;
+  - retorno de foco para Resultado, PT-BR e inglês, Dynamic Type AX1–AX5, VoiceOver, contraste e alvos de 44 pt têm prova em simulador e iPhone físico; build e testes iOS são evidência distinta das capturas Android.
 
 ## Como Registrar Novas Decisões
 

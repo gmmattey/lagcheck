@@ -190,3 +190,42 @@ O recorte é sistêmico porque acrescenta uma superfície Android, um contrato d
 
 **Riscos e provas obrigatórias:** teste de serialização, expiração, invalidação de arte e deep link por plataforma; render em tamanhos suportados; app frio/segundo plano; offline; troca de catálogo; Dynamic Type/VoiceOver no iOS e font scale/TalkBack/redimensionamento no Android; aparelhos físicos em ambas as plataformas. Uma captura ou build de uma plataforma não aprova a outra.
 
+---
+
+## 11. Gate — Decisão 95: traço final do Deep Check para Detalhes iOS
+
+### Parecer de Camillo
+
+**can proceed with listed constraints**
+
+O gráfico solicitado pela referência Android precisa de fatos por fase depois de a
+medição terminar. Hoje o `DeepCheckSessionCoordinator` oferece amostras apenas
+durante o progresso e as limpa ao concluir; `DeepCheckResult` guarda somente
+métricas agregadas. A menor mudança segura é um contrato efêmero dentro de
+`NolaggyApplication`, sem alterar `NolaggyDomain`, transporte UDP, persistência,
+Worker, telemetria, Android, score ou veredito.
+
+| Área | Contrato obrigatório |
+| --- | --- |
+| Novo dado transitório | `FinalDeepCheckTrace` pertence a `NolaggyApplication` e contém `sessionID`, `restSamples` e `loadSamples` originais, em coleções separadas. Não é `Codable`, não entra em `MeasurementHistoryEntry`, SwiftData, analytics, exportação, widget ou share card. |
+| Elegibilidade | O coordenador cria o traço somente ao terminar em `.completed(result)`, com `LoadTransferOutcome.completed`, `result.metrics.loadImpact != nil` e ao menos 10 respostas UDP válidas em **cada** fase. Resultado inconclusivo, carga indisponível, carga sem métricas, timeout/cancelamento, troca de rede, background e watchdog não expõem traço. |
+| Acesso | O traço só pode ser lido para o mesmo `sessionID` enquanto `DeepCheckSessionState` é `.completed`. Ele deve viajar no snapshot concluído ou por getter guardado por esse estado; nunca por um cache global, callback de progresso ou novo estado público parcial. `start` e `cancel` o limpam antes de qualquer nova sessão. |
+| Integridade da série | A UI usa as amostras originais por fase. Timeout, resposta inválida e erro de transporte formam lacunas; não podem ser interpolados, substituídos por percentil ou unidos à fase vizinha. O divisor entre repouso e carga é explícito. Como `ProbeSample` não registra timestamp, o eixo X representa a ordem/`sequence` dos probes, não duração absoluta. |
+| Resultado e detalhes | `DeepCheckFeatureView` captura uma única avaliação ao receber o estado concluído e passa o mesmo snapshot ao Resultado e aos Detalhes. `TechnicalDetailsView` recebe o traço somente junto a esse resultado. Se o traço não estiver elegível, mostra a ausência de forma honesta e não desenha curva sintética. |
+| Domínio e plataformas | `ProbeSample`, `DeepCheckEvaluator`, `GameReadinessEvaluator`, versões de regra e vetores permanecem inalterados. Android não recebe obrigação de persistir ou mudar seu contrato por esta entrega iOS. |
+| Privacidade, custo e rollback | O traço fica somente na memória do processo enquanto o resultado está aberto; não amplia coleta, rede, serviços ou custo. Remover o consumidor da UI e a retenção efêmera restaura o comportamento anterior sem migração e sem dados residuais. |
+
+### Provas obrigatórias
+
+1. Teste de aplicação: sessão elegível devolve duas séries originais; a primeira
+   tentativa de nova sessão, cancelamento, troca de rede e background removem o
+   traço.
+2. Vetores: timeout e resposta inválida viram lacuna; carga indisponível e menos
+   de 10 respostas válidas em qualquer fase não entregam gráfico.
+3. Teste de integração de apresentação: Resultado e Detalhes recebem a mesma
+   `GameReadinessEvaluation`; abrir Detalhes não reavalia score, veredito ou
+   causa.
+4. Validação iOS em simulador e iPhone: divisor de fases, retorno ao Resultado,
+   Dynamic Type, VoiceOver e cancelamento durante Check. A prova física continua
+   obrigatória para ciclo de vida e rede.
+

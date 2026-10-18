@@ -117,6 +117,8 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         let state = await coordinator.sessionState()
         XCTAssertNil(activeSession)
         XCTAssertEqual(state, .cancelled(session, .appEnteredBackground))
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
     }
 
     func testPathChangeCancelsAndDiscardsBothPhases() async throws {
@@ -133,6 +135,8 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         let state = await coordinator.sessionState()
         XCTAssertNil(activeSession)
         XCTAssertEqual(state, .cancelled(session, .networkPathChanged))
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
     }
 
     func testPoorSampleQualityAbortsDeepCheckEarly() async throws {
@@ -178,6 +182,112 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         await coordinator.cancel(id: session.id)
         let progressAfterCancellation = await coordinator.measurementProgress()
         XCTAssertNil(progressAfterCancellation)
+    }
+
+    func testFinalTraceRetainsOriginalEligiblePhaseSamplesIncludingGaps() async throws {
+        let rest = received(10, rtt: 30) + [ProbeSample(sequence: 10, outcome: .timeout)]
+        let load = received(10, rtt: 80) + [ProbeSample(sequence: 10, outcome: .invalidResponse)]
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [rest, load]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
+        )
+
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertEqual(trace?.sessionID, session.id)
+        XCTAssertEqual(trace?.restSamples, rest)
+        XCTAssertEqual(trace?.loadSamples, load)
+    }
+
+    func testFinalTraceIsUnavailableWithoutEligibleLoadEvidence() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .unavailable)
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
+    }
+
+    func testDiscardFinalTraceRequiresTheCompletedSessionID() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 1))
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        await coordinator.discardFinalDeepCheckTrace(for: UUID())
+        let retainedTrace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNotNil(retainedTrace)
+
+        await coordinator.discardFinalDeepCheckTrace(for: session.id)
+        let discardedTrace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(discardedTrace)
+    }
+
+    func testFinalTraceRequiresPositiveLoadTransferBytes() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 0))
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
+    }
+
+    func testBackgroundDiscardsCompletedFinalTrace() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 1))
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+        let completedTrace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNotNil(completedTrace)
+
+        await coordinator.appDidEnterBackground()
+
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
+    }
+
+    func testFinalTraceRequiresAtLeastTenValidResponsesInEachPhase() async throws {
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(9, rtt: 80)]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
+        )
+        let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+
+        let trace = await coordinator.finalDeepCheckTrace(for: session.id)
+        XCTAssertNil(trace)
+    }
+
+    func testFinalTraceIsClearedWhenANewSessionStarts() async throws {
+        let rest = received(10, rtt: 30)
+        let load = received(10, rtt: 80)
+        let coordinator = makeCoordinator(
+            transport: ScriptedTransport(samples: [rest, load, rest, load]),
+            load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
+        )
+        let first = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        try await waitForCompletion(coordinator)
+        let firstTrace = await coordinator.finalDeepCheckTrace(for: first.id)
+        XCTAssertNotNil(firstTrace)
+
+        let second = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
+        let clearedFirstTrace = await coordinator.finalDeepCheckTrace(for: first.id)
+        XCTAssertNil(clearedFirstTrace)
+        await coordinator.cancel(id: second.id)
+        let cancelledTrace = await coordinator.finalDeepCheckTrace(for: second.id)
+        XCTAssertNil(cancelledTrace)
     }
 
     private var resolvedContext: ResolvedMeasurementContext {

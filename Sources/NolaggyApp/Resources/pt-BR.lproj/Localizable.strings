@@ -136,6 +136,11 @@
 "share.card.preparing" = "Preparando card";
 "share.card.failed" = "Falha ao preparar o card";
 "share.card.open_hint" = "Abre as opções de compartilhamento";
+"share.card.kicker %@" = "CHECK · %@";
+"share.card.metric.response" = "RESPOSTA";
+"share.card.metric.jitter" = "JITTER";
+"share.card.metric.loss" = "PERDA";
+"share.card.udp_proof" = "Medido com pacotes UDP reais.";
 "settings.region.title" = "Região de referência";
 "settings.region.automatic" = "Automática";
 "settings.region.explanation" = "A região usada em cada medição é escolhida automaticamente com base na sua rede no momento do teste. Escolher uma região aqui só troca essa preferência quando ela for uma candidata válida para o jogo medido; caso contrário, a medição volta a escolher automaticamente.";
@@ -841,8 +846,10 @@
 "technical_details.local_hop_unobservable_detail" = "Sem medida direta de Wi-Fi ou gateway nesta sessão.";
 "technical_details.external_route" = "Rota externa";
 "technical_details.status_stable" = "Estável";
-"technical_details.external_route_detail %@" = "Rota regional de referência · %@ · sob carga.";
+"technical_details.external_route_detail %@" = "Rota regional de referência · %@.";
+"technical_details.external_route_detail_load %@" = "Rota regional de referência · %@ · sob carga.";
 "technical_details.confidence_good" = "Confiança: boa";
+"technical_details.confidence_medium" = "Confiança: média";
 "technical_details.test_duration_v1" = "27 s de teste · regra de score v1";
 "technical_details.finding.stability" = "Estabilidade";
 "technical_details.finding.load_behavior" = "Comportamento sob carga";
@@ -877,3 +884,10 @@
 /* Bufferbloat e Estabilidade sob carga (Decisão 74) */
 "result.bufferbloat.label" = "SOB CARGA:";
 "exporter.discord.bufferbloat_label" = "SOB CARGA";
+"technical_details.chart_unavailable" = "O traçado não está disponível nesta medição.";
+
+"technical_details.score_heading" = "SCORE";
+
+"technical_details.status_measured" = "Medida concluída";
+
+"technical_details.chart_accessibility" = "Traços medidos separados: repouso e sob carga; lacunas representam probes sem resposta válida.";

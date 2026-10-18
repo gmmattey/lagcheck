@@ -8,29 +8,34 @@ import NolaggyDomain
 /// desonerando a tela principal de resultado (Mockup 05 · Dark Competitive UI).
 public struct TechnicalDetailsView: View {
     public let result: DeepCheckResult?
-    public let evaluation: GameReadinessEvaluation?
+    public let evaluation: GameReadinessEvaluation
     public let gameName: String
     public let regionName: String
+    public let measuredAt: Date?
+    public let confidence: MeasurementConfidence?
+    public let trace: FinalDeepCheckTrace?
     public let onDismiss: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         result: DeepCheckResult?,
-        evaluation: GameReadinessEvaluation? = nil,
-        profileID: QualityProfileID = .battleRoyaleCompetitive,
+        evaluation: GameReadinessEvaluation,
         gameName: String,
         regionName: String,
+        measuredAt: Date? = nil,
+        confidence: MeasurementConfidence? = nil,
+        trace: FinalDeepCheckTrace? = nil,
         onDismiss: @escaping () -> Void = {}
     ) {
         self.result = result
-        if let evaluation {
-            self.evaluation = evaluation
-        } else {
-            self.evaluation = result.map { GameReadinessEvaluator.evaluate(deepCheckResult: $0, profile: profileID) }
-        }
+        self.evaluation = evaluation
         self.gameName = gameName
         self.regionName = regionName
+        self.measuredAt = measuredAt
+        self.confidence = confidence
+        self.trace = trace
         self.onDismiss = onDismiss
     }
 
@@ -54,33 +59,33 @@ public struct TechnicalDetailsView: View {
                     }
                 )
 
-                if let result, let evaluation {
+                if let result, evaluation.verdict != .inconclusive {
                     // 1. Resumo do veredito compacto
                     compactVerdictSection(evaluation: evaluation)
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // 2. Score Numérico e Grade 2x2
                     scoreAndMetricsSection(result: result, evaluation: evaluation)
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // 3. Gráfico de Latência durante o Check
-                    latencyChartSection(result: result)
-                        .padding(.horizontal, NLSpacing.md)
+                    latencyChartSection
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // 4. Origem da evidência
                     evidenceOriginSection(evaluation: evaluation)
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // 5. O que encontramos
-                    findingsSection(result: result)
-                        .padding(.horizontal, NLSpacing.md)
+                    findingsSection(evaluation: evaluation)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // 6. Nota técnica
                     technicalNoteSection
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                 } else {
                     inconclusiveSection
-                        .padding(.horizontal, NLSpacing.md)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                 }
 
                 Spacer(minLength: NLSpacing.xl)
@@ -105,7 +110,7 @@ public struct TechnicalDetailsView: View {
                     .foregroundStyle(colorForVerdict(verdict))
             }
 
-            Text(verbatim: "\(gameName) · \(regionName) · \(Date().formatted(date: .abbreviated, time: .shortened))")
+            Text(verbatim: contextLabel)
                 .font(NLTypography.monospaceMetrics)
                 .foregroundStyle(NLColor.textTertiary)
         }
@@ -116,6 +121,11 @@ public struct TechnicalDetailsView: View {
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .stroke(NLColor.borderStrong, lineWidth: 1)
         )
+    }
+
+    private var contextLabel: String {
+        let measured = measuredAt.map { $0.formatted(date: .abbreviated, time: .shortened) }
+        return [gameName, regionName, measured].compactMap { $0 }.joined(separator: " · ")
     }
 
     private func verdictSymbol(for verdict: GameReadinessVerdict) -> String {
@@ -140,7 +150,7 @@ public struct TechnicalDetailsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: "SCORE")
+                    Text(LocalizedStringKey("technical_details.score_heading"))
                         .font(NLTypography.captionMonoUppercase)
                         .foregroundStyle(NLColor.textTertiary)
 
@@ -166,7 +176,12 @@ public struct TechnicalDetailsView: View {
 
             // Grade 2x2
             let metrics = result.restResult.metrics
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+            LazyVGrid(
+                columns: dynamicTypeSize.isAccessibilitySize
+                    ? [GridItem(.flexible())]
+                    : [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                spacing: 8
+            ) {
                 metricBox(title: LocalizedStringKey("technical_details.p50_label"), value: formatMs(metrics.p50Milliseconds))
                 metricBox(title: LocalizedStringKey("game_readiness.telemetry.jitter"), value: formatMs(metrics.jitterMilliseconds))
                 metricBox(title: LocalizedStringKey("game_readiness.telemetry.loss"), value: formatPercent(metrics.packetLossPercentage))
@@ -195,73 +210,73 @@ public struct TechnicalDetailsView: View {
     }
 
     // MARK: - 3. Gráfico de Latência
-    @ViewBuilder
-    private func latencyChartSection(result: DeepCheckResult) -> some View {
-        let restMetrics = result.metrics.rest
-        let loadMetrics = result.metrics.load
+    private var latencyChartSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(LocalizedStringKey("technical_details.percentiles_title"))
+                .font(NLTypography.captionMonoUppercase)
+                .foregroundStyle(NLColor.textTertiary)
 
-        if let p50Rest = restMetrics.p50Milliseconds {
-            let p95Rest = restMetrics.p95Milliseconds ?? p50Rest
-            let p50Load = loadMetrics?.p50Milliseconds ?? p50Rest
-            let p95Load = loadMetrics?.p95Milliseconds ?? p95Rest
-            let p99Load = loadMetrics?.p99Milliseconds ?? p95Load
-            let hasSpike = (restMetrics.spikeCount > 0) || ((loadMetrics?.spikeCount ?? 0) > 0)
-
-            VStack(alignment: .leading, spacing: 11) {
-                Text(LocalizedStringKey("technical_details.percentiles_title"))
-                    .font(NLTypography.captionMonoUppercase)
-                    .foregroundStyle(NLColor.textTertiary)
-
-                VStack(spacing: 8) {
-                    PercentileChartView(
-                        p50Rest: p50Rest,
-                        p95Rest: p95Rest,
-                        p50Load: p50Load,
-                        p95Load: p95Load,
-                        p99Load: p99Load,
-                        hasSpike: hasSpike
-                    )
-                    .frame(height: 118)
-                    .background(NLColor.surface)
-                    .overlay(
-                        Rectangle()
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
-
-                    HStack {
-                        Text(LocalizedStringKey("deep_check.graph.rest"))
-                            .font(NLTypography.monospaceMetrics)
-                            .foregroundStyle(NLColor.textTertiary)
-
-                        Spacer()
-
-                        Text(LocalizedStringKey("deep_check.graph.load"))
-                            .font(NLTypography.monospaceMetrics)
-                            .foregroundStyle(NLColor.textTertiary)
-                    }
+            if let trace {
+                let maximumRTT = max(
+                    100,
+                    ((trace.restSamples + trace.loadSamples).filter(\.isValidResponse).compactMap(\.roundTripMilliseconds).max() ?? 100) * 1.15
+                )
+                HStack(spacing: NLSpacing.sm) {
+                    TracePhaseChart(samples: trace.restSamples, maximumRTT: maximumRTT, color: NLColor.semanticReady)
+                    Divider().overlay(NLColor.borderStrong)
+                    TracePhaseChart(samples: trace.loadSamples, maximumRTT: maximumRTT, color: NLColor.semanticReady)
+                        .background(NLColor.panel.opacity(0.55))
                 }
+                .frame(height: 118)
+                .padding(NLSpacing.sm)
+                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                        .stroke(NLColor.hairline, lineWidth: 1)
+                }
+                .accessibilityLabel(traceAccessibilityLabel)
+
+                HStack {
+                    Text(LocalizedStringKey("deep_check.graph.rest"))
+                        .font(NLTypography.monospaceMetrics)
+                        .foregroundStyle(NLColor.textTertiary)
+                    Spacer()
+                    Text(LocalizedStringKey("deep_check.graph.load"))
+                        .font(NLTypography.monospaceMetrics)
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+            } else {
+                Text(LocalizedStringKey("technical_details.chart_unavailable"))
+                    .font(NLTypography.footnote)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .padding(NLSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                            .stroke(NLColor.hairline, lineWidth: 1)
+                    }
             }
         }
     }
 
+    private var traceAccessibilityLabel: String {
+        guard let metrics = evaluation.metrics, let load = metrics.load else {
+            return AppLocalization.string("technical_details.chart_unavailable", comment: "")
+        }
+        let restLabel = AppLocalization.string("deep_check.graph.rest", comment: "")
+        let loadLabel = AppLocalization.string("deep_check.graph.load", comment: "")
+        let lossLabel = AppLocalization.string("game_readiness.telemetry.loss", comment: "").lowercased()
+        let rest = "\(restLabel): \(formatMs(metrics.rest.p50Milliseconds)), \(formatPercent(metrics.rest.packetLossPercentage)) \(lossLabel)"
+        let stressed = "\(loadLabel): \(formatMs(load.p50Milliseconds)), \(formatPercent(load.packetLossPercentage)) \(lossLabel)"
+        return "\(rest). \(stressed)."
+    }
+
     // MARK: - 4. Origem da Evidência
     private func evidenceOriginSection(evaluation: GameReadinessEvaluation) -> some View {
-        let routeStatusText: String
-        let routeStatusColor: Color
-        switch evaluation.verdict {
-        case .ready:
-            routeStatusText = AppLocalization.string("technical_details.status_stable", comment: "")
-            routeStatusColor = NLColor.semanticReady
-        case .caution:
-            routeStatusText = AppLocalization.string("game_readiness.verdict.caution", comment: "")
-            routeStatusColor = NLColor.semanticCaution
-        case .notReady:
-            routeStatusText = AppLocalization.string("game_readiness.verdict.not_ready", comment: "")
-            routeStatusColor = NLColor.semanticNotReady
-        case .inconclusive:
-            routeStatusText = AppLocalization.string("game_readiness.verdict.inconclusive", comment: "")
-            routeStatusColor = NLColor.textTertiary
-        }
+        let routeStatusText = AppLocalization.string("technical_details.status_measured", comment: "")
+        let routeStatusColor = NLColor.textTertiary
+
 
         return VStack(alignment: .leading, spacing: 11) {
             Text(LocalizedStringKey("technical_details.evidence_origin"))
@@ -280,7 +295,11 @@ public struct TechnicalDetailsView: View {
                     title: AppLocalization.string("technical_details.external_route"),
                     statusText: routeStatusText,
                     statusColor: routeStatusColor,
-                    detail: String(format: AppLocalization.string("technical_details.external_route_detail %@"), regionName)
+                    detail: String(format: AppLocalization.string(
+                        evaluation.metrics?.load == nil
+                            ? "technical_details.external_route_detail %@"
+                            : "technical_details.external_route_detail_load %@"
+                    ), regionName)
                 )
             }
         }
@@ -315,82 +334,63 @@ public struct TechnicalDetailsView: View {
     }
 
     // MARK: - 5. O Que Encontramos
-    private func findingsSection(result: DeepCheckResult) -> some View {
-        let jitter = result.restResult.metrics.jitterMilliseconds ?? 0
-        let jitterInt = Int(jitter.rounded())
-        let jitterText = jitter <= 5.0
-            ? String(format: AppLocalization.string("technical_details.finding.jitter_stable %d"), jitterInt)
-            : String(format: AppLocalization.string("technical_details.finding.jitter_observed %d"), jitterInt)
-
-        let loadImpact = result.metrics.loadImpact?.increaseMilliseconds ?? 0
-        let loadInt = Int(loadImpact.rounded())
-        let loadText: String
-        if loadImpact <= 15.0 {
-            loadText = loadInt == 0
-                ? AppLocalization.string("technical_details.finding.load_no_degradation")
-                : String(format: AppLocalization.string("technical_details.finding.load_minimal_degradation %d"), loadInt)
-        } else {
-            loadText = String(format: AppLocalization.string("technical_details.finding.load_increase %d"), loadInt)
-        }
-
-        return VStack(alignment: .leading, spacing: 11) {
+    private func findingsSection(evaluation: GameReadinessEvaluation) -> some View {
+        VStack(alignment: .leading, spacing: 11) {
             Text(LocalizedStringKey("technical_details.findings_title"))
                 .font(NLTypography.captionMonoUppercase)
                 .foregroundStyle(NLColor.textTertiary)
 
             VStack(spacing: 0) {
-                findingRow(title: AppLocalization.string("technical_details.finding.stability"), detail: jitterText, isLast: false)
-                findingRow(title: AppLocalization.string("technical_details.finding.load_behavior"), detail: loadText, isLast: false)
-                findingRow(
-                    title: AppLocalization.string("technical_details.finding.tested_destination"),
-                    detail: String(format: AppLocalization.string("technical_details.finding.tested_destination_detail %@"), regionName),
-                    isLast: true
-                )
+                ForEach(Array(evaluation.findings.enumerated()), id: \.offset) { index, finding in
+                    findingRow(
+                        title: AppLocalization.string(finding.labelKey, comment: ""),
+                        detail: finding.detail,
+                        color: colorForFindingSeverity(finding.severity),
+                        isLast: index == evaluation.findings.count - 1
+                    )
+                }
             }
             .padding(.horizontal, NLSpacing.md)
-            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(NLColor.borderStrong, lineWidth: 1)
-            )
+            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous)
+                    .stroke(NLColor.hairline, lineWidth: 1)
+            }
         }
     }
 
-    private func findingRow(title: String, detail: String, isLast: Bool) -> some View {
+    private func colorForFindingSeverity(_ severity: NetworkFinding.Severity) -> Color {
+        switch severity {
+        case .positive: return NLColor.semanticReady
+        case .warning: return NLColor.semanticCaution
+        case .negative: return NLColor.semanticNotReady
+        case .neutral: return NLColor.textTertiary
+        }
+    }
+
+    private func findingRow(title: String, detail: String?, color: Color, isLast: Bool) -> some View {
         HStack(alignment: .top, spacing: 9) {
-            Circle()
-                .fill(NLColor.semanticReady)
-                .frame(width: 7, height: 7)
-                .padding(.top, 5)
-
+            Circle().fill(color).frame(width: 7, height: 7).padding(.top, 5)
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: title)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(NLColor.textPrimary)
-
-                Text(verbatim: detail)
-                    .font(.system(size: 12))
-                    .foregroundStyle(NLColor.textSecondary)
-                    .lineSpacing(2)
+                Text(verbatim: title).font(NLTypography.callout.weight(.semibold)).foregroundStyle(NLColor.textPrimary)
+                if let detail, !detail.isEmpty {
+                    Text(verbatim: detail).font(NLTypography.footnote).foregroundStyle(NLColor.textSecondary).lineSpacing(2)
+                }
             }
-
             Spacer()
         }
         .padding(.vertical, 10)
-        .overlay(
-            isLast ? nil : Rectangle().fill(NLColor.borderStrong).frame(height: 1),
-            alignment: .bottom
-        )
+        .overlay(isLast ? nil : Rectangle().fill(NLColor.borderStrong).frame(height: 1), alignment: .bottom)
     }
 
     // MARK: - 6. Nota Técnica
     private var technicalNoteSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey("technical_details.confidence_good"))
+            Text(verbatim: confidenceText)
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(NLColor.textPrimary)
 
-            Text(LocalizedStringKey("technical_details.test_duration_v1"))
+            Text(verbatim: "\(GameReadinessEvaluator.version)")
                 .font(.system(size: 11, weight: .regular, design: .monospaced))
                 .foregroundStyle(NLColor.textTertiary)
         }
@@ -401,6 +401,11 @@ public struct TechnicalDetailsView: View {
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .stroke(NLColor.borderStrong, lineWidth: 1)
         )
+    }
+
+    private var confidenceText: String {
+        guard let confidence else { return "—" }
+        return confidence == .high ? AppLocalization.string("technical_details.confidence_good") : AppLocalization.string("technical_details.confidence_medium")
     }
 
     private var inconclusiveSection: some View {
@@ -425,68 +430,55 @@ public struct TechnicalDetailsView: View {
 
     private func formatPercent(_ value: Double?) -> String {
         guard let value else { return "—" }
-        return String(format: "%.1f%%", value)
+        if value <= 0.05 { return "0%" }
+        let formatter = NumberFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return "\(formatter.string(from: NSNumber(value: value)) ?? "\(value)")%"
     }
 
 }
 
-struct PercentileChartView: View {
-    let p50Rest: Double
-    let p95Rest: Double
-    let p50Load: Double
-    let p95Load: Double
-    let p99Load: Double
-    let hasSpike: Bool
+private struct TracePhaseChart: View {
+    let samples: [ProbeSample]
+    let maximumRTT: Double
+    let color: Color
 
     var body: some View {
         GeometryReader { proxy in
-            let w = proxy.size.width
-            let h = proxy.size.height
-            let maxVal = max(100.0, max(p99Load, p95Rest) * 1.25)
+            let samples = samples.sorted { $0.sequence < $1.sequence }
+            let minSequence = samples.first?.sequence ?? 0
+            let sequenceSpan = max((samples.last?.sequence ?? minSequence) - minSequence, 1)
 
-            let yRestP50 = h * (1.0 - CGFloat(min(1.0, max(0.05, p50Rest / maxVal))))
-            let yRestP95 = h * (1.0 - CGFloat(min(1.0, max(0.05, p95Rest / maxVal))))
-            let yLoadP50 = h * (1.0 - CGFloat(min(1.0, max(0.05, p50Load / maxVal))))
-            let yLoadP95 = h * (1.0 - CGFloat(min(1.0, max(0.05, p95Load / maxVal))))
-            let yLoadP99 = h * (1.0 - CGFloat(min(1.0, max(0.05, p99Load / maxVal))))
-
-            ZStack(alignment: .leading) {
-                // Metade sob carga mais escura
-                Rectangle()
-                    .fill(NLColor.borderStrong.opacity(0.35))
-                    .frame(width: w * 0.5)
-                    .offset(x: w * 0.5)
-
-                // Linhas de grade
+            ZStack {
                 Path { path in
-                    path.move(to: CGPoint(x: 0, y: h * 0.25))
-                    path.addLine(to: CGPoint(x: w, y: h * 0.25))
-                    path.move(to: CGPoint(x: 0, y: h * 0.5))
-                    path.addLine(to: CGPoint(x: w, y: h * 0.5))
-                    path.move(to: CGPoint(x: 0, y: h * 0.75))
-                    path.addLine(to: CGPoint(x: w, y: h * 0.75))
+                    for fraction in [0.25, 0.5, 0.75] {
+                        path.move(to: CGPoint(x: 0, y: proxy.size.height * fraction))
+                        path.addLine(to: CGPoint(x: proxy.size.width, y: proxy.size.height * fraction))
+                    }
                 }
-                .stroke(NLColor.borderStrong.opacity(0.5), lineWidth: 1)
+                .stroke(NLColor.hairline, lineWidth: 1)
 
-                // Curva de percentis calculada
                 Path { path in
-                    path.move(to: CGPoint(x: 0, y: yRestP50))
-                    path.addLine(to: CGPoint(x: w * 0.25, y: yRestP50))
-                    path.addLine(to: CGPoint(x: w * 0.45, y: yRestP95))
-                    path.addLine(to: CGPoint(x: w * 0.55, y: yLoadP50))
-                    path.addLine(to: CGPoint(x: w * 0.75, y: yLoadP99))
-                    path.addLine(to: CGPoint(x: w * 0.88, y: yLoadP95))
-                    path.addLine(to: CGPoint(x: w, y: yLoadP50))
+                    var lastValidSequence: Int?
+                    for sample in samples {
+                        guard let rtt = sample.roundTripMilliseconds, sample.outcome == .received else {
+                            lastValidSequence = nil
+                            continue
+                        }
+                        let x = proxy.size.width * CGFloat(sample.sequence - minSequence) / CGFloat(sequenceSpan)
+                        let normalized = min(max(rtt / maximumRTT, 0.04), 0.96)
+                        let y = proxy.size.height * (1 - CGFloat(normalized))
+                        if lastValidSequence == sample.sequence - 1 {
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        } else {
+                            path.move(to: CGPoint(x: x, y: y))
+                        }
+                        lastValidSequence = sample.sequence
+                    }
                 }
-                .stroke(NLColor.semanticReady, lineWidth: 2)
-
-                // Spike dot real
-                if hasSpike {
-                    Circle()
-                        .fill(NLColor.coralSolar)
-                        .frame(width: 7, height: 7)
-                        .position(x: w * 0.75, y: yLoadP99)
-                }
+                .stroke(color, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
         }
     }

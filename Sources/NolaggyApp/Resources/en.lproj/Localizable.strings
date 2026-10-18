@@ -836,8 +836,10 @@
 "technical_details.local_hop_unobservable_detail" = "No direct Wi-Fi or gateway measurement in this session.";
 "technical_details.external_route" = "External route";
 "technical_details.status_stable" = "Stable";
-"technical_details.external_route_detail %@" = "Regional reference route · %@ · under load.";
+"technical_details.external_route_detail %@" = "Regional reference route · %@.";
+"technical_details.external_route_detail_load %@" = "Regional reference route · %@ · under load.";
 "technical_details.confidence_good" = "Confidence: good";
+"technical_details.confidence_medium" = "Confidence: medium";
 "technical_details.test_duration_v1" = "27 s test · score rule v1";
 "technical_details.finding.stability" = "Stability";
 "technical_details.finding.load_behavior" = "Behavior under load";
@@ -877,3 +879,15 @@
 "share.card.preparing" = "Preparing share card";
 "share.card.failed" = "Share card failed";
 "share.card.open_hint" = "Opens sharing options";
+"share.card.kicker %@" = "CHECK · %@";
+"share.card.metric.response" = "RESPONSE";
+"share.card.metric.jitter" = "JITTER";
+"share.card.metric.loss" = "LOSS";
+"share.card.udp_proof" = "Measured with real UDP packets.";
+"technical_details.chart_unavailable" = "The trace is unavailable for this measurement.";
+
+"technical_details.score_heading" = "SCORE";
+
+"technical_details.status_measured" = "Measurement complete";
+
+"technical_details.chart_accessibility" = "Measured traces separated by phase: rest and under load; gaps are probes without a valid response.";

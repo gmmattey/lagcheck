@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LagCheck — Resultado e Detalhes iOS v1</title>
+  <style>
+    :root { --deep:#0B0D10; --surface:#15181E; --panel:#1E232B; --text:#F4F5F7; --muted:#8A93A0; --tertiary:#555E6C; --hairline:rgba(255,255,255,.08); --strong:rgba(255,255,255,.16); --purple:#7C3AED; --green:#22C55E; --amber:#F59E0B; --coral:#FF5A36; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:32px; color:var(--text); background:#060709; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    h1 { margin:0 0 8px; font:800 24px ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif; }
+    .intro { margin:0 0 28px; color:var(--muted); max-width:740px; line-height:1.45; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; align-items:start; }
+    .device { width:100%; max-width:390px; margin:auto; min-height:760px; padding:12px; border:1px solid var(--strong); border-radius:38px; background:#030406; box-shadow:0 18px 54px rgba(0,0,0,.45); }
+    .screen { min-height:734px; padding:16px 22px 26px; border-radius:28px; background:var(--deep); }
+    .bar { min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .back { width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:12px; color:var(--text); background:transparent; font-size:26px; }
+    .context, .kicker, .metrics, .card-kicker, .metric-label { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+    .context { max-width:260px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:var(--muted); font-size:10px; }
+    .kicker { margin-top:36px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:1.3px; }
+    .hero { margin-top:14px; }
+    .badge-line { display:flex; align-items:center; gap:10px; }
+    .indicator { flex:0 0 auto; width:24px; height:24px; display:grid; place-items:center; }
+    .ready .indicator::after { content:""; width:16px; height:16px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(34,197,94,.20),0 0 0 2px rgba(34,197,94,.55); }
+    .caution .indicator, .notready .indicator { border:1.5px solid currentColor; border-radius:4px; font-weight:900; }
+    .caution .indicator::after { content:"!"; } .notready .indicator::after { content:"×"; font-size:20px; }
+    .inconclusive .indicator { border:1.5px dashed var(--muted); border-radius:50%; color:var(--muted); } .inconclusive .indicator::after { content:"—"; }
+    .headline { margin:0; font:800 38px/1.04 ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif; letter-spacing:-.8px; }
+    .ready .headline { color:var(--green); } .caution .headline { color:var(--amber); } .notready .headline { color:var(--coral); } .inconclusive .headline { color:var(--muted); }
+    .subtitle { margin:20px 0 0; color:var(--text); font-size:16px; line-height:1.45; font-weight:600; }
+    .metrics { margin-top:22px; color:var(--text); font-size:11px; font-weight:700; line-height:1.6; }
+    .separator { color:var(--tertiary); padding:0 5px; }
+    .weight { margin-top:27px; padding:15px; border:1px solid var(--strong); border-radius:15px; background:var(--surface); }
+    .weight h3 { margin:0 0 5px; color:var(--muted); font:500 10px ui-monospace,SFMono-Regular,monospace; letter-spacing:1px; }
+    .weight p { margin:0; color:var(--text); font-size:14px; font-weight:700; }
+    .actions { display:grid; gap:10px; margin-top:24px; }
+    button.action { min-height:56px; border-radius:16px; padding:0 16px; color:var(--text); font-size:16px; font-weight:800; border:1px solid transparent; }
+    .primary { background:var(--purple); } .secondary { background:transparent; border-color:var(--strong)!important; }
+    .utility { display:flex; gap:8px; margin-top:4px; } .utility button { min-width:44px; min-height:44px; flex:1; border:1px solid var(--strong); border-radius:11px; color:var(--muted); background:var(--surface); font-size:12px; font-weight:700; }
+    .share-preview { width:min(100%,360px); aspect-ratio:1200/630; margin:24px auto 0; overflow:hidden; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+    .share-card { position:relative; display:grid; grid-template-columns:1fr 1fr; width:100%; height:100%; background:var(--deep); }
+    .art { position:relative; overflow:hidden; background:radial-gradient(circle at 35% 25%,#7C3AED 0%,#28174a 35%,#0B0D10 78%); }
+    .art::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(11,13,16,.05),rgba(11,13,16,.96)); }
+    .share-content { position:relative; z-index:1; padding:8% 10% 7% 3%; }
+    .wordmark { font:800 15px ui-rounded,system-ui,sans-serif; } .wordmark span { color:var(--purple); }
+    .domain { position:absolute; right:10%; top:9%; color:var(--muted); font:6px ui-monospace,monospace; }
+    .card-kicker { margin-top:16%; color:#A78BFA; font-size:6px; letter-spacing:1px; font-weight:700; }
+    .card-title { margin-top:4%; color:var(--text); font:800 clamp(13px,3vw,22px)/.98 ui-rounded,system-ui,sans-serif; letter-spacing:-.5px; }
+    .card-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8%; }
+    .card-metric { border-left:1px solid rgba(255,255,255,.28); padding-left:6px; } .metric-label { color:#A78BFA; font-size:5px; letter-spacing:.8px; } .metric-value { margin-top:3px; font-weight:800; font-size:13px; } .metric-unit { color:var(--muted); font-size:6px; }
+    .card-proof { position:absolute; left:3%; bottom:8%; color:var(--muted); font-size:5px; } .card-dot { position:absolute; left:7%; bottom:8%; width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); }
+    .inconclusive .share-preview, .inconclusive .utility { display:none; }
+    .state-label { margin:0 0 10px; color:var(--muted); font:700 11px ui-monospace,monospace; letter-spacing:1px; text-transform:uppercase; }
+    .note { margin-top:26px; padding:14px; border-left:2px solid var(--purple); color:var(--muted); background:var(--surface); font-size:13px; line-height:1.45; }
+    .details-title { margin:42px 0 12px; font:800 24px ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif; }
+    .details .screen { min-height:900px; }
+    .close { min-width:44px; min-height:44px; padding:0 6px; border:0; border-radius:10px; color:var(--muted); background:transparent; font-size:14px; font-weight:700; }
+    .details-header { font:800 24px ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif; }
+    .summary { margin-top:20px; padding:13px; border:1px solid var(--strong); border-radius:13px; background:var(--surface); }
+    .summary-row { display:flex; align-items:center; gap:8px; color:var(--green); font-size:13px; font-weight:800; }
+    .summary-meta { margin-top:6px; color:var(--muted); font:10px ui-monospace,monospace; }
+    .section-kicker { margin:24px 0 11px; color:var(--muted); font:700 10px ui-monospace,monospace; letter-spacing:1px; }
+    .score-row { display:flex; justify-content:space-between; align-items:end; }.score-label { color:var(--muted); font:700 10px ui-monospace,monospace; letter-spacing:1px; }.score-copy { margin-top:3px; color:var(--muted); font-size:13px; }.score { color:var(--text); font:800 44px ui-monospace,monospace; letter-spacing:-2px; }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }.metric-box { min-height:61px; padding:11px; border:1px solid var(--strong); border-radius:11px; background:var(--surface); }.metric-box b { display:block; margin-top:4px; font:700 13px ui-monospace,monospace; }
+    .chart { position:relative; height:118px; overflow:hidden; border:1px solid var(--strong); background:var(--surface); }.chart .load-zone { position:absolute; inset:0 0 0 50%; background:rgba(30,35,43,.55); }.chart .gridline { position:absolute; left:0; right:0; height:1px; background:var(--hairline); }.chart .g1{top:25%}.chart .g2{top:50%}.chart .g3{top:75%}.chart svg { position:absolute; inset:0; width:100%; height:100%; }.chart-labels { display:flex; justify-content:space-between; margin-top:7px; color:var(--muted); font:10px ui-monospace,monospace; }
+    .evidence { display:grid; gap:8px; }.evidence-row { padding:13px; border:1px solid var(--strong); border-radius:13px; background:var(--surface); }.evidence-top { display:flex; justify-content:space-between; gap:8px; color:var(--text); font-size:14px; font-weight:800; }.unobserved { color:var(--muted); font:10px ui-monospace,monospace; }.observed { color:var(--green); font:10px ui-monospace,monospace; }.evidence-row p { margin:6px 0 0; color:var(--muted); font:11px ui-monospace,monospace; line-height:1.35; }
+    .findings { border:1px solid var(--strong); border-radius:13px; overflow:hidden; background:var(--surface); }.finding { display:flex; gap:9px; padding:10px 13px; border-bottom:1px solid var(--hairline); }.finding:last-child { border:0; }.dot { flex:0 0 auto; width:7px; height:7px; margin-top:5px; border-radius:50%; background:var(--green); }.finding.warning .dot { background:var(--coral); }.finding b { font-size:13px; }.finding span { display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.3; }.tech-note { padding:13px; border:1px solid var(--strong); border-radius:13px; color:var(--muted); background:transparent; font:11px/1.45 ui-monospace,monospace; }
+    @media (max-width:480px) { body { padding:18px; } .headline { font-size:34px; } }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+  </style>
+</head>
+<body>
+  <h1>Resultado e Detalhes iOS — referência v1</h1>
+  <p class="intro">Mock de handoff estático. A hierarquia vem do Android; a interação continua nativa do iPhone. Valores e nomes abaixo são exemplos visuais, não resultado de uma medição.</p>
+  <main class="grid">
+    <section>
+      <p class="state-label">ready</p><div class="device"><div class="screen ready">
+        <header class="bar"><button class="back" aria-label="Voltar">‹</button><span class="context">Valorant · iPhone · São Paulo</span></header>
+        <div class="kicker">RESULTADO DO CHECK</div><div class="hero"><div class="badge-line"><i class="indicator" aria-hidden="true"></i><h2 class="headline">PRONTO PARA RANKED</h2></div><p class="subtitle">Sua rota está estável para jogar agora.</p></div>
+        <div class="share-preview" aria-label="Card pronto para compartilhar"><div class="share-card"><div class="art"></div><div class="share-content"><div class="wordmark">lag<span>check</span></div><div class="domain">lagcheck.signallq.com</div><div class="card-kicker">CHECK · VALORANT</div><div class="card-title">Pronto para ranked</div><div class="card-metrics"><div class="card-metric"><div class="metric-label">RESPOSTA</div><div class="metric-value">28<span class="metric-unit"> ms</span></div></div><div class="card-metric"><div class="metric-label">JITTER</div><div class="metric-value">2<span class="metric-unit"> ms</span></div></div><div class="card-metric"><div class="metric-label">PERDA</div><div class="metric-value">0<span class="metric-unit"> %</span></div></div></div></div><i class="card-dot"></i><div class="card-proof">Medido com pacotes UDP reais.</div></div></div>
+        <div class="metrics">28 ms<span class="separator">·</span>2 ms jitter<span class="separator">·</span>0% perda</div><div class="weight"><h3>O QUE MAIS PESOU</h3><p>Rota estável sob carga</p></div><div class="actions"><button class="action primary">Testar novamente</button><button class="action secondary">Ver detalhes</button><div class="utility"><button aria-label="Compartilhar resultado">Compartilhar</button><button aria-label="Exportar PDF">PDF</button></div></div>
+      </div></div>
+    </section>
+    <section>
+      <p class="state-label">caution</p><div class="device"><div class="screen caution">
+        <header class="bar"><button class="back" aria-label="Voltar">‹</button><span class="context">Fortnite · iPhone · Virgínia</span></header><div class="kicker">RESULTADO DO CHECK</div><div class="hero"><div class="badge-line"><i class="indicator" aria-hidden="true"></i><h2 class="headline">CONDIÇÕES INSTÁVEIS</h2></div><p class="subtitle">Picos recorrentes apareceram durante a medição.</p></div><div class="metrics">34 ms<span class="separator">·</span>11 ms jitter<span class="separator">·</span>0% perda</div><div class="weight"><h3>O QUE MAIS PESOU</h3><p>Picos recorrentes de latência observados</p></div><div class="actions"><button class="action primary">Testar novamente</button><button class="action secondary">Ver detalhes</button><div class="utility"><button>Compartilhar</button><button>PDF</button></div></div>
+      </div></div>
+    </section>
+    <section>
+      <p class="state-label">not ready</p><div class="device"><div class="screen notready">
+        <header class="bar"><button class="back" aria-label="Voltar">‹</button><span class="context">Call of Duty · iPhone · São Paulo</span></header><div class="kicker">RESULTADO DO CHECK</div><div class="hero"><div class="badge-line"><i class="indicator" aria-hidden="true"></i><h2 class="headline">EU EVITARIA RANKED AGORA</h2></div><p class="subtitle">Perda de pacotes alta apareceu durante o teste.</p></div><div class="metrics">91 ms<span class="separator">·</span>24 ms jitter<span class="separator">·</span>3,2% perda</div><div class="weight"><h3>O QUE MAIS PESOU</h3><p>Perda de pacotes prejudicial</p></div><div class="actions"><button class="action primary">Testar novamente</button><button class="action secondary">Ver detalhes</button><div class="utility"><button>Compartilhar</button><button>PDF</button></div></div>
+      </div></div>
+    </section>
+    <section>
+      <p class="state-label">inconclusive</p><div class="device"><div class="screen inconclusive">
+        <header class="bar"><button class="back" aria-label="Voltar">‹</button><span class="context">Apex Legends · iPhone · São Paulo</span></header><div class="kicker">RESULTADO DO CHECK</div><div class="hero"><div class="badge-line"><i class="indicator" aria-hidden="true"></i><h2 class="headline">DADOS INSUFICIENTES</h2></div><p class="subtitle">Não recebemos respostas suficientes para avaliar sua rota com segurança.</p></div><div class="metrics">— ms<span class="separator">·</span>— ms jitter<span class="separator">·</span>— perda</div><div class="weight"><h3>O QUE MAIS PESOU</h3><p>Amostras UDP insuficientes</p></div><div class="actions"><button class="action primary">Testar novamente</button><button class="action secondary">Ver detalhes</button></div>
+      </div></div>
+    </section>
+  </main>
+  <h2 class="details-title">Detalhes técnicos — sheet iOS</h2>
+  <p class="intro">Abrir por <strong>Ver detalhes</strong> em sheet iOS com <code>NavigationStack</code>, detent large ou tela inteira. O gráfico e os fatos abaixo existem somente quando a sessão os observou.</p>
+  <main class="grid details">
+    <section>
+      <p class="state-label">conclusivo · exemplo pronto</p><div class="device"><div class="screen">
+        <header class="bar"><strong class="details-header">Detalhes técnicos</strong><button class="close">Fechar</button></header>
+        <div class="summary"><div class="summary-row"><i class="indicator" aria-hidden="true" style="width:14px;height:14px;background:var(--green);border-radius:50%"></i>PRONTO PARA RANKED</div><div class="summary-meta">VALORANT · SÃO PAULO · 17 OUT · 21:42</div></div>
+        <div class="section-kicker">SCORE</div><div class="score-row"><div><div class="score-label">QUALIDADE DA CONEXÃO</div><div class="score-copy">Resultado desta sessão</div></div><div class="score">92</div></div>
+        <div class="metric-grid"><div class="metric-box"><span class="metric-label">P50</span><b>28 ms</b></div><div class="metric-box"><span class="metric-label">JITTER</span><b>2 ms</b></div><div class="metric-box"><span class="metric-label">PERDA</span><b>0%</b></div><div class="metric-box"><span class="metric-label">P99</span><b>42 ms</b></div></div>
+        <div class="section-kicker">LATÊNCIA DURANTE O CHECK</div><div class="chart" role="img" aria-label="Repouso P50 28 milissegundos; carga P95 42 milissegundos; nenhum pico prejudicial observado."><div class="load-zone"></div><i class="gridline g1"></i><i class="gridline g2"></i><i class="gridline g3"></i><svg viewBox="0 0 340 118" preserveAspectRatio="none" aria-hidden="true"><path d="M0 76 L70 72 L125 67 L153 73 L188 64 L230 56 L280 62 L340 59" fill="none" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round"/></svg></div><div class="chart-labels"><span>REPOUSO</span><span>SOB CARGA</span></div>
+        <div class="section-kicker">ORIGEM DA EVIDÊNCIA</div><div class="evidence"><div class="evidence-row"><div class="evidence-top"><span>Enlace local</span><span class="unobserved">NÃO OBSERVÁVEL</span></div><p>Sem medida direta de Wi-Fi ou gateway nesta sessão.</p></div><div class="evidence-row"><div class="evidence-top"><span>Rota externa</span><span class="observed">ESTÁVEL</span></div><p>Rota regional de referência · São Paulo</p></div></div>
+        <div class="section-kicker">O QUE ENCONTRAMOS</div><div class="findings"><div class="finding"><i class="dot"></i><div><b>Estabilidade</b><span>Jitter baixo durante a sessão.</span></div></div><div class="finding"><i class="dot"></i><div><b>Sob carga</b><span>Sem degradação material observada.</span></div></div><div class="finding"><i class="dot"></i><div><b>Destino medido</b><span>Rota regional de referência · São Paulo.</span></div></div></div>
+        <div class="section-kicker">NOTA TÉCNICA</div><div class="tech-note">CONFIANÇA: BOA<br>REGRA readiness-vN</div>
+      </div></div>
+    </section>
+    <section>
+      <p class="state-label">inconclusivo</p><div class="device"><div class="screen">
+        <header class="bar"><strong class="details-header">Detalhes técnicos</strong><button class="close">Fechar</button></header>
+        <div class="summary"><div class="summary-row" style="color:var(--muted)"><i class="indicator" aria-hidden="true" style="width:14px;height:14px;border:1px dashed var(--muted);border-radius:50%"></i>DADOS INSUFICIENTES</div><div class="summary-meta">APEX LEGENDS · SÃO PAULO · 17 OUT · 21:42</div></div>
+        <div class="section-kicker">O QUE ACONTECEU</div><div class="weight"><p>Não recebemos respostas UDP suficientes para avaliar sua rota com segurança.</p></div>
+        <div class="section-kicker">MÉTRICAS DA SESSÃO</div><div class="metric-grid"><div class="metric-box"><span class="metric-label">P50</span><b>—</b></div><div class="metric-box"><span class="metric-label">JITTER</span><b>—</b></div><div class="metric-box"><span class="metric-label">PERDA</span><b>—</b></div><div class="metric-box"><span class="metric-label">P99</span><b>—</b></div></div>
+        <div class="note">Sem score, gráfico, causa, recomendação ou exportação. Feche esta folha e use <strong>Testar novamente</strong> no Resultado.</div>
+      </div></div>
+    </section>
+  </main>
+  <aside class="note"><strong>Estados fora do frame:</strong> preparando reserva a área do card sem animação; falha mantém o resultado e mostra “Preparar card novamente”; cancelado e rede mudada descartam o parcial em uma tela terminal própria. A implementação usa tokens SwiftUI, strings localizadas e share sheet nativo.</aside>
+</body>
+</html>

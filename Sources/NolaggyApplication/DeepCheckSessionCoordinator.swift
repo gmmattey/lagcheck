@@ -84,6 +84,20 @@ public enum DeepCheckSessionState: Equatable, Sendable {
 
 /// Amostras válidas da fase em curso, destinadas apenas à apresentação ao vivo.
 /// A sessão as descarta ao cancelar ou concluir; histórico nunca as recebe.
+/// Série final efêmera do Deep Check, retida somente enquanto o resultado da
+/// mesma sessão permanece aberto. Nunca entra em histórico ou persistência.
+public struct FinalDeepCheckTrace: Equatable, Sendable {
+    public let sessionID: UUID
+    public let restSamples: [ProbeSample]
+    public let loadSamples: [ProbeSample]
+
+    public init(sessionID: UUID, restSamples: [ProbeSample], loadSamples: [ProbeSample]) {
+        self.sessionID = sessionID
+        self.restSamples = restSamples
+        self.loadSamples = loadSamples
+    }
+}
+
 public struct DeepCheckMeasurementProgress: Equatable, Sendable {
     public let phase: DeepCheckPhase
     public let receivedSamples: [ProbeSample]
@@ -115,6 +129,7 @@ public actor DeepCheckSessionCoordinator {
     private var partialSamples: [ProbeSample] = []
     private var allReceivedSamples: [ProbeSample] = []
     private var completedRestSamples: [ProbeSample] = []
+    private var finalTrace: FinalDeepCheckTrace?
     private var executionTask: Task<Void, Never>?
     private var pathTask: Task<Void, Never>?
     private let transport: any MeasurementTransport
@@ -144,6 +159,7 @@ public actor DeepCheckSessionCoordinator {
         hasCellularConsent: Bool = false
     ) async throws -> MeasurementSession {
         guard activeSession == nil else { throw DeepCheckSessionError.alreadyActive }
+        finalTrace = nil
         let currentInterface = await wifiAvailability.currentInterface()
         guard currentInterface == .wifi || currentInterface == .cellular else {
             state = .requiresWiFi
@@ -203,6 +219,7 @@ public actor DeepCheckSessionCoordinator {
         partialSamples = []
         completedRestSamples = []
         allReceivedSamples = []
+        finalTrace = nil
         executionTask?.cancel()
         pathTask?.cancel()
         executionTask = nil
@@ -211,12 +228,31 @@ public actor DeepCheckSessionCoordinator {
     }
 
     public func appDidEnterBackground() {
-        guard let session = activeSession else { return }
-        cancel(id: session.id, reason: .appEnteredBackground)
+        if let session = activeSession {
+            cancel(id: session.id, reason: .appEnteredBackground)
+            return
+        }
+        if case let .completed(session, _, _) = state {
+            discardFinalDeepCheckTrace(for: session.id)
+        }
     }
 
     public func currentSession() -> MeasurementSession? { activeSession }
     public func sessionState() -> DeepCheckSessionState { state }
+
+    /// Retorna somente o traço final da mesma sessão que ainda está no estado concluído.
+    public func finalDeepCheckTrace(for sessionID: UUID) -> FinalDeepCheckTrace? {
+        guard case let .completed(session, _, _) = state,
+              session.id == sessionID,
+              finalTrace?.sessionID == sessionID else { return nil }
+        return finalTrace
+    }
+
+    /// Descarta o traço somente para o resultado concluído que o expôs.
+    public func discardFinalDeepCheckTrace(for sessionID: UUID) {
+        guard case let .completed(session, _, _) = state, session.id == sessionID else { return }
+        finalTrace = nil
+    }
 
     public func measurementProgress() -> DeepCheckMeasurementProgress? {
         guard activeSession != nil, let activePhase else { return nil }
@@ -267,6 +303,7 @@ public actor DeepCheckSessionCoordinator {
         partialSamples = []
         completedRestSamples = []
         allReceivedSamples = []
+        finalTrace = nil
         pathTask?.cancel()
         pathTask = nil
         executionTask = nil
@@ -289,6 +326,19 @@ public actor DeepCheckSessionCoordinator {
             )
         }
         let availability: DeepCheckLoadAvailability = loadOutcome == .unavailable ? .loadUnavailable : .measured
+        if case let .completed(result) = evaluation,
+           case let .completed(bytesTransferred) = loadOutcome,
+           bytesTransferred > 0,
+           result.metrics.load != nil,
+           result.metrics.loadImpact != nil,
+           restSamples.filter(\.isValidResponse).count >= 10,
+           loadSamples.filter(\.isValidResponse).count >= 10 {
+            finalTrace = FinalDeepCheckTrace(
+                sessionID: session.id,
+                restSamples: restSamples,
+                loadSamples: loadSamples
+            )
+        }
         if case let .completed(result) = evaluation {
             // O histórico recebe somente o fato final: repouso e complemento agregado de carga.
             try? await historyRepository.save(.completedDeepCheck(resolvedContext: session.resolvedContext, result: result))

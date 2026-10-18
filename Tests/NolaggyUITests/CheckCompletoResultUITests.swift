@@ -121,7 +121,8 @@ final class CheckCompletoResultUITests: XCTestCase {
         let primaryAction = app.buttons["check-completo-primary-action"]
         XCTAssertTrue(primaryAction.exists)
 
-        // 4. Improve booster action must NOT exist on inconclusive
+        // 4. Inconclusive state does not offer a details sheet or improvement action.
+        XCTAssertFalse(app.buttons["check-completo-details"].exists)
         XCTAssertFalse(app.buttons["check-completo-improve"].exists)
 
         // Resultado inconclusivo não pode preparar nem oferecer card de compartilhamento.
