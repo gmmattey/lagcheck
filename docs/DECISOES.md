@@ -105,6 +105,7 @@
 | [100](#decisão-100) | Home imersiva por jogo e remoção do chrome redundante | **Vigente (implementado localmente; validação física pendente)** | A Home começa na arte editorial do jogo e mantém a decisão de Check em primeiro plano | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [101](#decisão-101) | Reconciliação do registro com o código em `main` | **Vigente (auditoria documental; correção sistêmica pendente)** | Separa fonte, contrato autorizado e evidência de runtime; expõe rotas extras do Worker e Gemini como conflitos | Giam / Marco / Camillo / Iury / Luiz |
 | [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Vigente (implementado localmente; runtime pendente)** | Refina a Decisão 80 para iOS e Android, sem alterar o contrato de catálogo, histórico ou medição | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [103](#decisão-103) | Paridade do motor de compartilhamento (Cards e Vídeo 14s) no iOS com App Store | **Vigente (implementado localmente e validado no simulador iOS)** | Paridade 1:1 com o motor Android (`ShareMediaScene`, `ShareCanvas`, `ShareMediaRenderer`, `ShareVideoRenderer`, `ShareMediaSheetView`) e QR Code da App Store | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -1073,6 +1074,34 @@
   4. A rota continua sendo a referência medida pelo iPhone; o iOS resolve e revalida o contexto iPhone pelo catálogo assinado antes da pré-leitura, como o Android já faz. Não há fallback silencioso para contexto de console/PC e os campos históricos existentes (`platform`, vínculo externo) não são apagados nem reinterpretados.
 - **Critérios de aceite:** mesma promessa e mesma ordem de informação em iOS e Android; interação e navegação nativas; PT-BR e inglês; alvos de 44 pt/dp, VoiceOver/TalkBack; busca, estado vazio e anúncio sem deslocar a escolha. Testes, simulador/emulador e aparelhos físicos são evidências separadas.
 - **Critérios de aceite desta reconciliação:** índice e texto não afirmam catálogo remoto, Gemini ou exclusividade de rotas que o fonte não sustenta; o registro preserva a diferença entre inspeção estática, testes, simulador, aparelho e distribuição; qualquer correção subsequente começa pelo gate arquitetural, sem mudança silenciosa de contrato.
+
+#### Decisão 103
+
+- **Data:** 18 de outubro de 2026.
+- **Título:** Paridade do motor de compartilhamento (Cards e Vídeo 14s) no iOS com App Store.
+- **Status Atual:** **Vigente (implementado localmente e validado no simulador iOS).** Substitui o exportador pontual preliminar e estabelece paridade 1:1 com a arquitetura Android (`com.lagcheck.android.share`).
+- **Frentes envolvidas:** Luiz (direção de produto), Giam (aceite), Marco (orquestração), Renan (design system e fidelidade visual), Rian (Swift/AVFoundation) e Breno (QA e regressão).
+- **Problema diagnosticado no iOS anterior:**
+  1. O QR Code nos cards gerados estava invertido verticalmente (renderizado de cabeça para baixo devido a inversão de coordenadas Quartz CoreGraphics em contexto UIKit).
+  2. O QR Code apontava para `https://lagcheck.signallq.com` em vez da URL oficial da App Store (`https://apps.apple.com/app/id6818706960`).
+  3. Não havia suporte aos formatos Stories (1080×1920) nem Vídeo MP4 (14s a 30fps em 1080×1920), presentes no Android.
+  4. O selo da loja desenhava a wordmark duplicada sobre o texto inferior em vez do selo vetorial oficial da App Store.
+  5. A prévia no resultado falhava silenciosamente quando `result` era nulo em fixtures de teste ou previews.
+- **Decisão:**
+  1. Adotar no iOS a mesma arquitetura modular e determinística do motor Android (`Sources/NolaggyApp/Share/`):
+     - `ShareMediaScene`: modelo de dados puro e imutável, com formatação por locale (vírgula em pt-BR/es, ponto em en, sem zeros desnecessários). Inconclusivo não gera cena nem card (Decisões 50 e 64).
+     - `ShareCanvas`: primitivas gráficas CoreGraphics/UIKit com tokens Dark Competitive UI (`#0B0D10`, `#F4F5F7`, `#8A93A0`, `#A78BFA`, `#7C3AED`, `#22C55E`, `#F59E0B`, `#FF5A36`). Desenho de QR Code nítido, sem inversão e com cantos arredondados no container. Selo vetorial oficial da App Store.
+     - `ShareMediaImages`: carregamento seguro de imagens autorais, com `STORE_URL = "https://apps.apple.com/app/id6818706960"`.
+     - `ShareMediaRenderer`: renderização de JPEG em 1200×630 (Link/Discord/WhatsApp) e 1080×1920 (Stories).
+     - `ShareVideoTimeline` & `ShareVideoRenderer`: timeline de 14s (420 frames a 30fps) e pipeline de codificação MP4/H.264 via `AVAssetWriter`, reproduzindo fielmente as 3 cenas do Android (scanner de grade, contagem ao vivo da telemetria e revelação do veredito).
+     - `PreparedShareCard`: cache efêmero baseado em SHA-256 e gravação atômica em disco temporário.
+     - `ShareMediaSheetView`: modal com seletor segmentado de formato (Link, Stories, Vídeo), prévia dinâmica, progresso ao vivo e compartilhamento nativo para WhatsApp, Telegram, TikTok, X, Instagram, Discord, Mais e PDF.
+  2. Preservar compatibilidade de API com a interface legada `LagCheckDiscordCardExporter` e acessibilidade (`check-completo-share-preview`, `check-completo-discord-share`, `check-completo-whatsapp-share`, `check-completo-export-pdf`).
+- **Critérios de validação e aceite:**
+  - Build limpo do target `Nolaggy` no Xcode/iOS Simulator.
+  - Testes de UI (`CheckCompletoResultUITests`) passam 100%, incluindo interações do modal de compartilhamento, validação de estados inconclusivo e conclusivo em PT-BR e EN.
+  - QR Code escaneável apontando para a App Store (`https://apps.apple.com/app/id6818706960`).
+  - Zero dependência externa, SDK pago ou custo de infraestrutura.
 
 ## Como Registrar Novas Decisões
 

@@ -431,8 +431,10 @@ extension QuickCheckFeatureView {
 
     /// A Home dispara o Deep Check direto em 1 toque (Decisão 56).
     func startLagCheckFromCTA() {
-        if let target = targetGameForCTA {
-            startCheckDirectly(for: target)
+        let game = targetGameForCTA ?? currentHomeGame
+        if game.id != GameContext.genericGamingID {
+            selectedGameID = game.id
+            startIPhoneCheckDirectly(for: game)
         } else {
             startGeneralGamingCheckDirectly()
         }

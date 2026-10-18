@@ -55,24 +55,9 @@ public struct CheckCompletoResultView: View {
     @State private var shareCardPreparationFailed = false
     @State private var shareCardPreparationAttempt = 0
     @State private var preparedSharePreview: UIImage? = nil
+    @State private var showShareMediaSheet = false
+    @State private var selectedSocialNetwork: ShareSocialNetwork? = nil
 
-    private struct ShareCardSnapshot: Equatable, Sendable {
-        let gameID: String?
-        let gameName: String
-        let regionName: String
-        let verdict: GameReadinessVerdict
-        let pingMs: Double?
-        let jitterMs: Double?
-        let packetLossPercentage: Double?
-        let bufferbloatGradeText: String?
-        let isWiFi: Bool
-        let localeIdentifier: String
-        let measurementIdentity: String
-
-        var cacheKey: String {
-            "\(gameID ?? "")|\(gameName)|\(regionName)|\(verdict.rawValue)|\(pingMs ?? -1)|\(jitterMs ?? -1)|\(packetLossPercentage ?? -1)|\(bufferbloatGradeText ?? "—")|\(isWiFi)|\(localeIdentifier)|\(measurementIdentity)"
-        }
-    }
 
     public init(
         result: DeepCheckResult?,
@@ -252,6 +237,16 @@ public struct CheckCompletoResultView: View {
         .sheet(item: $activeShareDestination) { destination in
             ShareSheet(items: destination.items)
         }
+        .sheet(isPresented: $showShareMediaSheet) {
+            if let scene = currentShareScene(evaluation: evaluation) {
+                ShareMediaSheetView(
+                    scene: scene,
+                    preparedLinkCardURL: preparedShareCardURL,
+                    highlightedNetwork: selectedSocialNetwork,
+                    onDismiss: { showShareMediaSheet = false }
+                )
+            }
+        }
         .task(id: "\(shareCardSnapshot(evaluation: evaluation)?.cacheKey ?? "inconclusive"):\(shareCardPreparationAttempt)") {
             preparedShareCardURL = nil
             preparedSharePreview = nil
@@ -261,18 +256,7 @@ public struct CheckCompletoResultView: View {
             await Task.yield()
             guard !Task.isCancelled else { return }
             let cardURL = await Task.detached(priority: .utility) {
-                LagCheckDiscordCardExporter.prepareDiscordShareCard(
-                    snapshotKey: snapshot.cacheKey,
-                    gameID: snapshot.gameID,
-                    gameName: snapshot.gameName,
-                    regionName: snapshot.regionName,
-                    verdict: snapshot.verdict,
-                    pingMs: snapshot.pingMs,
-                    jitterMs: snapshot.jitterMs,
-                    packetLossPercentage: snapshot.packetLossPercentage,
-                    bufferbloatGradeText: snapshot.bufferbloatGradeText,
-                    isWiFi: snapshot.isWiFi
-                )
+                PreparedShareCard.prepare(snapshot: snapshot)
             }.value
             guard !Task.isCancelled else { return }
             preparedShareCardURL = cardURL
@@ -320,11 +304,8 @@ public struct CheckCompletoResultView: View {
                 .accessibilityHint(AppLocalization.string("share.card.retry", comment: ""))
             } else {
                 Button {
-                    guard let preparedShareCardURL, FileManager.default.fileExists(atPath: preparedShareCardURL.path) else {
-                        shareCardPreparationFailed = true
-                        return
-                    }
-                    activeShareDestination = .link(items: [preparedShareCardURL])
+                    selectedSocialNetwork = .more
+                    showShareMediaSheet = true
                 } label: {
                     Group {
                         if let preparedSharePreview {
@@ -336,7 +317,6 @@ public struct CheckCompletoResultView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .buttonStyle(.plain)
-                .disabled(preparedSharePreview == nil)
                 .accessibilityIdentifier("check-completo-share-preview")
                 .accessibilityHint(AppLocalization.string("share.card.open_hint", comment: ""))
             }
@@ -708,12 +688,18 @@ public struct CheckCompletoResultView: View {
                     utilityShareButton(
                         accessibilityLabel: "Discord",
                         identifier: "check-completo-discord-share",
-                        action: { shareToDiscord(evaluation: evaluation) }
+                        action: {
+                            selectedSocialNetwork = .discord
+                            showShareMediaSheet = true
+                        }
                     ) { DiscordLogo(size: 22) }
                     utilityShareButton(
                         accessibilityLabel: "WhatsApp",
                         identifier: "check-completo-whatsapp-share",
-                        action: { shareToWhatsApp(evaluation: evaluation) }
+                        action: {
+                            selectedSocialNetwork = .whatsapp
+                            showShareMediaSheet = true
+                        }
                     ) { WhatsAppLogo(size: 22) }
                     Spacer(minLength: 0)
 
@@ -749,7 +735,6 @@ public struct CheckCompletoResultView: View {
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(shareCardAccessibilityValue)
         .accessibilityIdentifier(identifier)
-        .disabled(preparedShareCardURL == nil && identifier != "check-completo-export-pdf")
     }
 
     // MARK: - Helpers & Formatação
@@ -765,20 +750,29 @@ public struct CheckCompletoResultView: View {
         return AppLocalization.string("share.card.preparing", comment: "")
     }
 
-    private func shareCardSnapshot(evaluation: GameReadinessEvaluation) -> ShareCardSnapshot? {
-        guard evaluation.verdict != .inconclusive, let result else { return nil }
-        return ShareCardSnapshot(
-            gameID: gameID,
+    private func currentShareScene(evaluation: GameReadinessEvaluation) -> ShareMediaScene? {
+        let assetName = gameID.flatMap(GameArtworkAssetResolver.assetName(for:))
+            ?? GameArtworkAssetResolver.assetName(for: gameName)
+            ?? ""
+        return ShareMediaScene.from(
             gameName: gameName,
-            regionName: regionFriendlyName,
+            artAssetName: assetName,
             verdict: evaluation.verdict,
+            headline: AppLocalization.string(evaluation.headlineKey, comment: ""),
+            regionName: regionFriendlyName,
             pingMs: evaluation.pingMs,
             jitterMs: evaluation.jitterMs,
-            packetLossPercentage: evaluation.packetLossPercentage,
-            bufferbloatGradeText: evaluation.metrics?.loadImpact?.bufferbloatGrade.rawValue,
-            isWiFi: isWiFi,
-            localeIdentifier: AppLocalization.locale.identifier,
-            measurementIdentity: measurementIdentity(for: result)
+            lossPercentage: evaluation.packetLossPercentage
+        )
+    }
+
+    private func shareCardSnapshot(evaluation: GameReadinessEvaluation) -> PreparedShareCardSnapshot? {
+        guard let scene = currentShareScene(evaluation: evaluation) else { return nil }
+        let ident = result.map(measurementIdentity(for:)) ?? "\(gameName)_\(regionFriendlyName)"
+        return PreparedShareCardSnapshot.from(
+            scene: scene,
+            localeTag: AppLocalization.locale.identifier,
+            measurementIdentity: ident
         )
     }
 

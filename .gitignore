@@ -25,3 +25,4 @@ android/local.properties
 
 # Local release artifacts and upload keys
 release/
+.maestri/

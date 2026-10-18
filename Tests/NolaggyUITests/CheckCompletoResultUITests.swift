@@ -139,6 +139,58 @@ final class CheckCompletoResultUITests: XCTestCase {
     }
 
     @MainActor
+    func testShareSheetInteractions() {
+        let app = XCUIApplication()
+        app.launchArguments += [
+            "-AppleLanguages", "(pt-BR)",
+            "-AppleLocale", "pt_BR",
+            "-app_selected_language", "system",
+            "-ui-fixture-deep-standalone",
+            "-ui-fixture-deep-result"
+        ]
+        app.launch()
+
+        let sharePreview = app.buttons["check-completo-share-preview"]
+        XCTAssertTrue(sharePreview.waitForExistence(timeout: 5))
+        sharePreview.tap()
+
+        // 1. Modal "Compartilhar resultado" deve abrir
+        XCTAssertTrue(app.navigationBars["Compartilhar resultado"].waitForExistence(timeout: 5))
+
+        // 2. Formatos disponíveis no seletor segmentado
+        let linkBtn = app.segmentedControls.buttons["Link"].exists ? app.segmentedControls.buttons["Link"] : app.buttons["Link"]
+        let storyBtn = app.segmentedControls.buttons["Stories"].exists ? app.segmentedControls.buttons["Stories"] : app.buttons["Stories"]
+        let videoBtn = app.segmentedControls.buttons["Vídeo"].exists ? app.segmentedControls.buttons["Vídeo"] : app.buttons["Vídeo"]
+
+        XCTAssertTrue(linkBtn.waitForExistence(timeout: 3))
+        XCTAssertTrue(storyBtn.exists)
+        XCTAssertTrue(videoBtn.exists)
+
+        // Alternar formato
+        storyBtn.tap()
+        videoBtn.tap()
+
+        // 3. Redes sociais disponíveis
+        XCTAssertTrue(app.buttons["WhatsApp"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Telegram"].exists)
+        XCTAssertTrue(app.buttons["TikTok"].exists)
+        XCTAssertTrue(app.buttons["X"].exists)
+        XCTAssertTrue(app.buttons["Instagram"].exists)
+        XCTAssertTrue(app.buttons["Discord"].exists)
+        XCTAssertTrue(app.buttons["Mais"].exists)
+
+        saveScreenshot(named: "check_completo_share_sheet_pt_br")
+
+        // 4. Fechar modal
+        let closeButton = app.buttons["Fechar"]
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 3))
+        closeButton.tap()
+
+        // Retorna para a tela de resultado
+        XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     private func saveScreenshot(named name: String) {
         let screenshot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
