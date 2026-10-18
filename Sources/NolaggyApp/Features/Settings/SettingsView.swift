@@ -22,6 +22,7 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     @ObservedObject private var adConsent = IOSAdConsent.shared
+    @ObservedObject private var adDiagnostics = IOSAdDiagnostics.shared
 
     @State private var showingLanguageSheet: Bool = false
     @State private var showingDeleteSheet: Bool = false
@@ -263,6 +264,28 @@ struct SettingsView: View {
                             settingsRowButton(title: LocalizedStringKey("settings.ads.privacy_options"), identifier: "settings-ad-privacy-options") {
                                 Task { await adConsent.showPrivacyOptions() }
                             }
+                        }
+
+                        // Só em TestFlight: mostra por que um anúncio não apareceu. Toque copia o texto.
+                        if IOSAdDiagnostics.isTestFlight {
+                            Button {
+                                UIPasteboard.general.string = adDiagnostics.report
+                            } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(verbatim: "Diagnóstico de anúncios (TestFlight) · toque para copiar")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(NLColor.textSecondary)
+                                    Text(verbatim: adDiagnostics.report.isEmpty ? "sem eventos ainda" : adDiagnostics.report)
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .foregroundStyle(NLColor.textPrimary)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 12)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("settings-ad-diagnostics")
                         }
 
                         // Licenças de código aberto

@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import OSLog
 @preconcurrency import GoogleMobileAds
 @preconcurrency import UserMessagingPlatform
 import NolaggyDesign
@@ -18,6 +19,30 @@ private enum IOSAdPlacement {
         case .result: "ca-app-pub-5542349230926522/7813302529"
         }
         #endif
+    }
+}
+
+/// Registro local e sem dado pessoal do motivo de um anúncio não aparecer. Só é exibido em builds de TestFlight
+/// (Ajustes); fora disso fica silencioso. Não altera medição, consentimento nem o layout dos anúncios.
+@MainActor
+final class IOSAdDiagnostics: ObservableObject {
+    static let shared = IOSAdDiagnostics()
+    private let logger = Logger(subsystem: "com.lagcheck.app", category: "ads")
+
+    /// TestFlight e builds de teste usam `sandboxReceipt`; a App Store usa `receipt`.
+    static var isTestFlight: Bool {
+        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    }
+
+    @Published private(set) var entries: [String: String] = [:]
+
+    var report: String {
+        entries.keys.sorted().map { "\($0): \(entries[$0] ?? "-")" }.joined(separator: "\n")
+    }
+
+    func record(_ key: String, _ value: String) {
+        entries[key] = value
+        logger.notice("\(key, privacy: .public): \(value, privacy: .public)")
     }
 }
 
@@ -102,6 +127,10 @@ final class IOSAdConsent: ObservableObject {
         }
         flow = .idle
         let permitted = isEnabled && ConsentInformation.shared.canRequestAds
+        IOSAdDiagnostics.shared.record(
+            "consent",
+            "enabled=\(isEnabled) canRequestAds=\(ConsentInformation.shared.canRequestAds) status=\(ConsentInformation.shared.consentStatus.rawValue) privacyOptions=\(privacyOptionsRequired)"
+        )
         if permitted && !startedMobileAds {
             startedMobileAds = true
             MobileAds.shared.start()
@@ -115,8 +144,12 @@ private final class IOSNativeAdLoader: NSObject, ObservableObject, NativeAdLoade
     @Published private(set) var ad: NativeAd?
     private var loader: AdLoader?
 
-    func load(unitID: String) {
+    private var label = ""
+
+    func load(unitID: String, label: String) {
         guard loader == nil, ad == nil else { return }
+        self.label = label
+        IOSAdDiagnostics.shared.record("ad-\(label)", "pedindo anúncio")
         let next = AdLoader(adUnitID: unitID, rootViewController: nil, adTypes: [.native], options: nil)
         next.delegate = self
         loader = next
@@ -133,12 +166,15 @@ private final class IOSNativeAdLoader: NSObject, ObservableObject, NativeAdLoade
         guard loader === adLoader else { return }
         ad = nativeAd
         loader = nil
+        IOSAdDiagnostics.shared.record("ad-\(label)", "carregado")
     }
 
     func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: any Error) {
         guard loader === adLoader else { return }
         loader = nil
         ad = nil
+        let nsError = error as NSError
+        IOSAdDiagnostics.shared.record("ad-\(label)", "erro \(nsError.domain) \(nsError.code): \(nsError.localizedDescription)")
     }
 }
 
@@ -174,7 +210,7 @@ struct NativeAdSlot: View {
                 loader.discard()
                 return
             }
-            loader.load(unitID: unitID)
+            loader.load(unitID: unitID, label: String(describing: placement))
         }
         .onDisappear { loader.discard() }
     }
