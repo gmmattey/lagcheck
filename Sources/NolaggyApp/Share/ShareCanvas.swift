@@ -109,7 +109,7 @@ public enum ShareCanvas {
     ) {
         c.saveGState()
         c.clip(to: rect)
-        let colors = stops.map { withAlpha($0.1, alpha).cgColor } as CFArray
+        let colors = stops.map { withAlpha($0.1, $0.1.cgColor.alpha * alpha).cgColor } as CFArray
         let locations = stops.map { $0.0 }
         let space = CGColorSpaceCreateDeviceRGB()
         if let grad = CGGradient(colorsSpace: space, colors: colors, locations: locations) {

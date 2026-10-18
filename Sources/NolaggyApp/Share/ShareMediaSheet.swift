@@ -1,33 +1,17 @@
 import SwiftUI
+import UIKit
 import NolaggyDesign
 import NolaggyDomain
 
-/// Formato que a pessoa escolhe antes de tocar numa rede.
-public enum ShareMediaFormat: String, CaseIterable, Identifiable, Sendable {
-    case link
-    case story
-    case video
-
-    public var id: String { rawValue }
-
-    public var label: String {
-        switch self {
-        case .link: return "Link"
-        case .story: return "Stories"
-        case .video: return "Vídeo"
-        }
-    }
-}
-
-/// Redes sociais suportadas com identidade de marca autêntica.
+/// Redes do compartilhamento no resultado. WhatsApp, Telegram, X e Discord recebem o card horizontal (1200×630);
+/// TikTok e Instagram recebem o vídeo vertical de 14 s (Decisão 104).
 public enum ShareSocialNetwork: String, CaseIterable, Identifiable, Sendable {
     case whatsapp
     case telegram
-    case tiktok
     case x
+    case tiktok
     case instagram
     case discord
-    case more
 
     public var id: String { rawValue }
 
@@ -35,24 +19,42 @@ public enum ShareSocialNetwork: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .whatsapp: return "WhatsApp"
         case .telegram: return "Telegram"
-        case .tiktok: return "TikTok"
         case .x: return "X"
+        case .tiktok: return "TikTok"
         case .instagram: return "Instagram"
         case .discord: return "Discord"
-        case .more: return "Mais"
         }
     }
+
+    public var sendsVideo: Bool { self == .tiktok || self == .instagram }
 
     public var brandColor: Color {
         switch self {
         case .whatsapp: return Color(red: 37 / 255, green: 211 / 255, blue: 102 / 255)
         case .telegram: return Color(red: 38 / 255, green: 165 / 255, blue: 228 / 255)
-        case .tiktok: return Color.black
-        case .x: return Color.black
+        case .x, .tiktok: return Color.black
         case .instagram: return Color(red: 228 / 255, green: 64 / 255, blue: 95 / 255)
         case .discord: return Color(red: 88 / 255, green: 101 / 255, blue: 242 / 255)
-        case .more: return Color(red: 30 / 255, green: 35 / 255, blue: 43 / 255)
         }
+    }
+}
+
+/// Legendas de divulgação. O card leva só o texto; o vídeo leva também as hashtags (copiadas para a área de transferência,
+/// porque Instagram e TikTok ignoram o texto enviado junto com o arquivo).
+public enum ShareCaption {
+    public static func card(gameName: String) -> String {
+        AppLocalization.format("share.caption.card %@", gameName)
+    }
+
+    public static func video(gameName: String) -> String {
+        "\(card(gameName: gameName))\n\n\(hashtags(gameName: gameName))"
+    }
+
+    public static func hashtags(gameName: String) -> String {
+        let game = gameName.unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }
+            .map(String.init).joined()
+        let base = "#LagCheck #Gamer #Ping #Lag"
+        return game.isEmpty ? base : "\(base) #\(game)"
     }
 }
 
@@ -79,279 +81,116 @@ final class ShareCancellationState: @unchecked Sendable {
     }
 }
 
-/// Folha modal "Compartilhar": escolhe o formato (link 1200×630, Stories 1080×1920 ou vídeo 9:16 de 14 s)
-/// e envia para a rede selecionada ou seletor nativo do sistema.
-/// Paridade 1:1 estrita com ShareMediaSheet.kt do Android (Decisões 81 e 103).
-public struct ShareMediaSheetView: View {
+/// Ícones das redes abaixo do card do resultado. O card já está pronto quando a barra habilita; o toque abre o menu do
+/// sistema na hora. Para TikTok e Instagram o vídeo é gerado antes, com pop-up de progresso e botão de cancelar.
+public struct ShareNetworkBar: View {
     public let scene: ShareMediaScene
-    public let preparedLinkCardURL: URL?
-    public let highlightedNetwork: ShareSocialNetwork?
-    public let onDismiss: () -> Void
+    public let linkCardURL: URL?
+    public let onDeliver: ([Any]) -> Void
 
-    @State private var format: ShareMediaFormat = .link
-    @State private var previewImage: UIImage? = nil
-    @State private var isWorking = false
-    @State private var workingNetwork: ShareSocialNetwork? = nil
+    @State private var generating = false
     @State private var progress: Float = 0
-    @State private var errorMessage: String? = nil
-    @State private var activeShareItems: [Any]? = nil
     @State private var cancellation = ShareCancellationState()
+    @State private var cachedVideoURL: URL? = nil
+    @State private var errorMessage: String? = nil
+    @State private var copiedNotice = false
 
-    public init(
-        scene: ShareMediaScene,
-        preparedLinkCardURL: URL?,
-        highlightedNetwork: ShareSocialNetwork? = nil,
-        onDismiss: @escaping () -> Void
-    ) {
+    public init(scene: ShareMediaScene, linkCardURL: URL?, onDeliver: @escaping ([Any]) -> Void) {
         self.scene = scene
-        self.preparedLinkCardURL = preparedLinkCardURL
-        self.highlightedNetwork = highlightedNetwork
-        self.onDismiss = onDismiss
+        self.linkCardURL = linkCardURL
+        self.onDeliver = onDeliver
     }
 
     public var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                // Seletor de Formato (Segmented: Link | Stories | Vídeo)
-                Picker("Formato", selection: $format) {
-                    ForEach(ShareMediaFormat.allCases) { f in
-                        Text(f.label).tag(f)
-                    }
+        VStack(spacing: 8) {
+            HStack(spacing: 0) {
+                ForEach(ShareSocialNetwork.allCases) { net in
+                    Button { tap(net) } label: { socialIcon(for: net).frame(maxWidth: .infinity) }
+                        .buttonStyle(.plain)
+                        .disabled(linkCardURL == nil || generating)
+                        .opacity(linkCardURL == nil ? 0.4 : 1)
+                        .accessibilityLabel(net.label)
+                        .accessibilityIdentifier("share-network-\(net.rawValue)")
                 }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .onChange(of: format) { _, newFormat in
-                    updatePreview(for: newFormat)
-                }
-
-                // Área de Prévia Dinâmica
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(NLColor.surface)
-                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 1))
-
-                    if let previewImage {
-                        Image(uiImage: previewImage)
-                            .resizable()
-                            .scaledToFit()
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    } else {
-                        ProgressView()
-                            .tint(NLColor.gamerPurple)
-                    }
-
-                    if format == .video {
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Label("14 s", systemImage: "play.circle.fill")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(Color.white)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(Color.black.opacity(0.65), in: Capsule())
-                                Spacer()
-                            }
-                            .padding(12)
-                        }
-                    }
-                }
-                .frame(maxWidth: 320)
-                .frame(height: format == .link ? 168 : 280)
-                .animation(.easeInOut(duration: 0.25), value: format)
-                .padding(.horizontal, 20)
-
-                // Progresso do Render de Vídeo (se ativo)
-                if isWorking {
-                    VStack(spacing: 6) {
-                        ProgressView(value: progress, total: 1.0)
-                            .tint(NLColor.gamerPurple)
-                        Text(format == .video ? "Gerando vídeo 14 s (\(Int(progress * 100))%)…" : "Preparando card…")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(NLColor.textSecondary)
-                    }
-                    .padding(.horizontal, 28)
-                }
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(NLColor.coralSolar)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                }
-
-                Spacer(minLength: 8)
-
-                // Barra de Redes Sociais
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Compartilhar com:")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(NLColor.textTertiary)
-                        .textCase(.uppercase)
-                        .padding(.horizontal, 24)
-
-                    HStack(spacing: 12) {
-                        ForEach([ShareSocialNetwork.whatsapp, .telegram, .tiktok, .x, .instagram, .discord, .more]) { net in
-                            Button {
-                                handleShare(to: net)
-                            } label: {
-                                socialIcon(for: net)
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(isWorking)
-                            .accessibilityLabel(net.label)
-                            .accessibilityIdentifier("share-sheet-network-\(net.rawValue)")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 16)
-                }
-                .padding(.bottom, 24)
             }
-            .background(NLColor.deep.ignoresSafeArea())
-            .navigationTitle("Compartilhar resultado")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Fechar") {
-                        cancellation.cancel()
-                        onDismiss()
-                    }
+            if copiedNotice {
+                Text(AppLocalization.string("share.caption.copied", comment: ""))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(NLColor.textSecondary)
-                }
             }
-            .sheet(isPresented: Binding(get: { activeShareItems != nil }, set: { if !$0 { activeShareItems = nil } })) {
-                if let items = activeShareItems {
-                    ShareSheet(items: items)
-                }
-            }
-            .onAppear {
-                updatePreview(for: format)
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(NLColor.coralSolar)
+                    .multilineTextAlignment(.center)
             }
         }
+        .fullScreenCover(isPresented: $generating) {
+            ShareVideoProgressPopup(progress: progress) { cancellation.cancel() }
+                .presentationBackground(.clear)
+        }
+        .transaction { if generating { $0.disablesAnimations = true } }
+        .onChange(of: scene) { _, _ in cachedVideoURL = nil }
     }
 
-    private func updatePreview(for targetFormat: ShareMediaFormat) {
-        if targetFormat == .link, let preparedLinkCardURL,
-           let image = UIImage(contentsOfFile: preparedLinkCardURL.path) {
-            previewImage = image
+    private func tap(_ network: ShareSocialNetwork) {
+        errorMessage = nil
+        if network.sendsVideo { shareVideo() } else { shareCard() }
+    }
+
+    private func shareCard() {
+        guard let linkCardURL, let image = UIImage(contentsOfFile: linkCardURL.path) else {
+            errorMessage = AppLocalization.string("share.card.failed", comment: "")
             return
         }
-
-        let currentScene = self.scene
-        Task {
-            let image = await Task.detached(priority: .userInitiated) { () -> UIImage? in
-                let images = ShareMediaImages.load(scene: currentScene, withTiles: false)
-                let kind: ShareMediaRenderer.Kind = (targetFormat == .link) ? .preview : .story
-                guard let data = ShareMediaRenderer.jpeg(kind: kind, scene: currentScene, images: images) else {
-                    return nil
-                }
-                return UIImage(data: data)
-            }.value
-
-            if let image {
-                self.previewImage = image
-            }
-        }
+        onDeliver([image, ShareCaption.card(gameName: scene.gameName)])
     }
 
-    private func handleShare(to network: ShareSocialNetwork) {
-        guard !isWorking else { return }
-        isWorking = true
-        workingNetwork = network
+    private func shareVideo() {
+        let caption = ShareCaption.video(gameName: scene.gameName)
+        if let cachedVideoURL, FileManager.default.fileExists(atPath: cachedVideoURL.path) {
+            deliverVideo(cachedVideoURL, caption: caption, delay: false)
+            return
+        }
         progress = 0
-        errorMessage = nil
         cancellation.reset()
-
-        let selectedFormat = self.format
-        let currentScene = self.scene
-        let linkCardURL = self.preparedLinkCardURL
-        let localeTag = AppLocalization.locale.identifier
-        let currentCancellation = self.cancellation
-        let caption = "Testei minha conexão para jogar \(currentScene.gameName) no Lagcheck. Teste a sua: https://lagcheck.signallq.com"
-
+        generating = true
+        let currentScene = scene
+        let currentCancellation = cancellation
         Task {
-            switch selectedFormat {
-            case .link:
-                let url = await Task.detached(priority: .userInitiated) { () -> URL? in
-                    if let linkCardURL, FileManager.default.fileExists(atPath: linkCardURL.path) {
-                        return linkCardURL
-                    }
-                    let snapshot = PreparedShareCardSnapshot.from(
-                        scene: currentScene,
-                        localeTag: localeTag,
-                        measurementIdentity: UUID().uuidString
-                    )
-                    return PreparedShareCard.prepare(snapshot: snapshot)
+            do {
+                let images = await Task.detached(priority: .userInitiated) {
+                    ShareMediaImages.load(scene: currentScene, withTiles: true)
                 }.value
-
-                self.isWorking = false
-                guard let url else {
-                    self.errorMessage = "Não foi possível gerar o card de link."
-                    return
-                }
-                self.deliverShare(fileURL: url, caption: caption, network: network)
-
-            case .story:
-                let tempURL = await Task.detached(priority: .userInitiated) { () -> URL? in
-                    let images = ShareMediaImages.load(scene: currentScene, withTiles: false)
-                    guard let data = ShareMediaRenderer.jpeg(kind: .story, scene: currentScene, images: images) else {
-                        return nil
-                    }
-                    let url = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("lagcheck-story-\(UUID().uuidString).jpg")
-                    try? data.write(to: url)
-                    return url
-                }.value
-
-                self.isWorking = false
-                guard let tempURL, FileManager.default.fileExists(atPath: tempURL.path) else {
-                    self.errorMessage = "Não foi possível gerar a imagem para Stories."
-                    return
-                }
-                self.deliverShare(fileURL: tempURL, caption: caption, network: network)
-
-            case .video:
-                do {
-                    let images = await Task.detached(priority: .userInitiated) {
-                        ShareMediaImages.load(scene: currentScene, withTiles: true)
-                    }.value
-
-                    let videoURL = try await ShareVideoRenderer.render(
-                        scene: currentScene,
-                        images: images,
-                        isCancelled: { currentCancellation.isCancelled },
-                        onProgress: { prog in
-                            Task { @MainActor in
-                                self.progress = prog
-                            }
-                        }
-                    )
-                    self.isWorking = false
-                    self.deliverShare(fileURL: videoURL, caption: caption, network: network)
-                } catch {
-                    self.isWorking = false
-                    if !(error is ShareVideoRenderer.CancelledError) {
-                        self.errorMessage = "Falha ao gerar vídeo: \(error.localizedDescription)"
-                    }
+                let url = try await ShareVideoRenderer.render(
+                    scene: currentScene,
+                    images: images,
+                    isCancelled: { currentCancellation.isCancelled },
+                    onProgress: { value in Task { @MainActor in progress = value } }
+                )
+                cachedVideoURL = url
+                deliverVideo(url, caption: caption, delay: true)
+            } catch {
+                generating = false
+                if !(error is ShareVideoRenderer.CancelledError) {
+                    errorMessage = AppLocalization.string("share.video.failed", comment: "")
                 }
             }
         }
     }
 
+    /// Fecha o pop-up e abre o menu do sistema com o vídeo pronto; a legenda com hashtags já fica copiada.
     @MainActor
-    private func deliverShare(fileURL: URL, caption: String, network: ShareSocialNetwork) {
-        if network == .discord {
-            if let image = UIImage(contentsOfFile: fileURL.path) {
-                UIPasteboard.general.image = image
-            }
-            activeShareItems = [fileURL, caption]
-        } else if network == .whatsapp {
-            activeShareItems = [fileURL, caption]
-        } else {
-            activeShareItems = [fileURL, caption]
+    private func deliverVideo(_ url: URL, caption: String, delay: Bool) {
+        UIPasteboard.general.string = caption
+        copiedNotice = true
+        generating = false
+        Task {
+            // O menu só abre depois que o pop-up termina de sair.
+            if delay { try? await Task.sleep(nanoseconds: 450_000_000) }
+            onDeliver([url])
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            copiedNotice = false
         }
     }
 
@@ -382,12 +221,45 @@ public struct ShareMediaSheetView: View {
                 Image(systemName: "camera.fill")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
-            case .more:
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
             }
         }
         .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
+    }
+}
+
+/// Pop-up com a porcentagem de geração do vídeo e o botão de cancelar.
+struct ShareVideoProgressPopup: View {
+    let progress: Float
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.6).ignoresSafeArea()
+            VStack(spacing: 16) {
+                Text(AppLocalization.string("share.video.generating", comment: ""))
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(NLColor.textPrimary)
+                Text(verbatim: "\(Int(progress * 100))%")
+                    .font(.system(size: 34, weight: .heavy).monospacedDigit())
+                    .foregroundStyle(NLColor.textPrimary)
+                ProgressView(value: progress, total: 1.0)
+                    .tint(NLColor.gamerPurple)
+                Button(action: onCancel) {
+                    Text(AppLocalization.string("share.video.cancel", comment: ""))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(NLColor.panel, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("share-video-cancel")
+            }
+            .padding(24)
+            .frame(maxWidth: 300)
+            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 1))
+        }
+        .accessibilityElement(children: .contain)
     }
 }

@@ -903,3 +903,9 @@
 "technical_details.status_measured" = "Medida concluída";
 
 "technical_details.chart_accessibility" = "Traços medidos separados: repouso e sob carga; lacunas representam probes sem resposta válida.";
+
+"share.caption.card %@" = "Testei minha conexão para jogar %@ no LagCheck. Teste a sua: https://lagcheck.signallq.com";
+"share.video.generating" = "Gerando vídeo";
+"share.video.cancel" = "Cancelar";
+"share.video.failed" = "Não foi possível gerar o vídeo.";
+"share.caption.copied" = "Legenda e hashtags copiadas. Cole no post.";

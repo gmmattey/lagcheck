@@ -903,3 +903,9 @@
 "technical_details.status_measured" = "Measurement complete";
 
 "technical_details.chart_accessibility" = "Measured traces separated by phase: rest and under load; gaps are probes without a valid response.";
+
+"share.caption.card %@" = "I tested my connection to play %@ on LagCheck. Test yours: https://lagcheck.signallq.com";
+"share.video.generating" = "Creating video";
+"share.video.cancel" = "Cancel";
+"share.video.failed" = "Couldn't create the video.";
+"share.caption.copied" = "Caption and hashtags copied. Paste into your post.";

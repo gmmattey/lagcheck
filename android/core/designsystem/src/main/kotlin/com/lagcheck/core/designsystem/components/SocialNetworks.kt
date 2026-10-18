@@ -18,12 +18,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /** Redes do compartilhamento, com o logo oficial (Simple Icons, CC0; viewBox 24) e a cor da marca. */
-enum class SocialNetwork(val label: String, val packageName: String?, val brand: Color, val glyph: String?) {
+enum class SocialNetwork(val label: String, val packageName: String?, val brand: Color, val glyph: String?, val sendsVideo: Boolean = false) {
     WHATSAPP("WhatsApp", "com.whatsapp", Color(0xFF25D366), WHATSAPP_PATH),
     TELEGRAM("Telegram", "org.telegram.messenger", Color(0xFF26A5E4), TELEGRAM_PATH),
-    TIKTOK("TikTok", "com.zhiliaoapp.musically", Color(0xFF000000), TIKTOK_PATH),
     X("X", "com.twitter.android", Color(0xFF000000), X_PATH),
-    INSTAGRAM("Instagram", "com.instagram.android", Color(0xFFE4405F), INSTAGRAM_PATH),
+    TIKTOK("TikTok", "com.zhiliaoapp.musically", Color(0xFF000000), TIKTOK_PATH, sendsVideo = true),
+    INSTAGRAM("Instagram", "com.instagram.android", Color(0xFFE4405F), INSTAGRAM_PATH, sendsVideo = true),
+    DISCORD("Discord", "com.discord", Color(0xFF5865F2), null),
     MORE("Mais", null, Color(0xFF1E232B), null)
 }
 
@@ -39,6 +40,10 @@ fun SocialNetworkIcon(network: SocialNetwork, modifier: Modifier = Modifier, siz
     ) {
         val glyph = network.glyph
         val icon = size * 0.5f
+        if (network == SocialNetwork.DISCORD) {
+            DiscordLogo(size = icon, color = Color.White)
+            return@Box
+        }
         Canvas(modifier = Modifier.size(icon)) {
             if (glyph != null) {
                 scale(scale = this.size.width / 24f, pivot = Offset.Zero) {

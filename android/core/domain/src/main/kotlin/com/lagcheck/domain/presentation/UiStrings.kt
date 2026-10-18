@@ -43,6 +43,7 @@ object UiStrings {
         t("Stories", "Stories", "Stories")
         t("Vídeo", "Video", "Video")
         t("Mais apps", "More apps", "Más apps")
+        t("Legenda e hashtags copiadas. Cole no post.", "Caption and hashtags copied. Paste into your post.", "Leyenda y hashtags copiados. Pégalos en tu publicación.")
         // endregion
 
         // region Ícone do app (Decisão 83)

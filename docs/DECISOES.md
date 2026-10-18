@@ -106,6 +106,7 @@
 | [101](#decisão-101) | Reconciliação do registro com o código em `main` | **Vigente (auditoria documental; correção sistêmica pendente)** | Separa fonte, contrato autorizado e evidência de runtime; expõe rotas extras do Worker e Gemini como conflitos | Giam / Marco / Camillo / Iury / Luiz |
 | [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Vigente (implementado localmente; runtime pendente)** | Refina a Decisão 80 para iOS e Android, sem alterar o contrato de catálogo, histórico ou medição | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [103](#decisão-103) | Paridade do motor de compartilhamento (Cards e Vídeo 14s) no iOS com App Store | **Vigente (implementado localmente e validado no simulador iOS)** | Paridade 1:1 com o motor Android (`ShareMediaScene`, `ShareCanvas`, `ShareMediaRenderer`, `ShareVideoRenderer`, `ShareMediaSheetView`) e QR Code da App Store | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [104](#decisão-104) | Compartilhamento direto por rede no Resultado (card e vídeo) | **Vigente (implementado localmente; validado em simulador iOS e build/testes unitários Android; sem aparelho físico)** | Refina a 103: substitui a folha "Compartilhar" por ícones sob o card; WhatsApp/Telegram/X/Discord recebem o card 1200×630, TikTok/Instagram o vídeo 14 s | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -1102,6 +1103,21 @@
   - Testes de UI (`CheckCompletoResultUITests`) passam 100%, incluindo interações do modal de compartilhamento, validação de estados inconclusivo e conclusivo em PT-BR e EN.
   - QR Code escaneável apontando para a App Store (`https://apps.apple.com/app/id6818706960`).
   - Zero dependência externa, SDK pago ou custo de infraestrutura.
+
+#### Decisão 104
+
+- **Data:** 18 de outubro de 2026.
+- **Título:** Compartilhamento direto por rede no Resultado (card e vídeo).
+- **Status Atual:** **Vigente (implementado localmente).** Refina a Decisão 103: a folha modal "Compartilhar" com abas Link/Stories/Vídeo sai do Resultado.
+- **Decisão:**
+  1. Ícones das redes ficam logo abaixo do card, no iOS e no Android: WhatsApp, Telegram, X, TikTok, Instagram e Discord. A concorrente do Discord pedida pelo dono do produto fica para decisão futura (rede ainda não definida).
+  2. WhatsApp, Telegram, X e Discord enviam o card horizontal 1200×630, já preparado antes do toque; os ícones só habilitam quando o card está pronto. Legenda sem hashtags.
+  3. TikTok e Instagram enviam o vídeo vertical de 14 s. O toque abre um pop-up com a porcentagem de geração e botão Cancelar; ao concluir, o app abre o destino. No iOS o destino é o menu nativo de compartilhamento (o sistema não permite escolher o app e o TikTok direto exigiria SDK, vedado pela regra de custo/SDK zero); no Android abre direto o app da rede, com seletor do sistema como alternativa. O vídeo gerado é reaproveitado enquanto a medição for a mesma.
+  4. Legenda e hashtags do vídeo (`#LagCheck #Gamer #Ping #Lag #<Jogo>`) são copiadas para a área de transferência ao concluir, com aviso curto, porque Instagram e TikTok ignoram o texto enviado junto do arquivo. Nada é desenhado no vídeo além do já existente.
+  5. Tocar no próprio card abre o menu do sistema com o card.
+  6. Correção associada: o gradiente de escurecimento dos cards iOS sobrescrevia o alpha dos stops e cobria a arte do jogo; agora o alpha do stop é preservado.
+- **Não-escopo:** SDK de TikTok/Instagram, ATT, novo endpoint, serviço pago.
+- **Pendências:** validar em iPhone e aparelho Android físicos o abrir-app e a área de transferência; definir a concorrente do Discord; `UiStringsCompletenessTest` já falhava antes (strings da tela de Jogos) e não foi alterado aqui.
 
 ## Como Registrar Novas Decisões
 

@@ -50,13 +50,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.lagcheck.android.data.LagCheckDiscordCardExporter
 import com.lagcheck.android.share.ShareMediaScene
-import com.lagcheck.android.share.ShareMediaSheet
+import com.lagcheck.android.share.ShareNetworkBar
+import com.lagcheck.android.share.openCardChooser
 import com.lagcheck.android.share.PreparedShareCard
 import com.lagcheck.android.share.PreparedShareCardSnapshot
 import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PdfDocumentIcon
-import com.lagcheck.core.designsystem.components.SocialNetwork
-import com.lagcheck.core.designsystem.components.SocialNetworkIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
@@ -97,8 +96,6 @@ fun VerdictScreen(
 ) {
     val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.RESULT) else null
     val context = LocalContext.current
-    var showShareMedia by remember { mutableStateOf(false) }
-    var shareNetwork by remember { mutableStateOf<SocialNetwork?>(null) }
     val shareScene = remember(evaluation, game) { ShareMediaScene.from(game.name, game.drawableResName, evaluation) }
     val shareSnapshot = remember(shareScene, evaluation.timestamp, AppLocale.language) {
         shareScene?.let { PreparedShareCardSnapshot.from(it, AppLocale.language.name, evaluation.timestamp.toString()) }
@@ -322,9 +319,9 @@ fun VerdictScreen(
                     .semantics { contentDescription = previewLabel }
                     .then(
                         when {
-                            previewBitmap != null -> Modifier.clickable(
+                            previewBitmap != null && preparedLinkCard != null -> Modifier.clickable(
                                 onClickLabel = tr("Abrir opções de compartilhamento")
-                            ) { shareNetwork = SocialNetwork.MORE; showShareMedia = true }
+                            ) { openCardChooser(context, preparedLinkCard!!, game.name) }
                             sharePreparationFailed -> Modifier.clickable(
                                 onClickLabel = retryLabel
                             ) { sharePreparationAttempt += 1 }
@@ -349,6 +346,13 @@ fun VerdictScreen(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            // Redes logo abaixo do card: card horizontal (WhatsApp, Telegram, X, Discord) ou vídeo (TikTok, Instagram).
+            ShareNetworkBar(
+                scene = shareScene,
+                preparedLinkCard = preparedLinkCard,
+                modifier = Modifier.widthIn(max = 360.dp).align(Alignment.CenterHorizontally)
+            )
             Spacer(modifier = Modifier.height(24.dp))
         }
 
@@ -420,23 +424,12 @@ fun VerdictScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Compartilhar: só os ícones das redes (só com veredito); toque abre a folha com a rede em destaque.
+            // PDF fica à direita; as redes ficam sob o card.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.End
             ) {
-                if (shareScene != null) {
-                    SocialNetwork.entries.filter { it != SocialNetwork.MORE }.forEach { n ->
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .semantics { contentDescription = "${n.label}. $shareStateLabel" }
-                                .clickable(enabled = preparedLinkCard != null) { shareNetwork = n; showShareMedia = true },
-                            contentAlignment = Alignment.Center
-                        ) { SocialNetworkIcon(n, size = 48.dp) }
-                    }
-                }
                 // PDF: disponível só no resultado
                 Box(
                     modifier = Modifier
@@ -459,15 +452,5 @@ fun VerdictScreen(
             )
         }
         Spacer(modifier = Modifier.height(32.dp))
-    }
-
-    val cardForSharing = preparedLinkCard
-    if (showShareMedia && shareScene != null && cardForSharing != null) {
-        ShareMediaSheet(
-            scene = shareScene,
-            preparedLinkCard = cardForSharing,
-            highlighted = shareNetwork,
-            onDismiss = { showShareMedia = false }
-        )
     }
 }

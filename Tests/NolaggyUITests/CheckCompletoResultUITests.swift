@@ -50,8 +50,11 @@ final class CheckCompletoResultUITests: XCTestCase {
         XCTAssertTrue(primaryAction.exists)
 
         XCTAssertTrue(app.buttons["check-completo-details"].exists)
-        XCTAssertTrue(app.buttons["check-completo-discord-share"].exists)
-        XCTAssertTrue(app.buttons["check-completo-whatsapp-share"].exists)
+        for network in ["whatsapp", "telegram", "x", "tiktok", "instagram", "discord"] {
+            XCTAssertTrue(app.buttons["share-network-\(network)"].exists, network)
+        }
+        // A barra de redes fica logo abaixo do card.
+        XCTAssertGreaterThan(app.buttons["share-network-whatsapp"].frame.minY, sharePreview.frame.maxY)
 
         // A jornada completa mantém uma única affordance de retorno na barra.
         let back = app.buttons["check-completo-back"]
@@ -139,7 +142,7 @@ final class CheckCompletoResultUITests: XCTestCase {
     }
 
     @MainActor
-    func testShareSheetInteractions() {
+    func testShareNetworkBarInteractions() {
         let app = XCUIApplication()
         app.launchArguments += [
             "-AppleLanguages", "(pt-BR)",
@@ -150,44 +153,33 @@ final class CheckCompletoResultUITests: XCTestCase {
         ]
         app.launch()
 
-        let sharePreview = app.buttons["check-completo-share-preview"]
-        XCTAssertTrue(sharePreview.waitForExistence(timeout: 5))
-        sharePreview.tap()
+        // Ícones abaixo do card: WhatsApp, Telegram, X, TikTok e Instagram.
+        let networks = ["whatsapp", "telegram", "x", "tiktok", "instagram", "discord"]
+        for network in networks {
+            XCTAssertTrue(app.buttons["share-network-\(network)"].waitForExistence(timeout: 10), network)
+        }
 
-        // 1. Modal "Compartilhar resultado" deve abrir
-        XCTAssertTrue(app.navigationBars["Compartilhar resultado"].waitForExistence(timeout: 5))
+        // Card pronto: o toque abre o menu do sistema na hora, sem etapa intermediária.
+        let whatsapp = app.buttons["share-network-whatsapp"]
+        XCTAssertTrue(whatsapp.isEnabled)
+        whatsapp.tap()
+        XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 5))
+        saveScreenshot(named: "check_completo_share_card_menu_pt_br")
+        app.buttons["Fechar"].firstMatch.tap()
 
-        // 2. Formatos disponíveis no seletor segmentado
-        let linkBtn = app.segmentedControls.buttons["Link"].exists ? app.segmentedControls.buttons["Link"] : app.buttons["Link"]
-        let storyBtn = app.segmentedControls.buttons["Stories"].exists ? app.segmentedControls.buttons["Stories"] : app.buttons["Stories"]
-        let videoBtn = app.segmentedControls.buttons["Vídeo"].exists ? app.segmentedControls.buttons["Vídeo"] : app.buttons["Vídeo"]
-
-        XCTAssertTrue(linkBtn.waitForExistence(timeout: 3))
-        XCTAssertTrue(storyBtn.exists)
-        XCTAssertTrue(videoBtn.exists)
-
-        // Alternar formato
-        storyBtn.tap()
-        videoBtn.tap()
-
-        // 3. Redes sociais disponíveis
-        XCTAssertTrue(app.buttons["WhatsApp"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["Telegram"].exists)
-        XCTAssertTrue(app.buttons["TikTok"].exists)
-        XCTAssertTrue(app.buttons["X"].exists)
-        XCTAssertTrue(app.buttons["Instagram"].exists)
-        XCTAssertTrue(app.buttons["Discord"].exists)
-        XCTAssertTrue(app.buttons["Mais"].exists)
-
-        saveScreenshot(named: "check_completo_share_sheet_pt_br")
-
-        // 4. Fechar modal
-        let closeButton = app.buttons["Fechar"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 3))
-        closeButton.tap()
-
-        // Retorna para a tela de resultado
-        XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 5))
+        // Vídeo: pop-up de progresso com Cancelar; ao cancelar, volta ao resultado.
+        let tiktok = app.buttons["share-network-tiktok"]
+        XCTAssertTrue(tiktok.waitForExistence(timeout: 5))
+        tiktok.tap()
+        let cancel = app.buttons["share-video-cancel"]
+        if cancel.waitForExistence(timeout: 3) {
+            saveScreenshot(named: "check_completo_share_video_progress_pt_br")
+            cancel.tap()
+            XCTAssertTrue(app.staticTexts["check-completo-verdict"].waitForExistence(timeout: 10))
+        } else {
+            // Geração rápida: o menu do sistema já abriu com o vídeo.
+            XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 10))
+        }
     }
 
     @MainActor

@@ -896,3 +896,9 @@
 "technical_details.status_measured" = "Medición completada";
 
 "technical_details.chart_accessibility" = "Trazos medidos separados por fase: reposo y bajo carga; los huecos son probes sin respuesta válida.";
+
+"share.caption.card %@" = "Probé mi conexión para jugar %@ en LagCheck. Prueba la tuya: https://lagcheck.signallq.com";
+"share.video.generating" = "Creando video";
+"share.video.cancel" = "Cancelar";
+"share.video.failed" = "No se pudo crear el video.";
+"share.caption.copied" = "Leyenda y hashtags copiados. Pégalos en tu publicación.";
