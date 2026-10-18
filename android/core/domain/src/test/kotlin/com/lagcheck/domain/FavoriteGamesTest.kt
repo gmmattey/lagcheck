@@ -13,6 +13,12 @@ class FavoriteGamesTest {
         assertThat("valorant" in f).isTrue()
     }
 
+    @Test fun keepsOnlyTheFourNewestFavorites() {
+        val f = listOf("a", "b", "c", "d", "e").fold(FavoriteGames.EMPTY) { acc, id -> acc.toggle(id) }
+        assertThat(f.ids).containsExactly("e", "d", "c", "b").inOrder()
+        assertThat(FavoriteGames.parse("a,b,c,d,e").ids).containsExactly("a", "b", "c", "d").inOrder()
+    }
+
     @Test fun roundTripsAndToleratesGarbage() {
         val f = FavoriteGames.EMPTY.toggle("a").toggle("b")
         assertThat(FavoriteGames.parse(f.serialize()).ids).containsExactly("b", "a").inOrder()

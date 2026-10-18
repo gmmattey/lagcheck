@@ -19,6 +19,7 @@ object LagCheckColors {
 
     // Acentos e Semântica
     val AccentPrimary = Color(0xFF7C3AED) // Roxo Gamer (#7C3AED - CTAs, foco, progresso)
+    val AccentPrimaryLight = Color(0xFFA78BFA) // Roxo claro (#A78BFA - estado ligado sobre arte escura)
     val AccentPrimarySubtle = Color(0x267C3AED)
     val CoralWarning = Color(0xFFFF5A36)  // Coral Solar (#FF5A36 - Alerta, veredito negativo, exclusão)
     val SemanticCaution = Color(0xFFF59E0B) // Âmbar (#F59E0B - Veredito CAUTION / Atenção)

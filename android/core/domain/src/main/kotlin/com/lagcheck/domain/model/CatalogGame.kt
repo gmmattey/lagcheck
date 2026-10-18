@@ -77,7 +77,13 @@ object OfficialGameCatalog {
         CatalogGame("streamline", "Streamline", "Ação Competitiva", listOf("PC"), drawableResName = "game_streamline"),
         CatalogGame("tacticool", "Tacticool", "FPS Tático", listOf("PC", "Mobile"), drawableResName = "game_tacticool"),
         CatalogGame("ghost-war", "Ghost War", "FPS Mobile", listOf("Mobile"), drawableResName = "game_ghost_war"),
-        CatalogGame("overwatch-2", "Overwatch 2", "FPS Competitivo", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_overwatch_2")
+        CatalogGame("overwatch-2", "Overwatch 2", "FPS Competitivo", listOf("PlayStation", "Xbox", "PC", "Nintendo"), drawableResName = "game_overwatch_2"),
+        CatalogGame("clash-royale", "Clash Royale", "Estratégia Mobile", listOf("Mobile"), drawableResName = "game_clash_royale"),
+        CatalogGame("pokemon-unite", "Pokémon UNITE", "MOBA Mobile", listOf("Nintendo", "Mobile"), drawableResName = "game_pokemon_unite"),
+        CatalogGame("genshin-impact", "Genshin Impact", "RPG / Ação", listOf("PlayStation", "PC", "Mobile"), drawableResName = "game_genshin_impact"),
+        CatalogGame("mobile-legends", "Mobile Legends: Bang Bang", "MOBA Mobile", listOf("Mobile"), drawableResName = "game_mobile_legends"),
+        CatalogGame("delta-force", "Delta Force", "FPS Tático", listOf("PlayStation", "Xbox", "PC", "Mobile"), drawableResName = "game_delta_force"),
+        CatalogGame("standoff-2", "Standoff 2", "FPS Mobile", listOf("Mobile"), drawableResName = "game_standoff_2")
     )
 
     /** Ids do protótipo anterior que podem estar no histórico de quem já testou. */

@@ -521,9 +521,6 @@ extension QuickCheckFeatureView {
             title: localizedString("navigation.games"),
             query: $gameQuery,
             allGames: gamesForDirectIPhoneSelection,
-            favoriteGames: favoriteGamesList.filter { favorite in
-                gamesForDirectIPhoneSelection.contains(where: { $0.id == favorite.id })
-            },
             recentItems: recentTestedItems.filter { recent in
                 gamesForDirectIPhoneSelection.contains(where: { $0.id == recent.game.id })
             },

@@ -654,8 +654,12 @@
 "games.title" = "Games";
 "games.subtitle" = "change whenever needed";
 "games.favorites" = "Favorites";
-"games.recent" = "Recently used";
-"games.all.title" = "All games (A–Z)";
+"games.recent" = "Recent";
+"games.all.title" = "All games A–Z";
+"games.results" = "Results (%d)";
+"games.empty.cta" = "Run General Check";
+"games.favorite.add" = "Add to favorites";
+"games.favorite.remove" = "Remove from favorites";
 "games.select.accessibility_hint" = "Starts Check on iPhone";
 "games.catalog_title" = "Most played in Brazil";
 "games.assist.title" = "Can't find your game?";

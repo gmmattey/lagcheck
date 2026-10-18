@@ -6,12 +6,9 @@ import org.junit.Test
 
 class RemoteCatalogRepositoryTest {
     @Test fun bundledCatalogValidatesWithAllGamesAndGlobalReferences() {
-        val payload = RemoteCatalogVerifier.verifyAndDecode(
-            realEnvelopeBytes(),
-            java.time.Instant.parse("2026-10-17T12:00:00Z")
-        )
+        val payload = RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes())
 
-        assertThat(payload.games).hasSize(48)
+        assertThat(payload.games).hasSize(54)
         assertThat(payload.regions).isNotEmpty()
         payload.games.forEach { game ->
             assertThat(game.contexts).isNotEmpty()
@@ -25,13 +22,16 @@ class RemoteCatalogRepositoryTest {
         }
     }
 
-    @Test fun expiredBundledCatalogFailsClosed() {
-        val result = runCatching {
-            RemoteCatalogVerifier.verifyAndDecode(
-                realEnvelopeBytes(),
-                java.time.Instant.parse("2026-12-01T00:00:00Z")
-            )
-        }
-        assertThat(result.isFailure).isTrue()
+    /** Decisão 106: o catálogo acompanha o build, sem assinatura nem validade; uma data futura nunca esvazia o app. */
+    @Test fun bundledCatalogHasNoSignatureOrExpiry() {
+        val text = realEnvelopeBytes().toString(Charsets.UTF_8)
+        assertThat(text).doesNotContain("signatureBase64")
+        assertThat(text).doesNotContain("expiresAt")
+        assertThat(runCatching { RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes()) }.isSuccess).isTrue()
+    }
+
+    @Test fun malformedAndOversizedBundledCatalogsAreRejected() {
+        assertThat(runCatching { RemoteCatalogVerifier.decodeBundled("{}".toByteArray()) }.isFailure).isTrue()
+        assertThat(runCatching { RemoteCatalogVerifier.decodeBundled(ByteArray(200 * 1024)) }.isFailure).isTrue()
     }
 }

@@ -257,12 +257,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (_selectedPlatform.value != routePlatform) _selectedPlatform.value = routePlatform
     }
 
-    /** Catálogo vigente. Se o envelope local não validar, não mede nem inventa destino. */
+    /** Catálogo vigente. Se o catálogo local não validar, não mede nem inventa destino. */
     private suspend fun currentCatalog(): CatalogPayload? = catalog.await()
 
-    /** Catálogo local validado, ou nulo se o envelope embarcado for inválido. Nulo = não mede. */
+    /** Catálogo local validado, ou nulo se o catálogo embarcado for inválido. Nulo = não mede. */
     private suspend fun loadCatalog(): CatalogPayload? =
-        runCatching { RemoteCatalogVerifier.verifyAndDecode(bundledCatalogEnvelope) }.getOrNull()
+        runCatching { RemoteCatalogVerifier.decodeBundled(bundledCatalogEnvelope) }.getOrNull()
 
     fun navigateTo(screen: Screen) {
         reviewPromptJob?.cancel()

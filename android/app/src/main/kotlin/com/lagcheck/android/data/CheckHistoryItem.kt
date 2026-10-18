@@ -52,9 +52,9 @@ data class CheckHistoryItem(
             return when {
                 diffMin < 1 -> tr("Agora")
                 diffMin < 60 -> trf("%d min atrás", diffMin)
-                diffHours < 24 -> trf("Hoje, %s", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp)))
-                diffHours < 48 -> trf("Ontem, %s", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp)))
-                else -> java.text.SimpleDateFormat("dd MMM · HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp))
+                diffHours < 24 -> trf("Hoje, %s", com.lagcheck.android.ui.AppLocale.clock(timestamp))
+                diffHours < 48 -> trf("Ontem, %s", com.lagcheck.android.ui.AppLocale.clock(timestamp))
+                else -> com.lagcheck.android.ui.AppLocale.dayAndClock(timestamp)
             }
         }
 

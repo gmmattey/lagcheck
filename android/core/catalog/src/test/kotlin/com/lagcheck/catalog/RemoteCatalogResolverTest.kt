@@ -11,7 +11,7 @@ import org.junit.Test
 /** Resolução contra o catálogo v3 real publicado. */
 class RemoteCatalogResolverTest {
     private val catalogNow = Instant.parse("2026-10-20T00:00:00Z")
-    private val payload = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), catalogNow)
+    private val payload = RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes())
 
     private fun available(game: String, platform: Platform): ResolvedMeasurementContext =
         (RemoteCatalogResolver.resolve(GameContext(game, "BR", platform), payload, catalogNow) as RemoteCatalogResolution.Available).context

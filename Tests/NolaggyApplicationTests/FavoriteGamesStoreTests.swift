@@ -35,4 +35,12 @@ final class FavoriteGamesStoreTests: XCTestCase {
         store.toggleFavorite(gameID: "cs2")
         XCTAssertTrue(store.isFavorite(gameID: "cs2"))
     }
+
+    func testNewestFavoriteComesFirstAndOldestLeavesAtTheLimit() {
+        let store = FavoriteGamesStore.shared
+        store.setFavorites([])
+        ["a", "b", "c", "d", "e"].forEach { store.toggleFavorite(gameID: $0) }
+
+        XCTAssertEqual(store.favoriteGameIDs, ["e", "d", "c", "b"])
+    }
 }

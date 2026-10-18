@@ -38,7 +38,7 @@ struct NolaggyApp: App {
         catalogRepository = BundledCatalogRepository(envelopeData: base)
         if (UITestFixtures.isEnabled("-ui-fixture-confirmed-region") || UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")),
            let data = DebugCatalogBase.envelopeData(),
-           let payload = try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data) {
+           let payload = try? RemoteCatalogVerifier.decodeBundled(data) {
             _catalogState = State(initialValue: .ready(payload))
         } else {
             _catalogState = State(initialValue: .loading)
@@ -143,7 +143,7 @@ private enum RegionalSelectionUITestFixture {
 
     static let catalog: RemoteCatalogPayload? = {
         guard let data = DebugCatalogBase.envelopeData() else { return nil }
-        return try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data)
+        return try? RemoteCatalogVerifier.decodeBundled(data)
     }()
 }
 

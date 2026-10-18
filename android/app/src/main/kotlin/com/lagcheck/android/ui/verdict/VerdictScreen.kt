@@ -209,7 +209,7 @@ fun VerdictScreen(
     }
 
     fun exportPDF() {
-        val stamp = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.ROOT).format(java.util.Date(evaluation.timestamp))
+        val stamp = AppLocale.dateTime(evaluation.timestamp)
         val document = RouteReport.build(evaluation, game.name, trf("Gerado em %s", stamp), AppLocale.language)
         val fileName = "lagcheck-${game.id}-${java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.ROOT).format(java.util.Date(evaluation.timestamp))}"
         val file = RouteReportPdfExporter.export(context, document, fileName)

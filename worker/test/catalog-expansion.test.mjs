@@ -4,12 +4,12 @@ import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { buildCanonicalCatalog, catalogExpansionGames } from "../catalog/catalog-v3.canonical.js";
 
-test("canonical publication source has 48 unique games and preserves existing contexts", async () => {
+test("canonical publication source has 54 unique games and preserves existing contexts", async () => {
   const candidate = buildCanonicalCatalog();
   const persisted = JSON.parse(await readFile(new URL("../catalog/catalog-v3.candidate.json", import.meta.url)));
   assert.deepEqual(persisted, candidate);
-  assert.equal(candidate.games.length, 48);
-  assert.equal(new Set(candidate.games.map(game => game.id)).size, 48);
+  assert.equal(candidate.games.length, 54);
+  assert.equal(new Set(candidate.games.map(game => game.id)).size, 54);
   assert.equal(candidate.regions.length, 21);
   assert.deepEqual(candidate.regions.slice(0, 2).map(region => region.id), ["sa-east-1", "us-east-1"]);
   assert.ok(candidate.regions.every(region =>

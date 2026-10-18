@@ -1007,7 +1007,6 @@ struct HomeCatalogView: View {
     let title: String
     @Binding var query: String
     let allGames: [CatalogMeasurementJourney.Game]
-    var favoriteGames: [CatalogMeasurementJourney.Game] = []
     let recentItems: [HomeRecentTestsSection.RecentItem]
     let searchPlaceholder: String
     let clearSearchAccessibilityLabel: String
@@ -1015,126 +1014,60 @@ struct HomeCatalogView: View {
     let onSelectGenericGaming: (() -> Void)?
     let select: (CatalogMeasurementJourney.Game) -> Void
 
-    @State private var isSearchActive: Bool = false
+    @ObservedObject private var favoritesStore = FavoriteGamesStore.shared
     @FocusState private var isSearchFocused: Bool
 
-    private var isSearching: Bool { isSearchActive || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private static let cardWidth: CGFloat = 140
+
+    private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var isSearching: Bool { !trimmedQuery.isEmpty }
 
     private var allGamesAlphabetically: [CatalogMeasurementJourney.Game] {
         allGames.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
+    private var favoriteGames: [CatalogMeasurementJourney.Game] {
+        favoritesStore.favoriteGameIDs.compactMap { id in allGames.first { $0.id == id } }
+    }
+
     private var searchResults: [CatalogMeasurementJourney.Game] {
-        let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !term.isEmpty else { return allGamesAlphabetically }
-        return allGamesAlphabetically.filter { $0.name.localizedCaseInsensitiveContains(term) }
+        allGamesAlphabetically.filter { $0.name.localizedCaseInsensitiveContains(trimmedQuery) }
     }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: NLSpacing.lg) {
-                HStack {
-                    if let onReturnToHome {
-                        Button(action: onReturnToHome) {
-                            Image(systemName: "chevron.backward")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(NLColor.textPrimary)
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                        }
-                        .accessibilityIdentifier("games-return-home")
-                        .accessibilityLabel(LocalizedStringKey("quick_check.back"))
-                    } else {
-                        Spacer().frame(width: 44, height: 44)
-                    }
+            VStack(alignment: .leading, spacing: 0) {
+                topBar
 
-                    Spacer()
+                Text(LocalizedStringKey("games.title"))
+                    .font(NLTypography.screenTitle)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .padding(.top, 14)
 
-                    Image("WordmarkPrimary")
-                        .resizable()
-                        .renderingMode(.original)
-                        .scaledToFit()
-                        .frame(height: 22)
-                        .accessibilityLabel("LagCheck")
-
-                    Spacer()
-
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isSearchActive.toggle()
-                        }
-                        isSearchFocused = isSearchActive
-                    } label: {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(isSearchActive ? NLColor.gamerPurple : NLColor.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .accessibilityIdentifier("catalog-search-toggle")
-                    .accessibilityLabel(LocalizedStringKey("catalog.search.accessibility"))
-                }
-                .frame(height: 52)
-
-                if isSearching {
-                    HStack(spacing: 9) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 15))
-                            .foregroundStyle(NLColor.textSecondary)
-
-                        TextField(searchPlaceholder, text: $query)
-                            .font(.system(size: 15))
-                            .foregroundStyle(NLColor.textPrimary)
-                            .accessibilityIdentifier("catalog-search-input")
-                            .focused($isSearchFocused)
-
-                        Button {
-                            query = ""
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                isSearchActive = false
-                            }
-                            isSearchFocused = false
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(NLColor.textSecondary)
-                                .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                        }
-                        .accessibilityIdentifier("catalog-search-close")
-                        .accessibilityLabel(clearSearchAccessibilityLabel)
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(height: 45)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 13, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
+                searchField
+                    .padding(.top, NLSpacing.md)
+                    .padding(.bottom, 20)
 
                 if isSearching {
                     searchContent
                 } else {
-                    Text(LocalizedStringKey("games.title"))
-                        .font(NLTypography.screenTitle)
-                        .foregroundStyle(NLColor.textPrimary)
-
-                    if !recentItems.isEmpty {
-                        gameRail(title: LocalizedStringKey("games.recent"), games: recentItems.map(\.game), identifier: "catalog-recent")
+                    VStack(alignment: .leading, spacing: NLSpacing.lg) {
+                        if !recentItems.isEmpty {
+                            gameRail(title: LocalizedStringKey("games.recent"), games: recentItems.map(\.game), identifier: "catalog-recent")
+                        }
+                        if !favoriteGames.isEmpty {
+                            gameRail(title: LocalizedStringKey("games.favorites"), games: favoriteGames, identifier: "catalog-favorite")
+                        }
+                        gameGrid(title: LocalizedStringKey("games.all.title"), games: allGamesAlphabetically, identifier: "catalog-all")
+                        // Jogos é a última informação secundária: somente depois
+                        // dos três caminhos de escolha, nunca em busca ou vazio.
+                        NativeAdSlot(placement: .games)
                     }
-                    if !favoriteGames.isEmpty {
-                        gameRail(title: LocalizedStringKey("games.favorites"), games: favoriteGames, identifier: "catalog-favorite")
-                    }
-                    gameRail(title: LocalizedStringKey("games.all.title"), games: allGamesAlphabetically, identifier: "catalog-all")
-                    // Jogos é a última informação secundária: somente depois
-                    // dos três caminhos de escolha, nunca em busca ou vazio.
-                    NativeAdSlot(placement: .games)
                 }
 
                 Spacer(minLength: NLSpacing.xl)
             }
-            .padding(.horizontal, NLSpacing.md)
+            .padding(.horizontal, NLSpacing.lg)
         }
         .scrollContentBackground(.hidden)
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
@@ -1142,21 +1075,131 @@ struct HomeCatalogView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
     }
 
+    private var topBar: some View {
+        HStack {
+            if let onReturnToHome {
+                Button(action: onReturnToHome) {
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityIdentifier("games-return-home")
+                .accessibilityLabel(LocalizedStringKey("quick_check.back"))
+            } else {
+                Color.clear.frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+            }
+
+            Spacer()
+
+            Image("WordmarkPrimary")
+                .resizable()
+                .renderingMode(.original)
+                .scaledToFit()
+                .frame(maxWidth: 110, maxHeight: 30)
+                .accessibilityLabel("LagCheck")
+
+            Spacer()
+
+            Color.clear.frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+        }
+        .frame(height: 52)
+    }
+
+    /// Busca sempre visível: quem está no lobby digita sem abrir nada antes.
+    private var searchField: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15))
+                .foregroundStyle(NLColor.textSecondary)
+
+            TextField(searchPlaceholder, text: $query)
+                .font(NLTypography.callout)
+                .foregroundStyle(NLColor.textPrimary)
+                .focused($isSearchFocused)
+                .submitLabel(.search)
+                .accessibilityIdentifier("catalog-search-input")
+
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(NLColor.textSecondary)
+                        .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityIdentifier("catalog-search-close")
+                .accessibilityLabel(clearSearchAccessibilityLabel)
+            }
+        }
+        .padding(.horizontal, NLSpacing.md)
+        .frame(minHeight: 52)
+        .background(NLColor.surface, in: Capsule())
+        .overlay(Capsule().stroke(isSearchFocused ? NLColor.borderFocus : NLColor.borderStrong, lineWidth: 1))
+    }
+
     @ViewBuilder private var searchContent: some View {
         if searchResults.isEmpty {
-            CatalogEmptyState(isSearching: true, onSelectGenericGaming: onSelectGenericGaming)
+            emptySearch
         } else {
-            gameList(title: LocalizedStringKey("catalog.all_games"), games: searchResults)
+            VStack(alignment: .leading, spacing: 0) {
+                railTitle(String(format: AppLocalization.string("games.results", comment: ""), searchResults.count))
+                ForEach(searchResults) { game in
+                    gameRow(game)
+                        .accessibilityIdentifier("catalog-game-\(game.id)")
+                }
+            }
         }
     }
 
+    private var emptySearch: some View {
+        VStack(spacing: NLSpacing.md) {
+            Text(LocalizedStringKey("catalog.empty.title"))
+                .font(NLTypography.headline)
+                .foregroundStyle(NLColor.textPrimary)
+                .multilineTextAlignment(.center)
+
+            if let onSelectGenericGaming {
+                Button(action: onSelectGenericGaming) {
+                    Text(LocalizedStringKey("games.empty.cta"))
+                        .font(NLTypography.ctaButton)
+                        .foregroundStyle(NLColor.textOnAccent)
+                        .frame(width: 260, height: 52)
+                        .background(NLColor.accentPrimary, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("catalog-empty-generic-gaming-cta")
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, NLSpacing.lg)
+    }
+
+    private func railTitle(_ text: String) -> some View {
+        Text(text)
+            .font(NLTypography.captionMonoUppercase)
+            .textCase(.uppercase)
+            .foregroundStyle(NLColor.textSecondary)
+            .padding(.bottom, 12)
+            .accessibilityAddTraits(.isHeader)
+    }
+
     private func gameRail(title: LocalizedStringKey, games: [CatalogMeasurementJourney.Game], identifier: String) -> some View {
-        VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title).font(NLTypography.captionMonoUppercase).foregroundStyle(NLColor.textTertiary)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(NLTypography.captionMonoUppercase)
+                .textCase(.uppercase)
+                .foregroundStyle(NLColor.textSecondary)
+                .padding(.bottom, 12)
+                .accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NLSpacing.sm) {
+                HStack(alignment: .top, spacing: 12) {
                     ForEach(games) { game in
-                        gameCard(game)
+                        gameCard(game, fixedWidth: Self.cardWidth)
                             .accessibilityIdentifier("\(identifier)-\(game.id)")
                     }
                 }
@@ -1164,51 +1207,100 @@ struct HomeCatalogView: View {
         }
     }
 
-    private func gameCard(_ game: CatalogMeasurementJourney.Game) -> some View {
-        Button { select(game) } label: {
-            VStack(alignment: .leading, spacing: NLSpacing.xs) {
-                VerifiedGameArtwork(game: game, aspectRatio: 4 / 3)
-                    .frame(width: 132, height: 99)
-                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
-                Text(game.name)
-                    .font(NLTypography.captionStrong)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .lineLimit(2)
-                    .frame(width: 132, alignment: .leading)
-                    .frame(minHeight: NLSizing.touchTarget, alignment: .topLeading)
+    /// Catálogo inteiro em grade de 2 colunas: mostra mais jogos por tela que um trilho e rola na vertical.
+    private func gameGrid(title: LocalizedStringKey, games: [CatalogMeasurementJourney.Game], identifier: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(NLTypography.captionMonoUppercase)
+                .textCase(.uppercase)
+                .foregroundStyle(NLColor.textSecondary)
+                .padding(.bottom, 12)
+                .accessibilityAddTraits(.isHeader)
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 12, alignment: .top), GridItem(.flexible(), spacing: 12, alignment: .top)],
+                alignment: .leading,
+                spacing: 12
+            ) {
+                ForEach(games) { game in
+                    gameCard(game, fixedWidth: nil)
+                        .accessibilityIdentifier("\(identifier)-\(game.id)")
+                }
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(game.name)
-        .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
     }
 
-    private func gameList(title: LocalizedStringKey, games: [CatalogMeasurementJourney.Game]) -> some View {
-        VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(title).font(NLTypography.captionMonoUppercase).foregroundStyle(NLColor.textTertiary)
-            ForEach(games) { game in
-                Button { select(game) } label: {
-                    HStack(spacing: NLSpacing.sm) {
-                        VerifiedGameArtwork(game: game, aspectRatio: 1)
-                            .frame(width: 52, height: 52)
-                            .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlSmall, style: .continuous))
-                        Text(game.name)
-                            .font(NLTypography.bodyEmphasis)
-                            .foregroundStyle(NLColor.textPrimary)
-                            .multilineTextAlignment(.leading)
-                        Spacer(minLength: 0)
-                        Image(systemName: "chevron.right").foregroundStyle(NLColor.textTertiary)
-                    }
-                    .frame(minHeight: NLSizing.touchTarget)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("catalog-game-\(game.id)")
-                .accessibilityLabel(game.name)
-                .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
-            }
+    /// Estrela de favorito: alvo de 44 pt próprio, separado do toque que inicia o Check.
+    private func favoriteToggle(_ game: CatalogMeasurementJourney.Game) -> some View {
+        let isFavorite = favoritesStore.isFavorite(gameID: game.id)
+        return Button {
+            favoritesStore.toggleFavorite(gameID: game.id)
+        } label: {
+            Image(systemName: isFavorite ? "star.fill" : "star")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(isFavorite ? NLColor.gamerPurpleLight : NLColor.textPrimary)
+                .frame(width: 30, height: 30)
+                .background(Color.black.opacity(0.48), in: Circle())
+                .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(LocalizedStringKey(isFavorite ? "games.favorite.remove" : "games.favorite.add"))
+        .accessibilityIdentifier("catalog-favorite-toggle-\(game.id)")
+    }
+
+    private func gameCard(_ game: CatalogMeasurementJourney.Game, fixedWidth: CGFloat?) -> some View {
+        ZStack(alignment: .topTrailing) {
+            Button { select(game) } label: {
+                VStack(alignment: .leading, spacing: 8) {
+                    VerifiedGameArtwork(game: game, aspectRatio: 4 / 3)
+                        .frame(width: fixedWidth, height: fixedWidth.map { $0 * 3 / 4 })
+                        .frame(maxWidth: fixedWidth == nil ? .infinity : nil)
+                        .aspectRatio(4 / 3, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+                    Text(game.name)
+                        .font(NLTypography.footnote.weight(.semibold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(width: fixedWidth, alignment: .leading)
+                        .frame(maxWidth: fixedWidth == nil ? .infinity : nil, alignment: .leading)
+                        .frame(minHeight: NLSizing.touchTarget, alignment: .topLeading)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(game.name)
+            .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
+
+            favoriteToggle(game)
+        }
+        .frame(width: fixedWidth)
+    }
+
+    /// Resultado de busca: lista vertical A–Z, mais rápida de varrer que um trilho.
+    private func gameRow(_ game: CatalogMeasurementJourney.Game) -> some View {
+        HStack(spacing: 0) {
+            Button { select(game) } label: {
+                HStack(spacing: 12) {
+                    VerifiedGameArtwork(game: game, aspectRatio: 4 / 3)
+                        .frame(width: 80, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    Text(game.name)
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+                .frame(minHeight: 60)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(game.name)
+            .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
+
+            favoriteToggle(game)
+        }
+        .padding(.bottom, 8)
     }
 }
 
@@ -1467,52 +1559,6 @@ struct HomeGenericGamingBanner: View {
     }
 }
 
-private struct CatalogEmptyState: View {
-    let isSearching: Bool
-    var onSelectGenericGaming: (() -> Void)? = nil
-
-    var body: some View {
-        VStack(spacing: NLSpacing.sm) {
-            Image(systemName: isSearching ? "network" : "magnifyingglass")
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(isSearching ? NLColor.accentPrimary : NLColor.textTertiary)
-                .padding(.bottom, NLSpacing.xxs)
-
-            Text(LocalizedStringKey(isSearching ? "catalog.empty.generic_gaming_title" : "catalog.empty.title"))
-                .font(NLTypography.headline)
-                .foregroundStyle(NLColor.textPrimary)
-
-            Text(LocalizedStringKey(isSearching ? "catalog.empty.generic_gaming_message" : "catalog.empty.filter_message"))
-                .font(NLTypography.callout)
-                .foregroundStyle(NLColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, NLSpacing.sm)
-
-            if isSearching, let onSelectGenericGaming {
-                Button(action: onSelectGenericGaming) {
-                    HStack(spacing: NLSpacing.xs) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 14, weight: .bold))
-                        Text(LocalizedStringKey("catalog.empty.generic_gaming_cta"))
-                            .font(NLTypography.bodyEmphasis)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, NLSpacing.lg)
-                    .frame(minHeight: NLSizing.touchTarget)
-                    .background(NLColor.accentPrimary, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .padding(.top, NLSpacing.xs)
-                .accessibilityIdentifier("catalog-empty-generic-gaming-cta")
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, NLSpacing.xl)
-        .padding(.horizontal, NLSpacing.md)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: NLRadius.card, style: .continuous).stroke(NLColor.borderStrong, lineWidth: 1))
-    }
-}
 
 // MARK: - Reusable badges
 

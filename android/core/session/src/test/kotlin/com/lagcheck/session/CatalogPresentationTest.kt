@@ -8,10 +8,8 @@ import org.junit.Test
 
 class CatalogPresentationTest {
     private val root = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-        .first { File(it, "worker/catalog/catalog-v3.envelope.json").exists() }
-    private val payload = RemoteCatalogVerifier.verifyAndDecode(
-        File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), Instant.parse("2026-10-20T00:00:00Z")
-    )
+        .first { File(it, "worker/catalog/catalog-v3.candidate.json").exists() }
+    private val payload = RemoteCatalogVerifier.decodeBundled(File(root, "worker/catalog/catalog-v3.candidate.json").readBytes())
 
     @Test fun unknownGameAppearsWithoutALocalRegistryEntry() {
         val future = payload.games.first().copy(id = "future-game", name = "Future Game")

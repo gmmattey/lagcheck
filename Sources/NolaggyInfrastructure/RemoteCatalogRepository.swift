@@ -12,23 +12,19 @@ public enum DebugCatalogBase {
 
 private final class InfrastructureBundleMarker {}
 
-/// Fonte de verdade local do catálogo. O envelope assinado acompanha cada
-/// build e é sempre validado antes de a UI conhecer jogos, regiões ou rotas.
-/// Não há atualização HTTP nem cache persistente: uma versão antiga do Worker
-/// jamais pode reduzir a cobertura global do app para São Paulo.
+/// Fonte de verdade local do catálogo. O arquivo acompanha cada build e é
+/// sempre validado (tamanho, schema e regras de negócio) antes de a UI conhecer
+/// jogos, regiões ou rotas. Não há atualização HTTP, cache persistente,
+/// assinatura nem validade (Decisão 106): uma versão antiga do Worker jamais
+/// pode reduzir a cobertura global do app para São Paulo.
 public struct BundledCatalogRepository: Sendable {
-    private let envelopeData: Data
-    private let now: @Sendable () -> Date
+    private let catalogData: Data
 
-    public init(
-        envelopeData: Data,
-        now: @escaping @Sendable () -> Date = Date.init
-    ) {
-        self.envelopeData = envelopeData
-        self.now = now
+    public init(envelopeData: Data) {
+        self.catalogData = envelopeData
     }
 
     public func load() throws -> RemoteCatalogPayload {
-        try RemoteCatalogVerifier.verifyAndDecode(envelopeData: envelopeData, now: now())
+        try RemoteCatalogVerifier.decodeBundled(catalogData)
     }
 }

@@ -27,13 +27,13 @@ class RemoteCatalogVerifierTest {
         assertThat(e.error).isEqualTo(error)
     }
 
-    // region Envelope real publicado pelo Worker (assinado com a chave privada do dono do produto)
+    // region Catálogo embutido no build (Decisão 106: sem assinatura nem validade)
 
-    @Test fun realPublishedEnvelopeVerifiesWithProductionKey() {
-        val p = RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), realCatalogNow)
+    @Test fun bundledCatalogDecodesWithAllGamesAndGlobalRegions() {
+        val p = RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes())
         assertThat(p.schemaVersion).isEqualTo(3)
-        assertThat(p.catalogVersion).isEqualTo("catalog-v3-2026.10.17.3")
-        assertThat(p.games).hasSize(48)
+        assertThat(p.catalogVersion).isEqualTo("catalog-v3-2026.10.18.1")
+        assertThat(p.games).hasSize(54)
         assertThat(p.regions.map { it.id }).containsExactly(
             "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1",
             "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "eu-north-1", "eu-south-1",
@@ -43,36 +43,9 @@ class RemoteCatalogVerifierTest {
         assertThat(p.profiles).hasSize(3)
     }
 
-    @Test fun realEnvelopeIsRejectedAfterExpiry() {
-        val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-11-16T01:03:54Z"))
-        }
-        assertThat(e.error).isEqualTo(RemoteCatalogError.EXPIRED)
-    }
-
-    @Test fun realEnvelopeIsRejectedBeforeIssue() {
-        val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), Instant.parse("2026-10-17T00:19:59Z"))
-        }
-        assertThat(e.error).isEqualTo(RemoteCatalogError.EXPIRED)
-    }
-
-    @Test fun realEnvelopeWithTamperedPayloadIsRejected() {
-        val text = realEnvelopeBytes().toString(Charsets.UTF_8)
-        val b64 = Regex("\"payloadBase64\"\\s*:\\s*\"([^\"]+)\"").find(text)!!.groupValues[1]
-        val payload = Base64.getDecoder().decode(b64).toString(Charsets.UTF_8).replace("sa-east-1", "us-east-1")
-        val tampered = text.replace(b64, Base64.getEncoder().encodeToString(payload.toByteArray()))
-        val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(tampered.toByteArray(), realCatalogNow)
-        }
-        assertThat(e.error).isEqualTo(RemoteCatalogError.INVALID_SIGNATURE)
-    }
-
-    @Test fun realEnvelopeUnderAnotherKeyIsRejected() {
-        val e = assertThrows(RemoteCatalogException::class.java) {
-            RemoteCatalogVerifier.verifyAndDecode(realEnvelopeBytes(), realCatalogNow, key)
-        }
-        assertThat(e.error).isEqualTo(RemoteCatalogError.INVALID_SIGNATURE)
+    @Test fun bundledCatalogWithBrokenBusinessRulesIsRejected() {
+        val broken = realEnvelopeBytes().toString(Charsets.UTF_8).replace("gamelift-ping.sa-east-1.api.aws", "evil.example.com")
+        assertThat(runCatching { RemoteCatalogVerifier.decodeBundled(broken.toByteArray()) }.isFailure).isTrue()
     }
 
     // endregion

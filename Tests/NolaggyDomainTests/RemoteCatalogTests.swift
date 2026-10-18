@@ -23,13 +23,10 @@ final class RemoteCatalogTests: XCTestCase {
     }
 
     func testPublishedDebugEnvelopeExposesOnlyItsSignedPlatformContexts() throws {
-        let payload = try RemoteCatalogVerifier.verifyAndDecode(
-            envelopeData: try publishedDebugEnvelopeData(),
-            now: ISO8601DateFormatter().date(from: "2026-10-20T00:00:00Z")!
-        )
+        let payload = try RemoteCatalogVerifier.decodeBundled(try publishedDebugEnvelopeData())
         XCTAssertEqual(payload.schemaVersion, 3)
-        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.17.3")
-        XCTAssertEqual(payload.games.count, 48)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.18.1")
+        XCTAssertEqual(payload.games.count, 54)
         XCTAssertEqual(payload.regions.count, 21)
         XCTAssertEqual(payload.regions.prefix(2).map(\.id), ["sa-east-1", "us-east-1"])
 
@@ -54,10 +51,7 @@ final class RemoteCatalogTests: XCTestCase {
     }
 
     func testPublishedEnvelopePreReadsAllSignedRegionalReferences() throws {
-        let payload = try RemoteCatalogVerifier.verifyAndDecode(
-            envelopeData: try publishedDebugEnvelopeData(),
-            now: ISO8601DateFormatter().date(from: "2026-10-20T00:00:00Z")!
-        )
+        let payload = try RemoteCatalogVerifier.decodeBundled(try publishedDebugEnvelopeData())
         let snapshot = try RemoteCatalogVerifier.regionalSelectionSnapshot(
             GameContext(gameID: "fortnite", market: "BR", platform: .iphone),
             in: payload

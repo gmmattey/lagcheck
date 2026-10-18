@@ -107,6 +107,8 @@
 | [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Vigente (implementado localmente; runtime pendente)** | Refina a Decisão 80 para iOS e Android, sem alterar o contrato de catálogo, histórico ou medição | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [103](#decisão-103) | Paridade do motor de compartilhamento (Cards e Vídeo 14s) no iOS com App Store | **Vigente (implementado localmente e validado no simulador iOS)** | Paridade 1:1 com o motor Android (`ShareMediaScene`, `ShareCanvas`, `ShareMediaRenderer`, `ShareVideoRenderer`, `ShareMediaSheetView`) e QR Code da App Store | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [104](#decisão-104) | Compartilhamento direto por rede no Resultado (card e vídeo) | **Vigente (implementado localmente; validado em simulador iOS e build/testes unitários Android; sem aparelho físico)** | Refina a 103: substitui a folha "Compartilhar" por ícones sob o card; WhatsApp/Telegram/X/Discord recebem o card 1200×630, TikTok/Instagram o vídeo 14 s | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [105](#decisão-105) | Jogos: paridade visual e de interação entre iOS e Android | **Vigente (implementado localmente; runtime pendente)** | Refina a 102 e substitui o trilho de "Todos os jogos" por grade de 2 colunas; favoritar no card, busca sempre visível, card único, resultados em lista, limite de 4 favoritos | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [106](#decisão-106) | Catálogo embutido sem assinatura nem validade; EUA e artes autorais | **Vigente (implementado localmente; runtime pendente)** | Refina a 99 e substitui a assinatura Ed25519 do catálogo local; amplia o catálogo para 54 jogos | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 
 
 
@@ -1118,6 +1120,40 @@
   6. Correção associada: o gradiente de escurecimento dos cards iOS sobrescrevia o alpha dos stops e cobria a arte do jogo; agora o alpha do stop é preservado.
 - **Não-escopo:** SDK de TikTok/Instagram, ATT, novo endpoint, serviço pago.
 - **Pendências:** validar em iPhone e aparelho Android físicos o abrir-app e a área de transferência; definir a concorrente do Discord; `UiStringsCompletenessTest` já falhava antes (strings da tela de Jogos) e não foi alterado aqui.
+
+#### Decisão 105
+
+- **Data:** 18 de outubro de 2026.
+- **Título:** Jogos: paridade visual e de interação entre iOS e Android.
+- **Status Atual:** **Vigente (implementado localmente; runtime pendente).** Refina a Decisão 102 sem mudar catálogo, histórico, medição, widgets, deep links ou o contrato dos trilhos.
+- **Frentes envolvidas:** Luiz (direção de produto), Giam (aceite), Marco (orquestração), Renan (experiência), Rian (iOS e Android) e Breno (QA).
+- **Problema:** a crítica de UI/UX da tela Jogos achou divergências que mudavam o que a pessoa conseguia fazer (favoritar só no Android), copy diferente ("Usados recentemente" vs "Recentes"), busca com regra e forma diferentes, card com moldura e tamanho diferentes, nome truncado no Android, valores tipográficos soltos e contraste insuficiente no rótulo dos trilhos do iOS.
+- **Decisão:**
+  1. **Favoritar** é uma estrela no canto da arte do card, nos dois clientes, com alvo de 44 pt/dp separado do alvo de iniciar o Check. O limite é de **4 favoritos** nos dois; o mais novo entra primeiro e, ao passar do limite, o mais antigo sai (toque nunca fica sem efeito).
+  2. **Card único:** arte 4:3 de 140 pt/dp, sem moldura de superfície, nome em largura total e sem corte de linhas. Rótulos dos trilhos em caixa alta, fonte mono e cor secundária (contraste ≥ 4,5:1): `RECENTES`, `FAVORITOS`, `TODOS OS JOGOS A–Z`.
+  3. **Busca** sempre visível abaixo do título, em pílula com borda de 1 px (foco em Roxo Gamer) e botão limpar de 44 pt/dp. Filtra somente pelo nome localizado, nos dois clientes. Enquanto há texto, os trilhos somem e os resultados aparecem em **lista vertical A–Z** (`RESULTADOS (n)`) com a mesma estrela.
+  4. **Vazio:** título curto e o botão `Fazer Check Geral` (ação primária), sem ícone decorativo, sem texto explicativo e sem cartão.
+  5. Cabeçalho idêntico: voltar (quando existir), wordmark centralizada e título `Jogos`; margem lateral de 24.
+  6. **Todos os jogos A–Z** passa de trilho horizontal para **grade vertical de 2 colunas**, nos dois clientes: mostra mais jogos por tela e usa a rolagem que a tela já tem. Recentes e Favoritos (no máximo 4) continuam em trilho. Isso **substitui** o item 2 da Decisão 102 apenas quanto ao formato de "Todos os jogos"; ordem, fontes de dados e anúncio ao final seguem iguais.
+- **Não-escopo:** catálogo, arte, regra de veredito, persistência além do limite de favoritos, anúncios.
+- **Critérios de aceite:** testes de favoritos (limite, ordem, remoção) nos dois clientes; build iOS e Android; strings PT-BR/EN/ES completas; validação em simulador/emulador, VoiceOver/TalkBack, escala de texto e aparelho físico seguem como evidências separadas e pendentes.
+
+#### Decisão 106
+
+- **Data:** 18 de outubro de 2026.
+- **Título:** Catálogo embutido sem assinatura nem validade; EUA e artes autorais.
+- **Status Atual:** **Vigente (implementado localmente; runtime pendente).** Refina a Decisão 99 e **substitui** dela somente a exigência de assinatura Ed25519 e de validade de 30 dias.
+- **Frentes envolvidas:** Luiz (decisão), Giam (aceite), Marco (orquestração), Camillo (gate), Iury (integridade do catálogo), Rian (clientes) e Breno (QA).
+- **Problema:** o envelope assinado foi desenhado para catálogo baixado da rede. Com o catálogo dentro do build, a assinatura só adicionava custo: dependência de uma chave privada guardada em um único Keychain e envelope que expira em até 30 dias. O envelope então embutido vencia em 2026-11-16 e, depois disso, todo build instalado recusaria o catálogo e mostraria "Games unavailable right now". Em paralelo, 8 dos 16 primeiros downloads vieram dos EUA e várias artes do catálogo eram material de terceiros.
+- **Decisão:**
+  1. iOS e Android carregam o catálogo embutido como **payload JSON puro**, sem `signatureBase64`, `issuedAt` nem `expiresAt`. A integridade vem da assinatura de código da Apple e do Google; o catálogo não é baixado nem cacheado.
+  2. O leitor (`RemoteCatalogVerifier.decodeBundled`, iOS e Android) valida somente tamanho (≤ 128 KiB), schema 3 e regras de negócio (regiões AWS GameLift permitidas, rotas, perfis, ids, artes). `verifyAndDecode` permanece apenas como legado de testes.
+  3. A fonte única é `worker/catalog/catalog-v3.canonical.js`; `catalog-v3.candidate.json`, `DebugCatalogBase.json` e `catalog-base.json` são idênticos byte a byte, garantido por teste do Worker. Não há mais passo externo de assinatura.
+  4. O catálogo passa a ter **54 jogos** (`catalog-v3-2026.10.18.1`), com Clash Royale, Pokémon UNITE, Genshin Impact, Mobile Legends: Bang Bang, Delta Force e Standoff 2 para o mercado dos EUA. A referência continua regional AWS; a baliza é escolhida pela menor latência UDP entre todas as regiões (Decisão 90), nunca pelo país.
+  5. Artes que reproduziam material de terceiros foram substituídas por artes originais do LagCheck (15 imagens, 1376×768): Marvel Snap, Squid Game: Unleashed, Tacticool (capa de álbum de outra franquia), Roblox (logo), Star Wars: Hunters, Overwatch 2, Super Mega Baseball 4, Legacy: Steel & Sorcery e Dungeons & Dragons: Dark Alliance, além das seis dos jogos novos. Nenhuma arte tem texto, logo ou personagem de franquia.
+- **Não-escopo:** Worker (nenhum endpoint novo), score, veredito, motor UDP, publicação, upload de loja e o site `web/`.
+- **Pendências:** reimplantar o Worker para parar de servir as artes antigas; o site `web/` ainda usa `roblox.jpg` e outras imagens próprias; remover `verifyAndDecode` e as telas mortas de resultado (`resultView(result:)` e `DeepCheckResultView`) em limpeza futura; validar em aparelho, em rede dos EUA, o veredito e a escolha da baliza. Testes de schema 2 do catálogo, um teste de DeepCheck e os testes de UI de localização já falhavam antes desta decisão.
+- **Critérios de aceite:** catálogo carregado sem data de validade em qualquer data; Worker, iOS e Android byte-idênticos; testes de catálogo, Worker e Android verdes; build iOS verde.
 
 ## Como Registrar Novas Decisões
 

@@ -8,6 +8,14 @@ struct MeasurementDetailsView: View {
     /// Só existe para a medição recém-concluída; o histórico não persiste série bruta.
     let samples: [ProbeSample]
 
+    /// A região exibida é a realmente medida (ex.: Virgínia do Norte nos EUA), nunca um texto fixo.
+    private var referenceRegionLabel: String {
+        let language = AppLocalization.locale.identifier.lowercased()
+        let code = language.hasPrefix("pt") ? "pt-BR" : (language.hasPrefix("es") ? "es" : "en")
+        let region = GlobalProbeRegistry.friendlyLabel(for: entry.resolvedContext.regionID, languageCode: code)
+        return String(format: AppLocalization.string("quick_check.measuring.region_format %@", comment: ""), region)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: NLSpacing.lg) {
@@ -16,7 +24,7 @@ struct MeasurementDetailsView: View {
                         Text("details.reference_region")
                             .font(NLTypography.footnote)
                             .foregroundStyle(NLColor.textTertiary)
-                        Text("quick_check.measuring.region")
+                        Text(referenceRegionLabel)
                             .font(NLTypography.callout)
                             .foregroundStyle(NLColor.textSecondary)
                     }

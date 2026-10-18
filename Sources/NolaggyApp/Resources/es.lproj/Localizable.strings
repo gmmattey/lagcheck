@@ -647,8 +647,12 @@
 "games.title" = "Juegos";
 "games.subtitle" = "cambia cuando lo necesites";
 "games.favorites" = "Favoritos";
-"games.recent" = "Usados recientemente";
-"games.all.title" = "Todos los juegos (A-Z)";
+"games.recent" = "Recientes";
+"games.all.title" = "Todos los juegos A–Z";
+"games.results" = "Resultados (%d)";
+"games.empty.cta" = "Hacer Check General";
+"games.favorite.add" = "Agregar a favoritos";
+"games.favorite.remove" = "Quitar de favoritos";
 "games.select.accessibility_hint" = "Inicia el Check en iPhone";
 "games.catalog_title" = "Más jugados en Brasil";
 "games.assist.title" = "¿No encuentras tu juego?";

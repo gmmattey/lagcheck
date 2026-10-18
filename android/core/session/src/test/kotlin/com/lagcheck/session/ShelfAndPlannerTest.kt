@@ -14,8 +14,8 @@ import org.junit.Test
 class ShelfAndPlannerTest {
     private val now = Instant.parse("2026-10-20T00:00:00Z")
     private val root: File = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-        .first { File(it, "worker/catalog/catalog-v3.envelope.json").exists() }
-    private val payload = RemoteCatalogVerifier.verifyAndDecode(File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), now)
+        .first { File(it, "worker/catalog/catalog-v3.candidate.json").exists() }
+    private val payload = RemoteCatalogVerifier.decodeBundled(File(root, "worker/catalog/catalog-v3.candidate.json").readBytes())
 
     @Test fun shelfHasExactlyTheCatalogGames() {
         assertThat(OfficialGameCatalog.games.map { it.id }).containsExactlyElementsIn(payload.games.map { it.id })
@@ -59,9 +59,9 @@ class ShelfAndPlannerTest {
         }
     }
 
-    @Test fun bundledBaseCatalogIsTheSameSignedEnvelopeAsTheWorkerAndTheIosBase() {
+    @Test fun bundledBaseCatalogIsTheSameFileAsTheWorkerCandidateAndTheIosBase() {
         val asset = File(root, "android/app/src/main/assets/catalog-base.json").readBytes()
-        assertThat(asset).isEqualTo(File(root, "worker/catalog/catalog-v3.envelope.json").readBytes())
+        assertThat(asset).isEqualTo(File(root, "worker/catalog/catalog-v3.candidate.json").readBytes())
         assertThat(asset).isEqualTo(File(root, "Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json").readBytes())
     }
 

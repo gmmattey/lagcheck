@@ -75,7 +75,7 @@ fun TechnicalDetailsScreen(
         GameReadinessVerdict.INCONCLUSIVE -> tr("Dados Insuficientes")
     }
 
-    val dateFormatted = java.text.SimpleDateFormat("dd MMM · HH:mm", java.util.Locale.getDefault()).format(java.util.Date(evaluation.timestamp))
+    val dateFormatted = com.lagcheck.android.ui.AppLocale.dayAndClock(evaluation.timestamp)
 
     Column(
         modifier = modifier

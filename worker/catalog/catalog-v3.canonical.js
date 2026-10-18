@@ -10,7 +10,6 @@ const artwork = {
   "pubg-mobile": ["pubg.jpg", "5097efdef788c1eb0c8fc2001b19d1b0b010d26f38e79e1180d815628ca852a3"],
   "brawl-stars": ["brawlstars.jpg", "415a3b42bdeb902a7bc200216a3fed088143b0e41eb58400ec8811bc1811a357"],
   "wild-rift": ["wildrift.jpg", "3b619530f0f18505ce41b55e5b6ca2d0db5cbd7bc1464df9475e3d974e92fed2"],
-  roblox: ["roblox.jpg", "6702b9ee977358dcb1a342d7df1559e1004b8efb583859a41a98ae9b909f1adc"],
   minecraft: ["minecraft.jpg", "007d90a546786e95248f9eab54792f00e3eae314be20f22eb260f531be062a8f"],
   "apex-legends": ["apexlegends.jpg", "926453d9d8f76235e8fb1e051dec1706f9846ffe5bafce9f6c3be1e418250933"],
   "blood-strike": ["bloodstrike.jpg", "bba52776478797f67b7ec444cea6fd961ec74c1ffaab709d108c1397d51ab799"],
@@ -126,7 +125,13 @@ export const catalogExpansionGames = [
   ["streamline", "Streamline", ["pc"], "CASUAL_REALTIME"],
   ["tacticool", "Tacticool", ["iphone", "pc"], "BATTLE_ROYALE_COMPETITIVE"],
   ["ghost-war", "Ghost War", ["iphone"], "MOBILE_REALTIME"],
-  ["overwatch-2", "Overwatch 2", ["playstation", "xbox", "pc", "nintendo"], "BATTLE_ROYALE_COMPETITIVE"]
+  ["overwatch-2", "Overwatch 2", ["playstation", "xbox", "pc", "nintendo"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["clash-royale", "Clash Royale", ["iphone"], "MOBILE_REALTIME"],
+  ["pokemon-unite", "Pokémon UNITE", ["iphone", "nintendo"], "MOBILE_REALTIME"],
+  ["genshin-impact", "Genshin Impact", ["iphone", "pc", "playstation"], "CASUAL_REALTIME"],
+  ["mobile-legends", "Mobile Legends: Bang Bang", ["iphone"], "MOBILE_REALTIME"],
+  ["delta-force", "Delta Force", ["iphone", "pc", "playstation", "xbox"], "BATTLE_ROYALE_COMPETITIVE"],
+  ["standoff-2", "Standoff 2", ["iphone"], "BATTLE_ROYALE_COMPETITIVE"]
 ];
 
 const expansionArtwork = new Map(artworkManifest.items.map(item => [item.gameID, item]));
@@ -142,7 +147,7 @@ function artworkFor(gameID) {
 export function buildCanonicalCatalog() {
   return {
     schemaVersion: 3,
-    catalogVersion: "catalog-v3-2026.10.17.3",
+    catalogVersion: "catalog-v3-2026.10.18.1",
     assetBaseURL: "https://nolaggy-deep-check.buildealabs.workers.dev/",
     profiles: Object.entries(profileVersions).map(([id, ruleVersion]) => ({ id, ruleVersion })),
     regions: globalProbeRegions.map(([id, ptBR, en, es]) => ({

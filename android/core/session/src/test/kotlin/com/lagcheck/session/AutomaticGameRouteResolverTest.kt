@@ -31,8 +31,8 @@ import org.junit.Test
 class AutomaticGameRouteResolverTest {
     private val now = Instant.parse("2026-10-20T00:00:00Z")
     private val root: File = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-        .first { File(it, "worker/catalog/catalog-v3.envelope.json").exists() }
-    private val signed = RemoteCatalogVerifier.verifyAndDecode(File(root, "worker/catalog/catalog-v3.envelope.json").readBytes(), now)
+        .first { File(it, "worker/catalog/catalog-v3.candidate.json").exists() }
+    private val signed = RemoteCatalogVerifier.decodeBundled(File(root, "worker/catalog/catalog-v3.candidate.json").readBytes())
     private val identity = RouteIdentity(730, "csgo", "Community")
     private val request = GameContext("fortnite", "BR", Platform.MOBILE)
 

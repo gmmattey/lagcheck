@@ -50,7 +50,10 @@ enum GameArtworkAssetResolver {
             ("ninjala", "GameNinjala"), ("rollerchampions", "GameRollerChampions"),
             ("breakpoint", "GameGhostReconBreakpoint"), ("darkalliance", "GameDarkAlliance"),
             ("wolcen", "GameWolcenLordsOfMayhem"), ("streamline", "GameStreamline"),
-            ("tacticool", "GameTacticool"), ("ghostwar", "GameGhostWar"), ("overwatch", "GameOverwatch2")
+            ("tacticool", "GameTacticool"), ("ghostwar", "GameGhostWar"), ("overwatch", "GameOverwatch2"),
+            ("clashroyale", "GameClashRoyale"), ("pokemonunite", "GamePokemonUnite"),
+            ("genshin", "GameGenshinImpact"), ("mobilelegends", "GameMobileLegends"),
+            ("deltaforce", "GameDeltaForce"), ("standoff2", "GameStandoff2")
         ]
         return mapping.first(where: { id.contains($0.0) })?.1
     }

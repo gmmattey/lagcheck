@@ -8,8 +8,8 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         let payload = try BundledCatalogRepository(envelopeData: data).load()
 
         XCTAssertEqual(payload.schemaVersion, 3)
-        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.17.3")
-        XCTAssertEqual(payload.games.count, 48)
+        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.18.1")
+        XCTAssertEqual(payload.games.count, 54)
         XCTAssertFalse(payload.regions.isEmpty)
     }
 
@@ -30,11 +30,18 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         }
     }
 
-    func testExpiredBundledCatalogFailsClosed() throws {
+    /// Decisão 106: o catálogo acompanha o build e não expira. Uma data futura
+    /// nunca pode deixar o app sem jogos.
+    func testBundledCatalogHasNoSignatureOrExpiry() throws {
         let data = try XCTUnwrap(DebugCatalogBase.envelopeData())
-        let afterExpiry = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-12-01T00:00:00Z"))
-        XCTAssertThrowsError(
-            try BundledCatalogRepository(envelopeData: data, now: { afterExpiry }).load()
-        )
+        XCTAssertNoThrow(try BundledCatalogRepository(envelopeData: data).load())
+        let text = try XCTUnwrap(String(data: data, encoding: .utf8))
+        XCTAssertFalse(text.contains("signatureBase64"), "o catálogo embutido não carrega assinatura")
+        XCTAssertFalse(text.contains("expiresAt"), "o catálogo embutido não carrega validade")
+    }
+
+    func testBundledCatalogRejectsMalformedAndOversizedData() {
+        XCTAssertThrowsError(try BundledCatalogRepository(envelopeData: Data("{}".utf8)).load())
+        XCTAssertThrowsError(try BundledCatalogRepository(envelopeData: Data(count: 200 * 1024)).load())
     }
 }

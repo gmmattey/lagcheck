@@ -45,7 +45,7 @@ test("artwork is served only through an allowlisted static-asset path", async ()
 test("canonical v3 covers every artwork, platform context and signed AWS fallback", () => {
   const catalog = buildCanonicalCatalog();
   assert.equal(catalog.schemaVersion, 3);
-  assert.equal(catalog.games.length, 48);
+  assert.equal(catalog.games.length, 54);
   for (const game of catalog.games) {
     assert.match(game.artwork.path, /^artwork\/games\/[a-z0-9-]+\.(jpg|png)$/);
     assert.match(game.artwork.sha256, /^[a-f0-9]{64}$/);
@@ -74,20 +74,18 @@ test("canonical v3 references the approved editorial artwork manifest exactly", 
   }
 });
 
-test("the local Debug catalog payload is signed by the public key embedded in iOS", async () => {
-  const envelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
-  const rawPublicKey = Buffer.from("oe/5VSQfhWcma+W6DdUzAESJpjgTrLtkXAcT0nEbDwo=", "base64");
-  const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
-  const publicKey = createPublicKey({ key: Buffer.concat([spkiPrefix, rawPublicKey]), format: "der", type: "spki" });
-
-  assert.equal(verify(null, Buffer.from(envelope.payloadBase64, "base64"), publicKey, Buffer.from(envelope.signatureBase64, "base64")), true);
-});
-
-test("the canonical v3 signing input matches the bundled Debug envelope bytes", async () => {
-  const canonicalPayload = Buffer.from(`${JSON.stringify(buildCanonicalCatalog())}\n`);
-  const bundledEnvelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
-
-  assert.deepEqual(Buffer.from(bundledEnvelope.payloadBase64, "base64"), canonicalPayload);
+test("Decisão 106: o catálogo embutido é o payload canônico puro, sem assinatura nem validade", async () => {
+  const canonical = `${JSON.stringify(buildCanonicalCatalog())}\n`;
+  for (const path of [
+    "../catalog/catalog-v3.candidate.json",
+    "../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json",
+    "../../android/app/src/main/assets/catalog-base.json"
+  ]) {
+    const text = await readFile(new URL(path, import.meta.url), "utf8");
+    assert.equal(text, canonical, `${path} difere do payload canônico`);
+    assert.equal(text.includes("signatureBase64"), false);
+    assert.equal(text.includes("expiresAt"), false);
+  }
 });
 
 test("the schema 2 candidate produces a deterministic external signing request", async () => {

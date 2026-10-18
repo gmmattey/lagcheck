@@ -409,3 +409,34 @@ fun CloseIcon(
         drawLine(color, Offset(w * 0.75f, h * 0.25f), Offset(w * 0.25f, h * 0.75f), strokeWidth = stroke, cap = StrokeCap.Round)
     }
 }
+
+/**
+ * Estrela de favorito: contorno quando desligada, preenchida quando ligada.
+ */
+@Composable
+fun StarIcon(
+    filled: Boolean,
+    modifier: Modifier = Modifier,
+    size: Dp = 18.dp,
+    color: Color = LagCheckColors.TextPrimary
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val w = this.size.width
+        val h = this.size.height
+        val cx = w / 2f
+        val cy = h * 0.54f
+        val outer = w * 0.46f
+        val inner = outer * 0.42f
+        val path = Path()
+        for (i in 0 until 10) {
+            val r = if (i % 2 == 0) outer else inner
+            val angle = Math.toRadians(-90.0 + i * 36.0)
+            val x = cx + (r * Math.cos(angle)).toFloat()
+            val y = cy + (r * Math.sin(angle)).toFloat()
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        path.close()
+        if (filled) drawPath(path, color)
+        drawPath(path, color, style = Stroke(width = 1.8.dp.toPx(), join = StrokeJoin.Round))
+    }
+}

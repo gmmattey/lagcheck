@@ -220,7 +220,7 @@ struct LagCheckClipView: View {
     
     private var bundledCatalog: RemoteCatalogPayload? {
         guard let data = DebugCatalogBase.envelopeData() else { return nil }
-        return try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data)
+        return try? RemoteCatalogVerifier.decodeBundled(data)
     }
     
     private func metricColumn(label: String, value: String) -> some View {

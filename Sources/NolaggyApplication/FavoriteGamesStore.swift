@@ -31,15 +31,15 @@ public final class FavoriteGamesStore: ObservableObject {
         UserDefaults.standard.set(trimmed, forKey: userDefaultsKey)
     }
 
+    /// O favorito mais novo entra primeiro; ao passar do limite o mais antigo sai,
+    /// para o toque nunca ficar sem efeito (mesma regra do Android).
     public func toggleFavorite(gameID: String) {
         guard gameID != "generic-gaming" else { return }
         var current = favoriteGameIDs
         if let index = current.firstIndex(of: gameID) {
             current.remove(at: index)
         } else {
-            if current.count < Self.maxFavorites {
-                current.append(gameID)
-            }
+            current.insert(gameID, at: 0)
         }
         setFavorites(current)
     }

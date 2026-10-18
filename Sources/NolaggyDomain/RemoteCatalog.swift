@@ -443,6 +443,34 @@ public enum RemoteCatalogVerifier {
     // Mantemos uma barreira explícita e igual ao Android, sem aceitar payloads ilimitados.
     public static let maximumPayloadBytes = 128 * 1024
 
+    /// Decisão 106: o catálogo acompanha o build (assinado pela Apple/Google) e
+    /// não passa por rede nem cache. Por isso não há assinatura nem validade a
+    /// verificar: só tamanho, schema e regras de negócio. Aceita o payload puro
+    /// (formato atual) ou um envelope antigo, do qual só lê `payloadBase64`.
+    public static func decodeBundled(_ data: Data) throws -> RemoteCatalogPayload {
+        var payloadData = data
+        if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           object["payloadBase64"] != nil {
+            guard let envelope = try? JSONDecoder().decode(SignedCatalogEnvelope.self, from: data),
+                  let decoded = Data(base64Encoded: envelope.payloadBase64) else {
+                throw RemoteCatalogError.malformedEnvelope
+            }
+            payloadData = decoded
+        }
+        guard payloadData.count <= maximumPayloadBytes else { throw RemoteCatalogError.payloadTooLarge }
+        let payload: RemoteCatalogPayload
+        do {
+            payload = try JSONDecoder().decode(RemoteCatalogPayload.self, from: payloadData)
+        } catch {
+            throw RemoteCatalogError.malformedPayload
+        }
+        guard supportedSchemaVersions.contains(payload.schemaVersion) else { throw RemoteCatalogError.unsupportedEnvelopeSchema }
+        try validateDebugPayload(payload)
+        return payload
+    }
+
+    /// Legado: verifica envelope assinado com validade. Não é usado pelo app
+    /// desde a Decisão 106; permanece só para os vetores históricos de teste.
     public static func verifyAndDecode(
         envelopeData: Data,
         publicKeyBase64: String = DebugCatalogSigningKey.publicKeyBase64,

@@ -35,6 +35,38 @@ object RemoteCatalogVerifier {
     const val MAXIMUM_PAYLOAD_BYTES = 128 * 1024
     private val MAX_VALIDITY: Duration = Duration.ofDays(30)
 
+    /**
+     * Decisão 106: o catálogo acompanha o build (assinado pelo Google) e não passa por rede nem cache. Por isso não há
+     * assinatura nem validade a verificar: só tamanho, schema e regras de negócio. Aceita o payload puro (formato
+     * atual) ou um envelope antigo, do qual só lê `payloadBase64`.
+     */
+    fun decodeBundled(bytes: ByteArray): CatalogPayload {
+        val root = try {
+            Json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
+        } catch (e: Exception) {
+            throw RemoteCatalogException(RemoteCatalogError.MALFORMED_ENVELOPE, e)
+        }
+        val payloadBytes = if (root.containsKey("payloadBase64")) {
+            try {
+                Base64.getDecoder().decode(root.string("payloadBase64") ?: throw RemoteCatalogException(RemoteCatalogError.MALFORMED_ENVELOPE))
+            } catch (e: IllegalArgumentException) {
+                throw RemoteCatalogException(RemoteCatalogError.INVALID_BASE64, e)
+            }
+        } else bytes
+        if (payloadBytes.size > MAXIMUM_PAYLOAD_BYTES) throw RemoteCatalogException(RemoteCatalogError.PAYLOAD_TOO_LARGE)
+        val decoded = try {
+            decodePayload(Json.parseToJsonElement(payloadBytes.toString(Charsets.UTF_8)).jsonObject)
+        } catch (e: RemoteCatalogException) {
+            throw e
+        } catch (e: Exception) {
+            throw RemoteCatalogException(RemoteCatalogError.MALFORMED_PAYLOAD, e)
+        }
+        if (decoded.schemaVersion != ROUTED_SCHEMA_VERSION) throw RemoteCatalogException(RemoteCatalogError.UNSUPPORTED_ENVELOPE_SCHEMA)
+        validate(decoded)
+        return decoded
+    }
+
+    /** Legado: verifica envelope assinado com validade. Não é usado pelo app desde a Decisão 106; fica só para vetores históricos de teste. */
     fun verifyAndDecode(
         envelopeJson: ByteArray,
         now: Instant = Instant.now(),

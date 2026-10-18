@@ -140,6 +140,11 @@ object UiStrings {
         t("FAVORITOS", "FAVORITES", "FAVORITOS")
         t("Favoritar", "Add to favorites", "Agregar a favoritos")
         t("Remover dos favoritos", "Remove from favorites", "Quitar de favoritos")
+        t("RECENTES", "RECENT", "RECIENTES")
+        t("TODOS OS JOGOS A–Z", "ALL GAMES A–Z", "TODOS LOS JUEGOS A–Z")
+        t("Nenhum jogo encontrado", "No games found", "No se encontraron juegos")
+        t("Fazer Check de %s", "Run Check for %s", "Hacer Check de %s")
+        t("Fechar busca", "Close search", "Cerrar búsqueda")
         // endregion
 
         // region Status das redes de console

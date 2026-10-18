@@ -46,7 +46,7 @@ fun CheckHistoryItemDetailsScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormatted = java.text.SimpleDateFormat("dd MMM · HH:mm", java.util.Locale.getDefault()).format(java.util.Date(item.timestamp))
+    val dateFormatted = com.lagcheck.android.ui.AppLocale.dayAndClock(item.timestamp)
 
     Column(
         modifier = modifier
