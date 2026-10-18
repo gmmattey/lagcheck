@@ -895,6 +895,7 @@
 "share.card.metric.jitter" = "JITTER";
 "share.card.metric.loss" = "LOSS";
 "share.card.udp_proof" = "Measured with real UDP packets.";
+"share.card.cta" = "Test your connection with Lagcheck.";
 "technical_details.chart_unavailable" = "The trace is unavailable for this measurement.";
 
 "technical_details.score_heading" = "SCORE";

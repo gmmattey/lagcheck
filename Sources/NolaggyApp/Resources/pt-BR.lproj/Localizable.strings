@@ -141,6 +141,7 @@
 "share.card.metric.jitter" = "JITTER";
 "share.card.metric.loss" = "PERDA";
 "share.card.udp_proof" = "Medido com pacotes UDP reais.";
+"share.card.cta" = "Teste a sua conexão no Lagcheck.";
 "settings.region.title" = "Região de referência";
 "settings.region.automatic" = "Automática";
 "settings.region.explanation" = "A região usada em cada medição é escolhida automaticamente com base na sua rede no momento do teste. Escolher uma região aqui só troca essa preferência quando ela for uma candidata válida para o jogo medido; caso contrário, a medição volta a escolher automaticamente.";

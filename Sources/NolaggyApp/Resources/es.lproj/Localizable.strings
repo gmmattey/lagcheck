@@ -888,6 +888,7 @@
 "share.card.metric.jitter" = "JITTER";
 "share.card.metric.loss" = "PÉRDIDA";
 "share.card.udp_proof" = "Medido con paquetes UDP reales.";
+"share.card.cta" = "Prueba tu conexión con Lagcheck.";
 "technical_details.chart_unavailable" = "El trazo no está disponible para esta medición.";
 
 "technical_details.score_heading" = "PUNTUACIÓN";

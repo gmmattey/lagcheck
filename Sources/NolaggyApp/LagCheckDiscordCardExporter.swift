@@ -1,5 +1,7 @@
 import SwiftUI
 import UIKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
 import NolaggyDomain
 import NolaggyApplication
 import NolaggyDesign
@@ -37,9 +39,8 @@ public enum LagCheckDiscordCardExporter {
     }
 
     /// A mesma composição editorial Link do Android, adaptada para UIKit.
-    /// A arte ocupa o canvas inteiro e a coluna de decisão recebe o mesmo
-    /// gradiente, ordem e geometria. O rodapé não inventa QR/App Store: iOS só
-    /// ganha esse destino quando existir uma URL aprovada para ele.
+    /// As coordenadas são mantidas em canvas de 1200×630 para que a miniatura
+    /// do iPhone seja o mesmo card de decisão, e não uma versão "parecida".
     private static func generateEditorialShareCard(
         gameID: String?,
         gameName: String,
@@ -90,29 +91,43 @@ public enum LagCheckDiscordCardExporter {
             draw("lagcheck.signallq.com", in: CGRect(x: contentLeft, y: 68, width: right - contentLeft, height: 26), size: 20, weight: .medium, color: muted, alignment: .right)
 
             let headline = headlineSentence(for: verdict)
-            let titleRect = CGRect(x: contentLeft, y: 142, width: right - contentLeft, height: 138)
-            draw("CHECK · \(gameName)".uppercased(), at: CGPoint(x: contentLeft, y: 125), size: 19, weight: .semibold, color: accent)
-            draw(headline, in: titleRect, size: 60, weight: .bold, color: text, lineBreak: .byWordWrapping)
+            let titleWidth = right - contentLeft
+            let titleFont = UIFont.systemFont(ofSize: 60, weight: .bold)
+            let titleStyle = NSMutableParagraphStyle()
+            titleStyle.lineBreakMode = .byWordWrapping
+            let titleHeight = ceil((headline as NSString).boundingRect(
+                with: CGSize(width: titleWidth, height: .greatestFiniteMagnitude),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: [.font: titleFont, .kern: -2, .paragraphStyle: titleStyle],
+                context: nil
+            ).height)
+            // Mesmo bloco vertical do renderer Android: eyebrow, headline e
+            // três métricas ocupam o centro da coluna direita.
+            let blockHeight: CGFloat = 19 + 12 + titleHeight + 28 + 90
+            let blockTop: CGFloat = 104 + (458 - 104 - blockHeight) / 2
+            draw("CHECK · \(gameName)".uppercased(), at: CGPoint(x: contentLeft, y: blockTop), size: 19, weight: .semibold, color: accent, monospaced: true)
+            draw(headline, in: CGRect(x: contentLeft, y: blockTop + 31, width: titleWidth, height: titleHeight + 12), size: 60, weight: .bold, color: text, lineBreak: .byWordWrapping)
 
             let metrics: [(String, String, String)] = [
-                (AppLocalization.string("exporter.discord.ping_label", comment: "").uppercased(), formatted(pingMs, decimals: 0), "ms"),
-                (AppLocalization.string("exporter.discord.jitter_label", comment: "").uppercased(), formatted(jitterMs, decimals: 1), "ms"),
-                (AppLocalization.string("exporter.discord.loss_label", comment: "").uppercased(), formatted(packetLossPercentage, decimals: 1), "%")
+                (AppLocalization.string("share.card.metric.response", comment: "").uppercased(), formatted(pingMs, decimals: 0), "ms"),
+                (AppLocalization.string("share.card.metric.jitter", comment: "").uppercased(), formatted(jitterMs, decimals: 1), "ms"),
+                (AppLocalization.string("share.card.metric.loss", comment: "").uppercased(), formatted(packetLossPercentage, decimals: 1), "%")
             ]
             let metricWidth: CGFloat = (right - contentLeft - 40) / 3
             for (index, metric) in metrics.enumerated() {
                 let x = contentLeft + CGFloat(index) * (metricWidth + 20)
-                let rect = CGRect(x: x, y: 328, width: metricWidth, height: 88)
+                let metricY = blockTop + 31 + titleHeight + 28
+                let rect = CGRect(x: x, y: metricY, width: metricWidth, height: 88)
                 cg.setFillColor(UIColor.white.withAlphaComponent(0.28).cgColor)
                 cg.fill(rect)
-                draw(metric.0, at: CGPoint(x: x + 20, y: 345), size: 17, weight: .semibold, color: accent)
-                draw(metric.1, at: CGPoint(x: x + 20, y: 367), size: 56, weight: .bold, color: text)
-                if metric.1 != "—" { draw(metric.2, at: CGPoint(x: x + 20, y: 423), size: 22, weight: .medium, color: muted) }
+                draw(metric.0, at: CGPoint(x: x + 20, y: metricY + 17), size: 17, weight: .semibold, color: accent, monospaced: true)
+                draw(metric.1, at: CGPoint(x: x + 20, y: metricY + 39), size: 56, weight: .bold, color: text)
+                if metric.1 != "—" { draw(metric.2, at: CGPoint(x: x + 20, y: metricY + 95), size: 22, weight: .medium, color: muted) }
             }
 
             let verdict = headline.uppercased()
-            let pillFont = UIFont.systemFont(ofSize: 20, weight: .semibold)
-            let pillWidth = max(260, min(500, verdict.size(withAttributes: [.font: pillFont]).width + 92))
+            let pillFont = UIFont.monospacedSystemFont(ofSize: 20, weight: .semibold)
+            let pillWidth = verdict.size(withAttributes: [.font: pillFont, .kern: 2.5]).width + 70
             let pill = UIBezierPath(roundedRect: CGRect(x: 56, y: 518, width: pillWidth, height: 56), cornerRadius: 28)
             cg.setFillColor(deep.withAlphaComponent(0.76).cgColor)
             pill.fill()
@@ -121,10 +136,15 @@ public enum LagCheckDiscordCardExporter {
             pill.stroke()
             cg.setFillColor(tone.cgColor)
             cg.fillEllipse(in: CGRect(x: 74, y: 538, width: 16, height: 16))
-            draw(verdict, at: CGPoint(x: 102, y: 534), size: 20, weight: .semibold, color: tone)
+            draw(verdict, at: CGPoint(x: 104, y: 534), size: 20, weight: .semibold, color: tone, monospaced: true)
 
-            draw(AppLocalization.string("exporter.discord.real_udp_sampling", comment: ""), at: CGPoint(x: contentLeft, y: 490), size: 23, weight: .medium, color: muted)
-            draw(AppLocalization.string("exporter.discord.footer", comment: ""), at: CGPoint(x: contentLeft, y: 522), size: 23, weight: .semibold, color: text)
+            drawQRCode("https://lagcheck.signallq.com", in: CGRect(x: contentLeft, y: 458, width: 112, height: 112), context: cg)
+            draw(AppLocalization.string("share.card.udp_proof", comment: ""), at: CGPoint(x: contentLeft + 134, y: 490), size: 23, weight: .medium, color: muted)
+            draw(AppLocalization.string("share.card.cta", comment: ""), at: CGPoint(x: contentLeft + 134, y: 522), size: 23, weight: .semibold, color: text)
+            if let wordmark = UIImage(named: "WordmarkPrimary") {
+                let ratio = wordmark.size.width / max(wordmark.size.height, 1)
+                wordmark.draw(in: CGRect(x: contentLeft + 130, y: 540, width: 118, height: 118 / ratio))
+            }
         }
         let url = outputURL ?? FileManager.default.temporaryDirectory
             .appendingPathComponent("lagcheck-share-\(UUID().uuidString).jpg")
@@ -143,6 +163,20 @@ public enum LagCheckDiscordCardExporter {
         let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
         let drawRect = CGRect(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2, width: size.width, height: size.height)
         context.saveGState(); context.clip(to: rect); image.draw(in: drawRect); context.restoreGState()
+    }
+
+    private static func drawQRCode(_ value: String, in rect: CGRect, context: CGContext) {
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(value.utf8)
+        filter.correctionLevel = "M"
+        guard let output = filter.outputImage else { return }
+        let scale = min(rect.width / output.extent.width, rect.height / output.extent.height)
+        let image = output.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        guard let cgImage = CIContext(options: nil).createCGImage(image, from: image.extent) else { return }
+        context.setFillColor(UIColor.white.cgColor)
+        context.fill(rect)
+        context.interpolationQuality = .none
+        context.draw(cgImage, in: rect)
     }
 
     private static func headlineSentence(for verdict: GameReadinessVerdict) -> String {

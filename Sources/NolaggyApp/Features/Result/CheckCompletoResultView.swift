@@ -135,25 +135,26 @@ public struct CheckCompletoResultView: View {
                 }
                 .frame(height: 52)
 
-                // Veredito Protagonista (Mockup 04)
+                // Veredito protagonista. Esta sequência acompanha a tela
+                // Android: kicker, indicador, manchete, contexto e só então
+                // o card pronto para compartilhar.
                 VStack(alignment: .leading, spacing: 0) {
                     Text(LocalizedStringKey("result.kicker"))
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(NLColor.textTertiary)
                         .padding(.top, 36)
-                        .padding(.bottom, 13)
+                        .padding(.bottom, 18)
 
-                    HStack(spacing: 10) {
-                        VerdictIndicatorBadge(verdict: evaluation.verdict, size: 18)
-                        Text(LocalizedStringKey(evaluation.headlineKey))
-                            .font(.system(size: 42, weight: .black))
-                            .accessibilityIdentifier("check-completo-verdict")
-                    }
-                    .foregroundStyle(colorForVerdict(evaluation.verdict))
-                    .fixedSize(horizontal: false, vertical: true)
+                    VerdictIndicatorBadge(verdict: evaluation.verdict, size: 18)
+                    Text(LocalizedStringKey(evaluation.headlineKey))
+                        .font(.system(size: 44, weight: .black))
+                        .foregroundStyle(colorForVerdict(evaluation.verdict))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("check-completo-verdict")
+                        .padding(.top, 6)
 
                     Text(LocalizedStringKey(evaluation.subtitleKey))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(NLColor.textPrimary)
                         .lineSpacing(4)
                         .padding(.top, 19)
@@ -163,32 +164,32 @@ public struct CheckCompletoResultView: View {
                     // ordem sem tornar o preparo um bloqueio do resultado.
                     if evaluation.verdict != .inconclusive {
                         sharePreview(evaluation: evaluation)
-                            .padding(.top, 22)
+                            .padding(.top, 20)
                     }
 
                     // Métricas inline em tipografia monoespaçada
                     HStack(spacing: 6) {
                         Text(verbatim: "\(formattedMs(evaluation.pingMs)) ms")
-                            .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(NLColor.textPrimary)
+                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "·")
-                            .font(.system(size: 11, weight: .regular))
+                            .font(.system(size: 12, weight: .regular))
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "\(formattedMs(evaluation.jitterMs)) ms jitter")
-                            .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(NLColor.textPrimary)
+                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "·")
-                            .font(.system(size: 11, weight: .regular))
+                            .font(.system(size: 12, weight: .regular))
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "\(formattedLoss(evaluation.packetLossPercentage))% \(AppLocalization.string("game_readiness.telemetry.loss", comment: ""))")
-                            .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(NLColor.textPrimary)
+                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(NLColor.textTertiary)
                     }
-                    .padding(.top, 22)
+                    .padding(.top, 24)
                     .background(
                         HStack(spacing: 0) {
                             Text("PING")
@@ -231,10 +232,11 @@ public struct CheckCompletoResultView: View {
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(NLColor.textPrimary)
                     }
-                    .padding(15)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                    .padding(.top, 27)
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .padding(.top, 32)
                 }
 
                 // Ações do Resultado
@@ -675,7 +677,7 @@ public struct CheckCompletoResultView: View {
     // MARK: - 6. Ações
 
     private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             // A ação que recoloca a pessoa no Check vem antes da exploração.
             Button(action: retry) {
                 Text(LocalizedStringKey("result.retest_button"))
@@ -683,94 +685,71 @@ public struct CheckCompletoResultView: View {
                     .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(NLColor.gamerPurple, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(NLColor.gamerPurple, in: Capsule())
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("check-completo-primary-action")
 
-            Button(action: showDetails) {
-                Text(LocalizedStringKey("result.details_button"))
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(NLColor.textPrimary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("check-completo-details")
-
-            // Ações Utilitárias Compactas: Discord, WhatsApp e PDF separados
-            HStack(spacing: 8) {
-                if evaluation.verdict != .inconclusive {
-                // Botão Discord com ícone oficial
-                Button(action: { shareToDiscord(evaluation: evaluation) }) {
-                    HStack(spacing: 6) {
-                        DiscordLogo(size: 15)
-                        Text(verbatim: "Discord")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    .foregroundStyle(Color(red: 88/255, green: 101/255, blue: 242/255))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
+            if evaluation.verdict != .inconclusive {
+                Button(action: showDetails) {
+                    Text(LocalizedStringKey("result.details_button"))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(NLColor.surface, in: Capsule())
                 }
                 .buttonStyle(.plain)
-                .accessibilityIdentifier("check-completo-discord-share")
-                .accessibilityValue(shareCardAccessibilityValue)
-                .disabled(preparedShareCardURL == nil)
+                .accessibilityIdentifier("check-completo-details")
 
-                // Botão WhatsApp com ícone oficial
-                Button(action: { shareToWhatsApp(evaluation: evaluation) }) {
-                    HStack(spacing: 6) {
-                        WhatsAppLogo(size: 15)
-                        Text(verbatim: "WhatsApp")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    .foregroundStyle(Color(red: 37/255, green: 211/255, blue: 102/255))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("check-completo-whatsapp-share")
-                .accessibilityValue(shareCardAccessibilityValue)
-                .disabled(preparedShareCardURL == nil)
-                }
+                // Ações utilitárias seguem a barra Android: ícones circulares de
+                // 48 pt, sem texto concorrendo com as duas ações principais.
+                HStack(spacing: 0) {
+                    utilityShareButton(
+                        accessibilityLabel: "Discord",
+                        identifier: "check-completo-discord-share",
+                        action: { shareToDiscord(evaluation: evaluation) }
+                    ) { DiscordLogo(size: 22) }
+                    utilityShareButton(
+                        accessibilityLabel: "WhatsApp",
+                        identifier: "check-completo-whatsapp-share",
+                        action: { shareToWhatsApp(evaluation: evaluation) }
+                    ) { WhatsAppLogo(size: 22) }
+                    Spacer(minLength: 0)
 
-                // Botão PDF
-                Button(action: { exportResultPDF(evaluation: evaluation) }) {
-                    HStack(spacing: 6) {
+                    utilityShareButton(
+                        accessibilityLabel: "PDF",
+                        identifier: "check-completo-export-pdf",
+                        action: { exportResultPDF(evaluation: evaluation) }
+                    ) {
                         Image(systemName: "doc.text.fill")
-                            .font(.system(size: 13, weight: .medium))
-                        Text(verbatim: "PDF")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(NLColor.textSecondary)
                     }
-                    .foregroundStyle(NLColor.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("check-completo-export-pdf")
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
             }
-            .padding(.top, 4)
         }
         .padding(.top, 24)
+    }
+
+    private func utilityShareButton<Icon: View>(
+        accessibilityLabel: String,
+        identifier: String,
+        action: @escaping () -> Void,
+        @ViewBuilder icon: () -> Icon
+    ) -> some View {
+        Button(action: action) {
+            icon()
+                .frame(width: 48, height: 48)
+                .background(NLColor.surface, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(shareCardAccessibilityValue)
+        .accessibilityIdentifier(identifier)
+        .disabled(preparedShareCardURL == nil && identifier != "check-completo-export-pdf")
     }
 
     // MARK: - Helpers & Formatação
