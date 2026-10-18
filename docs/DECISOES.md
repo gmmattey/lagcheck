@@ -18,7 +18,7 @@
 | [11](#decisão-11) | Detalhes do resultado e Histórico local (snapshot SwiftData) | **Vigente** | Snapshot local imutável sem servidor | Rian / Marco |
 | [12](#decisão-12) | Deep Check do piloto e Cloudflare Worker `/v1/load` | **Vigente** | Worker gratuito mantido sob custo zero | Iury / Rian |
 | [13](#decisão-13) | Parecer de design para Deep Check, Histórico e Detalhes | **Superada** | Decisão 51 (Dark Competitive UI substituiu visual inicial) | Renan |
-| [14](#decisão-14) | Catálogo remoto assinado em Debug (Ed25519, `/v1/catalog.json`) | **Vigente** | Assinatura criptográfica obrigatória mantida | Iury / Renan |
+| [14](#decisão-14) | Catálogo remoto assinado em Debug (Ed25519, `/v1/catalog.json`) | **Superada** | Decisão 99 (envelope assinado empacotado no build; sem catálogo HTTP) | Iury / Renan |
 | [15](#decisão-15) | Artes licenciadas para capas do catálogo | **Substituída** | Decisões 18 e 44 (Identidade neutra sem copyright) | Renan |
 | [16](#decisão-16) | Seleção regional automática BR/EUA (`regional-selection-1`) | **Vigente** | Algoritmo determinístico de beacon de referência | Iury / Rian |
 | [17](#decisão-17) | Navegação e Configurações da V1 (Home ⇄ Config ⇄ Histórico) | **Superada** | Decisões 24 e 51 (Substituída por 2 abas: `Início \| Jogos`) | Renan / Rian |
@@ -27,7 +27,7 @@
 | [20](#decisão-20) | Auditoria exploratória: revisão de nome, telas e monetização | **Descartada** | Rascunho exploratório rejeitado pelo posicionamento | Marco |
 | [21](#decisão-21) | Nova direção visual, simples e leve | **Superada** | Decisão 51 (Dark Competitive UI substituiu o visual simples) | Renan |
 | [22](#decisão-22) | Jornada com lista nativa e Quick Check em background | **Superada** | Decisões 43 e 50 (Medição sob demanda em 1 toque) | Marco / Renan |
-| [23](#decisão-23) | Dicas de conexão com IA Gemini após Deep Check | **Vigente** | Checklist prático físico sem impactar cálculo do score | Marco / Iury |
+| [23](#decisão-23) | Dicas de conexão com IA Gemini após Deep Check | **Suspensa por conflito** | Decisão 101 registra a chamada ainda presente no fonte, incompatível com a restrição vigente de infraestrutura/custo até resolução de Luiz | Marco / Iury |
 | [24](#decisão-24) | Design System Apple Games Hub (SF Rounded, 4 abas, card soup) | **Superada** | Decisões 50, 51 e 53 (Substituído por Dark Competitive UI e 2 abas) | Renan |
 | [25](#decisão-25) | Adoção da marca LagCheck e Pulse Gauge Coral Solar | **Vigente (Marca) / Superada (Símbolo)** | Marca `lagcheck` vigente; símbolo Pulse Gauge superado pela Decisão 52 | Renan / Luiz |
 | [26](#decisão-26) | Teto de plataformas de console no catálogo Debug | **Vigente** | Limitação de escopo em títulos piloto mantida | Marco / Iury |
@@ -48,7 +48,7 @@
 | [42](#decisão-42) | Home orientada por estado da conexão e ação primária | **Vigente / Refinada** | Refinada pela Decisão 56 (Jornada 1 Toque) | Renan / Marco |
 | [43](#decisão-43) | Jornada única de Deep Check (substitui Quick Check visível) | **Vigente** | Todo teste inclui estresse sob carga | Marco / Renan |
 | [44](#decisão-44) | Identidade visual de capas geradas do catálogo | **Vigente** | Artes autorais do catálogo | Renan |
-| [45](#decisão-45) | Exceção temporária Gemini Release 1.0.0 | **Vigente** | Degradação graciosa de IA mantida | Marco / Iury |
+| [45](#decisão-45) | Exceção temporária Gemini Release 1.0.0 | **Suspensa por conflito** | Decisão 101; a exceção não prevalece sobre a restrição vigente sem nova autorização explícita de Luiz | Marco / Iury |
 | [46](#decisão-46) | Reconciliação: Deep Check único e consentimento móvel | **Vigente** | Alinhamento de jornada e travas móveis | Marco / Rian |
 | [47](#decisão-47) | Progressão visual com Pulse Gauge Coral Solar | **Superada** | Decisão 52 (Pulse Gauge substituído por Dual-Node Vector) | Renan |
 | [48](#decisão-48) | Experiência visual de carregamento com IA (Dicas de Otimização) | **Vigente** | Shimmer e micro-copy na tela de transição | Renan / Marco |
@@ -63,7 +63,7 @@
 | [57](#decisão-57) | Hero Gauge Pulsante, Meus Favoritos, Export PDF e Otimização Única | **Vigente** | Testar Agora pulsante, até 4 favoritos, exportação PDF local | Renan / Squad |
 | [58](#decisão-58) | Detecção de Pacotes Fora de Ordem (RFC 4737) e Modulação `.caution` | **Vigente** | Detecção de reordenação UDP; taxa > 1% modula veredito | Iury / Rian |
 | [60](#decisão-60) | Corte do Atalho de Contexto de Rede para o candidato a TestFlight | **Vigente** | Dados 100% observados no iPhone para o release | Marco / Squad |
-| [61](#decisão-61) | Website Oficial: Lançamento em Breve no iOS e Captura de Convites | **Vigente** | Site `web/` alinhado ao iOS 17+ e waitlist TestFlight | Marco / Renan |
+| [61](#decisão-61) | Website Oficial: Lançamento em Breve no iOS e Captura de Convites | **Vigente, com implementação de Worker em conflito** | Decisão 101 registra que as rotas de site ainda existem no mesmo Worker, fora do contrato autorizado aos apps | Marco / Renan |
 | [62](#decisão-62) | Reconciliação documental e conformidade estrita com o gate de TestFlight | **Vigente** | Checklist pré-TestFlight e congelamento de escopo | Breno / Squad |
 | [63](#decisão-63) | Adoção do Workflow e Governança Unificada Buildea (Paralelismo SignallQ) | **Vigente (Governança)** | Lanes, Breno (QA), Camillo (Arquiteto), Marco (Lead), DECISOES.md | Marco / Squad / Luiz |
 | [64](#decisão-64) | Diretriz "Zero Cara de IA / Gamer Não Lê", Card Viral Discord e Dogfooding | **Vigente (Produto & Processo)** | Proibição de cardlização/textão, card pro Discord, dogfooding e skills de ação | Marco / Luiz / Squad |
@@ -72,8 +72,8 @@
 | [67](#decisão-67) | Expansão Multiplataforma: Rascunho Arquitetural e Telemetria Avançada de Rádio no Android | **Vigente (Expansão Android)** | Módulo de rádio (2.4G/5G/6G, RSSI, PHY speed, Gateway), paridade determinística e custo zero | Marco / Camillo / Iury / Luiz |
 | [68](#decisão-68) | Port iOS → Android com paridade de regras (readiness-v2.0, catálogo v3 assinado, beacons) | **Vigente (Execução)** | Substitui a medição STUN e os thresholds fixos do protótipo Android; Android passa a ser alvo oficial | Marco / Camillo / Iury / Luiz |
 | [69](#decisão-69) | Android: gateway no veredito, status de redes de console, favoritos e relatório em PDF | **Vigente (Execução)** | Refina o item 6 da Decisão 68: liga o gateway no veredito (autorizado pelo Luiz) e entrega o que tinha sido cortado por escopo | Marco / Iury / Luiz |
-| [70](#decisão-70) | Expansão do catálogo: quatro jogos e artes autorais | **Vigente (assinatura pendente)** | Dead by Daylight, For Honor, Borderlands 3 e New World; candidato local de 26 jogos | Marco / Luiz |
-| [71](#decisão-71) | Catálogo e artes remotos nos apps | **Vigente (implementação local)** | Ed25519 mantida, imagens sem conferência de hash, descoberta dinâmica Android | Marco / Camillo / Luiz |
+| [70](#decisão-70) | Expansão do catálogo: quatro jogos e artes autorais | **Superada em escopo pela Decisão 89** | Os quatro títulos integram o envelope local assinado de 48 jogos; distribuição continua pendente | Marco / Luiz |
+| [71](#decisão-71) | Catálogo e artes remotos nos apps | **Superada em parte** | Decisão 99 elimina catálogo remoto; a política de arte editorial continua sujeita às Decisões 18 e 44 | Marco / Camillo / Luiz |
 | [72](#decisão-72) | Unificação do Motor de Cálculo e Veredito (Fim das Divergências entre Score, Veredito e Detalhes) | **Vigente (Execução)** | Cálculo único em GameReadinessEvaluator, guardrail por veredito no score, consumo 1:1 na UI | Marco / Camillo / Iury / Rian / Renan / Luiz |
 | [73](#decisão-73) | Indicador Visual Tático de Veredito (Substituição de Glifos Unicode por VerdictIndicatorBadge) | **Vigente (Design & UI)** | Substitui caracteres de texto cru (●/▲/—) por componente de cockpit com LED/Halo e ícones vetoriais acessíveis | Renan / Rian / Marco / Luiz |
 | [74](#decisão-74) | Plano de Crescimento, Viralidade Discord e ASO da App Store (Fase 1: P0) | **Vigente (Aprovada)** | Aprovação do plano de 9 iniciativas: Card Viral Squad Pass, ASO e Bufferbloat Score | Marco / Squad / Luiz |
@@ -83,26 +83,27 @@
 | [78](#decisão-78) | Ativação de Probes Reais Homologados (Steam A2S & PlayFab QoS), Expansão Multirregional e Transparência de Precisão (Catálogo v4) | **Em homologação técnica** | Bancada de teste de pacotes UDP para A2S/PlayFab, sem rotas presumidas, integridade diagnóstica | Marco / Camillo / Iury / Rian / Renan / Breno / Luiz |
 | [79](#decisão-79) | Pesquisa de Rede & Homologação Técnica do Protocolo Valve SDR para CS2 e Dota 2 | **Em homologação técnica** | Bancada de análise de framing SDR da Valve em SP (12-20ms) sem atalhos diagnósticos | Marco / Camillo / Iury / Rian / Breno / Luiz |
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
-| [90](#decisão-90) | Referência regional global por proximidade medida | **Vigente (Em implementação)** | Refina as Decisões 16, 78 e 89: sem fixação em São Paulo | Marco / Iury / Rian / Camillo / Breno / Luiz |
+| [90](#decisão-90) | Referência regional global por proximidade medida | **Vigente (implementado localmente; validação física pendente)** | Refina as Decisões 16, 78 e 89: sem fixação em São Paulo | Marco / Iury / Rian / Camillo / Breno / Luiz |
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
 | [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Refinada** | Decisão 96 amplia formato e superfícies; UMP e chave de build permanecem | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
 | [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
-| [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (Autorizada)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
+| [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (implementado localmente; validação física pendente)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
 | [88](#decisão-88) | Widget de prontidão por jogo — arte oficial por plataforma e Check direto | **Vigente (Implementado localmente; validação visual/física pendente)** | Refina a #49 e a Decisão 75: iOS e Android mostram a arte editorial do último Check válido e iniciam novo Check daquele contexto por toque explícito | Luiz / Giam / Marco / Camillo / Rian / Renan / Iury / Breno |
-| [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
+| [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (implementado localmente; distribuição pendente)** | Refina a Decisão 70: os 48 jogos entram no envelope assinado local, com referência AWS regional, nunca rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
 | [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [92](#decisão-92) | Wordmark com o símbolo modernizado e mono refeito a partir do primary | **Vigente (Implementado localmente; validação visual pendente)** | Revisa o item 5 da Decisão 91: primary, mono claro/escuro e PNGs de app passam a usar o mesmo símbolo e as mesmas letras | Luiz / Giam / Renan / Rian / Breno |
 | [93](#decisão-93) | AGENTS.md alinhado ao estado real de anúncios e arte de jogo | **Refinada** | Estado publicitário atualizado pelas Decisões 96 e 97; arte editorial autoral permanece | Luiz / Giam |
-| [94](#decisão-94) | Resultado iOS alinhado à hierarquia Android e card compartilhável local | **Vigente (execução autorizada)** | Refina a Decisão 80 no resultado iOS; preserva interações nativas e semântica de cada plataforma | Luiz / Giam / Marco / Renan / Rian / Breno |
-| [95](#decisão-95) | Detalhes iOS na referência Android, com evidência diagnóstica preservada | **Vigente (execução autorizada)** | Amplia a Decisão 94 para `TechnicalDetailsView`; restringe atribuições locais aos fatos observados | Luiz / Giam / Marco / Renan / Rian / Iury / Breno |
+| [94](#decisão-94) | Resultado iOS alinhado à hierarquia Android e card compartilhável local | **Vigente (implementado localmente; validação física pendente)** | Refina a Decisão 80 no resultado iOS; preserva interações nativas e semântica de cada plataforma | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [95](#decisão-95) | Detalhes iOS na referência Android, com evidência diagnóstica preservada | **Vigente (implementado localmente; validação física pendente)** | Amplia a Decisão 94 para `TechnicalDetailsView`; restringe atribuições locais aos fatos observados | Luiz / Giam / Marco / Renan / Rian / Iury / Breno |
 | [96](#decisão-96) | Anúncios nativos no Android em Home, Histórico, Jogos e Resultado | **Vigente (Implementado localmente; validação em aparelho pendente)** | Refina a Decisão 82: substitui banners adaptativos por Native Advanced nas quatro superfícies; recorte Android | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [97](#decisão-97) | AdMob Native Advanced também no iOS, com IDs de produção do app iOS | **Vigente (Implementado localmente; validação no Mac/iPhone pendente)** | Amplia a Decisão 96 ao iOS; Debug com IDs de teste, Release com App ID e quatro unidades iOS reais; sem distribuição implícita | Luiz / Giam / Marco / Camillo / Renan / Rian / Breno |
 | [98](#decisão-98) | Quatro destinos iOS e Resultado/compartilhamento pela referência Android | **Vigente (implementado localmente; validação física pendente)** | Resolve a divergência de integração: Início, Jogos, Histórico e Ajustes são destinos iOS de primeira classe; Resultado e card Link seguem o acabamento mais recente aprovado | Luiz / Giam / Marco / Renan / Rian / Breno |
-| [99](#decisão-99) | Catálogo global local nos clientes | **Vigente (Implementação local)** | 48 jogos e referências AWS GameLift entram no build assinado; o Worker não distribui catálogo | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
+| [99](#decisão-99) | Catálogo global local nos clientes | **Vigente (implementação local; conformidade do Worker pendente)** | 48 jogos e referências AWS GameLift entram no build assinado; o Worker não distribui catálogo, mas o fonte ainda expõe rotas extras registradas na Decisão 101 | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 | [100](#decisão-100) | Home imersiva por jogo e remoção do chrome redundante | **Vigente (implementado localmente; validação física pendente)** | A Home começa na arte editorial do jogo e mantém a decisão de Check em primeiro plano | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [101](#decisão-101) | Reconciliação do registro com o código em `main` | **Vigente (auditoria documental; correção sistêmica pendente)** | Separa fonte, contrato autorizado e evidência de runtime; expõe rotas extras do Worker e Gemini como conflitos | Giam / Marco / Camillo / Iury / Luiz |
 
 
 
@@ -146,8 +147,8 @@
 
 ### Decisão 14
 - **Título:** Catálogo remoto assinado em Debug (Ed25519, `/v1/catalog.json`).
-- **Status Atual:** **Vigente.**
-- **Resumo:** Entrega do catálogo via Cloudflare Worker com validação de assinatura Ed25519 obrigatória antes de ser consumido pelo aplicativo.
+- **Status Atual:** **Superada pela Decisão 99.**
+- **Resumo:** A assinatura Ed25519 continua obrigatória, mas o catálogo não é mais entregue pelo Cloudflare Worker: o mesmo envelope assinado acompanha os builds iOS e Android.
 
 ### Decisão 15
 - **Título:** Contrato de artes licenciadas para capas do catálogo.
@@ -191,8 +192,8 @@
 
 ### Decisão 23
 - **Título:** Dicas de conexão com Gemini pós Deep Check.
-- **Status Atual:** **Vigente.**
-- **Resumo:** CTA contextualizado após o teste, acionando o Gemini via Worker para gerar checklist físico acionável (cabo, Wi-Fi 5GHz, DNS) sem alucinar causas.
+- **Status Atual:** **Suspensa por conflito, conforme Decisão 101.**
+- **Resumo:** O fonte ainda contém cliente direto do Gemini, mas isso não é compatível com a restrição vigente de não acrescentar SDK ou infraestrutura externa sem autorização explícita. Não é evidência de serviço autorizado, funcional ou distribuído.
 
 ### Decisão 24
 - **Título:** Adoção do Design System Apple Games Editorial Hub.
@@ -254,8 +255,8 @@
 
 ### Decisão 45 e 46
 - **Títulos:** Exceção Gemini Release 1.0.0 e Reconciliação com consentimento móvel.
-- **Status Atual:** **Vigentes.**
-- **Resumo:** Garantia de operação offline/graciosa e respeito ao tráfego do usuário.
+- **Status Atual:** **Decisão 45 suspensa por conflito; Decisão 46 vigente.** A suspensão da exceção Gemini segue a Decisão 101 e não altera o consentimento móvel.
+- **Resumo:** O caminho Gemini permanece no fonte como implementação legada, sem autorização atual para chave, tráfego, distribuição ou serviço externo. A garantia de operação graciosa e o respeito ao tráfego da pessoa seguem vigentes.
 
 ### Decisão 47
 - **Título:** Progressão visual com Pulse Gauge Coral Solar.
@@ -459,7 +460,7 @@
 ### Decisão 70
 - **Data:** 3 de outubro de 2026.
 - **Título:** Inclusão de Dead by Daylight, For Honor, Borderlands 3 e New World: Aeternum.
-- **Status Atual:** **Vigente; candidato local preparado, assinatura e ativação pendentes.**
+- **Status Atual:** **Superada em escopo pela Decisão 89.** Os quatro jogos fazem parte do envelope local assinado de 48 jogos; build distribuído, aparelho e publicação continuam etapas separadas e pendentes.
 - **Frentes envolvidas:** Luiz (solicitação explícita), Marco (escopo), design, catálogo iOS/Android.
 - **Decisão:** Acrescentar os quatro jogos ao catálogo, com artes geradas originais semelhantes às existentes e inspiradas no gênero de cada jogo, sem copiar capas, logos ou personagens oficiais. Amplia a autorização da Decisão 44 apenas para estas quatro artes.
 - **Plataformas:** Dead by Daylight e Borderlands 3: PC, PlayStation, Xbox, Nintendo; For Honor e New World: Aeternum: PC, PlayStation, Xbox. Não incluir versões mobile.
@@ -471,7 +472,7 @@
 ### Decisão 71
 - **Data:** 3 de outubro de 2026.
 - **Título:** Catálogo e artes atualizados remotamente em iOS e Android.
-- **Status Atual:** Implementado localmente; APK Android e testes JVM validados. Build Xcode e suíte iOS validados no Mac em 2026-10-03; catálogo/artes observados em simulador. Prova física e distribuição pendentes (ver `audits/mac-continuation-2026-10-03.md`).
+- **Status Atual:** **Superada em parte pela Decisão 99.** O catálogo remoto, cache e atualização sem build não são mais o estado do código; o envelope assinado agora acompanha os dois clientes. O carregamento de arte remota ainda existe no fonte e permanece sujeito à política editorial das Decisões 18 e 44. Prova física e distribuição seguem pendentes.
 - **Frentes envolvidas:** Marco, Camillo (plano e segunda opinião), implementação iOS/Android.
 - **Decisão:** Luiz autorizou baixar catálogo e artes pelo Cloudflare. Preservar assinatura Ed25519 do catálogo e dispensar comparação do hash dos bytes das imagens. Refina Decisões 37/40/70 e o pipeline de assets da especificação técnica: SHA no schema 3 permanece para compatibilidade, sem impedir exibição quando os bytes diferirem. Não rotacionar chave.
 - **Comportamento:** Catálogo validado determina descoberta e plataformas; novos jogos aparecem após publicação de envelope válido sem novas builds. Artes remotas com cache local e fallback empacotado/neutro. Uma build inicial é necessária em cada plataforma.
@@ -819,7 +820,7 @@
 
 - **Data:** 16 de outubro de 2026.
 - **Título:** Lembrete local pré-partida, configurado pela pessoa.
-- **Status Atual:** **Vigente (Autorizada).**
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).**
 - **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Rian (iOS e Android), Renan (experiência) e Breno (QA).
 - **Decisão:**
   1. O LagCheck oferece, somente após escolha explícita da pessoa, um lembrete local diário em um horário configurado. O recurso começa desligado, não observa outros apps, não aprende rotina, não usa push, não cria conta, não chama Worker nem envia telemetria.
@@ -856,7 +857,7 @@
 
 - **Data:** 16 de outubro de 2026.
 - **Título:** Ativação coordenada do catálogo de 48 jogos por referência regional.
-- **Status Atual:** **Vigente (assinatura e publicação pendentes).** Refina o limite de ativação pendente da Decisão 70.
+- **Status Atual:** **Vigente (implementado localmente; distribuição pendente).** O envelope Schema 3 com 48 jogos está assinado e acompanha o fonte; isso não comprova build distribuído, aparelho ou publicação. Refina o limite de ativação pendente da Decisão 70.
 - **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Iury (integridade do catálogo), Rian (clientes) e Breno (validação).
 - **Contexto e Problema:** O catálogo v3 assinado em uso contém 22 jogos, mas há 26 títulos adicionais já preparados no candidato local, com artes autorais, plataformas e testes de consistência. Renovar somente os 22 preservaria a disponibilidade mínima, mas deixaria de fora jogos já autorizados sem um motivo de integridade.
 - **Decisão:**
@@ -874,7 +875,7 @@
 
 - **Data:** 16 de outubro de 2026.
 - **Título:** Referência regional global por proximidade medida.
-- **Status Atual:** **Vigente (em implementação).** Refina as Decisões 16, 78 e 89 no que conflitar.
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).** A seleção por respostas UDP/P50 está no fonte dos dois clientes; sua qualidade em redes reais ainda não foi comprovada. Refina as Decisões 16, 78 e 89 no que conflitar.
 - **Contexto e problema:** Um app multilíngue e distribuído globalmente não pode transformar São Paulo em destino obrigatório por uma limitação do catálogo. O jogador precisa receber a referência regional com menor latência observada entre os beacons autorizados, sem confundir a referência com o servidor oficial da partida.
 - **Decisão:**
   1. O catálogo Schema 3 assinado lista todas as regiões AWS GameLift já homologadas no registro compartilhado iOS/Android. Nenhuma delas é apresentada como servidor do jogo.
@@ -933,7 +934,7 @@
 
 - **Data:** 17 de outubro de 2026.
 - **Título:** Resultado iOS alinhado à hierarquia Android e card compartilhável local.
-- **Status Atual:** **Vigente (execução autorizada).** Refina a Decisão 80 exclusivamente para a tela de resultado iOS e suas referências visuais. A regra de que Android tem protótipo próprio continua para suas telas e interações nativas.
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).** O fonte em `CheckCompletoResultView` e no exportador de card recebeu o recorte; renderização, acessibilidade e compartilhamento nativo em aparelho continuam sem prova. Refina a Decisão 80 exclusivamente para a tela de resultado iOS e suas referências visuais.
 - **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Renan (especificação e QA visual), Rian (iOS) e Breno (QA independente).
 - **Contexto e problema:** O resultado Android atingiu uma hierarquia mais direta e madura. No iOS, a jornada normal comprovada (`startCheckDirectly → openDeepCheck`) apresenta `CheckCompletoResultView`, que já usa o veredito canônico, mas mantém ações em ordem diversa. `ResultFeatureView` continua compilada como implementação legada e renderiza `presentation.result`, porém não há callsite comprovado de `startQuickCheck`. Sua composição ainda privilegia score, trilha e grade de métricas; se a missão incluir sua manutenção ou reentrada na jornada, ela precisa obedecer à mesma direção visual antes de ser exposta.
 - **Decisão:**
@@ -955,7 +956,7 @@
 
 - **Data:** 17 de outubro de 2026.
 - **Título:** Detalhes iOS na referência Android, com evidência diagnóstica preservada.
-- **Status Atual:** **Vigente (execução autorizada).** Amplia a Decisão 94 à transição `Resultado → Ver detalhes` da jornada iOS ativa. Refina as referências visuais da Decisão 80 e as limitações diagnósticas das Decisões 50 e 69 quando houver conflito de apresentação.
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).** O recorte está no fonte em `TechnicalDetailsView`; fidelidade visual, acessibilidade e retorno de foco em aparelho continuam sem prova. Amplia a Decisão 94 à transição `Resultado → Ver detalhes` da jornada iOS ativa.
 - **Frentes envolvidas:** Luiz (autorização), Giam (aceite operacional), Marco (prioridade), Renan (especificação e QA visual), Rian (iOS), Iury (integridade diagnóstica) e Breno (QA independente).
 - **Contexto e problema:** Luiz aprovou as três capturas Android como referência 1:1 de experiência, composição e hierarquia também para os Detalhes iOS. A referência não pode converter fatos específicos do Android em fatos do iPhone. Uma captura combina `Sinal bom` com `Instabilidade no Wi-Fi local`: sinal de rádio, primeiro salto e rota UDP são leituras distintas. RSSI -43 dBm, Wi-Fi 5 GHz e PHY 433 Mbps podem coexistir com resposta degradada do gateway, mas não provam que o roteador causou a instabilidade; a consulta DNS do gateway pode ser encaminhada e inflar o RTT. Perda UDP na rota de referência também não identifica, sozinha, uma falha local.
 - **Decisão:**
@@ -1021,7 +1022,7 @@
 
 - **Data:** 17 de outubro de 2026.
 - **Título:** Catálogo global local nos clientes.
-- **Status Atual:** **Vigente (Implementação local).** Substitui a distribuição remota do catálogo da Decisão 14, preservando a assinatura Ed25519 e o schema 3.
+- **Status Atual:** **Vigente (implementação local; conformidade do Worker pendente).** Substitui a distribuição remota do catálogo da Decisão 14, preservando a assinatura Ed25519 e o schema 3. A limitação de rotas do Worker ainda não está refletida integralmente no fonte e fica explicitada na Decisão 101.
 - **Frentes envolvidas:** Luiz (decisão), Giam (aceite), Marco (produto), Camillo (gate), Iury (integridade de rede), Rian (clientes) e Breno (validação).
 - **Decisão:**
   1. iOS e Android usam somente o mesmo envelope Ed25519 instalado no build, com 48 jogos e referências AWS GameLift globais autorizadas. O catálogo não é baixado, cacheado nem interpretado a partir do Worker.
@@ -1040,6 +1041,24 @@
   2. Wordmark e menu saem somente da Home; Histórico e Ajustes permanecem destinos primários. A ação `Trocar jogo` abre Jogos e o Check continua a única ação primária.
   3. A implementação reutiliza somente a arte editorial aprovada ou fallback neutro. Não muda score, veredito, rádio, Worker, persistência, catálogo ou políticas de anúncio.
 - **Critérios de validação e aceite:** Home começa visualmente pela arte do jogo sem chrome vazio; status e CTA continuam legíveis; `Trocar jogo` e a pílula de rede funcionam; títulos localizados e escala de texto não truncam ações. Build, revisão visual e aparelho físico são evidências separadas.
+
+#### Decisão 101
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Reconciliação do registro canônico com o código em `main`.
+- **Status Atual:** **Vigente (auditoria documental; correção sistêmica pendente).** Esta decisão não autoriza infraestrutura, SDK, tráfego, distribuição ou publicação. Ela corrige o registro para que ninguém confunda presença no fonte com contrato autorizado ou prova de runtime.
+- **Frentes envolvidas:** Giam (aceite documental), Marco (prioridade e escalonamento), Camillo e Iury (próxima correção sistêmica), Rian (clientes), Breno (evidência) e Luiz (qualquer nova autorização de produto, custo, privacidade ou serviço externo).
+- **Evidência de código no commit auditado `c540cf45`:**
+  1. Os três envelopes `worker/catalog/catalog-v3.envelope.json`, `Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json` e `android/app/src/main/assets/catalog-base.json` são byte-idênticos (SHA-256 `ce74a79be75eb14d192aa1259736ca63d593a19a518492e1c42a705d6f0e4cdf`). Eles verificam como Schema 3, versão `catalog-v3-2026.10.17.3`, com 48 jogos, 121 contextos e 242 rotas. iOS usa `BundledCatalogRepository`; Android lê `catalog-base.json`. Não há cliente de catálogo HTTP.
+  2. O estado implementado de Histórico, lembrete pré-partida, widgets, seleção regional, resultado/detalhes iOS, navegação iOS, Home e Native Ads foi atualizado para **implementado localmente** apenas onde o fonte correspondente existe. Nenhum desses estados equivale a simulador, aparelho, beta ou produção.
+  3. `worker/src/index.js` retorna 404 para `/v1/catalog.json`, como exige a Decisão 99. Porém ele também declara rotas públicas para arte, visita, clique, relatório de teste e waitlist, além de tarefa agendada. Isso contradiz o contrato vigente que autoriza naquele Worker somente `GET /v1/load` e `POST /v1/telemetry`. O estado de deploy não foi consultado; o achado é estritamente do fonte.
+  4. O iOS ainda instancia `GeminiConnectionBoosterService`, que chama diretamente a API Gemini. A presença desse caminho contradiz a restrição vigente de não acrescentar serviço/SDK externo sem nova decisão; por isso as Decisões 23 e 45 ficam suspensas, não "implementadas" nem aprovadas.
+- **Validação executada nesta revisão:** `npm test` no Worker passou 60 testes, incluindo catálogo local, ausência de `/v1/catalog.json`, telemetria e as próprias rotas extras; `./gradlew :core:catalog:test :core:session:test` passou. Isso prova contratos locais, não deploy, aparelho, consentimento, acessibilidade ou distribuição.
+- **Decisão operacional:**
+  1. A Decisão 99 substitui de fato o catálogo HTTP da Decisão 14 e a parte de catálogo remoto da Decisão 71. O catálogo local assinado é o único estado de cliente que pode ser tratado como corrente.
+  2. As rotas extras e o caminho Gemini são achados de não conformidade, não autorização retroativa. Nenhuma pessoa deve ativá-los, depender deles em release ou ampliar seu escopo.
+  3. Antes de qualquer correção de Worker, Gemini, privacidade, telemetria ou persistência, abrir missão **Full flow sistêmica** e Architecture Plan de Camillo. Luiz decide se cada capacidade será removida ou receberá nova autorização explícita.
+- **Critérios de aceite desta reconciliação:** índice e texto não afirmam catálogo remoto, Gemini ou exclusividade de rotas que o fonte não sustenta; o registro preserva a diferença entre inspeção estática, testes, simulador, aparelho e distribuição; qualquer correção subsequente começa pelo gate arquitetural, sem mudança silenciosa de contrato.
 
 ## Como Registrar Novas Decisões
 
