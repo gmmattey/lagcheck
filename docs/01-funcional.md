@@ -496,7 +496,7 @@ Guardrails deste perfil:
 **Decisão registrada (2026-09-10):** a monetização do LagCheck segue um arco em três etapas, não um modelo único fixado desde já.
 
 1. **MVP1 — sem monetização.** Nenhuma biblioteca de anúncio, SDK de consentimento, unidade de anúncio, identificador publicitário ou preço entra no binário inicial. O objetivo do MVP1 é validar medição, catálogo e qualidade técnica, não receita.
-2. **MVP1.1 — anúncios como ponte.** Banner discreto em Home e Histórico (regras completas abaixo), suficiente para cobrir operação enquanto o produto ainda está provando conceito, sem exigir compromisso de compra do usuário.
+2. **MVP1.1 — anúncios como ponte.** Anúncios nativos em Home, Histórico, Jogos e Resultado no Android e iOS, conforme as Decisões 94 e 95.
 3. **MVP2 — assinatura anual como modelo principal.** A intenção é migrar a monetização primária de anúncios para uma assinatura anual, condicionada a recursos que ainda não existem no MVP1/MVP1.1. **O recurso (ou conjunto de recursos) que justifica o pagamento anual é uma decisão pendente** — listada em §14 — e precisa estar definida antes de o MVP2 entrar em escopo de arquitetura. Anúncios podem continuar coexistindo com a assinatura (ex.: removidos para assinantes) ou serem descontinuados; isso também é decisão do MVP2, não desta versão do documento.
 
 Nada neste arco compromete os princípios de §8 e §9: confiança do resultado, causa e recomendação nunca dependem do que o usuário paga.
@@ -507,9 +507,9 @@ Publicidade não faz parte do MVP1 e nenhuma biblioteca de anúncio, SDK de cons
 
 No MVP1.1, o LagCheck poderá ser monetizado com anúncios sem comprometer a confiança na medição ou atrasar a resposta que trouxe a pessoa ao app.
 
-Formato previsto para o MVP1.1: **banner discreto apenas na Home e no Histórico**. Não haverá anúncio em tela cheia, anúncio recompensado ou publicidade na tela de resultado.
+Formato vigente pelas Decisões 94 e 95: **AdMob Native Advanced em Home, Histórico, Jogos e Resultado** no Android e iOS, integrado ao fluxo de rolagem e identificado como publicidade. Não haverá anúncio em tela cheia nem anúncio recompensado.
 
-Rede de publicidade prevista para o MVP1.1: **Google AdMob**, sem mediação. O app usa somente banners adaptativos dessa rede.
+Rede de publicidade: **Google AdMob**, sem mediação. No Android, as unidades nativas substituem os banners adaptativos da Decisão 82; no iOS, são uma integração nova autorizada pela Decisão 95.
 
 Privacidade de publicidade prevista para o MVP1.1: o app usa o **Google User Messaging Platform (UMP)** para obter e gerenciar consentimento quando aplicável ao mercado, expõe "Opções de privacidade" quando necessário e não solicita App Tracking Transparency (ATT). Sem ATT, o app usa anúncios contextuais ou limitados conforme o estado de consentimento e as regras aplicáveis.
 
@@ -517,7 +517,7 @@ Regras do MVP1.1:
 
 - Nenhum anúncio é exibido durante o Quick Check ou o Deep Check.
 - Um anúncio nunca cobre latência ao vivo, estado do teste, resultado, causa de lag, recomendação ou ações de "Testar novamente", "Ver detalhes" e "Fazer Deep Check".
-- Anúncios só aparecem na Home e no Histórico, em área reservada e sem deslocar ou cobrir conteúdo essencial.
+- Em ambos os clientes, anúncios só aparecem em Home, Histórico, Jogos e Resultado, depois do conteúdo e das ações essenciais de cada tela. Sem anúncio carregado, não há bloco vazio nem rótulo isolado.
 - Publicidade não altera score, classificação, confiança, catálogo de jogos nem recomendação. A mesma medição produz o mesmo resultado com ou sem anúncio.
 - O app identifica conteúdos patrocinados de forma clara e não apresenta anúncio como sugestão técnica do LagCheck.
 - A experiência UMP de consentimento/privacidade é avaliada antes da inicialização do AdMob quando exigida pelo mercado. Ela preserva as regras acima e está disponível em PT-BR e inglês quando for exibida ao usuário.

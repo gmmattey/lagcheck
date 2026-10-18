@@ -18,6 +18,13 @@ settings:
     DEVELOPMENT_TEAM: 2Z4T8228GR
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "2"
+packages:
+  GoogleMobileAds:
+    url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
+    exactVersion: 13.11.0
+  GoogleUserMessagingPlatform:
+    url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git
+    exactVersion: 3.1.0
 targets:
   NolaggyDesign:
     type: framework
@@ -73,6 +80,10 @@ targets:
       - target: NolaggyInfrastructure
       - target: LagCheckWidget
       - target: LagCheckClip
+      - package: GoogleMobileAds
+        product: GoogleMobileAds
+      - package: GoogleUserMessagingPlatform
+        product: GoogleUserMessagingPlatform
       - sdk: AppIntents.framework
       - sdk: StoreKit.framework
       - sdk: WidgetKit.framework
@@ -105,6 +116,24 @@ targets:
         INFOPLIST_KEY_NolaggyPrivacyPolicyURL: "$(LAGCHECK_PRIVACY_POLICY_URL)"
         PRIVACY_MANIFEST_FILE: Sources/NolaggyApp/Resources/PrivacyInfo.xcprivacy
         CODE_SIGN_ENTITLEMENTS: Sources/NolaggyApp/Nolaggy.entitlements
+        LAGCHECK_ADS_ENABLED: YES
+      configs:
+        Debug:
+          LAGCHECK_ADMOB_APP_ID: ca-app-pub-3940256099942544~1458002511
+        Release:
+          LAGCHECK_ADMOB_APP_ID: ca-app-pub-5542349230926522~8215990145
+    preBuildScripts:
+      - name: Validate iOS AdMob configuration
+        script: |
+          set -eu
+          test "$CONFIGURATION" != Release || {
+            test "$LAGCHECK_ADMOB_APP_ID" = 'ca-app-pub-5542349230926522~8215990145'
+            test "$LAGCHECK_ADS_ENABLED" = YES -o "$LAGCHECK_ADS_ENABLED" = NO
+            for unit in 4055030074 4883886853 2936380361 7813302529; do
+              grep -Fq "ca-app-pub-5542349230926522/$unit" "$SRCROOT/Sources/NolaggyApp/Ads/NativeAdSlot.swift"
+            done
+          }
+          test "$CONFIGURATION" != Debug || test "$LAGCHECK_ADMOB_APP_ID" = 'ca-app-pub-3940256099942544~1458002511'
     info:
       path: Sources/NolaggyApp/Info.plist
       properties:

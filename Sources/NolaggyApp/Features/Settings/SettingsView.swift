@@ -22,6 +22,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
+    @ObservedObject private var adConsent = IOSAdConsent.shared
 
     @State private var showingLanguageSheet: Bool = false
     @State private var showingDeleteSheet: Bool = false
@@ -276,6 +277,12 @@ struct SettingsView: View {
                         settingsRowButton(title: LocalizedStringKey("settings.about.privacy")) {
                             if let url = URL(string: "https://buildea.com/lagcheck/privacy") {
                                 openURL(url)
+                            }
+                        }
+
+                        if adConsent.privacyOptionsRequired {
+                            settingsRowButton(title: LocalizedStringKey("settings.ads.privacy_options"), identifier: "settings-ad-privacy-options") {
+                                Task { await adConsent.showPrivacyOptions() }
                             }
                         }
 

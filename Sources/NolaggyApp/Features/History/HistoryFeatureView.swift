@@ -54,6 +54,8 @@ struct HistoryView: View {
                     emptyStateView
                         .padding(.horizontal, NLSpacing.md)
                         .padding(.top, 40)
+                    NativeAdSlot(placement: .history)
+                        .padding(.horizontal, NLSpacing.md)
                 } else {
                     ritualWindowPicker
                         .padding(.horizontal, NLSpacing.md)
@@ -62,6 +64,9 @@ struct HistoryView: View {
                     VStack(spacing: 24) {
                         ForEach(groupedGames, id: \.gameID) { group in
                             gameGroupSection(group: group)
+                            if group.gameID == groupedGames.first?.gameID {
+                                NativeAdSlot(placement: .history)
+                            }
                         }
 
                         Text(LocalizedStringKey("history.device_storage_note"))

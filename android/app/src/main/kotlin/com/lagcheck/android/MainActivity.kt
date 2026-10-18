@@ -160,20 +160,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Anúncios (Decisão 82): só Home e Histórico, nunca durante um check, nunca sem consentimento.
+            // Decisão 94: Native Advanced no fluxo das quatro telas, somente após UMP.
             val canRequestAds by ads.canRequestAds.collectAsState()
             val privacyOptionsRequired by ads.privacyOptionsRequired.collectAsState()
             androidx.compose.runtime.LaunchedEffect(currentScreen is Screen.Home) {
                 if (currentScreen is Screen.Home) ads.start()
             }
-            val showBanner = com.lagcheck.session.ads.AdPolicy.shouldShowBanner(
+            val adPlacement = when (currentScreen) {
+                is Screen.Home -> com.lagcheck.session.ads.AdPlacement.HOME
+                is Screen.History -> com.lagcheck.session.ads.AdPlacement.HISTORY
+                is Screen.GameSelection -> com.lagcheck.session.ads.AdPlacement.GAMES
+                is Screen.Verdict -> com.lagcheck.session.ads.AdPlacement.RESULT
+                else -> null
+            }
+            val showNativeAd = com.lagcheck.session.ads.AdPolicy.shouldShowNative(
                 com.lagcheck.session.ads.AdContext(
                     enabled = ads.enabled,
-                    placement = when (currentScreen) {
-                        is Screen.Home -> com.lagcheck.session.ads.AdPlacement.HOME
-                        is Screen.History -> com.lagcheck.session.ads.AdPlacement.HISTORY
-                        else -> null
-                    },
+                    placement = adPlacement,
                     canRequestAds = canRequestAds,
                     measuring = currentScreen is Screen.Measurement || currentScreen is Screen.RegionalSelection ||
                         currentScreen is Screen.ConnectionRequired
@@ -194,8 +197,6 @@ class MainActivity : ComponentActivity() {
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
                     if (isHomeOrGames) {
-                        Column {
-                        if (showBanner) com.lagcheck.android.ads.BannerAdSlot()
                         NavigationBar(
                             containerColor = LagCheckColors.Surface.copy(alpha = 0.9f)
                         ) {
@@ -241,7 +242,6 @@ class MainActivity : ComponentActivity() {
                                 colors = tabColors
                             )
                         }
-                        }
                     }
                 }
             ) { innerPadding ->
@@ -279,7 +279,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenNetworkCockpit = {
                                 viewModel.navigateTo(Screen.NetworkCockpit)
-                            }
+                            },
+                            showNativeAd = showNativeAd
                         )
                     }
 
@@ -306,7 +307,8 @@ class MainActivity : ComponentActivity() {
                                     drawableResName = ""
                                 )
                                 viewModel.startCheck(generalGame, "Mobile", "")
-                            }
+                            },
+                            showNativeAd = showNativeAd
                         )
                     }
 
@@ -364,7 +366,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onClose = {
                                 viewModel.navigateTo(Screen.Home)
-                            }
+                            },
+                            showNativeAd = showNativeAd
                         )
                     }
 
@@ -406,7 +409,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onGoToHome = {
                                 viewModel.navigateTo(Screen.Home)
-                            }
+                            },
+                            showNativeAd = showNativeAd
                         )
                     }
 

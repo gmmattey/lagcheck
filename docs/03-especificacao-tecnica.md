@@ -16,8 +16,8 @@
 | Catálogo & Telemetria | Cloudflare Worker gratuito; catálogo `/v1/catalog.json`, carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
 | Assinatura | Ed25519; somente a chave pública vai no app. |
 | Histórico | SwiftData local; 90 dias e máximo de 100 medições por jogo, organizado por títulos e vereditos. |
-| Publicidade | Fora do MVP1; AdMob, UMP e banners ficam para MVP1.1. |
-| Privacidade | Sem SDKs de terceiros (Firebase, Mixpanel, Ads). Telemetria mínima anônima via Worker próprio sem PII/IP. |
+| Publicidade | AdMob Native Advanced e UMP nos dois clientes, conforme Decisões 82, 94 e 95; iOS Debug com IDs de teste e Release com IDs de produção. |
+| Privacidade | Telemetria mínima anônima via Worker próprio sem PII/IP; publicidade usa AdMob/UMP isolados no app, com consentimento e declarações próprias. |
 | Idiomas | PT-BR, inglês e espanhol. |
 
 Android passou a ser alvo oficial pelas Decisões 67–69; o contrato do port está em [Arquitetura Android](./08-arquitetura-android.md). Esta especificação detalha a implementação iOS. Não entram no MVP1: conta, sincronização em nuvem, VPN/otimização de rota, banco de dados remoto, analytics de terceiros, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e assistentes de IA no fluxo principal.
@@ -575,9 +575,11 @@ O iOS constrói `lagcheck://check?game={gameID}`; Android recebe o mesmo `gameID
 
 ## 9. Privacidade e publicidade planejada
 
-No MVP1 não há publicidade e, portanto, não há SDK Google Mobile Ads, UMP, ATT motivado por anúncios, `AdProvider`, ID de unidade, banner ou fluxo de consentimento publicitário. A privacidade do MVP1 se limita aos dados locais e ao catálogo assinado previstos neste documento.
+**Estado vigente (Decisões 82, 94 e 95):** Android e iOS usam AdMob e UMP para anúncios Native Advanced em Home, Histórico, Jogos e Resultado. O gate `canRequestAds` e a chave de build condicionam requisições; não há anúncios durante a medição. No iOS, Debug usa IDs de teste e Release configura os IDs de produção do app iOS. Nenhuma amostra, score, causa, região ou resultado é enviado ao SDK de publicidade.
 
-Publicidade só volta a escopo no MVP1.1, mediante decisão técnica e de produto que especifique consentimento, opções de privacidade, superfícies elegíveis, comportamento em falha e validação de release. Essa evolução não poderá receber amostras, score, causa, região ou resultado.
+O cliente iOS passa a integrar Google Mobile Ads e UMP somente na camada do app completo. Widget, App Clip, domínio, aplicação, infraestrutura de medição e telemetria de produto não recebem SDK, ID ou dados de anúncio. A decisão sobre ATT e as declarações App Privacy seguem o comportamento real do SDK e precisam de revisão antes de distribuição; nenhuma solicitação ATT é presumida nesta implementação.
+
+As Decisões 82, 94 e 95 estabelecem consentimento, opções de privacidade, superfícies elegíveis, comportamento em falha e validação de release. A integração publicitária não pode receber amostras, score, causa, região ou resultado.
 
 ## 10. Estados e erros
 

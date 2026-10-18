@@ -1364,6 +1364,8 @@ struct HomeCatalogView: View {
                     .accessibilityIdentifier("start-game-deep-check")
                 }
 
+                NativeAdSlot(placement: .games)
+
                 Spacer(minLength: NLSpacing.xl)
             }
             .padding(.horizontal, NLSpacing.md)

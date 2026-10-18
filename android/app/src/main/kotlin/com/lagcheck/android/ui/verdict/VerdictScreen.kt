@@ -92,8 +92,10 @@ fun VerdictScreen(
     onRetry: () -> Unit,
     onDetails: () -> Unit,
     onClose: () -> Unit,
+    showNativeAd: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.RESULT) else null
     val context = LocalContext.current
     var showShareMedia by remember { mutableStateOf(false) }
     var shareNetwork by remember { mutableStateOf<SocialNetwork?>(null) }
@@ -450,6 +452,12 @@ fun VerdictScreen(
             }
         }
 
+        if (nativeAd != null) {
+            com.lagcheck.android.ads.NativeAdSlot(
+                nativeAd,
+                Modifier.padding(top = 32.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
     }
 

@@ -66,8 +66,10 @@ fun HistoryScreen(
     onSelectCheck: (CheckHistoryItem) -> Unit,
     onClearHistory: () -> Unit,
     onGoToHome: () -> Unit,
+    showNativeAd: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.HISTORY) else null
     val context = LocalContext.current
     var showConfirmDeleteSheet by remember { mutableStateOf(false) }
     var selectedRitualWindow by remember { mutableStateOf(14) }
@@ -166,6 +168,14 @@ fun HistoryScreen(
                         }
                     }
                 }
+                if (nativeAd != null) {
+                    item(key = "native_ad_empty") {
+                        com.lagcheck.android.ads.NativeAdSlot(
+                            nativeAd,
+                            Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                }
             } else {
                 item(key = "ritual_window") {
                     RitualWindowPicker(selectedWindow = selectedRitualWindow, onSelected = { selectedRitualWindow = it })
@@ -192,6 +202,15 @@ fun HistoryScreen(
                                 Text(text = label, fontSize = 12.sp, color = LagCheckColors.TextMuted)
                             }
                         }
+                    }
+                }
+
+                if (nativeAd != null) {
+                    item(key = "native_ad") {
+                        com.lagcheck.android.ads.NativeAdSlot(
+                            nativeAd,
+                            Modifier.padding(top = 16.dp, bottom = 6.dp)
+                        )
                     }
                 }
 

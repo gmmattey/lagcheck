@@ -64,7 +64,7 @@ Debug serve para descobrir e corrigir problemas enquanto o trabalho está aconte
 
 - Instalação é feita pelo Xcode diretamente em um iPhone autorizado para desenvolvimento.
 - O esquema Debug usa assinatura de desenvolvimento e, se necessário, um bundle identifier próprio de desenvolvimento para coexistir com a versão TestFlight/produção. Essa separação será definida quando o projeto Xcode for criado.
-- Endpoints de teste, dados simulados e chaves de desenvolvimento ficam isolados da configuração de release. O iOS MVP1 não contém SDK, ID ou configuração de anúncio. Android segue a exceção da Decisão 82: nenhum release com anúncios avança enquanto consentimento, IDs, privacy/Data safety e validação física pendentes não tiverem evidência registrada.
+- Endpoints de teste, dados simulados e chaves de desenvolvimento ficam isolados da configuração de release. Pelas Decisões 94 e 95, Android e iOS usam AdMob/UMP; o iOS Debug usa IDs de teste e o Release usa IDs próprios de produção. Nenhum release com anúncios avança enquanto consentimento, IDs, privacidade, declarações de loja e validação física pendentes não tiverem evidência registrada.
 - Em iPhone físico, Debug, TestFlight e Produção usam o mesmo transporte real de medição aprovado para o catálogo vigente. `Noop` e fixtures existem somente no simulador ou em testes Debug explicitamente acionados; um binário Release nunca pode substituir UDP, observação de caminho ou carga do Deep por uma leitura sintética.
 - Debug pode usar catálogo-base e fixtures para reprodução. Quando usar o catálogo remoto, a tela deve indicar claramente o ambiente e não pode alterar catálogo de produção.
 - Não há distribuição de IPA, link público ou instalação em aparelho de cliente por esse canal.
@@ -79,7 +79,7 @@ Antes de gerar o primeiro archive de um item, Rian confirma:
 2. testes unitários e de contrato aplicáveis passaram;
 3. o fluxo foi exercitado em aparelho físico da plataforma afetada quando depende de rede, ciclo de vida ou permissões;
 4. estados de erro, cancelamento e inconclusivo estão acessíveis e compreensíveis;
-5. nenhum segredo, endpoint interno ou mock será empacotado como release; a exceção Android de AdMob/UMP só é permitida sob os gates pendentes da Decisão 82.
+5. nenhum segredo, endpoint interno ou mock será empacotado como release; AdMob/UMP em Android e iOS seguem os gates de privacidade e validação das Decisões 82, 94 e 95.
 6. quando o escopo tocar widget, a arte e o deep link foram exercitados na plataforma correspondente, com catálogo/arte local válidos, expiração e fallback neutro; uma captura iOS não substitui prova Android, nem o contrário.
 
 ## 5. TestFlight — beta controlada
@@ -160,7 +160,7 @@ Antes de submeter para App Review, Giam confirma a prontidão interna:
 1. versão e build finais registrados;
 2. build correto selecionado no App Store Connect;
 3. metadados, descrição, suporte, política de privacidade, classificação etária, países e screenshots revisados;
-4. informações de privacidade coerentes com o binário, sem declarar publicidade inexistente no MVP1;
+4. informações de privacidade coerentes com o binário e com o uso real de AdMob/UMP nas duas plataformas;
 5. credenciais, instruções e contato de App Review disponíveis se forem necessários;
 6. plano de suporte e resposta a problema crítico definido;
 7. autorização explícita do dono do produto para a submissão.

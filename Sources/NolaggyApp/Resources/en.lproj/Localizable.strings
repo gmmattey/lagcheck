@@ -737,6 +737,8 @@
 "settings.about.version" = "Version";
 "settings.about.terms" = "Terms of Use";
 "settings.about.privacy" = "Privacy Policy";
+"settings.ads.privacy_options" = "Ad privacy options";
+"ads.label" = "Ad";
 "settings.about.licenses" = "Open Source Licenses";
 "settings.support.title" = "Support";
 "settings.support.feedback" = "Send feedback";

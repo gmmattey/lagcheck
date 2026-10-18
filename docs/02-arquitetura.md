@@ -6,7 +6,7 @@
 
 > **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo remoto e a telemetria mínima anônima de retenção são servidos por um Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
 > A App Store pode distribuir o app globalmente, mas o catálogo com suporte oficial do MVP começa em Brasil e Estados Unidos.
-> AdMob, UMP e banners não entram no MVP1. A monetização por anúncios é recorte de MVP1.1 e só poderá introduzir biblioteca, IDs, consentimento e gates próprios nessa etapa.
+> O plano original do MVP1 não incluía publicidade. As Decisões 82, 94 e 95 autorizam AdMob/UMP e unidades Native Advanced em Home, Histórico, Jogos e Resultado nos dois clientes, mantendo medição e domínio isolados.
 > **Atualização Decisões 50 e 55:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`, além de motores dedicados de integridade diagnóstica: `SampleQualityEvaluator`, `LoadImpactEvaluator` multidimensional (`deep-load-impact-v2`), `EvidenceRecommendationEngine` e probe isolado de gateway local (`en0`) para estrita separação entre instabilidade doméstica e rota externa. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
 
 ## 1. Objetivo arquitetural
@@ -238,7 +238,9 @@ Enquanto não houver domínio próprio, o Worker usa uma URL `workers.dev` gratu
 
 ### 5.4 Publicidade no MVP1.1
 
-O MVP1 não contém publicidade: não há AdMob, UMP, banner, consentimento de anúncios, IDs de unidade ou espaço reservado na interface. A eventual entrada no MVP1.1 será uma decisão separada, com contrato de privacidade, revisão de design e gates de release próprios; jamais poderá interferir em medição, score, resultado ou histórico.
+**Estado vigente:** a Decisão 94 substitui o banner Android da Decisão 82 por anúncios nativos em Home, Histórico, Jogos e Resultado; a Decisão 95 estende essas quatro superfícies ao iOS. O SDK fica na camada de app, condicionado a UMP e à política de posicionamento; domínio, medição e telemetria não recebem dados de anúncio.
+
+O plano inicial do cliente iOS não continha publicidade. A entrada agora autorizada pela Decisão 95 exige contrato de privacidade, revisão de design e gates de release próprios; jamais poderá interferir em medição, score, veredito ou histórico.
 
 ## 6. Contratos arquiteturais
 

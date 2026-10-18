@@ -311,6 +311,9 @@ extension QuickCheckFeatureView {
                     .frame(maxWidth: .infinity)
                     .padding(.top, 18)
                     .padding(.bottom, NLSpacing.xl)
+
+                    NativeAdSlot(placement: .home)
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                 }
             }
         }

@@ -85,7 +85,7 @@
 | [80](#decisão-80) | Protótipo Android canônico (One UI) e remoção da seleção de dispositivo no Android | **Vigente (Em implementação)** | `design-system/prototypes/android-reference/` é a referência visual do Android; o aparelho é sempre o celular, sem escolha de plataforma. iOS inalterado | Marco / Renan / Rian / Breno / Luiz |
 | [90](#decisão-90) | Referência regional global por proximidade medida | **Vigente (Em implementação)** | Refina as Decisões 16, 78 e 89: sem fixação em São Paulo | Marco / Iury / Rian / Camillo / Breno / Luiz |
 | [81](#decisão-81) | Compartilhamento do resultado no Android: cartões e vídeo gerados no aparelho | **Vigente (Em implementação)** | Porte do gerador do site (cartões 1200×630 e 1080×1920 e vídeo 9:16 de 14 s) com a identidade do LagCheck; só números medidos; sem rede | Marco / Rian / Renan / Breno / Luiz |
-| [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Vigente (Implementado, ligado)** | Banner adaptativo, UMP, sem ATT; flag `lagcheck.adsEnabled` verdadeira por padrão; IDs de teste do Google até haver IDs reais | Marco / Rian / Iury / Breno / Luiz |
+| [82](#decisão-82) | Anúncios no Android (AdMob, banner só em Home e Histórico), desligados no beta | **Refinada** | Decisão 94 amplia formato e superfícies; UMP e chave de build permanecem | Marco / Rian / Iury / Breno / Luiz |
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
@@ -95,7 +95,9 @@
 | [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (assinatura e publicação pendentes)** | Refina a Decisão 70: os 26 jogos preparados entram com referência AWS regional, nunca como rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
 | [91](#decisão-91) | Ícone do app modernizado (glifo com profundidade) em iOS e Android | **Vigente (Implementado localmente; validação em simulador, emulador e launchers pendente)** | Substitui o ícone chapado; iOS com Dark e Tinted, Android adaptativo dentro da zona segura de 66 dp com monocromático | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [92](#decisão-92) | Wordmark com o símbolo modernizado e mono refeito a partir do primary | **Vigente (Implementado localmente; validação visual pendente)** | Revisa o item 5 da Decisão 91: primary, mono claro/escuro e PNGs de app passam a usar o mesmo símbolo e as mesmas letras | Luiz / Giam / Renan / Rian / Breno |
-| [93](#decisão-93) | AGENTS.md alinhado ao estado real de anúncios e arte de jogo | **Vigente (Documentação)** | Android com AdMob (Decisão 82) e arte editorial autoral do catálogo (Decisões 18, 44, 71 e 88); iOS segue sem anúncios | Luiz / Giam |
+| [93](#decisão-93) | AGENTS.md alinhado ao estado real de anúncios e arte de jogo | **Refinada** | Estado publicitário atualizado pelas Decisões 94 e 95; arte editorial autoral permanece | Luiz / Giam |
+| [94](#decisão-94) | Anúncios nativos no Android em Home, Histórico, Jogos e Resultado | **Vigente (Implementado localmente; validação em aparelho pendente)** | Refina a Decisão 82: substitui banners adaptativos por Native Advanced nas quatro superfícies; recorte Android | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [95](#decisão-95) | AdMob Native Advanced também no iOS, com IDs de produção do app iOS | **Vigente (Implementado localmente; validação no Mac/iPhone pendente)** | Amplia a Decisão 94 ao iOS; Debug com IDs de teste, Release com App ID e quatro unidades iOS reais; sem distribuição implícita | Luiz / Giam / Marco / Camillo / Renan / Rian / Breno |
 
 
 
@@ -921,6 +923,36 @@
   2. Anúncios: Android com banner AdMob em Home e Histórico (Decisão 82), hoje com IDs de teste; iOS sem anúncios até decisão própria.
 - **Confirmação do Luiz (16/10/2026):** toda a arte de jogo exibida no app é autoral. Não há pendência de arte de terceiros; o relato do Breno sobre a Home do Android Debug não é defeito.
 - **Critérios de validação e aceite:** `AGENTS.md` e `docs/DECISOES.md` sem contradição entre si.
+
+#### Decisão 94
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Anúncios nativos no Android em Home, Histórico, Jogos e Resultado.
+- **Status Atual:** **Vigente (implementado localmente; validação em aparelho pendente).** Refina a Decisão 82 somente no formato e nas superfícies Android.
+- **Frentes envolvidas:** Luiz (decisão de monetização e escopo), Giam (aceite), Marco (coordenação), Renan (experiência), Rian (Android) e Breno (validação).
+- **Contexto e problema:** Luiz relatou que os banners atuais têm apresentação ruim e pediu sua substituição por anúncios nativos. Confirmou explicitamente a inclusão de Jogos e Resultado. A captura do AdMob mostra quatro unidades Native Advanced configuradas; ela não comprova integração, entrega de campanhas ou funcionamento no app.
+- **Decisão:**
+  1. No Android, substituir os banners adaptativos por unidades Native Advanced específicas de Home, Histórico, Jogos e Resultado. Não exibir anúncio em Check, Detalhes ou Configurações. A extensão posterior ao iOS está na Decisão 95.
+  2. O anúncio deve ser identificado inequivocamente como publicidade, manter os elementos e ações exigidos pelo SDK, ser acessível e não imitar veredito, recomendação técnica ou conteúdo editorial do LagCheck.
+  3. No Resultado, o veredito, a explicação e as ações essenciais têm prioridade visual e de interação. Anúncios nunca cobrem, atrasam ou interrompem medição, score, resultado ou histórico.
+  4. Preservar a chave `lagcheck.adsEnabled`, o gate UMP/`canRequestAds`, a ausência de requisição/espaço quando desligado e a separação da telemetria de produto. Sem mediação, novo SDK ou serviço pago.
+  5. Luiz escolheu manter IDs de teste nesta implementação. IDs reais serão configurados por unidade e pelo app Android em etapa posterior; a correspondência dos IDs da captura com o app Android e a configuração de privacidade/loja precisam ser conferidas antes de distribuição.
+- **Critérios de validação e aceite:** unidade correta em cada tela; sem anúncio durante Check nem em superfícies excluídas; carregamento/falha/navegação sem bloquear conteúdo; identificação publicitária e TalkBack em PT-BR e inglês; veredito e ações do Resultado acessíveis antes do anúncio; testes de política/build e validação visual em emulador e aparelho Android. Publicação e campanhas não fazem parte desta decisão.
+
+#### Decisão 95
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** AdMob Native Advanced também no iOS, com IDs de produção do app iOS.
+- **Status Atual:** **Vigente (implementado localmente; validação no Mac/iPhone pendente).** Amplia ao iOS o formato e as quatro superfícies da Decisão 94. QA estática de Breno e revisão arquitetural de Camillo concluídas por inspeção; Giam mantém aceite funcional e distribuição não validados.
+- **Frentes envolvidas:** Luiz (decisão de monetização), Giam (aceite), Marco (coordenação), Camillo (gate de SDK/privacidade), Renan (experiência), Rian (iOS) e Breno (QA).
+- **Contexto e problema:** após autorizar Native Advanced no Android, Luiz pediu a mesma publicidade no iOS com IDs de produção. Na conta AdMob aberta, o app `LagCheck: Teste de Ping Gamer Gratuito | iOS` tem App ID `ca-app-pub-5542349230926522~8215990145`, associado ao App Store ID `6818706960`, e quatro unidades Native Advanced: Home `/4055030074`, Histórico `/4883886853`, Jogos `/2936380361` e Resultado `/7813302529`, todas sob `ca-app-pub-5542349230926522`. A página informa verificação do app não confirmada e aprovação que requer revisão; a existência das unidades não comprova veiculação.
+- **Decisão:**
+  1. Integrar AdMob Native Advanced e UMP somente no app iOS completo, em Home, Histórico, Jogos e Resultado. Widget, App Clip, Check, Detalhes e Configurações não carregam ou exibem anúncios.
+  2. Configuração Debug usa exclusivamente App ID e unidade nativa de teste do Google; configuração Release usa o App ID e as quatro unidades de produção iOS confirmadas acima. Nenhum teste local gera impressões reais. Ausência ou placeholder em Release falha no build.
+  3. O consentimento UMP é consultado a cada abertura; anúncios só são inicializados e solicitados quando `canRequestAds` permite. Opções de privacidade aparecem nas Configurações quando requeridas. Sem autorização, falha de carga ou flag de anúncios desligada, não há requisição nem espaço reservado.
+  4. O anúncio é identificado como publicidade, mantém AdChoices e assets/CTA do SDK, é acessível em PT-BR e inglês e não imita recomendação ou veredito. No Resultado, aparece depois do veredito, métricas, explicação e ações essenciais. Nunca interfere na medição, score, histórico ou telemetria de produto.
+  5. Esta decisão autoriza implementação local e configuração de IDs de produção. Não autoriza upload, TestFlight, App Store, publicação web ou alteração externa no AdMob.
+- **Critérios de validação e aceite:** build e teste iOS; inspeção de Debug e Release para os IDs corretos; ausência total de anúncio quando desligado ou sem `canRequestAds`; funcionamento em iPhone físico de consentimento regional, carga/falha, AdChoices, CTA, VoiceOver, Dynamic Type, navegação e retorno do background; atualização de privacidade, App Privacy e mensagens públicas antes da distribuição. Sem essa evidência, o release permanece não validado.
 
 ## Como Registrar Novas Decisões
 

@@ -11,24 +11,27 @@ class AdPolicyTest {
         measuring: Boolean = false
     ) = AdContext(enabled, placement, canRequestAds, measuring)
 
-    @Test fun `mostra na Home e no Historico com tudo liberado`() {
-        assertThat(AdPolicy.shouldShowBanner(ctx(placement = AdPlacement.HOME))).isTrue()
-        assertThat(AdPolicy.shouldShowBanner(ctx(placement = AdPlacement.HISTORY))).isTrue()
+    @Test fun `mostra nas quatro superficies com tudo liberado`() {
+        AdPlacement.entries.forEach { placement ->
+            assertThat(AdPolicy.shouldShowNative(ctx(placement = placement))).isTrue()
+        }
     }
 
-    @Test fun `desligado no beta nunca mostra`() {
-        assertThat(AdPolicy.shouldShowBanner(ctx(enabled = false))).isFalse()
+    @Test fun `desligado nunca mostra`() {
+        assertThat(AdPolicy.shouldShowNative(ctx(enabled = false))).isFalse()
     }
 
-    @Test fun `fora de Home e Historico nunca mostra`() {
-        assertThat(AdPolicy.shouldShowBanner(ctx(placement = null))).isFalse()
+    @Test fun `fora das quatro superficies nunca mostra`() {
+        assertThat(AdPolicy.shouldShowNative(ctx(placement = null))).isFalse()
     }
 
     @Test fun `sem consentimento nao mostra`() {
-        assertThat(AdPolicy.shouldShowBanner(ctx(canRequestAds = false))).isFalse()
+        assertThat(AdPolicy.shouldShowNative(ctx(canRequestAds = false))).isFalse()
     }
 
     @Test fun `durante a medicao nao mostra`() {
-        assertThat(AdPolicy.shouldShowBanner(ctx(measuring = true))).isFalse()
+        AdPlacement.entries.forEach { placement ->
+            assertThat(AdPolicy.shouldShowNative(ctx(placement = placement, measuring = true))).isFalse()
+        }
     }
 }

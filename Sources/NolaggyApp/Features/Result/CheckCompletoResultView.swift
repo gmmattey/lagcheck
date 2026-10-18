@@ -233,6 +233,7 @@ public struct CheckCompletoResultView: View {
 
                 // Ações do Resultado
                 actionsSection(evaluation: evaluation)
+                NativeAdSlot(placement: .result)
             }
             .padding(.horizontal, NLSpacing.md)
             .padding(.bottom, NLSpacing.xl)

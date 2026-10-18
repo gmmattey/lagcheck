@@ -146,6 +146,8 @@ extension QuickCheckFeatureView {
                     }
                 }
                 .padding(.top, NLSpacing.xs)
+
+                NativeAdSlot(placement: .result)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
             .padding(.vertical, NLSpacing.lg)

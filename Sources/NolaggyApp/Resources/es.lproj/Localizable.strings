@@ -730,6 +730,8 @@
 "settings.about.version" = "Versión";
 "settings.about.terms" = "Términos de uso";
 "settings.about.privacy" = "Política de privacidad";
+"settings.ads.privacy_options" = "Opciones de privacidad de anuncios";
+"ads.label" = "Anuncio";
 "settings.about.licenses" = "Licencias de código abierto";
 "settings.support.title" = "Soporte";
 "settings.support.feedback" = "Enviar comentarios";
