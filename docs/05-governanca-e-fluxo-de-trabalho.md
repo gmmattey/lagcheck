@@ -19,7 +19,7 @@ O objetivo não é criar burocracia. É evitar três erros caros: prometer preci
 | Marco | Capitão da Oficina, Estratégia e Orquestração | Recebe o Cartão de Missão do Giam, organiza a fila e prioridades, protege a mesa limpa, coordena as frentes na pista certa e devolve consolidado ao Giam | Aceite final de produto, mudança de marca ou promessa pública sem aprovação do dono do produto |
 | Renan | Design de Produto & Visual QA | Design system **Dark Competitive UI**, jornada direta, estados, acessibilidade, assets e QA visual em iOS/Android | Regras de veredito/score, escopo funcional ou arquitetura de medição |
 | Rian | Mobile Application Engineer | Composição e entrega do app em SwiftUI e Kotlin/Compose, ciclo de vida, persistência local e integrações de UI | Semântica das métricas, calibração de veredito ou alteração de jornada |
-| Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica, paridade de rede iOS/Android e Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
+| Iury | Qualidade de Rede & Borda | Métricas, `GameReadinessVerdict`, calibração por perfil, integridade diagnóstica, paridade de rede iOS/Android, catálogo local e Worker (`/v1/load`, `/v1/telemetry`) | UI, jornada, aquisição de usuários ou atalhos técnicos fora da medição |
 | Breno | QA, Reliability & Caça-Bugs | Validação independente, suites de testes, análise estática, regressão e validação em hardware físico iOS/Android | Aprovação de escopo de produto ou dispensa de testes obrigatórios |
 | Camillo | Arquitetura Transversal | Principal Engineer Buildea, conduz o Gate Arquitetural Obrigatório em APIs, persistência, contratos, segurança e motor UDP nos dois clientes | Não altera código rotineiro nem decide escopo funcional de produto |
 | Nico | Growth & Store Creative | Evidência de loja, ASO, criativos, claims e prontidão de distribuição Apple/Google | Publicar, alterar preço, privacidade, Data safety ou campanhas sem autorização explícita de Luiz |
@@ -86,7 +86,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - O modelo de prontidão `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`) é o contrato semântico principal entregue à UI.
 - Há uma única sessão de medição ativa. O `MeasurementSessionCoordinator` é a autoridade para iniciar, cancelar, invalidar e concluir uma sessão.
 - Mudança relevante de rede, ida para background, cancelamento explícito ou dados insuficientes encerra a sessão. Resultado parcial não entra no histórico.
-- Catálogo remoto só é usado depois de validar assinatura Ed25519, schema, datas e regras de negócio. Tela alguma interpreta JSON remoto diretamente.
+- Catálogo local só é usado depois de validar assinatura Ed25519, schema, datas e regras de negócio. Tela alguma interpreta o envelope diretamente.
 - A navegação é simplificada para 2 abas (`Início | Jogos`). Histórico e Ajustes são acessados contextualmente.
 - SwiftData guarda o histórico estruturado por jogos e vereditos de prontidão.
 - Implementa cliente de telemetria anônima enxuto apontando para `POST /v1/telemetry` no Cloudflare Worker existente.
@@ -106,7 +106,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - Regras e perfis de jogo são determinísticos e versionados. Mudança de threshold cria nova versão de regra e preserva compatibilidade do histórico.
 - **Integridade Diagnóstica (Decisão 50):** É proibido presumir gateway `.1` em probes locais; tempo de envio na porta 53 sem resposta não é RTT; e RTT/jitter da rota remota (WAN) nunca deve ser repassado ao `WiFiBandEvaluator` para tentar deduzir 2.4 vs 5 GHz.
 - O relatório de rede reporta sintomas objetivos no bloco **"O que encontramos"**, sem culpar nós de terceiros sem isolamento comprovado.
-- Responsável pelos contratos e schemas do Cloudflare Worker (`/v1/catalog.json`, `/v1/load`, `/v1/telemetry`), mantendo o custo recorrente zero.
+- Responsável pelo schema do catálogo local e pelos contratos do Cloudflare Worker (`/v1/load`, `/v1/telemetry`), mantendo o custo recorrente zero.
 
 ### 5.4 QA & Confiabilidade — Breno (em conjunto com Renan em UI)
 

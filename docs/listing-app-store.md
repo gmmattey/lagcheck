@@ -29,43 +29,39 @@ Documento canônico contendo todos os metadados, regras de preenchimento e instr
 LagCheck: Rota Gamer
 ```
 
-### Subtítulo (22 / 30 car.)
+### Subtítulo (23 / 30 car.)
 ```text
-Sua conexão tá pronta?
+Conexão antes da ranked
 ```
 
-### Palavras-chave / Keywords (85 / 100 car.)
+### Palavras-chave / Keywords (95 / 100 car.)
 > **Regra:** Separadas apenas por vírgula, sem espaços, sem palavras do Nome/Subtítulo.
 ```text
-latência,jitter,perda,bufferbloat,wifi,rede,conexão,teste,online,estabilidade,partida
+ping,lag,latência,jitter,perda,pacotes,bufferbloat,wifi,internet,rede,estabilidade,teste,online
 ```
 
-### Texto Promocional (151 / 170 car.)
+### Texto Promocional (100 / 170 car.)
 ```text
-Veja como a rota está antes da partida: latência, jitter e perda em uma infraestrutura de referência. Sem nota inventada quando faltam dados.
+Vai puxar uma ranked? Confira latência, jitter e perda na rota até uma infraestrutura de referência.
 ```
 
 ### Descrição Completa (pt-BR)
 ```text
-Sua internet pode ter 500 Mega para baixar filmes, mas oscilar e travar no meio da trocação de tiro na ranked. O LagCheck responde em poucos segundos a única pergunta que importa: sua rota está pronta para jogar agora?
+Vai puxar uma ranked? Veja a leitura da sua conexão antes de entrar na fila.
 
-Velocidade de download não ganha jogo. O que define a sua partida online é a estabilidade dos pacotes UDP: latência média (ping), variação de milissegundos (jitter) e pacotes descartados pelo caminho (packet loss).
+O LagCheck mede a rota do seu iPhone até uma infraestrutura de referência. Em poucos segundos, mostra latência, jitter e perda de pacotes — os sinais observados nesta medição.
 
-O LagCheck mede a rota do seu iPhone até uma infraestrutura de referência. Não é o ping oficial de um jogo; para console ou PC, a leitura é uma estimativa da conexão no mesmo ambiente. Nada de ping de navegador via HTTP ou notas inventadas.
+Não é o ping oficial de um jogo. Para console ou PC, o resultado é uma estimativa da conexão no mesmo ambiente.
 
-POR QUE O LAGCHECK É DIFERENTE?
-• Veredito Direto: Sem gráficos confusos ou textão na hora da partida. Você recebe um veredito claro e instantâneo: "Pronto para Ranked", "Evitaria Ranked Agora" ou "Condições Instáveis".
-• Teste de Rota Real sob Carga: Mede o repouso e simula o tráfego concorrente da sua casa para identificar bufferbloat (quando o ping explode se alguém abre um vídeo na rede).
-• Leitura para o Squad: Gere em 1 toque um card com a leitura daquela sessão para Discord e WhatsApp.
-• Diagnóstico Honesto: Mostra sintomas observados sem prometer milagres ou acusar Wi-Fi, operadora ou servidor sem evidência isolada.
-• Modo Console e PC: Meça a rota pelo iPhone e estime o comportamento para seu videogame ou computador no mesmo cômodo.
+COMO O CHECK AJUDA
+• Veredito direto: veja se a condição observada está pronta, instável ou se é melhor evitar ranked agora.
+• Rota sob carga: compare a leitura em repouso e sob carga para entender se a conexão piora quando a rede é disputada.
+• Detalhes sem chute: veja métricas e sintomas observados, sem culpar Wi-Fi, operadora ou servidor sem evidência isolada.
+• Card para o squad: compartilhe a leitura da sessão pelo compartilhamento do iPhone.
 
-TRANSPARÊNCIA TOTAL
-• Zero anúncios invasivos bloqueando seu teste.
-• Sem cadastro ou login. A telemetria mínima de produto é pseudônima e não inclui nome, e-mail, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização.
-• Medição determinística: se a rede estiver instável demais para garantir precisão, o resultado é inconclusivo — nunca uma nota enganosa.
+Se faltarem respostas UDP válidas, o LagCheck mostra “inconclusivo” em vez de inventar uma nota ou uma recomendação.
 
-Antes de dar ready na fila competitiva, faça o LagCheck.
+Sem conta nem login. Antes de entrar na fila, faça um Check.
 ```
 
 ---
@@ -133,7 +129,7 @@ Before you queue for competitive matches, run LagCheck.
 
 Rascunho a conferir no build de distribuição antes de preencher o App Store Connect:
 
-- **Dados coletados:** `User ID` pseudônimo por instalação e `Product Interaction` (evento de produto; jogo, plataforma e classe de veredito quando aplicáveis), ambos para **Analytics**, não vinculados à identidade e sem tracking.
-- **Não enviados no payload:** nome, e-mail, telefone, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização.
-- **Transporte:** o app não envia IP no payload; metadados de rede necessários à entrega e proteção da solicitação podem ser processados pela infraestrutura.
-- **Rastreamento:** não. A declaração no Console deve refletir também qualquer SDK presente no arquivo distribuído.
+- **Dados próprios do LagCheck:** `User ID` pseudônimo por instalação e `Product Interaction` (evento de produto; jogo, plataforma e classe de veredito quando aplicáveis), ambos para **Analytics**, não vinculados à identidade e sem tracking pelo LagCheck.
+- **Não enviados no payload próprio:** nome, e-mail, telefone, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização.
+- **Google Mobile Ads/UMP:** o SDK pode processar dados técnicos e publicitários próprios. Antes de distribuir o archive, preencher o App Privacy com a matriz vigente do Google para a versão do SDK, a configuração real de consentimento e qualquer recurso opcional ativado; a declaração pré-SDK acima não pode ser reutilizada como declaração total do app.
+- **Transporte:** o payload próprio do LagCheck não envia IP; metadados de rede necessários à entrega e proteção podem ser processados pela infraestrutura e pelo SDK de publicidade conforme suas políticas.

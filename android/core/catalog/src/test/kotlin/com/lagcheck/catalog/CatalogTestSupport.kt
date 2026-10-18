@@ -8,17 +8,17 @@ import java.time.Instant
 import java.util.Base64
 
 internal object CatalogTestSupport {
-    /** Instante dentro da janela de validade do catálogo v3 publicado (2026-09-19 → 2026-10-19). */
-    val NOW: Instant = Instant.parse("2026-10-03T12:00:00Z")
+    /** Instante dentro da janela de validade do catálogo local v3. */
+    val NOW: Instant = Instant.parse("2026-10-17T12:00:00Z")
 
     fun realEnvelopeBytes(): ByteArray {
         var dir: File? = File(System.getProperty("user.dir")).absoluteFile
         while (dir != null) {
-            val f = File(dir, "worker/catalog/catalog-v3.envelope.json")
+            val f = File(dir, "android/app/src/main/assets/catalog-base.json")
             if (f.exists()) return f.readBytes()
             dir = dir.parentFile
         }
-        error("catalog-v3.envelope.json não encontrado")
+        error("catalog-base.json local não encontrado")
     }
 
     fun newKeyPair(): KeyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()

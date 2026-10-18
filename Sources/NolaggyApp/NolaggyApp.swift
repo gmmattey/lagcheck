@@ -11,7 +11,7 @@ struct NolaggyApp: App {
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
-    private let catalogRepository: RemoteCatalogRepository
+    private let catalogRepository: BundledCatalogRepository
     private let analyticsTracker: any AnalyticsTracker
     @State private var catalogState: CatalogState
     @Environment(\.scenePhase) private var scenePhase
@@ -35,15 +35,11 @@ struct NolaggyApp: App {
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
         analyticsTracker = CloudflareWorkerAnalyticsTracker()
         let base = DebugCatalogBase.envelopeData() ?? Data()
-        catalogRepository = RemoteCatalogRepository(
-            baseEnvelopeData: base,
-            fetcher: URLSessionRemoteCatalogFetcher(url: URL(string: "https://nolaggy-deep-check.buildealabs.workers.dev/v1/catalog.json")!),
-            cache: UserDefaultsRemoteCatalogCache()
-        )
+        catalogRepository = BundledCatalogRepository(envelopeData: base)
         if (UITestFixtures.isEnabled("-ui-fixture-confirmed-region") || UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")),
            let data = DebugCatalogBase.envelopeData(),
            let payload = try? RemoteCatalogVerifier.verifyAndDecode(envelopeData: data) {
-            _catalogState = State(initialValue: .ready(LoadedRemoteCatalog(payload: payload, source: .bundledBase)))
+            _catalogState = State(initialValue: .ready(payload))
         } else {
             _catalogState = State(initialValue: .loading)
         }
@@ -73,17 +69,14 @@ struct NolaggyApp: App {
             }
             .environment(\.locale, currentLocale)
             .task { IOSAdConsent.shared.updateForLaunchOrForeground() }
-            .onChange(of: scenePhase) { _, phase in
+            .onChange(of: scenePhase, initial: false) { _, phase in
                 if phase == .active { IOSAdConsent.shared.updateForLaunchOrForeground() }
             }
             .task {
                 // A fixture mantém o mesmo catálogo assinado e a mesma jornada da
-                // aplicação, mas não permite que o refresh remoto recompose a Home
-                // durante uma prova determinística de ciclo de vida em UI test.
+                // aplicação durante uma prova determinística de ciclo de vida em UI test.
                 guard !UITestFixtures.isEnabled("-ui-fixture-confirmed-region"),
                       !UITestFixtures.isEnabled("-ui-fixture-inconclusive-history") else { return }
-                await loadCatalogForHome()
-                await catalogRepository.refreshIfDue()
                 await loadCatalogForHome()
             }
         }
@@ -92,12 +85,12 @@ struct NolaggyApp: App {
     @MainActor
     private func loadCatalogForHome() async {
         do {
-            let loaded = try await catalogRepository.loadedCatalogForLaunch()
-            catalogState = .ready(loaded)
+            let payload = try catalogRepository.load()
+            catalogState = .ready(payload)
             
             // Indexa jogos no CoreSpotlight em background não-bloqueante (Decisão 76)
             let coordinator = SpotlightIndexCoordinator(indexer: AppleCoreSpotlightIndexer())
-            await coordinator.indexCatalogGames(games: loaded.payload.games)
+            await coordinator.indexCatalogGames(games: payload.games)
         } catch {
             // Sem base válida não existe descoberta nem sessão; a Home segue
             // navegável e a feature apresenta indisponibilidade explícita.
@@ -124,17 +117,16 @@ final class ReminderAppDelegate: NSObject, UIApplicationDelegate, UNUserNotifica
 
 private enum CatalogState {
     case loading
-    case ready(LoadedRemoteCatalog)
+    case ready(RemoteCatalogPayload)
     case unavailable
 
     var payload: RemoteCatalogPayload? {
-        guard case let .ready(loaded) = self else { return nil }
-        return loaded.payload
+        guard case let .ready(payload) = self else { return nil }
+        return payload
     }
 
     var usesBundledBase: Bool {
-        guard case let .ready(loaded) = self else { return false }
-        return loaded.source == .bundledBase
+        false
     }
 }
 

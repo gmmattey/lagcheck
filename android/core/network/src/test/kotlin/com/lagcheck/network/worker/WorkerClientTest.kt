@@ -1,18 +1,12 @@
 package com.lagcheck.network.worker
 
 import com.google.common.truth.Truth.assertThat
-import com.lagcheck.catalog.CatalogSource
-import com.lagcheck.catalog.RemoteCatalogRepository
-import com.lagcheck.catalog.StoredCatalog
-import com.lagcheck.catalog.CatalogCache
 import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
-import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Test
-import org.junit.Assert.assertThrows
 
 class WorkerClientTest {
     private val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
@@ -34,21 +28,6 @@ class WorkerClientTest {
     @Test fun defaultTelemetryEndpointUsesTheActiveWorkerHost() {
         assertThat(WorkerEndpoints().telemetryUrl)
             .isEqualTo("https://nolaggy-deep-check.buildealabs.workers.dev/v1/telemetry")
-    }
-
-    @Test fun catalogFetchReturnsEnvelopeBytes() = runBlocking {
-        route("/v1/catalog.json", body = """{"a":1}""".toByteArray(), contentType = "application/json")
-        assertThat(HttpCatalogFetcher("$base/v1/catalog.json").fetchCatalog().toString(Charsets.UTF_8)).isEqualTo("""{"a":1}""")
-    }
-
-    @Test fun catalogFetchFailsOnHttpErrorSoTheCachedCatalogSurvives() {
-        route("/v1/catalog.json", status = 503, body = "x".toByteArray())
-        assertThrows(java.io.IOException::class.java) { runBlocking { HttpCatalogFetcher("$base/v1/catalog.json").fetchCatalog() } }
-    }
-
-    @Test fun catalogFetchRejectsOversizedBodies() {
-        route("/v1/catalog.json", body = ByteArray(5_000))
-        assertThrows(java.io.IOException::class.java) { runBlocking { HttpCatalogFetcher("$base/v1/catalog.json", maximumBytes = 1_000).fetchCatalog() } }
     }
 
     @Test fun loadStopsAtTheByteCap() = runBlocking {
@@ -111,26 +90,4 @@ class WorkerClientTest {
         assertThat(TelemetryClient("http://127.0.0.1:1/v1/telemetry").send("123e4567-e89b-42d3-a456-426614174000", TelemetryEvent.APP_OPEN)).isFalse()
     }
 
-    @Test fun catalogRefreshEndToEndThroughHttpAndRealSignatureCheck() = runBlocking {
-        val real = java.io.File(findWorkerCatalog()).readBytes()
-        route("/v1/catalog.json", body = real, contentType = "application/json")
-        val cache = object : CatalogCache {
-            var saved: StoredCatalog? = null
-            override suspend fun load() = saved
-            override suspend fun save(catalog: StoredCatalog) { saved = catalog }
-        }
-        val repo = RemoteCatalogRepository(real, HttpCatalogFetcher("$base/v1/catalog.json"), cache, { Instant.parse("2026-10-20T00:00:00Z") })
-        assertThat(repo.refreshIfDue()).isTrue()
-        assertThat(repo.loadedCatalogForLaunch().source).isEqualTo(CatalogSource.CACHED_REMOTE)
-    }
-
-    private fun findWorkerCatalog(): String {
-        var dir: java.io.File? = java.io.File(System.getProperty("user.dir")).absoluteFile
-        while (dir != null) {
-            val f = java.io.File(dir, "worker/catalog/catalog-v3.envelope.json")
-            if (f.exists()) return f.path
-            dir = dir.parentFile
-        }
-        error("envelope não encontrado")
-    }
 }

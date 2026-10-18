@@ -250,7 +250,11 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(LagCheckColors.Background)
                         .padding(innerPadding)
-                        .safeDrawingPadding()
+                        // Só a Home compõe a arte sob a status bar. Os demais fluxos
+                        // preservam os insets de segurança existentes.
+                        .then(
+                            if (currentScreen is Screen.Home) Modifier else Modifier.safeDrawingPadding()
+                        )
                 ) {
                 AnimatedContent(
                     targetState = currentScreen,
@@ -297,7 +301,7 @@ class MainActivity : ComponentActivity() {
                             onGameSelected = { game ->
                                 viewModel.chooseGame(game)
                                 gamesOpenedFromHome = false
-                                viewModel.navigateTo(Screen.Home)
+                                viewModel.startCheck()
                             },
                             onStartGeneralCheck = {
                                 val generalGame = OfficialGameCatalog.findById("fortnite").copy(

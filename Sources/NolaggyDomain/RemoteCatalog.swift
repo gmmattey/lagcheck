@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 
-/// Contrato verificável do catálogo remoto de Debug. A assinatura incide sobre
+/// Contrato verificável do catálogo local de Debug. A assinatura incide sobre
 /// os bytes decodificados de `payloadBase64`, nunca sobre a serialização do
 /// envelope JSON.
 public struct SignedCatalogEnvelope: Codable, Equatable, Sendable {

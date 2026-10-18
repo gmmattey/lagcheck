@@ -39,7 +39,7 @@ struct RegionalSelectionFeatureView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .onChange(of: presentation) { _, next in
+        .onChange(of: presentation, initial: false) { _, next in
             guard next != .confirming else { return }
             retryInProgress = false
         }

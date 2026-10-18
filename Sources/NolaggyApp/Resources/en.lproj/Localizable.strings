@@ -740,6 +740,8 @@
 "settings.ads.privacy_options" = "Ad privacy options";
 "ads.label" = "Ad";
 "settings.about.licenses" = "Open Source Licenses";
+"settings.ads.privacy_options" = "Ad privacy options";
+"ads.label" = "Ad";
 "settings.support.title" = "Support";
 "settings.support.feedback" = "Send feedback";
 "settings.support.rate" = "Rate LagCheck";

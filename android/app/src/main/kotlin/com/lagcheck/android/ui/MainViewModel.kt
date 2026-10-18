@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.lagcheck.android.data.CheckHistoryItem
-import com.lagcheck.android.data.FileCatalogCache
 import com.lagcheck.android.data.HistoryRepository
 import com.lagcheck.android.data.NetworkPathWatcher
 import com.lagcheck.android.data.PreferencesRepository
@@ -12,7 +11,7 @@ import com.lagcheck.android.data.PrefsInstallationIdStore
 import com.lagcheck.android.widget.WidgetSnapshotStore
 import com.lagcheck.android.data.toAppLanguage
 import com.lagcheck.catalog.CatalogPayload
-import com.lagcheck.catalog.RemoteCatalogRepository
+import com.lagcheck.catalog.RemoteCatalogVerifier
 import com.lagcheck.core.telemetry.radio.AndroidRadioTelemetryProvider
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.FavoriteGames
@@ -25,7 +24,6 @@ import com.lagcheck.domain.presentation.ReadinessPresenter
 import com.lagcheck.network.health.PlatformHealth
 import com.lagcheck.network.health.PlatformHealthClient
 import com.lagcheck.network.transport.UdpProbeTransport
-import com.lagcheck.network.worker.HttpCatalogFetcher
 import com.lagcheck.network.worker.HttpLoadTransport
 import com.lagcheck.session.CheckEnvironment
 import com.lagcheck.session.CheckOrchestrator
@@ -114,12 +112,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
 
-    // Catálogo assinado: base embarcada no APK + atualização diária. Só sai daqui payload já verificado.
-    private val catalogRepository = RemoteCatalogRepository(
-        baseEnvelope = application.assets.open("catalog-base.json").use { it.readBytes() },
-        fetcher = HttpCatalogFetcher(),
-        cache = FileCatalogCache(application)
-    )
+    // Catálogo assinado e local: o mesmo envelope acompanha cada APK e é a única
+    // fonte de jogos, regiões e rotas. Não há atualização HTTP nem cache remoto.
+    private val bundledCatalogEnvelope = application.assets.open("catalog-base.json").use { it.readBytes() }
     @Volatile
     private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val _catalogPayload = MutableStateFlow<CatalogPayload?>(null)
@@ -232,14 +227,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         refreshRadioTelemetry()
         refreshPlatformHealth()
         telemetry.appOpen()
-        // Atualização diária em segundo plano (fora da thread principal: verifica assinatura). Falha mantém o catálogo
-        // que já era válido e nunca bloqueia a Home. Se chegou um catálogo novo, relê: uma base expirada não pode
-        // deixar o app sem medir até reiniciar.
+        // Valida a fonte local fora da thread principal. Ela nunca é substituída
+        // por uma resposta remota que poderia remover referências globais.
         viewModelScope.launch(Dispatchers.IO) {
-            publishCatalog(currentCatalog())
-            if (runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)) {
-                catalog = async { loadCatalog() }
-            }
             publishCatalog(currentCatalog())
             val savedRegion = preferencesRepository.manualRegionId.value
             if (savedRegion != null && savedRegion != "automatic" &&
@@ -267,16 +257,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (_selectedPlatform.value != routePlatform) _selectedPlatform.value = routePlatform
     }
 
-    /** Catálogo vigente. Sem nenhum válido, tenta uma atualização na hora antes de desistir (nunca inventa destino). */
-    private suspend fun currentCatalog(): CatalogPayload? {
-        catalog.await()?.let { return it }
-        val refreshed = runCatching { catalogRepository.refreshIfDue() }.getOrDefault(false)
-        return if (refreshed) loadCatalog().also { catalog = viewModelScope.async { it } } else null
-    }
+    /** Catálogo vigente. Se o envelope local não validar, não mede nem inventa destino. */
+    private suspend fun currentCatalog(): CatalogPayload? = catalog.await()
 
-    /** Catálogo base/cache validado, ou nulo se nenhum for válido (ex.: base expirada sem rede). Nulo = não mede. */
+    /** Catálogo local validado, ou nulo se o envelope embarcado for inválido. Nulo = não mede. */
     private suspend fun loadCatalog(): CatalogPayload? =
-        runCatching { catalogRepository.loadedCatalogForLaunch().payload }.getOrNull()
+        runCatching { RemoteCatalogVerifier.verifyAndDecode(bundledCatalogEnvelope) }.getOrNull()
 
     fun navigateTo(screen: Screen) {
         reviewPromptJob?.cancel()

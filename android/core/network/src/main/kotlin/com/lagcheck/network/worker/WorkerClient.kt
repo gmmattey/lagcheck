@@ -1,6 +1,5 @@
 package com.lagcheck.network.worker
 
-import com.lagcheck.catalog.CatalogFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -15,38 +14,6 @@ import java.net.URL
 sealed class LoadOutcome {
     data class Completed(val bytesTransferred: Long) : LoadOutcome()
     data object Unavailable : LoadOutcome()
-}
-
-/** `GET /v1/catalog.json`: só bytes do envelope. Quem valida assinatura e regras é o `RemoteCatalogVerifier`. */
-class HttpCatalogFetcher(
-    private val url: String = WorkerEndpoints().catalogUrl,
-    private val maximumBytes: Int = 256 * 1024
-) : CatalogFetcher {
-    override suspend fun fetchCatalog(): ByteArray = withContext(Dispatchers.IO) {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            useCaches = false
-            setRequestProperty("Cache-Control", "no-cache")
-            connectTimeout = 5_000
-            readTimeout = 8_000
-        }
-        try {
-            if (connection.responseCode !in 200..299) throw IOException("catalog http ${connection.responseCode}")
-            connection.inputStream.use { input ->
-                val out = java.io.ByteArrayOutputStream()
-                val buffer = ByteArray(8 * 1024)
-                while (true) {
-                    val n = input.read(buffer)
-                    if (n < 0) break
-                    out.write(buffer, 0, n)
-                    if (out.size() > maximumBytes) throw IOException("catalog too large")
-                }
-                out.toByteArray()
-            }
-        } finally {
-            connection.disconnect()
-        }
-    }
 }
 
 /**

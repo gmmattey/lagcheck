@@ -1,6 +1,9 @@
 # LagCheck — ASO & Metadados da App Store (Fase 1 - P0)
 
-Este documento registra os metadados oficiais aprovados pela squad (Marco, Renan, Luiz) para submissão na App Store Connect, em estrita aderência ao `AGENTS.md` (sem prometer ping real de jogos específicos e sem infringir marcas registradas).
+> **Histórico.** Este registro preserva a proposta da Fase 1-P0 e não é a
+> fonte vigente de preenchimento do App Store Connect. Para o rascunho atual,
+> use [`listing-app-store.md`](./listing-app-store.md), que contém os campos
+> pt-BR revisados sem apresentar a leitura como ping real de jogo.
 
 ## Textos Principais
 - **Nome do App:** `LagCheck — Teste de Rede Gamer`

@@ -33,6 +33,10 @@
 	<string>$(LAGCHECK_ADMOB_APP_ID)</string>
 	<key>LagCheckAdsEnabled</key>
 	<string>$(LAGCHECK_ADS_ENABLED)</string>
+	<key>LagCheckPrivacyPolicyURL</key>
+	<string>$(LAGCHECK_PRIVACY_POLICY_URL)</string>
+	<key>LagCheckSupportURL</key>
+	<string>$(LAGCHECK_SUPPORT_URL)</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict><key>SKAdNetworkIdentifier</key><string>cstr6suwn9.skadnetwork</string></dict>

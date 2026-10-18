@@ -69,7 +69,7 @@ struct GameDetailView: View {
             guard !supportedPlatforms.contains(selectedPlatform) else { return }
             selectedPlatform = supportedPlatforms.first ?? .iphone
         }
-        .onChange(of: selectedPlatform) { _, platform in
+        .onChange(of: selectedPlatform, initial: false) { _, platform in
             analyticsTracker.track(.platformSelected(platform: platform.rawValue))
             if platform == .iphone {
                 selectedExternalLink = nil

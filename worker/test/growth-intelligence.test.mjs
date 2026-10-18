@@ -348,14 +348,14 @@ test("16. sendDailyReport preserva os 3 embeds diários mesmo se a IA falhar na 
 });
 
 // 17. Preservação das rotas de rede existentes
-test("17. handleRequest preserva /v1/load, /v1/catalog.json e /v1/telemetry", async () => {
+test("17. handleRequest preserva /v1/load e remove /v1/catalog.json", async () => {
   // /v1/load
   const loadRes = await handleRequest(new Request("https://test.com/v1/load"));
   assert.equal(loadRes.status, 200);
 
-  // /v1/catalog.json
+  // O catálogo é local nos clientes desde a Decisão 94.
   const catalogRes = await handleRequest(new Request("https://test.com/v1/catalog.json"));
-  assert.equal(catalogRes.status, 200);
+  assert.equal(catalogRes.status, 404);
 
   // /v1/click
   const clickRes = await handleRequest(new Request("https://test.com/v1/click", {

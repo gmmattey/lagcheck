@@ -1,7 +1,7 @@
 import Foundation
 
 /// Regra determinística para escolher uma referência regional antes da janela
-/// que produz score. O snapshot deve ser criado a partir de um catálogo remoto
+/// que produz score. O snapshot deve ser criado a partir de um catálogo local
 /// já verificado; esta regra não abre sockets, resolve DNS nem infere localização.
 public struct RegionalSelectionSnapshot: Equatable, Sendable {
     public let catalogVersion: String

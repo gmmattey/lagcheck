@@ -106,4 +106,4 @@ node web/validate.js
 ## 6. Conformidade e App Store Guidelines
 
 - **Suporte:** Página `/support/` com canal direto `suporte@signallq.com` e esclarecimentos técnicos.
-- **Privacidade:** Página `/privacy/` declarando armazenamento local via SwiftData, telemetria mínima e o uso de AdMob/UMP nas versões com publicidade para Android e iPhone. A publicação da página deve ser conferida antes de distribuir esses binários.
+- **Privacidade:** Página `/privacy/` declara armazenamento local via SwiftData, telemetria própria mínima e banners AdMob/UMP nos placements autorizados, com dados de publicidade descritos sem confundir com a telemetria do LagCheck.

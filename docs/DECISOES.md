@@ -101,6 +101,8 @@
 | [96](#decisão-96) | Anúncios nativos no Android em Home, Histórico, Jogos e Resultado | **Vigente (Implementado localmente; validação em aparelho pendente)** | Refina a Decisão 82: substitui banners adaptativos por Native Advanced nas quatro superfícies; recorte Android | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [97](#decisão-97) | AdMob Native Advanced também no iOS, com IDs de produção do app iOS | **Vigente (Implementado localmente; validação no Mac/iPhone pendente)** | Amplia a Decisão 96 ao iOS; Debug com IDs de teste, Release com App ID e quatro unidades iOS reais; sem distribuição implícita | Luiz / Giam / Marco / Camillo / Renan / Rian / Breno |
 | [98](#decisão-98) | Quatro destinos iOS e Resultado/compartilhamento pela referência Android | **Vigente (implementado localmente; validação física pendente)** | Resolve a divergência de integração: Início, Jogos, Histórico e Ajustes são destinos iOS de primeira classe; Resultado e card Link seguem o acabamento mais recente aprovado | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [99](#decisão-99) | Catálogo global local nos clientes | **Vigente (Implementação local)** | 48 jogos e referências AWS GameLift entram no build assinado; o Worker não distribui catálogo | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
+| [100](#decisão-100) | Home imersiva por jogo e remoção do chrome redundante | **Vigente (implementado localmente; validação física pendente)** | A Home começa na arte editorial do jogo e mantém a decisão de Check em primeiro plano | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -1014,6 +1016,30 @@
   4. A paridade é de ordem de leitura, profundidade e decisão; não autoriza copiar componentes Material, fatos de rádio Android, atribuição causal local, ping de servidor do jogo, QR ou URL de loja inexistente no iOS.
   5. Native Ads continuam regidos pelas Decisões 96 e 97: surgem somente nos destinos permitidos e nunca tomam precedência sobre veredito, métricas, ações essenciais, Check, Detalhes ou estado inconclusivo.
 - **Critérios de validação e aceite:** as quatro abas iOS são navegáveis; Resultado conclusivo apresenta veredito antes de prévia, telemetria, ações e anúncio; o inconclusivo não prepara/compartilha artefato nem exibe anúncio; o JPEG preserva dados e arte autorizados; PT-BR/inglês, Dynamic Type, VoiceOver e alvos de 44 pt passam em simulador e iPhone físico. Build, teste, simulador e aparelho físico permanecem provas distintas.
+
+#### Decisão 99
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Catálogo global local nos clientes.
+- **Status Atual:** **Vigente (Implementação local).** Substitui a distribuição remota do catálogo da Decisão 14, preservando a assinatura Ed25519 e o schema 3.
+- **Frentes envolvidas:** Luiz (decisão), Giam (aceite), Marco (produto), Camillo (gate), Iury (integridade de rede), Rian (clientes) e Breno (validação).
+- **Decisão:**
+  1. iOS e Android usam somente o mesmo envelope Ed25519 instalado no build, com 48 jogos e referências AWS GameLift globais autorizadas. O catálogo não é baixado, cacheado nem interpretado a partir do Worker.
+  2. A referência continua regional AWS, nunca servidor oficial de jogo. A seleção automática compara beacons locais por resposta UDP/P50 e regras determinísticas; São Paulo não é default geográfico.
+  3. O Worker não expõe `GET /v1/catalog.json`; `GET /v1/load` e `POST /v1/telemetry` são os únicos contratos autorizados.
+- **Critérios de validação e aceite:** recursos iOS/Android byte-idênticos; envelope válido com 48 jogos e referências globais; vetores de seleção preservados; nenhuma dependência HTTP/cache de catálogo; Worker retorna 404 para `/v1/catalog.json` e mantém carga/telemetria. Build e aparelho são prova posterior e separada.
+
+#### Decisão 100
+
+- **Data:** 17 de outubro de 2026.
+- **Título:** Home imersiva por jogo e remoção do chrome redundante.
+- **Status Atual:** **Vigente (implementado localmente; validação física pendente).** Refina a composição de Home sem alterar navegação, medição ou catálogo.
+- **Frentes envolvidas:** Luiz (autorização), Giam (aceite), Marco (orquestração), Renan (composição), Rian (clientes) e Breno (validação).
+- **Decisão:**
+  1. iOS e Android abrem a Home pela arte editorial autorizada do jogo, protegida por gradiente escuro para leitura do sistema e do conteúdo.
+  2. Wordmark e menu saem somente da Home; Histórico e Ajustes permanecem destinos primários. A ação `Trocar jogo` abre Jogos e o Check continua a única ação primária.
+  3. A implementação reutiliza somente a arte editorial aprovada ou fallback neutro. Não muda score, veredito, rádio, Worker, persistência, catálogo ou políticas de anúncio.
+- **Critérios de validação e aceite:** Home começa visualmente pela arte do jogo sem chrome vazio; status e CTA continuam legíveis; `Trocar jogo` e a pílula de rede funcionam; títulos localizados e escala de texto não truncam ações. Build, revisão visual e aparelho físico são evidências separadas.
 
 ## Como Registrar Novas Decisões
 

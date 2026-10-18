@@ -545,7 +545,7 @@ export const GAMES = [
       },
       {
         q: "O app é seguro?",
-        a: "Totalmente seguro, oficial na App Store e sem anúncios."
+        a: "Não exige conta para medir. O app pode exibir banners discretos identificados, sem interromper a medição."
       }
     ]
   },
@@ -677,7 +677,7 @@ export const GAMES = [
       },
       {
         q: "O app é gratuito?",
-        a: "Sim, 100% gratuito e sem publicidade."
+        a: "Sim, 100% gratuito. O app pode exibir banners discretos identificados, sem interromper a medição."
       }
     ]
   }
@@ -1950,7 +1950,7 @@ ${faqList.map(f => `          {
           Faça o check antes da sua próxima fila.
         </h2>
         <p style="font-size:17px;color:var(--text-secondary);margin-bottom:32px;line-height:1.5">
-          Baixe o Lagcheck gratuitamente na App Store para iPhone. Sem anúncios, sem cadastro e com veredito direto para o seu jogo.
+          Baixe o Lagcheck gratuitamente na App Store para iPhone. Com banners discretos, sem cadastro e com veredito direto para o seu jogo.
         </p>
 
         <a href="${APP_STORE_URL}" target="_blank" rel="noopener noreferrer" data-track-conversion="appstore" class="btn-primary" style="padding:16px 36px;font-size:17px" aria-label="Baixar na App Store">
@@ -2420,7 +2420,7 @@ function generatePrivacy() {
       Privacidade em Primeiro Lugar
     </h1>
     <p style="font-size:18px;color:var(--text-secondary);line-height:1.5;margin-bottom:44px">
-      O LagCheck funciona sem cadastro obrigatório. Abaixo explicamos quais dados técnicos podem ser usados pelo aplicativo e pelo site, incluindo como a publicidade funciona no Android.
+      O LagCheck funciona sem cadastro obrigatório. Abaixo explicamos quais dados técnicos podem ser usados pelo aplicativo e pelo site, incluindo como a publicidade funciona nas plataformas suportadas.
     </p>
 
     <div style="display:grid;gap:18px">
@@ -2441,14 +2441,14 @@ function generatePrivacy() {
       <article class="card">
         <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Telemetria Técnica e Minimização</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          Este site utiliza o Vercel Web Analytics para medir visitas, visualizações de páginas e origens de tráfego. O aplicativo pode enviar telemetria operacional mínima para acompanhar a estabilidade do produto sem exigir nome, e-mail ou telefone. Um clique não confirma uma instalação.
+          Este site utiliza o Vercel Web Analytics para medir visitas, visualizações de páginas e origens de tráfego. O aplicativo envia telemetria mínima de produto: um identificador aleatório por instalação e eventos de uso, podendo incluir jogo, plataforma e classe de veredito. O payload próprio do LagCheck não envia nome, e-mail, telefone, histórico de navegação, amostras brutas de rede, SSID, BSSID, IDFA ou localização. Esse identificador não é usado pelo LagCheck para publicidade nem rastreamento entre apps ou sites. Metadados de rede necessários para entregar e proteger uma solicitação podem ser processados pela infraestrutura; um clique não confirma uma instalação.
         </p>
       </article>
 
       <article class="card">
-        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Publicidade no Android</h2>
+        <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Publicidade no LagCheck</h2>
         <p style="font-size:15px;color:var(--text-secondary);line-height:1.6">
-          No Android, o LagCheck pode mostrar banners do Google AdMob somente em Início e Histórico. Eles nunca aparecem durante a medição, no resultado ou nos detalhes. Quando aplicável, o Google User Messaging Platform (UMP) apresenta e gerencia as opções de consentimento. A publicidade não recebe as amostras, o score, o veredito, o jogo ou a região medidos pelo LagCheck.
+          No iPhone e no Android, o LagCheck pode mostrar banners identificados do Google AdMob em Início, Histórico, Jogos e Resultado concluído válido. Eles nunca aparecem durante a medição, em resultado inconclusivo ou nos detalhes. Quando aplicável, o Google User Messaging Platform (UMP) apresenta e gerencia as opções de consentimento. O SDK do Google pode processar dados técnicos e publicitários, como endereço IP, identificadores do dispositivo, diagnóstico, desempenho e interação com anúncios, conforme a configuração e o consentimento aplicáveis. A publicidade não recebe as amostras, o score, o veredito, o jogo ou a região medidos pelo LagCheck.
         </p>
       </article>
 

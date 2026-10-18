@@ -68,7 +68,7 @@ Extrai do sistema operacional frequência, RSSI e velocidade de enlace sem invad
 ## 5. Integração com o Worker e custo zero
 
 Um único Cloudflare Worker (`nolaggy-deep-check`), sem endpoint novo (hosts iguais aos do iOS):
-- `GET /v1/catalog.json`: envelope Ed25519. Base embarcada em `assets/catalog-base.json` (idêntica ao envelope do Worker e à base do iOS, garantido por teste), atualização diária, cache em arquivo só após validação.
+- `assets/catalog-base.json`: envelope Ed25519 local, byte-idêntico à base do iOS, validado antes do uso. Não há atualização HTTP nem cache em arquivo.
 - `GET /v1/load`: carga de download, no máximo 10 MiB ou 15 s.
 - `POST /v1/telemetry`: funil anônimo `app_open`, `check_started`, `verdict_viewed`, `retest_started`. O Worker não aceita `android` nem `nintendo` em `platform`, então para celular o campo é omitido.
 

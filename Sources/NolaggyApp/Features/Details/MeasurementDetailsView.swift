@@ -187,3 +187,59 @@ struct MeasurementDetailsView: View {
     private func milliseconds(_ value: Double?) -> String { value.map { "\(Int($0.rounded())) ms" } ?? "—" }
     private func percentage(_ value: Double?) -> String { value.map { "\(Int($0.rounded()))%" } ?? "—" }
 }
+
+/// Gráfico estático de percentis usado pelo histórico quando a série bruta já
+/// não existe. Os pontos representam somente percentis observados, sem
+/// interpolar uma nova medição.
+private struct PercentileChartView: View {
+    let p50Rest: Double
+    let p95Rest: Double
+    let p50Load: Double
+    let p95Load: Double
+    let p99Load: Double
+    let hasSpike: Bool
+
+    var body: some View {
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
+            let maximum = max(100.0, max(p99Load, p95Rest) * 1.25)
+            let y: (Double) -> CGFloat = { value in
+                height * (1.0 - CGFloat(min(1.0, max(0.05, value / maximum))))
+            }
+
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(NLColor.borderStrong.opacity(0.35))
+                    .frame(width: width * 0.5)
+                    .offset(x: width * 0.5)
+
+                Path { path in
+                    for fraction in [0.25, 0.5, 0.75] {
+                        path.move(to: CGPoint(x: 0, y: height * fraction))
+                        path.addLine(to: CGPoint(x: width, y: height * fraction))
+                    }
+                }
+                .stroke(NLColor.borderStrong.opacity(0.5), lineWidth: 1)
+
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: y(p50Rest)))
+                    path.addLine(to: CGPoint(x: width * 0.25, y: y(p50Rest)))
+                    path.addLine(to: CGPoint(x: width * 0.45, y: y(p95Rest)))
+                    path.addLine(to: CGPoint(x: width * 0.55, y: y(p50Load)))
+                    path.addLine(to: CGPoint(x: width * 0.75, y: y(p99Load)))
+                    path.addLine(to: CGPoint(x: width * 0.88, y: y(p95Load)))
+                    path.addLine(to: CGPoint(x: width, y: y(p50Load)))
+                }
+                .stroke(NLColor.semanticReady, lineWidth: 2)
+
+                if hasSpike {
+                    Circle()
+                        .fill(NLColor.coralSolar)
+                        .frame(width: 7, height: 7)
+                        .position(x: width * 0.75, y: y(p99Load))
+                }
+            }
+        }
+    }
+}

@@ -134,11 +134,11 @@ Coberto na Seção 8. Reduzir Movimento é tratado como estado de primeira class
 
 - PT-BR e inglês são suportados desde a V1 em toda superfície do MVP1: estados de erro, resultado, detalhes, histórico e catálogo. Telas de consentimento e textos publicitários ficam para o MVP1.1, quando essa frente for aprovada e implementada.
 - Nenhuma regra de score, guardrail ou confiança muda por idioma — localização afeta apenas apresentação textual (Seção 9, arquitetura).
-- Todos os textos de causa/recomendação (Seção 7 da especificação técnica) são **chaves de mensagem localizáveis**, nunca texto livre vindo do catálogo remoto.
+- Todos os textos de causa/recomendação (Seção 7 da especificação técnica) são **chaves de mensagem localizáveis**, nunca texto livre vindo do catálogo.
 - Diretrizes de texto:
   - PT-BR e inglês devem caber nos mesmos componentes sem quebrar layout; strings de classificação e ação têm um teto informal de ~20 caracteres em inglês e ~24 em PT-BR (o inglês tende a ser mais curto — o design deve acomodar o PT-BR como caso mais exigente).
   - Números, unidades (`ms`, `%`) e formatos de data/hora seguem o `Locale` do sistema, não um formato fixo.
-  - Nomes de jogos e regiões vêm do catálogo remoto já traduzidos (`label: { "pt-BR": ..., "en": ... }`, ver especificação técnica Seção 4.3) e não são recompostos pelo app.
+  - Nomes de jogos e regiões vêm do catálogo local já traduzidos (`label: { "pt-BR": ..., "en": ... }`, ver especificação técnica Seção 4.3) e não são recompostos pelo app.
 
 ## 11. Publicidade e consentimento
 

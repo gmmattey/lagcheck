@@ -25,23 +25,9 @@ test("the load endpoint refuses other paths and methods", async () => {
   assert.equal(response.headers.get("allow"), "GET");
 });
 
-test("GET /v1/catalog.json returns the immutable signed v3 envelope", async () => {
+test("the Worker no longer serves the catalog", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
-  const envelope = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("cache-control"), "no-store");
-  assert.equal(envelope.schemaVersion, 3);
-  assert.equal(envelope.catalogVersion, "catalog-v3-2026.10.17.3");
-  assert.equal(envelope.algorithm, "Ed25519");
-  assert.ok(envelope.payloadBase64.length > 0);
-  assert.ok(envelope.signatureBase64.length > 0);
-});
-
-test("the catalog endpoint permits only GET", async () => {
-  const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json", { method: "POST" }));
-  assert.equal(response.status, 405);
-  assert.equal(response.headers.get("allow"), "GET");
+  assert.equal(response.status, 404);
 });
 
 test("artwork is served only through an allowlisted static-asset path", async () => {
@@ -88,9 +74,8 @@ test("canonical v3 references the approved editorial artwork manifest exactly", 
   }
 });
 
-test("the Debug catalog payload is signed by the public key embedded in iOS", async () => {
-  const response = await handleRequest(new Request("https://example.workers.dev/v1/catalog.json"));
-  const envelope = await response.json();
+test("the local Debug catalog payload is signed by the public key embedded in iOS", async () => {
+  const envelope = JSON.parse(await readFile(new URL("../../Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json", import.meta.url), "utf8"));
   const rawPublicKey = Buffer.from("oe/5VSQfhWcma+W6DdUzAESJpjgTrLtkXAcT0nEbDwo=", "base64");
   const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
   const publicKey = createPublicKey({ key: Buffer.concat([spkiPrefix, rawPublicKey]), format: "der", type: "spki" });

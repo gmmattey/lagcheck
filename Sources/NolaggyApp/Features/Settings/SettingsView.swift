@@ -329,7 +329,7 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingReminderTime) { reminderTimeSheet }
         .task { reminder = await PreMatchReminderStore.shared.revalidatePermission() }
-        .onChange(of: selectedLanguage) { _, _ in
+        .onChange(of: selectedLanguage, initial: false) { _, _ in
             if reminder.enabled { reminder = PreMatchReminderStore.shared.reschedule(hour: reminder.hour, minute: reminder.minute, language: AppLocalization.language) }
         }
     }

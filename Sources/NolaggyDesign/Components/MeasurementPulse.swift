@@ -92,7 +92,7 @@ public struct MeasurementPulse: View {
                 isPulsing = true
             }
         }
-        .onChange(of: reduceMotion) { _, isReduced in
+        .onChange(of: reduceMotion, initial: false) { _, isReduced in
             guard isReduced else { return }
             var transaction = Transaction()
             transaction.animation = nil

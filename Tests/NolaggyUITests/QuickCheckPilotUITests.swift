@@ -2,24 +2,20 @@ import XCTest
 
 final class DeepCheckJourneyUITests: XCTestCase {
     @MainActor
-    func testGamesOpenedFromHomeHasReturnButTabSelectionDoesNot() {
+    func testGameSelectionFromHomeStartsMeasurementWithoutConsoleSelection() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
 
-        // A entrada pela Home é uma continuação da decisão inicial; ela deve
-        // poder voltar sem transformar Jogos em uma pilha de navegação extra.
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 3))
-        app.buttons["home-decision-primary-action"].tap()
-        XCTAssertTrue(app.buttons["games-return-home"].waitForExistence(timeout: 2))
-        app.buttons["games-return-home"].tap()
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
-
-        // Pela tab bar, Jogos continua sendo destino principal e não mostra
-        // um retorno artificial para a Home.
-        app.buttons["Jogos"].tap()
+        // Trocar jogo é uma troca de contexto, não uma etapa extra: escolher o
+        // título inicia a medição sem voltar à Home ou abrir seletor de console.
+        XCTAssertTrue(app.buttons["home-shortcut-change-game"].waitForExistence(timeout: 3))
+        app.buttons["home-shortcut-change-game"].tap()
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 2))
-        XCTAssertFalse(app.buttons["games-return-home"].exists)
+        app.buttons["catalog-game-fortnite"].tap()
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
+        XCTAssertFalse(app.buttons["home-decision-primary-action"].exists)
     }
 
     @MainActor
@@ -33,7 +29,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["catalog-game-minecraft"].waitForExistence(timeout: 3))
         app.buttons["catalog-game-minecraft"].tap()
 
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -47,7 +43,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         let roblox = app.buttons["catalog-game-roblox"]
         XCTAssertTrue(roblox.waitForExistence(timeout: 3))
         roblox.tap()
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -62,7 +58,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         captureScreenshot(of: app, named: "deep-check-measuring")
         app.buttons["deep-check-back"].tap()
 
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["Excelente"].exists)
         XCTAssertFalse(app.staticTexts["Risco de lag"].exists)
     }
@@ -77,12 +73,12 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.buttons["Games"].tap()
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
         app.buttons["catalog-game-fortnite"].tap()
-        XCTAssertTrue(app.staticTexts["Where do you play?"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["start-game-deep-check"].exists)
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.staticTexts["Where do you play?"].exists)
     }
 
     @MainActor
-    func testGameDetailShowsEveryDeclaredPlatformFromTheSignedCatalog() {
+    func testGameSelectionDoesNotExposeAPlatformPicker() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launchWithSystemLanguage()
@@ -92,11 +88,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
         app.buttons["catalog-game-fortnite"].tap()
 
-        XCTAssertTrue(app.buttons["iPhone"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["PlayStation"].exists)
-        XCTAssertTrue(app.buttons["Xbox"].exists)
-        XCTAssertTrue(app.buttons["PC"].exists)
-        XCTAssertTrue(app.buttons["Switch"].exists)
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["platform-choice-iphone"].exists)
     }
 
     @MainActor
@@ -220,7 +213,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Uso de dados móveis"].waitForExistence(timeout: 3))
         app.buttons["cellular-consent-cancel"].tap()
 
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["check-completo-back"].exists)
         XCTAssertFalse(app.buttons["measurement-retry"].exists)
     }
@@ -396,7 +389,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         sleep(1)
         app.activate()
 
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["check-completo-score"].exists)
     }
 
@@ -425,7 +418,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
         }
 
         XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 4))
-        XCTAssertTrue(app.buttons["home-decision-history"].exists)
+        XCTAssertTrue(app.buttons["home-shortcut-change-game"].exists)
+        XCTAssertFalse(app.buttons["home-decision-history"].exists)
         captureScreenshot(of: app, named: "home-valid-result-hero")
     }
 
@@ -436,12 +430,13 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchWithSystemLanguage()
 
         XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 4))
-        XCTAssertTrue(app.buttons["home-decision-history"].exists)
+        XCTAssertTrue(app.buttons["home-shortcut-change-game"].exists)
+        XCTAssertFalse(app.buttons["home-decision-history"].exists)
         captureScreenshot(of: app, named: "home-inconclusive-hero")
     }
 
     @MainActor
-    func testHomeCTAOpensTheSelectedGameDetail() {
+    func testHomeCTASelectsGameAndStartsMeasurement() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
@@ -451,9 +446,9 @@ final class DeepCheckJourneyUITests: XCTestCase {
         startButton.tap()
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
         app.buttons["catalog-game-fortnite"].tap()
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Onde você joga?"].exists)
-        captureScreenshot(of: app, named: "home-game-detail-opened")
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
+        captureScreenshot(of: app, named: "home-game-measuring")
     }
 
     @MainActor
@@ -466,7 +461,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.buttons["Games"].tap()
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
         app.buttons["catalog-game-fortnite"].tap()
-        XCTAssertTrue(app.buttons["start-game-deep-check"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
 
         XCTAssertFalse(app.staticTexts["Metacritic"].exists)
         XCTAssertFalse(app.staticTexts["System requirements"].exists)
@@ -505,8 +500,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
         add(attachment)
     }
 
-    /// A Home abre o jogo, onde a pessoa confirma plataforma e inicia o
-    /// Deep Check. A pré-leitura regional é automática e não pede outro toque.
+    /// Selecionar ou trocar um jogo inicia o Deep Check direto. A pré-leitura
+    /// regional é automática e não pede console, plataforma ou outro toque.
     @MainActor
     private func startDeepCheck(_ app: XCUIApplication) {
         let start = app.buttons["home-cta-start-lagcheck"]
@@ -527,10 +522,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
             fortnite.tap()
         }
 
-        let deepCheck = app.buttons["start-game-deep-check"]
-        XCTAssertTrue(deepCheck.waitForExistence(timeout: 3))
-        XCTAssertTrue(deepCheck.isHittable)
-        deepCheck.tap()
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
     }
 }
 

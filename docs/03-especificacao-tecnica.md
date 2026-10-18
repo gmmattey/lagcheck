@@ -13,7 +13,7 @@
 | Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. Chamado simplesmente de **Check** na interface. |
 | Veredito Principal | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). Protagonista visual imediato. |
 | Score | Local, determinístico, de 0 a 100 (mantido para detalhes, histórico e telemetria). |
-| Catálogo & Telemetria | Cloudflare Worker gratuito; catálogo `/v1/catalog.json`, carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
+| Catálogo & Telemetria | Catálogo Ed25519 local no build; Worker gratuito somente para carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
 | Assinatura | Ed25519; somente a chave pública vai no app. |
 | Histórico | SwiftData local; 90 dias e máximo de 100 medições por jogo, organizado por títulos e vereditos. |
 | Publicidade | AdMob Native Advanced e UMP nos dois clientes, conforme Decisões 82, 94 e 95; iOS Debug com IDs de teste e Release com IDs de produção. |
@@ -119,21 +119,20 @@ enum ProbeOutcome: String, Codable { case received, timeout, transportError, inv
 
 `ProbeSample` é temporário durante uma sessão. O histórico persiste métricas agregadas e contexto; amostras brutas só são mantidas localmente enquanto forem necessárias para a tela de detalhes da medição atual.
 
-## 4. Catálogo remoto
+## 4. Catálogo local assinado
 
 ### 4.1 Rotas do Worker
 
 | Rota | Método | Uso | Cache |
 | --- | --- | --- | --- |
-| `/v1/catalog.json` | `GET` | Configuração assinada do produto. | Conforme versão/validade do catálogo. |
 | `/v1/load` | `GET` | Carga HTTP do Check (Wi-Fi e celular com consentimento). | `Cache-Control: no-store`; até 10 MB. |
 | `/v1/telemetry` | `POST` | Telemetria mínima e anônima de produto (retenção e retestes). | Sem cache; payload JSON enxuto sem PII/IP. |
 
-Enquanto não houver domínio próprio, essas rotas usam a URL `workers.dev` do Worker. A URL fica em configuração de build e pode ser trocada sem modificar os contratos de domínio.
+Enquanto não houver domínio próprio, essas rotas usam a URL `workers.dev` do Worker. A URL fica em configuração de build e pode ser trocada sem modificar os contratos de domínio. O catálogo não é uma rota de rede: ele acompanha o build e é validado localmente antes do uso.
 
 ### 4.2 Envelope assinado
 
-O endpoint entrega um envelope; a assinatura é feita sobre os bytes de `payloadBase64` decodificados, antes de qualquer parse do conteúdo. Isso evita depender de serialização JSON canônica no iPhone.
+O recurso local entrega um envelope; a assinatura é feita sobre os bytes de `payloadBase64` decodificados, antes de qualquer parse do conteúdo. Isso evita depender de serialização JSON canônica no iPhone.
 
 ```json
 {
@@ -153,9 +152,9 @@ Fluxo do cliente:
 2. Verificar Ed25519 com a chave pública embarcada.
 3. Recusar o documento se assinatura, versão de esquema, data ou parse falharem.
 4. Validar referências e regras de negócio do payload.
-5. Persistir somente a versão validada em cache local.
+5. Usar somente a versão validada presente no build.
 
-A chave privada fica fora do app e é usada exclusivamente no processo de publicação do Worker. Um rollback é uma nova publicação assinada com versão superior; o cliente nunca aceita alteração não assinada.
+A chave privada fica fora do app e é usada exclusivamente no processo de publicação do catálogo. Uma atualização exige novo envelope assinado e novo build; o cliente nunca aceita alteração não assinada.
 
 ### 4.3 Payload do catálogo
 
@@ -196,15 +195,13 @@ A chave privada fica fora do app e é usada exclusivamente no processo de public
 }
 ```
 
-O exemplo é o contrato do schema 2 para seleção regional: `candidateRegionIDs` e `candidatePriorities` exigem envelope/payload de schema 2 e a chave de prioridades precisa corresponder exatamente aos IDs candidatos. O Debug publicado de catálogo `debug-2026.09.08.2` permanece no schema 1, compatível por mapear seu único `primaryRegion` BR para candidato implícito de prioridade zero. Todos usam o beacon AWS de São Paulo exclusivamente como `genericRegion`, com confiança `medium`; nenhum contexto declara endpoint ou ping oficial do jogo. Um jogo só é exibido como testável quando o mercado, a plataforma, o perfil, ao menos uma região candidata e a estratégia são válidos. A decisão, fontes e mapa completo estão em [Catálogo remoto Debug](./DECISOES.md#decisão-14) e [Decisão de seleção regional automática](./DECISOES.md#decisão-16).
+O exemplo histórico ilustra o contrato do schema 2. O catálogo local vigente usa schema 3, contém 48 jogos e referências AWS GameLift globais para cada contexto testável. São referências regionais, nunca endpoints ou ping oficial de jogo. Um jogo só é exibido como testável quando mercado, plataforma, perfil, ao menos uma referência regional e estratégia são válidos. A decisão vigente é [Catálogo global local nos clientes](./DECISOES.md#decisão-94).
 
-### 4.4 Atualização e fallback
+### 4.4 Distribuição local e falha fechada
 
-- O app contém um catálogo-base assinado no bundle.
-- A consulta remota é tentada no máximo uma vez a cada 24 horas, sem bloquear a Home.
-- Uma versão remota válida pode ser usada por até 30 dias.
-- Passado esse período, o app volta ao catálogo-base.
-- Falha de Worker, HTTP, assinatura ou esquema não sobrescreve o último catálogo válido.
+- O app contém um único catálogo Ed25519 no bundle.
+- Não há consulta HTTP, atualização diária nem cache de catálogo.
+- Falha de assinatura, esquema, validade ou regra de negócio torna o catálogo indisponível e impede medição.
 
 ### 4.5 Mercado automático, seleção regional e assets remotos assinados
 
@@ -216,7 +213,7 @@ O schema 3 declara `assetBaseURL` e `artwork.path`/`sha256`. O cliente exige HTT
 
 O armazenamento usa duas políticas independentes:
 
-- catálogo: envelope validado, data de atualização e origem; consulta remota no máximo a cada 24 h e validade máxima de 30 dias;
+- catálogo: envelope local validado e versão registrada no resultado; uma atualização chega somente em novo build;
 - imagens: cache local por URL e revisão (versão de catálogo ou metadado assinado), revalidação após 24 h, fallback em falha e teto de 50 MiB por limpeza das entradas antigas.
 
 O carregamento de assets é oportunista. Falha, cache ausente ou pressão de armazenamento mostra placeholder neutro e permite continuar descoberta, seleção e medição. Um asset nunca é pré-requisito para score, região, rota, perfil ou início de sessão.
@@ -560,7 +557,6 @@ Modelos persistidos:
 
 | Modelo | Campos essenciais |
 | --- | --- |
-| `StoredCatalog` | versão, validade, envelope, data de atualização e origem base/remota. |
 | `GamePreference` | jogo, favorito, última plataforma e data de uso. |
 | `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v2.0`, `deep-load-impact-v2`, `sample-quality-v1`). |
 | `AppPreference` | idioma escolhido/sistema, estado de privacidade e configurações de apresentação. |
@@ -585,8 +581,7 @@ As Decisões 82, 94 e 95 estabelecem consentimento, opções de privacidade, sup
 
 | Situação | Estado técnico | UI esperada |
 | --- | --- | --- |
-| Catálogo indisponível, mas cache válido | `catalogFallback` | Continua com catálogo válido. |
-| Catálogo inválido sem fallback aplicável | `catalogUnavailable` | Explica que a configuração do jogo não está disponível. |
+| Catálogo local inválido ou vencido | `catalogUnavailable` | Explica que a configuração do jogo não está disponível. |
 | Mudança de rede (Wi-Fi ⇄ celular) | `cancelled(networkChanged)` | Cancela na hora, descarta parciais e oferece reinício na rede atual. |
 | Amostra de baixa qualidade (Watchdog) | `inconclusive(poorSampleQuality)` | Aborta precocemente; explica instabilidade extrema da conexão e sugere nova tentativa. |
 | Deep Check em rede celular | Confirmação prévia de dados | Apresenta modal/aviso de consumo (máx 10 MB); permite aceitar, Quick Check ou cancelar. |
@@ -620,8 +615,8 @@ As Decisões 82, 94 e 95 estabelecem consentimento, opções de privacidade, sup
 
 ## 12. Critérios para iniciar implementação
 
-- Catálogo Debug v2 com os oito jogos preenchidos para BR / iPhone; US permanece candidato futuro, sem contexto testável enquanto não houver envelope assinado específico.
+- Catálogo local v3 assinado, byte-idêntico em iOS e Android, com 48 jogos e referências AWS GameLift globais para os contextos testáveis.
 - Chave Ed25519 gerada e chave pública adicionada aos recursos do app.
-- Worker gratuito publicado com `/v1/catalog.json` e `/v1/load`.
+- Worker gratuito publicado com `/v1/load` e `/v1/telemetry`; catálogo Ed25519 local presente nos dois clientes.
 - Textos de causas, recomendações e erros disponíveis em PT-BR e inglês.
 - Tabelas de perfil do catálogo reproduzem os limites desta especificação.

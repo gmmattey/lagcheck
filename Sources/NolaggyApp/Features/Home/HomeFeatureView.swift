@@ -146,79 +146,85 @@ extension QuickCheckFeatureView {
     var discoveryView: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
-                // Topo minimalista: wordmark lagcheck à esquerda e menu … à direita
-                NolaggyAppHeader(
-                    openSettings: { selectedTab = .settings }
-                )
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.top, NLSpacing.xs)
-
                 if remoteCatalog == nil {
                     catalogUnavailable
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                        .padding(.top, NLSpacing.lg)
+                        .padding(.top, 96)
                 } else {
-                    // Pílula com telemetria viva ao centro
-                    HStack {
-                        Spacer()
-                        HStack(spacing: 7) {
-                            Circle()
-                                .fill(liveSignalDotColor)
-                                .frame(width: 6, height: 6)
-                                .overlay {
+                    // A Home começa pelo contexto da partida: a arte vai até o topo, com
+                    // gradiente suficiente para o status do sistema e os controles continuarem legíveis.
+                    ZStack {
+                        VerifiedGameArtwork(game: currentHomeGame, aspectRatio: 16 / 9)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+
+                        LinearGradient(
+                            stops: [
+                                .init(color: NLColor.deep.opacity(0.72), location: 0),
+                                .init(color: NLColor.deep.opacity(0.08), location: 0.34),
+                                .init(color: NLColor.deep.opacity(0.28), location: 0.58),
+                                .init(color: NLColor.deep, location: 1)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+
+                        VStack(spacing: 0) {
+                            HStack {
+                                Spacer()
+                                HStack(spacing: 7) {
                                     Circle()
-                                        .stroke(liveSignalDotColor.opacity(0.18), lineWidth: 3)
+                                        .fill(liveSignalDotColor)
+                                        .frame(width: 6, height: 6)
+                                        .overlay {
+                                            Circle()
+                                                .stroke(liveSignalDotColor.opacity(0.18), lineWidth: 3)
+                                        }
+                                    Text(liveSignalSummaryText)
+                                        .font(NLTypography.monospaceSubtitle)
+                                        .foregroundStyle(NLColor.textSecondary)
                                 }
-                            Text(liveSignalSummaryText)
-                                .font(NLTypography.monospaceSubtitle)
-                                .foregroundStyle(NLColor.textSecondary)
+                                .padding(.horizontal, 10)
+                                .frame(minHeight: 32)
+                                .background(.black.opacity(0.34), in: Capsule())
+                                Spacer()
+                            }
+                            .padding(.top, NLSpacing.sm)
+                            .safeAreaPadding(.top)
+
+                            Spacer()
+
+                            VStack(spacing: 0) {
+                                Text(currentHomeGame.name)
+                                    .font(NLTypography.heroHomeName)
+                                    .foregroundStyle(NLColor.textPrimary)
+                                    .tracking(-1.5)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.78)
+
+                                Text(currentHomeSubtitle)
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(NLColor.textSecondary)
+                                    .padding(.top, 6)
+
+                                Button(action: openGamesFromHome) {
+                                    Label(LocalizedStringKey("home.shortcuts.change_game"), systemImage: "arrow.triangle.2.circlepath")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(NLColor.textPrimary)
+                                        .frame(minHeight: NLSizing.touchTarget)
+                                        .padding(.horizontal, 14)
+                                        .background(.black.opacity(0.34), in: Capsule())
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("home-shortcut-change-game")
+                                .padding(.top, 12)
+                            }
+                            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                            .padding(.bottom, 28)
                         }
-                        .padding(.horizontal, 9)
-                        .frame(minHeight: 27)
-                        .background(NLColor.surface, in: Capsule())
-                        .overlay {
-                            Capsule().stroke(NLColor.borderHairline, lineWidth: 1)
-                        }
-                        Spacer()
                     }
-                    .padding(.top, NLSpacing.sm)
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-
-                    // Hero: Capa Neutra com Gradiente Escuro + Título 38pt + Plataforma
-                    VStack(spacing: 0) {
-                        ZStack(alignment: .bottom) {
-                            VerifiedGameArtwork(game: currentHomeGame, aspectRatio: 16 / 9)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 204)
-                                .clipped()
-
-                            LinearGradient(
-                                colors: [.clear, NLColor.deep.opacity(0.52), NLColor.deep],
-                                startPoint: .center,
-                                endPoint: .bottom
-                            )
-                            .frame(height: 120)
-                        }
-                        .frame(height: 204)
-                        .padding(.horizontal, -NLSpacing.screenMarginHorizontal)
-
-                        Text(currentHomeGame.name)
-                            .font(NLTypography.heroHomeName)
-                            .foregroundStyle(NLColor.textPrimary)
-                            .tracking(-1.5)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                            .padding(.top, 14)
-
-                        Text(currentHomeSubtitle)
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(NLColor.textSecondary)
-                            .padding(.top, 6)
-                    }
-                    .padding(.top, NLSpacing.sm)
-                    .padding(.bottom, NLSpacing.lg)
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    .frame(height: 346)
 
                     // CTA Primário Único: Checar agora (Roxo Gamer, 62pt)
                     Button(action: handlePrimaryCTA) {
@@ -235,6 +241,7 @@ extension QuickCheckFeatureView {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("home-decision-primary-action")
+                    .padding(.top, NLSpacing.lg)
                     .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
                     // Linha com último resultado verificado (clicável para abrir detalhes)
@@ -271,45 +278,6 @@ extension QuickCheckFeatureView {
                     }
                     .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                     .padding(.top, 6)
-
-                    // Atalhos secundários de navegação rápida: Trocar jogo › | Histórico ›
-                    HStack(spacing: 28) {
-                        Button(action: openGamesFromHome) {
-                            HStack(spacing: 4) {
-                                Text(LocalizedStringKey("home.shortcuts.change_game"))
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundStyle(NLColor.textSecondary)
-                                Text(verbatim: "›")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(NLColor.textPrimary)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(minHeight: NLSizing.touchTarget)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("home-shortcut-change-game")
-
-                        Button {
-                            selectedTab = .history
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(LocalizedStringKey("home.shortcuts.history"))
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundStyle(NLColor.textSecondary)
-                                Text(verbatim: "›")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(NLColor.textPrimary)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(minHeight: NLSizing.touchTarget)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("home-decision-history")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 18)
                     .padding(.bottom, NLSpacing.xl)
 
                     NativeAdSlot(placement: .home)
@@ -318,6 +286,7 @@ extension QuickCheckFeatureView {
             }
         }
         .scrollContentBackground(.hidden)
+        .ignoresSafeArea(edges: .top)
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
@@ -570,10 +539,6 @@ extension QuickCheckFeatureView {
             select: { game in
                 selectedGameID = game.id
                 startCheckDirectly(for: game)
-            },
-            selectWithPlatform: { game, platform, link in
-                selectedGameID = game.id
-                startCheckDirectly(for: game, platform: platform, declaredExternalLink: link)
             }
         )
     }

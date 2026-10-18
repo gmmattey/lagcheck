@@ -94,7 +94,7 @@ struct DeepCheckFeatureView: View {
                 start()
             }
         }
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase, initial: false) { _, phase in
             if phase == .background {
                 reviewPromptTask?.cancel()
                 reviewPromptTask = nil
@@ -111,9 +111,13 @@ struct DeepCheckFeatureView: View {
         }
         .sheet(isPresented: $showingDetails) {
             if case let .result(result, _) = presentation {
+                let evaluation = GameReadinessEvaluator.evaluate(
+                    deepCheckResult: result,
+                    profile: activeContext.profileID
+                )
                 TechnicalDetailsView(
                     result: result,
-                    profileID: activeContext.profileID,
+                    evaluation: evaluation,
                     gameName: gameName,
                     regionName: friendlyRegion,
                     onDismiss: { showingDetails = false }

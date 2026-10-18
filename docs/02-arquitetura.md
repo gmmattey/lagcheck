@@ -4,21 +4,21 @@
 **Plataforma inicial:** iPhone (iOS 17 ou superior)  
 **Documento relacionado:** [Documentação funcional](./01-funcional.md)
 
-> **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo remoto e a telemetria mínima anônima de retenção são servidos por um Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
+> **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo assinado acompanha cada build; a telemetria mínima anônima de retenção usa o Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
 > A App Store pode distribuir o app globalmente, mas o catálogo com suporte oficial do MVP começa em Brasil e Estados Unidos.
 > O plano original do MVP1 não incluía publicidade. As Decisões 82, 96 e 97 autorizam AdMob/UMP e unidades Native Advanced em Home, Histórico, Jogos e Resultado nos dois clientes, mantendo medição e domínio isolados.
 > **Atualização Decisões 50 e 55:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`, além de motores dedicados de integridade diagnóstica: `SampleQualityEvaluator`, `LoadImpactEvaluator` multidimensional (`deep-load-impact-v2`), `EvidenceRecommendationEngine` e probe isolado de gateway local (`en0`) para estrita separação entre instabilidade doméstica e rota externa. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
 
 ## 1. Objetivo arquitetural
 
-O LagCheck deve entregar uma avaliação confiável da experiência de jogo no iPhone com o mínimo de infraestrutura própria. A arquitetura privilegia medição no dispositivo, resultado determinístico, privacidade por padrão e evolução do catálogo sem publicação de uma nova versão.
+O LagCheck deve entregar uma avaliação confiável da experiência de jogo no iPhone com o mínimo de infraestrutura própria. A arquitetura privilegia medição no dispositivo, resultado determinístico, privacidade por padrão e catálogo explícito na versão instalada.
 
 O princípio central é simples: **o app mede; o catálogo orienta; o motor interpreta a prontidão da partida; o backend não arbitra cada teste**.
 
 ```mermaid
 flowchart LR
     U[Jogador] --> A[LagCheck no iPhone]
-    A --> C[Catálogo remoto]
+    A --> C[Catálogo local assinado]
     A --> P[Destinos de probe gamer]
     A --> H[Histórico local]
     A -.-> T[Telemetria anônima Worker]
@@ -38,7 +38,7 @@ flowchart LR
 | Bloco | Responsabilidade | Não é responsabilidade |
 | --- | --- | --- |
 | App LagCheck | Experiência, coleta UDP, cálculo NGQE, diagnóstico e veredito de prontidão. | Depender de backend para calcular score ou arbitrar o veredito. |
-| Catálogo remoto & Telemetria | Cloudflare Worker gratuito que publica `catalog.json`, serve carga em `/v1/load` e recebe telemetria anônima de retenção em `/v1/telemetry`. | Processar dados brutos de rede, PII, IPs ou decidir o resultado de uma sessão. |
+| Catálogo local & Telemetria | Envelope Ed25519 no build; Cloudflare Worker gratuito somente para carga em `/v1/load` e telemetria anônima em `/v1/telemetry`. | Processar dados brutos de rede, PII, IPs ou decidir o resultado de uma sessão. |
 | Destinos de probe | Responder às medições de rede permitidas para uma região. | Conhecer usuário, jogo selecionado ou persistir resultado. |
 
 Não há conta obrigatória, servidor de speed test próprio, VPN, túnel de tráfego, banco remoto de histórico ou LLM no caminho crítico do MVP.
@@ -105,7 +105,7 @@ Implementa adaptadores para capacidades externas:
 - Observação contínua de caminho de rede via `NWPathMonitor` para descarte imediato em transição de interface;
 - Telemetria de produto anônima enviada ao Worker (`/v1/telemetry`) para validação de retenção sem PII/IP;
 - Acesso a armazenamento local (SwiftData);
-- Cliente de catálogo remoto e validação de assinatura Ed25519.
+- Leitor do catálogo local e validação de assinatura Ed25519.
 
 Esses adaptadores obedecem contratos definidos pelo domínio e pela aplicação. Trocar um destino de probe não pode alterar a regra de score ou prontidão.
 
@@ -115,7 +115,7 @@ Há duas famílias de dados:
 
 | Família | Origem | Uso | Regra de retenção inicial |
 | --- | --- | --- | --- |
-| Configuração de catálogo | Base embarcada no app, atualizada remotamente e com cache local. | Jogos, regiões, perfis, limites, textos parametrizados e flags. | Atualizar no máximo a cada 24 h; usar última versão válida por até 30 dias; depois, voltar à base embarcada. |
+| Configuração de catálogo | Envelope assinado embarcado no app. | Jogos, regiões, perfis, limites, textos parametrizados e flags. | Validar no lançamento; nova versão exige novo build. |
 | Dados do jogador | Criados no dispositivo em SwiftData. | Preferências, último jogo/plataforma e histórico de vereditos. | Permanecem locais por até 90 dias, com máximo de 100 medições por jogo e exclusão manual nas configurações. |
 
 O histórico armazena o resultado contextualizado e a versão das regras usadas: jogo, plataforma, tipo de rede (`.wifi` ou `.cellular`), gateway probe result (`.stable`, `.degraded`, `.unobservable`), região, estratégia de medição, confiança, métricas agregadas, veredito de prontidão, score, causa primária, causas secundárias, recomendações geradas e versão das regras (`readiness-v2.0`, `deep-load-impact-v2`).
@@ -124,8 +124,8 @@ O histórico armazena o resultado contextualizado e a versão das regras usadas:
 
 O widget não lê SwiftData/JSON de histórico diretamente nem busca imagem pela rede. Depois de um Check válido, a aplicação materializa um snapshot substituível com o contexto necessário para repetir a medição (jogo, plataforma, vínculo externo, região, métricas e veredito) e uma miniatura editorial derivada da fonte oficial daquele cliente.
 
-- **iOS:** o app resolve o contexto no catálogo assinado/cached do iOS e grava snapshot e miniatura no App Group do iOS; a extensão WidgetKit só lê esse material local.
-- **Android:** o app resolve o contexto no catálogo assinado/cached do Android e grava snapshot com o nome do resource editorial local no armazenamento privado; o `AppWidgetProvider` só lê esse material local e o resource da própria build.
+- **iOS:** o app resolve o contexto no catálogo assinado local do iOS e grava snapshot e miniatura no App Group do iOS; a extensão WidgetKit só lê esse material local.
+- **Android:** o app resolve o contexto no catálogo assinado local do Android e grava snapshot com o nome do resource editorial local no armazenamento privado; o `AppWidgetProvider` só lê esse material local e o resource da própria build.
 - A revisão de catálogo ou de arte invalida a representação anterior de modo gracioso: mantém CTA contextual sem métrica antiga quando o jogo ainda for reconhecido, ou cai na identidade neutra. Não há cache compartilhado entre plataformas, upload, telemetria nova, endpoint ou nova regra de veredito.
 - O deep link contém apenas o identificador local do jogo e o app revalida o contexto antes de iniciar o Check. Jogo ausente, catálogo inválido, contexto incompatível ou sessão já ativa não iniciam medição; o app mostra o estado recuperável correspondente.
 
@@ -153,7 +153,7 @@ flowchart LR
 
 | Componente | Dono | Entrada | Saída |
 | --- | --- | --- | --- |
-| Repositório do catálogo | Dados | Configuração remota/cache | Catálogo válido e versionado ou indisponibilidade explícita. |
+| Repositório do catálogo | Dados | Envelope local assinado | Catálogo válido e versionado ou indisponibilidade explícita. |
 | Resolvedor de contexto | Domínio | Jogo, mercado, plataforma e catálogo | Perfil, regiões, alvo, confiança e regras aplicáveis. |
 | Coordenador de sessão | Aplicação | Contexto resolvido e intenção de Check | Estado de sessão, cancelamento ou amostras finalizadas. |
 | Observador de rede | Infraestrutura | Estado do caminho de rede | Evento de mudança de interface que descarta a sessão. |
@@ -218,9 +218,9 @@ Qualquer transição de caminho de rede durante a sessão (Wi-Fi ➔ celular ou 
 
 ### 5.3 Catálogo offline ou inválido
 
-O app tenta atualizar o catálogo antes de começar um teste, sem impedir a abertura da Home, e no máximo uma vez a cada 24 horas. Se não houver conexão, pode usar o último catálogo local válido por até 30 dias. Depois desse prazo, retorna ao catálogo-base embarcado no app. Sem um catálogo válido aplicável ao jogo/contexto, o teste não começa; a UI explica que a configuração do jogo não está disponível no momento.
+O mesmo catálogo assinado acompanha cada build iOS e Android. Não há atualização HTTP nem cache persistente: somente esse envelope local, depois de validar esquema, assinatura e regras de negócio, pode fornecer jogo, contexto, região ou destino de probe. Sem um catálogo válido aplicável ao jogo/contexto, o teste não começa; a UI explica que a configuração do jogo não está disponível no momento.
 
-O catálogo é tratado como entrada não confiável até passar por validação de esquema, versão, regras de negócio e assinatura criptográfica Ed25519. O app só aceita um `catalog.json` cuja assinatura corresponda à chave pública embarcada; a chave privada de publicação nunca vai para o aplicativo. Um catálogo malformado, corrompido ou com assinatura inválida não pode sobrescrever a última versão válida nem derrubar o app.
+O catálogo local é tratado como entrada não confiável até passar por validação de esquema, versão, regras de negócio e assinatura criptográfica Ed25519. A chave privada de publicação nunca vai para o aplicativo. Um envelope malformado, corrompido ou com assinatura inválida falha fechado e não inicia medição.
 
 ### 5.3 Seleção de mercado, região e assets de catálogo
 
@@ -230,11 +230,9 @@ O app usa localidade/região do sistema apenas para ordenar candidatos de mercad
 
 O catálogo assinado declara a base HTTPS e o caminho da arte. Infraestrutura valida caminho, HTTPS, MIME, bytes e dimensões; por autorização de Luiz, não confere hash do conteúdo recebido. O SHA-256 no schema permanece metadado compatível. Download/cache fica fora do domínio e é oportunista; UI recebe catálogo validado e imagem decodificada, sem interpretar JSON. Android deriva apresentação e plataformas do catálogo, usando registro local apenas para fallback.
 
-O cache de imagens é separado do catálogo: falha de imagem não invalida contexto de medição. Imagens são chaveadas por URL/revisão, revalidadas após 24 h e limitadas a 50 MiB. Cache de catálogo válido pode substituir base expirada. A Home abre com o último catálogo válido e arte local/neutra imediata. Transferências de imagem são canceladas durante preparação/medição e background.
+O cache de imagens é separado do catálogo: falha de imagem não invalida contexto de medição. Imagens são chaveadas por URL/revisão, revalidadas após 24 h e limitadas a 50 MiB. A Home abre com o catálogo local válido e arte local/neutra imediata. Transferências de imagem são canceladas durante preparação/medição e background.
 
-O Worker publica duas rotas públicas: `/v1/catalog.json` e `/v1/load`. O catálogo contém metadados de versão e validade, jogos, perfis de score e regiões/destinos de probe. A rota de carga entrega até 10 MB sem cache e só é usada pelo Deep Check em Wi-Fi. Não há API autenticada, banco de dados ou endpoint individual por jogo no MVP.
-
-Enquanto não houver domínio próprio, o Worker usa uma URL `workers.dev` gratuita como endpoint temporário do catálogo. Ela não é exposta na interface; o catálogo-base embarcado e a validação de assinatura preservam o funcionamento se esse endpoint falhar. Quando existir domínio próprio, a URL é substituída sem mudar o contrato ou o aplicativo.
+O Worker publica duas rotas públicas: `/v1/load` e `/v1/telemetry`. A carga entrega até 10 MB sem cache e só é usada pelo Deep Check. Não há API autenticada, banco de dados ou endpoint individual por jogo no MVP. O catálogo não passa pelo Worker.
 
 ### 5.4 Publicidade no MVP1.1
 
@@ -263,7 +261,7 @@ O MVP não possui fallback HTTP ou ICMP para um destino UDP bloqueado. Quando o 
 - Resultados e histórico são locais por padrão.
 - O teste não exige login, identificador pessoal nem envio de cada amostra para um servidor próprio.
 - O catálogo não inclui dados pessoais nem permite texto livre que altere a interpretação técnica.
-- A comunicação com catálogo e serviços auxiliares usa canais seguros; a implementação define autenticação de conteúdo, cache e estratégia de atualização.
+- O envelope local é autenticado por assinatura Ed25519; serviços auxiliares usam canais seguros e não alteram o catálogo.
 - O aplicativo não tenta descobrir, escanear ou atacar servidores de jogos. Só usa destinos permitidos e configurados no catálogo.
 - A telemetria mínima de produto para validação de retenção (Decisão 50) envia apenas um ID de instalação aleatório e eventos de funil a `/v1/telemetry`, sem endereço IP, amostras de rede brutas ou dados de conta.
 

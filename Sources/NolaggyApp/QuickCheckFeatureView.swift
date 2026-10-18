@@ -283,7 +283,7 @@ struct QuickCheckFeatureView: View {
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(.dark, for: .tabBar)
         .preferredColorScheme(.dark)
-        .onChange(of: selectedTab) { _, tab in
+        .onChange(of: selectedTab, initial: false) { _, tab in
             // Ao sair da aba, uma entrada seguinte pela tab bar volta a ser um
             // destino de nível superior — portanto não herda um "Voltar" de
             // uma abertura anterior feita pela Home.
@@ -291,7 +291,7 @@ struct QuickCheckFeatureView: View {
                 gamesReturnToHome = false
             }
         }
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase, initial: false) { _, phase in
             if phase == .active {
                 Task { @MainActor in
                     await refreshLiveNetworkSignal()
@@ -387,7 +387,7 @@ struct QuickCheckFeatureView: View {
             presentation = .context
         }
         .onAppear { consumePendingPreMatchReminder() }
-        .onChange(of: availableGames.map(\.id)) { _, ids in
+        .onChange(of: availableGames.map(\.id), initial: false) { _, ids in
             let reminder = PreMatchReminderStore.shared.value
             if reminder.enabled, let gameID = reminder.gameID, !ids.contains(gameID) { PreMatchReminderStore.shared.disable() }
             consumePendingPreMatchReminder()

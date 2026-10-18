@@ -750,6 +750,8 @@
 "settings.ads.privacy_options" = "Opções de privacidade dos anúncios";
 "ads.label" = "Anúncio";
 "settings.about.licenses" = "Licenças de código aberto";
+"settings.ads.privacy_options" = "Opções de privacidade de anúncios";
+"ads.label" = "Anúncio";
 "settings.support.title" = "Suporte";
 "settings.support.feedback" = "Enviar feedback";
 "settings.support.rate" = "Avaliar o LagCheck";
