@@ -197,7 +197,10 @@ struct NativeAdSlot: View {
     }
 
     var body: some View {
-        Group {
+        // O SwiftUI não executa `.task` em uma view vazia. Sem este âncora de altura zero, o espaço do anúncio
+        // fica vazio até o anúncio chegar, o `.task` nunca roda e o anúncio nunca é pedido.
+        ZStack(alignment: .top) {
+            Color.clear.frame(height: 0)
             if consent.canRequestAds, scenePhase == .active, let ad = loader.ad {
                 NativeAdContent(ad: ad)
                     .accessibilityIdentifier("native-ad-\(String(describing: placement))")
