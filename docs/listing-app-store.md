@@ -17,8 +17,8 @@ Documento canônico contendo todos os metadados, regras de preenchimento e instr
 | **Categoria Primária** | `Utilitários` (Utilities) | Enquadramento técnico correto. |
 | **Categoria Secundária** | `Jogos` (Games) ou `Entretenimento` | Contexto de uso. |
 | **Classificação Etária** | `4+` (Sem restrições) | Sem conteúdo adulto, apostas ou violência. |
-| **URL de Suporte** | `https://lagcheck.signallq.com/support` | E-mail: `suporte@signallq.com`. |
-| **URL de Privacidade** | `https://lagcheck.signallq.com/privacy` | Obrigatória para submissão. |
+| **URL de Suporte** | `https://lagcheck.signallq.com/support/` | E-mail: `suporte@signallq.com`. |
+| **URL de Privacidade** | `https://lagcheck.signallq.com/privacy/` | Obrigatória para submissão. |
 
 ---
 

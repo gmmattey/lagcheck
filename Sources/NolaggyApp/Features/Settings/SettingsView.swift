@@ -254,7 +254,7 @@ struct SettingsView: View {
 
                         // Política de Privacidade
                         settingsRowButton(title: LocalizedStringKey("settings.about.privacy")) {
-                            if let url = URL(string: "https://buildea.com/lagcheck/privacy") {
+                            if let url = URL(string: "https://lagcheck.signallq.com/privacy/") {
                                 openURL(url)
                             }
                         }
@@ -283,7 +283,7 @@ struct SettingsView: View {
                         settingsGroup {
                         VStack(spacing: 0) {
                         settingsRowButton(title: LocalizedStringKey("settings.support.feedback"), identifier: "ajustes-enviar-feedback") {
-                            if let url = URL(string: "mailto:suporte@buildea.com?subject=LagCheck%20Feedback") {
+                            if let url = URL(string: "mailto:suporte@signallq.com?subject=LagCheck%20Feedback") {
                                 openURL(url)
                             }
                         }

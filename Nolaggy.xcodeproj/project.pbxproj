@@ -2280,8 +2280,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-5542349230926522~8215990145";
 				LAGCHECK_ADS_ENABLED = YES;
-				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
-				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
+				LAGCHECK_PRIVACY_POLICY_URL = "https://lagcheck.signallq.com/privacy/";
+				LAGCHECK_SUPPORT_URL = "https://lagcheck.signallq.com/support/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2768,8 +2768,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LAGCHECK_ADMOB_APP_ID = "ca-app-pub-3940256099942544~1458002511";
 				LAGCHECK_ADS_ENABLED = YES;
-				LAGCHECK_PRIVACY_POLICY_URL = "https://linka-speedtest.web.app/lagcheck/privacidade";
-				LAGCHECK_SUPPORT_URL = "https://linka-speedtest.web.app/lagcheck/suporte";
+				LAGCHECK_PRIVACY_POLICY_URL = "https://lagcheck.signallq.com/privacy/";
+				LAGCHECK_SUPPORT_URL = "https://lagcheck.signallq.com/support/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
