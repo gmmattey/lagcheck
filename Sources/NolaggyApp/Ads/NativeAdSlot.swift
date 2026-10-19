@@ -22,26 +22,14 @@ private enum IOSAdPlacement {
     }
 }
 
-/// Registro local e sem dado pessoal do motivo de um anúncio não aparecer. Só é exibido em builds de TestFlight
-/// (Ajustes); fora disso fica silencioso. Não altera medição, consentimento nem o layout dos anúncios.
+/// Registro no log do sistema (sem dado pessoal) do motivo de um anúncio não aparecer. Não tem interface:
+/// lê-se pelo Console do Mac com o aparelho conectado. Não altera medição, consentimento nem layout.
 @MainActor
-final class IOSAdDiagnostics: ObservableObject {
+final class IOSAdDiagnostics {
     static let shared = IOSAdDiagnostics()
     private let logger = Logger(subsystem: "com.lagcheck.app", category: "ads")
 
-    /// TestFlight e builds de teste usam `sandboxReceipt`; a App Store usa `receipt`.
-    static var isTestFlight: Bool {
-        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-    }
-
-    @Published private(set) var entries: [String: String] = [:]
-
-    var report: String {
-        entries.keys.sorted().map { "\($0): \(entries[$0] ?? "-")" }.joined(separator: "\n")
-    }
-
     func record(_ key: String, _ value: String) {
-        entries[key] = value
         logger.notice("\(key, privacy: .public): \(value, privacy: .public)")
     }
 }
