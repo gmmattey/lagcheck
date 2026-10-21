@@ -8,6 +8,7 @@ private final class MeasurementHapticsManager {
     private let light = UIImpactFeedbackGenerator(style: .light)
     private let medium = UIImpactFeedbackGenerator(style: .medium)
     private let heavy = UIImpactFeedbackGenerator(style: .heavy)
+    private var activeSessionID: UUID?
 
     private init() {
         light.prepare()
@@ -15,7 +16,19 @@ private final class MeasurementHapticsManager {
         heavy.prepare()
     }
 
-    func play(milestone: Int, isUnderStress: Bool, rtt: Double?) {
+    func beginSession() -> UUID {
+        let sessionID = UUID()
+        activeSessionID = sessionID
+        return sessionID
+    }
+
+    func stop(sessionID: UUID? = nil) {
+        guard sessionID == nil || activeSessionID == sessionID else { return }
+        activeSessionID = nil
+    }
+
+    func play(milestone: Int, sessionID: UUID, isUnderStress: Bool, rtt: Double?) {
+        guard activeSessionID == sessionID else { return }
         #if targetEnvironment(simulator)
         print("[LagCheck Haptics] Pulse milestone \(milestone) | stress: \(isUnderStress) | rtt: \(rtt ?? 0)ms")
         #endif
@@ -39,6 +52,18 @@ private final class MeasurementHapticsManager {
 }
 #endif
 
+/// Controla o feedback háptico da sessão de medição ativa.
+/// Estados terminais usam `stop()` para que um loop de uma tela antiga não
+/// continue pulsando depois que o resultado já foi apresentado.
+public enum MeasurementHaptics {
+    @MainActor
+    public static func stop() {
+        #if canImport(UIKit)
+        MeasurementHapticsManager.shared.stop()
+        #endif
+    }
+}
+
 /// Localização de eventual gargalo (preservado para compatibilidade estrutural de tipo).
 public enum MeasurementStressLocation: String, Sendable {
     case none
@@ -57,6 +82,7 @@ public struct MeasurementLiveTrail: View {
     private let sampleCount: Int
     private let isUnderStress: Bool
     private let isPhaseRest: Bool
+    private let isHapticsEnabled: Bool
     private let phaseTitle: LocalizedStringKey
     private let phaseSubtitle: LocalizedStringKey?
 
@@ -73,6 +99,7 @@ public struct MeasurementLiveTrail: View {
         isUnderStress: Bool = false,
         stressLocation: MeasurementStressLocation = .none,
         isPhaseRest: Bool? = nil,
+        isHapticsEnabled: Bool = true,
         phaseTitle: LocalizedStringKey,
         phaseSubtitle: LocalizedStringKey? = nil
     ) {
@@ -83,6 +110,7 @@ public struct MeasurementLiveTrail: View {
         self.sampleCount = sampleCount
         self.isUnderStress = isUnderStress
         self.isPhaseRest = isPhaseRest ?? (!isUnderStress)
+        self.isHapticsEnabled = isHapticsEnabled
         self.phaseTitle = phaseTitle
         self.phaseSubtitle = phaseSubtitle
     }
@@ -152,30 +180,44 @@ public struct MeasurementLiveTrail: View {
         }
         .padding(.horizontal, NLSpacing.md)
         .accessibilityElement(children: .combine)
-        .task(id: cycleDuration) {
-            guard !reduceMotion else { return }
+        .task(id: HapticTaskID(
+            cycleDuration: cycleDuration,
+            isEnabled: isHapticsEnabled,
+            reduceMotion: reduceMotion
+        )) {
+            guard isHapticsEnabled, !reduceMotion else { return }
+            #if canImport(UIKit)
+            let sessionID = MeasurementHapticsManager.shared.beginSession()
+            defer { MeasurementHapticsManager.shared.stop(sessionID: sessionID) }
             while !Task.isCancelled {
                 // Milestone 0: iPhone (origem)
-                triggerHaptic(milestone: 0)
+                triggerHaptic(milestone: 0, sessionID: sessionID)
                 try? await Task.sleep(nanoseconds: UInt64(cycleDuration * 0.25 * 1_000_000_000))
                 guard !Task.isCancelled else { break }
 
                 // Milestone 1: Roteador/Wi-Fi (salto local de ida)
-                triggerHaptic(milestone: 1)
+                triggerHaptic(milestone: 1, sessionID: sessionID)
                 try? await Task.sleep(nanoseconds: UInt64(cycleDuration * 0.25 * 1_000_000_000))
                 guard !Task.isCancelled else { break }
 
                 // Milestone 2: Servidor (eco/destino)
-                triggerHaptic(milestone: 2)
+                triggerHaptic(milestone: 2, sessionID: sessionID)
                 try? await Task.sleep(nanoseconds: UInt64(cycleDuration * 0.25 * 1_000_000_000))
                 guard !Task.isCancelled else { break }
 
                 // Milestone 3: Roteador/Wi-Fi (salto local de volta)
-                triggerHaptic(milestone: 3)
+                triggerHaptic(milestone: 3, sessionID: sessionID)
                 try? await Task.sleep(nanoseconds: UInt64(cycleDuration * 0.25 * 1_000_000_000))
                 guard !Task.isCancelled else { break }
             }
+            #endif
         }
+    }
+
+    private struct HapticTaskID: Equatable {
+        let cycleDuration: Double
+        let isEnabled: Bool
+        let reduceMotion: Bool
     }
 
     // MARK: - 3-Node Route View com Pingo de Dados em Tempo Real
@@ -343,15 +385,16 @@ public struct MeasurementLiveTrail: View {
         }
     }
 
+    #if canImport(UIKit)
     @MainActor
-    private func triggerHaptic(milestone: Int) {
-        guard !reduceMotion else { return }
-        #if canImport(UIKit)
+    private func triggerHaptic(milestone: Int, sessionID: UUID) {
+        guard isHapticsEnabled, !reduceMotion else { return }
         MeasurementHapticsManager.shared.play(
             milestone: milestone,
+            sessionID: sessionID,
             isUnderStress: isUnderStress,
             rtt: currentRTT
         )
-        #endif
     }
+    #endif
 }

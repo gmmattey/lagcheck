@@ -94,6 +94,11 @@ struct DeepCheckFeatureView: View {
                 start()
             }
         }
+        .onChange(of: isMeasurementHapticsActive) { _, isActive in
+            if !isActive {
+                MeasurementHaptics.stop()
+            }
+        }
         .onChange(of: scenePhase, initial: false) { _, phase in
             if phase == .background {
                 reviewPromptTask?.cancel()
@@ -245,6 +250,7 @@ struct DeepCheckFeatureView: View {
                 sampleCount: samples.count,
                 isUnderStress: phase == .load,
                 isPhaseRest: phase == .rest,
+                isHapticsEnabled: isMeasurementHapticsActive,
                 phaseTitle: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load",
                 phaseSubtitle: LocalizedStringKey(gameName)
             )
@@ -369,6 +375,13 @@ struct DeepCheckFeatureView: View {
         default:
             false
         }
+    }
+
+    private var isMeasurementHapticsActive: Bool {
+        if case .measuring = presentation {
+            return true
+        }
+        return false
     }
 
     private func start(withConsent: Bool = false) {

@@ -283,6 +283,11 @@ struct QuickCheckFeatureView: View {
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(.dark, for: .tabBar)
         .preferredColorScheme(.dark)
+        .onChange(of: isMeasurementHapticsActive) { _, isActive in
+            if !isActive {
+                MeasurementHaptics.stop()
+            }
+        }
         .onChange(of: selectedTab, initial: false) { _, tab in
             // Ao sair da aba, uma entrada seguinte pela tab bar volta a ser um
             // destino de nível superior — portanto não herda um "Voltar" de
@@ -467,6 +472,10 @@ struct QuickCheckFeatureView: View {
         case let .cancelled(reason):
             statusView(kind: .cancelled(reason))
         }
+    }
+
+    var isMeasurementHapticsActive: Bool {
+        presentation == .measuring
     }
 
     @ViewBuilder

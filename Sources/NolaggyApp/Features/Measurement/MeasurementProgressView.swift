@@ -36,6 +36,7 @@ extension QuickCheckFeatureView {
                 sampleCount: partialSamples.count,
                 isUnderStress: false,
                 isPhaseRest: true,
+                isHapticsEnabled: isMeasurementHapticsActive,
                 phaseTitle: "quick_check.measuring.phase",
                 phaseSubtitle: LocalizedStringKey(selectedGameName)
             )
