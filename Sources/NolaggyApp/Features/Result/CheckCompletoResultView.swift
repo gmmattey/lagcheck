@@ -118,6 +118,14 @@ public struct CheckCompletoResultView: View {
                 }
                 .frame(height: 52)
 
+                if platform != .iphone {
+                    Text(LocalizedStringKey("check_completo.context.estimate_footnote"))
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundStyle(NLColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 4)
+                }
+
                 // Veredito protagonista. Esta sequência acompanha a tela
                 // Android: kicker, indicador, manchete, contexto e só então
                 // o card pronto para compartilhar.

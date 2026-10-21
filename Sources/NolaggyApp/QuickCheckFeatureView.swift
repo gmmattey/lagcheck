@@ -656,8 +656,16 @@ struct QuickCheckFeatureView: View {
         }
     }
 
-    /// Ação de um toque da nova vitrine: revalida apenas o contexto iPhone
-    /// assinado; sem seleção de plataforma, vínculo ou fallback externo.
+    /// Ação de um toque da vitrine completa (Decisão 107). Usa somente o
+    /// contexto publicado pelo catálogo, priorizando iPhone quando houver e
+    /// nunca trocando silenciosamente para o Check Geral.
+    func startCatalogCheckDirectly(for game: CatalogMeasurementJourney.Game) {
+        analyticsTracker.track(.gameSelected(gameID: game.id))
+        guard let resolved = resolveGameContext(game) else { return }
+        openDeepCheck(resolvedContext: resolved)
+    }
+
+    /// Caminho exclusivo do Check Geral, cujo contexto é sempre o iPhone.
     func startIPhoneCheckDirectly(for game: CatalogMeasurementJourney.Game) {
         analyticsTracker.track(.gameSelected(gameID: game.id))
         guard let resolved = resolveIPhoneGameContext(game) else { return }

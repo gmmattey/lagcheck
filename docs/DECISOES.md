@@ -104,11 +104,12 @@
 | [99](#decisão-99) | Catálogo global local nos clientes | **Vigente (implementação local; conformidade do Worker pendente)** | 48 jogos e referências AWS GameLift entram no build assinado; o Worker não distribui catálogo, mas o fonte ainda expõe rotas extras registradas na Decisão 101 | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 | [100](#decisão-100) | Home imersiva por jogo e remoção do chrome redundante | **Vigente (implementado localmente; validação física pendente)** | A Home começa na arte editorial do jogo e mantém a decisão de Check em primeiro plano | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [101](#decisão-101) | Reconciliação do registro com o código em `main` | **Vigente (auditoria documental; correção sistêmica pendente)** | Separa fonte, contrato autorizado e evidência de runtime; expõe rotas extras do Worker e Gemini como conflitos | Giam / Marco / Camillo / Iury / Luiz |
-| [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Vigente (implementado localmente; runtime pendente)** | Refina a Decisão 80 para iOS e Android, sem alterar o contrato de catálogo, histórico ou medição | Luiz / Giam / Marco / Renan / Rian / Breno |
+| [102](#decisão-102) | Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone | **Superada** | Decisão 107 abre a vitrine para todo contexto válido do catálogo | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [103](#decisão-103) | Paridade do motor de compartilhamento (Cards e Vídeo 14s) no iOS com App Store | **Vigente (implementado localmente e validado no simulador iOS)** | Paridade 1:1 com o motor Android (`ShareMediaScene`, `ShareCanvas`, `ShareMediaRenderer`, `ShareVideoRenderer`, `ShareMediaSheetView`) e QR Code da App Store | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [104](#decisão-104) | Compartilhamento direto por rede no Resultado (card e vídeo) | **Vigente (implementado localmente; validado em simulador iOS e build/testes unitários Android; sem aparelho físico)** | Refina a 103: substitui a folha "Compartilhar" por ícones sob o card; WhatsApp/Telegram/X/Discord recebem o card 1200×630, TikTok/Instagram o vídeo 14 s | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [105](#decisão-105) | Jogos: paridade visual e de interação entre iOS e Android | **Vigente (implementado localmente; runtime pendente)** | Refina a 102 e substitui o trilho de "Todos os jogos" por grade de 2 colunas; favoritar no card, busca sempre visível, card único, resultados em lista, limite de 4 favoritos | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [106](#decisão-106) | Catálogo embutido sem assinatura nem validade; EUA e artes autorais | **Vigente (implementado localmente; runtime pendente)** | Refina a 99 e substitui a assinatura Ed25519 do catálogo local; amplia o catálogo para 54 jogos | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
+| [107](#decisão-107) | Jogos: vitrine completa e contexto automático validado | **Vigente (implementado localmente; runtime pendente)** | Substitui o recorte iPhone-only da Decisão 102, sem mudar catálogo, medição ou regra de veredito | Luiz / Giam / Marco / Renan / Rian / Breno |
 
 
 
@@ -1068,7 +1069,7 @@
 
 - **Data:** 17 de outubro de 2026.
 - **Título:** Jogos: seleção direta, trilhos horizontais e contexto somente do iPhone.
-- **Status Atual:** **Vigente (implementado localmente; runtime pendente).** Refina a Decisão 80 para os dois clientes e a apresentação da Decisão 41, sem mudar o catálogo assinado, o motor UDP, persistência, histórico, widgets ou deep links.
+- **Status Atual:** **Superada pela Decisão 107.** Seu recorte de trilhos, busca, favoritos reais, anúncio e escolha em um toque permanece; a restrição da vitrine ao contexto iPhone não permanece.
 - **Frentes envolvidas:** Luiz (direção de produto), Giam (aceite), Marco (orquestração), Renan (experiência), Rian (iOS e Android) e Breno (QA).
 - **Decisão:**
   1. Na aba **Jogos**, a pessoa escolhe somente o jogo. Não há escolha, filtro, texto ou ícone de plataforma, nem pergunta sobre Wi-Fi/cabo de equipamento externo, antes do Check.
@@ -1154,6 +1155,20 @@
 - **Não-escopo:** Worker (nenhum endpoint novo), score, veredito, motor UDP, publicação, upload de loja e o site `web/`.
 - **Pendências:** reimplantar o Worker para parar de servir as artes antigas; o site `web/` ainda usa `roblox.jpg` e outras imagens próprias; remover `verifyAndDecode` e as telas mortas de resultado (`resultView(result:)` e `DeepCheckResultView`) em limpeza futura; validar em aparelho, em rede dos EUA, o veredito e a escolha da baliza. Testes de schema 2 do catálogo, um teste de DeepCheck e os testes de UI de localização já falhavam antes desta decisão.
 - **Critérios de aceite:** catálogo carregado sem data de validade em qualquer data; Worker, iOS e Android byte-idênticos; testes de catálogo, Worker e Android verdes; build iOS verde.
+
+#### Decisão 107
+
+- **Data:** 21 de outubro de 2026.
+- **Título:** Jogos: vitrine completa e contexto automático validado.
+- **Status Atual:** **Vigente (implementado localmente; runtime pendente).** Substitui da Decisão 102 somente o recorte que escondia jogos sem contexto iPhone.
+- **Frentes envolvidas:** Luiz (decisão), Giam (aceite), Marco (orquestração), Renan (experiência), Rian (clientes) e Breno (validação).
+- **Problema:** o catálogo embutido já validava 54 jogos, mas a vitrine mostrava somente os 23 que tinham contexto iPhone. Para quem sabe que o LagCheck mede a rota pelo telefone, a lista parcial reduz descoberta sem tornar a promessa mais clara.
+- **Decisão:**
+  1. A aba **Jogos** mostra todo jogo com ao menos um contexto disponível no mercado resolvido pelo catálogo; não filtra a descoberta por plataforma.
+  2. Um toque continua sem seletor intermediário. O cliente resolve somente um contexto publicado e disponível: plataforma preferida válida, iPhone quando disponível ou, sem ele, a plataforma válida do catálogo. Não inventa uma rota, não converte console/PC em iPhone e não cai silenciosamente em outro jogo.
+  3. Quando o contexto resolvido for externo ao iPhone, a jornada e o resultado mantêm a plataforma visível e identificam a leitura como estimativa feita pelo iPhone naquela rede. Não assumem que o equipamento usa Wi-Fi ou cabo, nem chamam a métrica de ping real do jogo.
+  4. A mudança preserva JSON, schema, arte editorial, regiões, rotas, score, veredito, histórico, Worker, telemetria, anúncios e ações nativas. iOS e Android usam seus resolvedores já validados; não há endpoint, persistência nem alteração de regra.
+- **Critérios de aceite:** os 54 jogos válidos aparecem em Jogos no mercado BR/US correspondente; busca encontra um título sem contexto mobile e seu toque abre Check com a plataforma resolvida; títulos com iPhone continuam usando-o; resultado externo traz plataforma e aviso de estimativa; PT-BR e inglês, busca, favoritos, anúncio e alvos de toque não regressam. Build/teste, simulador/emulador e aparelho físico permanecem evidências distintas.
 
 ## Como Registrar Novas Decisões
 

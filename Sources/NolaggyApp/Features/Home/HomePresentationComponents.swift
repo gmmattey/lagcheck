@@ -1149,7 +1149,6 @@ struct HomeCatalogView: View {
                 railTitle(String(format: AppLocalization.string("games.results", comment: ""), searchResults.count))
                 ForEach(searchResults) { game in
                     gameRow(game)
-                        .accessibilityIdentifier("catalog-game-\(game.id)")
                 }
             }
         }
@@ -1269,6 +1268,7 @@ struct HomeCatalogView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("catalog-game-\(game.id)")
             .accessibilityLabel(game.name)
             .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
 
@@ -1295,6 +1295,7 @@ struct HomeCatalogView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("catalog-game-\(game.id)")
             .accessibilityLabel(game.name)
             .accessibilityHint(LocalizedStringKey("games.select.accessibility_hint"))
 

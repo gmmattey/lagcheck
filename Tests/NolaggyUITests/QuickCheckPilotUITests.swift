@@ -11,8 +11,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         // título inicia a medição sem voltar à Home ou abrir seletor de console.
         XCTAssertTrue(app.buttons["home-shortcut-change-game"].waitForExistence(timeout: 3))
         app.buttons["home-shortcut-change-game"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 2))
-        app.buttons["catalog-game-fortnite"].tap()
+        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
         XCTAssertFalse(app.buttons["home-decision-primary-action"].exists)
@@ -26,10 +25,30 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
         app.buttons["Games"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-minecraft"].waitForExistence(timeout: 3))
-        app.buttons["catalog-game-minecraft"].tap()
+        selectCatalogGame("minecraft", matching: "Minecraft", in: app)
 
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    func testCatalogShowsPCOnlyGameAndStartsItsResolvedCheck() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchWithSystemLanguage()
+
+        XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
+        app.buttons["Games"].tap()
+        let search = app.textFields["catalog-search-input"]
+        XCTAssertTrue(search.waitForExistence(timeout: 3))
+        search.tap()
+        search.typeText("Counter-Strike")
+
+        let cs2 = app.buttons["catalog-game-cs2"]
+        XCTAssertTrue(cs2.waitForExistence(timeout: 3))
+        cs2.tap()
+
+        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["platform-choice-pc"].exists)
     }
 
     @MainActor
@@ -40,9 +59,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
         app.buttons["Games"].tap()
-        let roblox = app.buttons["catalog-game-roblox"]
-        XCTAssertTrue(roblox.waitForExistence(timeout: 3))
-        roblox.tap()
+        selectCatalogGame("roblox", matching: "Roblox", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
     }
 
@@ -71,8 +88,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
         app.buttons["Games"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
-        app.buttons["catalog-game-fortnite"].tap()
+        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["Where do you play?"].exists)
     }
@@ -85,8 +101,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
         app.buttons["Games"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
-        app.buttons["catalog-game-fortnite"].tap()
+        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
 
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.buttons["platform-choice-iphone"].exists)
@@ -404,6 +419,10 @@ final class DeepCheckJourneyUITests: XCTestCase {
         captureScreenshot(of: app, named: "home-new-user-ready")
 
         exploreButton.tap()
+        let search = app.textFields["catalog-search-input"]
+        XCTAssertTrue(search.waitForExistence(timeout: 3))
+        search.tap()
+        search.typeText("Fortnite")
         XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
     }
 
@@ -444,8 +463,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         let startButton = app.buttons["home-decision-primary-action"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 4))
         startButton.tap()
-        XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
-        app.buttons["catalog-game-fortnite"].tap()
+        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
         captureScreenshot(of: app, named: "home-game-measuring")
@@ -459,8 +477,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["Games"].waitForExistence(timeout: 3))
         app.buttons["Games"].tap()
-        XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3))
-        app.buttons["catalog-game-fortnite"].tap()
+        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
 
         XCTAssertFalse(app.staticTexts["Metacritic"].exists)
@@ -517,12 +534,23 @@ final class DeepCheckJourneyUITests: XCTestCase {
             let chooseGame = app.buttons["home-decision-primary-action"]
             XCTAssertTrue(chooseGame.waitForExistence(timeout: 3))
             chooseGame.tap()
-            let fortnite = app.buttons["catalog-game-fortnite"]
-            XCTAssertTrue(fortnite.waitForExistence(timeout: 3))
-            fortnite.tap()
+            selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         }
 
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func selectCatalogGame(_ id: String, matching query: String, in app: XCUIApplication) {
+        let game = app.buttons["catalog-game-\(id)"]
+        if !game.exists {
+            let search = app.textFields["catalog-search-input"]
+            XCTAssertTrue(search.waitForExistence(timeout: 3))
+            search.tap()
+            search.typeText(query)
+        }
+        XCTAssertTrue(game.waitForExistence(timeout: 3))
+        game.tap()
     }
 }
 

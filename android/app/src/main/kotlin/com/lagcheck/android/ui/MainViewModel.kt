@@ -322,13 +322,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         selectGame(game, platform, _selectedConnectionType.value, null)
     }
 
-    /** Caminho da vitrine Jogos: só mede quando o contexto Mobile do catálogo existe. */
-    fun chooseIPhoneGame(game: CatalogGame): Boolean {
-        val platform = game.platforms.firstOrNull { it.equals("Mobile", ignoreCase = true) } ?: return false
-        selectGame(game, platform, _selectedConnectionType.value, null)
-        return true
-    }
-
     fun setLanguage(lang: String) {
         preferencesRepository.setLanguage(lang)
         if (preMatchReminder.enabled) preMatchReminder.gameId?.let { preMatchReminder.schedule(it, preMatchReminder.hour, preMatchReminder.minute) }

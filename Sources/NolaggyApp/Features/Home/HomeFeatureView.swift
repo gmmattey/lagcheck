@@ -303,14 +303,6 @@ extension QuickCheckFeatureView {
             .filter { seen.insert($0.id).inserted }
     }
 
-    /// Recorte exclusivo da nova vitrine Jogos. Outros fluxos seguem usando
-    /// `availableGames` e seus contextos históricos sem reinterpretação.
-    var gamesForDirectIPhoneSelection: [CatalogMeasurementJourney.Game] {
-        guard let remoteCatalog else { return [] }
-        let market = CatalogMeasurementJourney.resolvedMarket(in: remoteCatalog)
-        return CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: .iphone)
-    }
-
     var selectedGameName: String {
         if effectiveGameID == GameContext.genericGamingID {
             return localizedString("generic_gaming.name")
@@ -434,7 +426,7 @@ extension QuickCheckFeatureView {
         let game = targetGameForCTA ?? currentHomeGame
         if game.id != GameContext.genericGamingID {
             selectedGameID = game.id
-            startIPhoneCheckDirectly(for: game)
+            startCatalogCheckDirectly(for: game)
         } else {
             startGeneralGamingCheckDirectly()
         }
@@ -520,9 +512,9 @@ extension QuickCheckFeatureView {
         HomeCatalogView(
             title: localizedString("navigation.games"),
             query: $gameQuery,
-            allGames: gamesForDirectIPhoneSelection,
+            allGames: availableGames,
             recentItems: recentTestedItems.filter { recent in
-                gamesForDirectIPhoneSelection.contains(where: { $0.id == recent.game.id })
+                availableGames.contains(where: { $0.id == recent.game.id })
             },
             searchPlaceholder: localizedString("catalog.search.placeholder"),
             clearSearchAccessibilityLabel: localizedString("catalog.search.close"),
@@ -534,7 +526,7 @@ extension QuickCheckFeatureView {
             },
             select: { game in
                 selectedGameID = game.id
-                startIPhoneCheckDirectly(for: game)
+                startCatalogCheckDirectly(for: game)
             }
         )
     }
