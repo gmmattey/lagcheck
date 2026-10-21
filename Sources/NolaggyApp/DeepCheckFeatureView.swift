@@ -11,6 +11,7 @@ struct DeepCheckFeatureView: View {
     @Environment(\.locale) private var locale
     @Environment(\.requestReview) private var requestReview
     @State private var presentation: Presentation = .intro
+    @State private var navigationPath: [NavigationScreen] = []
     @State private var samples: [ProbeSample] = []
     @State private var restSamples: [ProbeSample] = []
     @State private var coordinator: DeepCheckSessionCoordinator
@@ -53,42 +54,52 @@ struct DeepCheckFeatureView: View {
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
         _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
+        let initialPresentation: Presentation
         if UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive") {
-            _presentation = State(initialValue: .inconclusive)
+            initialPresentation = .inconclusive
         } else if usesFixture {
-            _presentation = State(initialValue: .result(UITestFixtures.validDeepResult, .measured))
+            initialPresentation = .result(UITestFixtures.validDeepResult, .measured)
         } else if autoStart {
-            _presentation = State(initialValue: .measuring(.rest))
+            initialPresentation = .measuring(.rest)
+        } else {
+            initialPresentation = .intro
         }
+        _presentation = State(initialValue: initialPresentation)
+        _navigationPath = State(initialValue: Self.navigationPath(for: initialPresentation))
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                switch presentation {
-                case .intro:
-                    intro
-                case .requiresWiFi:
-                    requiresWiFi
-                case .cellularConsent:
-                    cellularConsentView
-                case let .measuring(phase):
-                    measuring(phase)
-                        .id("deep-check-measuring-view")
-                case let .result(result, availability):
-                    resultView(result, availability: availability)
-                case .inconclusive:
-                    inconclusiveResultView
-                case .cancelled:
-                    terminal(kind: .cancelled)
+        NavigationStack(path: $navigationPath) {
+            entryScreen
+                .navigationDestination(for: NavigationScreen.self) { _ in
+                    journeyScreen
                 }
-            }
-            .background(NolaggyScreenBackground())
-            .navigationBarBackButtonHidden(true)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .navigationBar)
         }
         .preferredColorScheme(.dark)
+        .onChange(of: navigationScreen, initial: false) { _, screen in
+            switch screen {
+            case .measurement:
+                navigationPath = [.measurement]
+            case .terminal:
+                // Resultado é uma próxima tela real: o iOS faz o avanço
+                // padrão a partir da medição em vez de trocar o conteúdo
+                // dentro da mesma tela.
+                if navigationPath.last == .measurement {
+                    navigationPath.append(.terminal)
+                } else {
+                    navigationPath = [.terminal]
+                }
+            case nil:
+                navigationPath = []
+            }
+        }
+        .onChange(of: navigationPath, initial: false) { _, path in
+            // Um gesto nativo de voltar a partir da jornada fecha a cobertura
+            // inteira. Não mostramos a tela inicial por baixo de uma sessão
+            // já terminada ou cancelada.
+            guard let expected = navigationScreen else { return }
+            if path.last != expected { cancelOrDismiss() }
+        }
         .onAppear {
             if autoStart && !usesFixture {
                 start()
@@ -160,6 +171,53 @@ struct DeepCheckFeatureView: View {
                 EmptyView()
             }
         }
+    }
+
+    @ViewBuilder
+    private var entryScreen: some View {
+        Group {
+            switch presentation {
+            case .intro:
+                intro
+            case .requiresWiFi:
+                requiresWiFi
+            case .cellularConsent:
+                cellularConsentView
+            case .measuring, .result, .inconclusive, .cancelled:
+                Color.clear
+            }
+        }
+        .background(NolaggyScreenBackground())
+        .navigationBarBackButtonHidden(true)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
+    }
+
+    @ViewBuilder
+    private var journeyScreen: some View {
+        Group {
+            switch presentation {
+            case let .measuring(phase):
+                measuring(phase)
+                    .id("deep-check-measuring-view")
+            case let .result(result, availability):
+                resultView(result, availability: availability)
+            case .inconclusive:
+                inconclusiveResultView
+            case .cancelled:
+                terminal(kind: .cancelled)
+            case .intro:
+                intro
+            case .requiresWiFi:
+                requiresWiFi
+            case .cellularConsent:
+                cellularConsentView
+            }
+        }
+        .background(NolaggyScreenBackground())
+        .navigationBarBackButtonHidden(true)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private var intro: some View {
@@ -384,6 +442,28 @@ struct DeepCheckFeatureView: View {
         return false
     }
 
+    private var navigationScreen: NavigationScreen? {
+        switch presentation {
+        case .measuring:
+            .measurement
+        case .result, .inconclusive, .cancelled:
+            .terminal
+        case .intro, .requiresWiFi, .cellularConsent:
+            nil
+        }
+    }
+
+    private static func navigationPath(for presentation: Presentation) -> [NavigationScreen] {
+        switch presentation {
+        case .measuring:
+            [.measurement]
+        case .result, .inconclusive, .cancelled:
+            [.terminal]
+        case .intro, .requiresWiFi, .cellularConsent:
+            []
+        }
+    }
+
     private func start(withConsent: Bool = false) {
         Task { @MainActor in
             let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(
@@ -599,5 +679,10 @@ struct DeepCheckFeatureView: View {
         case result(DeepCheckResult, DeepCheckLoadAvailability)
         case inconclusive
         case cancelled
+    }
+
+    private enum NavigationScreen: Hashable {
+        case measurement
+        case terminal
     }
 }
