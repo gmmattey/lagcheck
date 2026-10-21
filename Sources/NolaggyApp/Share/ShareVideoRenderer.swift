@@ -47,7 +47,9 @@ public enum ShareVideoRenderer {
         writerInput.expectsMediaDataInRealTime = false
 
         let sourcePixelBufferAttributes: [String: Any] = [
-            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32ARGB),
+            // O contexto abaixo escreve BGRA em little-endian. Declarar ARGB aqui
+            // faz o encoder interpretar os canais na ordem errada (vídeo azulado).
+            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
             kCVPixelBufferWidthKey as String: w,
             kCVPixelBufferHeightKey as String: h,
             kCVPixelBufferCGImageCompatibilityKey as String: true,
@@ -108,7 +110,11 @@ public enum ShareVideoRenderer {
                 space: colorSpace,
                 bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
             ) {
-                // Cria uma camada UIKit / UIGraphicsPushContext para desenhar com UIKit e CoreGraphics
+                // O pixel buffer nasce no sistema de coordenadas Quartz. O
+                // renderizador usa UIKit (origem no canto superior esquerdo),
+                // então espelhamos o eixo Y uma única vez antes de desenhar.
+                context.translateBy(x: 0, y: CGFloat(h))
+                context.scaleBy(x: 1, y: -1)
                 UIGraphicsPushContext(context)
                 let t = Double(frameIndex) / Double(fps)
                 drawFrame(c: context, t: t, scene: scene, images: images)
