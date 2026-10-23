@@ -35,19 +35,25 @@ android {
         }
     }
 
-    // Assinatura de release (chave de upload do Play App Signing). Fica FORA do repositório:
-    // ~/Projetos/lagcheck-release/keys/lagcheck-upload.properties (ou -Plagcheck.signing.properties=<caminho>).
+    // Assinatura de release (chave de upload do Play App Signing).
+    // Procura em release/keys/lagcheck-upload.properties (ou -Plagcheck.signing.properties=<caminho>).
     // Sem o arquivo, o release sai sem assinatura (útil para CI e para quem não tem a chave).
     val signingProps = Properties()
-    val signingFile = File(
-        (project.findProperty("lagcheck.signing.properties") as String?)
-            ?: "${System.getProperty("user.home")}/Projetos/lagcheck-release/keys/lagcheck-upload.properties"
-    )
+    val localSigningFile = rootProject.file("../release/keys/lagcheck-upload.properties")
+    val legacySigningFile = File("${System.getProperty("user.home")}/Projetos/lagcheck-release/keys/lagcheck-upload.properties")
+    val customSigningPath = project.findProperty("lagcheck.signing.properties") as String?
+    val signingFile = when {
+        customSigningPath != null -> File(customSigningPath)
+        localSigningFile.exists() -> localSigningFile
+        else -> legacySigningFile
+    }
     val hasSigning = signingFile.exists().also { if (it) signingFile.inputStream().use(signingProps::load) }
     if (hasSigning) {
         signingConfigs {
             create("release") {
-                storeFile = File(signingProps.getProperty("storeFile"))
+                val rawStoreFile = signingProps.getProperty("storeFile") ?: "lagcheck-upload.jks"
+                val resolvedStoreFile = if (File(rawStoreFile).isAbsolute) File(rawStoreFile) else signingFile.parentFile.resolve(rawStoreFile)
+                storeFile = resolvedStoreFile
                 storePassword = signingProps.getProperty("storePassword")
                 keyAlias = signingProps.getProperty("keyAlias")
                 keyPassword = signingProps.getProperty("keyPassword")
