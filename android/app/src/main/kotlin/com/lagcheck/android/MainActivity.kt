@@ -121,6 +121,7 @@ class MainActivity : ComponentActivity() {
             val favorites by viewModel.favorites.collectAsState()
             val reminderEnabled by viewModel.reminderEnabledState.collectAsState()
             val reminderPermissionDenied by viewModel.reminderPermissionDenied.collectAsState()
+            val analyticsCollectionEnabled by viewModel.analyticsCollectionEnabled.collectAsState()
 
             // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
             androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -357,6 +358,9 @@ class MainActivity : ComponentActivity() {
                     }
 
                     is Screen.Verdict -> {
+                        androidx.compose.runtime.LaunchedEffect(screen) {
+                            viewModel.onResultViewed(screen.game, screen.evaluation)
+                        }
                         VerdictScreen(
                             game = screen.game,
                             evaluation = screen.evaluation,
@@ -434,6 +438,9 @@ class MainActivity : ComponentActivity() {
                             reminderMinute = viewModel.reminderMinute(),
                             reminderGameName = selectedGame.name,
                             reminderPermissionDenied = reminderPermissionDenied,
+                            analyticsCollectionAvailable = viewModel.analyticsCollectionAvailable,
+                            analyticsCollectionEnabled = analyticsCollectionEnabled,
+                            onAnalyticsCollectionEnabledChanged = viewModel::setAnalyticsCollectionEnabled,
                             onReminderToggle = { enabled ->
                                 if (!enabled) viewModel.disableReminder()
                                 else if (android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) viewModel.enableReminder()

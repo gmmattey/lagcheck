@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -69,9 +70,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("boolean", "FIREBASE_ANALYTICS_ENABLED", "true")
         }
         debug {
             applicationIdSuffix = ".debug"
+            // O projeto Firebase só cadastra o applicationId de release. Mantemos
+            // o Debug independente: ele compila, instala e nunca coleta Analytics.
+            buildConfigField("boolean", "FIREBASE_ANALYTICS_ENABLED", "false")
         }
     }
 
@@ -113,6 +118,8 @@ dependencies {
     implementation(libs.play.review)
     // AdMob + UMP (Decisão 82). Dormente enquanto ADS_ENABLED for falso.
     implementation(libs.play.services.ads)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
     // QR Code do link da loja nos cards e no vídeo de compartilhamento (Apache-2.0, sem dependências).
     implementation(libs.zxing.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -120,4 +127,11 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
+}
+
+// `google-services.json` existe apenas em src/release porque o Firebase não
+// cadastra com.lagcheck.app.debug. Desabilitar esta tarefa preserva builds Debug
+// sem fingir que o pacote de desenvolvimento é o aplicativo de produção.
+tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+    enabled = false
 }

@@ -41,6 +41,22 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
 
+        <!-- A coleta só é liberada pelo app Release depois de ler a preferência
+             local. Debug nunca a habilita. Isso também evita evento automático
+             antes de uma instalação excluída ser reconhecida. -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <!-- Analytics não deve coletar Advertising ID nem habilitar sinal de
+             personalização. Isso não muda o consentimento nem o funcionamento
+             independente do AdMob/UMP. -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

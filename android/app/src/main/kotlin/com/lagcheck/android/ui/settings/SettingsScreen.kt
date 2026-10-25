@@ -71,6 +71,9 @@ fun SettingsScreen(
     onReminderTimeChanged: (Int, Int) -> Unit,
     onOpenNotificationSettings: () -> Unit,
     onBack: () -> Unit,
+    analyticsCollectionAvailable: Boolean = false,
+    analyticsCollectionEnabled: Boolean = false,
+    onAnalyticsCollectionEnabledChanged: (Boolean) -> Unit = {},
     /** Só quando o UMP exigir (anúncios ligados). */
     privacyOptionsRequired: Boolean = false,
     onOpenPrivacyOptions: () -> Unit = {},
@@ -206,6 +209,22 @@ fun SettingsScreen(
                     title = tr("Opções de privacidade"),
                     onClick = onOpenPrivacyOptions
                 )
+            }
+            if (analyticsCollectionAvailable) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(72.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(tr("Compartilhar dados de uso"), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
+                        Text(tr("Ajuda a melhorar o app. Não envia dados da sua rede."), fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                    }
+                    Switch(
+                        checked = analyticsCollectionEnabled,
+                        onCheckedChange = onAnalyticsCollectionEnabledChanged,
+                        modifier = Modifier.size(width = 52.dp, height = 44.dp)
+                    )
+                }
             }
             }
 

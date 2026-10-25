@@ -18,6 +18,7 @@ Secrets/
 **/android/**/build/
 android/.idea/
 android/local.properties
+android/.kotlin/
 *.apk
 *.aab
 *.keystore
@@ -25,4 +26,10 @@ android/local.properties
 
 # Local release artifacts and upload keys
 release/
+
+# Configuração pública do Firebase para o variant Android Release. A regra
+# acima continua protegendo release/ na raiz (artefatos e chaves locais).
+!android/app/src/
+!android/app/src/release/
+!android/app/src/release/google-services.json
 .maestri/

@@ -111,6 +111,7 @@
 | [106](#decisão-106) | Catálogo embutido sem assinatura nem validade; EUA e artes autorais | **Vigente (implementado localmente; runtime pendente)** | Refina a 99 e substitui a assinatura Ed25519 do catálogo local; amplia o catálogo para 54 jogos | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 | [107](#decisão-107) | Jogos: vitrine completa e contexto automático validado | **Vigente (implementado localmente; runtime pendente)** | Substitui o recorte iPhone-only da Decisão 102, sem mudar catálogo, medição ou regra de veredito | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [108](#decisão-108) | Analytics do funil iOS com Firebase, exclusão local e privacidade mínima | **Implementado; DebugView validado no simulador; aparelho físico pendente** | Mantém a telemetria do Worker; não amplia endpoints nem altera o diagnóstico | Marco / Camillo / Renan / Luiz |
+| [109](#decisão-109) | Analytics do funil Android com Firebase, variante Debug preservada e exclusão local | **Em implementação; validação física e DebugView pendentes** | Firebase só no Release; Worker, Check, UMP e AdMob preservados | Marco / Camillo / Renan / Luiz |
 
 
 
@@ -1181,6 +1182,16 @@
 - **Exclusão de testes:** Debug não coleta por padrão. A validação deliberada no DebugView depende de argumentos de execução e de filtro de tráfego de desenvolvedor no GA4. Uma chave persistente, local à instalação e sem login desliga todos os destinos de analytics para o aparelho do proprietário; ela é acionada por deep link interno e não aparece na interface pública. A coleta começa desativada no plist e só é habilitada depois que a preferência local é lida, reduzindo a janela do primeiro evento. A exclusão acionada pela primeira vez em uma instalação já aberta não apaga nenhum evento que ela possa ter enviado antes.
 - **Privacidade e limites:** sem ATT, IDFA, personalização de anúncios, user ID, vinculação entre apps ou alteração de UMP. Antes de distribuição, política pública e App Privacy do App Store Connect devem refletir o archive real e a coleta efetiva do Firebase e do AdMob/UMP.
 - **Critérios de aceite:** build iOS resolve Firebase Core/Analytics somente no app principal; testes automatizados não enviam eventos; a exclusão persiste após reinício; cada diagnóstico gera no máximo um evento terminal; DebugView prova cada caminho do funil em iPhone; o console GA4 tem os parâmetros personalizados registrados e o filtro de tráfego de desenvolvedor ativo.
+
+#### Decisão 109
+
+- **Data:** 25 de outubro de 2026.
+- **Título:** Analytics do funil Android com Firebase, variante Debug preservada e exclusão local.
+- **Status Atual:** **Em implementação; validação física e DebugView pendentes.**
+- **Decisão:** o Release Android envia ao Firebase `game_selected`, `lagcheck_started`, `lagcheck_completed`, `lagcheck_inconclusive`, `lagcheck_cancelled`, `result_viewed` e `retest_started`, com os mesmos parâmetros canônicos do iOS. O início só ocorre quando a medição UDP começa; cada medição tem no máximo um desfecho; resultado visto nasce após a tela aparecer. O Firebase não recebe IP, SSID, BSSID, MAC, localização, destino ou amostra bruta. Eventos automáticos do SDK não são duplicados e o Worker atual não é alterado.
+- **Variants e exclusão:** `com.lagcheck.app` usa a configuração do projeto `lagcheck-analytics` apenas no Release. `com.lagcheck.app.debug` continua sem cadastro Firebase, compila sem `google-services.json` e fica com coleta desligada. A coleta do Release começa bloqueada no manifest e só é habilitada depois de ler a chave local persistente. Em Ajustes, a pessoa pode excluir ou reativar manualmente a própria instalação; não há deep link, conta ou parâmetro externo que altere a escolha. A exclusão não controla AdMob/UMP.
+- **Privacidade e limites:** Firebase Analytics não coleta Advertising ID nem emite sinal padrão de personalização de anúncios. A integração não adiciona Auth, banco, Crashlytics, endpoint, dashboard ou infraestrutura paga. UMP e os anúncios continuam independentes; antes de publicar, Segurança de Dados da Play e política pública precisam ser confrontadas com o AAB real e a configuração final do GA4/AdMob.
+- **Critérios de aceite:** `assembleDebug` continua passando sem um segundo cadastro Firebase; Release resolve o JSON de `com.lagcheck.app`; testes não enviam eventos; uma instalação excluída permanece excluída após reiniciar; cada caminho terminal gera um único evento; DebugView em aparelho Release e o filtro de desenvolvedor no GA4 comprovam o funil antes da publicação.
 
 ## Como Registrar Novas Decisões
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591464020950",
+    "project_id": "lagcheck-analytics",
+    "storage_bucket": "lagcheck-analytics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591464020950:android:7af5bd203c85ee9b27c277",
+        "android_client_info": {
+          "package_name": "com.lagcheck.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByB-fKaZ3EBxBwXV4io1tLKmIp4QVPc9s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

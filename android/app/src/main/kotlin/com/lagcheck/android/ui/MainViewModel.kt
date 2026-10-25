@@ -1,8 +1,17 @@
 package com.lagcheck.android.ui
 
 import android.app.Application
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.lagcheck.android.BuildConfig
+import com.lagcheck.android.analytics.AnalyticsCollectionPreference
+import com.lagcheck.android.analytics.CollectionGatedProductAnalyticsTracker
+import com.lagcheck.android.analytics.FirebaseAnalyticsRuntime
+import com.lagcheck.android.analytics.FirebaseProductAnalyticsTracker
+import com.lagcheck.android.analytics.NoopProductAnalyticsTracker
+import com.lagcheck.android.analytics.ProductAnalyticsEvent
+import com.lagcheck.android.analytics.ProductAnalyticsTracker
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.data.HistoryRepository
 import com.lagcheck.android.data.NetworkPathWatcher
@@ -111,6 +120,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
+    private val analyticsCollectionPreference = AnalyticsCollectionPreference.from(
+        application,
+        buildAllowsCollection = BuildConfig.FIREBASE_ANALYTICS_ENABLED
+    )
+    private val productAnalytics: ProductAnalyticsTracker = if (BuildConfig.FIREBASE_ANALYTICS_ENABLED) {
+        val firebase = FirebaseAnalyticsRuntime.configure(application, analyticsCollectionPreference.isCollectionEnabled)
+        CollectionGatedProductAnalyticsTracker(analyticsCollectionPreference, FirebaseProductAnalyticsTracker(firebase))
+    } else {
+        NoopProductAnalyticsTracker
+    }
 
     // Catálogo assinado e local: o mesmo envelope acompanha cada APK e é a única
     // fonte de jogos, regiões e rotas. Não há atualização HTTP nem cache remoto.
@@ -169,6 +188,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val language: StateFlow<String> = preferencesRepository.language
 
+    /** Só existe no Release: Debug não inclui configuração Firebase. */
+    val analyticsCollectionAvailable: Boolean = BuildConfig.FIREBASE_ANALYTICS_ENABLED
+    private val _analyticsCollectionEnabled = MutableStateFlow(analyticsCollectionPreference.isCollectionEnabled)
+    val analyticsCollectionEnabled: StateFlow<Boolean> = _analyticsCollectionEnabled.asStateFlow()
+
+    fun setAnalyticsCollectionEnabled(enabled: Boolean) {
+        if (!analyticsCollectionAvailable) return
+        analyticsCollectionPreference.setOwnerExcluded(!enabled)
+        _analyticsCollectionEnabled.value = analyticsCollectionPreference.isCollectionEnabled
+        FirebaseAnalyticsRuntime.setCollectionEnabled(getApplication(), _analyticsCollectionEnabled.value)
+    }
+
 
     data class RegionCandidate(val id: String, val label: String)
 
@@ -222,6 +253,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var measurementJob: Job? = null
     private var hasConsentedMobileData: Boolean = false
     private var nextStartIsRetest: Boolean = false
+    private var activeAnalyticsMeasurement: ActiveAnalyticsMeasurement? = null
+
+    private data class ActiveAnalyticsMeasurement(
+        val gameId: String,
+        val gamePlatform: String,
+        val networkType: String,
+        val regionId: String,
+        val startedAtElapsedRealtime: Long
+    )
 
     init {
         refreshRadioTelemetry()
@@ -320,6 +360,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             ?: game.platforms.firstOrNull()
             ?: "Mobile"
         selectGame(game, platform, _selectedConnectionType.value, null)
+        productAnalytics.track(ProductAnalyticsEvent.GameSelected(game.id))
     }
 
     fun setLanguage(lang: String) {
@@ -466,8 +507,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val wasSelectingRegion = _currentScreen.value is Screen.RegionalSelection
                     job.cancel()
                     pathWatcher.stop()
-                    if (wasSelectingRegion) _currentScreen.value = Screen.Home
-                    else cancelledScreen(CancelReason.NETWORK_CHANGED)
+                    if (wasSelectingRegion) {
+                        trackCancellation("network_changed")
+                        _currentScreen.value = Screen.Home
+                    }
+                    else {
+                        trackCancellation("network_changed")
+                        cancelledScreen(CancelReason.NETWORK_CHANGED)
+                    }
                 }
             } }
             val prefRegion = preferencesRepository.manualRegionId.value
@@ -505,6 +552,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             destinationLabel = if (selectedContext.routeKind == com.lagcheck.catalog.RouteKind.GAME_OWNED) gameServerLabel() else regionLabel
 
             try {
+                startAnalyticsMeasurement(
+                    gameId = targetGame.id,
+                    platform = analyticsPlatform(platform),
+                    networkType = analyticsNetworkType(radioSnapshot),
+                    regionId = selectedContext.regionId,
+                    isRetest = isRetest
+                )
                 var lastPing: Double? = null
                 val result = orchestrator.run(selectedContext, environmentOf(radioSnapshot)) { p ->
                     if (p.latestPingMs != null) lastPing = p.latestPingMs
@@ -513,6 +567,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Conexão que caiu no meio (watchdog) é cancelamento por integridade, não veredito.
                 if (result.abortReason != null) {
+                    trackInconclusive("insufficient_responses")
                     cancelledScreen(CancelReason.POOR_QUALITY)
                     return@launch
                 }
@@ -522,7 +577,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     loadSamples = result.loadSamples,
                     profile = selectedContext.profileId
                 )
-                val metrics = (deepCheckResult as? com.lagcheck.domain.rules.DeepCheckEvaluation.Completed)?.result?.metrics
+                val completedDeepCheck = deepCheckResult as? com.lagcheck.domain.rules.DeepCheckEvaluation.Completed
+                val metrics = completedDeepCheck?.result?.metrics
 
                 val evaluation = ReadinessPresenter.present(
                     assessment = result.assessment,
@@ -577,8 +633,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
+                if (evaluation.verdict == GameReadinessVerdict.INCONCLUSIVE) {
+                    trackInconclusive("insufficient_samples")
+                } else {
+                    completedDeepCheck?.result?.restResult?.resultClass?.analyticsValue()
+                        ?.let(::trackCompletion)
+                        ?: trackInconclusive("missing_result_class")
+                }
                 telemetry.verdictViewed(targetGame.id, platformEnum, evaluation.verdict)
                 _currentScreen.value = Screen.Verdict(targetGame, evaluation)
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                trackInconclusive("measurement_error")
+                cancelledScreen(CancelReason.UNAVAILABLE)
             } finally {
                 pathWatcher.stop()
             }
@@ -606,6 +673,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         reviewPromptJob?.cancel()
         reviewPromptJob = null
         val screen = _currentScreen.value
+        if (activeAnalyticsMeasurement != null) trackCancellation("background")
         if (screen is Screen.Measurement && !screen.isCancelled && !screen.showMobileDataConsent) {
             measurementJob?.cancel()
             pathWatcher.stop()
@@ -618,6 +686,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun cancelCheck() {
+        trackCancellation("user_cancelled")
         measurementJob?.cancel()
         pathWatcher.stop()
         _currentScreen.value = Screen.Home
@@ -626,6 +695,83 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun retryCheck() {
         nextStartIsRetest = true
         startCheck(_selectedGame.value, _selectedPlatform.value, _selectedConnectionType.value, _declaredExternalLink.value)
+    }
+
+    /** Chamado pela tela já composta: não confunde navegar com resultado visto. */
+    fun onResultViewed(game: CatalogGame, evaluation: GameReadinessEvaluation) {
+        productAnalytics.track(
+            ProductAnalyticsEvent.ResultViewed(
+                gameId = game.id,
+                gamePlatform = analyticsPlatform(_selectedPlatform.value),
+                resultClass = evaluation.verdict.name.lowercase()
+            )
+        )
+    }
+
+    private fun startAnalyticsMeasurement(
+        gameId: String,
+        platform: String,
+        networkType: String,
+        regionId: String,
+        isRetest: Boolean
+    ) {
+        val measurement = ActiveAnalyticsMeasurement(gameId, platform, networkType, regionId, SystemClock.elapsedRealtime())
+        activeAnalyticsMeasurement = measurement
+        productAnalytics.track(ProductAnalyticsEvent.LagcheckStarted(gameId, platform, networkType, regionId))
+        if (isRetest) productAnalytics.track(ProductAnalyticsEvent.RetestStarted(gameId, platform))
+    }
+
+    private fun trackCompletion(resultClass: String) {
+        val measurement = activeAnalyticsMeasurement ?: return
+        activeAnalyticsMeasurement = null
+        productAnalytics.track(
+            ProductAnalyticsEvent.LagcheckCompleted(
+                measurement.gameId,
+                measurement.gamePlatform,
+                measurement.networkType,
+                measurement.regionId,
+                resultClass,
+                (SystemClock.elapsedRealtime() - measurement.startedAtElapsedRealtime) / 1_000
+            )
+        )
+    }
+
+    private fun trackInconclusive(reason: String) {
+        val measurement = activeAnalyticsMeasurement ?: return
+        activeAnalyticsMeasurement = null
+        productAnalytics.track(ProductAnalyticsEvent.LagcheckInconclusive(
+            measurement.gameId, measurement.gamePlatform, measurement.networkType, measurement.regionId, reason
+        ))
+    }
+
+    private fun trackCancellation(reason: String) {
+        val measurement = activeAnalyticsMeasurement ?: return
+        activeAnalyticsMeasurement = null
+        productAnalytics.track(ProductAnalyticsEvent.LagcheckCancelled(
+            measurement.gameId, measurement.gamePlatform, measurement.networkType, measurement.regionId, reason
+        ))
+    }
+
+    private fun analyticsNetworkType(radio: RadioTelemetrySnapshot?): String = when (radio?.transportType) {
+        RadioTelemetrySnapshot.TransportType.WIFI -> "wifi"
+        RadioTelemetrySnapshot.TransportType.CELLULAR -> "cellular"
+        RadioTelemetrySnapshot.TransportType.ETHERNET -> "other"
+        else -> "other"
+    }
+
+    private fun analyticsPlatform(platform: String): String = when (PlatformLabels.toPlatform(platform)) {
+        com.lagcheck.catalog.Platform.MOBILE -> "iphone"
+        com.lagcheck.catalog.Platform.PLAYSTATION -> "playstation"
+        com.lagcheck.catalog.Platform.XBOX -> "xbox"
+        com.lagcheck.catalog.Platform.PC -> "pc"
+        com.lagcheck.catalog.Platform.NINTENDO -> "nintendo"
+    }
+
+    private fun com.lagcheck.domain.model.ResultClass.analyticsValue(): String = when (this) {
+        com.lagcheck.domain.model.ResultClass.EXCELLENT -> "excellent"
+        com.lagcheck.domain.model.ResultClass.GREAT -> "great"
+        com.lagcheck.domain.model.ResultClass.UNSTABLE -> "unstable"
+        com.lagcheck.domain.model.ResultClass.LAG_RISK -> "lagRisk"
     }
 
     override fun onCleared() {
