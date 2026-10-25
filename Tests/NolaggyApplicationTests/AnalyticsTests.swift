@@ -77,4 +77,71 @@ final class AnalyticsTests: XCTestCase {
         XCTAssertEqual(recorded[5], .resultViewed(gameID: "fortnite", platform: "iphone", resultClass: "excellent"))
         XCTAssertEqual(recorded[6], .retestStarted(gameID: "fortnite", platform: "iphone"))
     }
+
+    func testOwnerExclusionPersistsAcrossCollectionPreferences() {
+        let suiteName = "test.lagcheck.analytics.preference.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let firstLaunch = AnalyticsCollectionPreference(
+            userDefaults: defaults,
+            arguments: [],
+            environment: [:],
+            defaultCollectionEnabled: true
+        )
+        XCTAssertTrue(firstLaunch.isCollectionEnabled)
+
+        firstLaunch.setOwnerExcluded(true)
+        let nextLaunch = AnalyticsCollectionPreference(
+            userDefaults: defaults,
+            arguments: [],
+            environment: [:],
+            defaultCollectionEnabled: true
+        )
+        XCTAssertFalse(nextLaunch.isCollectionEnabled)
+    }
+
+    func testAutomatedTestsAndExplicitLaunchArgumentSuppressCollection() {
+        let suiteName = "test.lagcheck.analytics.suppression.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let fixture = AnalyticsCollectionPreference(
+            userDefaults: defaults,
+            arguments: ["-ui-fixture-valid-result"],
+            environment: [:],
+            defaultCollectionEnabled: true
+        )
+        XCTAssertFalse(fixture.isCollectionEnabled)
+
+        let explicit = AnalyticsCollectionPreference(
+            userDefaults: defaults,
+            arguments: [AnalyticsCollectionPreference.disableLaunchArgument],
+            environment: [:],
+            defaultCollectionEnabled: true
+        )
+        XCTAssertFalse(explicit.isCollectionEnabled)
+    }
+
+    func testCollectionGateDoesNotForwardExcludedEvents() {
+        let suiteName = "test.lagcheck.analytics.gate.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let preference = AnalyticsCollectionPreference(
+            userDefaults: defaults,
+            arguments: [],
+            environment: [:],
+            defaultCollectionEnabled: true
+        )
+        let tracker = MockTracker()
+        let gate = CollectionGatedAnalyticsTracker(preference: preference, tracker: tracker)
+
+        preference.setOwnerExcluded(true)
+        gate.track(.gameSelected(gameID: "fortnite"))
+        XCTAssertTrue(tracker.events.isEmpty)
+
+        preference.setOwnerExcluded(false)
+        gate.track(.gameSelected(gameID: "fortnite"))
+        XCTAssertEqual(tracker.events, [.gameSelected(gameID: "fortnite")])
+    }
 }

@@ -12,6 +12,7 @@ struct NolaggyApp: App {
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
     private let catalogRepository: BundledCatalogRepository
+    private let analyticsCollectionPreference: AnalyticsCollectionPreference
     private let analyticsTracker: any AnalyticsTracker
     @State private var catalogState: CatalogState
     @Environment(\.scenePhase) private var scenePhase
@@ -33,7 +34,16 @@ struct NolaggyApp: App {
         }
         historyRepository = (try? SwiftDataMeasurementHistoryRepository()) ?? NoopMeasurementHistoryRepository()
         regionalPreferenceRepository = UserDefaultsRegionalPreferenceRepository()
-        analyticsTracker = CloudflareWorkerAnalyticsTracker()
+        let analyticsCollectionPreference = AnalyticsCollectionPreference()
+        self.analyticsCollectionPreference = analyticsCollectionPreference
+        FirebaseAnalyticsRuntime.configure(collectionEnabled: analyticsCollectionPreference.isCollectionEnabled)
+        analyticsTracker = CollectionGatedAnalyticsTracker(
+            preference: analyticsCollectionPreference,
+            tracker: CompositeAnalyticsTracker(trackers: [
+                CloudflareWorkerAnalyticsTracker(),
+                FirebaseAnalyticsTracker()
+            ])
+        )
         let base = DebugCatalogBase.envelopeData() ?? Data()
         catalogRepository = BundledCatalogRepository(envelopeData: base)
         if (UITestFixtures.isEnabled("-ui-fixture-confirmed-region") || UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")),
@@ -68,6 +78,9 @@ struct NolaggyApp: App {
                 }
             }
             .environment(\.locale, currentLocale)
+            .onOpenURL { url in
+                handleInternalAnalyticsControl(url)
+            }
             .task { IOSAdConsent.shared.updateForLaunchOrForeground() }
             .onChange(of: scenePhase, initial: false) { _, phase in
                 if phase == .active { IOSAdConsent.shared.updateForLaunchOrForeground() }
@@ -96,6 +109,24 @@ struct NolaggyApp: App {
             // navegável e a feature apresenta indisponibilidade explícita.
             catalogState = .unavailable
         }
+    }
+
+    private func handleInternalAnalyticsControl(_ url: URL) {
+        guard url.scheme == "lagcheck", url.host == "internal", url.path == "/analytics",
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let collection = components.queryItems?.first(where: { $0.name == "collection" })?.value
+        else { return }
+
+        switch collection.lowercased() {
+        case "off":
+            analyticsCollectionPreference.setOwnerExcluded(true)
+        case "on":
+            analyticsCollectionPreference.setOwnerExcluded(false)
+        default:
+            return
+        }
+
+        FirebaseAnalyticsRuntime.setCollectionEnabled(analyticsCollectionPreference.isCollectionEnabled)
     }
 }
 

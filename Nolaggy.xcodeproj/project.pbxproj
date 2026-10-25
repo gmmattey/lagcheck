@@ -110,6 +110,7 @@
 		55C9C17FC6EBE357DA258F44 /* QuickCheckPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFC6D20535012498B729CF4 /* QuickCheckPresentation.swift */; };
 		56F3DB187FCC9B103E897E03 /* RootCauseIsolationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C1319448AD638121419FF3 /* RootCauseIsolationView.swift */; };
 		56FD1E977E9B123BA6D6ABDE /* HomeFeatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE082E42929EB89C90445FF /* HomeFeatureView.swift */; };
+		5860B94E75A2AE8A5651E188 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DA47E697A745D2414F48EA06 /* FirebaseCore */; };
 		5989D54CC62B8EA9C36678C6 /* GamePlatformIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AD364C529AA1D089506792 /* GamePlatformIcons.swift */; };
 		59EAB3BB126C591EDD83EAC3 /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		5AA3A7E594F9F954733DB0BA /* LocalNetworkTelemetryPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99D95630C30FE6BDB490CF5 /* LocalNetworkTelemetryPresentationTests.swift */; };
@@ -129,6 +130,7 @@
 		649D8FABCDF5B561FD7F3C21 /* SpotlightIndexCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C05C4D81C9F42993C7887D /* SpotlightIndexCoordinator.swift */; };
 		64D2613AF22077D7F93D49B6 /* ReviewPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F793F997133DBF52968057F /* ReviewPromptPolicy.swift */; };
 		666661C42D5767ABA764635D /* WidgetArtworkSnapshotWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7379DC632F88C20E2F3AE2 /* WidgetArtworkSnapshotWriter.swift */; };
+		68DBDD74C125F10BA4E669B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = BD15087746B180BBACE801C3 /* FirebaseAnalytics */; };
 		695E8493DC02D5198A769303 /* NolaggyInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; };
 		698D5E7225D33A48697B363B /* GameEditorialRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EB759A6480C1DA7A2D7408 /* GameEditorialRegistry.swift */; };
 		69A25399823538BBABC816F1 /* NolaggyDesign.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E32F5C986CB613D2B21ED68 /* NolaggyDesign.framework */; };
@@ -165,6 +167,7 @@
 		8828D96A8DBBBD3BE5AE109E /* ResultInterpreterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0766344F6FD692F9218E5C13 /* ResultInterpreterTests.swift */; };
 		88337ACA4D50D53D2EC11302 /* CloudflareWorkerAnalyticsTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB628B7DAF2EDF87A3860B94 /* CloudflareWorkerAnalyticsTrackerTests.swift */; };
 		888769CD1FC5BDB0AC30A181 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EBCF7FDB143021C1133572D2 /* Assets.xcassets */; };
+		88E49CA397B5BE5E3A8DDF24 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 19B2B0DE5E6DC03A54F9518E /* GoogleService-Info.plist */; };
 		89DB9DD4C85F89D85C1B4252 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA69002DCF9E055763C29BF3 /* SettingsView.swift */; };
 		8A22AAB057A9F942F67FB1B4 /* LiveNetworkSignalCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBBE0C27F4874C8634D27F8 /* LiveNetworkSignalCapsule.swift */; };
 		8ADB1B27F510C7DAB4807F3B /* NLStroke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A828FE7884262D4FFBAFE0A /* NLStroke.swift */; };
@@ -210,6 +213,7 @@
 		B2A5C832DD6850F1C3719F9E /* NolaggyDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD19CF2D2E32FA67C19D9BB /* NolaggyDomain.framework */; };
 		B2BC2F424117AC7FABEF0057 /* ShareVideoRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EA298B4FFBB5059E35BDF3 /* ShareVideoRenderer.swift */; };
 		B35A9C4450BBD6D1F71211B2 /* LatencyGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB69FBF1D0E5521EB0D5760 /* LatencyGraph.swift */; };
+		B43FD564264C6F7360C6CF72 /* FirebaseAnalyticsTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A50492F8768BB4AB9B70EC /* FirebaseAnalyticsTracker.swift */; };
 		B545E2577CA53D754E4B9F1D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E77CA6622CA7D749461EA116 /* SwiftUI.framework */; };
 		B5D455239D63CFB8C77676F4 /* VerifiedRemoteArtworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06CF63E8A62E65C646FF39E /* VerifiedRemoteArtworkLoader.swift */; };
 		B60332E3D4F48D170A4C4BCF /* LocalInterfaceAddressResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F124A151B5515C3A50BBA9E /* LocalInterfaceAddressResolver.swift */; };
@@ -221,6 +225,7 @@
 		BCD031AC4FD75F918D442897 /* NolaggyInfrastructure.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5DAD2B2289523EBA71442ED8 /* NolaggyInfrastructure.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BEBAD90BF05D42CD5A8F5C84 /* RegionalPreReadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371D911C14391E13D433C476 /* RegionalPreReadCoordinator.swift */; };
 		C07810D7BDA9BD21FC72C6B0 /* ReviewPromptCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E46FC38A24F5C31C4762214 /* ReviewPromptCoordinator.swift */; };
+		C1865F0AAD922424799C4071 /* AnalyticsCollectionPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119D7EDFB4CD7F419F7580D8 /* AnalyticsCollectionPreference.swift */; };
 		C215B369DAFE028817EDD07A /* RegionalSelectionRuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7923005D916B2E192A47BC07 /* RegionalSelectionRuleTests.swift */; };
 		C2C1F29EA20C51C317690FDE /* SharedAppGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA321C12A829099CC7735EE /* SharedAppGroupStore.swift */; };
 		C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B81108B4688D1528A7E79480 /* AppIntents.framework */; };
@@ -539,6 +544,7 @@
 		0ED4DDB22B174C9E53B28D0B /* SteamQueryA2SPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteamQueryA2SPayloadCodec.swift; sourceTree = "<group>"; };
 		10F2C9C6B60793F3B3C8F7FD /* LagCheckClip.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LagCheckClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		115FA61E76B2519DC9E7DD8C /* RouteTrailSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteTrailSummaryCard.swift; sourceTree = "<group>"; };
+		119D7EDFB4CD7F419F7580D8 /* AnalyticsCollectionPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsCollectionPreference.swift; sourceTree = "<group>"; };
 		12FC95A6691DD0F7B1DABD3E /* DeepCheckSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckSessionCoordinator.swift; sourceTree = "<group>"; };
 		138A6AC1F43869E0471AA92C /* DeepCheckFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepCheckFeatureView.swift; sourceTree = "<group>"; };
 		13AE1AE666CEDDDE12136E51 /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
@@ -548,6 +554,7 @@
 		1612732F0624BB3DAD32096E /* LagCheckAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LagCheckAppIntents.swift; sourceTree = "<group>"; };
 		17415AB3E8F34E9F2FD78443 /* GatewayProbeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatewayProbeModels.swift; sourceTree = "<group>"; };
 		197C3B1F5470ADD3CEA8A85D /* QuickCheckBackgroundMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckBackgroundMeasurement.swift; sourceTree = "<group>"; };
+		19B2B0DE5E6DC03A54F9518E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		19D728F3538456ABE5725EC8 /* QuickCheckFeatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCheckFeatureView.swift; sourceTree = "<group>"; };
 		1A1331406BE854B0D495D4CF /* LocalInterfaceAddressResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalInterfaceAddressResolverTests.swift; sourceTree = "<group>"; };
 		1B3E3F671A11F7C858663F79 /* BSDGatewayProbingAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSDGatewayProbingAdapter.swift; sourceTree = "<group>"; };
@@ -624,6 +631,7 @@
 		706E62AEBD5A087AA8631F00 /* Oxanium-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Oxanium-OFL.txt"; sourceTree = "<group>"; };
 		70B5F324554E44A25BEC38DE /* RegionalSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalSelection.swift; sourceTree = "<group>"; };
 		730D34FE088EF7E77A7543B7 /* LagCheckWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LagCheckWidget.entitlements; sourceTree = "<group>"; };
+		73A50492F8768BB4AB9B70EC /* FirebaseAnalyticsTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAnalyticsTracker.swift; sourceTree = "<group>"; };
 		74877992225BB8A92D7D2E7A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		7582EA34A61F62F7606DDEFA /* ShareCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCanvas.swift; sourceTree = "<group>"; };
 		75A42D8AE1C21B7EEEA5D10E /* Nolaggy.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Nolaggy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -782,6 +790,8 @@
 				5B8C899ABAC8093D7A976A2C /* NolaggyInfrastructure.framework in Frameworks */,
 				43AC11841F34ED92CBCE2157 /* GoogleMobileAds in Frameworks */,
 				DA3B281792A5D83A53FBFCF9 /* GoogleUserMessagingPlatform in Frameworks */,
+				5860B94E75A2AE8A5651E188 /* FirebaseCore in Frameworks */,
+				68DBDD74C125F10BA4E669B5 /* FirebaseAnalytics in Frameworks */,
 				C3CBC480194DAD55CA5CF0E6 /* AppIntents.framework in Frameworks */,
 				24493F3A949F4A4355A992FA /* StoreKit.framework in Frameworks */,
 				91B2C0E45C28002ED245796D /* WidgetKit.framework in Frameworks */,
@@ -928,6 +938,7 @@
 				3A89451A65381C709160A923 /* VerifiedGameArtwork.swift */,
 				6B7379DC632F88C20E2F3AE2 /* WidgetArtworkSnapshotWriter.swift */,
 				6595CE6E44A78DA9788BA0B5 /* Ads */,
+				B0F9D4F3726675748797867B /* Analytics */,
 				998AE6D78FF15628C1B74561 /* Features */,
 				EE0AEE884A680BBB35813A45 /* Intents */,
 				30D3E7CAC2B6BF06E72ECCCE /* Resources */,
@@ -966,6 +977,7 @@
 		30D3E7CAC2B6BF06E72ECCCE /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				19B2B0DE5E6DC03A54F9518E /* GoogleService-Info.plist */,
 				F0B5A05B0B5BAC4E41C7A109 /* PrivacyInfo.xcprivacy */,
 				A5813B1DDB81B8497A0414AF /* Brand */,
 				4634F5FF65CD5D5B36364687 /* Fonts */,
@@ -1190,6 +1202,14 @@
 			path = Tests/NolaggyInfrastructureTests;
 			sourceTree = "<group>";
 		};
+		B0F9D4F3726675748797867B /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				73A50492F8768BB4AB9B70EC /* FirebaseAnalyticsTracker.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
 		B3DEA060ACAFF09BF82C0020 /* Share */ = {
 			isa = PBXGroup;
 			children = (
@@ -1295,6 +1315,7 @@
 		DD37CEA60B6929F1794F9C64 /* Analytics */ = {
 			isa = PBXGroup;
 			children = (
+				119D7EDFB4CD7F419F7580D8 /* AnalyticsCollectionPreference.swift */,
 				AE7ACC266CC1D0A65E98BF37 /* AnalyticsEvent.swift */,
 				A27D160D70D3453F6C55D422 /* AnalyticsTracker.swift */,
 			);
@@ -1461,6 +1482,8 @@
 			packageProductDependencies = (
 				81E1DFBF2D7A1C81E30A3E89 /* GoogleMobileAds */,
 				A5B095CAB6FBA0D0B9C84C72 /* GoogleUserMessagingPlatform */,
+				DA47E697A745D2414F48EA06 /* FirebaseCore */,
+				BD15087746B180BBACE801C3 /* FirebaseAnalytics */,
 			);
 			productName = Nolaggy;
 			productReference = 75A42D8AE1C21B7EEEA5D10E /* Nolaggy.app */;
@@ -1704,6 +1727,7 @@
 			mainGroup = CDA9E9EBA3E62E559F57D6F2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				0FFA039B9F822A8203D3A83B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				BB3BB7AC896B9F7CD17C3D5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				01997039BEB8CAE98E44E7AC /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
 			);
@@ -1733,6 +1757,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1EDFB519413AE1730FBB6722 /* Assets.xcassets in Resources */,
+				88E49CA397B5BE5E3A8DDF24 /* GoogleService-Info.plist in Resources */,
 				49F6A6617BFE2C30BF39BCD0 /* Localizable.strings in Resources */,
 				A97EC851962CE2BE307036AC /* OFL.txt in Resources */,
 				DC3B9CFF5BFF8803524B97B0 /* Oxanium-OFL.txt in Resources */,
@@ -1930,6 +1955,7 @@
 				79C34226E5137686F046E4E2 /* DeepCheckDetailsView.swift in Sources */,
 				1BEED0B1831F0F06729281B0 /* DeepCheckFeatureView.swift in Sources */,
 				B22E7128BC8A2F6CA0C5AAEA /* DeepCheckResultView.swift in Sources */,
+				B43FD564264C6F7360C6CF72 /* FirebaseAnalyticsTracker.swift in Sources */,
 				9C21255D8A870D9C8D168DE1 /* GameDetailComponents.swift in Sources */,
 				A627CDE51F5030D9755A9868 /* GameDetailView.swift in Sources */,
 				5989D54CC62B8EA9C36678C6 /* GamePlatformIcons.swift in Sources */,
@@ -1976,6 +2002,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1865F0AAD922424799C4071 /* AnalyticsCollectionPreference.swift in Sources */,
 				CB32D2D0BA55E22CA02668CA /* AnalyticsEvent.swift in Sources */,
 				FD75794174FB0DAFA91B58BC /* AnalyticsTracker.swift in Sources */,
 				8EC72315F6F2F3183C741E12 /* CatalogMeasurementJourney.swift in Sources */,
@@ -2920,6 +2947,14 @@
 				version = 3.1.0;
 			};
 		};
+		0FFA039B9F822A8203D3A83B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = exactVersion;
+				version = 12.19.3;
+			};
+		};
 		BB3BB7AC896B9F7CD17C3D5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
@@ -2940,6 +2975,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 01997039BEB8CAE98E44E7AC /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
 			productName = GoogleUserMessagingPlatform;
+		};
+		BD15087746B180BBACE801C3 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0FFA039B9F822A8203D3A83B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		DA47E697A745D2414F48EA06 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0FFA039B9F822A8203D3A83B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
