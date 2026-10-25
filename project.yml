@@ -17,7 +17,7 @@ settings:
     CODE_SIGNING_ALLOWED: YES
     DEVELOPMENT_TEAM: 2Z4T8228GR
     MARKETING_VERSION: "1.0.3"
-    CURRENT_PROJECT_VERSION: "9"
+    CURRENT_PROJECT_VERSION: "10"
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
@@ -106,7 +106,7 @@ targets:
         # Release identity. Xcode maps these values into the generated
         # CFBundleShortVersionString and CFBundleVersion entries.
         MARKETING_VERSION: "1.0.3"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: "LagCheck"
@@ -177,7 +177,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Sources/LagCheckWidget/Info.plist
         MARKETING_VERSION: "1.0.3"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         CODE_SIGN_ENTITLEMENTS: Sources/LagCheckWidget/LagCheckWidget.entitlements
   LagCheckClip:
     type: application.on-demand-install-capable
@@ -204,7 +204,7 @@ targets:
         INFOPLIST_KEY_CFBundleName: "LagCheck Clip"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         MARKETING_VERSION: "1.0.3"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         CODE_SIGN_ENTITLEMENTS: Sources/LagCheckClip/LagCheckClip.entitlements
   NolaggyDomainTests:
     type: bundle.unit-test
