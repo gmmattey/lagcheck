@@ -29,8 +29,12 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
 	<key>GADApplicationIdentifier</key>
 	<string>$(LAGCHECK_ADMOB_APP_ID)</string>
+	<key>GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED</key>
+	<false/>
 	<key>LagCheckAdsEnabled</key>
 	<string>$(LAGCHECK_ADS_ENABLED)</string>
 	<key>LagCheckPrivacyPolicyURL</key>

@@ -18,6 +18,7 @@ O app ajuda a decidir se a conexão observada está adequada para jogar agora. M
 | Copy e localização | [Voz do produto](07-voz-do-produto.md) |
 | Port, rádio e limites Android | [Arquitetura Android](08-arquitetura-android.md) |
 | Aprovações e histórico | [Documento único de decisões](DECISOES.md) |
+| Funil, DebugView e exclusão do aparelho interno | [Firebase Analytics iOS](firebase-analytics-ios.md) |
 
 Decisões de ID maior refinam ou substituem as anteriores. Documentos em `archive/` preservam histórico. Uma divergência sem decisão posterior exige alinhamento antes de implementação.
 
