@@ -110,7 +110,7 @@
 | [105](#decisão-105) | Jogos: paridade visual e de interação entre iOS e Android | **Vigente (implementado localmente; runtime pendente)** | Refina a 102 e substitui o trilho de "Todos os jogos" por grade de 2 colunas; favoritar no card, busca sempre visível, card único, resultados em lista, limite de 4 favoritos | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [106](#decisão-106) | Catálogo embutido sem assinatura nem validade; EUA e artes autorais | **Vigente (implementado localmente; runtime pendente)** | Refina a 99 e substitui a assinatura Ed25519 do catálogo local; amplia o catálogo para 54 jogos | Luiz / Giam / Marco / Camillo / Iury / Rian / Breno |
 | [107](#decisão-107) | Jogos: vitrine completa e contexto automático validado | **Vigente (implementado localmente; runtime pendente)** | Substitui o recorte iPhone-only da Decisão 102, sem mudar catálogo, medição ou regra de veredito | Luiz / Giam / Marco / Renan / Rian / Breno |
-| [108](#decisão-108) | Analytics do funil iOS com Firebase, exclusão local e privacidade mínima | **Implementado localmente; DebugView/aparelho pendentes** | Mantém a telemetria do Worker; não amplia endpoints nem altera o diagnóstico | Marco / Camillo / Renan / Luiz |
+| [108](#decisão-108) | Analytics do funil iOS com Firebase, exclusão local e privacidade mínima | **Implementado; DebugView validado no simulador; aparelho físico pendente** | Mantém a telemetria do Worker; não amplia endpoints nem altera o diagnóstico | Marco / Camillo / Renan / Luiz |
 
 
 
@@ -1175,7 +1175,7 @@
 
 - **Data:** 25 de outubro de 2026.
 - **Título:** Analytics do funil iOS com Firebase, exclusão local e privacidade mínima.
-- **Status Atual:** **Implementado localmente; DebugView e aparelho físico pendentes.**
+- **Status Atual:** **Implementado; DebugView validado no simulador; aparelho físico pendente.** Em 25 de outubro de 2026, o filtro de tráfego de desenvolvedor foi ativado no GA4 e o DebugView recebeu `game_selected`; `first_open`, `session_start` e `user_engagement` vieram do SDK. O simulador não executa o Check, portanto não prova os eventos de início e desfecho do diagnóstico.
 - **Frentes envolvidas:** Luiz (autorização), Marco (produto), Camillo (arquitetura), Renan (prova) e Giam (aceite).
 - **Decisão:** o app iOS principal passa a enviar ao Firebase somente os eventos do funil `game_selected`, `lagcheck_started`, `lagcheck_completed`, `lagcheck_inconclusive`, `lagcheck_cancelled`, `result_viewed` e `retest_started`. Os únicos parâmetros são jogo, plataforma, região, tipo de rede, classe do resultado, duração e motivo terminal quando existir; IP, SSID, BSSID, identificadores de hardware, endereços de destino e amostras brutas seguem proibidos. Eventos automáticos do Firebase não são replicados pelo app. A telemetria atual do Worker permanece sem mudança e continua sujeita ao seu contrato; Firebase não cria endpoint, banco nem serviço próprio do LagCheck.
 - **Exclusão de testes:** Debug não coleta por padrão. A validação deliberada no DebugView depende de argumentos de execução e de filtro de tráfego de desenvolvedor no GA4. Uma chave persistente, local à instalação e sem login desliga todos os destinos de analytics para o aparelho do proprietário; ela é acionada por deep link interno e não aparece na interface pública. A coleta começa desativada no plist e só é habilitada depois que a preferência local é lida, reduzindo a janela do primeiro evento. A exclusão acionada pela primeira vez em uma instalação já aberta não apaga nenhum evento que ela possa ter enviado antes.
