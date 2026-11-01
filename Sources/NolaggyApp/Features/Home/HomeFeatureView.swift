@@ -55,36 +55,6 @@ extension QuickCheckFeatureView {
         return "\(platformName) · \(networkName)"
     }
 
-    var liveSignalDotColor: Color {
-        switch liveNetworkSignal.connection {
-        case .offline:
-            return NLColor.semanticNotReady
-        case .cellular:
-            return NLColor.semanticReady
-        case .wifi(let band, let gatewayRTTMs):
-            if band == .twoPointFourGHz || (gatewayRTTMs != nil && gatewayRTTMs! > 50) {
-                return NLColor.semanticCaution
-            }
-            return NLColor.semanticReady
-        }
-    }
-
-    var liveSignalSummaryText: String {
-        switch liveNetworkSignal.connection {
-        case .offline:
-            return localizedString("network.offline")
-        case .cellular(let tech):
-            return "\(localizedString("network.cellular")) · \(tech)"
-        case .wifi(let band, let gatewayRTTMs):
-            let bandText = (band == .fiveGHz) ? "Wi-Fi 5 GHz" : "Wi-Fi"
-            if let rtt = gatewayRTTMs {
-                return "\(bandText) · \(Int(rtt.rounded())) ms"
-            } else {
-                return "\(bandText) · \(localizedString("network.connected"))"
-            }
-        }
-    }
-
     func latestResultSummaryText(_ entry: MeasurementHistoryEntry) -> String {
         if entry.isInconclusive {
             return localizedString("game_readiness.verdict.inconclusive.headline")
@@ -167,28 +137,6 @@ extension QuickCheckFeatureView {
                         )
 
                         VStack(spacing: 0) {
-                            HStack {
-                                Spacer()
-                                HStack(spacing: 7) {
-                                    Circle()
-                                        .fill(liveSignalDotColor)
-                                        .frame(width: 6, height: 6)
-                                        .overlay {
-                                            Circle()
-                                                .stroke(liveSignalDotColor.opacity(0.18), lineWidth: 3)
-                                        }
-                                    Text(liveSignalSummaryText)
-                                        .font(NLTypography.monospaceSubtitle)
-                                        .foregroundStyle(NLColor.textSecondary)
-                                }
-                                .padding(.horizontal, 10)
-                                .frame(minHeight: 32)
-                                .background(.black.opacity(0.34), in: Capsule())
-                                Spacer()
-                            }
-                            .padding(.top, NLSpacing.sm)
-                            .safeAreaPadding(.top)
-
                             Spacer()
 
                             VStack(spacing: 0) {

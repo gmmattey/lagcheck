@@ -132,7 +132,7 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - Debug é instalação local via Xcode; não é beta.
 - TestFlight é distribuição de um release candidate identificado por versão e build.
 - Produção só acontece após autorização explícita, seleção do build correto no App Store Connect e confirmação de disponibilidade.
-- Use `MAJOR.MINOR.PATCH` para versão de produto e um build numérico sempre crescente para uploads à Apple.
+- Use `MAJOR.MINOR` para versão de produto e um build numérico sempre crescente, apresentado como `X.Y (build)`, para uploads à Apple.
 - Não crie GitHub, repositório, Actions, chaves, certificados, upload, submissão, publicação ou alteração no App Store Connect sem pedido explícito.
 
 ## Segurança e disciplina de alteração

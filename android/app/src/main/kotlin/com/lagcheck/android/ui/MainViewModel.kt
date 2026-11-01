@@ -153,9 +153,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         store = reviewPromptStore,
         appVersionProvider = {
             try {
-                application.packageManager.getPackageInfo(application.packageName, 0).versionName ?: "1.0.0"
+                application.packageManager.getPackageInfo(application.packageName, 0).versionName ?: "1.0"
             } catch (_: Exception) {
-                "1.0.0"
+                "1.0"
             }
         }
     )

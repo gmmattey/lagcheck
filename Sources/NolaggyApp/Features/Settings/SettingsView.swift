@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 import UIKit
 import UserNotifications
 import NolaggyApplication
@@ -20,6 +21,7 @@ struct SettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.requestReview) private var requestReview
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     @ObservedObject private var adConsent = IOSAdConsent.shared
 
@@ -37,6 +39,13 @@ struct SettingsView: View {
         case AppLanguage.es.rawValue: return "Español"
         default: return "Português (Brasil)"
         }
+    }
+
+    private var appVersionAndBuild: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
     }
 
     private var regionDetailLabel: String {
@@ -241,7 +250,7 @@ struct SettingsView: View {
 
                             Spacer()
 
-                            Text(verbatim: "\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0")")
+                            Text(verbatim: appVersionAndBuild)
                                 .font(.system(size: 14, weight: .medium).monospacedDigit())
                                 .foregroundStyle(NLColor.textTertiary)
                         }
@@ -249,7 +258,9 @@ struct SettingsView: View {
 
                         // Termos de Uso
                         settingsRowButton(title: LocalizedStringKey("settings.about.terms")) {
-                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                            if let url = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
+                                openURL(url)
+                            }
                         }
 
                         // Política de Privacidade
@@ -265,10 +276,6 @@ struct SettingsView: View {
                             }
                         }
 
-                        // Licenças de código aberto
-                        settingsRowButton(title: LocalizedStringKey("settings.about.licenses"), isLast: true) {
-                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
-                        }
                         }
                         }
                     }
@@ -289,7 +296,7 @@ struct SettingsView: View {
                         }
 
                         settingsRowButton(title: LocalizedStringKey("settings.support.rate"), isLast: true, identifier: "ajustes-avaliar") {
-                            showToast(message: AppLocalization.string("settings.toast.system_action", comment: ""))
+                            requestReview()
                         }
                         }
                         }

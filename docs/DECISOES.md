@@ -112,6 +112,8 @@
 | [107](#decisão-107) | Jogos: vitrine completa e contexto automático validado | **Vigente (implementado localmente; runtime pendente)** | Substitui o recorte iPhone-only da Decisão 102, sem mudar catálogo, medição ou regra de veredito | Luiz / Giam / Marco / Renan / Rian / Breno |
 | [108](#decisão-108) | Analytics do funil iOS com Firebase, exclusão local e privacidade mínima | **Implementado; DebugView validado no simulador; aparelho físico pendente** | Mantém a telemetria do Worker; não amplia endpoints nem altera o diagnóstico | Marco / Camillo / Renan / Luiz |
 | [109](#decisão-109) | Analytics do funil Android com Firebase, variante Debug preservada e exclusão local | **Em implementação; validação física e DebugView pendentes** | Firebase só no Release; Worker, Check, UMP e AdMob preservados | Marco / Camillo / Renan / Luiz |
+| [110](#decisão-110) | Avaliação manual iniciada pela pessoa em Ajustes | **Vigente (implementado localmente; validação em aparelho pendente)** | Refina a Decisão 77 somente para o toque explícito em Ajustes; o gatilho automático não muda | Luiz / Marco / Camillo / Renan |
+| [111](#decisão-111) | Versionamento de produto em `X.Y (build)` | **Vigente** | Substitui a regra `MAJOR.MINOR.PATCH` para novas versões; builds já atribuídos não são renumerados | Luiz / Marco / Camillo / Renan |
 
 
 
@@ -1192,6 +1194,24 @@
 - **Variants e exclusão:** `com.lagcheck.app` usa a configuração do projeto `lagcheck-analytics` apenas no Release. `com.lagcheck.app.debug` continua sem cadastro Firebase, compila sem `google-services.json` e fica com coleta desligada. A coleta do Release começa bloqueada no manifest e só é habilitada depois de ler a chave local persistente. Em Ajustes, a pessoa pode excluir ou reativar manualmente a própria instalação; não há deep link, conta ou parâmetro externo que altere a escolha. A exclusão não controla AdMob/UMP.
 - **Privacidade e limites:** Firebase Analytics não coleta Advertising ID nem emite sinal padrão de personalização de anúncios. A integração não adiciona Auth, banco, Crashlytics, endpoint, dashboard ou infraestrutura paga. UMP e os anúncios continuam independentes; antes de publicar, Segurança de Dados da Play e política pública precisam ser confrontadas com o AAB real e a configuração final do GA4/AdMob.
 - **Critérios de aceite:** `assembleDebug` continua passando sem um segundo cadastro Firebase; Release resolve o JSON de `com.lagcheck.app`; testes não enviam eventos; uma instalação excluída permanece excluída após reiniciar; cada caminho terminal gera um único evento; DebugView em aparelho Release e o filtro de desenvolvedor no GA4 comprovam o funil antes da publicação.
+
+#### Decisão 110
+
+- **Data:** 1º de novembro de 2026.
+- **Título:** Avaliação manual iniciada pela pessoa em Ajustes.
+- **Status Atual:** **Vigente (implementado localmente; validação em aparelho pendente).** Refina somente o gatilho manual da Decisão 77.
+- **Contexto e decisão:** a linha `Avaliar o LagCheck` em Ajustes existia, mas só mostrava um aviso sem iniciar nenhuma ação. Quando a pessoa a toca, o esperado é abrir a solicitação nativa da loja. No iOS, esse toque passa a chamar diretamente o pedido do StoreKit, sem tela intermediária, texto persuasivo ou coleta adicional. Esta exceção é estritamente iniciada pela pessoa: o gatilho automático permanece idêntico ao da Decisão 77 — terceiro Check `PRONTO PARA RANKED`, espera de 1,5 s, uma solicitação por versão e cooldown de 90 dias.
+- **Limites:** a Apple decide se exibe o diálogo naquele momento. O app nunca afirma que a avaliação foi mostrada nem grava esse toque como uma exibição do gatilho automático. Não há alteração no Android, em score, Check, anúncios, telemetria, Worker ou privacidade.
+- **Critérios de aceite:** em iPhone físico, tocar em `Avaliar o LagCheck` abre a solicitação nativa quando o sistema a disponibilizar, sem toast enganoso e sem modal próprio; o fluxo automático continua coberto pelos testes de política e coordenação.
+
+#### Decisão 111
+
+- **Data:** 1º de novembro de 2026.
+- **Título:** Versionamento de produto em `X.Y (build)`.
+- **Status Atual:** **Vigente.** Substitui a convenção `MAJOR.MINOR.PATCH` para toda nova atribuição de versão.
+- **Decisão:** a versão de produto passa a ter duas partes, `MAJOR.MINOR`, e o build inteiro crescente aparece sempre separado, no formato `X.Y (build)`. O `MINOR` avança a cada nova versão liberada, incluindo correções; o `MAJOR` fica reservado para uma mudança incompatível de promessa ou contrato. Tags passam a usar `vX.Y`; arquivos Android aceitam somente `versionName` com duas partes. Quando o release for disparado no GitHub, o build vem de `run_number + offset`: o offset inicial é 11, último build já atribuído, para que a primeira execução produza 12. Número de PR, hash de merge e tag permanecem como rastreio do código, não como versão enviada à loja.
+- **Limite:** versões já atribuídas a builds não são renumeradas, para não comprometer o histórico da App Store, TestFlight ou Play. A regra vale na próxima definição de versão e build. Em Ajustes, iOS e Android mostram sempre o identificador completo disponível no binário.
+- **Critérios de aceite:** documentação, scripts e defaults novos rejeitam ou não instruem `X.Y.Z`; a tela Ajustes mostra a versão e o build entre parênteses; a próxima versão destinada às lojas usa o formato novo sem reaproveitar build.
 
 ## Como Registrar Novas Decisões
 

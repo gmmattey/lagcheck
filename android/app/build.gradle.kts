@@ -15,10 +15,10 @@ android {
         applicationId = "com.lagcheck.app"
         minSdk = 26
         targetSdk = 36
-        // Versão do produto (MAJOR.MINOR.PATCH) e build crescente. Sobrescreva com
-        // -Plagcheck.versionName=1.0.1 -Plagcheck.versionCode=2 (ver scripts/android-release.sh).
+        // Versão do produto (MAJOR.MINOR) e build crescente. Sobrescreva com
+        // -Plagcheck.versionName=1.0 -Plagcheck.versionCode=2 (ver scripts/android-release.sh).
         versionCode = ((project.findProperty("lagcheck.versionCode") as String?) ?: "1").toInt()
-        versionName = (project.findProperty("lagcheck.versionName") as String?) ?: "1.0.0"
+        versionName = (project.findProperty("lagcheck.versionName") as String?) ?: "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

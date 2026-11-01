@@ -32,8 +32,8 @@ O LagCheck usa dois identificadores obrigatórios.
 
 | Identificador | Formato | Onde aparece | Regra |
 | --- | --- | --- | --- |
-| Versão de produto | `MAJOR.MINOR.PATCH` | App Store, TestFlight e Ajustes do app | É a versão percebida pelo usuário |
-| Número de build | inteiro positivo, por exemplo `42` | Xcode, App Store Connect e diagnósticos | Nunca é reutilizado para um upload; sempre cresce |
+| Versão de produto | `MAJOR.MINOR` | App Store, TestFlight e Ajustes do app | É a versão percebida pelo usuário e aparece junto ao build como `X.Y (build)` |
+| Número de build | inteiro positivo, por exemplo `42` | Xcode, App Store Connect e diagnósticos | Vem do número sequencial da automação de release do GitHub; nunca é reutilizado para um upload |
 
 No Xcode, a versão de produto corresponde a `MARKETING_VERSION` / `CFBundleShortVersionString`. O número de build corresponde a `CURRENT_PROJECT_VERSION` / `CFBundleVersion`.
 
@@ -41,20 +41,21 @@ No Xcode, a versão de produto corresponde a `MARKETING_VERSION` / `CFBundleShor
 
 | Alteração | Próxima versão | Exemplo |
 | --- | --- | --- |
-| Primeiro beta funcional | `0.1.0` | primeira jornada utilizável |
-| Nova capacidade compatível ou mudança relevante de experiência | aumenta `MINOR` | `0.1.0` → `0.2.0` |
-| Correção, texto, acessibilidade ou ajuste sem nova capacidade | aumenta `PATCH` | `0.2.0` → `0.2.1` |
-| Mudança incompatível de contrato, dados ou promessa de produto | aumenta `MAJOR` | `0.9.0` → `1.0.0` |
+| Primeiro beta funcional | `0.1` | primeira jornada utilizável |
+| Nova capacidade, correção ou mudança relevante de experiência | aumenta `MINOR` | `0.1` → `0.2` |
+| Mudança incompatível de contrato, dados ou promessa de produto | aumenta `MAJOR` | `0.9` → `1.0` |
 
-Enquanto o app estiver em pré-lançamento, `0.x.y` comunica evolução. A primeira versão pública deve ser `1.0.0` somente quando a promessa do MVP estiver estável, não porque o primeiro binário foi enviado ao TestFlight.
+Enquanto o app estiver em pré-lançamento, `0.x` comunica evolução. A primeira versão pública deve ser `1.0` somente quando a promessa do MVP estiver estável, não porque o primeiro binário foi enviado ao TestFlight.
 
 ### 3.2 Como escolher o build
 
-- Todo arquivo enviado ao App Store Connect recebe um build maior que o último enviado. Exemplo: `0.1.0 (42)`, `0.1.0 (43)`, `0.1.1 (44)`.
+- Todo arquivo enviado ao App Store Connect recebe um build maior que o último enviado. Exemplo: `0.1 (42)`, `0.1 (43)`, `0.2 (44)`.
 - O build é globalmente crescente para simplificar rastreio, mesmo que a Apple só exija incremento dentro de uma mesma versão de produto.
+- O número vem de `GITHUB_RUN_NUMBER` da única automação de release, somado ao `LAGCHECK_BUILD_OFFSET` configurado para o maior build já enviado. O primeiro fluxo parte do build 11, portanto começa com offset `11`; a automação não é recriada com outro nome, para manter a sequência crescente. Fora dessa automação, o número precisa ser informado explicitamente e conferido contra a última entrega da loja.
+- Número de PR, hash de merge e tag identificam a mudança no GitHub, mas não viram o build: entram apenas nas notas e nos artefatos do release.
 - Um build cancelado, rejeitado ou expirado não é reaproveitado.
 - Debug local pode usar builds de desenvolvimento, mas não deve reutilizar um número que já tenha sido enviado à Apple. Antes de arquivar para TestFlight, o número de build é definido explicitamente.
-- Toda observação de teste, bug crítico e nota de release identifica versão e build: `0.2.0 (57)`; nunca apenas “a versão mais recente”.
+- Toda observação de teste, bug crítico e nota de release identifica versão e build: `0.2 (57)`; nunca apenas “a versão mais recente”.
 
 ## 4. Debug — instalação local e direta
 
@@ -208,20 +209,21 @@ Uma correção urgente é aberta quando existe resultado de rede enganoso, risco
 
 Não existe “desfazer o binário” publicado como se fosse um deploy web. Reverter código no repositório ajuda a preparar o hotfix, mas não retira a versão instalada dos aparelhos. Por isso, a contenção por catálogo só pode reduzir dano dentro das regras já aprovadas e nunca alterar silenciosamente o significado de um resultado histórico.
 
-Hotfix aumenta `PATCH` e recebe novo build. Exemplo: `1.0.0 (120)` público com defeito → `1.0.1 (121)` para TestFlight e App Review. A urgência não elimina teste de regressão para o problema corrigido.
+Hotfix aumenta `MINOR` e recebe novo build. Exemplo: `1.0 (120)` público com defeito → `1.1 (121)` para TestFlight e App Review. A urgência não elimina teste de regressão para o problema corrigido.
 
-## 8. Preparação para GitHub no futuro — sem integração agora
+## 8. GitHub e identidade de build — sem publicação automatizada
 
-Nenhum repositório, branch, Action, segredo, webhook ou automação será criado nesta etapa. O projeto só deixa o desenho preparado para integrar GitHub depois, sem mudar o fluxo acima.
+O GitHub rastreia o código e pode numerar builds, mas não publica o app por conta própria. A automação de release dedicada só é criada quando houver autorização, sem chaves no repositório; até lá, o script aceita um build informado manualmente.
 
-Quando houver autorização, a integração deve adotar:
+Quando existir, a automação de release deve adotar:
 
 | Elemento futuro | Regra prevista |
 | --- | --- |
 | Branch principal | `main` representa o estado integrado e liberável; não recebe alteração direta sem revisão |
 | Trabalho isolado | cada frente usa branch curta com escopo claro; merge só após revisão e validação correspondente |
 | Pull request | descreve comportamento, documentos afetados, validações executadas e riscos; não afirma publicação sem prova externa |
-| Tags | `vX.Y.Z` marca exatamente o commit da versão de produto liberada; o build correspondente fica registrado na release note |
+| Tags | `vX.Y` marca exatamente o commit da versão de produto liberada; o build correspondente fica registrado na release note |
+| Build | `GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET`; o offset inicial é `11` e só muda se uma entrega externa consumir outro build |
 | CI | em pull request: build, testes e lint; em tag de release: archive reproduzível e validações adicionais. Upload para Apple só existe com autorização explícita |
 | Segredos | certificados, chaves do App Store Connect e assinatura de catálogo ficam em cofre de segredos; nunca em código, arquivo de configuração versionado ou log |
 | Proteção | aprovação obrigatória, checks verdes e histórico auditável para `main` e tags de release |
@@ -234,7 +236,7 @@ Automação futura acelera passos repetitivos; ela não substitui os gates de pr
 Cada ida para TestFlight ou Produção deve registrar:
 
 ```text
-Versão/build:       0.2.0 (57)
+Versão/build:       0.2 (57)
 Canal:              Debug iOS | Debug Android | TestFlight | Play interno/fechado | Produção
 Objetivo:           o que este build valida ou entrega
 Escopo:             principais mudanças
