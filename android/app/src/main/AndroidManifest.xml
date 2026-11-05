@@ -78,6 +78,21 @@
                     android:scheme="https"
                     android:host="lagcheck.signallq.com"
                     android:pathPrefix="/quicktest" />
+                <data
+                    android:scheme="https"
+                    android:host="lagcheck.signallq.com"
+                    android:pathPrefix="/vs" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="lagcheck"
+                    android:host="vs" />
+                <data
+                    android:scheme="lagcheck"
+                    android:host="check" />
             </intent-filter>
         </activity>
         <receiver android:name=".data.PreMatchReminderReceiver" android:exported="false" />

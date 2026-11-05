@@ -34,6 +34,7 @@ struct DeepCheckFeatureView: View {
     private let usesFixture: Bool
     private let autoStart: Bool
     private let onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)?
+    private let incomingDuel: HostDuelPayload?
 
     init(
         resolvedContext: ResolvedMeasurementContext,
@@ -42,6 +43,7 @@ struct DeepCheckFeatureView: View {
         analyticsTracker: any AnalyticsTracker = NoopAnalyticsTracker(),
         reviewPromptCoordinator: ReviewPromptCoordinator = ReviewPromptCoordinator(),
         autoStart: Bool = true,
+        incomingDuel: HostDuelPayload? = nil,
         onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)? = nil
     ) {
         _activeContext = State(initialValue: resolvedContext)
@@ -50,6 +52,7 @@ struct DeepCheckFeatureView: View {
         self.analyticsTracker = analyticsTracker
         self.reviewPromptCoordinator = reviewPromptCoordinator
         self.autoStart = autoStart
+        self.incomingDuel = incomingDuel
         self.onMeasurementCompleted = onMeasurementCompleted
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
@@ -331,7 +334,8 @@ struct DeepCheckFeatureView: View {
             showDetails: { showingDetails = true },
             showBooster: { showingBooster = true },
             retry: restart,
-            exit: cancelOrDismiss
+            exit: cancelOrDismiss,
+            incomingDuel: incomingDuel
         )
         .onAppear {
             let evaluation = GameReadinessEvaluator.evaluate(

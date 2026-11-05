@@ -55,6 +55,10 @@ public struct CheckCompletoResultView: View {
     @State private var shareCardPreparationFailed = false
     @State private var shareCardPreparationAttempt = 0
     @State private var preparedSharePreview: UIImage? = nil
+    @AppStorage("lagcheck_gamer_nick") private var savedNick: String = ""
+    @State private var showingNickSheet = false
+    @State private var showingVersusScreen = false
+    public let incomingDuel: HostDuelPayload?
 
 
     public init(
@@ -69,7 +73,8 @@ public struct CheckCompletoResultView: View {
         showDetails: @escaping () -> Void = {},
         showBooster: @escaping () -> Void = {},
         retry: @escaping () -> Void,
-        exit: @escaping () -> Void = {}
+        exit: @escaping () -> Void = {},
+        incomingDuel: HostDuelPayload? = nil
     ) {
         self.result = result
         self.profileID = profileID
@@ -83,6 +88,7 @@ public struct CheckCompletoResultView: View {
         self.showBooster = showBooster
         self.retry = retry
         self.exit = exit
+        self.incomingDuel = incomingDuel
     }
 
     public var body: some View {
@@ -248,6 +254,35 @@ public struct CheckCompletoResultView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(item: $activeShareDestination) { destination in
             ShareSheet(items: destination.items)
+        }
+        .sheet(isPresented: $showingNickSheet) {
+            HostDuelNickSheet { nick in
+                shareDuel(evaluation: evaluation, nick: nick)
+            }
+        }
+        .fullScreenCover(isPresented: $showingVersusScreen) {
+            if let incoming = incomingDuel {
+                let myPayload = HostDuelPayload(
+                    gameID: gameID ?? gameName.lowercased(),
+                    regionID: regionFriendlyName.lowercased(),
+                    p50Ms: evaluation.pingMs ?? 0.0,
+                    packetLossPercent: evaluation.packetLossPercentage ?? 0.0,
+                    jitterMs: evaluation.jitterMs ?? 0.0,
+                    verdict: evaluation.verdict,
+                    challengerNick: savedNick
+                )
+                HostDuelVersusView(
+                    challenger: incoming,
+                    opponent: myPayload,
+                    gameTitle: gameName,
+                    onDismiss: { showingVersusScreen = false }
+                )
+            }
+        }
+        .onAppear {
+            if incomingDuel != nil {
+                showingVersusScreen = true
+            }
         }
         .task(id: "\(shareCardSnapshot(evaluation: evaluation)?.cacheKey ?? "inconclusive"):\(shareCardPreparationAttempt)") {
             preparedShareCardURL = nil
@@ -611,6 +646,29 @@ public struct CheckCompletoResultView: View {
         }
     }
 
+    private func initiateHostDuel(evaluation: GameReadinessEvaluation) {
+        let nick = savedNick.trimmingCharacters(in: .whitespacesAndNewlines)
+        if nick.isEmpty {
+            showingNickSheet = true
+        } else {
+            shareDuel(evaluation: evaluation, nick: nick)
+        }
+    }
+
+    private func shareDuel(evaluation: GameReadinessEvaluation, nick: String) {
+        let payload = HostDuelPayload(
+            gameID: gameID ?? gameName.lowercased(),
+            regionID: regionFriendlyName.lowercased(),
+            p50Ms: evaluation.pingMs ?? 0.0,
+            packetLossPercent: evaluation.packetLossPercentage ?? 0.0,
+            jitterMs: evaluation.jitterMs ?? 0.0,
+            verdict: evaluation.verdict,
+            challengerNick: nick
+        )
+        let shareText = payload.generateDiscordShareText(gameTitle: gameName)
+        activeShareDestination = .link(items: [shareText])
+    }
+
     // MARK: - 6. Ações
 
     private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
@@ -628,6 +686,38 @@ public struct CheckCompletoResultView: View {
             .accessibilityIdentifier("check-completo-primary-action")
 
             if evaluation.verdict != .inconclusive {
+                if incomingDuel != nil {
+                    Button(action: { showingVersusScreen = true }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "trophy.fill")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("Ver Placar do Duelo (Versus)")
+                                .font(.system(size: 15, weight: .bold))
+                        }
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(NLColor.surface, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("check-completo-versus-replay")
+                } else {
+                    Button(action: { initiateHostDuel(evaluation: evaluation) }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "gamecontroller.fill")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("Desafiar Duo no Lobby")
+                                .font(.system(size: 15, weight: .bold))
+                        }
+                        .foregroundStyle(NLColor.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(NLColor.surface, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("check-completo-host-duel")
+                }
+
                 Button(action: showDetails) {
                     Text(LocalizedStringKey("result.details_button"))
                         .font(.system(size: 15, weight: .bold))

@@ -1,18 +1,24 @@
 import Foundation
 
-/// Tipos de ação mapeados a partir de Deep Links e Universal Links (Decisão 76).
+/// Tipos de ação mapeados a partir de Deep Links e Universal Links (Decisão 76 e Decisão 112).
 public enum AppDeepLink: Equatable, Sendable {
     case quickCheck(gameID: String?, platform: Platform?, declaredExternalLink: ExternalEquipmentLink?)
     case networkCockpit
     case gamesCatalog
     case home
+    case hostDuel(payload: HostDuelPayload)
 }
 
-/// Parser puro e determinístico de URLs externas para navegação e automação (Decisão 76).
+/// Parser puro e determinístico de URLs externas para navegação e automação (Decisão 76 e 112).
 public enum DeepLinkParser {
     
     /// Analisa qualquer URL (esquema personalizado `lagcheck://` ou Universal Link canônico).
     public static func parse(url: URL) -> AppDeepLink? {
+        // 0. Duelo de Host (Decisão 112: https://lagcheck.signallq.com/vs ou lagcheck://vs)
+        if let duel = HostDuelPayload.parse(url: url) {
+            return .hostDuel(payload: duel)
+        }
+
         let scheme = url.scheme?.lowercased()
         guard scheme == "lagcheck" || scheme == "https" else {
             return nil

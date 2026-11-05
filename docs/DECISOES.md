@@ -114,6 +114,7 @@
 | [109](#decisão-109) | Analytics do funil Android com Firebase, variante Debug preservada e exclusão local | **Em implementação; validação física e DebugView pendentes** | Firebase só no Release; Worker, Check, UMP e AdMob preservados | Marco / Camillo / Renan / Luiz |
 | [110](#decisão-110) | Avaliação manual iniciada pela pessoa em Ajustes | **Vigente (implementado localmente; validação em aparelho pendente)** | Refina a Decisão 77 somente para o toque explícito em Ajustes; o gatilho automático não muda | Luiz / Marco / Camillo / Renan |
 | [111](#decisão-111) | Versionamento de produto em `X.Y (build)` | **Vigente** | Substitui a regra `MAJOR.MINOR.PATCH` para novas versões; builds já atribuídos não são renumerados | Luiz / Marco / Camillo / Renan |
+| [112](#decisão-112) | Duelo de Host: desafio 1v1 para Discord/WhatsApp, landing web e expiração de 30 min | **Aprovada (em implementação)** | Custo zero, sem banco de dados; payload no link com TTL de 30 min | Luiz / Marcelo / Priscila / Camillo / Renan |
 
 
 
@@ -1212,6 +1213,22 @@
 - **Decisão:** a versão de produto passa a ter duas partes, `MAJOR.MINOR`, e o build inteiro crescente aparece sempre separado, no formato `X.Y (build)`. O `MINOR` avança a cada nova versão liberada, incluindo correções; o `MAJOR` fica reservado para uma mudança incompatível de promessa ou contrato. Tags passam a usar `vX.Y`; arquivos Android aceitam somente `versionName` com duas partes. Quando o release for disparado no GitHub, o build vem de `run_number + offset`: o offset inicial é 11, último build já atribuído, para que a primeira execução produza 12. Número de PR, hash de merge e tag permanecem como rastreio do código, não como versão enviada à loja.
 - **Limite:** versões já atribuídas a builds não são renumeradas, para não comprometer o histórico da App Store, TestFlight ou Play. A regra vale na próxima definição de versão e build. Em Ajustes, iOS e Android mostram sempre o identificador completo disponível no binário.
 - **Critérios de aceite:** documentação, scripts e defaults novos rejeitam ou não instruem `X.Y.Z`; a tela Ajustes mostra a versão e o build entre parênteses; a próxima versão destinada às lojas usa o formato novo sem reaproveitar build.
+
+#### Decisão 112
+
+- **Data:** 5 de novembro de 2026.
+- **Título:** Duelo de Host: desafio 1v1 para Discord/WhatsApp, landing web de onboarding e expiração de 30 min.
+- **Status Atual:** **Aprovada (em implementação).**
+- **Frentes envolvidas:** Luiz (aprovação), Marcelo (produto), Priscila (design/UX), Camillo (arquitetura/implementação) e Renan (QA/prova real).
+- **Contexto e problema:** Para acelerar a aquisição orgânica de jogadores competitivos e criar um ritual de lobby no Discord ("quem cria a sala?"), o LagCheck introduz o **Duelo de Host**. O jogador que concluiu um Check em um jogo pode desafiar um amigo diretamente via link/texto compartilhado.
+- **Decisão e arquitetura (Custo Zero e Paridade Nativa):**
+  1. **Domínio Canônico e Compartilhamento:** O domínio oficial do link é `https://lagcheck.signallq.com/vs`. Todos os dados do desafio (jogo, ping, perda de pacotes, jitter, veredito, timestamp e nick opcional) trafegam codificados no próprio link (`base64` / URL segura). Zero servidores ou bancos de dados adicionais.
+  2. **TTL e expiração de 30 minutos:** O desafio é válido por exatamente 30 minutos a partir do timestamp de medição. Passado esse intervalo, o link é considerado expirado no app e na web.
+  3. **Regra de Gatilho e Vitória:** Ação disponível em qualquer resultado conclusivo (`Pronto`, `Evitaria` ou `Instável`). O critério de vitória é: 1º Veredito (estabilidade e perda sob carga superam ping bruto); 2º Menor latência P50 em caso de empate.
+  4. **Paridade Nativa iOS e Android:** Implementado com contratos espelhados no iOS (SwiftUI, SwiftData/UserDefaults) e no Android (Kotlin, Jetpack Compose, DataStore/Room). Em ambos, abrir o link exibe confirmação em 1 toque ("Aceitar e Medir") e histórico registra o badge de duelo. Exportação suporta texto formatado pro Discord e imagem gerada do card de placar.
+  5. **Jornada de onboarding (sem o app instalado):** Na web em `lagcheck.signallq.com/vs`, exibe a tela de confronto em Dark Competitive UI, botão direto para baixar nas lojas (App Store e Play Store) e resposta de W.O. para colar na call.
+- **Limites e privacidade:** Sem conta, sem login e sem rastreamento de IP ou dados pessoais; cumprimento estrito da regra do custo zero; sem anúncios extras fora das superfícies autorizadas.
+- **Critérios de aceite:** O link gera o payload correto sob `lagcheck.signallq.com/vs`; suites de teste iOS (`swift test`) e Android (`./gradlew test`) cobrem codificação, expiração de 30 min e resolução de vitória; UI em SwiftUI e Compose respeita o design system sem bordas em cards.
 
 ## Como Registrar Novas Decisões
 

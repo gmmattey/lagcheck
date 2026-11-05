@@ -7,11 +7,18 @@ sealed class AppDeepLink {
     object NetworkCockpit : AppDeepLink()
     object GamesCatalog : AppDeepLink()
     object Home : AppDeepLink()
+    data class HostDuel(val payload: HostDuelPayload) : AppDeepLink()
 }
 
 object DeepLinkParser {
 
     fun parse(uriString: String): AppDeepLink? {
+        // 0. Duelo de Host (Decisão 112)
+        val duel = HostDuelPayload.parse(uriString)
+        if (duel != null) {
+            return AppDeepLink.HostDuel(duel)
+        }
+
         val uri = try {
             URI(uriString)
         } catch (_: Exception) {

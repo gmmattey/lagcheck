@@ -59,6 +59,8 @@ struct QuickCheckFeatureView: View {
     @State var requestedMeasurementContext: GameContext?
     @State var liveNetworkSignal: LiveNetworkSignal = LiveNetworkSignal()
     @State var showingCockpit = false
+    @State var pendingIncomingDuel: HostDuelPayload? = nil
+    @State var showingDuelInvitation = false
     @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
     @State private var hasTrackedAppOpen = false
@@ -370,6 +372,7 @@ struct QuickCheckFeatureView: View {
                 gameName: destination.gameName,
                 historyRepository: historyRepository,
                 analyticsTracker: analyticsTracker,
+                incomingDuel: destination.incomingDuel,
                 onMeasurementCompleted: { samples, entry in
                     partialSamples = samples
                     if let entry {
@@ -380,6 +383,26 @@ struct QuickCheckFeatureView: View {
         }
         .sheet(isPresented: $showingCockpit) {
             NetworkCockpitView()
+        }
+        .sheet(isPresented: $showingDuelInvitation) {
+            if let duel = pendingIncomingDuel {
+                let targetGame = availableGames.first(where: { $0.id == duel.gameID })
+                let gameTitle = targetGame?.name ?? duel.gameID.capitalized
+                HostDuelInvitationSheet(
+                    duel: duel,
+                    gameName: gameTitle,
+                    onAccept: {
+                        if let targetGame, let resolved = resolveGameContext(targetGame) {
+                            openDeepCheck(resolvedContext: resolved, incomingDuel: duel)
+                        } else if let firstGame = availableGames.first, let resolved = resolveGameContext(firstGame) {
+                            openDeepCheck(resolvedContext: resolved, incomingDuel: duel)
+                        }
+                    },
+                    onDecline: {
+                        pendingIncomingDuel = nil
+                    }
+                )
+            }
         }
         .onOpenURL { url in
             handleIncomingURL(url)
@@ -448,6 +471,14 @@ struct QuickCheckFeatureView: View {
             showingCockpit = true
         case .home:
             selectedTab = .home
+        case let .hostDuel(payload):
+            selectedTab = .home
+            if !payload.isExpired() {
+                pendingIncomingDuel = payload
+                showingDuelInvitation = true
+            } else if let target = availableGames.first(where: { $0.id == payload.gameID }) {
+                selectedGameID = target.id
+            }
         }
     }
 
@@ -707,4 +738,15 @@ struct DeepCheckDestination: Identifiable {
     let id = UUID()
     let resolvedContext: ResolvedMeasurementContext
     let gameName: String
+    let incomingDuel: HostDuelPayload?
+
+    init(
+        resolvedContext: ResolvedMeasurementContext,
+        gameName: String,
+        incomingDuel: HostDuelPayload? = nil
+    ) {
+        self.resolvedContext = resolvedContext
+        self.gameName = gameName
+        self.incomingDuel = incomingDuel
+    }
 }

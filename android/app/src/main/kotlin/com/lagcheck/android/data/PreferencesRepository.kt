@@ -42,6 +42,12 @@ class PreferencesRepository(context: Context) {
         prefs.edit().putString("pref_favorites", next.serialize()).apply()
     }
 
+    fun getGamerNick(): String = prefs.getString("pref_gamer_nick", "").orEmpty()
+
+    fun setGamerNick(nick: String) {
+        prefs.edit().putString("pref_gamer_nick", nick.trim().take(16)).apply()
+    }
+
     fun setLanguage(lang: String) {
         _language.value = lang
         prefs.edit().putString("pref_language", lang).apply()

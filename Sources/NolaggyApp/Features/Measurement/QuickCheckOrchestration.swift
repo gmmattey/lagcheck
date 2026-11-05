@@ -123,7 +123,7 @@ extension QuickCheckFeatureView {
         presentation = .context
     }
 
-    func openDeepCheck(resolvedContext: ResolvedMeasurementContext? = nil, platform: Platform? = nil) {
+    func openDeepCheck(resolvedContext: ResolvedMeasurementContext? = nil, platform: Platform? = nil, incomingDuel: HostDuelPayload? = nil) {
         guard let baseContext = resolvedContext ?? selectedRegionalContext ?? completedEntry?.resolvedContext else {
             return
         }
@@ -154,7 +154,8 @@ extension QuickCheckFeatureView {
         selectedRegionalContext = context
         deepCheckDestination = DeepCheckDestination(
             resolvedContext: context,
-            gameName: gameName(forGameID: context.context.gameID)
+            gameName: gameName(forGameID: context.context.gameID),
+            incomingDuel: incomingDuel
         )
     }
 

@@ -26,6 +26,7 @@ import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.FavoriteGames
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
+import com.lagcheck.domain.model.HostDuelPayload
 import com.lagcheck.domain.model.OfficialGameCatalog
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.presentation.ReadinessLanguage
@@ -95,6 +96,11 @@ sealed class Screen {
     data class Verdict(
         val game: CatalogGame,
         val evaluation: GameReadinessEvaluation
+    ) : Screen()
+    data class HostDuelVersus(
+        val challenger: com.lagcheck.domain.model.HostDuelPayload,
+        val opponent: com.lagcheck.domain.model.HostDuelPayload,
+        val gameTitle: String
     ) : Screen()
     data class TechnicalDetails(
         val game: CatalogGame,
@@ -246,6 +252,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _liveRadioTelemetry = MutableStateFlow<RadioTelemetrySnapshot?>(null)
     val liveRadioTelemetry: StateFlow<RadioTelemetrySnapshot?> = _liveRadioTelemetry.asStateFlow()
+
+    // Decisão 112: Duelo de Host (Lobby 1v1)
+    private val _pendingDuelInvitation = MutableStateFlow<HostDuelPayload?>(null)
+    val pendingDuelInvitation: StateFlow<HostDuelPayload?> = _pendingDuelInvitation.asStateFlow()
+    private var activeDuelChallenger: HostDuelPayload? = null
+    private val _lastDuelResolution = MutableStateFlow<Pair<HostDuelPayload, HostDuelPayload>?>(null)
+    val lastDuelResolution: StateFlow<Pair<HostDuelPayload, HostDuelPayload>?> = _lastDuelResolution.asStateFlow()
+
+    fun getSavedGamerNick(): String = preferencesRepository.getGamerNick()
+
+    fun saveGamerNick(nick: String) {
+        preferencesRepository.setGamerNick(nick)
+    }
+
+    fun handleIncomingDuel(payload: HostDuelPayload) {
+        if (payload.isExpired()) {
+            return
+        }
+        _pendingDuelInvitation.value = payload
+    }
+
+    fun declineDuelInvitation() {
+        _pendingDuelInvitation.value = null
+    }
+
+    fun acceptDuelInvitation(payload: HostDuelPayload) {
+        _pendingDuelInvitation.value = null
+        if (payload.isExpired()) return
+
+        val targetGame = games.value.firstOrNull { it.id.equals(payload.gameId, ignoreCase = true) }
+            ?: games.value.firstOrNull() ?: _selectedGame.value
+
+        activeDuelChallenger = payload
+        startCheck(targetGame = targetGame)
+    }
 
     private val _localReport = MutableStateFlow<LocalNetworkReport?>(null)
     /** Leitura local do Cockpit (gateway, NAT, banda, voz). Nulo enquanto mede. */
@@ -645,7 +686,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         ?: trackInconclusive("missing_result_class")
                 }
                 telemetry.verdictViewed(targetGame.id, platformEnum, evaluation.verdict)
-                _currentScreen.value = Screen.Verdict(targetGame, evaluation)
+                val duelChallenger = activeDuelChallenger
+                if (duelChallenger != null && evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
+                    val myNick = preferencesRepository.getGamerNick()
+                    val opponent = HostDuelPayload(
+                        gameId = targetGame.id,
+                        regionId = selectedContext.regionId,
+                        p50Ms = evaluation.pingMs ?: 0.0,
+                        packetLossPercent = evaluation.packetLossPercentage ?: 0.0,
+                        jitterMs = evaluation.jitterMs ?: 0.0,
+                        verdict = evaluation.verdict,
+                        challengerNick = myNick
+                    )
+                    _lastDuelResolution.value = duelChallenger to opponent
+                    activeDuelChallenger = null
+                    _currentScreen.value = Screen.HostDuelVersus(duelChallenger, opponent, targetGame.name)
+                } else {
+                    activeDuelChallenger = null
+                    _currentScreen.value = Screen.Verdict(targetGame, evaluation)
+                }
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
                 trackInconclusive("measurement_error")

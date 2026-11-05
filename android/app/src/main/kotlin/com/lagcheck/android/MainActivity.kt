@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
         consumeWidgetCheck(intent)
+        consumeDeepLink(intent)
 
         // Idioma inicial já na primeira composição (sem piscar em PT-BR antes de trocar).
         AppLocale.language = viewModel.language.value.toAppLanguage()
@@ -122,6 +123,8 @@ class MainActivity : ComponentActivity() {
             val reminderEnabled by viewModel.reminderEnabledState.collectAsState()
             val reminderPermissionDenied by viewModel.reminderPermissionDenied.collectAsState()
             val analyticsCollectionEnabled by viewModel.analyticsCollectionEnabled.collectAsState()
+            val pendingDuel by viewModel.pendingDuelInvitation.collectAsState()
+            val lastDuelResolution by viewModel.lastDuelResolution.collectAsState()
 
             // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
             androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -142,7 +145,7 @@ class MainActivity : ComponentActivity() {
                     is Screen.Measurement, is Screen.RegionalSelection, is Screen.ConnectionRequired -> {
                         viewModel.cancelCheck()
                     }
-                    is Screen.Verdict -> {
+                    is Screen.Verdict, is Screen.HostDuelVersus -> {
                         viewModel.navigateTo(Screen.Home)
                     }
                     is Screen.TechnicalDetails -> {
@@ -194,6 +197,19 @@ class MainActivity : ComponentActivity() {
             androidx.compose.runtime.CompositionLocalProvider(
                 com.lagcheck.android.ui.components.LocalArtworkDownloadsAllowed provides artworkAllowed
             ) {
+            val duelInvite = pendingDuel
+            if (duelInvite != null) {
+                val duelGameName = androidx.compose.runtime.remember(duelInvite) {
+                    catalogGames.firstOrNull { it.id.equals(duelInvite.gameId, ignoreCase = true) }?.name
+                        ?: duelInvite.gameId.replaceFirstChar { it.uppercase() }
+                }
+                com.lagcheck.android.ui.duel.HostDuelInvitationSheet(
+                    duel = duelInvite,
+                    gameName = duelGameName,
+                    onAccept = { viewModel.acceptDuelInvitation(duelInvite) },
+                    onDecline = { viewModel.declineDuelInvitation() }
+                )
+            }
             Scaffold(
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
@@ -375,7 +391,26 @@ class MainActivity : ComponentActivity() {
                             onClose = {
                                 viewModel.navigateTo(Screen.Home)
                             },
-                            showNativeAd = showNativeAd
+                            showNativeAd = showNativeAd,
+                            savedGamerNick = viewModel.getSavedGamerNick(),
+                            onSaveGamerNick = { viewModel.saveGamerNick(it) },
+                            lastDuelResolution = lastDuelResolution,
+                            onViewDuelVersus = lastDuelResolution?.let { res ->
+                                {
+                                    viewModel.navigateTo(Screen.HostDuelVersus(res.first, res.second, screen.game.name))
+                                }
+                            }
+                        )
+                    }
+
+                    is Screen.HostDuelVersus -> {
+                        com.lagcheck.android.ui.duel.HostDuelVersusScreen(
+                            challenger = screen.challenger,
+                            opponent = screen.opponent,
+                            gameTitle = screen.gameTitle,
+                            onDismiss = {
+                                viewModel.navigateTo(Screen.Home)
+                            }
                         )
                     }
 
@@ -480,12 +515,23 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         intent.getStringExtra(EXTRA_REMINDER_GAME_ID)?.let(viewModel::openReminderGame)
         consumeWidgetCheck(intent)
+        consumeDeepLink(intent)
     }
 
     private fun consumeWidgetCheck(intent: android.content.Intent) {
         val gameId = intent.getStringExtra(EXTRA_WIDGET_GAME_ID) ?: return
         val platform = intent.getStringExtra(EXTRA_WIDGET_PLATFORM) ?: return
         viewModel.startCheckFromWidget(gameId, platform, intent.getStringExtra(EXTRA_WIDGET_EXTERNAL_LINK))
+    }
+
+    private fun consumeDeepLink(intent: android.content.Intent) {
+        val uri = intent.data?.toString() ?: return
+        when (val deepLink = com.lagcheck.domain.model.DeepLinkParser.parse(uri)) {
+            is com.lagcheck.domain.model.AppDeepLink.HostDuel -> {
+                viewModel.handleIncomingDuel(deepLink.payload)
+            }
+            else -> Unit
+        }
     }
     private fun launchPlayReviewFlow() {
         try {
@@ -541,7 +587,7 @@ private fun screenDepth(screen: Screen): Int = when (screen) {
     is Screen.Home, is Screen.GameSelection, is Screen.History, is Screen.Settings -> 0
     is Screen.NetworkCockpit, is Screen.HistoryDetails, is Screen.RegionalSelection, is Screen.ConnectionRequired -> 1
     is Screen.Measurement -> 2
-    is Screen.Verdict -> 3
+    is Screen.Verdict, is Screen.HostDuelVersus -> 3
     is Screen.TechnicalDetails -> 4
 }
 

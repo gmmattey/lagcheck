@@ -92,10 +92,15 @@ fun VerdictScreen(
     onDetails: () -> Unit,
     onClose: () -> Unit,
     showNativeAd: Boolean = false,
+    savedGamerNick: String = "",
+    onSaveGamerNick: (String) -> Unit = {},
+    lastDuelResolution: Pair<com.lagcheck.domain.model.HostDuelPayload, com.lagcheck.domain.model.HostDuelPayload>? = null,
+    onViewDuelVersus: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.RESULT) else null
     val context = LocalContext.current
+    var showNickSheet by remember { mutableStateOf(false) }
     val shareScene = remember(evaluation, game) { ShareMediaScene.from(game.name, game.drawableResName, evaluation) }
     val shareSnapshot = remember(shareScene, evaluation.timestamp, AppLocale.language) {
         shareScene?.let { PreparedShareCardSnapshot.from(it, AppLocale.language.name, evaluation.timestamp.toString()) }
@@ -225,6 +230,35 @@ fun VerdictScreen(
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(shareIntent, tr("Exportar Relatório")))
+    }
+
+    fun shareGeneratedDuel(nick: String) {
+        onSaveGamerNick(nick)
+        val payload = com.lagcheck.domain.model.HostDuelPayload(
+            gameId = game.id,
+            regionId = regionLabel.ifBlank { "sa-east-1" },
+            p50Ms = evaluation.pingMs ?: 0.0,
+            packetLossPercent = evaluation.packetLossPercentage ?: 0.0,
+            jitterMs = evaluation.jitterMs ?: 0.0,
+            verdict = evaluation.verdict,
+            challengerNick = nick
+        )
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, payload.generateDiscordShareText(game.name))
+        }
+        context.startActivity(Intent.createChooser(shareIntent, tr("Desafiar Duo no Lobby")))
+    }
+
+    if (showNickSheet) {
+        com.lagcheck.android.ui.duel.HostDuelNickSheet(
+            initialNick = savedGamerNick,
+            onDismiss = { showNickSheet = false },
+            onConfirm = { nick ->
+                showNickSheet = false
+                shareGeneratedDuel(nick)
+            }
+        )
     }
 
     Column(
@@ -394,7 +428,7 @@ fun VerdictScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 7. Ações Principais: "Ver detalhes" antes de "Testar novamente"
+        // 7. Ações Principais: "Testar novamente", "Desafiar Duo" / "Ver Duelo", "Ver detalhes"
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -404,6 +438,44 @@ fun VerdictScreen(
                 onClick = onRetry,
                 height = 56.dp
             )
+
+            if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
+                if (lastDuelResolution != null && onViewDuelVersus != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(LagCheckColors.Surface)
+                            .clickable { onViewDuelVersus() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tr("Ver Confronto do Duelo"),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LagCheckColors.TextPrimary
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(LagCheckColors.Surface)
+                            .clickable { showNickSheet = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "⚔️ " + tr("Desafiar Duo no Lobby"),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LagCheckColors.TextPrimary
+                        )
+                    }
+                }
+            }
 
             Box(
                 modifier = Modifier
