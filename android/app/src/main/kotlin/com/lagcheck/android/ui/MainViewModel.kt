@@ -125,7 +125,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         buildAllowsCollection = BuildConfig.FIREBASE_ANALYTICS_ENABLED
     )
     private val productAnalytics: ProductAnalyticsTracker = if (BuildConfig.FIREBASE_ANALYTICS_ENABLED) {
-        val firebase = FirebaseAnalyticsRuntime.configure(application, analyticsCollectionPreference.isCollectionEnabled)
+        val firebase = FirebaseAnalyticsRuntime.configure(
+            application,
+            analyticsCollectionPreference.isCollectionEnabled,
+            BuildConfig.ANALYTICS_ENVIRONMENT
+        )
         CollectionGatedProductAnalyticsTracker(analyticsCollectionPreference, FirebaseProductAnalyticsTracker(firebase))
     } else {
         NoopProductAnalyticsTracker

@@ -36,6 +36,22 @@ android {
         }
     }
 
+    // O Play Console não informa ao SDK se um install veio de teste fechado ou
+    // de produção. O ambiente nasce no AAB para o GA4 nunca precisar adivinhar.
+    flavorDimensions += "distribution"
+    productFlavors {
+        // "test" é prefixo reservado do Android Gradle Plugin; este variant
+        // gera o AAB de testes e informa `testing` ao GA4.
+        create("validation") {
+            dimension = "distribution"
+            buildConfigField("String", "ANALYTICS_ENVIRONMENT", "\"testing\"")
+        }
+        create("production") {
+            dimension = "distribution"
+            buildConfigField("String", "ANALYTICS_ENVIRONMENT", "\"production\"")
+        }
+    }
+
     // Assinatura de release (chave de upload do Play App Signing).
     // Procura em release/keys/lagcheck-upload.properties (ou -Plagcheck.signing.properties=<caminho>).
     // Sem o arquivo, o release sai sem assinatura (útil para CI e para quem não tem a chave).
@@ -130,8 +146,8 @@ dependencies {
 }
 
 // `google-services.json` existe apenas em src/release porque o Firebase não
-// cadastra com.lagcheck.app.debug. Desabilitar esta tarefa preserva builds Debug
+// cadastra com.lagcheck.app.debug. Desabilitar estas tarefas preserva builds Debug
 // sem fingir que o pacote de desenvolvimento é o aplicativo de produção.
-tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+tasks.matching { it.name.endsWith("DebugGoogleServices") }.configureEach {
     enabled = false
 }

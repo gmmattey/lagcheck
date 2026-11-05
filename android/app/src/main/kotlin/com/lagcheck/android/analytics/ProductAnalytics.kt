@@ -139,12 +139,12 @@ internal fun ProductAnalyticsEvent.toFirebasePayload(): FirebaseAnalyticsPayload
 }
 
 object FirebaseAnalyticsRuntime {
-    fun configure(context: Context, enabled: Boolean): FirebaseAnalytics {
+    fun configure(context: Context, enabled: Boolean, environment: String): FirebaseAnalytics {
         return FirebaseAnalytics.getInstance(context).also {
             it.setAnalyticsCollectionEnabled(enabled)
-            // O variant debug não inicializa este runtime. Todo evento do release
-            // carrega a marca necessária para o painel separar produção do teste local.
-            it.setUserProperty("environment", "production")
+            // O variant debug não inicializa este runtime. A origem é definida no
+            // AAB (testing ou production), nunca inferida pelo Play ou pelo painel.
+            it.setUserProperty("environment", environment)
         }
     }
 

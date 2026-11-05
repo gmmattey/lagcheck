@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Gera o pacote do LagCheck (Android) para o teste interno do Google Play.
-# Uso: scripts/android-release.sh <versionName> [versionCode]     ex.: scripts/android-release.sh 1.0
+# Gera o pacote do LagCheck (Android) com ambiente GA4 explícito.
+# Uso: scripts/android-release.sh <versionName> [versionCode] [testing|production]
+# Ex.: scripts/android-release.sh 1.0 12 testing
 # Em GitHub Actions, versionCode é GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET.
-# Fora dele, informe-o explicitamente: scripts/android-release.sh 1.0 12
-# Saída padronizada: release/android/v<versionName>-b<versionCode>/
-#   lagcheck-android-v<versionName>-b<versionCode>.aab   (enviar ao Play Console)
+# Fora dele, informe-o explicitamente: scripts/android-release.sh 1.0 12 testing
+# Saída padronizada: release/android/v<versionName>-b<versionCode>-<ambiente>/
+#   lagcheck-android-<ambiente>-v<versionName>-b<versionCode>.aab
 #   mapping.txt                                          (símbolos do R8; enviar junto, em "Arquivos de desofuscação")
 #   SHA256SUMS.txt
 set -euo pipefail
@@ -21,16 +22,27 @@ else
 fi
 [[ "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+$ ]] || { echo "versionName deve usar X.Y (ex.: 1.0)" >&2; exit 2; }
 [[ "$VERSION_CODE" =~ ^[1-9][0-9]*$ ]] || { echo "versionCode deve ser inteiro positivo" >&2; exit 2; }
+CHANNEL="${3:-testing}"
+[[ "$CHANNEL" == "testing" || "$CHANNEL" == "production" ]] || { echo "ambiente deve ser testing ou production" >&2; exit 2; }
+if [[ "$CHANNEL" == "testing" ]]; then
+  VARIANT="ValidationRelease"
+else
+  VARIANT="ProductionRelease"
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="${LAGCHECK_RELEASE_DIR:-$ROOT/release/android/v${VERSION_NAME}-b${VERSION_CODE}}"
-NAME="lagcheck-android-v${VERSION_NAME}-b${VERSION_CODE}"
+OUT="${LAGCHECK_RELEASE_DIR:-$ROOT/release/android/v${VERSION_NAME}-b${VERSION_CODE}-${CHANNEL}}"
+NAME="lagcheck-android-${CHANNEL}-v${VERSION_NAME}-b${VERSION_CODE}"
 
 cd "$ROOT/android"
-./gradlew clean :app:bundleRelease \
+./gradlew clean ":app:bundle${VARIANT}" \
   -Plagcheck.versionName="$VERSION_NAME" -Plagcheck.versionCode="$VERSION_CODE"
 
-AAB="app/build/outputs/bundle/release/app-release.aab"
-MAPPING="app/build/outputs/mapping/release/mapping.txt"
+BUILD_VARIANT="${CHANNEL}Release"
+if [[ "$CHANNEL" == "testing" ]]; then
+  BUILD_VARIANT="validationRelease"
+fi
+AAB="app/build/outputs/bundle/${BUILD_VARIANT}/app-${BUILD_VARIANT}-release.aab"
+MAPPING="app/build/outputs/mapping/${BUILD_VARIANT}/mapping.txt"
 mkdir -p "$OUT"
 cp "$AAB" "$OUT/$NAME.aab"
 [ -f "$MAPPING" ] && cp "$MAPPING" "$OUT/mapping.txt"

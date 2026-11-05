@@ -20,7 +20,13 @@ O Firebase mede o funil agregado do LagCheck Android. Ele não participa do Chec
 
 O arquivo versionado em `android/app/src/release/google-services.json` pertence ao projeto Firebase próprio `lagcheck-analytics` e ao pacote `com.lagcheck.app`. O LagCheck Android tem fluxo e propriedade GA4 próprios; ele não divide números nem projeto com o SignallQ.
 
-No release, o runtime registra a propriedade de usuário `environment = production`. A dimensão de usuário `environment` precisa estar cadastrada uma vez na propriedade GA4 para que o painel exclua tráfego de teste local. O Debug mantém a coleta desligada e não participa desse relatório.
+O ambiente de análise nasce no AAB, não é deduzido pelo painel nem pelo Play Console:
+
+- `validationRelease` envia `environment = testing` e é o único pacote para teste interno ou fechado;
+- `productionRelease` envia `environment = production` e é o único pacote para a faixa de produção;
+- qualquer Debug mantém a coleta desligada.
+
+A dimensão de usuário `environment` precisa estar cadastrada uma vez na propriedade GA4. O painel mostra produção por padrão e não mistura o AAB de teste com o publicado. Não promova um AAB `validationRelease` para produção: gere o `productionRelease` com versão e build próprios.
 
 O Debug mantém `com.lagcheck.app.debug`, compila sem cadastro Firebase e fica com coleta desligada. O Gradle pula `processDebugGoogleServices`; não copie o JSON de produção para o Debug nem remova o sufixo `.debug`.
 
@@ -48,13 +54,13 @@ Não há deep link, parâmetro externo ou login capaz de reativar a coleta. Essa
 
 ## Console, privacidade e distribuição
 
-No GA4, registre como dimensões personalizadas `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason` e `cancellation_reason`. Registre `duration_seconds` como métrica. A partir disso, os relatórios do GA4 mostram ativação, repetição e retenção D1/D7/D30 sem dashboard próprio.
+No GA4, registre `environment` como dimensão de usuário e `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason` e `cancellation_reason` como dimensões personalizadas. Registre `duration_seconds` como métrica. A partir disso, os relatórios do GA4 mostram ativação, repetição e retenção D1/D7/D30 sem dashboard próprio.
 
 Antes de publicar outro AAB, confira o binário real contra a Segurança de Dados da Play, a política em `~/Projetos/web/landings/sites/lagcheck/` e a declaração do AdMob. Firebase Analytics não habilita personalização de anúncios nesta integração: a coleta de Advertising ID e o sinal padrão de personalização estão desligados. A obrigação de consentimento por região precisa ser revisada com a política publicada e a configuração final do GA4/AdMob; o UMP existente segue sendo o gate dos anúncios, não do Firebase.
 
 ## Checklist do teste interno
 
-1. Gere o AAB Release sem assinatura quando não houver chave local: `./gradlew :app:bundleRelease`.
+1. Gere o AAB de teste: `./gradlew :app:bundleValidationRelease`; para produção, use `./gradlew :app:bundleProductionRelease`.
 2. Instale ou envie somente após revisar o package `com.lagcheck.app` e a declaração de dados.
 3. Em aparelho físico, valide seleção, início real, conclusão, inconclusivo, interrupção por segundo plano/troca de rede, cancelamento e reteste.
 4. Confirme no DebugView cada evento e os parâmetros, com o filtro de desenvolvedor ativo.
