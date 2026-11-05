@@ -18,7 +18,9 @@ O Firebase mede o funil agregado do LagCheck Android. Ele não participa do Chec
 
 ## Variants e configuração
 
-O arquivo versionado em `android/app/src/release/google-services.json` pertence ao projeto `lagcheck-analytics` e ao pacote `com.lagcheck.app`.
+O arquivo versionado em `android/app/src/release/google-services.json` pertence ao projeto Firebase compartilhado `signallq-app` e ao pacote `com.lagcheck.app`. O LagCheck Android tem fluxo próprio dentro dessa propriedade GA4; ele não divide os números com o SignallQ.
+
+No release, o runtime registra a propriedade de usuário `environment = production`. A dimensão de usuário `environment` precisa estar cadastrada uma vez na propriedade GA4 para que o painel exclua tráfego de teste local. O Debug mantém a coleta desligada e não participa desse relatório.
 
 O Debug mantém `com.lagcheck.app.debug`, compila sem cadastro Firebase e fica com coleta desligada. O Gradle pula `processDebugGoogleServices`; não copie o JSON de produção para o Debug nem remova o sufixo `.debug`.
 
