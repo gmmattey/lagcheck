@@ -146,7 +146,7 @@ final class CatalogMeasurementJourneyTests: XCTestCase {
         XCTAssertEqual(resolved?.destination.protocolKind, .gameLiftPing)
     }
 
-    /// Vetores de decisão compartilhados com Android (`tools/vectors/steam-a2s-preflight-vectors.json`).
+    /// Vetores de decisão compartilhados com Android (`Tests/Vectors/steam-a2s-preflight-vectors.json`).
     func testRouteDecisionMatchesSharedVectors() async throws {
         let vectors = try SharedRouteDecisionVectors.load()
         XCTAssertEqual(vectors.routeDecisionVectors.count, 5)
@@ -292,7 +292,7 @@ private struct SharedRouteDecisionVectors: Decodable {
     static func load(file: StaticString = #filePath) throws -> SharedRouteDecisionVectors {
         var url = URL(fileURLWithPath: "\(file)")
         for _ in 0..<3 { url.deleteLastPathComponent() }
-        url.appendPathComponent("tools/vectors/steam-a2s-preflight-vectors.json")
+        url.appendPathComponent("Tests/Vectors/steam-a2s-preflight-vectors.json")
         return try JSONDecoder().decode(SharedRouteDecisionVectors.self, from: Data(contentsOf: url))
     }
 }

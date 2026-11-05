@@ -60,7 +60,7 @@ class AutomaticGameRouteResolverTest {
     private fun accepting(vararg ids: String) = GameRoutePreflighting { ctx, _ -> ids.any { ctx.routeId!!.endsWith("-$it") } }
 
     @Test fun routeDecisionMatchesSharedVectors() = runBlocking {
-        val vectors = Json.parseToJsonElement(File(root, "tools/vectors/steam-a2s-preflight-vectors.json").readText())
+        val vectors = Json.parseToJsonElement(File(root, "Tests/Vectors/steam-a2s-preflight-vectors.json").readText())
             .jsonObject["routeDecisionVectors"]!!.jsonArray
         assertThat(vectors).hasSize(5)
         for (v in vectors.map { it.jsonObject }) {

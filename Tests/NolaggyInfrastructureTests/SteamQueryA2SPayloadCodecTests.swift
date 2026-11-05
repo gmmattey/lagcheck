@@ -130,7 +130,7 @@ struct SharedA2SVectors: Decodable {
     static func load(file: StaticString = #filePath) throws -> SharedA2SVectors {
         var url = URL(fileURLWithPath: "\(file)")
         for _ in 0..<3 { url.deleteLastPathComponent() }
-        url.appendPathComponent("tools/vectors/steam-a2s-preflight-vectors.json")
+        url.appendPathComponent("Tests/Vectors/steam-a2s-preflight-vectors.json")
         return try JSONDecoder().decode(SharedA2SVectors.self, from: Data(contentsOf: url))
     }
 
