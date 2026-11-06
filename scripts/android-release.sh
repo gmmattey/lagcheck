@@ -37,11 +37,12 @@ cd "$ROOT/android"
 ./gradlew clean ":app:bundle${VARIANT}" \
   -Plagcheck.versionName="$VERSION_NAME" -Plagcheck.versionCode="$VERSION_CODE"
 
-BUILD_VARIANT="${CHANNEL}Release"
+BUILD_FLAVOR="production"
 if [[ "$CHANNEL" == "testing" ]]; then
-  BUILD_VARIANT="validationRelease"
+  BUILD_FLAVOR="validation"
 fi
-AAB="app/build/outputs/bundle/${BUILD_VARIANT}/app-${BUILD_VARIANT}-release.aab"
+BUILD_VARIANT="${BUILD_FLAVOR}Release"
+AAB="app/build/outputs/bundle/${BUILD_VARIANT}/app-${BUILD_FLAVOR}-release.aab"
 MAPPING="app/build/outputs/mapping/${BUILD_VARIANT}/mapping.txt"
 mkdir -p "$OUT"
 cp "$AAB" "$OUT/$NAME.aab"
