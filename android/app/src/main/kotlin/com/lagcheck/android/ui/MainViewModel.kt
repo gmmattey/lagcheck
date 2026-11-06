@@ -460,6 +460,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         else -> "—"
     }
 
+    /** Inicia medição da Conexão Geral na melhor rota regional (Decisão 113). */
+    fun startGeneralCheck() {
+        startCheck(targetGame = OfficialGameCatalog.genericGaming)
+    }
+
     fun startCheck(
         targetGame: CatalogGame = _selectedGame.value,
         platform: String = _selectedPlatform.value,

@@ -89,7 +89,18 @@ object OfficialGameCatalog {
     /** Ids do protótipo anterior que podem estar no histórico de quem já testou. */
     private val legacyIds = mapOf("codm" to "call-of-duty-mobile", "pubg" to "pubg-mobile", "ea-fc" to "eafc")
 
+    /** Jogo neutro de referência regional (Decisões 49, 112 e 113). */
+    val genericGaming = CatalogGame(
+        id = "generic-gaming",
+        name = "Conexão Geral",
+        category = "Referência Regional",
+        platforms = listOf("Mobile"),
+        primaryRegion = "São Paulo (sa-east-1)",
+        drawableResName = ""
+    )
+
     fun findById(id: String): CatalogGame {
+        if (id == "generic-gaming") return genericGaming
         val canonical = legacyIds[id] ?: id
         return games.firstOrNull { it.id == canonical } ?: games.first()
     }

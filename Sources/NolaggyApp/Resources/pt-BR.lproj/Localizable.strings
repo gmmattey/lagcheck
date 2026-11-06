@@ -622,6 +622,7 @@
 "platform_optimization.level3.title" = "Equipamento & Roteador";
 
 /* Home Hero Gauge & Favoritos */
+"home.gauge.test" = "TESTAR";
 "home.gauge.test_now" = "TESTAR AGORA";
 "home.gauge.measuring" = "MEDINDO...";
 "home.favorite_games.title" = "Seus Jogos";

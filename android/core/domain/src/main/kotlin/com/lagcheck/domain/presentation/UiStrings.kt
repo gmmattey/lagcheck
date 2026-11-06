@@ -179,6 +179,14 @@ object UiStrings {
         t("Testei minha conexão para jogar %s no Lagcheck. Teste a sua: https://lagcheck.signallq.com", "I tested my connection to play %s on Lagcheck. Test yours: https://lagcheck.signallq.com", "Probé mi conexión para jugar %s en Lagcheck. Prueba la tuya: https://lagcheck.signallq.com")
         // endregion
 
+        // region Home Cockpit e Gauge (Decisão 113)
+        t("TESTAR", "TEST", "PROBAR")
+        t("MEDINDO...", "MEASURING...", "MIDIENDO...")
+        t("TESTAR POR JOGO", "TEST BY GAME", "PROBAR POR JUEGO")
+        t("Ver todos", "See all", "Ver todos")
+        t("1 toque ▸", "1 tap ▸", "1 toque ▸")
+        // endregion
+
         // region Duelo de Host (Decisão 112)
         t("DUELO DE HOST", "HOST DUEL", "DUELO DE HOST")
         t("Quem puxa a ranked?", "Who hosts the lobby?", "¿Quién crea la sala?")

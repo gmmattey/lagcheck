@@ -118,76 +118,24 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         .padding(.top, 96)
                 } else {
-                    // A Home começa pelo contexto da partida: a arte vai até o topo, com
-                    // gradiente suficiente para o status do sistema e os controles continuarem legíveis.
-                    ZStack {
-                        VerifiedGameArtwork(game: currentHomeGame, aspectRatio: 16 / 9)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .clipped()
+                    // Pílula de sinal de rede e cockpit
+                    LiveNetworkSignalCapsule(signal: liveNetworkSignal) {
+                        showingCockpit = true
+                    }
+                    .padding(.top, 56)
+                    .padding(.bottom, 16)
 
-                        LinearGradient(
-                            stops: [
-                                .init(color: NLColor.deep.opacity(0.72), location: 0),
-                                .init(color: NLColor.deep.opacity(0.08), location: 0.34),
-                                .init(color: NLColor.deep.opacity(0.28), location: 0.58),
-                                .init(color: NLColor.deep, location: 1)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-
-                        VStack(spacing: 0) {
-                            Spacer()
-
-                            VStack(spacing: 0) {
-                                Text(currentHomeGame.name)
-                                    .font(NLTypography.heroHomeName)
-                                    .foregroundStyle(NLColor.textPrimary)
-                                    .tracking(-1.5)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.78)
-
-                                Text(currentHomeSubtitle)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(NLColor.textSecondary)
-                                    .padding(.top, 6)
-
-                                Button(action: openGamesFromHome) {
-                                    Label(LocalizedStringKey("home.shortcuts.change_game"), systemImage: "arrow.triangle.2.circlepath")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundStyle(NLColor.textPrimary)
-                                        .frame(minHeight: NLSizing.touchTarget)
-                                        .padding(.horizontal, 14)
-                                        .background(.black.opacity(0.34), in: Capsule())
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier("home-shortcut-change-game")
-                                .padding(.top, 12)
-                            }
-                            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                            .padding(.bottom, 28)
+                    // Gauge Circular Oficial de Pulso (Decisão 113) com "TESTAR" minimalista no centro
+                    HomeCircularPulseGaugeHero(
+                        selectedGameName: nil,
+                        regionName: effectivePlatform?.displayName ?? "SP",
+                        isMeasuring: false,
+                        onStartCheck: {
+                            handlePrimaryCTA()
                         }
-                    }
-                    .frame(height: 346)
-
-                    // CTA Primário Único: Checar agora (Roxo Gamer, 62pt)
-                    Button(action: handlePrimaryCTA) {
-                        Text(LocalizedStringKey("home.cta.check_now"))
-                            .font(.system(size: 17, weight: .heavy))
-                            .tracking(-0.3)
-                            .foregroundStyle(Color.white)
-                            .frame(maxWidth: .infinity, minHeight: 62)
-                            .background(
-                                RoundedRectangle(cornerRadius: 17, style: .continuous)
-                                    .fill(NLColor.gamerPurple)
-                                    .shadow(color: NLColor.gamerPurple.opacity(0.28), radius: 14, x: 0, y: 12)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("home-decision-primary-action")
-                    .padding(.top, NLSpacing.lg)
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    )
+                    .accessibilityIdentifier("home-circular-gauge-hero")
+                    .padding(.bottom, 14)
 
                     // Linha com último resultado verificado (clicável para abrir detalhes)
                     Group {
@@ -222,8 +170,25 @@ extension QuickCheckFeatureView {
                         }
                     }
                     .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                    .padding(.top, 6)
-                    .padding(.bottom, NLSpacing.xl)
+                    .padding(.bottom, NLSpacing.md)
+
+                    // Seção Inferior: Jogos Favoritos com Disparo em 1 Toque (Decisão 113)
+                    if !favoriteGamesList.isEmpty {
+                        HomeFavoriteGamesRail(
+                            favoriteGames: favoriteGamesList,
+                            selectedGameID: selectedGameID,
+                            onSelectGame: { game in
+                                selectedGameID = game.id
+                                startCatalogCheckDirectly(for: game)
+                            },
+                            onManageFavorites: {
+                                openGamesFromHome()
+                            }
+                        )
+                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                        .padding(.top, 12)
+                        .padding(.bottom, NLSpacing.lg)
+                    }
 
                     NativeAdSlot(placement: .home)
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
@@ -362,11 +327,7 @@ extension QuickCheckFeatureView {
     }
 
     func handlePrimaryCTA() {
-        if latestHistoryEntry == nil {
-            openGamesFromHome()
-        } else {
-            startLagCheckFromCTA()
-        }
+        startGeneralGamingCheckDirectly()
     }
 
     /// A Home dispara o Deep Check direto em 1 toque (Decisão 56).

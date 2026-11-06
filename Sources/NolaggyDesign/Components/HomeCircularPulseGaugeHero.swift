@@ -16,8 +16,8 @@ public struct HomeCircularPulseGaugeHero: View {
     private let strokeWidth: CGFloat = 8
 
     public init(
-        selectedGameName: String?,
-        regionName: String,
+        selectedGameName: String? = nil,
+        regionName: String = "",
         isMeasuring: Bool = false,
         onStartCheck: @escaping () -> Void
     ) {
@@ -87,51 +87,24 @@ public struct HomeCircularPulseGaugeHero: View {
                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                     onStartCheck()
                 }) {
-                    VStack(spacing: 6) {
+                    VStack(spacing: 4) {
                         if isMeasuring {
                             ProgressView()
                                 .progressViewStyle(.circular)
                                 .tint(NLColor.accentPrimary)
-                                .scaleEffect(1.3)
-                                .padding(.bottom, 4)
+                                .scaleEffect(1.2)
+                                .padding(.bottom, 2)
 
                             Text(LocalizedStringKey("home.gauge.measuring"))
                                 .font(NLTypography.headline.weight(.heavy))
                                 .foregroundStyle(NLColor.textPrimary)
                                 .tracking(0.6)
                         } else {
-                            // Texto Dominante "TESTAR AGORA"
-                            Text(LocalizedStringKey("home.gauge.test_now"))
-                                .font(.system(size: 21, weight: .heavy, design: .rounded))
-                                .foregroundStyle(NLColor.textPrimary)
-                                .tracking(1.0)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.85)
-
-                            // Subtítulo do Contexto (Jogo selecionado ou Conexão Geral)
-                            if let game = selectedGameName, !game.isEmpty {
-                                Text(game.uppercased())
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .foregroundStyle(NLColor.accentPrimary)
-                                    .lineLimit(1)
-                                    .padding(.horizontal, 10)
-                            } else {
-                                Text(LocalizedStringKey("generic_gaming.short_name"))
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .foregroundStyle(NLColor.textSecondary)
-                                    .lineLimit(1)
-                                    .padding(.horizontal, 10)
-                            }
-
-                            // Rota / Região de referência sutil
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(NLColor.semanticReady)
-                                    .frame(width: 5, height: 5)
-                                Text(regionName)
-                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                    .foregroundStyle(NLColor.textTertiary)
-                            }
+                            // Ação Dominante Minimalista: "TESTAR" (Decisão 113)
+                            Text(LocalizedStringKey("home.gauge.test"))
+                                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                                .foregroundStyle(Color.white)
+                                .tracking(1.4)
                         }
                     }
                     .frame(width: pulseDiameter - 40, height: pulseDiameter - 40)

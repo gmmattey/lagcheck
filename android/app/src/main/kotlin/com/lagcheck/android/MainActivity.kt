@@ -281,6 +281,7 @@ class MainActivity : ComponentActivity() {
                 ) { screen ->
                 when (screen) {
                     is Screen.Home -> {
+                        val favGames = favorites.resolve(catalogGames).ifEmpty { catalogGames.take(4) }
                         HomeScreen(
                             selectedGame = selectedGame,
                             platform = selectedPlatform,
@@ -288,8 +289,12 @@ class MainActivity : ComponentActivity() {
                             radioSnapshot = radioSnapshot,
                             latestCheck = latestCheck,
                             platformHealth = platformHealth,
+                            favoriteGames = favGames,
                             onStartCheck = {
-                                viewModel.startCheck(selectedGame, selectedPlatform, selectedConnectionType)
+                                viewModel.startGeneralCheck()
+                            },
+                            onStartGameCheck = { game ->
+                                viewModel.startCheck(targetGame = game)
                             },
                             onOpenGames = {
                                 gamesOpenedFromHome = true

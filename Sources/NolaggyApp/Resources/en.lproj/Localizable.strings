@@ -611,6 +611,7 @@
 "platform_optimization.level3.title" = "Hardware & Router";
 
 /* Home Hero Gauge & Favoritos */
+"home.gauge.test" = "TEST";
 "home.gauge.test_now" = "TEST NOW";
 "home.gauge.measuring" = "MEASURING...";
 "home.favorite_games.title" = "Your Games";

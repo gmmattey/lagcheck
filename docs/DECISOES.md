@@ -114,7 +114,8 @@
 | [109](#decisão-109) | Analytics do funil Android com Firebase, variante Debug preservada e exclusão local | **Em implementação; validação física e DebugView pendentes** | Firebase só no Release; Worker, Check, UMP e AdMob preservados | Marco / Camillo / Renan / Luiz |
 | [110](#decisão-110) | Avaliação manual iniciada pela pessoa em Ajustes | **Vigente (implementado localmente; validação em aparelho pendente)** | Refina a Decisão 77 somente para o toque explícito em Ajustes; o gatilho automático não muda | Luiz / Marco / Camillo / Renan |
 | [111](#decisão-111) | Versionamento de produto em `X.Y (build)` | **Vigente** | Substitui a regra `MAJOR.MINOR.PATCH` para novas versões; builds já atribuídos não são renumerados | Luiz / Marco / Camillo / Renan |
-| [112](#decisão-112) | Duelo de Host: desafio 1v1 para Discord/WhatsApp, landing web e expiração de 30 min | **Aprovada (em implementação)** | Custo zero, sem banco de dados; payload no link com TTL de 30 min | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [112](#decisão-112) | Duelo de Host: desafio 1v1 para Discord/WhatsApp, landing web e expiração de 30 min | **Vigente** | Custo zero, sem banco de dados; payload no link com TTL de 30 min | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [113](#decisão-113) | Home Cockpit com Gauge Circular e Check de Conexão Geral (Refinamento por Jogo em 1 Toque) | **Vigente** | Refina a Home das Decisões 50 e 56 (Check sem jogo obrigatório) | Luiz / Squad |
 
 
 
@@ -1229,6 +1230,22 @@
   5. **Jornada de onboarding (sem o app instalado):** Na web em `lagcheck.signallq.com/vs`, exibe a tela de confronto em Dark Competitive UI, botão direto para baixar nas lojas (App Store e Play Store) e resposta de W.O. para colar na call.
 - **Limites e privacidade:** Sem conta, sem login e sem rastreamento de IP ou dados pessoais; cumprimento estrito da regra do custo zero; sem anúncios extras fora das superfícies autorizadas.
 - **Critérios de aceite:** O link gera o payload correto sob `lagcheck.signallq.com/vs`; suites de teste iOS (`swift test`) e Android (`./gradlew test`) cobrem codificação, expiração de 30 min e resolução de vitória; UI em SwiftUI e Compose respeita o design system sem bordas em cards.
+
+#### Decisão 113
+
+- **Data:** 5 de novembro de 2026.
+- **Título:** Home Cockpit com Gauge Circular e Check de Conexão Geral (Refinamento por Jogo em 1 Toque).
+- **Status Atual:** **Vigente (Aprovada por Luiz).** Refina a jornada das Decisões 50 e 56.
+- **Frentes envolvidas:** Luiz (aprovação), Marcelo (produto), Priscila (design/UX), Camillo (arquitetura/implementação) e Renan (QA/prova real).
+- **Contexto e problema:** A jornada atual do LagCheck exige obrigatoriamente a seleção de um jogo para realizar uma medição. No entanto, muitos jogadores abrem o app no lobby apenas para responder à pergunta fundamental: *"como está a minha conexão agora pra jogar online?"*. Exigir um jogo como protagonista na Home criava fricção desnecessária.
+- **Decisão e experiência:**
+  1. **Gauge Circular Protagonista no centro da Home:** A Home adota o componente oficial `HomeCircularPulseGaugeHero` (arco em Roxo Gamer `#7C3AED` e ondas dinâmicas de pulso esportivo). O centro do gauge é estritamente minimalista, contendo apenas a ação **"TESTAR"** em destaque, sem poluição de kickers ou rótulos secundários didáticos.
+  2. **Check de Conexão Geral:** Tocar no Gauge inicia imediatamente o diagnóstico de Conexão Geral, medindo repouso e carga UDP para a infraestrutura de referência regional mais próxima de menor latência e maior estabilidade (`sa-east-1` em SP para o Brasil).
+  3. **Preservação da Atmosfera e DNA do App:** A pílula de rádio local (`Wi-Fi 5 GHz · 18 ms`) permanece no topo e a linha de último resultado verificado (`● PRONTO PARA RANKED · há X min`) fica logo abaixo do gauge, mantendo 100% da identidade Dark Competitive UI.
+  4. **Refinamento por Jogo em 1 Toque:** Na seção inferior da Home, um carrossel horizontal compacto (`TESTAR POR JOGO`) exibe os títulos favoritos e recentes. Tocar no card de um jogo dispara instantaneamente a medição direcionada para os servidores daquele jogo específico (zero fricção no lobby).
+  5. **Histórico e Duelo de Host:** O resultado do Check Geral é registrado no histórico local como "Conexão Geral" e suporta a criação de "Duelo de Host" 1v1 para comparar a rota pura entre amigos na call.
+  6. **Paridade Nativa Obrigatória:** Implementação espelhada em SwiftUI (iOS 17+) e Jetpack Compose (Android API 26+).
+- **Critérios de aceite:** No iOS e no Android, a Home renderiza o Gauge Circular com "TESTAR" no centro; tocar no gauge dispara o Check Geral na rota regional de referência; tocar em um jogo no carrossel mede o jogo específico; o resultado do Check Geral aparece no histórico e gera link de Duelo de Host válido; testes de unidade e compilação passam 100%.
 
 ## Como Registrar Novas Decisões
 
