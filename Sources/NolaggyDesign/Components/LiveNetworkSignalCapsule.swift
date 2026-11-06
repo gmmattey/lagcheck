@@ -65,11 +65,11 @@ public struct LiveNetworkSignalCapsule: View {
     }
 
     private var content: some View {
-        HStack(spacing: NLSpacing.xs) {
+        HStack(spacing: 6) {
             // Dot pulsante semântico
             Circle()
                 .fill(dotColor)
-                .frame(width: 7, height: 7)
+                .frame(width: 6, height: 6)
                 .shadow(color: dotColor.opacity(0.6), radius: 3, x: 0, y: 0)
 
             // Descrição da interface e primeiro salto
@@ -83,23 +83,25 @@ public struct LiveNetworkSignalCapsule: View {
                 .foregroundStyle(NLColor.textTertiary)
 
             // Status da rota regional
-            HStack(spacing: 3) {
+            HStack(spacing: 4) {
                 Text(signal.regionalRouteName)
-                Text(signal.isRegionalRouteOperational ? "Operacional" : "Instável")
+                if !signal.isRegionalRouteOperational {
+                    Text("Instável")
+                        .foregroundStyle(NLColor.coralSolarRed)
+                }
             }
             .font(NLTypography.caption)
             .foregroundStyle(NLColor.textSecondary)
 
-            Spacer(minLength: 0)
-
             if onTap != nil {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(NLColor.textTertiary)
+                    .padding(.leading, 2)
             }
         }
-        .padding(.horizontal, NLSpacing.sm)
-        .frame(height: 32)
+        .padding(.horizontal, 12)
+        .frame(height: 28)
         .background(NLColor.surface, in: Capsule())
         .overlay(
             Capsule()
