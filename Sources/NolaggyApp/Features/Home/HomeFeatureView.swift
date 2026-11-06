@@ -121,59 +121,83 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         .padding(.top, 96)
                 } else {
-                    // Pílula de sinal de rede e cockpit
-                    LiveNetworkSignalCapsule(signal: liveNetworkSignal) {
-                        showingCockpit = true
-                    }
-                    .padding(.top, 56)
-                    .padding(.bottom, 16)
+                    // Dobra Superior Hero: Atmosfera épica de jogos (mesma da web) + Gauge Circular Cockpit
+                    ZStack(alignment: .top) {
+                        Image("HeroTopGames")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 390)
+                            .clipped()
+                            .overlay(
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: NLColor.deep.opacity(0.85), location: 0),
+                                        .init(color: NLColor.deep.opacity(0.20), location: 0.35),
+                                        .init(color: NLColor.deep.opacity(0.70), location: 0.72),
+                                        .init(color: NLColor.deep, location: 1.0)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
 
-                    // Gauge Circular Oficial de Pulso (Decisão 113) com "TESTAR" minimalista no centro
-                    HomeCircularPulseGaugeHero(
-                        selectedGameName: nil,
-                        regionName: effectivePlatform?.displayName ?? "SP",
-                        isMeasuring: false,
-                        onStartCheck: {
-                            handlePrimaryCTA()
-                        }
-                    )
-                    .accessibilityIdentifier("home-circular-gauge-hero")
-                    .padding(.bottom, 14)
-
-                    // Linha com último resultado verificado (clicável para abrir detalhes)
-                    Group {
-                        if let latest = latestHistoryEntry {
-                            Button {
-                                completedEntry = latest
-                                showingDetails = true
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Text(verbatim: latestResultSymbol(latest))
-                                        .foregroundStyle(latestResultColor(latest))
-                                        .fontWeight(.heavy)
-                                    Text(latestResultSummaryText(latest))
-                                        .fontWeight(.semibold)
-                                    Text(verbatim: "·")
-                                    Text(relativeTimeString(for: latest.completedAt))
-                                }
-                                .font(NLTypography.monospaceSubtitle)
-                                .foregroundStyle(NLColor.textSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .contentShape(Rectangle())
+                        VStack(spacing: 0) {
+                            // Pílula de sinal de rede e cockpit
+                            LiveNetworkSignalCapsule(signal: liveNetworkSignal) {
+                                showingCockpit = true
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("home-last-result")
-                        } else {
-                            Text(LocalizedStringKey("home.last_check.empty"))
-                                .font(NLTypography.monospaceSubtitle)
-                                .foregroundStyle(NLColor.textTertiary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
+                            .padding(.top, 56)
+                            .padding(.bottom, 16)
+
+                            // Gauge Circular Oficial de Pulso (Decisão 113) com "TESTAR" minimalista no centro
+                            HomeCircularPulseGaugeHero(
+                                selectedGameName: nil,
+                                regionName: effectivePlatform?.displayName ?? "SP",
+                                isMeasuring: false,
+                                onStartCheck: {
+                                    handlePrimaryCTA()
+                                }
+                            )
+                            .accessibilityIdentifier("home-circular-gauge-hero")
+                            .padding(.bottom, 14)
+
+                            // Linha com último resultado verificado (clicável para abrir detalhes)
+                            Group {
+                                if let latest = latestHistoryEntry {
+                                    Button {
+                                        completedEntry = latest
+                                        showingDetails = true
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Text(verbatim: latestResultSymbol(latest))
+                                                .foregroundStyle(latestResultColor(latest))
+                                                .fontWeight(.heavy)
+                                            Text(latestResultSummaryText(latest))
+                                                .fontWeight(.semibold)
+                                            Text(verbatim: "·")
+                                            Text(relativeTimeString(for: latest.completedAt))
+                                        }
+                                        .font(NLTypography.monospaceSubtitle)
+                                        .foregroundStyle(NLColor.textSecondary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityIdentifier("home-last-result")
+                                } else {
+                                    Text(LocalizedStringKey("home.last_check.empty"))
+                                        .font(NLTypography.monospaceSubtitle)
+                                        .foregroundStyle(NLColor.textTertiary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                }
+                            }
+                            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                            .padding(.bottom, NLSpacing.md)
                         }
                     }
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                    .padding(.bottom, NLSpacing.md)
 
                     // Seção Inferior: Jogos Favoritos com Disparo em 1 Toque (Decisão 113)
                     if !favoriteGamesList.isEmpty {

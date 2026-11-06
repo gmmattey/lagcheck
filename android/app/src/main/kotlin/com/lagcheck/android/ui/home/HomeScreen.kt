@@ -1,5 +1,6 @@
 package com.lagcheck.android.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -25,10 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lagcheck.android.R
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.components.HomeTopBar
 import com.lagcheck.android.ui.components.PlatformHealthBanner
@@ -87,86 +91,124 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // 1. Topline: Wordmark oficial + Botão '…' (Ajustes)
-        HomeTopBar(modifier = Modifier.padding(top = 8.dp))
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // 2. Pílula de rádio: toque abre Cockpit de Rede
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .defaultMinSize(minHeight = 44.dp)
-                    .clip(RoundedCornerShape(percent = 50))
-                    .clickable { onOpenNetworkCockpit() },
-                contentAlignment = Alignment.Center
-            ) {
-                RadioSignalPill(
-                    label = radioLabel,
-                    isWarning = isRadioWarning
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // 3. Gauge Circular de Pulso Protagonista (Decisão 113)
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            HomeCircularPulseGaugeHero(
-                isMeasuring = false,
-                testButtonText = tr("TESTAR"),
-                measuringText = tr("MEDINDO..."),
-                onStartCheck = onStartCheck
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // 4. Linha de Último Resultado Verificado (Idêntica à tela atual do app)
-        val lastCheckText = latestCheck?.let { item ->
-            val symbol = when (item.verdict) {
-                GameReadinessVerdict.READY -> "●"
-                GameReadinessVerdict.CAUTION, GameReadinessVerdict.NOT_READY -> "▲"
-                GameReadinessVerdict.INCONCLUSIVE -> "—"
-            }
-            val verdictName = when (item.verdict) {
-                GameReadinessVerdict.READY -> tr("Pronto para Ranked")
-                GameReadinessVerdict.CAUTION -> tr("Condições Instáveis")
-                GameReadinessVerdict.NOT_READY -> tr("Evitaria Ranked Agora")
-                GameReadinessVerdict.INCONCLUSIVE -> tr("Inconclusivo")
-            }
-            "$symbol $verdictName · ${item.formattedDate}"
-        } ?: tr("— Nenhum check ainda")
-
-        val lastColor = when (latestCheck?.verdict) {
-            GameReadinessVerdict.READY -> LagCheckColors.Good
-            GameReadinessVerdict.CAUTION -> LagCheckColors.SemanticCaution
-            GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
-            else -> LagCheckColors.TextMuted
-        }
-
+        // Dobra Superior: Arte Hero de Jogos (Atmosfera de Arena da Web) + Gauge Cockpit
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onOpenLatestResult() }
-                .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center
+                .height(390.dp)
         ) {
-            Text(
-                text = lastCheckText,
-                style = LagCheckTypography.MonoData,
-                color = lastColor
+            Image(
+                painter = painterResource(id = R.drawable.hero_top_games),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
             )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.0f to LagCheckColors.Background.copy(alpha = 0.85f),
+                            0.35f to LagCheckColors.Background.copy(alpha = 0.20f),
+                            0.72f to LagCheckColors.Background.copy(alpha = 0.70f),
+                            1.0f to LagCheckColors.Background
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 1. Topline: Wordmark oficial + Botão '…' (Ajustes)
+                HomeTopBar(modifier = Modifier.padding(top = 8.dp))
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 2. Pílula de rádio: toque abre Cockpit de Rede
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .defaultMinSize(minHeight = 44.dp)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .clickable { onOpenNetworkCockpit() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        RadioSignalPill(
+                            label = radioLabel,
+                            isWarning = isRadioWarning
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // 3. Gauge Circular de Pulso Protagonista (Decisão 113)
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    HomeCircularPulseGaugeHero(
+                        isMeasuring = false,
+                        testButtonText = tr("TESTAR"),
+                        measuringText = tr("MEDINDO..."),
+                        onStartCheck = onStartCheck
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 4. Linha de Último Resultado Verificado (Idêntica à tela atual do app)
+                val lastCheckText = latestCheck?.let { item ->
+                    val symbol = when (item.verdict) {
+                        GameReadinessVerdict.READY -> "●"
+                        GameReadinessVerdict.CAUTION, GameReadinessVerdict.NOT_READY -> "▲"
+                        GameReadinessVerdict.INCONCLUSIVE -> "—"
+                    }
+                    val verdictName = when (item.verdict) {
+                        GameReadinessVerdict.READY -> tr("Pronto para Ranked")
+                        GameReadinessVerdict.CAUTION -> tr("Condições Instáveis")
+                        GameReadinessVerdict.NOT_READY -> tr("Evitaria Ranked Agora")
+                        GameReadinessVerdict.INCONCLUSIVE -> tr("Inconclusivo")
+                    }
+                    "$symbol $verdictName · ${item.formattedDate}"
+                } ?: tr("— Nenhum check ainda")
+
+                val lastColor = when (latestCheck?.verdict) {
+                    GameReadinessVerdict.READY -> LagCheckColors.Good
+                    GameReadinessVerdict.CAUTION -> LagCheckColors.SemanticCaution
+                    GameReadinessVerdict.NOT_READY -> LagCheckColors.CoralWarning
+                    else -> LagCheckColors.TextMuted
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenLatestResult() }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = lastCheckText,
+                        style = LagCheckTypography.MonoData,
+                        color = lastColor
+                    )
+                }
+            }
         }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+        ) {
 
         if (platformHealth != null) {
             Spacer(modifier = Modifier.height(14.dp))
@@ -238,6 +280,7 @@ fun HomeScreen(
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 
