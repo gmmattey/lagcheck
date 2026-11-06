@@ -20,6 +20,9 @@ extension QuickCheckFeatureView {
                 result.append(g)
             }
         }
+        if result.isEmpty {
+            return Array(nonGenericGames.prefix(4))
+        }
         return Array(result.prefix(4))
     }
 
