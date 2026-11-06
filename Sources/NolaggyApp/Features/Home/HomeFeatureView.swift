@@ -121,20 +121,21 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         .padding(.top, 96)
                 } else {
-                    // Dobra Superior Hero: Atmosfera épica de jogos (mesma da web) + Gauge Circular Cockpit
+                    // Dobra Superior Hero: Atmosfera épica de jogos no topo que dissolve totalmente em preto antes do gauge
                     ZStack(alignment: .top) {
                         Image("HeroTopGames")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 390)
+                            .frame(height: 180)
                             .clipped()
                             .overlay(
                                 LinearGradient(
                                     stops: [
-                                        .init(color: NLColor.deep.opacity(0.85), location: 0),
-                                        .init(color: NLColor.deep.opacity(0.20), location: 0.35),
-                                        .init(color: NLColor.deep.opacity(0.70), location: 0.72),
+                                        .init(color: NLColor.deep.opacity(0.35), location: 0.0),
+                                        .init(color: NLColor.deep.opacity(0.40), location: 0.35),
+                                        .init(color: NLColor.deep.opacity(0.85), location: 0.70),
+                                        .init(color: NLColor.deep, location: 0.95),
                                         .init(color: NLColor.deep, location: 1.0)
                                     ],
                                     startPoint: .top,

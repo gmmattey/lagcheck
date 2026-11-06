@@ -93,34 +93,39 @@ fun HomeScreen(
             .background(LagCheckColors.Background)
             .verticalScroll(rememberScrollState())
     ) {
-        // Dobra Superior: Arte Hero de Jogos (Atmosfera de Arena da Web) + Gauge Cockpit
+        // Dobra Superior: Arte Hero de Jogos no Topo (fades para preto antes do gauge)
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(390.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.hero_top_games),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0.0f to LagCheckColors.Background.copy(alpha = 0.85f),
-                            0.35f to LagCheckColors.Background.copy(alpha = 0.20f),
-                            0.72f to LagCheckColors.Background.copy(alpha = 0.70f),
-                            1.0f to LagCheckColors.Background
+                    .fillMaxWidth()
+                    .height(180.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.hero_top_games),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                0.0f to LagCheckColors.Background.copy(alpha = 0.35f),
+                                0.35f to LagCheckColors.Background.copy(alpha = 0.40f),
+                                0.70f to LagCheckColors.Background.copy(alpha = 0.85f),
+                                0.95f to LagCheckColors.Background,
+                                1.0f to LagCheckColors.Background
+                            )
                         )
-                    )
-            )
+                )
+            }
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
