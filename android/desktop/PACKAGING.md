@@ -62,3 +62,13 @@ Os identificadores de telemetria nunca ficam versionados no código. Devem ser p
 1. **Assinatura de Código (Authenticode):** Os executáveis e instaladores gerados não possuem assinatura digital. No Windows, a execução de binários não assinados exibe o alerta do Windows Defender SmartScreen. É necessário certificado digital de assinatura de código (EV ou OV) configurado no pipeline.
 2. **WiX Toolset / Customizações Avançadas:** O build atual utiliza o utilitário interno do Compose Multiplatform. Customizações adicionais de telas de instalação, termos de licença e atalhos customizados dependem de configuração estendida.
 3. **Decisão e Autorização de Distribuição:** Nenhuma loja (Microsoft Store), canal de download ou repositório de release foi criado ou autorizado.
+
+---
+
+## 4. Como publicar uma release (procedimento usado na `windows-v0.1.0`)
+
+1. A partir da `main` atualizada, com JDK 21. **Passe o ID e o segredo do GA4 por variáveis de ambiente** (`LAGCHECK_GA4_MEASUREMENT_ID` e `LAGCHECK_GA4_API_SECRET`): em máquinas com `GRADLE_USER_HOME` diferente de `~/.gradle`, as propriedades de `~/.gradle/gradle.properties` **não são lidas** e o instalador sai com a telemetria desligada. Confira antes de publicar: `unzip -p android/desktop/build/libs/desktop.jar lagcheck-runtime.properties` deve mostrar `analytics.enabled=true`.
+2. `./gradlew :desktop:clean :desktop:packageExe :desktop:packageMsi -Plagcheck.version=X.Y.Z`.
+3. Renomeie para `LagCheck-Windows-X.Y.Z-x64-setup.exe` e `LagCheck-Windows-X.Y.Z-x64.msi` (nomes que a página e o atualizador esperam) e gere `SHA256SUMS.txt` e `LagCheck-Windows-X.Y.Z-x64-setup.exe.sha256`.
+4. `gh release create windows-vX.Y.Z --target main --latest=false` com o **`.exe` primeiro**; depois `gh release upload` do `.msi` e dos checksums. O `.exe` precisa ser o primeiro asset: o atualizador lê o primeiro `.exe/.msi` e o primeiro `digest` do bloco da release. Não marque como prerelease (a página e o atualizador ignoram).
+5. Publicação de release e deploy do site exigem autorização expressa do Luiz. O segredo do GA4 fica dentro do binário público (próprio do Measurement Protocol); restrinja o uso no GA4 se houver abuso.
