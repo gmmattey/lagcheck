@@ -17,6 +17,7 @@ O app ajuda a decidir se a conexão observada está adequada para jogar agora. M
 | Distribuição iOS | [Release](06-fluxo-de-release.md) |
 | Copy e localização | [Voz do produto](07-voz-do-produto.md) |
 | Port, rádio e limites Android | [Arquitetura Android](08-arquitetura-android.md) |
+| Protótipo Windows (Compose Desktop; Decisões 114 a 116) | [Design system e telemetria Windows](09-design-system-windows.md), [empacotamento](../android/desktop/PACKAGING.md) e [protótipo visual](../design-system/prototypes/windows-premium/README.md) |
 | Aprovações e histórico | [Documento único de decisões](DECISOES.md) |
 | Funil, DebugView e exclusão do aparelho interno | [Firebase Analytics iOS](firebase-analytics-ios.md) |
 | Funil Android, DebugView e exclusão local | [Firebase Analytics Android](firebase-analytics-android.md) |

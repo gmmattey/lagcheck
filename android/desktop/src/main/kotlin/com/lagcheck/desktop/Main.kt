@@ -9,6 +9,7 @@ import com.lagcheck.desktop.ds.LagCheckTheme
 import com.lagcheck.desktop.ui.AppShell
 import kotlinx.coroutines.runBlocking
 import java.awt.Dimension
+import com.lagcheck.desktop.update.UpdateState
 
 fun main(args: Array<String>) {
     if ("--cli" in args) {
@@ -23,10 +24,20 @@ fun main(args: Array<String>) {
     if ("--shots" in args) { renderShots(args[args.indexOf("--shots") + 1]); return }
     val showComponents = "--ds" in args
     application {
-        Window(onCloseRequest = ::exitApplication, title = "LagCheck", state = rememberWindowState(width = 1120.dp, height = 740.dp)) {
+        var activeState by remember { mutableStateOf<AppState?>(null) }
+        Window(onCloseRequest = {
+            activeState?.let { app -> if (app.updates.automatic && !app.checking) app.updates.installReady() }
+            exitApplication()
+        }, title = "LagCheck", state = rememberWindowState(width = 1120.dp, height = 740.dp)) {
             LaunchedEffect(Unit) { window.minimumSize = Dimension(900, 600) }
             val scope = rememberCoroutineScope()
             val state = remember { AppState(scope).also { if (showComponents) it.route = Route.Components } }
+            SideEffect { activeState = state }
+            LaunchedEffect(state.updates.state, state.updates.automatic) {
+                if (state.updates.state is UpdateState.Pronta && !state.updates.automatic) {
+                    if (state.updates.installReady()) exitApplication()
+                }
+            }
             LagCheckTheme { AppShell(state, showComponents) }
         }
     }
