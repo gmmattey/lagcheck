@@ -35,3 +35,9 @@ Renan emite um relatório claro com evidência reproduzível:
 - `AJUSTA`: Correção obrigatória nesta missão antes do aceite final do Marcelo.
 - `ISSUE_FUTURA`: Melhoria válida identificada, mas fora do escopo atual.
 - `SEM ACHADOS MATERIAIS`: Entrega íntegra, testada e pronta para o aceite do Marcelo.
+
+## 4. Prova no protótipo Windows (Decisões 114 a 116)
+- Rode `./gradlew :desktop:test` e `:desktop:shots` e **olhe as capturas** (`android/desktop/build/shots/`): sobreposição de aviso, texto cortado, tela vazia por animação não assentada e mapa sem localização são defeitos reais. Uma captura vazia não é aprovação.
+- Privacidade da telemetria: nenhum IP, SSID, BSSID, MAC, localização, destino, nome do PC ou do usuário no payload; um único evento de desfecho por medição; nada enviado com a coleta desligada, em build de desenvolvimento ou sem ID/segredo; `git grep` por `G-`, `api_secret` e `apiSecret` sem ocorrência no repositório.
+- Atualizador: hash divergente nunca executa, host fora da lista bloqueia, resposta malformada/403/429/rede ausente não trava a abertura, sem fonte configurada não faz chamada.
+- Prova em Windows real (firewall, VPN, múltiplos adaptadores, escala de tela, instalador sem assinatura e SmartScreen) é um estado distinto de "compila e passa nos testes": reporte-o como não validado até existir evidência.

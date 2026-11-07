@@ -9,6 +9,8 @@ Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a en
 - O app mede a rota do iPhone até uma infraestrutura de referência. Não promete ping real de um jogo sem evidência. Para console ou PC, comunica resultado como estimativa.
 - O score é determinístico, versionado e baseado em medição real. Sem respostas UDP válidas suficientes, o resultado é inconclusivo — nunca uma nota inventada, fallback HTTP/ICMP ou recomendação para jogar.
 - Custo operacional recorrente zero é uma restrição de produto. Não adicione serviço pago, SDK ou infraestrutura sem decisão explícita do dono do produto. Exceção já autorizada e em produção: um único Cloudflare Worker gratuito (`nolaggy-deep-check`), servindo `GET /v1/load` (carga do Deep Check) e `POST /v1/telemetry` (telemetria de produto anônima e mínima para validação de retenção sem PII/IP). O catálogo é local, sem assinatura, e acompanha os builds iOS/Android (Decisões 94, 99 e 106) — ver `docs/12`, `docs/14`, `docs/50` e `docs/DECISOES.md`. Não amplie esse Worker nem crie outro endpoint sem nova decisão.
+- **Windows (Decisões 114, 115 e 116):** existe um protótipo interno em `android/desktop/` (Kotlin + Compose Desktop sobre o `core` do Android). **Windows não é alvo oficial** e nada dele é publicado sem autorização expressa do Luiz. Spec visual: `docs/09-design-system-windows.md` e `design-system/prototypes/windows-premium/`. Telemetria do funil por GA4 Measurement Protocol (stream `lagcheck-windows` do projeto `lagcheck-analytics`), ligada só no build empacotado e inerte sem ID/segredo (que ficam fora do repositório, em `~/.gradle/gradle.properties` ou variáveis de ambiente); atualização por GitHub Releases deste repositório (tags `windows-vX.Y.Z`); localização aproximada pelo IP por um endpoint do `lagcheck-site` (nunca pelo Worker `nolaggy-deep-check`, que não é alterado por esta frente). Rotas do Worker, catálogo e score não mudam por causa do Windows.
+- **Repositório público (desde 7 de novembro de 2026):** tudo que entra aqui é visível. Nenhum segredo, token, chave privada, ID de medição com segredo, `.jks`, `.env`, webhook ou dado pessoal; revise `git diff` antes de commitar. As duas chaves de API de cliente do Firebase (`GoogleService-Info.plist` e `android/app/src/release/google-services.json`) continuam versionadas: a pendência é restringi-las por app no Google Cloud (responsabilidade do Luiz), não removê-las do histórico sem pedido explícito.
 - Jogos no catálogo usam a arte editorial autoral autorizada pelo catálogo assinado (Decisões 18, 44, 71 e 88) e, sem ela, a miniatura neutra do LagCheck. Nunca capa oficial, logo, personagem ou arte licenciada de terceiros; o nome localizado do jogo é a identificação primária.
 - Publicidade (Decisões 82, 96 e 97): iOS e Android usam AdMob Native Advanced em Início, Histórico, Jogos e somente Resultado concluído válido, com consentimento UMP antes de qualquer request. Não há ATT, intersticial ou rewarded sem nova decisão. Check, consentimento de dados móveis, resultado inconclusivo, detalhes e qualquer estado intermediário ficam sem anúncio. Em qualquer plataforma, falha/ausência de anúncio nunca bloqueia nem desloca medição, score, resultado, histórico ou ação essencial. Antes de distribuir, validar em aparelho, revisar a política pública e completar as declarações da loja contra o archive/AAB real (`docs/01` §11).
 - **Zero cara de IA e o Gamer Não Lê (Decisão 64):** O app é para jovem gamer competitivo no lobby esperando a partida. Proibido cardlização em excesso, títulos com subtítulos didáticos e textão explicativo. Interface rápida, visual, limpa e esportiva (cockpit de telemetria). Toda informação na tela deve cumprir a "Regra do Discord": ser traduzível para uma frase curta falada entre amigos na call.
@@ -26,7 +28,8 @@ lagcheck/
 ├── Nolaggy.xcodeproj          # Projeto Xcode gerado via XcodeGen (project.yml)
 ├── Tests/                     # Testes unitários e de integração de medição UDP
 ├── android/                   # App nativo Android (Kotlin + Jetpack Compose, Material 3, API 26+)
-│   └── app/build.gradle.kts   # Configuração Gradle com resolução de assinatura local em release/keys/
+│   ├── app/build.gradle.kts   # Configuração Gradle com resolução de assinatura local em release/keys/
+│   └── desktop/               # Protótipo interno Windows (Compose Desktop; Decisões 114 a 116), não é alvo oficial
 ├── release/                   # Infraestrutura de release autocontida (no .gitignore)
 │   ├── keys/                  # Chaves de upload Android (lagcheck-upload.jks e .properties)
 │   └── android/               # Saída padronizada de bundles AAB e mapeamentos R8
@@ -52,6 +55,7 @@ Leia o documento relevante antes de propor ou implementar mudanças:
 | Canais, versões e publicação | `docs/06-fluxo-de-release.md` |
 | Tom, copy e localização | `docs/07-voz-do-produto.md` |
 | Arquitetura, rádio e expansão Android | `docs/08-arquitetura-android.md` |
+| Protótipo Windows: visual, telemetria, atualização e empacotamento | `docs/09-design-system-windows.md`, `android/desktop/PACKAGING.md` e `design-system/prototypes/windows-premium/README.md` (Decisões 114 a 116) |
 | **Decisões registradas (08 a 63+) e novas deliberações** | **`docs/DECISOES.md` (documento único vivo de decisões)** |
 
 ### Regra do Documento Único de Decisões (`docs/DECISOES.md`)
@@ -92,6 +96,16 @@ Uma entrega por vez (**WIP = 1**). Detalhes operacionais em [`.agents/WORKFLOW.m
 5. **`camillo-engenharia-e-arquitetura`** *(Camillo)*: Separação motor vs UI, diagnóstico determinístico de rede (UDP/STUN/rotas), contratos tipados e telas nativas em SwiftUI e Compose.
 6. **`renan-qa-e-prova-real`** *(Renan)*: Metodologia caça-bugs independente, cenários adversos de rede, ciclo de vida e prova em iPhone/Android real.
 7. **`loja-e-aso`** *(Marcelo, Priscila, Renan)*: Estratégia de ASO, metadados, screenshots autorais e conformidade com diretrizes das lojas.
+
+### Delegação a agentes externos (Codex e Antigravity)
+
+Quando o Luiz pedir para delegar, o orquestrador divide por especialidade e **continua dono da entrega**: confere compilação, testes e capturas por conta própria antes de dizer que algo está pronto.
+- **Brief por agente**, no escopo do pedido: objetivo, leitura obrigatória (`AGENTS.md`, decisão aplicável), **pastas que o agente pode editar e as que são proibidas** (donos disjuntos para rodar em paralelo), contrato público entre as partes (assinaturas), critérios de aceite e formato do relatório final (o que foi verificado e o que não foi).
+- **Regras fixas em todo brief:** sem `commit`, sem trocar de branch, sem `push`, sem deploy, sem `winget`/instalação, sem rede fora do que a tarefa autoriza, sem segredo no código. Trabalho de outras pessoas no working tree é preservado.
+- **Trabalho paralelo em outro repositório** (por exemplo o do site `gmmattey/sites`): use um `git worktree` em branch própria saindo da `main`, nunca o clone em branch alheia.
+- **Gradle e `dotnet` não rodam no sandbox do Codex** (escrevem fora do workspace e precisam de rede): o orquestrador roda `./gradlew :desktop:compileKotlin :desktop:test` e `:desktop:shots` por fora e devolve os erros. Armadilhas recorrentes de Kotlin escrito sem compilador: lambda final indo para o parâmetro errado (use argumento nomeado), `var x` colidindo com `fun setX` (assinatura JVM), smart cast em propriedade de outro módulo, imports de `androidx.compose.animation.*` e `foundation.selection.*`.
+- **Antigravity (`agy`)** em modo `--print` não consegue pedir permissão de comando: precisa de `--dangerously-skip-permissions`, que desliga a trava técnica. Por isso use-o com pastas e regras explícitas no brief e confira o `git status` depois.
+- Ações que publicam ou alteram conta de terceiros (deploy de Worker ou site, release, repositório, console do Firebase/GA4/Cloudflare, aceite de termos) só com pedido explícito do Luiz. Acesso a console exige que o Luiz esteja logado; nunca digite senha por ele.
 
 ## Voz do produto
 

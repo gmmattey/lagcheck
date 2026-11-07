@@ -30,3 +30,9 @@ Esta skill guia a **Priscila** na definição de jornadas, fidelidade de protót
 - Compare a tela real aberta com o protótipo canônico.
 - Audite todos os estados: vazio (empty state), carregando (loading), resultado bem-sucedido, erro e modais.
 - Se o Camillo encontrar um caso de borda não previsto, a especificação volta para alinhamento antes do código.
+
+## 5. Windows (protótipo interno, Decisões 114 a 116)
+- A referência visual é `design-system/prototypes/windows-premium/` (HTML) e `docs/09-design-system-windows.md`; o código é Compose Desktop em `android/desktop/`. Tokens idênticos aos do Android; fonte Google Sans Flex embarcada; métricas em mono.
+- **Sem pill arredondada:** estado e veredito usam marcador com barra lateral colorida e texto mono em caixa alta. **Sem card por bloco, sem vidro:** seções separadas por linha fina; sombra só no botão principal e no toast.
+- Tiles de jogo usam apenas as artes editoriais já aprovadas (Decisão 44), com degradê de leitura e o nome do jogo como identificação primária. O mapa só anima pacotes durante medição real; "Reduzir movimento" remove pacotes, pulsos e transições.
+- Capturas de revisão: `./gradlew :desktop:shots` (a partir de `android/`); confira Início, Jogos, Check, Resultado, Histórico, Ajustes e a galeria `--ds` em 1120×740 e 900×600.

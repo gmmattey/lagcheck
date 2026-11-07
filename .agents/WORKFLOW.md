@@ -48,7 +48,7 @@ Cada projeto possui comandos rápidos que devem ser executados antes de consider
 
 | Projeto | Comandos de Validação |
 | :--- | :--- |
-| **`lagcheck`** | `swift test` (iOS/macOS) · `./gradlew test` (Android) |
+| **`lagcheck`** | `swift test` (iOS/macOS) · `./gradlew test` (Android) · `./gradlew :desktop:compileKotlin :desktop:test` e `./gradlew :desktop:shots` (protótipo Windows, em `android/`, com `JAVA_HOME` em um JDK 17+) · `npm test` em `worker/` (a falha de paridade do catálogo da Decisão 106 é anterior e conhecida) |
 | **`linka`** | `swift test` nos pacotes tocados · `xcodebuild -scheme LinkaApp -destination 'platform=iOS Simulator,name=iPhone 16'` |
 | **`wifi-check`** | `swift test` (suíte WiFiCheckTests) |
 | **`landings`** | `npm run check` (executa testes e builds de todos os sites em 15s) |
@@ -60,3 +60,16 @@ Cada projeto possui comandos rápidos que devem ser executados antes de consider
 1. **Compilou não é funcionou:** Código só é entregue após prova de comportamento no cenário feliz e no cenário de erro.
 2. **Honestidade de dados:** Erro, timeout ou falta de dado **NUNCA** viram zero nem sucesso inventado.
 3. **Mudança cirúrgica:** Não toque em arquivos fora do escopo combinado. Menos linhas alteradas = menor chance de quebra.
+
+---
+
+## 5. Delegação a Codex e Antigravity
+
+O Luiz pode pedir que Marcelo delegue partes da missão a agentes externos. O orquestrador divide por especialidade, mantém **donos de pasta disjuntos** e continua responsável pela entrega.
+
+1. **Brief curto e fechado** por agente: objetivo, leitura obrigatória, pastas permitidas e proibidas, contrato público entre as partes, critérios de aceite, formato do relatório (verificado × não verificado). Briefs são temporários e **não entram no repositório**.
+2. **Regras fixas:** sem `commit`, `branch`, `push`, deploy, instalação ou segredo; trabalho alheio no working tree é preservado.
+3. **Compilar e testar é do orquestrador:** o Codex não roda Gradle/`dotnet` no sandbox. Quem orquestra roda a build e os testes por fora, corrige erros pequenos e devolve os maiores. Só depois disso a entrega vai ao Renan.
+4. **Outro repositório = `git worktree`** em branch própria saindo da `main` (o deploy do site é manual e só da `main`).
+5. **Conferência:** `git status`, diff de cada agente e capturas (`:desktop:shots`) contra a especificação visual. Entrega que não compila ou que escreveu fora da pasta dele volta para o agente.
+6. **Ações externas** (deploy, release, repositório público, console de terceiros, aceite de termos) só com pedido explícito do Luiz, uma a uma.
