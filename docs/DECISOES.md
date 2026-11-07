@@ -116,6 +116,8 @@
 | [111](#decisão-111) | Versionamento de produto em `X.Y (build)` | **Vigente** | Substitui a regra `MAJOR.MINOR.PATCH` para novas versões; builds já atribuídos não são renumerados | Luiz / Marco / Camillo / Renan |
 | [112](#decisão-112) | Duelo de Host: desafio 1v1 para Discord/WhatsApp, landing web e expiração de 30 min | **Vigente** | Custo zero, sem banco de dados; payload no link com TTL de 30 min | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [113](#decisão-113) | Home Cockpit com Gauge Circular e Check de Conexão Geral (Refinamento por Jogo em 1 Toque) | **Vigente** | Refina a Home das Decisões 50 e 56 (Check sem jogo obrigatório) | Luiz / Squad |
+| [114](#decisão-114) | Protótipo interno Windows (Compose Desktop sobre o `core` do Android) | **Em avaliação** | Não altera produto, score nem lojas; Windows não é alvo oficial | Luiz / Squad |
+| [115](#decisão-115) | Identidade visual do protótipo Windows com ativos editoriais locais aprovados | **Em avaliação** | Refina a aparência da Decisão 114; não cria ativos, downloads ou uma versão pública de Windows | Luiz / Squad |
 
 
 
@@ -1246,6 +1248,30 @@
   5. **Histórico e Duelo de Host:** O resultado do Check Geral é registrado no histórico local como "Conexão Geral" e suporta a criação de "Duelo de Host" 1v1 para comparar a rota pura entre amigos na call.
   6. **Paridade Nativa Obrigatória:** Implementação espelhada em SwiftUI (iOS 17+) e Jetpack Compose (Android API 26+).
 - **Critérios de aceite:** No iOS e no Android, a Home renderiza o Gauge Circular com "TESTAR" no centro; tocar no gauge dispara o Check Geral na rota regional de referência; tocar em um jogo no carrossel mede o jogo específico; o resultado do Check Geral aparece no histórico e gera link de Duelo de Host válido; testes de unidade e compilação passam 100%.
+
+#### Decisão 114
+
+- **Data:** 7 de novembro de 2026.
+- **Título:** Protótipo interno Windows (Compose Desktop sobre o `core` do Android).
+- **Status Atual:** **Em avaliação (protótipo, não publicável).** Windows **não** é alvo oficial; não há loja, anúncio, telemetria nem release.
+- **Frentes envolvidas:** Luiz (aprovação do protótipo), Marcelo (produto), Camillo (implementação).
+- **Contexto e problema:** Jogador de PC hoje usa o celular como estimativa. Medir do próprio PC removeria essa margem, mas muda a promessa e a regra de score para PC.
+- **Decisão:** Criar `android/desktop/` (Kotlin JVM + Compose Desktop) que reaproveita `core:session`, `core:network`, `core:catalog` e `core:domain` sem duplicar regra. Mede a região genérica do catálogo embarcado com `Platform.PC`. Sem anúncio, histórico, widget, Wi-Fi/rádio e telemetria.
+- **Fora de escopo:** publicação (Microsoft Store/MSI assinado), taxa de loja ou certificado, receita, regra de score específica para PC, mudança no Worker.
+- **Design system e navegação do protótipo:** documentados em [`docs/09-design-system-windows.md`](./09-design-system-windows.md). Tokens idênticos à Dark Competitive UI; navegação por barra lateral (Início, Jogos, Histórico, Ajustes), adaptação desktop da tab bar de 2 abas do mobile. Telas: Início (anel "TESTAR"), Jogos (busca), Check, Resultado, Histórico (só na sessão), Ajustes e galeria de componentes (`--ds`).
+- **Pendências de decisão antes de virar produto:** público (lobby vs. jogador de PC), receita sem AdMob, custo único da Microsoft Store, nova regra/versão de score para PC com vetores e revisão de Iury.
+- **Evidência:** compila; `./gradlew :desktop:runCli` executou 60 probes UDP + carga HTTP reais num Mac e devolveu `READY`, ping ~19 ms, perda 0%. **Não validado em Windows** (firewall, VPN, múltiplos adaptadores) nem a janela desktop foi inspecionada visualmente.
+
+#### Decisão 115
+
+- **Data:** 7 de novembro de 2026.
+- **Título:** Identidade visual do protótipo Windows com ativos editoriais locais aprovados.
+- **Status Atual:** **Em avaliação (protótipo, não publicável).** Refina somente a apresentação da Decisão 114; Windows continua fora do alvo oficial.
+- **Frentes envolvidas:** Luiz (direção), Marcelo (produto), Priscila (fidelidade visual), Camillo (implementação) e Renan (prova).
+- **Contexto e problema:** a primeira adaptação desktop preservou cor e anel, mas continuou distante do Android por trocar a wordmark por texto, usar glifos genéricos na navegação e omitir as artes editoriais que dão contexto aos jogos.
+- **Decisão:** o desktop passa a empacotar e exibir somente os ativos locais já aprovados no Android: wordmark oficial, artes editoriais autorais de jogos e a linguagem dos ícones de navegação. A Home usa a arte editorial como atmosfera e nos atalhos de jogos; Jogos e Histórico usam miniatura quando ela estiver disponível. Ícones da barra lateral seguem o desenho da navegação Android, não caracteres Unicode.
+- **Guardrails:** nenhuma arte, logo, personagem ou capa de terceiro é criada ou baixada; não há URL, refresh remoto, Worker, telemetria, anúncio ou custo novo. Se faltar um ativo local compatível, a tela mantém o fallback neutro do LagCheck. A UI não inventa leitura de rádio, Wi-Fi, adaptador ou métrica.
+- **Critérios de aceite:** a wordmark renderizada é o ativo oficial, cada arte exibida corresponde ao recurso editorial local aprovado, a navegação não usa glifos tipográficos genéricos, Home/Jogos/Histórico mantêm leitura e foco por teclado, e build/capturas passam sem alterar Check, score ou veredito.
 
 ## Como Registrar Novas Decisões
 
