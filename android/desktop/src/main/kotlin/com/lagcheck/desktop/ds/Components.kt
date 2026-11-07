@@ -1,16 +1,19 @@
 package com.lagcheck.desktop.ds
 
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -19,9 +22,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+/** Preferência compartilhada para componentes que não recebem AppState diretamente. */
+object MotionPreferences { var reduced by mutableStateOf(false) }
 
 /** Base interativa: hover, foco visível por teclado (Tab, Enter, Espaço) e estado desabilitado. */
 @Composable
@@ -37,12 +44,15 @@ fun Interactive(
     val source = remember { MutableInteractionSource() }
     val hovered by source.collectIsHoveredAsState()
     val focused by source.collectIsFocusedAsState()
+    val pressed by source.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) .98f else 1f, tween(durationMillis = if (MotionPreferences.reduced) 0 else 180, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)), label = "pressScale")
     Box(
         modifier
             .semantics { if (description != null) contentDescription = description }
             .clip(shape)
             .hoverable(source, enabled)
             .clickable(source, null, enabled, role = role, onClick = onClick)
+            .graphicsLayer(scaleX = scale, scaleY = scale)
             .then(if (focused) Modifier.border(LcSize.focusRing, LcColor.AccentLight, shape) else Modifier),
         content = { content(hovered && enabled) }
     )
@@ -51,9 +61,23 @@ fun Interactive(
 @Composable
 fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Interactive(onClick, modifier.heightIn(min = 44.dp), enabled = enabled) { hovered ->
+        val shimmer = rememberInfiniteTransition(label = "primarySweep")
+        val sweep by shimmer.animateFloat(
+            initialValue = -1f,
+            targetValue = 2f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 900, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "primarySweepPosition"
+        )
         Box(
             Modifier.matchParentSize().background(if (!enabled) LcColor.Panel else if (hovered) LcColor.AccentHover else LcColor.Accent)
         )
+        if (enabled && hovered && !MotionPreferences.reduced) Canvas(Modifier.matchParentSize()) {
+            drawRect(Brush.linearGradient(listOf(Color.Transparent, Color.White.copy(alpha = .20f), Color.Transparent),
+                start = Offset(size.width * (sweep - 1f), 0f), end = Offset(size.width * sweep, 0f)))
+        }
         Text(text, style = LcType.Button, color = if (enabled) Color.White else LcColor.TextTertiary,
             modifier = Modifier.align(Alignment.Center).padding(horizontal = 28.dp, vertical = 14.dp))
     }
@@ -66,6 +90,34 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .border(1.dp, LcColor.BorderStrong, RoundedCornerShape(LcRadius.control)))
         Text(text, style = LcType.Button, color = LcColor.TextPrimary,
             modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp, vertical = 14.dp))
+    }
+}
+
+/** Chave desktop: foco visível e Enter/Espaço vêm de toggleable. */
+@Composable
+fun SettingSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    val source = remember { MutableInteractionSource() }
+    val focused by source.collectIsFocusedAsState()
+    val track by animateColorAsState(
+        targetValue = if (checked) LcColor.Accent else LcColor.Panel,
+        animationSpec = tween(durationMillis = if (MotionPreferences.reduced) 0 else 180, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
+        label = "switchTrack"
+    )
+    val offset by animateDpAsState(
+        targetValue = if (checked) 22.dp else 4.dp,
+        animationSpec = tween(durationMillis = if (MotionPreferences.reduced) 0 else 180, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
+        label = "switchThumb"
+    )
+    Box(
+        modifier
+            .size(width = 48.dp, height = 28.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(track)
+            .border(if (focused) LcSize.focusRing else 1.dp, if (focused) LcColor.AccentLight else LcColor.BorderStrong, RoundedCornerShape(6.dp))
+            .toggleable(value = checked, interactionSource = source, indication = null, role = Role.Switch, onValueChange = onCheckedChange)
+            .semantics { stateDescription = if (checked) "Ligado" else "Desligado" }
+    ) {
+        Box(Modifier.padding(start = offset).align(Alignment.CenterStart).size(22.dp).clip(RoundedCornerShape(4.dp)).background(Color.White))
     }
 }
 
@@ -108,28 +160,37 @@ fun MetricTile(label: String, value: String?, modifier: Modifier = Modifier, ton
 fun VerdictHeadline(verdict: com.lagcheck.domain.model.GameReadinessVerdict, modifier: Modifier = Modifier) {
     val s = verdict.style()
     Column(modifier) {
-        Text(s.label, style = LcType.VerdictHero, color = s.color)
+        StatusMarker(s.label, s.color)
         Spacer(Modifier.height(LcSpace.sm))
-        Text(s.phrase, style = LcType.Body, color = LcColor.TextSecondary)
+        Text(s.phrase, style = LcType.BodyStrong, color = LcColor.TextSecondary)
     }
 }
 
 @Composable
-fun StatusChip(text: String, color: Color, modifier: Modifier = Modifier) {
+fun StatusMarker(text: String, color: Color, modifier: Modifier = Modifier) {
     Row(
-        modifier.clip(CircleShape).background(color.copy(alpha = 0.14f)).padding(horizontal = 10.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) { Text(text, style = LcType.Section, color = color) }
+        modifier.height(IntrinsicSize.Min).heightIn(min = 28.dp).clip(RoundedCornerShape(4.dp))
+            .background(Brush.horizontalGradient(listOf(color.copy(alpha = .16f), Color.Transparent)))
+            .padding(end = LcSpace.md), verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.width(3.dp).fillMaxHeight().background(color))
+        Text(text, style = LcType.Section, color = color, modifier = Modifier.padding(start = LcSpace.sm))
+    }
 }
 
 enum class SidebarIcon { Home, Games, History, Settings, Components }
 
 @Composable
 fun SidebarItem(label: String, icon: SidebarIcon, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    val indicatorHeight by animateDpAsState(
+        targetValue = if (selected) 20.dp else 0.dp,
+        animationSpec = tween(durationMillis = if (MotionPreferences.reduced) 0 else 180, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
+        label = "sidebarIndicator"
+    )
     Interactive(onClick, Modifier.fillMaxWidth().height(44.dp), enabled = enabled, role = Role.Tab) { hovered ->
         val bg = when { selected -> LcColor.AccentSubtle; hovered -> LcColor.HoverOverlay; else -> Color.Transparent }
         Box(Modifier.matchParentSize().background(bg))
-        if (selected) Box(Modifier.align(Alignment.CenterStart).width(3.dp).height(20.dp).background(LcColor.AccentLight))
+        Box(Modifier.align(Alignment.CenterStart).width(3.dp).height(indicatorHeight).background(LcColor.AccentLight))
         Row(Modifier.align(Alignment.CenterStart).padding(start = 18.dp), verticalAlignment = Alignment.CenterVertically) {
             SidebarGlyph(icon, if (selected) LcColor.Accent else LcColor.TextSecondary, Modifier.size(24.dp))
             Text(label, style = LcType.BodyStrong, color = if (selected) LcColor.TextPrimary else if (enabled) LcColor.TextSecondary else LcColor.TextTertiary)
@@ -210,7 +271,7 @@ fun CircularGauge(
         val t = rememberInfiniteTransition()
         t.animateFloat(0.55f, 1f, infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse)).value
     }
-    val shown by animateFloatAsState(progress ?: 1f, tween(if (reduceMotion) 0 else 250))
+    val shown by animateFloatAsState(progress ?: 1f, tween(durationMillis = if (reduceMotion) 0 else 250))
     Box(modifier, contentAlignment = Alignment.Center) {
         Canvas(Modifier.matchParentSize().padding(10.dp)) {
             val stroke = 14.dp.toPx()
@@ -225,7 +286,14 @@ fun CircularGauge(
 
 /** Gráfico de latência: linha, preenchimento, grade e marcador de início da carga. Picos ≥ 80 ms em âmbar. */
 @Composable
-fun LatencyChart(values: List<Double>, modifier: Modifier = Modifier, loadStartIndex: Int? = null) {
+fun LatencyChart(values: List<Double>, modifier: Modifier = Modifier, loadStartIndex: Int? = null, reduceMotion: Boolean = false) {
+    var visible by remember { mutableStateOf(reduceMotion || values.isNotEmpty()) }
+    LaunchedEffect(values, reduceMotion) { visible = true }
+    val reveal by animateFloatAsState(
+        targetValue = if (reduceMotion) 1f else if (visible) 1f else 0f,
+        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 220, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
+        label = "chartReveal"
+    )
     val summary = if (values.isEmpty()) "Sem amostras" else "Mediana %.0f ms, pior %.0f ms".format(values.sorted()[values.size / 2], values.max())
     Canvas(modifier.semantics { contentDescription = "Gráfico de latência. $summary" }) {
         val top = (values.maxOrNull() ?: 100.0).coerceAtLeast(60.0) * 1.15
@@ -233,6 +301,7 @@ fun LatencyChart(values: List<Double>, modifier: Modifier = Modifier, loadStartI
         fun y(v: Double) = (size.height * (1 - v / top)).toFloat()
         for (g in 1..3) drawLine(LcColor.BorderHairline, Offset(0f, size.height * g / 4), Offset(size.width, size.height * g / 4), 1.dp.toPx())
         if (values.size < 2) return@Canvas
+        clipRect(right = size.width * reveal) {
         val line = Path().apply { values.forEachIndexed { i, v -> if (i == 0) moveTo(x(i), y(v)) else lineTo(x(i), y(v)) } }
         val fill = Path().apply { addPath(line); lineTo(size.width, size.height); lineTo(0f, size.height); close() }
         drawPath(fill, Brush.verticalGradient(listOf(LcColor.Accent.copy(alpha = 0.35f), Color.Transparent)))
@@ -241,6 +310,7 @@ fun LatencyChart(values: List<Double>, modifier: Modifier = Modifier, loadStartI
         loadStartIndex?.takeIf { it in 1 until values.size }?.let {
             drawLine(LcColor.BorderStrong, Offset(x(it), 0f), Offset(x(it), size.height), 1.dp.toPx(),
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)))
+        }
         }
     }
 }

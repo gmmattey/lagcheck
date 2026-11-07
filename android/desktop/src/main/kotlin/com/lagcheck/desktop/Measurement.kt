@@ -14,7 +14,8 @@ import com.lagcheck.session.CheckProgress
 import com.lagcheck.session.CheckResult
 
 data class GameEntry(val id: String, val name: String, val artworkResource: String?)
-data class Outcome(val result: CheckResult, val regionLabel: String)
+data class MeasuredRegion(val id: String, val label: String)
+data class Outcome(val result: CheckResult, val region: MeasuredRegion)
 
 /** Protótipo: o mesmo Check do Android (repouso + carga) a partir do PC, usando o catálogo embarcado. */
 object Measurement {
@@ -39,9 +40,15 @@ object Measurement {
         }.sortedBy { it.name }
     }
 
+    fun measuredRegion(gameId: String?): MeasuredRegion? {
+        val context = resolve(gameId) ?: return null
+        val label = payload?.regions?.firstOrNull { it.id == context.regionId }?.label?.get("pt-BR") ?: context.regionId
+        return MeasuredRegion(context.regionId, label)
+    }
+
     suspend fun run(gameId: String?, onProgress: (CheckProgress) -> Unit): Outcome? {
         val context = resolve(gameId) ?: return null
-        val region = payload?.regions?.firstOrNull { it.id == context.regionId }?.label?.get("pt-BR") ?: context.regionId
+        val region = measuredRegion(gameId) ?: return null
         return Outcome(orchestrator.run(context, onProgress = onProgress), region)
     }
 }

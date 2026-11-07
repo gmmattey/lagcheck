@@ -3,6 +3,7 @@ package com.lagcheck.desktop.ds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +42,12 @@ object LcSize {
 
 /** Segoe UI no Windows (família do sistema) e Consolas para números: telemetria estável sem embarcar fonte. */
 object LcType {
-    private val Sans = FontFamily.Default
+    private val Sans = FontFamily(
+        Font(resource = "fonts/google_sans_flex_regular.ttf", weight = FontWeight.Normal),
+        Font(resource = "fonts/google_sans_flex_medium.ttf", weight = FontWeight.Medium),
+        Font(resource = "fonts/google_sans_flex_semibold.ttf", weight = FontWeight.SemiBold),
+        Font(resource = "fonts/google_sans_flex_bold.ttf", weight = FontWeight.Bold),
+    )
     private val Mono = FontFamily.Monospace
     val VerdictHero = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Black, fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-1).sp)
     val PageTitle = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp, letterSpacing = (-0.6).sp)
