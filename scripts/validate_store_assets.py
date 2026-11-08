@@ -96,10 +96,10 @@ def discover(root: Path) -> dict[str, Any]:
     if (root / "android" / "app" / "build.gradle.kts").exists() or (root / "android" / "app" / "build.gradle").exists():
         found.append("android")
     docs = {
-        "ios_listing": "docs/listing-app-store.md",
-        "android_listing": "docs/listing-google-play.md",
+        "ios_listing": "docs/lojas/listing-app-store.md",
+        "android_listing": "docs/lojas/listing-google-play.md",
         "release_flow": "docs/06-fluxo-de-release.md",
-        "aso_metadata": "docs/ASO_METADATA.md",
+        "aso_metadata": "docs/lojas/ASO_METADATA.md",
     }
     present = {name: path for name, path in docs.items() if (root / path).exists()}
     product = "LagCheck" if (root / "docs" / "ASO_METADATA.md").exists() else "unknown"

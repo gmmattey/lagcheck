@@ -15,7 +15,7 @@ Este repositório é público para dar transparência sobre como o LagCheck func
 - Copiar, modificar, redistribuir ou publicar o código, no todo ou em parte.
 - Usar o código em outro produto, comercial ou não.
 - Publicar versões do app, forks ou derivados em lojas ou sites.
-- Usar o nome **LagCheck**, a wordmark, o ícone, as artes e demais ativos de `design-system/`, `store/` e `docs/marketing/`.
+- Usar o nome **LagCheck**, a wordmark, o ícone, as artes e demais ativos de `design-system/`, `store/` e `marketing/`.
 
 ## Quer usar algo daqui?
 

@@ -19,8 +19,10 @@ O app ajuda a decidir se a conexão observada está adequada para jogar agora. M
 | Port, rádio e limites Android | [Arquitetura Android](08-arquitetura-android.md) |
 | Protótipo Windows (Compose Desktop; Decisões 114 a 116) | [Design system e telemetria Windows](09-design-system-windows.md), [empacotamento](../android/desktop/PACKAGING.md) e [protótipo visual](../design-system/prototypes/windows-premium/README.md) |
 | Aprovações e histórico | [Documento único de decisões](DECISOES.md) |
-| Funil, DebugView e exclusão do aparelho interno | [Firebase Analytics iOS](firebase-analytics-ios.md) |
-| Funil Android, DebugView e exclusão local | [Firebase Analytics Android](firebase-analytics-android.md) |
+| Fichas das lojas, ASO e checklist de lançamento | [`lojas/`](lojas/) |
+| Monitoramento e operação | [`operacao/`](operacao/) |
+| Funil, DebugView e exclusão do aparelho interno | [Firebase Analytics iOS](analytics/firebase-analytics-ios.md) |
+| Funil Android, DebugView e exclusão local | [Firebase Analytics Android](analytics/firebase-analytics-android.md) |
 
 Decisões de ID maior refinam ou substituem as anteriores. Documentos em `archive/` preservam histórico. Uma divergência sem decisão posterior exige alinhamento antes de implementação.
 
@@ -42,10 +44,12 @@ Os estados antigos nas Decisões 68–69 descrevem a evidência disponível quan
 
 | Diretório | Conteúdo |
 | --- | --- |
-| `Sources/`, `Tests/`, `Nolaggy.xcodeproj`, `project.yml` | Implementação, testes e configuração iOS; nomes internos legados preservados |
-| `android/` | App Compose e módulos de domínio, catálogo, rede, sessão, rádio e design system |
+| `Sources/`, `Tests/`, `Nolaggy.xcodeproj`, `project.yml` | Implementação, testes e configuração iOS; nomes internos legados (`Nolaggy`) preservados |
+| `android/` | App Compose, módulos de domínio, catálogo, rede, sessão, rádio e a prévia desktop (Windows) |
 | `worker/` | Worker de carga, catálogo e telemetria |
-| `web/`, `store/` | Website e materiais de loja |
-| `design-system/` | Tokens, assets e protótipo |
-| `audits/`, `reports/` | Evidências e análises com seus limites |
-| `.agents/` | Workflow, planos e skills da squad |
+| `store/` | Criativos e metadados enviados às lojas |
+| `design-system/` | Tokens, assets e protótipos |
+| `marketing/` | Campanhas, vídeos e plano de crescimento |
+| `docs/` | Documentação técnica e de produto. Subpastas: `lojas/`, `analytics/`, `operacao/`, `auditorias/`, `pesquisa/`, `archive/` |
+| `scripts/` | Automações de build e release |
+| `.agents/`, `.codex/` | Workflow, skills e agentes da squad |

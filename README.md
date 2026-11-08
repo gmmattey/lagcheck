@@ -95,6 +95,7 @@ worker/         Cloudflare Worker (carga do Deep Check e telemetria)
 design-system/  tokens, ativos de marca e protótipos
 docs/           especificação, arquitetura e decisões
 store/          textos e criativos das lojas
+marketing/      campanhas, vídeos e plano de crescimento
 scripts/        automações de build e release
 ```
 

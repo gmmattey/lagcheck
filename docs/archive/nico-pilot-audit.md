@@ -9,7 +9,7 @@ pública confirmada.
 | Item | Estado | Fonte / período | Limite |
 | --- | --- | --- | --- |
 | Produto iOS e Android | confirmado | `Nolaggy.xcodeproj`, `android/app/build.gradle.kts` | não prova distribuição |
-| Metadados preparados para Apple/Google | confirmado | `docs/listing-app-store.md`, `docs/listing-google-play.md` | não prova que foram inseridos nas lojas |
+| Metadados preparados para Apple/Google | confirmado | `docs/lojas/listing-app-store.md`, `docs/lojas/listing-google-play.md` | não prova que foram inseridos nas lojas |
 | Assets de ficha | confirmado localmente | `store/app-store/pt-BR/` | estão não rastreados nesta cópia; não são prova de upload |
 | Ficha pública, aprovação, installs, conversão, retenção, receita | não disponível | nenhum console ou URL público verificado | não há diagnóstico quantitativo possível |
 
@@ -19,7 +19,7 @@ pública confirmada.
    visitas, downloads, primeira abertura e retenção por período, não dá para
    dizer se o problema é descoberta, conversão ou valor pós-instalação.
 2. **As fontes locais de metadados estão divergentes e parte da copy precisa de
-   revisão de promessa.** `docs/ASO_METADATA.md` propõe outro nome/subtítulo
+   revisão de promessa.** `docs/lojas/ASO_METADATA.md` propõe outro nome/subtítulo
    dos documentos de listing. A ficha extensa usa expressões como “Ping Real
    nos Servidores do Jogo”, “certified” e “prove … se a culpa … é do servidor”,
    que podem exceder a promessa comprovada no `AGENTS.md`.
