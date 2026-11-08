@@ -44,6 +44,7 @@ import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
 import com.lagcheck.android.ui.MainViewModel.RegionCandidate
@@ -296,7 +297,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }
@@ -347,7 +348,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }
@@ -413,7 +414,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }
@@ -481,7 +482,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }
@@ -574,7 +575,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
             .padding(horizontal = 20.dp)
     ) { content() }

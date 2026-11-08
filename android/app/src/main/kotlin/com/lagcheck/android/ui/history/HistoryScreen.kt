@@ -46,6 +46,7 @@ import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -187,7 +188,7 @@ fun HistoryScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(26.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.xl))
                             .background(LagCheckColors.Surface)
                             .padding(horizontal = 20.dp, vertical = 18.dp)
                     ) {
@@ -225,7 +226,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .padding(top = 10.dp)
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(26.dp))
+                                .clip(RoundedCornerShape(LagCheckRadius.xl))
                                 .background(LagCheckColors.Surface)
                                 .padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 4.dp)
                         ) {
@@ -238,7 +239,7 @@ fun HistoryScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(42.dp)
-                                        .clip(RoundedCornerShape(14.dp))
+                                        .clip(RoundedCornerShape(LagCheckRadius.md))
                                         .background(LagCheckColors.Panel)
                                 ) {
                                     com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
@@ -325,7 +326,7 @@ fun HistoryScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }

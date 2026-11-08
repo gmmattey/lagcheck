@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.components.ChevronLeftIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
@@ -123,7 +124,7 @@ fun CheckHistoryItemDetailsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(22.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
         ) {
             HistoryDetailRow(
@@ -228,8 +229,8 @@ private fun HistoryLatencyChart(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(LagCheckRadius.sm))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.sm)),
         contentAlignment = Alignment.Center
     ) {
         if (series.size < 2) {

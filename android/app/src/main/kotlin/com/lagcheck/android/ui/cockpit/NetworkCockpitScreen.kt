@@ -44,6 +44,7 @@ import com.lagcheck.core.designsystem.components.WifiIcon
 import com.lagcheck.android.data.NetworkReportPdfExporter
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.presentation.ReadinessLanguage
 import com.lagcheck.domain.presentation.UiStrings
@@ -99,7 +100,7 @@ fun NetworkCockpitScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onClose() }
                     .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                     .padding(horizontal = 7.dp, vertical = 6.dp)
@@ -150,7 +151,7 @@ fun NetworkCockpitScreen(
             } else {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(LagCheckRadius.lg))
                         .background(LagCheckColors.AccentPrimary.copy(alpha = 0.1f))
                         .clickable { onRefresh() }
                         .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
@@ -267,7 +268,7 @@ private fun SectionCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {

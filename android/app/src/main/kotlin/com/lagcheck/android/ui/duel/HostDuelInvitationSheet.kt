@@ -30,6 +30,7 @@ import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.HostDuelPayload
 import kotlin.math.roundToInt
@@ -58,7 +59,7 @@ fun HostDuelInvitationSheet(
                 modifier = Modifier
                     .padding(top = 10.dp, bottom = 12.dp)
                     .size(width = 36.dp, height = 4.dp)
-                    .clip(RoundedCornerShape(2.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.Border)
             )
         }
@@ -94,7 +95,7 @@ fun HostDuelInvitationSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.lg))
                     .background(LagCheckColors.Panel)
                     .padding(18.dp)
             ) {
@@ -212,7 +213,7 @@ fun HostDuelInvitationSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(LagCheckRadius.md))
                         .clickable { onDecline() },
                     contentAlignment = Alignment.Center
                 ) {

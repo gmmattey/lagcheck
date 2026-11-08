@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.components.MeasurementLiveTrail
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.android.ui.CancelReason
 import com.lagcheck.android.ui.headline
@@ -85,7 +86,7 @@ fun CheckCockpitScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(LagCheckRadius.sm))
                         .clickable { onCancel() }
                         .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         .padding(horizontal = 7.dp),
@@ -183,7 +184,7 @@ fun CheckCockpitScreen(
                         modifier = Modifier
                             .padding(top = 10.dp, bottom = 18.dp)
                             .size(width = 35.dp, height = 4.dp)
-                            .clip(RoundedCornerShape(9.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }

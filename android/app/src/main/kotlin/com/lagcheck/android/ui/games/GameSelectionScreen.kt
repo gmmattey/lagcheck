@@ -43,6 +43,7 @@ import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.StarIcon
 import com.lagcheck.domain.model.CatalogGame
@@ -214,10 +215,10 @@ private fun GameCard(
 ) {
     Box(modifier) {
         Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(13.dp)).clickable { onClick(game) }
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(LagCheckRadius.md)).clickable { onClick(game) }
                 .semantics { contentDescription = trf("Fazer Check de %s", game.name) }
         ) {
-            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(13.dp)).background(LagCheckColors.Panel)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(LagCheckRadius.md)).background(LagCheckColors.Panel)) {
                 com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
             }
             Text(
@@ -241,12 +242,12 @@ private fun GameRow(
 ) {
     Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(
-            Modifier.weight(1f).defaultMinSize(minHeight = 60.dp).clip(RoundedCornerShape(13.dp))
+            Modifier.weight(1f).defaultMinSize(minHeight = 60.dp).clip(RoundedCornerShape(LagCheckRadius.md))
                 .clickable { onClick(game) }
                 .semantics { contentDescription = trf("Fazer Check de %s", game.name) },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(Modifier.size(width = 80.dp, height = 60.dp).clip(RoundedCornerShape(10.dp)).background(LagCheckColors.Panel)) {
+            Box(Modifier.size(width = 80.dp, height = 60.dp).clip(RoundedCornerShape(LagCheckRadius.sm)).background(LagCheckColors.Panel)) {
                 com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
             }
             Text(

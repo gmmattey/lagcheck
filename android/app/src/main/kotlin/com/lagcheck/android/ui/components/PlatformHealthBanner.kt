@@ -22,6 +22,7 @@ import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.network.health.PlatformHealth
 
 /**
@@ -43,9 +44,9 @@ fun PlatformHealthBanner(health: PlatformHealth, modifier: Modifier = Modifier) 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(13.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.md))
             .background(LagCheckColors.Surface)
-            .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(13.dp))
+            .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(LagCheckRadius.md))
             .padding(14.dp)
             .semantics(mergeDescendants = true) { contentDescription = "$title. $message" },
         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -62,7 +63,7 @@ fun PlatformHealthBanner(health: PlatformHealth, modifier: Modifier = Modifier) 
                 color = accent,
                 modifier = Modifier
                     .padding(start = 8.dp)
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.pill))
                     .background(accent.copy(alpha = 0.16f))
                     .padding(horizontal = 8.dp, vertical = 3.dp)
             )

@@ -37,6 +37,7 @@ import com.lagcheck.android.ui.tr
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 
 /**
  * Bottom Sheet para definir ou alterar o Nick Gamer local para o Duelo de Host (Decisão 112).
@@ -66,7 +67,7 @@ fun HostDuelNickSheet(
                 modifier = Modifier
                     .padding(top = 10.dp, bottom = 12.dp)
                     .size(width = 36.dp, height = 4.dp)
-                    .clip(RoundedCornerShape(2.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.Border)
             )
         }
@@ -102,7 +103,7 @@ fun HostDuelNickSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.md))
                     .background(LagCheckColors.Surface)
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.CenterStart
@@ -141,7 +142,7 @@ fun HostDuelNickSheet(
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(LagCheckRadius.md))
                         .background(LagCheckColors.Surface)
                         .clickable { onDismiss() },
                     contentAlignment = Alignment.Center

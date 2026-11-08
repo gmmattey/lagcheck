@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 
 /**
  * Trilha Viva de Medição (MeasurementLiveTrail) com 3 nós e pacotes viajando na rota.
@@ -118,7 +119,7 @@ fun MeasurementLiveTrail(
                 modifier = Modifier
                     .offset(x = cometX, y = 24.dp)
                     .size(width = cometLength, height = 3.dp)
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.pill))
                     .background(
                         Brush.horizontalGradient(
                             if (isOutbound) listOf(Color.Transparent, LagCheckColors.AccentPrimary.copy(alpha = 0.85f))
@@ -207,14 +208,14 @@ fun MeasurementLiveTrail(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
-                .clip(RoundedCornerShape(999.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.pill))
                 .background(LagCheckColors.Surface)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(fraction = progress.coerceIn(0.04f, 1f))
                     .height(4.dp)
-                    .clip(RoundedCornerShape(999.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.pill))
                     .background(
                         Brush.horizontalGradient(
                             listOf(

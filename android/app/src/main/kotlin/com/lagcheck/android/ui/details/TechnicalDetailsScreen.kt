@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -101,7 +102,7 @@ fun TechnicalDetailsScreen(
             Box(
                 modifier = Modifier
                     .height(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onClose() }
                     .padding(horizontal = 7.dp),
                 contentAlignment = Alignment.Center
@@ -120,7 +121,7 @@ fun TechnicalDetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(22.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
                 .padding(horizontal = 13.dp, vertical = 12.dp)
         ) {
@@ -351,7 +352,7 @@ fun TechnicalDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(22.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xl))
                     .background(LagCheckColors.Surface)
                     .padding(horizontal = 16.dp)
             ) {
@@ -369,8 +370,8 @@ fun TechnicalDetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(13.dp))
-                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.md))
+                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.md))
                 .padding(13.dp)
         ) {
             Column {
@@ -404,8 +405,8 @@ fun TechnicalDetailsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
-                            .clip(RoundedCornerShape(13.dp))
-                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(13.dp))
+                            .clip(RoundedCornerShape(LagCheckRadius.md))
+                            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.md))
                             .padding(13.dp)
                     ) {
                         Text(text = rec.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
@@ -430,7 +431,7 @@ private fun MetricBox(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.lg))
             .background(LagCheckColors.Surface)
             .padding(horizontal = 11.dp, vertical = 10.dp)
     ) {
@@ -459,7 +460,7 @@ private fun EvidenceRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
             .padding(13.dp)
     ) {
@@ -531,8 +532,8 @@ private fun LatencyChart(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(LagCheckRadius.sm))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.sm)),
         contentAlignment = Alignment.Center
     ) {
         if (series.size < 2) {
@@ -639,8 +640,8 @@ private fun PercentileChartView(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(LagCheckRadius.sm))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.sm)),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {

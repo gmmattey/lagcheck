@@ -55,7 +55,7 @@ O sistema vale para iOS, Android e Windows (prévia). Os valores de referência 
 | | iOS | Android | Windows (prévia) |
 | --- | --- | --- | --- |
 | Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
-| Cores, espaçamento, raio | Tokens completos | Só cores e tipografia | Tokens próprios |
+| Cores, espaçamento, raio | Tokens completos | Cores, tipografia e raio (`LagCheckRadius`); sem espaçamento | Tokens próprios |
 | Fonte | SF arredondada e mono | Google Sans Flex | Google Sans Flex e Consolas |
 | Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
 | Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
@@ -64,7 +64,7 @@ Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `toke
 
 **Texto terciário** é `#606873` nas três plataformas (aprovado em 7/nov/2026). Contraste de 3,45:1 sobre o fundo, abaixo do mínimo de 4,5:1 para texto pequeno; usar só em metadados e rótulos de apoio, nunca para informação essencial.
 
-**Divergências abertas** (Decisão 117): Android sem tokens de espaçamento e raio; fonte do Android sem registro; cores fixas fora do tema no iOS e no Android.
+**Divergências abertas** (Decisão 117): Android sem tokens de espaçamento; fonte do Android sem registro; cores fixas fora do tema no iOS e no Android.
 
 ## Anti-patterns / Anti-padrões
 

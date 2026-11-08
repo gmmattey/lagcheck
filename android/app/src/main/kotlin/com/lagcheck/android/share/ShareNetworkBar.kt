@@ -49,6 +49,7 @@ import com.lagcheck.android.ui.AppLocale
 import com.lagcheck.core.designsystem.components.SocialNetwork
 import com.lagcheck.core.designsystem.components.SocialNetworkIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -181,9 +182,9 @@ fun ShareNetworkBar(
             Column(
                 modifier = Modifier
                     .widthIn(max = 300.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xl))
                     .background(LagCheckColors.Surface)
-                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(24.dp))
+                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(LagCheckRadius.xl))
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally

@@ -61,6 +61,7 @@ import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -279,7 +280,7 @@ fun VerdictScreen(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onClose() },
                 contentAlignment = Alignment.Center
             ) {
@@ -347,9 +348,9 @@ fun VerdictScreen(
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
                     .aspectRatio(1200f / 630f)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .background(LagCheckColors.Surface)
-                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(8.dp))
+                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(LagCheckRadius.sm))
                     .semantics { contentDescription = previewLabel }
                     .then(
                         when {
@@ -406,7 +407,7 @@ fun VerdictScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
                 .padding(horizontal = 20.dp, vertical = 18.dp)
         ) {

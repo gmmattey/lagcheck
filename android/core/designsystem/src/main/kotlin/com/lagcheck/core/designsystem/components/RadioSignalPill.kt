@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 
 /**
  * Pílula de telemetria ao vivo (.live-pill).
@@ -35,8 +36,8 @@ fun RadioSignalPill(
     Row(
         modifier = modifier
             .height(28.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(999.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.pill))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.pill))
             .padding(horizontal = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

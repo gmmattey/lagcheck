@@ -42,6 +42,7 @@ import com.lagcheck.core.designsystem.components.HomeCircularPulseGaugeHero
 import com.lagcheck.core.designsystem.components.RadioSignalPill
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
@@ -242,7 +243,7 @@ fun HomeScreen(
 
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(LagCheckRadius.sm))
                         .clickable { onOpenGames() }
                         .padding(horizontal = 6.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -299,7 +300,7 @@ private fun HomeGameCard(
         modifier = modifier
             .width(136.dp)
             .height(154.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.lg))
             .background(LagCheckColors.Surface)
             .clickable { onClick() }
     ) {

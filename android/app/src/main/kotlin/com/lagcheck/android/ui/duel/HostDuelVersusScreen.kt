@@ -41,6 +41,7 @@ import com.lagcheck.core.designsystem.components.DiscordLogo
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.HostDuelPayload
 import com.lagcheck.domain.model.HostDuelResolver
@@ -114,7 +115,7 @@ fun HostDuelVersusScreen(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
@@ -146,7 +147,7 @@ fun HostDuelVersusScreen(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
@@ -317,7 +318,7 @@ private fun FighterCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.lg))
             .background(if (isWinner) LagCheckColors.Panel else LagCheckColors.Surface)
             .padding(20.dp)
     ) {
@@ -356,7 +357,7 @@ private fun FighterCard(
                     if (isWinner) {
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
+                                .clip(RoundedCornerShape(LagCheckRadius.sm))
                                 .background(LagCheckColors.AccentPrimary.copy(alpha = 0.2f))
                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.android.ui.tr
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 
 /** Estado alcançável quando a rede observada não é Wi-Fi nem celular; nenhuma coleta é iniciada. */
 @Composable
@@ -81,7 +82,7 @@ fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(13.dp))
+                    .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(LagCheckRadius.md))
                     .clickable(onClick = onBack).padding(horizontal = 24.dp),
                 contentAlignment = Alignment.Center
             ) {

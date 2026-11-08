@@ -2,11 +2,33 @@
   "$schema": "lagcheck/tokens/radius",
   "description": "Raios de canto do LagCheck Design System definidos no DESIGN.md: 8px para mídia e métricas, 13px para campos/cartões compactos, 17px para CTA, 26px para bottom sheet/hero e pill (999px) para estado conciso.",
   "scale": {
-    "sm": { "value": 8, "usage": "Mídia, capas de jogos e métricas." },
-    "md": { "value": 13, "usage": "Campos, cartões compactos e containers de evidência." },
-    "lg": { "value": 17, "usage": "Botões de ação primária (CTA)." },
-    "xl": { "value": 26, "usage": "Bottom sheet modal e hero cards." },
-    "pill": { "value": 999, "usage": "Chips de telemetria ao vivo e pílulas de status." }
+    "xs": {
+      "value": 4,
+      "usage": "Alças de sheet e selos pequenos do veredito. Existe só no Android (LagCheckRadius.xs).",
+      "platforms": [
+        "android"
+      ]
+    },
+    "sm": {
+      "value": 8,
+      "usage": "Mídia, capas de jogos e métricas."
+    },
+    "md": {
+      "value": 13,
+      "usage": "Campos, cartões compactos e containers de evidência."
+    },
+    "lg": {
+      "value": 17,
+      "usage": "Botões de ação primária (CTA)."
+    },
+    "xl": {
+      "value": 26,
+      "usage": "Bottom sheet modal e hero cards."
+    },
+    "pill": {
+      "value": 999,
+      "usage": "Chips de telemetria ao vivo e pílulas de status."
+    }
   },
   "semantic": {
     "mediaAndMetrics": "{scale.sm}",

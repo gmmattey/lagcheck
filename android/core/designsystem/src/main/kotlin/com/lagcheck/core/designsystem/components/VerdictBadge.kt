@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.domain.model.GameReadinessVerdict
 
 /**
@@ -69,9 +70,9 @@ fun VerdictIndicatorBadge(
                 contentAlignment = Alignment.Center,
                 modifier = modifier
                     .size(size + 6.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.SemanticCaution.copy(alpha = 0.18f))
-                    .border(1.5.dp, LagCheckColors.SemanticCaution, RoundedCornerShape(4.dp))
+                    .border(1.5.dp, LagCheckColors.SemanticCaution, RoundedCornerShape(LagCheckRadius.xs))
             ) {
                 Text(
                     text = "!",
@@ -87,9 +88,9 @@ fun VerdictIndicatorBadge(
                 contentAlignment = Alignment.Center,
                 modifier = modifier
                     .size(size + 6.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.CoralWarning.copy(alpha = 0.20f))
-                    .border(1.5.dp, LagCheckColors.CoralWarning, RoundedCornerShape(4.dp))
+                    .border(1.5.dp, LagCheckColors.CoralWarning, RoundedCornerShape(LagCheckRadius.xs))
             ) {
                 Text(
                     text = "×",
@@ -127,9 +128,9 @@ fun VerdictHeroBadge(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
+            .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
-            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(26.dp))
+            .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.xl))
             .padding(24.dp)
     ) {
         Column(

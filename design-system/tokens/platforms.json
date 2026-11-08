@@ -13,7 +13,7 @@
       "cores": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt",
       "tipografia": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt",
       "espacamento": null,
-      "raio": null,
+      "raio": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Radius.kt",
       "componentes": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/"
     },
     "windows": {
@@ -37,7 +37,7 @@
       "textSecondary #8A93A0"
     ],
     "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16).",
-    "raio": "iOS segue radius.json (8, 13, 17, 26, pill)."
+    "raio": "iOS segue radius.json (8, 13, 17, 26, pill). Android segue desde 2026-11-08 via LagCheckRadius, com xs = 4 extra."
   },
   "divergencias": [
     {
@@ -58,9 +58,9 @@
       "status": "Windows documentado em docs/09; Android sem registro"
     },
     {
-      "id": "espacamento-e-raio-android",
-      "android": "Sem tokens próprios. Componentes usam 15 raios diferentes (2, 4, 6, 8, 9, 10, 12, 13, 14, 18, 20, 22, 24, 26 dp e pill); só 8, 13, 26 e pill estão em radius.json. 6 arquivos fora de Color.kt declaram cor fixa.",
-      "status": "pendente: mover para o tema ou aprovar os raios fora da escala (2, 4, 6, 9, 10, 12, 14, 18, 20, 22, 24)"
+      "id": "espacamento-e-cores-android",
+      "android": "Raios resolvidos em 2026-11-08 (LagCheckRadius). Ainda sem tokens de espaçamento; 6 arquivos fora de Color.kt declaram cor fixa.",
+      "status": "raios resolvidos (Decisão 117); espaçamento e cores fixas pendentes"
     },
     {
       "id": "tokens-proprios-windows",
