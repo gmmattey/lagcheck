@@ -39,7 +39,7 @@ A squad do LagCheck passa a espelhar perfeitamente a estrutura de responsabilida
 
 ## 3. As Pistas de Execução Adotadas (Lanes)
 
-Conforme documentado em [`.agents/WORKFLOW.md`](file:///Users/giammattey/Projetos/buildea/lagcheck/.agents/WORKFLOW.md):
+Conforme documentado em [`.agents/WORKFLOW.md`](../../../.agents/WORKFLOW.md):
 
 1. **Exploração:** Luiz ou o time propondo cenários ("e se...?"). Marco elabora análise de produto e trade-offs. **Nenhum código é alterado.**
 2. **Fast Lane:** Ajustes pontuais de copy, alinhamento cosmético de componentes, pequenas correções sem impacto em contratos.

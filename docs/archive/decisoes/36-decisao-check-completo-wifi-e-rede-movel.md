@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação técnica e implementação  
 **Data:** 19 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Iury (Rede), Rian (iOS)  
-**Complementa e revisa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/12-decisao-deep-check-piloto.md`, `docs/34-decisao-trilha-viva-medicao-e-estresse.md`, `docs/35-decisao-tela-resultado-hig-trilha-consolidada.md`
+**Complementa e revisa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/12-decisao-deep-check-piloto.md`, `docs/archive/decisoes/34-decisao-trilha-viva-medicao-e-estresse.md`, `docs/archive/decisoes/35-decisao-tela-resultado-hig-trilha-consolidada.md`
 
 > **Atualização de integridade (Decisões 60 e 62):** o candidato atual não inclui Atalho de contexto de rede. Em Wi-Fi, a telemetria local pode apontar condição do enlace somente quando há probe isolado; ela não afirma 2,4 GHz, 5 GHz ou 6 GHz sem uma fonte pública válida do sistema.
 

@@ -50,7 +50,7 @@ revisão de evidência real.
 | Agendar acompanhamento | Não automático | Workflow/agendamento existente ou nova autorização |
 
 Os escopos mínimos, limites, alternativas e estado de cada integração estão em
-[`docs/nico-integrations.md`](nico-integrations.md).
+[`docs/archive/nico-integrations.md`](nico-integrations.md).
 
 ## Fonte de regras mutáveis
 
@@ -76,6 +76,6 @@ autoriza claims que ultrapassem isso.
 
 `store-creative-studio` produz PNGs reais e uma galeria HTML local a partir de
 capturas do app. Use os manifestos editáveis e scripts documentados na própria
-skill. O [pacote demonstrativo](../store/app-store/pt-BR/nico-demo/README.md)
+skill. O [pacote demonstrativo](../../store/app-store/pt-BR/nico-demo/README.md)
 mostra o caminho completo com uma captura de simulador controlada; ele não é
 arte enviada à Apple.

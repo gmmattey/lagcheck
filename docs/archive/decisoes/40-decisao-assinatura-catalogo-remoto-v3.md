@@ -6,7 +6,7 @@
 
 **Responsáveis:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS)
 
-**Complementa:** `docs/14-decisao-catalogo-remoto-debug.md`, `docs/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/39-decisao-selecao-automatica-rotas-proprias.md`.
+**Complementa:** `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`, `docs/archive/decisoes/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/archive/decisoes/39-decisao-selecao-automatica-rotas-proprias.md`.
 
 ---
 

@@ -4,7 +4,7 @@
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Marco (Produto), Rian (iOS), Iury (Rede), Renan (Design), Luiz (Dono do Produto)  
 **Validação Externa:** Claude Code CLI (Auditoria técnica de conformidade App Store e rede)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/archive/decisoes/24-decisao-adocao-design-system-apple-games.md`, `docs/archive/decisoes/25-decisao-marca-lagcheck-coral-solar.md`
 
 ---
 

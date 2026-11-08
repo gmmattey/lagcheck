@@ -273,7 +273,7 @@ O domínio trabalha com uma abstração de alvo de medição. Um destino oficial
 
 ### 8.2 Android oficial (Decisões 67–69)
 
-O port Android em `android/` preserva os contratos de catálogo e as regras determinísticas do iOS, com adaptadores próprios de transporte, rádio, persistência e apresentação. Estrutura, versões das regras e a divergência autorizada do gateway estão em [Arquitetura Android](./08-arquitetura-android.md). A validação local e seus limites estão na [auditoria de paridade](../audits/android-ios-code-parity-2026-10-03.md).
+O port Android em `android/` preserva os contratos de catálogo e as regras determinísticas do iOS, com adaptadores próprios de transporte, rádio, persistência e apresentação. Estrutura, versões das regras e a divergência autorizada do gateway estão em [Arquitetura Android](./08-arquitetura-android.md). A validação local e seus limites estão na [auditoria de paridade](auditorias/android-ios-code-parity-2026-10-03.md).
 
 Não há premissa de código compartilhado no MVP iPhone. A portabilidade vem dos contratos, catálogo versionado e comportamento determinístico, não de uma escolha prematura de framework multiplataforma.
 

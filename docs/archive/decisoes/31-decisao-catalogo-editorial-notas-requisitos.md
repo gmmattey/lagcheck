@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação técnica e implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Rian (iOS), Iury (Rede)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/14-decisao-catalogo-remoto-debug.md`, `docs/18-decisao-identidade-visual-neutra-de-jogos.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/26-decisao-catalogo-console.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`, `docs/archive/decisoes/18-decisao-identidade-visual-neutra-de-jogos.md`, `docs/archive/decisoes/24-decisao-adocao-design-system-apple-games.md`, `docs/archive/decisoes/26-decisao-catalogo-console.md`
 
 ---
 

@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação técnica e implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Iury (Rede), Rian (iOS), Renan (Design)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/27-decisao-diagnostico-frequencia-wifi.md`, `docs/29-decisao-infraestrutura-medicao-custo-zero.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/archive/decisoes/27-decisao-diagnostico-frequencia-wifi.md`, `docs/archive/decisoes/29-decisao-infraestrutura-medicao-custo-zero.md`
 
 ---
 

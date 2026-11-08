@@ -2,7 +2,7 @@
 
 **Status:** decisão aprovada pelo dono do produto (Luiz) para especificação e implementação  
 **Data:** 17 de setembro de 2026  
-**Complementa:** `docs/12-decisao-deep-check-piloto.md`, `docs/21-decisao-direcao-visual-simplicidade.md`, `docs/22-decisao-jornada-lista-nativa-e-background-check.md`  
+**Complementa:** `docs/archive/decisoes/12-decisao-deep-check-piloto.md`, `docs/archive/decisoes/21-decisao-direcao-visual-simplicidade.md`, `docs/archive/decisoes/22-decisao-jornada-lista-nativa-e-background-check.md`  
 **Referência de Tom e Voz:** `docs/07-voz-do-produto.md`
 
 ---

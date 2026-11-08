@@ -39,7 +39,7 @@ Um jogo que reivindicar uma plataforma fora do seu teto (ex.: Roblox com `playst
 
 ## O que esta decisão não faz
 
-- **Não publica um novo catálogo.** A chave privada de assinatura Ed25519 não está neste repositório, no Worker ou no iPhone (ver `docs/14-decisao-catalogo-remoto-debug.md`) — é assim por desenho. Este código só descreve o que um envelope futuro pode conter; ele precisa ser montado e assinado fora deste checkout antes de qualquer publicação em `/v1/catalog.json` ou no `DebugCatalogBase.json` embarcado.
+- **Não publica um novo catálogo.** A chave privada de assinatura Ed25519 não está neste repositório, no Worker ou no iPhone (ver `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`) — é assim por desenho. Este código só descreve o que um envelope futuro pode conter; ele precisa ser montado e assinado fora deste checkout antes de qualquer publicação em `/v1/catalog.json` ou no `DebugCatalogBase.json` embarcado.
 - **Não muda a estratégia de medição, confiança ou promessa de precisão.** Console continua nível D (`genericRegion`/`medium`), igual mobile hoje — nenhum endpoint mais específico foi encontrado para nenhum dos três jogos.
 - **Não constrói a tela de seleção de plataforma.** O domínio já tinha `Platform.playstation`/`.xbox` e a regra de pergunta Wi-Fi/Ethernet (`GameContext.validateStructure`); o app (`NolaggyApp`/`QuickCheckFeatureView`) ainda não tem UI para escolher plataforma — hoje o fluxo está fixo em `.iphone`. Requisito já registrado para quando essa tela for desenhada: **seleção por ícones dos consoles, dispostos lado a lado, em uma única linha horizontal.**
 
@@ -81,4 +81,4 @@ Estrutura mínima que o próximo envelope precisa ter para liberar console (apen
 
 ## Próximo gate
 
-Antes de qualquer publicação: revisão de Iury (mesmo padrão de `docs/14-decisao-catalogo-remoto-debug.md`), assinatura do envelope fora deste checkout, e — antes de o console ser utilizável de ponta a ponta — a tela de seleção de plataforma no app.
+Antes de qualquer publicação: revisão de Iury (mesmo padrão de `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`), assinatura do envelope fora deste checkout, e — antes de o console ser utilizável de ponta a ponta — a tela de seleção de plataforma no app.

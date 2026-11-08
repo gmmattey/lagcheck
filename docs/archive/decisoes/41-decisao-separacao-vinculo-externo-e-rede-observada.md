@@ -6,7 +6,7 @@
 
 **Responsáveis:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS), Renan (design)
 
-**Revisa a terminologia de:** `docs/26-decisao-plataformas-console-catalogo.md` e `docs/36-decisao-check-completo-wifi-e-rede-movel.md`.
+**Revisa a terminologia de:** `docs/archive/decisoes/26-decisao-catalogo-console.md` e `docs/archive/decisoes/36-decisao-check-completo-wifi-e-rede-movel.md`.
 
 ---
 

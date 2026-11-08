@@ -3,7 +3,7 @@
 **Status:** decisão aprovada pelo dono do produto (Luiz); em fase de implementação pelo time.
 **Data:** 17 de setembro de 2026; revisada em 19 de setembro de 2026.
 **Substitui:** a jornada anterior de seleção prévia de jogo e início manual de Quick Check na Home (`docs/01` §7.1, `docs/10` e protótipo canônico legado com vitrine horizontal/card soup).
-**Complementa:** `docs/21-decisao-direcao-visual-simplicidade.md` (simplicidade, sem firulas, sistema visual nativo e limpo).
+**Complementa:** `docs/archive/decisoes/21-decisao-direcao-visual-simplicidade.md` (simplicidade, sem firulas, sistema visual nativo e limpo).
 
 ---
 

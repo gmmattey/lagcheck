@@ -6,7 +6,7 @@
 
 **Autores / revisores necessários:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS), Renan (design)
 
-**Complementa:** `docs/14-decisao-catalogo-remoto-debug.md`, `docs/18-decisao-identidade-visual-neutra-de-jogos.md`, `docs/29-decisao-infraestrutura-medicao-custo-zero.md`, `docs/31-decisao-catalogo-editorial-notas-requisitos.md` e `docs/36-decisao-check-completo-wifi-e-rede-movel.md`.
+**Complementa:** `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`, `docs/archive/decisoes/18-decisao-identidade-visual-neutra-de-jogos.md`, `docs/archive/decisoes/29-decisao-infraestrutura-medicao-custo-zero.md`, `docs/archive/decisoes/31-decisao-catalogo-editorial-notas-requisitos.md` e `docs/archive/decisoes/36-decisao-check-completo-wifi-e-rede-movel.md`.
 
 ---
 

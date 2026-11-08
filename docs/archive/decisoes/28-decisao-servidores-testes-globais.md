@@ -3,7 +3,7 @@
 **Status:** decisão aprovada pelo dono do produto (Luiz); em especificação e implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Iury (Rede), Renan (Design), Rian (iOS)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/14-decisao-catalogo-remoto-debug.md`, `docs/16-decisao-selecao-regional-automatica.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`, `docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`, `docs/archive/decisoes/24-decisao-adocao-design-system-apple-games.md`, `docs/archive/decisoes/25-decisao-marca-lagcheck-coral-solar.md`
 
 ---
 

@@ -1,6 +1,6 @@
 # Previews de revisão
 
-Abra [../index.html](../index.html) para o índice lateral.
+O índice lateral (`index.html`) não faz parte deste repositório.
 
 - `colors-primary.html` — funções de cor observadas.
 - `typography-specimens.html` — display, corpo e mono.

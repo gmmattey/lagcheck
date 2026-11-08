@@ -3,7 +3,7 @@
 **Status:** decisão aprovada pelo Dono do Produto (Luiz); em implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Rian (iOS), Iury (Rede)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/16-decisao-selecao-regional-automatica.md`, `docs/28-decisao-servidores-testes-globais.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`, `docs/archive/decisoes/28-decisao-servidores-testes-globais.md`
 
 ---
 

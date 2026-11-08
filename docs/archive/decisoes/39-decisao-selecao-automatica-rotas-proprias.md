@@ -4,7 +4,7 @@
 **Data:** 19 de setembro de 2026
 **Autores / revisores necessários:** Luiz (produto), Marco (produto), Iury (rede), Rian (iOS)
 
-**Complementa e prevalece para seleção de rota própria sobre:** `docs/16-decisao-selecao-regional-automatica.md`, `docs/29-decisao-infraestrutura-medicao-custo-zero.md`, `docs/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/38-matriz-viabilizacao-rotas-proprias.md`.
+**Complementa e prevalece para seleção de rota própria sobre:** `docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`, `docs/archive/decisoes/29-decisao-infraestrutura-medicao-custo-zero.md`, `docs/archive/decisoes/37-decisao-catalogo-remoto-v3-rotas-prioritarias.md` e `docs/archive/decisoes/38-matriz-viabilizacao-rotas-proprias.md`.
 
 ---
 

@@ -50,7 +50,7 @@ está em jogo é reaproveitar **conceito de produto e vocabulário**, não motor
   (repouso + carga), score local determinístico 0–100 (`docs/03-especificacao-tecnica.md`).
 - Já tem catálogo de jogos remoto assinado (Ed25519) com perfis e pesos por perfil
   (`BATTLE_ROYALE_COMPETITIVE`, etc. — `docs/03-especificacao-tecnica.md` seção 4.3) e seleção
-  regional automática validada (`docs/16-decisao-selecao-regional-automatica.md`).
+  regional automática validada (`docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`).
 - Regras inegociáveis (`AGENTS.md`): custo operacional recorrente zero, sem SDK pago, resultado
   inconclusivo nunca vira score inventado, nunca promete "zero lag"/"garantido".
 
@@ -151,7 +151,7 @@ Por regra do `AGENTS.md`, exigem composição aprovada por Renan antes de qualqu
 >    já é exibido hoje (mapeamento proposto em 19.1). Não é uma tela nova, é uma adição a uma tela
 >    existente.
 > 3. **Estado "sem dados suficientes"** — reaproveita o padrão de inconclusivo já aprovado em
->    outras decisões do Nolaggy (ex. `docs/16-decisao-selecao-regional-automatica.md`,
+>    outras decisões do Nolaggy (ex. `docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`,
 >    `inconclusive(noViableRegionalCandidate)`), sem inventar uma composição de erro nova.
 >
 > Se Renan concordar com essa leitura, o trabalho de design fica restrito a variações de

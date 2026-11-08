@@ -36,7 +36,7 @@ Decisões de ID maior refinam ou substituem as anteriores. Documentos em `archiv
 
 ## Estado e evidências
 
-A [auditoria Android de 2026-10-03](../audits/android-ios-code-parity-2026-10-03.md) registra testes JVM, testes unitários do app, build Debug e capturas no emulador. A comparação renderizada com iPhone, medição UDP em aparelho físico, troca de rede, gateway/NAT e PDF físico continuam pendentes nos cenários indicados na auditoria. Fixtures de histórico comprovam leitura e apresentação, não coleta real.
+A [auditoria Android de 2026-10-03](auditorias/android-ios-code-parity-2026-10-03.md) registra testes JVM, testes unitários do app, build Debug e capturas no emulador. A comparação renderizada com iPhone, medição UDP em aparelho físico, troca de rede, gateway/NAT e PDF físico continuam pendentes nos cenários indicados na auditoria. Fixtures de histórico comprovam leitura e apresentação, não coleta real.
 
 Os estados antigos nas Decisões 68–69 descrevem a evidência disponível quando foram registradas; o acompanhamento posterior está na auditoria. Essa evidência não comprova distribuição Android, TestFlight ou publicação em loja. O [fluxo de release](06-fluxo-de-release.md) trata Xcode, TestFlight e App Store; não constitui autorização nem procedimento de publicação Android.
 

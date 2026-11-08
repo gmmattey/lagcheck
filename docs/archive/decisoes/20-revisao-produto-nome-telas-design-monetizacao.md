@@ -9,7 +9,7 @@ atual" exige decisão explícita de Marco antes de virar trabalho, não só dest
 (arquitetura/custo técnico), Iury (o que a mudança faz com a precisão da medição).
 **Origem:** pedido para revisar o app inteiro visando um "mini-app eficiente e monetizável",
 na continuidade da conversa sobre posicionar o Nolaggy como equivalente iOS do módulo "Modo
-gamer" do SignallQ (`docs/19-decisao-modo-gamer-signallq.md`).
+gamer" do SignallQ (`docs/archive/decisoes/19-decisao-modo-gamer-signallq.md`).
 
 ## Como ler este documento
 

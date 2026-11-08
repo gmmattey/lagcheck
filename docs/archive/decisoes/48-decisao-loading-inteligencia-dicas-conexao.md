@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação e implementação  
 **Data:** 25 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Rian (iOS)  
-**Revisa e complementa:** `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/45-excecao-temporaria-gemini-release-1.0.0.md`
+**Revisa e complementa:** `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/23-decisao-dicas-conexao-gemini-deep-check.md`, `docs/archive/decisoes/45-excecao-temporaria-gemini-release-1.0.0.md`
 
 ---
 

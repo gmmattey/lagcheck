@@ -2,7 +2,7 @@
 
 **Status:** decisão aprovada pelo dono do produto (Luiz) e implementada no binário iOS  
 **Data:** 18 de setembro de 2026  
-**Substitui / Atualiza:** `docs/04-design-system.md` (seções 1 e 2), `docs/10-decisao-experiencia-piloto.md`, `docs/21-decisao-direcao-visual-simplicidade.md`, `docs/22-decisao-jornada-lista-nativa-e-background-check.md`  
+**Substitui / Atualiza:** `docs/04-design-system.md` (seções 1 e 2), `docs/archive/decisoes/10-decisao-experiencia-piloto.md`, `docs/archive/decisoes/21-decisao-direcao-visual-simplicidade.md`, `docs/archive/decisoes/22-decisao-jornada-lista-nativa-e-background-check.md`  
 **Referência Canônica:** `design-system/prototypes/ios-reference/source/Nolaggy iOS Prototype.dc.html` e `design-system/tokens/`  
 
 ---

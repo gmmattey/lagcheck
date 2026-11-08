@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz) e implementada no binário iOS  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Rian (iOS), Iury (Rede)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`, `docs/27-decisao-diagnostico-frequencia-wifi.md`, `docs/34-decisao-trilha-viva-medicao-e-estresse.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/24-decisao-adocao-design-system-apple-games.md`, `docs/archive/decisoes/25-decisao-marca-lagcheck-coral-solar.md`, `docs/archive/decisoes/27-decisao-diagnostico-frequencia-wifi.md`, `docs/archive/decisoes/34-decisao-trilha-viva-medicao-e-estresse.md`
 
 ---
 

@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação técnica e implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Iury (Rede), Rian (iOS)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/09-decisao-rede-piloto.md`, `docs/14-decisao-catalogo-remoto-debug.md`, `docs/16-decisao-selecao-regional-automatica.md`, `docs/26-decisao-catalogo-console.md`, `docs/28-decisao-servidores-testes-globais.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/archive/decisoes/09-decisao-rede-piloto.md`, `docs/archive/decisoes/14-decisao-catalogo-remoto-debug.md`, `docs/archive/decisoes/16-decisao-selecao-regional-automatica.md`, `docs/archive/decisoes/26-decisao-catalogo-console.md`, `docs/archive/decisoes/28-decisao-servidores-testes-globais.md`
 
 ---
 

@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação técnica e implementação  
 **Data:** 18 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Iury (Rede), Rian (iOS)  
-**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/10-decisao-experiencia-piloto.md`, `docs/12-decisao-deep-check-piloto.md`, `docs/24-decisao-adocao-design-system-apple-games.md`, `docs/25-decisao-marca-lagcheck-coral-solar.md`, `docs/27-decisao-diagnostico-frequencia-wifi.md`
+**Complementa:** `docs/01-funcional.md`, `docs/02-arquitetura.md`, `docs/03-especificacao-tecnica.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/10-decisao-experiencia-piloto.md`, `docs/archive/decisoes/12-decisao-deep-check-piloto.md`, `docs/archive/decisoes/24-decisao-adocao-design-system-apple-games.md`, `docs/archive/decisoes/25-decisao-marca-lagcheck-coral-solar.md`, `docs/archive/decisoes/27-decisao-diagnostico-frequencia-wifi.md`
 
 ---
 

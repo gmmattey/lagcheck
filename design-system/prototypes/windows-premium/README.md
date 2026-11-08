@@ -12,7 +12,7 @@ Telas: Início, Check (detecção de região e ping animado no mapa), Resultado 
 
 ## Identidade
 
-- Tokens do Android (`android/core/designsystem/.../theme/Color.kt`): fundo `#0B0D10`, Roxo Gamer `#7C3AED`, Coral, Âmbar, Verde, Cinza inconclusivo. Única derivação: `--accent-text #A78BFA`, tint do roxo para texto pequeno sobre fundo escuro.
+- Tokens do Android (`android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt`): fundo `#0B0D10`, Roxo Gamer `#7C3AED`, Coral, Âmbar, Verde, Cinza inconclusivo. Única derivação: `--accent-text #A78BFA`, tint do roxo para texto pequeno sobre fundo escuro.
 - Fonte Google Sans Flex (corpo e títulos), mono do sistema (Cascadia Mono) para métricas. Arquivos em `assets/` (SIL OFL).
 - Sem vidro, sem aurora, sem card por bloco: seções separadas por linha fina. Sem pills arredondadas: o estado é um marcador com barra lateral colorida. Sombra só no botão principal e no toast.
 - Vereditos com os rótulos oficiais (`● Pronto para Ranked`, `▲ Condições instáveis`, `▲ Eu evitaria Ranked agora`, `— Inconclusivo`). A regra de veredito do protótipo é só ilustrativa; o app usa o `core`.

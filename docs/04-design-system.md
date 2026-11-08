@@ -209,7 +209,7 @@ No contexto do jogo, plataforma e região aparecem como dois fatos escaneáveis.
 - Resultado saudável e resultado com risco mantêm a ordem score, classificação, conclusão, evidência, métricas e insight. A distância `resultConclusionToMetrics` continua obrigatória.
 - Inconclusivo por respostas UDP insuficientes mostra `StatusMessage.inconclusive`: “Não conseguimos dados suficientes para avaliar sua conexão. Tente novamente em instantes.”, com a ação “Tentar novamente”.
 - Cancelamento por voltar, troca de rede ou ciclo de vida mostra `StatusMessage.cancelled`: explica o motivo aplicável, confirma o descarte da leitura parcial e oferece “Reiniciar teste”.
-- A matriz completa de composição, divergências aprovadas e gate de acessibilidade do piloto está em [`10-decisao-experiencia-piloto.md`](./10-decisao-experiencia-piloto.md). Ela não substitui a validação visual/interativa exigida antes de declarar paridade.
+- A matriz completa de composição, divergências aprovadas e gate de acessibilidade do piloto está em [`10-decisao-experiencia-piloto.md`](archive/decisoes/10-decisao-experiencia-piloto.md). Ela não substitui a validação visual/interativa exigida antes de declarar paridade.
 
 ## 13. Convenções do módulo SwiftUI `LagCheckDesign`
 

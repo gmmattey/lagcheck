@@ -3,7 +3,7 @@
 **Status:** Decisão aprovada pelo Dono do Produto (Luiz); em especificação e implementação  
 **Data:** 25 de setembro de 2026  
 **Autores / Revisores:** Luiz (Dono do Produto), Marco (Produto), Renan (Design), Iury (Rede), Rian (iOS)  
-**Revisa e complementa:** `docs/01-funcional.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/34-decisao-trilha-viva-medicao-e-estresse.md`, `docs/36-decisao-check-completo-wifi-e-rede-movel.md`, `docs/43-decisao-jornada-unica-deep-check.md`, `docs/46-reconciliacao-jornada-deep-check.md`
+**Revisa e complementa:** `docs/01-funcional.md`, `docs/04-design-system.md`, `docs/07-voz-do-produto.md`, `docs/archive/decisoes/34-decisao-trilha-viva-medicao-e-estresse.md`, `docs/archive/decisoes/36-decisao-check-completo-wifi-e-rede-movel.md`, `docs/archive/decisoes/43-decisao-jornada-unica-deep-check.md`, `docs/archive/decisoes/46-reconciliacao-jornada-deep-check.md`
 
 ---
 
