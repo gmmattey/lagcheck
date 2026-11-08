@@ -96,7 +96,9 @@ class UpdateSupportTest {
 
     @Test fun msiUsesWindowsInstallerAndExeRunsDirectly() {
         val coordinator = UpdateCoordinator(UpdateSourceConfig("", "", emptySet()), UpdateStore(Files.createTempFile("lagcheck-update", ".properties").toFile()))
-        assertEquals(listOf("msiexec.exe", "/i", "C:\\temp\\lagcheck.msi"), coordinator.installerCommand(File("C:\\temp\\lagcheck.msi")))
-        assertEquals(listOf("C:\\temp\\lagcheck.exe"), coordinator.installerCommand(File("C:\\temp\\lagcheck.exe")))
+        val msi = File("C:\\temp\\lagcheck.msi")
+        val exe = File("C:\\temp\\lagcheck.exe")
+        assertEquals(listOf("msiexec.exe", "/i", msi.absolutePath), coordinator.installerCommand(msi))
+        assertEquals(listOf(exe.absolutePath), coordinator.installerCommand(exe))
     }
 }

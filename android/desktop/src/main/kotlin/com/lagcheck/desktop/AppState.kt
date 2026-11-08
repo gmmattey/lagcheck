@@ -30,7 +30,10 @@ sealed interface Route {
 
 data class HistoryEntry(
     val time: LocalDateTime, val title: String, val region: String, val verdict: GameReadinessVerdict,
-    val ping: Double?, val jitter: Double?, val loss: Double?, val series: List<Double>, val loadStart: Int?, val loadMeasured: Boolean
+    val ping: Double?, val jitter: Double?, val loss: Double?, val series: List<Double>, val loadStart: Int?, val loadMeasured: Boolean,
+    /** Pontos capturados apenas para a sessão atual; nulos quando a origem não foi obtida. */
+    val origin: MapPoint? = null,
+    val routeRegion: MapPoint? = null,
 )
 
 /** Estado único do protótipo. Uma sessão de medição por vez; cancelar descarta tudo (sem resultado parcial). */
@@ -82,6 +85,11 @@ class AppState(private val scope: CoroutineScope) {
         measuredRegionId = selectedRegion?.id
         measuredRegionLabel = selectedRegion?.label
         measuredRegion = selectedRegion?.let { RegionCoordinates.forRegion(it.id) }
+        // A rota de um resultado só usa a origem realmente disponível quando o
+        // check começou. Resultado salvo não é reconstituído com a localização atual.
+        val originAtStart = approximateLocation?.let {
+            MapPoint(it.city ?: it.country ?: "local aproximado", it.lat, it.lon)
+        }
         job = scope.launch {
             try {
                 val outcome = Measurement.run(game?.id) { p ->
@@ -99,7 +107,6 @@ class AppState(private val scope: CoroutineScope) {
                     }
                 }
                 if (outcome == null || outcome.result.abortReason != null) { terminalInconclusive(game, outcome?.result?.abortReason?.name?.lowercase() ?: "unavailable"); failed = true; return@launch }
-                markMissingProbes(outcome)
                 val a = outcome.result.assessment
                 val resultClass = a.verdict.name.lowercase()
                 if (a.verdict == com.lagcheck.domain.model.GameReadinessVerdict.INCONCLUSIVE) {
@@ -111,14 +118,32 @@ class AppState(private val scope: CoroutineScope) {
                 measuredRegionId = outcome.region.id
                 measuredRegionLabel = outcome.region.label
                 val entry = HistoryEntry(LocalDateTime.now(), game?.name ?: "Conexão geral", outcome.region.label, a.verdict,
-                    a.pingMs, a.jitterMs, a.packetLossPercentage, outcome.result.latencySeries, loadStart, outcome.result.loadMeasured)
+                    a.pingMs, a.jitterMs, a.packetLossPercentage, outcome.result.latencySeries, loadStart, outcome.result.loadMeasured,
+                    originAtStart, measuredRegion)
                 history.add(0, entry)
                 route = Route.Result(entry)
             } catch (e: CancellationException) { throw e } catch (e: Exception) { terminalInconclusive(game, "error"); failed = true }
         }
     }
 
-    fun cancel() { terminalCancelled((route as? Route.Check)?.game, "cancelled"); job?.cancel(); job = null; route = Route.Home }
+    fun cancel() {
+        terminalCancelled((route as? Route.Check)?.game, "cancelled")
+        job?.cancel()
+        job = null
+        // Cancelar encerra a sessão por inteiro: nenhuma leitura, rota ou pacote
+        // parcial permanece no estado que poderá alimentar a próxima tela.
+        ratio = 0f
+        livePing = null
+        phase = CheckPhase.REST
+        series.clear()
+        loadStart = null
+        failed = false
+        measuredRegion = null
+        measuredRegionId = null
+        measuredRegionLabel = null
+        routeMap.reset()
+        route = Route.Home
+    }
 
     fun retry(game: GameEntry?) { track(ProductAnalyticsEvent.RetestStarted(game?.id ?: "generic-gaming", "pc")); start(game, selectedNow = false) }
     fun onResultViewed(entry: HistoryEntry) { track(ProductAnalyticsEvent.ResultViewed(Measurement.games.firstOrNull { it.name == entry.title }?.id ?: "generic-gaming", "pc", entry.verdict.name.lowercase())) }
@@ -132,8 +157,6 @@ class AppState(private val scope: CoroutineScope) {
     private fun terminalCompleted(game: GameEntry?, region: String, result: String) { if (!terminalSent) { terminalSent = true; track(ProductAnalyticsEvent.LagcheckCompleted(game?.id ?: "generic-gaming", "pc", "unknown", region, result, duration())) } }
     private fun terminalInconclusive(game: GameEntry?, reason: String) { if (!terminalSent && measurementStartedAt != null) { terminalSent = true; track(ProductAnalyticsEvent.LagcheckInconclusive(game?.id ?: "generic-gaming", "pc", "unknown", measuredRegionId ?: "unknown", reason)) } }
     private fun terminalCancelled(game: GameEntry?, reason: String) { if (!terminalSent && measurementStartedAt != null) { terminalSent = true; track(ProductAnalyticsEvent.LagcheckCancelled(game?.id ?: "generic-gaming", "pc", "unknown", measuredRegionId ?: "unknown", reason)) } }
-    private fun markMissingProbes(outcome: Outcome) { (outcome.result.restSamples + outcome.result.loadSamples.orEmpty()).filterNot { it.isValidResponse }.forEach { routeMap.onProbeLost(it.sequence) } }
-
     fun checkForUpdates(force: Boolean = false) { scope.launch(Dispatchers.IO) { updates.check(force) } }
     fun downloadUpdate() { scope.launch(Dispatchers.IO) { updates.download() } }
 

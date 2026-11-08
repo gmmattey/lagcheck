@@ -16,20 +16,26 @@ import androidx.compose.ui.unit.dp
 import com.lagcheck.desktop.ds.*
 
 @Composable
-fun SearchField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
+fun SearchField(
+    value: String,
+    onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "Buscar jogo",
+    forceFocus: Boolean = false
+) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     val shape = RoundedCornerShape(LcRadius.control)
     BasicTextField(
-        value, onChange, modifier.width(260.dp).height(40.dp), singleLine = true, interactionSource = source,
+        value, onChange, modifier.widthIn(min = 260.dp).heightIn(min = 44.dp), singleLine = true, interactionSource = source,
         textStyle = LcType.Body.copy(color = LcColor.TextPrimary), cursorBrush = SolidColor(LcColor.AccentLight),
         decorationBox = { inner ->
             Row(Modifier.fillMaxSize().background(LcColor.Surface, shape)
-                .border(if (focused) LcSize.focusRing else 1.dp, if (focused) LcColor.AccentLight else LcColor.BorderStrong, shape)
+                .border(if (focused || forceFocus) LcSize.focusRing else 1.dp, if (focused || forceFocus) LcColor.AccentLight else LcColor.BorderStrong, shape)
                 .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("⌕", style = LcType.BodyStrong, color = LcColor.TextSecondary, modifier = Modifier.padding(end = 8.dp))
                 Box(Modifier.weight(1f)) {
-                    if (value.isEmpty()) Text("Buscar jogo", style = LcType.Body, color = LcColor.TextTertiary)
+                    if (value.isEmpty()) Text(placeholder, style = LcType.Body, color = LcColor.TextTertiary)
                     inner()
                 }
             }

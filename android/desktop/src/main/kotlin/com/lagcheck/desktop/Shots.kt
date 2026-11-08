@@ -7,6 +7,7 @@ import com.lagcheck.desktop.ds.LagCheckTheme
 import com.lagcheck.desktop.location.ApproxLocation
 import com.lagcheck.desktop.location.RegionCoordinates
 import com.lagcheck.desktop.ui.AppShell
+import com.lagcheck.desktop.ui.CaptureFocusTarget
 import com.lagcheck.desktop.ui.map.MapPoint
 import com.lagcheck.domain.model.GameReadinessVerdict
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +19,12 @@ import java.time.LocalDateTime
 /** Renderiza as telas em PNG sem janela nem rede (dados fictícios só para inspeção visual). */
 @OptIn(ExperimentalComposeUiApi::class)
 fun renderShots(dir: String) {
+    data class ShotVariant(
+        val scrollOffset: Int = 0,
+        val suffix: String = "",
+        val focusTarget: CaptureFocusTarget? = null
+    )
+
     File(dir).mkdirs()
     val series = listOf(20.0, 22.0, 19.0, 21.0, 85.0, 24.0, 20.0, 19.0, 23.0, 30.0, 52.0, 61.0, 44.0, 38.0, 27.0, 25.0)
     fun entry(v: GameReadinessVerdict, t: String) = HistoryEntry(LocalDateTime.now(), t, "São Paulo", v, 21.0, 4.5, 0.0, series, 10, true)
@@ -65,22 +72,49 @@ fun renderShots(dir: String) {
         "check" to ::checkState,
         "check-map" to { mapCheckState(it, animated = true) },
         "check-map-reduced" to { mapCheckState(it, animated = false) },
-        "result" to { it.route = Route.Result(entry(GameReadinessVerdict.CAUTION, "Conexão geral")) },
+        "result" to { state ->
+            val region = requireNotNull(RegionCoordinates.forRegion("sa-east-1"))
+            state.measuredRegion = region
+            state.measuredRegionLabel = "São Paulo"
+            state.approximateLocationEnabled = false
+            state.route = Route.Result(entry(GameReadinessVerdict.CAUTION, "Conexão geral").copy(routeRegion = region))
+        },
         "history" to { s -> s.history.add(entry(GameReadinessVerdict.READY, "Conexão geral")); s.history.add(entry(GameReadinessVerdict.NOT_READY, "Valorant")); s.route = Route.History },
         "history-empty" to { it.route = Route.History },
         "settings" to { it.route = Route.Settings },
         "components" to { it.route = Route.Components },
     )
     for ((name, setup) in shots) {
-        val state = AppState(CoroutineScope(Dispatchers.Unconfined)).also {
-            it.stopLocationLoading()
-            it.changeReduceMotion(true)
-            it.showAnalyticsNotice = name == "notice"
-            setup(it)
+        val sizes = if (name == "components") listOf(1120 to 1500) else listOf(1120 to 740, 900 to 600)
+        sizes.forEach { (width, height) ->
+            val variants = when (name) {
+                "result" -> listOf(ShotVariant(), ShotVariant(scrollOffset = 420, suffix = "-details"))
+                "home" -> listOf(ShotVariant(), ShotVariant(suffix = "-focus", focusTarget = CaptureFocusTarget.HomeTest))
+                "games" -> listOf(ShotVariant(), ShotVariant(suffix = "-focus", focusTarget = CaptureFocusTarget.GamesSearch))
+                else -> listOf(ShotVariant())
+            }
+            variants.forEach { variant ->
+                val state = AppState(CoroutineScope(Dispatchers.Unconfined)).also {
+                    it.stopLocationLoading()
+                    it.changeReduceMotion(true)
+                    it.showAnalyticsNotice = name == "notice"
+                    setup(it)
+                }
+                val scene = ImageComposeScene(width, height, Density(1f)) {
+                    LagCheckTheme {
+                        AppShell(
+                            state,
+                            name == "components",
+                            initialScrollOffset = variant.scrollOffset,
+                            captureFocusTarget = variant.focusTarget
+                        )
+                    }
+                }
+                scene.render()
+                val data = scene.render().encodeToData(EncodedImageFormat.PNG)!!
+                val suffix = if (width == 1120) "" else "-compact"
+                File(dir, "$name${variant.suffix}$suffix.png").writeBytes(data.bytes); scene.close()
+            }
         }
-        val scene = ImageComposeScene(1120, if (name == "components") 1500 else 740, Density(1f)) { LagCheckTheme { AppShell(state, name == "components") } }
-        scene.render()
-        val data = scene.render().encodeToData(EncodedImageFormat.PNG)!!
-        File(dir, "$name.png").writeBytes(data.bytes); scene.close()
     }
 }

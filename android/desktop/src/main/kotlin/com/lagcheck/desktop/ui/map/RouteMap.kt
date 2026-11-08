@@ -13,9 +13,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.desktop.ds.LcColor
+import com.lagcheck.desktop.ds.LcRadius
 import com.lagcheck.desktop.ds.LcType
 import kotlin.math.abs
 import kotlin.math.exp
@@ -51,7 +54,7 @@ fun RouteMap(
 ) {
     val grid = remember { MapGrid.loadFromResources() }
     val textMeasurer = rememberTextMeasurer()
-    val mapShape = remember { RoundedCornerShape(13.dp) }
+    val mapShape = remember { RoundedCornerShape(LcRadius.panel) }
 
     BoxWithConstraints(
         modifier = modifier
@@ -62,27 +65,37 @@ fun RouteMap(
         val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(100f)
         val heightPx = constraints.maxHeight.toFloat().coerceAtLeast(100f)
 
-        // Calcula o enquadramento desejado para a câmera (zoom max 2.2)
+        // Calcula o enquadramento desejado para a câmera (zoom max 2.2).
+        // A abertura global só existe quando os dois pontos são válidos; ela não
+        // cria origem, destino ou rota quando a localização aproximada falhou.
         val targetCam = remember(user, region, widthPx, heightPx) {
             frameCamera(user, region, widthPx, heightPx, maxZoom = 2.2)
         }
+        val globalCam = remember { Camera(lon = 0.0, lat = 12.0, zoom = 1.0) }
+        var routeFrameReady by remember(user, region) { mutableStateOf(user == null || state.reducedMotion) }
+        val desiredCam = if (routeFrameReady) targetCam else globalCam
 
-        var camLon by remember { mutableDoubleStateOf(targetCam.lon) }
-        var camLat by remember { mutableDoubleStateOf(targetCam.lat) }
-        var camZoom by remember { mutableDoubleStateOf(targetCam.zoom) }
+        var camLon by remember(user, region, widthPx, heightPx) { mutableDoubleStateOf(desiredCam.lon) }
+        var camLat by remember(user, region, widthPx, heightPx) { mutableDoubleStateOf(desiredCam.lat) }
+        var camZoom by remember(user, region, widthPx, heightPx) { mutableDoubleStateOf(desiredCam.zoom) }
         var currentFrameNanos by remember { mutableLongStateOf(System.nanoTime()) }
 
-        val cameraSettled = abs(targetCam.lon - camLon) < 0.0005 &&
-            abs(targetCam.lat - camLat) < 0.0005 &&
-            abs(targetCam.zoom - camZoom) < 0.0005
+        val cameraSettled = abs(desiredCam.lon - camLon) < 0.0005 &&
+            abs(desiredCam.lat - camLat) < 0.0005 &&
+            abs(desiredCam.zoom - camZoom) < 0.0005
 
         val shouldAnimate = !state.reducedMotion && (state.hasActiveAnimations || !cameraSettled)
 
         LaunchedEffect(state.reducedMotion, user, region) {
             if (state.reducedMotion) {
+                routeFrameReady = true
                 camLon = targetCam.lon
                 camLat = targetCam.lat
                 camZoom = targetCam.zoom
+            } else if (user != null) {
+                routeFrameReady = false
+                delay(180)
+                routeFrameReady = true
             }
         }
 
@@ -97,9 +110,9 @@ fun RouteMap(
                     if (lastFrame != 0L) {
                         val dt = ((frameTimeNanos - lastFrame).toDouble() / 1_000_000_000.0).coerceIn(0.0, 0.05)
                         val kc = 1.0 - exp(-dt * 3.2)
-                        camLon += (targetCam.lon - camLon) * kc
-                        camLat += (targetCam.lat - camLat) * kc
-                        camZoom += (targetCam.zoom - camZoom) * kc
+                        camLon += (desiredCam.lon - camLon) * kc
+                        camLat += (desiredCam.lat - camLat) * kc
+                        camZoom += (desiredCam.zoom - camZoom) * kc
 
                         state.updateTime(frameTimeNanos, user, region)
                     }

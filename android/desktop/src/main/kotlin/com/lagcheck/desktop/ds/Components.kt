@@ -35,6 +35,7 @@ object MotionPreferences { var reduced by mutableStateOf(false) }
 fun Interactive(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    forceFocus: Boolean = false,
     shape: Shape = RoundedCornerShape(LcRadius.control),
     enabled: Boolean = true,
     role: Role = Role.Button,
@@ -53,7 +54,7 @@ fun Interactive(
             .hoverable(source, enabled)
             .clickable(source, null, enabled, role = role, onClick = onClick)
             .graphicsLayer(scaleX = scale, scaleY = scale)
-            .then(if (focused) Modifier.border(LcSize.focusRing, LcColor.AccentLight, shape) else Modifier),
+            .then(if (focused || forceFocus) Modifier.border(LcSize.focusRing, LcColor.AccentLight, shape) else Modifier),
         content = { content(hovered && enabled) }
     )
 }
@@ -160,7 +161,7 @@ fun MetricTile(label: String, value: String?, modifier: Modifier = Modifier, ton
 fun VerdictHeadline(verdict: com.lagcheck.domain.model.GameReadinessVerdict, modifier: Modifier = Modifier) {
     val s = verdict.style()
     Column(modifier) {
-        StatusMarker(s.label, s.color)
+        Text(s.label, style = LcType.VerdictHero, color = s.color)
         Spacer(Modifier.height(LcSpace.sm))
         Text(s.phrase, style = LcType.BodyStrong, color = LcColor.TextSecondary)
     }
@@ -182,17 +183,11 @@ enum class SidebarIcon { Home, Games, History, Settings, Components }
 
 @Composable
 fun SidebarItem(label: String, icon: SidebarIcon, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    val indicatorHeight by animateDpAsState(
-        targetValue = if (selected) 20.dp else 0.dp,
-        animationSpec = tween(durationMillis = if (MotionPreferences.reduced) 0 else 180, easing = CubicBezierEasing(.2f, 0f, 0f, 1f)),
-        label = "sidebarIndicator"
-    )
     Interactive(onClick, Modifier.fillMaxWidth().height(44.dp), enabled = enabled, role = Role.Tab) { hovered ->
-        val bg = when { selected -> LcColor.AccentSubtle; hovered -> LcColor.HoverOverlay; else -> Color.Transparent }
+        val bg = when { selected -> LcColor.Accent; hovered -> LcColor.HoverOverlay; else -> Color.Transparent }
         Box(Modifier.matchParentSize().background(bg))
-        Box(Modifier.align(Alignment.CenterStart).width(3.dp).height(indicatorHeight).background(LcColor.AccentLight))
         Row(Modifier.align(Alignment.CenterStart).padding(start = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-            SidebarGlyph(icon, if (selected) LcColor.Accent else LcColor.TextSecondary, Modifier.size(24.dp))
+            SidebarGlyph(icon, if (selected) Color.White else LcColor.TextSecondary, Modifier.size(24.dp))
             Text(label, style = LcType.BodyStrong, color = if (selected) LcColor.TextPrimary else if (enabled) LcColor.TextSecondary else LcColor.TextTertiary)
         }
     }

@@ -32,7 +32,8 @@ object LcColor {
 }
 
 object LcSpace { val xs = 4.dp; val sm = 8.dp; val md = 12.dp; val lg = 16.dp; val xl = 24.dp; val xxl = 32.dp }
-object LcRadius { val control = 10.dp; val panel = 14.dp }
+/** Raios discretos do artefato Windows: controles compactos e painéis sem aspecto de card macio. */
+object LcRadius { val control = 7.dp; val panel = 10.dp }
 object LcSize {
     val minTarget = 40.dp          // alvo mínimo com mouse; toque no Windows pede 44.dp (ver docs/09)
     val sidebar = 232.dp
