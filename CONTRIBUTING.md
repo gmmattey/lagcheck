@@ -11,7 +11,7 @@ Abra uma [issue](https://github.com/gmmattey/lagcheck/issues/new/choose). Diga o
 1. **Abra uma issue antes** descrevendo a mudança. Sem alinhamento, o PR pode ser recusado.
 2. Ao enviar código, você concorda que o dono do projeto pode usá-lo no LagCheck sob os mesmos termos do restante do repositório.
 3. Mudanças de score, veredito, thresholds ou catálogo precisam de versão da regra e vetores de teste.
-4. Rode os testes antes de abrir o PR: `Cmd + U` no Xcode, `./gradlew test` em `android/`, `npm test` em `worker/nolaggy-deep-check`.
+4. Rode os testes antes de abrir o PR: `Cmd + U` no Xcode, `./gradlew test` em `android/`, `npm test` em `worker/`.
 5. Siga a voz do produto em [`docs/07-voz-do-produto.md`](docs/07-voz-do-produto.md): direto, calmo e sem promessa de "zero lag".
 
 ## O que não entra

@@ -78,7 +78,7 @@ cd android
 
 **Worker**
 ```sh
-cd worker/nolaggy-deep-check
+cd worker
 npm install
 npm test
 ```
