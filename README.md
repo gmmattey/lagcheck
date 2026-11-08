@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6818706960">App Store</a> ·
+  <a href="https://groups.google.com/g/lagcheck">Testar no Android</a> ·
   <a href="https://lagcheck.signallq.com">Site</a> ·
   <a href="#english">English</a>
 </p>
@@ -49,6 +50,8 @@ Um app para jogador competitivo que quer saber, antes da partida, se a rede ague
 | Android (API 26+) | Kotlin, Jetpack Compose | [`android/app/`](android/app) | Em teste (alpha e beta) |
 | Windows | Kotlin, Compose Desktop | [`android/desktop/`](android/desktop) | Protótipo, [`windows-v0.1.0`](https://github.com/gmmattey/lagcheck/releases/tag/windows-v0.1.0) |
 | Backend | Cloudflare Worker | [`worker/`](worker) | Em produção |
+
+**Quer testar o Android?** Entre no [grupo de testadores](https://groups.google.com/g/lagcheck) para receber acesso ao teste alpha e beta.
 
 O app Windows ainda não é um alvo oficial. É uma prévia.
 
