@@ -1296,12 +1296,12 @@
 
 - **Data:** 7 de novembro de 2026.
 - **Título:** Design system: mapa por plataforma e divergências abertas entre tokens, iOS, Android e Windows.
-- **Status Atual:** **Em avaliação (documental).** Só documenta o que o código faz hoje. Não altera cor, raio, fonte nem navegação de nenhum app.
+- **Status Atual:** **Em avaliação (documental).** Documenta o que o código faz hoje. Única mudança de valor: texto terciário `#606873` no iOS e nos tokens, aprovada por Luiz.
 - **Frentes envolvidas:** Luiz (direção), Priscila (fidelidade visual), Camillo (código) e Renan (conferência).
 - **Contexto e problema:** `design-system/tokens/` e `DESIGN.md` eram de 27 de setembro e não cobriam Android nem Windows. Uma comparação com o código em 7 de novembro mostrou cores, espaçamento e raio alinhados no iOS, e divergências nos outros dois.
 - **Decisão:** `design-system/tokens/platforms.json`, `design-system/DESIGN.md` (seção Plataformas) e `design-system/components.md` (mapa por plataforma) passam a registrar como cada plataforma implementa os tokens. Em conflito vale, nesta ordem: decisão registrada, `tokens/*.json`, código.
-- **Divergências abertas (aguardam decisão do Luiz):** (1) texto terciário `#606873` no Android e no Windows contra `#555E6C` nos tokens e no iOS; (2) Android sem tokens de espaçamento e raio, com 15 raios diferentes e 6 arquivos com cor fixa fora do tema; (3) fonte do Android (Google Sans Flex) sem registro, enquanto o Windows está em `docs/09`; (4) iOS, Android e Windows têm 4 destinos de navegação (Início, Jogos, Histórico, Configurações ou Ajustes), e as Decisões 50 e 51, o `CLAUDE.md` e o `AGENTS.md` falam em 2 abas; (5) cores fixas fora de `NLColor` no iOS.
-- **Guardrails:** nenhuma divergência foi corrigida nem aprovada por esta decisão. Alterar valor visual em app exige aprovação e comparação com o protótipo.
+- **Divergências abertas (aguardam decisão do Luiz):** (1) ~~texto terciário~~ **resolvida em 7 de novembro de 2026**: Luiz aprovou `#606873` nas três plataformas; `tokens/colors.json` e `NLColor.swift` passaram de `#555E6C` para `#606873` (contraste 3,45:1 sobre o fundo; continua abaixo de 4,5:1 e fica restrito a metadados); (2) Android sem tokens de espaçamento e raio, com 15 raios diferentes e 6 arquivos com cor fixa fora do tema; (3) fonte do Android (Google Sans Flex) sem registro, enquanto o Windows está em `docs/09`; (4) iOS, Android e Windows têm 4 destinos de navegação (Início, Jogos, Histórico, Configurações ou Ajustes), e as Decisões 50 e 51, o `CLAUDE.md` e o `AGENTS.md` falam em 2 abas; (5) cores fixas fora de `NLColor` no iOS.
+- **Guardrails:** as demais divergências continuam sem correção nem aprovação. Alterar valor visual em app exige aprovação e comparação com o protótipo.
 - **Critérios de aceite:** `platforms.json` é JSON válido e cada divergência cita o arquivo de origem; os links do `design-system/` e de `docs/` não quebram.
 
 ## Como Registrar Novas Decisões

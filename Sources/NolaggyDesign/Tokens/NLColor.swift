@@ -33,8 +33,8 @@ public enum NLColor {
     public static let textPrimary = Color(red: 244 / 255, green: 245 / 255, blue: 247 / 255)
     /// Texto secundário neutro (#8A93A0 / oklch(0.675 0.014 260))
     public static let textSecondary = Color(red: 138 / 255, green: 147 / 255, blue: 160 / 255)
-    /// Texto terciário / labels auxiliares (#555E6C)
-    public static let textTertiary = Color(red: 85 / 255, green: 94 / 255, blue: 108 / 255)
+    /// Texto terciário / labels auxiliares (#606873, igual ao Android e ao Windows; Decisão 117)
+    public static let textTertiary = Color(red: 96 / 255, green: 104 / 255, blue: 115 / 255)
     public static let textDisabled = Color(red: 55 / 255, green: 62 / 255, blue: 72 / 255)
     public static let textOnAccent = Color.white
     public static let textLink = gamerPurple

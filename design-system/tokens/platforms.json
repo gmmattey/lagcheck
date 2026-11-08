@@ -24,7 +24,18 @@
     }
   },
   "alinhado": {
-    "cores": ["background #0B0D10", "surface #15181E", "surfaceRaised #1E232B", "gamerPurple #7C3AED", "coralSolar #FF5A36", "good #22C55E", "warning #F59E0B", "inconclusive #8A93A0", "textPrimary #F4F5F7", "textSecondary #8A93A0"],
+    "cores": [
+      "background #0B0D10",
+      "surface #15181E",
+      "surfaceRaised #1E232B",
+      "gamerPurple #7C3AED",
+      "coralSolar #FF5A36",
+      "good #22C55E",
+      "warning #F59E0B",
+      "inconclusive #8A93A0",
+      "textPrimary #F4F5F7",
+      "textSecondary #8A93A0"
+    ],
     "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16).",
     "raio": "iOS segue radius.json (8, 13, 17, 26, pill)."
   },
@@ -32,11 +43,11 @@
     {
       "id": "texto-terciario",
       "token": "core.text.tertiary",
-      "tokens_json": "#555E6C",
-      "ios": "#555E6C",
+      "tokens_json": "#606873",
+      "ios": "#606873",
       "android": "#606873",
       "windows": "#606873",
-      "status": "pendente de confirmação (pode ser ajuste de contraste, não está registrado)"
+      "status": "resolvida em 2026-11-07: Luiz aprovou #606873 nas três plataformas (Decisão 117). Contraste 3,45:1 sobre o fundo; ainda abaixo de 4,5:1 (WCAG AA) para texto pequeno."
     },
     {
       "id": "fonte",

@@ -62,7 +62,9 @@ O sistema vale para iOS, Android e Windows (prévia). Os valores de referência 
 
 Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `tokens/*.json`, depois o código. O Windows tem documento próprio: [`docs/09-design-system-windows.md`](../docs/09-design-system-windows.md).
 
-**Divergências abertas** (Decisão 117): texto terciário `#606873` no Android e no Windows contra `#555E6C` nos tokens e no iOS; Android sem tokens de espaçamento e raio; fonte do Android sem registro; a regra "2 abas" dos documentos de produto não bate com as 4 abas do código; cores fixas fora do tema no iOS e no Android.
+**Texto terciário** é `#606873` nas três plataformas (aprovado em 7/nov/2026). Contraste de 3,45:1 sobre o fundo, abaixo do mínimo de 4,5:1 para texto pequeno; usar só em metadados e rótulos de apoio, nunca para informação essencial.
+
+**Divergências abertas** (Decisão 117): Android sem tokens de espaçamento e raio; fonte do Android sem registro; a regra "2 abas" dos documentos de produto não bate com as 4 abas do código; cores fixas fora do tema no iOS e no Android.
 
 ## Anti-patterns / Anti-padrões
 

@@ -12,7 +12,7 @@
     "text": {
       "primary": { "value": "#F4F5F7", "oklch": "oklch(0.955 0.006 260)", "usage": "Texto primário de alto contraste." },
       "secondary": { "value": "#8A93A0", "oklch": "oklch(0.675 0.014 260)", "usage": "Texto secundário e legendas." },
-      "tertiary": { "value": "#555E6C", "usage": "Texto terciário, chevrons e metadados discretos." },
+      "tertiary": { "value": "#606873", "usage": "Texto terciário, chevrons e metadados discretos." },
       "disabled": { "value": "#373E48", "usage": "Texto e ícones desabilitados." },
       "onAccent": { "value": "#FFFFFF", "usage": "Texto sobre botões de destaque Roxo Gamer e Coral Solar." }
     },
