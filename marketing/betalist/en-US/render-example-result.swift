@@ -34,7 +34,7 @@ func drawCenteredText(_ context: CGContext, _ value: String, size: CGFloat, y: C
     context.restoreGState()
 }
 
-let background = load(root + "/store/app-store/pt-BR/screenshots-v2/originals/background.png")
+let background = load(root + "/store/app-store/pt-BR/screenshots-v3/originals/background.png")
 let wordmark = load(root + "/design-system/assets/brand/wordmark-purple-master.png")
 let result = load(kit + "/source-example-result.png")
 let canvas = CGContext(

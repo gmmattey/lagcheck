@@ -13,7 +13,7 @@ Item(source:"05",filename:"05-detalhes",title:["ENTENDA", "O RESULTADO."],points
 let root=CommandLine.arguments[1], dir=CommandLine.arguments[1]+"/marketing/tiktok/v1"
 let W=1080, H=1920, fps:Int32=30, duration=18.0
 func load(_ p:String)->CGImage { CGImageSourceCreateImageAtIndex(CGImageSourceCreateWithURL(URL(fileURLWithPath:p) as CFURL,nil)!,0,nil)! }
-let bg=load(root+"/store/app-store/pt-BR/screenshots-v2/originals/background.png")
+let bg=load(root+"/store/app-store/pt-BR/screenshots-v3/originals/background.png")
 let logo=load(root+"/design-system/assets/brand/wordmark-purple-master.png")
 let screens=items.map{load(root+"/store/app-store/pt-BR/screenshots/originals/"+$0.source+".png")}
 let white=CGColor(red:0.957,green:0.961,blue:0.969,alpha:1)

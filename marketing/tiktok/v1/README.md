@@ -18,6 +18,8 @@ Vai de ranked? Confira sua conexão antes da partida. Conheça o LagCheck na App
 
 Montagem animada com fundo e marca já disponíveis, recortes preservados das artes da App Store e trilha sintetizada localmente. Não é gravação contínua do app, não representa nova medição e não garante desempenho futuro. As telas existentes não foram revalidadas contra a build distribuída. Sem publicação no TikTok.
 
-Fontes de vídeo: `store/app-store/pt-BR/screenshots/originals/03.png`, `04.png`, `05.png`; fundo de `screenshots-v2/originals/background.png`; marca oficial `wordmark-purple-master.png`.
+Fontes de vídeo: `store/app-store/pt-BR/screenshots/originals/03.png`, `04.png`, `05.png`; fundo de `screenshots-v3/originals/background.png`; marca oficial `wordmark-purple-master.png`.
 
 Código de montagem: `render.swift`; geração isolada da trilha: `audio.swift`; junção: `mux.swift`; verificação: `verify.swift`. Frames de revisão salvos em `frame-*.png`.
+
+> **Atenção:** os vídeos e as capturas antigas (`screenshots/`, `screenshots-v2/`) foram removidos do repositório. Estes scripts ficam só como referência e não rodam sem as capturas originais; recupere-as no histórico do Git se precisar refazer o vídeo.

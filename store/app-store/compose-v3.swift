@@ -5,7 +5,7 @@ import CoreText
 // Pôsteres 1206x2622 a partir de capturas reais do app (sem barra de status e sem anúncio).
 let root = CommandLine.arguments[1]
 let store = root + "/store/app-store"
-let bg = load(store + "/pt-BR/screenshots-v2/originals/background.png")
+let bg = load(store + "/pt-BR/screenshots-v3/originals/background.png")
 let logo = load(root + "/design-system/assets/brand/wordmark-purple-master.png")
 func load(_ path: String) -> CGImage {
     let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil)!

@@ -7,7 +7,7 @@ func load(_ path: String) -> CGImage {
     let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil)!
     return CGImageSourceCreateImageAtIndex(source, 0, nil)!
 }
-let bg = load(root + "/store/app-store/pt-BR/screenshots-v2/originals/background.png")
+let bg = load(root + "/store/app-store/pt-BR/screenshots-v3/originals/background.png")
 let logo = load(root + "/design-system/assets/brand/wordmark-purple-master.png")
 let W = 1800, H = 1200
 let c = CGContext(data: nil, width: W, height: H, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!

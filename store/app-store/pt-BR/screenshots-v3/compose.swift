@@ -9,7 +9,7 @@ func load(_ path: String) -> CGImage {
     let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil)!
     return CGImageSourceCreateImageAtIndex(source, 0, nil)!
 }
-let bg = load(base + "/screenshots-v2/originals/background.png")
+let bg = load(base + "/screenshots-v3/originals/background.png")
 let logo = load(root + "/design-system/assets/brand/wordmark-purple-master.png")
 func image(_ c: CGContext, _ i: CGImage, _ r: CGRect) {
     c.saveGState(); c.translateBy(x: r.minX, y: r.maxY); c.scaleBy(x: 1, y: -1)
