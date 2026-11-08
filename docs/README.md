@@ -47,7 +47,7 @@ Os estados antigos nas Decisões 68–69 descrevem a evidência disponível quan
 | `Sources/`, `Tests/`, `Nolaggy.xcodeproj`, `project.yml` | Implementação, testes e configuração iOS; nomes internos legados (`Nolaggy`) preservados |
 | `android/` | App Compose, módulos de domínio, catálogo, rede, sessão, rádio e a prévia desktop (Windows) |
 | `worker/` | Worker de carga, catálogo e telemetria |
-| `store/` | Criativos e metadados enviados às lojas |
+| `store/` | Criativos e metadados enviados às lojas (privacidade e suporte ficam no site oficial) |
 | `design-system/` | Tokens, assets e protótipos |
 | `marketing/` | Campanhas, vídeos e plano de crescimento |
 | `docs/` | Documentação técnica e de produto. Subpastas: `lojas/`, `analytics/`, `operacao/`, `auditorias/`, `pesquisa/`, `archive/` |
