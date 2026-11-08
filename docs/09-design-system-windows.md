@@ -9,7 +9,7 @@ Tokens de cor (`#0B0D10`, `#15181E`, `#1E232B`, Roxo `#7C3AED`, Coral `#FF5A36`,
 ## 2. O que muda no desktop
 | Tema | Mobile | Windows |
 | --- | --- | --- |
-| Navegação | Tab bar `Início | Jogos` | Barra lateral de 232 dp: Início, Jogos, Histórico, Ajustes. Histórico sobe para a barra porque há espaço. |
+| Navegação | Tab bar de 4 destinos (Início, Jogos, Histórico, Ajustes) | Barra lateral de 232 dp: Início, Jogos, Histórico, Ajustes. Histórico sobe para a barra porque há espaço. |
 | Largura | 1 coluna | Conteúdo até 920 dp, centralizado; Início mantém um cockpit em coluna única para o Check continuar sendo o protagonista. |
 | Entrada | Toque | Mouse + teclado: hover em todo item clicável, foco visível (anel 2 dp roxo claro), Tab/Enter/Espaço. |
 | Alvo mínimo | 44 pt | 40 dp com mouse, botões 44 dp. |

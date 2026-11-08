@@ -87,7 +87,7 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 - Há uma única sessão de medição ativa. O `MeasurementSessionCoordinator` é a autoridade para iniciar, cancelar, invalidar e concluir uma sessão.
 - Mudança relevante de rede, ida para background, cancelamento explícito ou dados insuficientes encerra a sessão. Resultado parcial não entra no histórico.
 - Catálogo local só é usado depois de validar assinatura Ed25519, schema, datas e regras de negócio. Tela alguma interpreta o envelope diretamente.
-- A navegação é simplificada para 2 abas (`Início | Jogos`). Histórico e Ajustes são acessados contextualmente.
+- A navegação tem 4 destinos: `Início`, `Jogos`, `Histórico` e `Ajustes` (`Configurações` no Android), conforme as Decisões 80 e 98.
 - SwiftData guarda o histórico estruturado por jogos e vereditos de prontidão.
 - Implementa cliente de telemetria anônima enxuto apontando para `POST /v1/telemetry` no Cloudflare Worker existente.
 - Mudança no domínio exige testes determinísticos; integração exige teste de contrato; jornada ou consentimento exige validação manual em iPhone.

@@ -75,11 +75,10 @@
     },
     {
       "id": "navegacao",
-      "documentos": "CLAUDE.md, AGENTS.md e docs/DECISOES.md (Decisões 50 e 51) falam em 2 abas: Início e Jogos.",
-      "ios": "4 abas (TabView em QuickCheckFeatureView)",
-      "android": "4 abas: Início, Jogos, Histórico, Configurações (MainActivity)",
-      "windows": "barra lateral: Início, Jogos, Histórico, Ajustes",
-      "status": "pendente: atualizar a regra ou o código; a Decisão 50 pode ter sido refinada depois"
+      "ios": "4 abas: Início, Jogos, Histórico, Ajustes (Decisão 98)",
+      "android": "4 abas: Início, Jogos, Histórico, Configurações (Decisão 80)",
+      "windows": "barra lateral: Início, Jogos, Histórico, Ajustes (Decisão 116)",
+      "status": "resolvida em 2026-11-07: o código estava certo (Decisões 80 e 98); a documentação que dizia 2 abas foi corrigida"
     },
     {
       "id": "cores-fixas-ios",

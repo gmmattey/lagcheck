@@ -29,7 +29,7 @@ Decisões de ID maior refinam ou substituem as anteriores. Documentos em `archiv
 ## Escopo vigente
 
 - iPhone com iOS 17+ e Android nativo Kotlin/Compose com API 26+ (Decisões 67–69).
-- Jornada `Home → Jogo → Check → Veredito`, duas abas e Check único com repouso e carga. Score numérico subordinado aos detalhes.
+- Jornada `Home → Jogo → Check → Veredito`, quatro destinos (Início, Jogos, Histórico, Ajustes) e Check único com repouso e carga. Score numérico subordinado aos detalhes.
 - Dark Competitive UI: Roxo Gamer para ações primárias; Coral Solar para atenção, erro e ações destrutivas (Decisão 66). Assets oficiais preservados.
 - Regras determinísticas e catálogo assinado. No Android, influência do gateway no veredito é uma divergência autorizada, com validação física pendente (Decisão 69).
 - Custo recorrente zero, sem anúncios no MVP1. Nenhum endpoint novo autorizado além dos três contratos existentes do Worker.

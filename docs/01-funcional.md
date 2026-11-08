@@ -5,7 +5,7 @@
 **Sistema mínimo:** iOS 17; Android API 26 (Kotlin/Compose)
 **Base:** conversa de concepção do produto compartilhada pela equipe em 7 de setembro de 2026
 
-> **Atualização de reposicionamento (Decisões 50 e 55 — 2026-09-26):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos), a Conexão Geral atua como fallback em busca sem resultado, e a integridade diagnóstica (Decisão 55) separa com probe isolado enlace local (Wi-Fi/gateway) da rota externa (WAN), avalia bufferbloat multidimensionalmente por perfil, classifica spikes recorrentes, descarta sessões na troca de interface e entrega de 1 a 3 recomendações acionáveis baseadas estritamente em evidência.
+> **Atualização de reposicionamento (Decisões 50 e 55 — 2026-09-26):** toda referência a Quick Check foi abolida da experiência do usuário e a jornada foi radicalmente simplificada para **Home → Jogo → Check → Veredito**. O veredicto semântico (`GameReadinessVerdict`: *Pronto para jogar*, *Eu evitaria Ranked agora*, etc.) torna-se o protagonista visual imediato. O LagCheck Score (0–100) e as métricas técnicas (ms, jitter, loss) são mantidos para cálculo interno e telemetria, ficando disponíveis sob demanda em "Entender resultado / Ver detalhes". A tab bar passa a ter 2 abas (Início | Jogos; depois refinada para 4 destinos pelas Decisões 80 e 98), a Conexão Geral atua como fallback em busca sem resultado, e a integridade diagnóstica (Decisão 55) separa com probe isolado enlace local (Wi-Fi/gateway) da rota externa (WAN), avalia bufferbloat multidimensionalmente por perfil, classifica spikes recorrentes, descarta sessões na troca de interface e entrega de 1 a 3 recomendações acionáveis baseadas estritamente em evidência.
 
 > **Decisão de plataforma vigente (67–69):** iPhone continua como plataforma inicial; Android nativo é alvo oficial, com port das regras determinísticas e adaptações de rádio. A influência do gateway no veredito Android é uma divergência autorizada pela Decisão 69. Consulte [Arquitetura Android](./08-arquitetura-android.md) e [evidências locais](auditorias/android-ios-code-parity-2026-10-03.md). Implementação não equivale a publicação.
 >
@@ -201,11 +201,11 @@ O histórico é local e organizado por prontidão e títulos de jogos (Decisão 
 ### 7.8 Navegação e abas
 
 A navegação da V1 é enxuta e focada na ação (Decisão 50):
-- **Tab Bar de 2 abas:**
-  1. **Início:** Estado atual, atalho direto de Check para o último jogo, histórico contextual ("Últimos checks ›") e menu `…` para Ajustes.
+- **Tab Bar de 4 destinos** (Decisão 80 no Android e Decisão 98 no iOS, que refinaram as 2 abas originais da Decisão 50; no Windows é uma barra lateral):
+  1. **Início:** Estado atual, atalho direto de Check para o último jogo e histórico contextual ("Últimos checks ›").
   2. **Jogos:** Catálogo com busca e filtros rápidos. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
-- **Histórico:** Acessível contextualmente na Home e pelo menu de Ajustes.
-- **Ajustes:** Acessível pelo menu `…`, permitindo consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
+  3. **Histórico:** Lista dos checks anteriores, também acessível pelo atalho na Home.
+  4. **Ajustes** (`Configurações` no Android): permite consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
 
 ### 7.9 Widget de prontidão por jogo (Decisão 88)
 
