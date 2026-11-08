@@ -836,6 +836,14 @@ public enum RemoteCatalogVerifier {
         "warzone": [.iphone]
     ]
 
+    private static let schemaTwoGameIDs: Set<String> = [
+        "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile",
+        "brawl-stars", "wild-rift", "roblox", "minecraft", "apex-legends",
+        "blood-strike", "cs2", "dota2", "eafc", "league-of-legends", "palworld",
+        "rainbow-six", "rainbow-six-mobile", "rocket-league", "rocket-league-sideswipe",
+        "rust", "valorant", "warzone"
+    ]
+
     private static let schemaTwoAllowedPlatforms: [String: Set<Platform>] = [
         "fortnite": [.iphone, .playstation, .xbox, .nintendo, .pc],
         "call-of-duty-mobile": [.iphone],
@@ -906,7 +914,9 @@ public enum RemoteCatalogVerifier {
             expectedGames = legacyGameIDs
             allowedPlatforms = legacyAllowedPlatforms
         case candidateRegionsSchemaVersion:
-            expectedGames = Set(schemaTwoAllowedPlatforms.keys)
+            // Schema 2 declara só os 22 jogos originais. A tabela de plataformas cresceu
+            // para o catálogo v3 e não pode mais definir o conjunto exigido aqui.
+            expectedGames = schemaTwoGameIDs
             allowedPlatforms = schemaTwoAllowedPlatforms
         default:
             throw RemoteCatalogError.unsupportedDebugCatalog

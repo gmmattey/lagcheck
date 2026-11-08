@@ -23,6 +23,12 @@ final class LocalizationSmokeUITests: XCTestCase {
 
             XCTAssertTrue(app.buttons[expectation.games].waitForExistence(timeout: 3), expectation.language)
             app.buttons[expectation.games].tap()
+            if !app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 2) {
+                let search = app.textFields["catalog-search-input"]
+                XCTAssertTrue(search.waitForExistence(timeout: 3), expectation.language)
+                search.tap()
+                search.typeText("Fortnite")
+            }
             XCTAssertTrue(app.buttons["catalog-game-fortnite"].waitForExistence(timeout: 3), expectation.language)
             app.buttons["catalog-game-fortnite"].tap()
             XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3), expectation.language)
@@ -57,7 +63,7 @@ final class LocalizationSmokeUITests: XCTestCase {
         ]
         app.launch()
 
-        let settingsBtn = app.buttons["navigation-settings-open"]
+        let settingsBtn = app.tabBars.buttons["Ajustes"]
         XCTAssertTrue(settingsBtn.waitForExistence(timeout: 3))
         settingsBtn.tap()
 

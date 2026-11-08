@@ -465,8 +465,12 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
             return XCTFail("Expected inconclusive evaluation due to insufficient rest samples, got \(state)")
         }
 
+        // Término normal por UDP insuficiente: o Histórico guarda só o fato, sem score nem causa.
         let entries = await history.loadHistory()
-        XCTAssertTrue(entries.isEmpty, "Inconclusive results must never be persisted to history.")
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.kind, .deep)
+        XCTAssertEqual(entries.first?.readinessVerdict, .inconclusive)
+        XCTAssertNil(entries.first?.result, "Inconclusive history entries must carry no score.")
     }
 
     private func received(_ count: Int, rtt: Double) -> [ProbeSample] {

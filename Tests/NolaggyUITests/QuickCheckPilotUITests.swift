@@ -9,12 +9,12 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         // Trocar jogo é uma troca de contexto, não uma etapa extra: escolher o
         // título inicia a medição sem voltar à Home ou abrir seletor de console.
-        XCTAssertTrue(app.buttons["home-shortcut-change-game"].waitForExistence(timeout: 3))
-        app.buttons["home-shortcut-change-game"].tap()
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 3))
+        app.tabBars.buttons["Jogos"].tap()
         selectCatalogGame("fortnite", matching: "Fortnite", in: app)
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
-        XCTAssertFalse(app.buttons["home-decision-primary-action"].exists)
+        XCTAssertFalse(app.buttons["home-circular-gauge-hero"].exists)
     }
 
     @MainActor
@@ -75,7 +75,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         captureScreenshot(of: app, named: "deep-check-measuring")
         app.buttons["deep-check-back"].tap()
 
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["Excelente"].exists)
         XCTAssertFalse(app.staticTexts["Risco de lag"].exists)
     }
@@ -118,7 +118,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
 
-        app.buttons["Configurações"].tap()
+        app.tabBars.buttons["Ajustes"].tap()
         XCTAssertTrue(app.buttons["settings-language"].waitForExistence(timeout: 3))
         app.buttons["settings-language"].tap()
         XCTAssertTrue(app.buttons["English"].waitForExistence(timeout: 2))
@@ -201,7 +201,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         XCTAssertFalse(app.buttons["history-back"].exists)
 
         app.tabBars.buttons["Início"].tap()
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -228,7 +228,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Uso de dados móveis"].waitForExistence(timeout: 3))
         app.buttons["cellular-consent-cancel"].tap()
 
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["check-completo-back"].exists)
         XCTAssertFalse(app.buttons["measurement-retry"].exists)
     }
@@ -323,7 +323,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchWithSystemLanguage()
 
         app.buttons["measurement-back"].tap()
-        app.buttons["Configurações"].tap()
+        app.tabBars.buttons["Ajustes"].tap()
         let regionRow = app.buttons["settings-region"]
         XCTAssertTrue(regionRow.waitForExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["Automática"].exists)
@@ -373,7 +373,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["regional-selection-back-home"].waitForExistence(timeout: 2))
         app.buttons["regional-selection-back-home"].tap()
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -404,7 +404,7 @@ final class DeepCheckJourneyUITests: XCTestCase {
         sleep(1)
         app.activate()
 
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["check-completo-score"].exists)
     }
 
@@ -414,11 +414,10 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
 
-        let exploreButton = app.buttons["home-decision-primary-action"]
-        XCTAssertTrue(exploreButton.waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 4))
         captureScreenshot(of: app, named: "home-new-user-ready")
 
-        exploreButton.tap()
+        app.tabBars.buttons["Jogos"].tap()
         let search = app.textFields["catalog-search-input"]
         XCTAssertTrue(search.waitForExistence(timeout: 3))
         search.tap()
@@ -436,8 +435,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
             app.buttons["measurement-back"].tap()
         }
 
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 4))
-        XCTAssertTrue(app.buttons["home-shortcut-change-game"].exists)
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["home-last-result"].exists)
         XCTAssertFalse(app.buttons["home-decision-history"].exists)
         captureScreenshot(of: app, named: "home-valid-result-hero")
     }
@@ -448,8 +447,8 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR", "-ui-fixture-inconclusive-history"]
         app.launchWithSystemLanguage()
 
-        XCTAssertTrue(app.buttons["home-decision-primary-action"].waitForExistence(timeout: 4))
-        XCTAssertTrue(app.buttons["home-shortcut-change-game"].exists)
+        XCTAssertTrue(app.buttons["home-circular-gauge-hero"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["home-last-result"].exists)
         XCTAssertFalse(app.buttons["home-decision-history"].exists)
         captureScreenshot(of: app, named: "home-inconclusive-hero")
     }
@@ -460,10 +459,10 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
 
-        let startButton = app.buttons["home-decision-primary-action"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 4))
-        startButton.tap()
-        selectCatalogGame("fortnite", matching: "Fortnite", in: app)
+        // Decisão 113: tocar num favorito mede aquele jogo em 1 toque.
+        let favorite = app.buttons["home-favorite-game-fortnite"]
+        XCTAssertTrue(favorite.waitForExistence(timeout: 4))
+        favorite.tap()
         XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Onde você joga?"].exists)
         captureScreenshot(of: app, named: "home-game-measuring")
@@ -521,23 +520,16 @@ final class DeepCheckJourneyUITests: XCTestCase {
     /// regional é automática e não pede console, plataforma ou outro toque.
     @MainActor
     private func startDeepCheck(_ app: XCUIApplication) {
-        let start = app.buttons["home-cta-start-lagcheck"]
-        if start.waitForExistence(timeout: 2) {
-            XCTAssertTrue(start.isEnabled)
-            for _ in 0..<4 where !start.isHittable {
-                app.swipeUp()
-            }
-            XCTAssertTrue(start.isHittable)
-            start.tap()
-            return
-        } else {
-            let chooseGame = app.buttons["home-decision-primary-action"]
-            XCTAssertTrue(chooseGame.waitForExistence(timeout: 3))
-            chooseGame.tap()
-            selectCatalogGame("fortnite", matching: "Fortnite", in: app)
+        // Decisão 113: o gauge da Home inicia o Check geral em 1 toque.
+        let start = app.buttons["home-circular-gauge-hero"]
+        XCTAssertTrue(start.waitForExistence(timeout: 3))
+        XCTAssertTrue(start.isEnabled)
+        for _ in 0..<4 where !start.isHittable {
+            app.swipeUp()
         }
-
-        XCTAssertTrue(app.buttons["deep-check-back"].waitForExistence(timeout: 3))
+        XCTAssertTrue(start.isHittable)
+        start.tap()
+        // Cada prova confere o próprio desfecho: medição, consentimento ou resultado de fixture.
     }
 
     @MainActor
