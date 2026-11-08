@@ -46,7 +46,7 @@ Um app para jogador competitivo que quer saber, antes da partida, se a rede ague
 | Plataforma | Tecnologia | Pasta | Estado |
 | --- | --- | --- | --- |
 | iPhone (iOS 17+) | Swift, SwiftUI | [`Sources/`](Sources) | Na App Store |
-| Android (API 26+) | Kotlin, Jetpack Compose | [`android/app/`](android/app) | Em desenvolvimento |
+| Android (API 26+) | Kotlin, Jetpack Compose | [`android/app/`](android/app) | Em teste (alpha e beta) |
 | Windows | Kotlin, Compose Desktop | [`android/desktop/`](android/desktop) | Protótipo, [`windows-v0.1.0`](https://github.com/gmmattey/lagcheck/releases/tag/windows-v0.1.0) |
 | Backend | Cloudflare Worker | [`worker/`](worker) | Em produção |
 
