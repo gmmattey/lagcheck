@@ -51,11 +51,11 @@
     },
     {
       "id": "fonte",
-      "tokens_json": "Pilha Apple: SF arredondada (títulos) e SF mono (métricas)",
-      "ios": "SF arredondada e mono do sistema",
-      "android": "Google Sans Flex embarcada",
-      "windows": "Google Sans Flex embarcada; Consolas para dados",
-      "status": "Windows documentado em docs/09; Android sem registro"
+      "tokens_json": "Pilha Apple: SF arredondada (títulos), SF (corpo) e SF mono (métricas)",
+      "ios": "SF arredondada, SF e SF mono do sistema",
+      "android": "Google Sans Flex em tudo, com algarismos tabulares nas métricas (Decisão 80)",
+      "windows": "Google Sans Flex; Consolas para dados (Decisões 114 a 116)",
+      "status": "resolvida em 2026-11-08: Android e Windows estão decididos; faltava o design system registrar. A fonte \"técnica\" difere nas três plataformas (SF Mono, Google Sans com tnum, Consolas) e isso é intencional na Decisão 80 para o Android."
     },
     {
       "id": "espacamento-e-cores-android",

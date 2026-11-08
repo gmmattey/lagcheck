@@ -24,5 +24,28 @@
     "default": 0,
     "monoWide": 1.2,
     "monoExtraWide": 1.5
-  }
+  },
+  "platforms": {
+    "ios": {
+      "display": "SF arredondada do sistema (.rounded)",
+      "body": "SF do sistema",
+      "mono": "SF Mono do sistema (.monospaced / .monospacedDigit)",
+      "source": "Sources/NolaggyDesign/Tokens/NLTypography.swift"
+    },
+    "android": {
+      "display": "Google Sans Flex",
+      "body": "Google Sans Flex",
+      "mono": "Google Sans Flex com algarismos tabulares (feature tnum); não usa fonte monoespaçada",
+      "decision": "Decisão 80, item 4: única família do Android; Nunito, Roboto e fontes monoespaçadas saíram do app",
+      "source": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt"
+    },
+    "windows": {
+      "display": "Google Sans Flex",
+      "body": "Google Sans Flex",
+      "mono": "Consolas do sistema",
+      "decision": "Decisões 114 a 116; docs/09-design-system-windows.md",
+      "source": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt"
+    }
+  },
+  "nota": "Os campos css e swiftUI de fontFamilies descrevem a pilha da Apple, que vale para iOS e para os protótipos HTML. Android e Windows usam a família própria de cada plataforma, como mostra platforms."
 }
