@@ -1,82 +1,124 @@
-# LagCheck 🎮⚡
+<p align="center">
+  <img src="design-system/assets/brand/wordmark-primary.svg" alt="lagcheck" height="56">
+</p>
 
-**LagCheck** é uma ferramenta multiplataforma de diagnóstico preditivo e medição determinística de rotas de rede para gamers competitivos. O app responde à pergunta essencial:
-> *"Minha conexão está boa para jogar agora?"*
+<p align="center">
+  <b>Sua conexão está boa para jogar agora?</b><br>
+  O LagCheck mede a rota do seu celular até a infraestrutura do jogo e responde em uma frase.
+</p>
 
-Desenvolvido para **iOS** (SwiftUI) e **Android** (Kotlin/Jetpack Compose), com suporte de infraestrutura em edge na **Cloudflare Workers** (`worker/nolaggy-deep-check`).
+<p align="center">
+  <a href="https://apps.apple.com/app/id6818706960">App Store</a> ·
+  <a href="https://lagcheck.signallq.com">Site</a> ·
+  <a href="#english">English</a>
+</p>
 
-O site institucional e biblioteca de jogos pública estão centralizados em `~/Projetos/web/landings` (`sites/lagcheck/`).
+<p align="center">
+  <img src="store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png" alt="Veredito do LagCheck" width="190">
+  <img src="store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png" alt="Leitura em repouso" width="190">
+  <img src="store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png" alt="Leitura sob carga" width="190">
+  <img src="store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png" alt="Detalhes da rota" width="190">
+</p>
 
----
+> ⚠️ **Código visível, uso restrito.** Este repositório é público para transparência, mas **não tem licença de uso**. Todos os direitos reservados. Não copie, redistribua nem use o código, a marca ou os ativos sem avisar e receber autorização. Veja o [aviso de uso](NOTICE.md).
 
-## 🎯 Pilares do Produto
+## O que é
 
-1. **Veredito Semântico Direto:** Manchete clara e proporcional (`● PRONTO PARA RANKED`, `▲ EU EVITARIA RANKED AGORA`, `▲ CONDIÇÕES INSTÁVEIS`).
-2. **Catálogo de 20+ Jogos Competitivos:** Diagnóstico calibrado por título (Valorant, CS2, League of Legends, Fortnite, Apex Legends, Warzone, etc.).
-3. **Medição Determinística:** Probe ativo de latência em repouso e sob carga, jitter e perda de pacotes via UDP/STUN e HTTP.
-4. **Dark Competitive UI:** Design System escuro de alta fidelidade visual (fundos `#0B0D10`, superfícies `#15181E`, Roxo Gamer `#7C3AED` e Coral Solar `#FF5A36`).
+Um app para jogador competitivo que quer saber, antes da partida, se a rede aguenta. Você escolhe o jogo, o LagCheck mede e entrega um veredito direto:
 
----
+| Veredito | Significa |
+| --- | --- |
+| `● PRONTO PARA RANKED` | A conexão está estável para jogar. |
+| `▲ CONDIÇÕES INSTÁVEIS` | Dá para jogar, mas pode oscilar. |
+| `▲ EU EVITARIA RANKED AGORA` | A medição mostra problema. |
+| `— INCONCLUSIVO` | Não deu para medir com confiança, então não inventamos nota. |
 
-## 🏗️ Arquitetura do Repositório
+## Como funciona
 
+- **Medição real, sem nota inventada.** Latência, jitter e perda de pacotes por UDP, em repouso e sob carga. Sem respostas válidas suficientes, o resultado é inconclusivo.
+- **Score determinístico e versionado.** A mesma medição sempre dá o mesmo resultado, com vetores de teste.
+- **Honesto sobre o limite.** Mede a rota do aparelho até uma infraestrutura de referência. Não promete o ping exato de um jogo, e para console ou PC o resultado é uma estimativa.
+- **Custo zero e privacidade.** Catálogo de jogos local no app, sem assinatura. Telemetria anônima e mínima, sem dados pessoais nem IP.
+- **Sem acusação sem prova.** O app só aponta roteador ou operadora quando há evidência.
+
+## Plataformas
+
+| Plataforma | Tecnologia | Pasta | Estado |
+| --- | --- | --- | --- |
+| iPhone (iOS 17+) | Swift, SwiftUI | [`Sources/`](Sources) | Na App Store |
+| Android (API 26+) | Kotlin, Jetpack Compose | [`android/app/`](android/app) | Em desenvolvimento |
+| Windows | Kotlin, Compose Desktop | [`android/desktop/`](android/desktop) | Protótipo, [`windows-v0.1.0`](https://github.com/gmmattey/lagcheck/releases/tag/windows-v0.1.0) |
+| Backend | Cloudflare Worker | [`worker/`](worker) | Em produção |
+
+O app Windows ainda não é um alvo oficial. É uma prévia.
+
+## Rodando localmente
+
+**iOS** (Xcode 16+)
+```sh
+open Nolaggy.xcodeproj
 ```
-rede/lagcheck/
-├── Sources/                 # Código nativo iOS (SwiftUI, Core Engine UDP/STUN)
-├── Tests/                   # Suíte de testes automatizados iOS
-├── Nolaggy.xcodeproj        # Projeto Xcode iOS / iPadOS
-├── android/                 # Projeto nativo Android (Kotlin, Jetpack Compose)
-│   ├── app/                 # Módulo do app Android
-│   └── build.gradle.kts     # Configuração de build e assinatura do Android
-├── worker/                  # Cloudflare Worker (nolaggy-deep-check)
-├── release/                 # Chaves de assinatura locais e saídas de build (ignorado no git)
-│   └── keys/                # Keystore e propriedades de assinatura Play Console
-├── scripts/                 # Scripts operacionais (android-release.sh, etc.)
-├── docs/                    # Decisões de arquitetura (ADRs) e voz do produto
-├── design-system/           # Tokens visuais e ativos oficiais da marca
-└── AGENTS.md                # Diretrizes operacionais e governança da Squad Lean
+Escolha o target `Nolaggy` e rode no simulador. Testes: `Cmd + U`.
+
+**Android** (JDK 21)
+```sh
+cd android
+./gradlew assembleDebug
+./gradlew test
 ```
 
----
+**Windows (prévia)**
+```sh
+cd android
+./gradlew :desktop:run
+```
 
-## 🚀 Como Executar e Validar
-
-### 🍏 iOS (SwiftUI)
-1. Abra o projeto no Xcode:
-   ```sh
-   open Nolaggy.xcodeproj
-   ```
-2. Selecione o target `Nolaggy` e execute no simulador ou em aparelho físico (iPhone).
-3. Testes unitários de motor e catálogo:
-   Execute `Cmd + U` no Xcode.
-
-### 🤖 Android (Jetpack Compose)
-1. Compilação de depuração:
-   ```sh
-   cd android
-   ./gradlew assembleDebug
-   ```
-2. Gerar pacote de release assinado para o Google Play Console:
-   ```sh
-   ./scripts/android-release.sh 1.0.3 9
-   ```
-   *O artefato `.aab` e o arquivo de desofuscação `mapping.txt` serão gerados em `release/android/`.*
-
-### ☁️ Cloudflare Worker (`nolaggy-deep-check`)
+**Worker**
 ```sh
 cd worker/nolaggy-deep-check
 npm install
-npm run test
+npm test
 ```
+
+> O nome `Nolaggy` em pastas e no projeto Xcode vem da marca anterior. A marca oficial é **LagCheck**.
+
+## Estrutura
+
+```text
+Sources/        app iOS (SwiftUI) e motor de medição
+Tests/          testes do motor e do catálogo
+android/        app Android e prévia desktop (Windows)
+worker/         Cloudflare Worker (carga do Deep Check e telemetria)
+design-system/  tokens, ativos de marca e protótipos
+docs/           especificação, arquitetura e decisões
+store/          textos e criativos das lojas
+scripts/        automações de build e release
+```
+
+## Documentação
+
+- [Funcional](docs/01-funcional.md): problema, jornada e regras de negócio
+- [Arquitetura](docs/02-arquitetura.md) e [especificação técnica](docs/03-especificacao-tecnica.md)
+- [Design system](docs/04-design-system.md): Dark Competitive UI
+- [Voz do produto](docs/07-voz-do-produto.md)
+- [Decisões](docs/DECISOES.md): registro único de todas as decisões do produto
+
+## Contribuir e reportar problemas
+
+Bugs e ideias entram como [issue](https://github.com/gmmattey/lagcheck/issues/new/choose). Antes de enviar código, leia o [CONTRIBUTING](CONTRIBUTING.md). Falhas de segurança seguem o [SECURITY](SECURITY.md).
+
+## Sobre o fluxo de trabalho
+
+O projeto é tocado por uma equipe pequena de agentes de IA com direção humana (Luiz). Os papéis e o ciclo estão em [`AGENTS.md`](AGENTS.md).
 
 ---
 
-## 👥 Governança da Squad
+## English
 
-O desenvolvimento segue a **Squad Lean de 4 Agentes** (detalhada em [`AGENTS.md`](AGENTS.md)):
-- **Marcelo** (`marcelo`): Líder de Produto & Orquestrador
-- **Priscila** (`priscila`): Diretora de Experiência, UX/UI & Design System
-- **Camillo** (`camillo`): Engenheiro Principal Full-Stack & Arquitetura
-- **Renan** (`renan`): Qualidade, QA, Testes Automatizados & Prova de Fogo
+**LagCheck** tells competitive mobile gamers whether their connection is good enough to play right now. It measures the route from the phone to a reference infrastructure using real UDP probes (latency, jitter, packet loss, at rest and under load) and returns a plain verdict. If there is not enough valid data, the result is *inconclusive*, never an invented score.
 
-Operando sob o **Ciclo Ágil de 3 Passos** com WIP = 1 e auto-teste obrigatório.
+- iOS (SwiftUI) · Android (Kotlin/Compose) · Windows preview (Compose Desktop) · Cloudflare Worker backend
+- Deterministic, versioned score. Console and PC results are labeled as estimates.
+- Anonymous, minimal telemetry. No personal data, no IP.
+
+**Source-available, all rights reserved.** There is no open-source license. Do not copy, redistribute or use the code, brand or assets without permission. See [NOTICE.md](NOTICE.md).

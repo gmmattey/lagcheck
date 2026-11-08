@@ -1,0 +1,19 @@
+name: Pedido de uso
+description: Quero usar código, marca ou ativos deste repositório
+labels: [uso]
+body:
+  - type: markdown
+    attributes:
+      value: O repositório não tem licença aberta. Sem resposta afirmativa, o uso não está autorizado. Veja o NOTICE.md.
+  - type: textarea
+    id: o-que
+    attributes:
+      label: O que você quer usar
+    validations:
+      required: true
+  - type: textarea
+    id: para-que
+    attributes:
+      label: Para quê e onde vai aparecer
+    validations:
+      required: true
