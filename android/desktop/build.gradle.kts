@@ -65,6 +65,9 @@ compose.desktop {
         mainClass = "com.lagcheck.desktop.MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+            // O runtime enxuto (jlink) não inclui o cliente HTTP por padrão: sem este módulo
+            // o app fecha na abertura com NoClassDefFoundError (java/net/http/HttpClient).
+            modules("java.net.http")
             packageName = "LagCheck"
             // O empacotador do Windows (jpackage / WiX) exige estritamente versão numérica
             // no formato MAJOR.MINOR.BUILD (ex: 0.1.0). Versão vinda de uma única propriedade lagcheck.version.
