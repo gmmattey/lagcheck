@@ -119,6 +119,7 @@
 | [114](#decisão-114) | Protótipo interno Windows (Compose Desktop sobre o `core` do Android) | **Em avaliação** | Não altera produto, score nem lojas; Windows não é alvo oficial | Luiz / Squad |
 | [115](#decisão-115) | Identidade visual do protótipo Windows com ativos editoriais locais aprovados | **Em avaliação** | Refina a aparência da Decisão 114; não cria ativos, downloads ou uma versão pública de Windows | Luiz / Squad |
 | [116](#decisão-116) | Windows (protótipo Compose Desktop): acabamento premium, mapa de rota com ping animado, verificação de atualização e telemetria de funil | **Em avaliação (protótipo, não publicável)** | Refina as Decisões 114 e 115; libera uma única consulta de atualização, inerte sem fonte | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [117](#decisão-117) | Design system: mapa por plataforma e divergências abertas entre tokens, iOS, Android e Windows | **Em avaliação (documental)** | Registra o estado lido do código; nenhum valor visual muda sem aprovação | Priscila / Camillo |
 
 
 
@@ -1290,6 +1291,18 @@
 - **Telemetria: padrão e controle.** Em build empacotado a coleta fica **ligada por padrão**, com aviso curto na primeira abertura, chave "Enviar dados de uso anônimos" em Ajustes (desligar interrompe tudo imediatamente e persiste) e botão para gerar um novo ID de instalação. Builds de desenvolvimento (`gradlew run`, `shots`, testes) **não coletam**. O ID de medição e o segredo da API do GA4 **não ficam no repositório**: entram por propriedade de build ou variável de ambiente e, **sem eles, a telemetria é inerte** (nenhuma chamada). Criar o stream do GA4 e o segredo é ação de Luiz; antes de qualquer distribuição, a política de privacidade e o texto de dados coletados precisam refletir o Windows. Falha, timeout (3 s) ou ausência de rede nunca bloqueia medição, score, resultado nem histórico, e nunca aparece como erro.
 - **Limites:** continuam proibidos publicar (inclusive o site), criar release, qualquer mudança no Worker `nolaggy-deep-check`, GPS, telemetria fora desta decisão, anúncio e custo novo. Windows não vira alvo oficial por esta decisão.
 - **Critérios de aceite:** `./gradlew :desktop:compileKotlin` e testes do módulo verdes; capturas (`:desktop:shots`) das telas Início, Jogos, Check (com o mapa), Resultado, Histórico e Ajustes; teste do comparador de versão, do filtro de tags/manifesto, de resposta malformada e rede ausente sem travar, de checksum divergente que bloqueia a execução, e de fonte vazia que não chama a rede; Reduzir movimento remove pacotes e pulsos; telemetria: payload canônico por evento, um único desfecho por medição, nenhum evento com a coleta desligada, em build de desenvolvimento ou sem ID/segredo, nenhuma chamada nos testes, exclusão persistente após reiniciar, e ausência de IP/SSID/localização/destino no payload; testes do endpoint do site (cidade e coordenadas arredondadas, ausência de `cf`, sem log nem corpo extra, regressão de `/v1/click` e das demais rotas `/v1/*`); nenhuma chamada fora da lista de hosts; as artes exibidas são as já aprovadas (Decisão 44).
+
+#### Decisão 117
+
+- **Data:** 7 de novembro de 2026.
+- **Título:** Design system: mapa por plataforma e divergências abertas entre tokens, iOS, Android e Windows.
+- **Status Atual:** **Em avaliação (documental).** Só documenta o que o código faz hoje. Não altera cor, raio, fonte nem navegação de nenhum app.
+- **Frentes envolvidas:** Luiz (direção), Priscila (fidelidade visual), Camillo (código) e Renan (conferência).
+- **Contexto e problema:** `design-system/tokens/` e `DESIGN.md` eram de 27 de setembro e não cobriam Android nem Windows. Uma comparação com o código em 7 de novembro mostrou cores, espaçamento e raio alinhados no iOS, e divergências nos outros dois.
+- **Decisão:** `design-system/tokens/platforms.json`, `design-system/DESIGN.md` (seção Plataformas) e `design-system/components.md` (mapa por plataforma) passam a registrar como cada plataforma implementa os tokens. Em conflito vale, nesta ordem: decisão registrada, `tokens/*.json`, código.
+- **Divergências abertas (aguardam decisão do Luiz):** (1) texto terciário `#606873` no Android e no Windows contra `#555E6C` nos tokens e no iOS; (2) Android sem tokens de espaçamento e raio, com 15 raios diferentes e 6 arquivos com cor fixa fora do tema; (3) fonte do Android (Google Sans Flex) sem registro, enquanto o Windows está em `docs/09`; (4) iOS, Android e Windows têm 4 destinos de navegação (Início, Jogos, Histórico, Configurações ou Ajustes), e as Decisões 50 e 51, o `CLAUDE.md` e o `AGENTS.md` falam em 2 abas; (5) cores fixas fora de `NLColor` no iOS.
+- **Guardrails:** nenhuma divergência foi corrigida nem aprovada por esta decisão. Alterar valor visual em app exige aprovação e comparação com o protótipo.
+- **Critérios de aceite:** `platforms.json` é JSON válido e cada divergência cita o arquivo de origem; os links do `design-system/` e de `docs/` não quebram.
 
 ## Como Registrar Novas Decisões
 

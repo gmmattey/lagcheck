@@ -1,0 +1,79 @@
+{
+  "$schema": "lagcheck/tokens/platforms",
+  "description": "Como cada plataforma implementa os tokens do LagCheck. Valores lidos do código em 2026-11-07. Divergência registrada aqui não significa aprovada: veja o campo status e a Decisão 117 em docs/DECISOES.md.",
+  "sources": {
+    "ios": {
+      "cores": "Sources/NolaggyDesign/Tokens/NLColor.swift",
+      "espacamento": "Sources/NolaggyDesign/Tokens/NLSpacing.swift",
+      "raio": "Sources/NolaggyDesign/Tokens/NLRadius.swift",
+      "tipografia": "Sources/NolaggyDesign/Tokens/NLTypography.swift",
+      "componentes": "Sources/NolaggyDesign/Components/"
+    },
+    "android": {
+      "cores": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt",
+      "tipografia": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt",
+      "espacamento": null,
+      "raio": null,
+      "componentes": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/"
+    },
+    "windows": {
+      "tokens": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt",
+      "tema": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Theme.kt",
+      "componentes": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Components.kt",
+      "documento": "docs/09-design-system-windows.md"
+    }
+  },
+  "alinhado": {
+    "cores": ["background #0B0D10", "surface #15181E", "surfaceRaised #1E232B", "gamerPurple #7C3AED", "coralSolar #FF5A36", "good #22C55E", "warning #F59E0B", "inconclusive #8A93A0", "textPrimary #F4F5F7", "textSecondary #8A93A0"],
+    "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16).",
+    "raio": "iOS segue radius.json (8, 13, 17, 26, pill)."
+  },
+  "divergencias": [
+    {
+      "id": "texto-terciario",
+      "token": "core.text.tertiary",
+      "tokens_json": "#555E6C",
+      "ios": "#555E6C",
+      "android": "#606873",
+      "windows": "#606873",
+      "status": "pendente de confirmação (pode ser ajuste de contraste, não está registrado)"
+    },
+    {
+      "id": "fonte",
+      "tokens_json": "Pilha Apple: SF arredondada (títulos) e SF mono (métricas)",
+      "ios": "SF arredondada e mono do sistema",
+      "android": "Google Sans Flex embarcada",
+      "windows": "Google Sans Flex embarcada; Consolas para dados",
+      "status": "Windows documentado em docs/09; Android sem registro"
+    },
+    {
+      "id": "espacamento-e-raio-android",
+      "android": "Sem tokens próprios. Componentes usam 15 raios diferentes (2, 4, 6, 8, 9, 10, 12, 13, 14, 18, 20, 22, 24, 26 dp e pill); só 8, 13, 26 e pill estão em radius.json. 6 arquivos fora de Color.kt declaram cor fixa.",
+      "status": "pendente: mover para o tema ou aprovar os raios fora da escala (2, 4, 6, 9, 10, 12, 14, 18, 20, 22, 24)"
+    },
+    {
+      "id": "tokens-proprios-windows",
+      "windows": {
+        "espacamento": "4, 8, 12, 16, 24, 32 dp",
+        "raio": "controle 10 dp, painel 14 dp",
+        "alvoMinimo": "40 dp com mouse; 44 dp para toque",
+        "accentHover": "#8B5CF6",
+        "accentPressed": "#6D28D9"
+      },
+      "status": "documentado em docs/09 (Decisões 114 a 116); raios 10 e 14 e accentHover não existem em radius.json e colors.json"
+    },
+    {
+      "id": "navegacao",
+      "documentos": "CLAUDE.md, AGENTS.md e docs/DECISOES.md (Decisões 50 e 51) falam em 2 abas: Início e Jogos.",
+      "ios": "4 abas (TabView em QuickCheckFeatureView)",
+      "android": "4 abas: Início, Jogos, Histórico, Configurações (MainActivity)",
+      "windows": "barra lateral: Início, Jogos, Histórico, Ajustes",
+      "status": "pendente: atualizar a regra ou o código; a Decisão 50 pode ter sido refinada depois"
+    },
+    {
+      "id": "cores-fixas-ios",
+      "ios": "Cor fixa fora de NLColor em NetworkCockpitView, CheckCompletoResultView, ShareCanvas, ShareMediaSheet e SocialBrandIcons.",
+      "status": "pendente de revisão (ícones de redes sociais são marca de terceiros e podem ser exceção)"
+    }
+  ]
+}

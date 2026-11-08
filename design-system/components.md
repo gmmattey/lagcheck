@@ -6,6 +6,26 @@ Convenções de leitura: **Anatomia** lista as partes visuais; **Variantes** sã
 
 ---
 
+## Mapa por plataforma (lido do código em 2026-11-07)
+
+Os nomes das seções abaixo são os da especificação original (módulo `LagCheckDesign`, API SwiftUI pretendida). No código o módulo iOS se chama `NolaggyDesign`, e Android e Windows têm componentes próprios. Esta tabela liga cada especificação ao que existe hoje; `—` significa que não achei equivalente.
+
+| Especificação | iOS (`NolaggyDesign`) | Android | Windows (prévia) |
+| --- | --- | --- | --- |
+| `LagCheckScore` | `NolaggyScore`, `VerdictIndicatorBadge` | `VerdictHeroBadge`, `VerdictIndicatorBadge` | `VerdictHeadline` |
+| `MeasurementPulse` | `MeasurementPulse`, `HomeCircularPulseGaugeHero` | `HomeCircularPulseGaugeHero`, `MeasurementLiveTrail` | `CircularGauge` |
+| `LatencyGraph` | `LatencyGraph` | `LatencyChart` | `LatencyChart` |
+| `GameTile` | `CatalogGameTile`, `CompactCatalogGameTile`, `GameRowView` | `GameRow` | `ListRow` |
+| `PlatformSelector` | `PlatformSelectorRow` (em `Features/Details`) | `PlatformGlyphRow` | — |
+| `PrimaryButton` | `PrimaryButton` | `PrimaryButton` | `PrimaryButton`, `SecondaryButton` |
+| `MetricRow` | `MetricRow` | `MetricBox` | `MetricTile` |
+| `InsightBanner` | `InsightBanner`, `NetworkBandAdviceBanner` | — | — |
+| `StatusMessage` | `StatusMessage` | — | `StatusMarker` |
+| `EmptyState` | — | `EmptySearch` | `EmptyState` |
+
+**No código e sem seção abaixo:** iOS `ConsolidatedRouteTrailView`, `RouteTrailSummaryCard`, `RootCauseIsolationView`, `SessionCompatibilityStrip`, `LiveNetworkSignalCapsule`, `RegionalReferenceCard`, `GameArtwork`, `CatalogSearchField`; Android `RadioSignalPill`; Windows `Panel`, `PageHeader`, `SidebarItem`, `SettingSwitch`. Documentar cada um é trabalho pendente.
+
+
 ## `LagCheckScore`
 
 Elemento visual distintivo de qualquer resultado. Nunca aparece sem uma classificação textual associada.

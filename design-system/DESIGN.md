@@ -48,6 +48,22 @@ Os protótipos usam `cubic-bezier(.2, 0, 0, 1)`. Pressão dá escala de até `.9
 
 Português brasileiro, direto e sem prometer além da leitura: “Pronto para Ranked”, “Condições instáveis”, “Não foi possível avaliar com segurança desta vez”. Chamar o teste de **check** e dar motivo quando interrompido. Não inventar banda, rota, perda ou conclusão saudável se a medição não existe.
 
+## Plataformas
+
+O sistema vale para iOS, Android e Windows (prévia). Os valores de referência estão em `tokens/*.json`; como cada plataforma os implementa e onde diverge está em [`tokens/platforms.json`](tokens/platforms.json).
+
+| | iOS | Android | Windows (prévia) |
+| --- | --- | --- | --- |
+| Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
+| Cores, espaçamento, raio | Tokens completos | Só cores e tipografia | Tokens próprios |
+| Fonte | SF arredondada e mono | Google Sans Flex | Google Sans Flex e Consolas |
+| Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
+| Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
+
+Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `tokens/*.json`, depois o código. O Windows tem documento próprio: [`docs/09-design-system-windows.md`](../docs/09-design-system-windows.md).
+
+**Divergências abertas** (Decisão 117): texto terciário `#606873` no Android e no Windows contra `#555E6C` nos tokens e no iOS; Android sem tokens de espaçamento e raio; fonte do Android sem registro; a regra "2 abas" dos documentos de produto não bate com as 4 abas do código; cores fixas fora do tema no iOS e no Android.
+
 ## Anti-patterns / Anti-padrões
 
 - Não usar roxo como fundo amplo, nem Coral Solar como CTA comum.
