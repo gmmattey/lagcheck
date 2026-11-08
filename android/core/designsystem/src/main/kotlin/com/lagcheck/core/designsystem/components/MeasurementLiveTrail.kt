@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /**
  * Trilha Viva de Medição (MeasurementLiveTrail) com 3 nós e pacotes viajando na rota.
@@ -87,7 +88,7 @@ fun MeasurementLiveTrail(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = LagCheckSpacing.space2),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 1. Rota com 3 Nós e Linha com Pacotes Animados
@@ -191,7 +192,7 @@ fun MeasurementLiveTrail(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(11.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
         // 3. Status Subtitle
         Text(
@@ -227,7 +228,7 @@ fun MeasurementLiveTrail(
             )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
 
         // 5. Phase Kicker (11px mono)
         Text(
@@ -276,7 +277,7 @@ private fun RouteNode(
             icon()
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
         Text(
             text = title,

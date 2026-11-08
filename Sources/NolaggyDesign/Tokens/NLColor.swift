@@ -100,3 +100,15 @@ public enum NLColor {
     public static let scoreNeutral = textSecondary
     public static let scoreNeutralSubtle = textSecondary.opacity(0.16)
 }
+
+/// Cores de marca de terceiros. Não fazem parte da paleta do LagCheck: são exceções
+/// documentadas (design-system/tokens/platforms.json, Decisão 117) e ficam só aqui,
+/// nunca soltas em telas. Espelham `LagCheckBrandColors` do Android.
+public enum NLBrandColor {
+    public static let whatsapp = Color(red: 37 / 255, green: 211 / 255, blue: 102 / 255)
+    public static let telegram = Color(red: 38 / 255, green: 165 / 255, blue: 228 / 255)
+    public static let instagram = Color(red: 228 / 255, green: 64 / 255, blue: 95 / 255)
+    public static let discord = Color(red: 88 / 255, green: 101 / 255, blue: 242 / 255)
+    public static let x = Color.black
+    public static let tiktok = Color.black
+}

@@ -44,6 +44,7 @@ import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.StarIcon
 import com.lagcheck.domain.model.CatalogGame
@@ -73,15 +74,15 @@ fun GameSelectionScreen(
     val hasSearchText = searchQuery.isNotBlank()
 
     LazyColumn(
-        modifier = modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = 24.dp)
+        modifier = modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = LagCheckSpacing.space6)
     ) {
         item {
             TopBar(showBackButton, onBack)
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(LagCheckSpacing.space3_5))
             Text(tr("Jogos"), style = LagCheckTypography.PageTitle, color = LagCheckColors.TextPrimary)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(LagCheckSpacing.space4))
             SearchField(searchQuery) { searchQuery = it }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(LagCheckSpacing.space5))
         }
 
         if (hasSearchText) {
@@ -92,7 +93,7 @@ fun GameSelectionScreen(
                 items(content.searchResults, key = { "result-${it.id}" }) { game ->
                     GameRow(game, game.id in favorites, onToggleFavorite, onGameSelected)
                 }
-                item { Spacer(Modifier.height(40.dp)) }
+                item { Spacer(Modifier.height(LagCheckSpacing.space10)) }
             }
         } else {
             if (content.recentGames.isNotEmpty()) {
@@ -103,7 +104,7 @@ fun GameSelectionScreen(
             }
             item { RailTitle(tr("TODOS OS JOGOS A–Z")) }
             items(content.allGames.chunked(2), key = { row -> "grid-${row.first().id}" }) { row ->
-                Row(Modifier.padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.padding(bottom = LagCheckSpacing.space3), horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
                     row.forEach { game ->
                         GameCard(game, game.id in favorites, onToggleFavorite, onGameSelected, Modifier.weight(1f))
                     }
@@ -113,20 +114,20 @@ fun GameSelectionScreen(
             // A escolha essencial terminou; anúncio nunca entra em busca ou vazio.
             if (nativeAd != null) {
                 item(key = "native_ad") {
-                    com.lagcheck.android.ads.NativeAdSlot(nativeAd, Modifier.padding(top = 8.dp, bottom = 32.dp))
+                    com.lagcheck.android.ads.NativeAdSlot(nativeAd, Modifier.padding(top = LagCheckSpacing.space2, bottom = LagCheckSpacing.space8))
                 }
-            } else item { Spacer(Modifier.height(40.dp)) }
+            } else item { Spacer(Modifier.height(LagCheckSpacing.space10)) }
         }
     }
 }
 
 @Composable
 private fun TopBar(showBackButton: Boolean, onBack: () -> Unit) {
-    Box(Modifier.fillMaxWidth().height(52.dp).padding(top = 8.dp)) {
+    Box(Modifier.fillMaxWidth().height(52.dp).padding(top = LagCheckSpacing.space2)) {
         if (showBackButton) {
             Box(Modifier.size(48.dp).clip(CircleShape).clickable(onClick = onBack), Alignment.CenterStart) {
                 com.lagcheck.core.designsystem.components.ChevronLeftIcon(
-                    modifier = Modifier.padding(start = 4.dp),
+                    modifier = Modifier.padding(start = LagCheckSpacing.space1),
                     size = 20.dp,
                     color = LagCheckColors.TextPrimary
                 )
@@ -173,18 +174,18 @@ private fun GameRail(
     onGameSelected: (CatalogGame) -> Unit
 ) {
     RailTitle(title)
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
         items(games, key = { "rail-$title-${it.id}" }) { game ->
             GameCard(game, game.id in favorites, onToggleFavorite, onGameSelected, Modifier.width(140.dp))
         }
     }
-    Spacer(Modifier.height(24.dp))
+    Spacer(Modifier.height(LagCheckSpacing.space6))
 }
 
 @Composable
 private fun RailTitle(title: String) {
     Text(title, style = LagCheckTypography.MonoKicker, color = LagCheckColors.TextMuted)
-    Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(LagCheckSpacing.space3))
 }
 
 /** Estrela de favorito: alvo de 44 dp próprio, separado do toque que inicia o Check. */
@@ -223,7 +224,7 @@ private fun GameCard(
             }
             Text(
                 game.name,
-                modifier = Modifier.padding(top = 8.dp).defaultMinSize(minHeight = 44.dp),
+                modifier = Modifier.padding(top = LagCheckSpacing.space2).defaultMinSize(minHeight = 44.dp),
                 style = LagCheckTypography.Subtext.copy(fontWeight = FontWeight.SemiBold),
                 color = LagCheckColors.TextPrimary
             )
@@ -240,7 +241,7 @@ private fun GameRow(
     onToggleFavorite: (CatalogGame) -> Unit,
     onClick: (CatalogGame) -> Unit
 ) {
-    Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(bottom = LagCheckSpacing.space2), verticalAlignment = Alignment.CenterVertically) {
         Row(
             Modifier.weight(1f).defaultMinSize(minHeight = 60.dp).clip(RoundedCornerShape(LagCheckRadius.md))
                 .clickable { onClick(game) }
@@ -252,7 +253,7 @@ private fun GameRow(
             }
             Text(
                 game.name,
-                modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                modifier = Modifier.weight(1f).padding(horizontal = LagCheckSpacing.space3),
                 style = LagCheckTypography.BodySemibold,
                 color = LagCheckColors.TextPrimary
             )
@@ -263,12 +264,12 @@ private fun GameRow(
 
 @Composable
 private fun EmptySearch(onStartGeneralCheck: () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().padding(vertical = LagCheckSpacing.space6), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(tr("Nenhum jogo encontrado"), style = LagCheckTypography.SectionHeader, color = LagCheckColors.TextPrimary)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(LagCheckSpacing.space4))
         PrimaryButton(text = tr("Fazer Check Geral"), onClick = onStartGeneralCheck, modifier = Modifier.width(260.dp), height = 52.dp)
     }
-    Spacer(Modifier.height(40.dp))
+    Spacer(Modifier.height(LagCheckSpacing.space10))
 }
 
 @Composable

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /**
  * Glifos de plataforma do protótipo Android (viewBox 24, traço 1.7).
@@ -66,7 +67,7 @@ fun PlatformGlyphRow(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5),
         verticalAlignment = Alignment.CenterVertically
     ) {
         platforms.forEach { PlatformGlyph(it, size = size, color = color) }

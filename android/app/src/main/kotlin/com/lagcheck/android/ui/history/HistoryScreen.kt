@@ -47,6 +47,7 @@ import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -88,7 +89,7 @@ fun HistoryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
         ) {
             // 1. Header Canônico: Voltar '‹' + Histórico + Limpar
             item {
@@ -103,7 +104,7 @@ fun HistoryScreen(
                                 color = LagCheckColors.TextMuted,
                                 modifier = Modifier
                                     .clickable { showConfirmDeleteSheet = true }
-                                    .padding(horizontal = 7.dp, vertical = 6.dp)
+                                    .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1_5)
                             )
                         }
                     }
@@ -134,7 +135,7 @@ fun HistoryScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
                         Text(
                             text = tr("Nenhum check ainda"),
@@ -142,7 +143,7 @@ fun HistoryScreen(
                             color = LagCheckColors.TextPrimary
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
                         Text(
                             text = tr("Faça seu primeiro teste na Home"),
@@ -151,14 +152,14 @@ fun HistoryScreen(
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(19.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(percent = 50))
                                 .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                                 .clickable { onGoToHome() }
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                                .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3)
                         ) {
                             Text(
                                 text = tr("Ir para a Home"),
@@ -173,7 +174,7 @@ fun HistoryScreen(
                     item(key = "native_ad_empty") {
                         com.lagcheck.android.ads.NativeAdSlot(
                             nativeAd,
-                            Modifier.padding(bottom = 16.dp)
+                            Modifier.padding(bottom = LagCheckSpacing.space4)
                         )
                     }
                 }
@@ -184,13 +185,13 @@ fun HistoryScreen(
 
                 // 3. Resumo: checks · prontos · jogos
                 item(key = "summary") {
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(LagCheckRadius.xl))
                             .background(LagCheckColors.Surface)
-                            .padding(horizontal = 20.dp, vertical = 18.dp)
+                            .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
                     ) {
                         listOf(
                             Triple(historyItems.size.toString(), tr("checks"), 0.8f),
@@ -199,7 +200,7 @@ fun HistoryScreen(
                         ).forEach { (value, label, w) ->
                             Column(modifier = Modifier.weight(w)) {
                                 Text(text = value, fontSize = 26.sp, fontWeight = FontWeight.Medium, color = LagCheckColors.TextPrimary)
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                                 Text(text = label, fontSize = 12.sp, color = LagCheckColors.TextMuted)
                             }
                         }
@@ -210,7 +211,7 @@ fun HistoryScreen(
                     item(key = "native_ad") {
                         com.lagcheck.android.ads.NativeAdSlot(
                             nativeAd,
-                            Modifier.padding(top = 16.dp, bottom = 6.dp)
+                            Modifier.padding(top = LagCheckSpacing.space4, bottom = LagCheckSpacing.space1_5)
                         )
                     }
                 }
@@ -224,16 +225,16 @@ fun HistoryScreen(
                     item(key = "group_$gameId") {
                         Column(
                             modifier = Modifier
-                                .padding(top = 10.dp)
+                                .padding(top = LagCheckSpacing.space2_5)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(LagCheckRadius.xl))
                                 .background(LagCheckColors.Surface)
-                                .padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 4.dp)
+                                .padding(start = LagCheckSpacing.space4_5, end = LagCheckSpacing.space4_5, top = LagCheckSpacing.space1_5, bottom = LagCheckSpacing.space1)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp, bottom = 10.dp),
+                                    .padding(top = LagCheckSpacing.space3, bottom = LagCheckSpacing.space2_5),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
@@ -244,7 +245,7 @@ fun HistoryScreen(
                                 ) {
                                     com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(LagCheckSpacing.space3))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = catalogGame.name,
@@ -254,10 +255,10 @@ fun HistoryScreen(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
                                     ) {
                                         com.lagcheck.core.designsystem.components.PlatformGlyph(platform = "Mobile")
                                         Text(
@@ -275,7 +276,7 @@ fun HistoryScreen(
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 12.dp)
+                                            .padding(vertical = LagCheckSpacing.space3)
                                     ) {
                                         Text(
                                             text = trf("Pronto em %d de %d checks", summary.readyCount, summary.comparableCount),
@@ -283,7 +284,7 @@ fun HistoryScreen(
                                             fontWeight = FontWeight.Bold,
                                             color = LagCheckColors.TextPrimary
                                         )
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                                         Text(
                                             text = trf("Instável: %d · Evitaria: %d · Inconclusivos: %d", summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount),
                                             style = LagCheckTypography.MonoSmall,
@@ -300,7 +301,7 @@ fun HistoryScreen(
 
                 // Nota de rodapé
                 item {
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space7))
                     Text(
                         text = tr("Histórico salvo neste dispositivo · até 100 checks"),
                         style = LagCheckTypography.MonoSmall,
@@ -308,7 +309,7 @@ fun HistoryScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space10))
                 }
             }
         }
@@ -324,7 +325,7 @@ fun HistoryScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
@@ -334,8 +335,8 @@ fun HistoryScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp)
+                        .padding(horizontal = LagCheckSpacing.space6)
+                        .padding(bottom = LagCheckSpacing.space8)
                 ) {
                     Text(
                         text = tr("Apagar todo o histórico?"),
@@ -343,7 +344,7 @@ fun HistoryScreen(
                         color = LagCheckColors.TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
                     Text(
                         text = tr("Esta ação não pode ser desfeita."),
@@ -351,11 +352,11 @@ fun HistoryScreen(
                         color = LagCheckColors.TextMuted
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
                     ) {
                         // Cancelar
                         Box(
@@ -407,8 +408,8 @@ private fun RitualWindowPicker(selectedWindow: Int, onSelected: (Int) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 14.dp, bottom = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(top = LagCheckSpacing.space3_5, bottom = LagCheckSpacing.space1),
+        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
     ) {
         listOf(7, 14, 30).forEach { days ->
             val selected = days == selectedWindow
@@ -419,7 +420,7 @@ private fun RitualWindowPicker(selectedWindow: Int, onSelected: (Int) -> Unit) {
                     .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                     .clickable { onSelected(days) }
                     .height(44.dp)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = LagCheckSpacing.space3),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -457,7 +458,7 @@ private fun HistoryRowItem(
             .fillMaxWidth()
             .then(if (showDivider) Modifier.rowDivider() else Modifier)
             .clickable { onClick() }
-            .padding(vertical = 12.dp)
+            .padding(vertical = LagCheckSpacing.space3)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -469,16 +470,16 @@ private fun HistoryRowItem(
                     .height(26.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .background(chipColor.copy(alpha = 0.15f))
-                    .padding(horizontal = 11.dp),
+                    .padding(horizontal = LagCheckSpacing.space3),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(7.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
             ) {
                 Box(Modifier.size(7.dp).clip(CircleShape).background(chipColor))
                 Text(text = headlineText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = chipColor)
             }
             Text(text = item.formattedDate, fontSize = 12.sp, color = LagCheckColors.TextMuted)
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
         Text(text = item.metricsString, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
     }
 }

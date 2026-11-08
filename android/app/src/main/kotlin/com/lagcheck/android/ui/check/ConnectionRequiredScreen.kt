@@ -31,12 +31,13 @@ import com.lagcheck.android.ui.tr
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /** Estado alcançável quando a rede observada não é Wi-Fi nem celular; nenhuma coleta é iniciada. */
 @Composable
 fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = LagCheckSpacing.space6),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
@@ -56,7 +57,7 @@ fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space4)
         ) {
             Canvas(modifier = Modifier.size(64.dp)) {
                 val u = size.width / 64f
@@ -79,11 +80,11 @@ fun ConnectionRequiredScreen(gameName: String, onBack: () -> Unit) {
                 color = LagCheckColors.TextSecondary,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
             Box(
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                     .border(1.dp, LagCheckColors.BorderStrong, RoundedCornerShape(LagCheckRadius.md))
-                    .clickable(onClick = onBack).padding(horizontal = 24.dp),
+                    .clickable(onClick = onBack).padding(horizontal = LagCheckSpacing.space6),
                 contentAlignment = Alignment.Center
             ) {
                 Text(tr("Voltar"), style = LagCheckTypography.BodySemibold, color = LagCheckColors.TextPrimary)

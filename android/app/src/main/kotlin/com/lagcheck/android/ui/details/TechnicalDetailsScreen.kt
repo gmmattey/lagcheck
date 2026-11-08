@@ -38,6 +38,7 @@ import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -82,7 +83,7 @@ fun TechnicalDetailsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = LagCheckSpacing.space6)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header: "Detalhes Técnicos" (esquerda) + "Fechar" (direita)
@@ -104,7 +105,7 @@ fun TechnicalDetailsScreen(
                     .height(48.dp)
                     .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onClose() }
-                    .padding(horizontal = 7.dp),
+                    .padding(horizontal = LagCheckSpacing.space2),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -115,7 +116,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 2. Card Compacto de Resumo do Veredito
         Box(
@@ -123,12 +124,12 @@ fun TechnicalDetailsScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
-                .padding(horizontal = 13.dp, vertical = 12.dp)
+                .padding(horizontal = LagCheckSpacing.space3, vertical = LagCheckSpacing.space3)
         ) {
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
                 ) {
                     VerdictIndicatorBadge(verdict = evaluation.verdict, size = 12.dp)
                     Text(
@@ -138,7 +139,7 @@ fun TechnicalDetailsScreen(
                         color = verdictColor
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                 Text(
                     text = "${game.name} · ${evaluation.platform} · $dateFormatted",
                     style = LagCheckTypography.MonoSmall,
@@ -147,7 +148,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 3. Seção Score (Lagcheck Score 86) + Grid de Métricas (2x2)
         Column {
@@ -156,7 +157,7 @@ fun TechnicalDetailsScreen(
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,12 +175,12 @@ fun TechnicalDetailsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
             // Grid 2x2: P50, Jitter, Perda e P99 quando a fase de repouso foi avaliada.
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
             ) {
                 MetricBox(
                     label = tr("Latência P50"),
@@ -194,11 +195,11 @@ fun TechnicalDetailsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
             ) {
                 MetricBox(
                     label = tr("Perda"),
@@ -215,7 +216,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 4. Gráfico de Latência durante o Check (Canvas nativo com Repouso e Sob Carga)
         Column {
@@ -224,7 +225,7 @@ fun TechnicalDetailsScreen(
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
-            Spacer(modifier = Modifier.height(11.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
             val metrics = evaluation.metrics
             val p50Rest = metrics?.rest?.p50Milliseconds
@@ -250,7 +251,7 @@ fun TechnicalDetailsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 7.dp, bottom = 10.dp),
+                        .padding(top = LagCheckSpacing.space2, bottom = LagCheckSpacing.space2_5),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
@@ -269,7 +270,7 @@ fun TechnicalDetailsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 7.dp, bottom = 10.dp),
+                        .padding(top = LagCheckSpacing.space2, bottom = LagCheckSpacing.space2_5),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = tr("Repouso"), style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
@@ -280,7 +281,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 5. Origem da Evidência (Enlace local vs Rota externa)
         Column {
@@ -289,7 +290,7 @@ fun TechnicalDetailsScreen(
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
-            Spacer(modifier = Modifier.height(11.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
             val wifi = evaluation.radioTelemetry?.wifiDetails
             // O status descreve só o que foi lido (sinal), nunca "estabilidade" do enlace: sem probe de gateway isolado
@@ -325,7 +326,7 @@ fun TechnicalDetailsScreen(
                 detail = localDetail
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
             EvidenceRow(
                 title = tr("Rota externa"),
@@ -338,7 +339,7 @@ fun TechnicalDetailsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 6. O que encontramos (Checklist de Achados)
         Column {
@@ -347,14 +348,14 @@ fun TechnicalDetailsScreen(
                 style = LagCheckTypography.MonoSmall,
                 color = LagCheckColors.TextMuted
             )
-            Spacer(modifier = Modifier.height(11.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(LagCheckRadius.xl))
                     .background(LagCheckColors.Surface)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = LagCheckSpacing.space4)
             ) {
                 Column {
                     evaluation.findings.forEachIndexed { index, finding ->
@@ -364,7 +365,7 @@ fun TechnicalDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 7. Informações Técnicas Adicionais (Nota técnica)
         Box(
@@ -372,7 +373,7 @@ fun TechnicalDetailsScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LagCheckRadius.md))
                 .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.md))
-                .padding(13.dp)
+                .padding(LagCheckSpacing.space3)
         ) {
             Column {
                 Text(
@@ -381,7 +382,7 @@ fun TechnicalDetailsScreen(
                     fontWeight = FontWeight.Bold,
                     color = LagCheckColors.TextPrimary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                 Text(
                     text = trf("Regra %s", com.lagcheck.domain.rules.GameReadinessEvaluator.VERSION),
                     style = LagCheckTypography.MonoSmall,
@@ -392,34 +393,34 @@ fun TechnicalDetailsScreen(
 
         // Recomendações Android já vinculadas a achados medidos; não descartar conteúdo útil.
         if (evaluation.recommendations.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
             Column {
                 Text(
                     text = tr("O QUE FAZER"),
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
-                Spacer(modifier = Modifier.height(11.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
                 evaluation.recommendations.forEach { rec ->
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 10.dp)
+                            .padding(bottom = LagCheckSpacing.space2_5)
                             .clip(RoundedCornerShape(LagCheckRadius.md))
                             .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.md))
-                            .padding(13.dp)
+                            .padding(LagCheckSpacing.space3)
                     ) {
                         Text(text = rec.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                         Text(text = rec.instruction, fontSize = 13.sp, color = LagCheckColors.TextMuted)
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                         Text(text = rec.badge, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextSecondary)
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
     }
 }
 
@@ -433,11 +434,11 @@ private fun MetricBox(
         modifier = modifier
             .clip(RoundedCornerShape(LagCheckRadius.lg))
             .background(LagCheckColors.Surface)
-            .padding(horizontal = 11.dp, vertical = 10.dp)
+            .padding(horizontal = LagCheckSpacing.space3, vertical = LagCheckSpacing.space2_5)
     ) {
         Column {
             Text(text = label, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
             Text(
                 text = value,
                 fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.GoogleSans,
@@ -462,7 +463,7 @@ private fun EvidenceRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
-            .padding(13.dp)
+            .padding(LagCheckSpacing.space3)
     ) {
         Column {
             Row(
@@ -473,7 +474,7 @@ private fun EvidenceRow(
                 Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
                 Text(text = status, style = LagCheckTypography.MonoSmall, color = statusColor)
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
             Text(text = detail, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
         }
     }
@@ -491,21 +492,21 @@ private fun FindingItem(finding: NetworkFinding, isLast: Boolean) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(vertical = LagCheckSpacing.space2_5),
             verticalAlignment = Alignment.Top
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = 5.dp)
+                    .padding(top = LagCheckSpacing.space1)
                     .size(7.dp)
                     .clip(CircleShape)
                     .background(dotColor)
             )
-            Spacer(modifier = Modifier.width(9.dp))
+            Spacer(modifier = Modifier.width(LagCheckSpacing.space2))
             Column {
                 Text(text = finding.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
                 finding.detail?.let {
-                    Spacer(modifier = Modifier.height(3.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                     Text(text = it, fontSize = 12.sp, color = LagCheckColors.TextMuted)
                 }
             }
@@ -552,14 +553,14 @@ private fun LatencyChart(
             if (loadStartIndex != null && loadStartIndex in 1 until points.size) {
                 val startX = width * loadStartIndex / (points.size - 1).coerceAtLeast(1)
                 drawRect(
-                    color = Color(0x331E232B),
+                    color = LagCheckColors.Panel.copy(alpha = 0.2f),
                     topLeft = Offset(startX, 0f),
                     size = Size(width - startX, height)
                 )
             }
 
             // 2. Linhas de grade sutis
-            val gridColor = Color(0xFF262D38)
+            val gridColor = LagCheckColors.Border
             drawLine(gridColor, Offset(0f, height * 0.25f), Offset(width, height * 0.25f), strokeWidth = 1f)
             drawLine(gridColor, Offset(0f, height * 0.50f), Offset(width, height * 0.50f), strokeWidth = 1f)
             drawLine(gridColor, Offset(0f, height * 0.75f), Offset(width, height * 0.75f), strokeWidth = 1f)
@@ -605,13 +606,13 @@ private fun LatencyChart(
             // Área sob a curva
             drawPath(
                 path = fillPath,
-                color = Color(0x1A34D399)
+                color = LagCheckColors.Good.copy(alpha = 0.1f)
             )
 
             // Linha verde do traçado
             drawPath(
                 path = path,
-                color = Color(0xFF34D399),
+                color = LagCheckColors.Good,
                 style = Stroke(width = 2.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
 
@@ -657,13 +658,13 @@ private fun PercentileChartView(
 
             // Metade sob carga mais escura
             drawRect(
-                color = Color(0x331E232B),
+                color = LagCheckColors.Panel.copy(alpha = 0.2f),
                 topLeft = Offset(w * 0.5f, 0f),
                 size = Size(w * 0.5f, h)
             )
 
             // Linhas de grade
-            val gridColor = Color(0xFF262D38)
+            val gridColor = LagCheckColors.Border
             drawLine(gridColor, Offset(0f, h * 0.25f), Offset(w, h * 0.25f), strokeWidth = 1f)
             drawLine(gridColor, Offset(0f, h * 0.50f), Offset(w, h * 0.50f), strokeWidth = 1f)
             drawLine(gridColor, Offset(0f, h * 0.75f), Offset(w, h * 0.75f), strokeWidth = 1f)
@@ -680,7 +681,7 @@ private fun PercentileChartView(
 
             drawPath(
                 path = path,
-                color = Color(0xFF34D399),
+                color = LagCheckColors.Good,
                 style = Stroke(width = 2.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             )
 

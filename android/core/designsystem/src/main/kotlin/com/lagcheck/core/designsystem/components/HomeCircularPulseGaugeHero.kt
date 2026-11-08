@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /**
  * Hero da Home do LagCheck — Gauge circular esportivo com pulso e arco em Roxo Gamer (Decisões 112 e 113).
@@ -139,7 +140,7 @@ fun HomeCircularPulseGaugeHero(
                         color = LagCheckColors.AccentPrimary,
                         strokeWidth = 3.dp
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                     Text(
                         text = measuringText,
                         style = LagCheckTypography.MonoSmall,

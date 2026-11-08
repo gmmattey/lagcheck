@@ -4,7 +4,7 @@ import SwiftUI
 /// Elevação só aparece em menu, toast, CTA e sheet.
 public enum NLShadow {
     /// Sombra de ação do Roxo Gamer para o botão primário (0 12px 28px oklch(.35 .11 299 / .26))
-    public static let actionColor = Color(red: 124 / 255, green: 58 / 255, blue: 237 / 255).opacity(0.26)
+    public static let actionColor = NLColor.gamerPurple.opacity(0.26)
     public static let actionRadius: CGFloat = 14
     public static let actionYOffset: CGFloat = 12
 

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
+import com.lagcheck.core.designsystem.theme.LagCheckBrandColors
 
 /**
  * Ícone autêntico do Discord (Clyde), normalizado em viewBox 24x24.
@@ -25,7 +26,7 @@ import com.lagcheck.core.designsystem.theme.LagCheckColors
 fun DiscordLogo(
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
-    color: Color = Color(0xFF5865F2)
+    color: Color = LagCheckBrandColors.Discord
 ) {
     Canvas(modifier = modifier.size(size)) {
         val scaleX = this.size.width / 24f
@@ -149,7 +150,7 @@ fun DiscordLogo(
 fun WhatsAppLogo(
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
-    color: Color = Color(0xFF25D366)
+    color: Color = LagCheckBrandColors.WhatsApp
 ) {
     Canvas(modifier = modifier.size(size)) {
         val scaleX = this.size.width / 24f

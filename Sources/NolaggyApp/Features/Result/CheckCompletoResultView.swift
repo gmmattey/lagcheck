@@ -618,9 +618,9 @@ public struct CheckCompletoResultView: View {
         )
         let uiColor: UIColor
         switch evaluation.verdict {
-        case .ready: uiColor = UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1)
-        case .caution: uiColor = UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1)
-        case .notReady: uiColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1)
+        case .ready: uiColor = UIColor(NLColor.semanticReady)
+        case .caution: uiColor = UIColor(NLColor.semanticCaution)
+        case .notReady: uiColor = UIColor(NLColor.semanticNotReady)
         case .inconclusive: uiColor = .lightGray
         }
 

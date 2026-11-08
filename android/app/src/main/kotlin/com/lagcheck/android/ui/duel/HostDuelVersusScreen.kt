@@ -42,6 +42,8 @@ import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
+import com.lagcheck.core.designsystem.theme.LagCheckBrandColors
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.HostDuelPayload
 import com.lagcheck.domain.model.HostDuelResolver
@@ -101,7 +103,7 @@ fun HostDuelVersusScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = LagCheckSpacing.space6)
             .verticalScroll(rememberScrollState())
     ) {
         // Top Bar
@@ -127,7 +129,7 @@ fun HostDuelVersusScreen(
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1_5),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -160,10 +162,10 @@ fun HostDuelVersusScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
         // Veredito do Lobby
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1)) {
             Text(
                 text = tr("VEREDITO DO LOBBY"),
                 style = LagCheckTypography.MonoSmall,
@@ -187,10 +189,10 @@ fun HostDuelVersusScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // Arena de Lutadores (Profundidade e Elevação, Zero Linhas de Borda)
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3_5)) {
             if (resolution.winner == HostDuelWinner.OPPONENT) {
                 FighterCard(
                     payload = opponent,
@@ -216,13 +218,13 @@ fun HostDuelVersusScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
         // Expiração e Regra
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp),
+                .padding(horizontal = LagCheckSpacing.space1),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             val remainingMin = minOf(challenger.remainingSeconds(), opponent.remainingSeconds()) / 60
@@ -238,12 +240,12 @@ fun HostDuelVersusScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
 
         // Ações Principais
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
         ) {
             // Copiar pro Discord
             Box(
@@ -251,12 +253,12 @@ fun HostDuelVersusScreen(
                     .fillMaxWidth()
                     .height(56.dp)
                     .clip(RoundedCornerShape(percent = 50))
-                    .background(Color(0xFF5865F2))
+                    .background(LagCheckBrandColors.Discord)
                     .clickable { copyDiscordText() },
                 contentAlignment = Alignment.Center
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     DiscordLogo(size = 20.dp, color = Color.White)
@@ -297,7 +299,7 @@ fun HostDuelVersusScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
     }
 }
 
@@ -320,16 +322,16 @@ private fun FighterCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(LagCheckRadius.lg))
             .background(if (isWinner) LagCheckColors.Panel else LagCheckColors.Surface)
-            .padding(20.dp)
+            .padding(LagCheckSpacing.space5)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -359,7 +361,7 @@ private fun FighterCard(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(LagCheckRadius.sm))
                                 .background(LagCheckColors.AccentPrimary.copy(alpha = 0.2f))
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1)
                         ) {
                             Text(
                                 text = tr("HOST OFICIAL"),
@@ -396,7 +398,7 @@ private fun FighterCard(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = LagCheckColors.TextSecondary,
-                        modifier = Modifier.padding(bottom = 6.dp)
+                        modifier = Modifier.padding(bottom = LagCheckSpacing.space1_5)
                     )
                 }
 
@@ -405,7 +407,7 @@ private fun FighterCard(
                     style = LagCheckTypography.MonoData,
                     fontSize = 12.sp,
                     color = LagCheckColors.TextSecondary,
-                    modifier = Modifier.padding(bottom = 6.dp)
+                    modifier = Modifier.padding(bottom = LagCheckSpacing.space1_5)
                 )
             }
         }

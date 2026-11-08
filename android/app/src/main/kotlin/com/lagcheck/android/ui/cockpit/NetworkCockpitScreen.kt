@@ -45,6 +45,7 @@ import com.lagcheck.android.data.NetworkReportPdfExporter
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.presentation.ReadinessLanguage
 import com.lagcheck.domain.presentation.UiStrings
@@ -86,7 +87,7 @@ fun NetworkCockpitScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = LagCheckSpacing.space6)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Top bar
@@ -94,7 +95,7 @@ fun NetworkCockpitScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .padding(top = 8.dp),
+                .padding(top = LagCheckSpacing.space2),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -103,7 +104,7 @@ fun NetworkCockpitScreen(
                     .clip(RoundedCornerShape(LagCheckRadius.sm))
                     .clickable { onClose() }
                     .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                    .padding(horizontal = 7.dp, vertical = 6.dp)
+                    .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1_5)
             ) {
                 Text(text = tr("Fechar"), fontSize = 14.sp, color = LagCheckColors.TextMuted)
             }
@@ -117,7 +118,7 @@ fun NetworkCockpitScreen(
             Spacer(modifier = Modifier.size(48.dp))
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 2. Summary Header
         Row(
@@ -127,7 +128,7 @@ fun NetworkCockpitScreen(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
             ) {
                 Box(
                     modifier = Modifier
@@ -155,7 +156,7 @@ fun NetworkCockpitScreen(
                         .background(LagCheckColors.AccentPrimary.copy(alpha = 0.1f))
                         .clickable { onRefresh() }
                         .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = LagCheckSpacing.space2_5, vertical = LagCheckSpacing.space1)
                 ) {
                     Text(
                         text = tr("Atualizar"),
@@ -166,18 +167,18 @@ fun NetworkCockpitScreen(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
         Text(
             text = tr("Medido agora no aparelho. O que não foi medido aparece como —."),
             style = LagCheckTypography.Subtext,
             color = LagCheckColors.TextMuted
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // 3. Seções geradas só com o que foi observado
         sections.forEachIndexed { index, section ->
-            if (index > 0) Spacer(modifier = Modifier.height(20.dp))
+            if (index > 0) Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
             SectionCard(title = section.title) {
                 section.rows.forEach { row ->
                     if (index == 2) {
@@ -189,7 +190,7 @@ fun NetworkCockpitScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space7))
 
         // 6. Ações: Copiar dados
         Box(
@@ -209,7 +210,7 @@ fun NetworkCockpitScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
     }
 
     selectedUseCase?.let { row ->
@@ -220,8 +221,8 @@ fun NetworkCockpitScreen(
             containerColor = LagCheckColors.Surface
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = LagCheckSpacing.space6).padding(bottom = LagCheckSpacing.space8),
+                verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space4)
             ) {
                 Text(row.label, style = LagCheckTypography.SectionHeader, color = LagCheckColors.TextPrimary)
                 Text(
@@ -264,15 +265,15 @@ private fun SectionCard(
             style = LagCheckTypography.MonoSmall,
             color = LagCheckColors.TextMuted
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3_5)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
                 content()
             }
         }

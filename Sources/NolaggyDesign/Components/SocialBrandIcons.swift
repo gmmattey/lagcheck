@@ -5,7 +5,7 @@ public struct DiscordLogo: View {
     public var size: CGFloat
     public var color: Color
 
-    public init(size: CGFloat = 16, color: Color = Color(red: 88/255, green: 101/255, blue: 242/255)) {
+    public init(size: CGFloat = 16, color: Color = NLBrandColor.discord) {
         self.size = size
         self.color = color
     }
@@ -117,7 +117,7 @@ public struct WhatsAppLogo: View {
     public var size: CGFloat
     public var color: Color
 
-    public init(size: CGFloat = 16, color: Color = Color(red: 37/255, green: 211/255, blue: 102/255)) {
+    public init(size: CGFloat = 16, color: Color = NLBrandColor.whatsapp) {
         self.size = size
         self.color = color
     }

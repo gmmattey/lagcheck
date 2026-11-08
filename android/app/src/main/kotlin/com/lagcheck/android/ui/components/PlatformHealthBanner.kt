@@ -23,6 +23,7 @@ import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.network.health.PlatformHealth
 
 /**
@@ -47,9 +48,9 @@ fun PlatformHealthBanner(health: PlatformHealth, modifier: Modifier = Modifier) 
             .clip(RoundedCornerShape(LagCheckRadius.md))
             .background(LagCheckColors.Surface)
             .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(LagCheckRadius.md))
-            .padding(14.dp)
+            .padding(LagCheckSpacing.space3_5)
             .semantics(mergeDescendants = true) { contentDescription = "$title. $message" },
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1_5)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -62,10 +63,10 @@ fun PlatformHealthBanner(health: PlatformHealth, modifier: Modifier = Modifier) 
                 style = LagCheckTypography.MonoSmall,
                 color = accent,
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .padding(start = LagCheckSpacing.space2)
                     .clip(RoundedCornerShape(LagCheckRadius.pill))
                     .background(accent.copy(alpha = 0.16f))
-                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                    .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1)
             )
         }
         Text(text = message, style = LagCheckTypography.Subtext, color = LagCheckColors.TextMuted)

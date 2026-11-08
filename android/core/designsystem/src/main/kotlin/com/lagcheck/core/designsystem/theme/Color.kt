@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 /**
  * Tokens Canônicos de Cor do Lagcheck (Open Design / Brand Spec / Decisões 51 e 66).
  * Fundo quase-preto (#0B0D10), Roxo Gamer (#7C3AED) para ação/foco,
- * Coral Solar (#FF5A36) para atenção e exclusão, Verde (#34D399) para veredito bom.
+ * Coral Solar (#FF5A36) para atenção e exclusão, Verde (#22C55E) para veredito bom.
  */
 object LagCheckColors {
     // Fundos e Superfícies
@@ -35,4 +35,20 @@ object LagCheckColors {
 
     // Overlay
     val Scrim = Color(0x7A000000)
+}
+
+/**
+ * Cores de marca de terceiros e do ícone do app. Não fazem parte da paleta do LagCheck
+ * (design-system/tokens/platforms.json, Decisão 117): são exceções documentadas e
+ * devem ficar só aqui, nunca soltas em telas.
+ */
+object LagCheckBrandColors {
+    val Discord = Color(0xFF5865F2)
+    val WhatsApp = Color(0xFF25D366)
+    val Telegram = Color(0xFF26A5E4)
+    val X = Color(0xFF000000)
+    val TikTok = Color(0xFF000000)
+    val Instagram = Color(0xFFE4405F)
+    /** Violeta do fundo do ícone do app, usado na prévia de ícones em Configurações. */
+    val AppIconViolet = Color(0xFF3B2A78)
 }

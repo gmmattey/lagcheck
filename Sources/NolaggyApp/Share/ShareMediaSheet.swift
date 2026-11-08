@@ -30,11 +30,12 @@ public enum ShareSocialNetwork: String, CaseIterable, Identifiable, Sendable {
 
     public var brandColor: Color {
         switch self {
-        case .whatsapp: return Color(red: 37 / 255, green: 211 / 255, blue: 102 / 255)
-        case .telegram: return Color(red: 38 / 255, green: 165 / 255, blue: 228 / 255)
-        case .x, .tiktok: return Color.black
-        case .instagram: return Color(red: 228 / 255, green: 64 / 255, blue: 95 / 255)
-        case .discord: return Color(red: 88 / 255, green: 101 / 255, blue: 242 / 255)
+        case .whatsapp: return NLBrandColor.whatsapp
+        case .telegram: return NLBrandColor.telegram
+        case .x: return NLBrandColor.x
+        case .tiktok: return NLBrandColor.tiktok
+        case .instagram: return NLBrandColor.instagram
+        case .discord: return NLBrandColor.discord
         }
     }
 }

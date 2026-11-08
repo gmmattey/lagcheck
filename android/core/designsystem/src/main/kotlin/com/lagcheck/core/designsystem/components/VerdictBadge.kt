@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.GameReadinessVerdict
 
 /**
@@ -131,7 +132,7 @@ fun VerdictHeroBadge(
             .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
             .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.xl))
-            .padding(24.dp)
+            .padding(LagCheckSpacing.space6)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -150,7 +151,7 @@ fun VerdictHeroBadge(
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2_5))
 
             Text(
                 text = subtitle,

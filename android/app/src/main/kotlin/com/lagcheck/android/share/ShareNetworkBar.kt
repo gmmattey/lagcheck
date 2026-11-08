@@ -50,6 +50,7 @@ import com.lagcheck.core.designsystem.components.SocialNetwork
 import com.lagcheck.core.designsystem.components.SocialNetworkIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -157,7 +158,7 @@ fun ShareNetworkBar(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2), horizontalAlignment = Alignment.CenterHorizontally) {
         val ready = preparedLinkCard != null
         Row(
             modifier = Modifier.fillMaxWidth().alpha(if (ready) 1f else 0.4f),
@@ -185,8 +186,8 @@ fun ShareNetworkBar(
                     .clip(RoundedCornerShape(LagCheckRadius.xl))
                     .background(LagCheckColors.Surface)
                     .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(LagCheckRadius.xl))
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(LagCheckSpacing.space6),
+                verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space4),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(tr("Gerando o vídeo…"), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)

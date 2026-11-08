@@ -728,8 +728,8 @@ public struct NetworkCockpitView: View {
 
     private func uiColor(for kind: UseCaseAssessment.Kind) -> UIColor {
         switch kind {
-        case .favorable: return UIColor(red: 34/255, green: 197/255, blue: 94/255, alpha: 1)
-        case .attention: return UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1)
+        case .favorable: return UIColor(NLColor.semanticReady)
+        case .attention: return UIColor(NLColor.semanticCaution)
         case .notAssessed: return .lightGray
         }
     }

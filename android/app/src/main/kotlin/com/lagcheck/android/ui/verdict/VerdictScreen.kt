@@ -62,6 +62,7 @@ import com.lagcheck.core.designsystem.components.WhatsAppLogo
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
@@ -266,7 +267,7 @@ fun VerdictScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = LagCheckSpacing.space6)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Top bar: Fechar e Contexto
@@ -298,7 +299,7 @@ fun VerdictScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
 
         // 2. Kicker: RESULTADO DO CHECK (11px mono uppercase)
         Text(
@@ -307,21 +308,21 @@ fun VerdictScreen(
             color = LagCheckColors.TextMuted
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
         // 3. Veredito Manchete: indicador acima, headline 44sp black
         VerdictIndicatorBadge(
             verdict = evaluation.verdict,
             size = 18.dp
         )
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
         Text(
             text = evaluation.headline.removePrefix("● ").removePrefix("▲ ").removePrefix("— "),
             style = LagCheckTypography.VerdictHero.copy(fontSize = 44.sp, lineHeight = 46.sp),
             color = verdictColor
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // 4. Frase do veredito
         Text(
@@ -333,7 +334,7 @@ fun VerdictScreen(
             lineHeight = 24.sp
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
 
         // Única prévia do JPEG já preparado: fica abaixo do veredito, antes da telemetria.
         if (shareScene != null) {
@@ -376,19 +377,19 @@ fun VerdictScreen(
                 if (sharePreparationFailed) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(shareStateLabel, color = LagCheckColors.TextSecondary)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
                         Text(retryLabel, color = LagCheckColors.TextSecondary)
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
             // Redes logo abaixo do card: card horizontal (WhatsApp, Telegram, X, Discord) ou vídeo (TikTok, Instagram).
             ShareNetworkBar(
                 scene = shareScene,
                 preparedLinkCard = preparedLinkCard,
                 modifier = Modifier.widthIn(max = 360.dp).align(Alignment.CenterHorizontally)
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
         }
 
         // 5. Métricas inline em mono: "28 ms · 2 ms jitter · 0.0% perda"
@@ -401,7 +402,7 @@ fun VerdictScreen(
             color = LagCheckColors.TextMuted
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
 
         // 6. Card "O que mais pesou"
         Box(
@@ -409,7 +410,7 @@ fun VerdictScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LagCheckRadius.xl))
                 .background(LagCheckColors.Surface)
-                .padding(horizontal = 20.dp, vertical = 18.dp)
+                .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
         ) {
             Column {
                 Text(
@@ -417,7 +418,7 @@ fun VerdictScreen(
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                 Text(
                     text = evaluation.primaryWeight,
                     fontSize = 16.sp,
@@ -427,12 +428,12 @@ fun VerdictScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // 7. Ações Principais: "Testar novamente", "Desafiar Duo" / "Ver Duelo", "Ver detalhes"
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
         ) {
             PrimaryButton(
                 text = tr("Testar novamente"),
@@ -495,7 +496,7 @@ fun VerdictScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
             // PDF fica à direita; as redes ficam sob o card.
             Row(
@@ -521,9 +522,9 @@ fun VerdictScreen(
         if (nativeAd != null) {
             com.lagcheck.android.ads.NativeAdSlot(
                 nativeAd,
-                Modifier.padding(top = 32.dp)
+                Modifier.padding(top = LagCheckSpacing.space8)
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
     }
 }

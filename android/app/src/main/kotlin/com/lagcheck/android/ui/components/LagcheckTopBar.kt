@@ -27,6 +27,7 @@ import com.lagcheck.core.designsystem.components.ChevronLeftIcon
 import com.lagcheck.core.designsystem.components.NetworkCockpitIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /**
  * Top Bar Oficial da Home: Wordmark (esquerda) + Ícone de Rede / Cockpit + botão '…' (direita).
@@ -71,7 +72,7 @@ fun SecondaryScreenHeader(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp)
+            .padding(bottom = LagCheckSpacing.space4)
     ) {
         // Linha 1: Navegação (52dp)
         Row(
@@ -92,7 +93,7 @@ fun SecondaryScreenHeader(
                     ChevronLeftIcon(
                         size = 20.dp,
                         color = LagCheckColors.TextPrimary,
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = LagCheckSpacing.space1)
                     )
                 }
             } else {
@@ -106,12 +107,12 @@ fun SecondaryScreenHeader(
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
 
         // Linha 2: Título grande abaixo + subtítulo opcional
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
         ) {
             Text(
                 text = title,

@@ -9,14 +9,16 @@ import NolaggyDesign
 public enum ShareCanvas {
 
     // Paleta oficial da Dark Competitive UI: tokens do app, sem cores soltas (Decisão 66).
-    public static let deep = UIColor(red: 11 / 255, green: 13 / 255, blue: 16 / 255, alpha: 1) // #0B0D10
-    public static let text = UIColor(red: 244 / 255, green: 245 / 255, blue: 247 / 255, alpha: 1) // #F4F5F7
-    public static let muted = UIColor(red: 138 / 255, green: 147 / 255, blue: 160 / 255, alpha: 1) // #8A93A0
-    public static let accent = UIColor(red: 167 / 255, green: 139 / 255, blue: 250 / 255, alpha: 1) // #A78BFA (gamerPurpleLight)
-    public static let purple = UIColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1) // #7C3AED (gamerPurple)
-    public static let ready = UIColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 1) // #22C55E
-    public static let caution = UIColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 1) // #F59E0B
-    public static let notReady = UIColor(red: 255 / 255, green: 90 / 255, blue: 54 / 255, alpha: 1) // #FF5A36 (coralSolar)
+    public static let deep = UIColor(NLColor.deep) // #0B0D10
+    public static let text = UIColor(NLColor.textPrimary) // #F4F5F7
+    public static let muted = UIColor(NLColor.textSecondary) // #8A93A0
+    public static let accent = UIColor(NLColor.gamerPurpleLight) // #A78BFA
+    public static let purple = UIColor(NLColor.gamerPurple) // #7C3AED
+    public static let ready = UIColor(NLColor.semanticReady) // #22C55E
+    public static let caution = UIColor(NLColor.semanticCaution) // #F59E0B
+    public static let notReady = UIColor(NLColor.semanticNotReady) // #FF5A36 (coralSolar)
+    /// Fundo do ícone do app (#1A0B2E), usado quando a arte do jogo não está disponível. Exceção documentada (Decisão 117).
+    public static let artFallback = UIColor(red: 26 / 255, green: 11 / 255, blue: 46 / 255, alpha: 1)
 
     public static func toneColor(_ tone: ShareTone) -> UIColor {
         switch tone {
@@ -93,7 +95,7 @@ public enum ShareCanvas {
             )
             image.draw(in: drawRect)
         } else {
-            c.setFillColor(UIColor(red: 26 / 255, green: 11 / 255, blue: 46 / 255, alpha: 1).cgColor)
+            c.setFillColor(artFallback.cgColor)
             c.fill(rect)
         }
         c.restoreGState()

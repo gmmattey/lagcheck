@@ -31,6 +31,7 @@ import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.HostDuelPayload
 import kotlin.math.roundToInt
@@ -57,7 +58,7 @@ fun HostDuelInvitationSheet(
         dragHandle = {
             Box(
                 modifier = Modifier
-                    .padding(top = 10.dp, bottom = 12.dp)
+                    .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space3)
                     .size(width = 36.dp, height = 4.dp)
                     .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.Border)
@@ -67,12 +68,12 @@ fun HostDuelInvitationSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 36.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
+                .padding(bottom = LagCheckSpacing.space9),
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space4_5)
         ) {
             // Header
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1)) {
                 Text(
                     text = "${gameName.uppercase()} • ${tr("DUELO DE HOST")}",
                     style = LagCheckTypography.MonoSmall,
@@ -97,16 +98,16 @@ fun HostDuelInvitationSheet(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(LagCheckRadius.lg))
                     .background(LagCheckColors.Panel)
-                    .padding(18.dp)
+                    .padding(LagCheckSpacing.space4_5)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
@@ -161,7 +162,7 @@ fun HostDuelInvitationSheet(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = LagCheckColors.TextSecondary,
-                                modifier = Modifier.padding(bottom = 6.dp)
+                                modifier = Modifier.padding(bottom = LagCheckSpacing.space1_5)
                             )
                         }
 
@@ -170,7 +171,7 @@ fun HostDuelInvitationSheet(
                             style = LagCheckTypography.MonoData,
                             fontSize = 11.sp,
                             color = LagCheckColors.TextSecondary,
-                            modifier = Modifier.padding(bottom = 6.dp)
+                            modifier = Modifier.padding(bottom = LagCheckSpacing.space1_5)
                         )
                     }
                 }
@@ -180,7 +181,7 @@ fun HostDuelInvitationSheet(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = LagCheckSpacing.space1),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 val remainingMin = duel.remainingSeconds() / 60
@@ -196,12 +197,12 @@ fun HostDuelInvitationSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
 
             // Ações
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5)
             ) {
                 PrimaryButton(
                     text = tr("Aceitar e Medir Minha Rota"),

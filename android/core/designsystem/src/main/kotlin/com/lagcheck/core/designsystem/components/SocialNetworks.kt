@@ -16,16 +16,18 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lagcheck.core.designsystem.theme.LagCheckBrandColors
+import com.lagcheck.core.designsystem.theme.LagCheckColors
 
 /** Redes do compartilhamento, com o logo oficial (Simple Icons, CC0; viewBox 24) e a cor da marca. */
 enum class SocialNetwork(val label: String, val packageName: String?, val brand: Color, val glyph: String?, val sendsVideo: Boolean = false) {
-    WHATSAPP("WhatsApp", "com.whatsapp", Color(0xFF25D366), WHATSAPP_PATH),
-    TELEGRAM("Telegram", "org.telegram.messenger", Color(0xFF26A5E4), TELEGRAM_PATH),
-    X("X", "com.twitter.android", Color(0xFF000000), X_PATH),
-    TIKTOK("TikTok", "com.zhiliaoapp.musically", Color(0xFF000000), TIKTOK_PATH, sendsVideo = true),
-    INSTAGRAM("Instagram", "com.instagram.android", Color(0xFFE4405F), INSTAGRAM_PATH, sendsVideo = true),
-    DISCORD("Discord", "com.discord", Color(0xFF5865F2), null),
-    MORE("Mais", null, Color(0xFF1E232B), null)
+    WHATSAPP("WhatsApp", "com.whatsapp", LagCheckBrandColors.WhatsApp, WHATSAPP_PATH),
+    TELEGRAM("Telegram", "org.telegram.messenger", LagCheckBrandColors.Telegram, TELEGRAM_PATH),
+    X("X", "com.twitter.android", LagCheckBrandColors.X, X_PATH),
+    TIKTOK("TikTok", "com.zhiliaoapp.musically", LagCheckBrandColors.TikTok, TIKTOK_PATH, sendsVideo = true),
+    INSTAGRAM("Instagram", "com.instagram.android", LagCheckBrandColors.Instagram, INSTAGRAM_PATH, sendsVideo = true),
+    DISCORD("Discord", "com.discord", LagCheckBrandColors.Discord, null),
+    MORE("Mais", null, LagCheckColors.Panel, null)
 }
 
 /** Botão redondo só com o ícone da rede (a descrição de acessibilidade fica por conta de quem chama). */

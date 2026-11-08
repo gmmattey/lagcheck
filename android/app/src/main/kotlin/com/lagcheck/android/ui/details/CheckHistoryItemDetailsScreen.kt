@@ -37,6 +37,7 @@ import com.lagcheck.core.designsystem.components.ChevronLeftIcon
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
@@ -53,14 +54,14 @@ fun CheckHistoryItemDetailsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = LagCheckSpacing.space6)
             .verticalScroll(rememberScrollState())
     ) {
         // Header de volta/título "Detalhes" com alvo 44dp
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = LagCheckSpacing.space2)
                 .height(48.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -88,10 +89,10 @@ fun CheckHistoryItemDetailsScreen(
             Spacer(modifier = Modifier.size(48.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
         // Contexto disponível de modo compacto
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1)) {
             Text(
                 text = "${item.gameName} · Mobile · $dateFormatted",
                 style = LagCheckTypography.MonoSmall,
@@ -107,7 +108,7 @@ fun CheckHistoryItemDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // Gráfico antes das métricas
         HistoryLatencyChart(
@@ -118,7 +119,7 @@ fun CheckHistoryItemDetailsScreen(
                 .height(118.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // Métricas em lista de linhas em um bloco único
         Column(
@@ -179,7 +180,7 @@ fun CheckHistoryItemDetailsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
     }
 }
 
@@ -193,7 +194,7 @@ private fun HistoryDetailRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3_5),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -245,7 +246,7 @@ private fun HistoryLatencyChart(
                 val width = size.width
                 val height = size.height
 
-                val gridColor = Color(0xFF262D38)
+                val gridColor = LagCheckColors.Border
                 drawLine(gridColor, Offset(0f, height * 0.25f), Offset(width, height * 0.25f), strokeWidth = 1f)
                 drawLine(gridColor, Offset(0f, height * 0.50f), Offset(width, height * 0.50f), strokeWidth = 1f)
                 drawLine(gridColor, Offset(0f, height * 0.75f), Offset(width, height * 0.75f), strokeWidth = 1f)
@@ -289,12 +290,12 @@ private fun HistoryLatencyChart(
 
                 drawPath(
                     path = fillPath,
-                    color = Color(0x1A34D399)
+                    color = LagCheckColors.Good.copy(alpha = 0.1f)
                 )
 
                 drawPath(
                     path = path,
-                    color = Color(0xFF34D399),
+                    color = LagCheckColors.Good,
                     style = Stroke(width = 2.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
                 )
 

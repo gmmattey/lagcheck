@@ -37,6 +37,7 @@ import com.lagcheck.core.designsystem.components.MeasurementLiveTrail
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.android.ui.CancelReason
 import com.lagcheck.android.ui.headline
@@ -74,7 +75,7 @@ fun CheckCockpitScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
         ) {
             // Topo: "Cancelar" (esquerda) + Nome do Jogo (direita em mono)
             Row(
@@ -89,7 +90,7 @@ fun CheckCockpitScreen(
                         .clip(RoundedCornerShape(LagCheckRadius.sm))
                         .clickable { onCancel() }
                         .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                        .padding(horizontal = 7.dp),
+                        .padding(horizontal = LagCheckSpacing.space2),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -120,22 +121,22 @@ fun CheckCockpitScreen(
                         color = LagCheckColors.TextPrimary,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
                     Text(
                         text = tr("O teste foi cancelado para preservar a integridade da medição."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 30.dp)
+                        modifier = Modifier.padding(horizontal = LagCheckSpacing.space8)
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(percent = 50))
                             .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                             .clickable { onRetry() }
                             .height(48.dp)
-                            .padding(horizontal = 19.dp),
+                            .padding(horizontal = LagCheckSpacing.space5),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -182,7 +183,7 @@ fun CheckCockpitScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
@@ -192,8 +193,8 @@ fun CheckCockpitScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp),
+                        .padding(horizontal = LagCheckSpacing.space6)
+                        .padding(bottom = LagCheckSpacing.space8),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
@@ -206,7 +207,7 @@ fun CheckCockpitScreen(
                         CellularAntennaIcon()
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
                     Text(
                         text = tr("Uso de dados móveis"),
@@ -214,14 +215,14 @@ fun CheckCockpitScreen(
                         color = LagCheckColors.TextPrimary,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
                     Text(
                         text = tr("O teste usa dados móveis para avaliar sua conexão sob carga."),
                         style = LagCheckTypography.BodyMedium,
                         color = LagCheckColors.TextMuted,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
                     Text(
                         text = tr("Limite máximo de transferência: até 10 MB (cerca de 15 segundos)."),
                         style = LagCheckTypography.Subtext,
@@ -229,11 +230,11 @@ fun CheckCockpitScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
                     ) {
                         Box(
                             modifier = Modifier

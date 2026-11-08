@@ -43,6 +43,7 @@ import com.lagcheck.core.designsystem.components.RadioSignalPill
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
@@ -127,13 +128,13 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = LagCheckSpacing.space6),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 1. Topline: Wordmark oficial + Botão '…' (Ajustes)
-                HomeTopBar(modifier = Modifier.padding(top = 8.dp))
+                HomeTopBar(modifier = Modifier.padding(top = LagCheckSpacing.space2))
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
 
                 // 2. Pílula de rádio: toque abre Cockpit de Rede
                 Row(
@@ -154,7 +155,7 @@ fun HomeScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
                 // 3. Gauge Circular de Pulso Protagonista (Decisão 113)
                 Box(
@@ -169,7 +170,7 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
 
                 // 4. Linha de Último Resultado Verificado (Idêntica à tela atual do app)
                 val lastCheckText = latestCheck?.let { item ->
@@ -198,7 +199,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onOpenLatestResult() }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = LagCheckSpacing.space2),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -213,21 +214,21 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
         ) {
 
         if (platformHealth != null) {
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
             PlatformHealthBanner(platformHealth)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
         // 5. Seção Inferior: TESTAR POR JOGO (Carrossel Horizontal de 1 Toque)
         val gamesList = favoriteGames.ifEmpty { listOf(selectedGame) }
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -245,7 +246,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LagCheckRadius.sm))
                         .clickable { onOpenGames() }
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                        .padding(horizontal = LagCheckSpacing.space1_5, vertical = LagCheckSpacing.space1),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -268,7 +269,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
             ) {
                 gamesList.forEach { game ->
                     HomeGameCard(
@@ -282,10 +283,10 @@ fun HomeScreen(
         if (nativeAd != null) {
             com.lagcheck.android.ads.NativeAdSlot(
                 nativeAd,
-                Modifier.padding(top = 24.dp)
+                Modifier.padding(top = LagCheckSpacing.space6)
             )
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
         }
     }
 }
@@ -327,7 +328,7 @@ private fun HomeGameCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(LagCheckSpacing.space3),
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
@@ -337,7 +338,7 @@ private fun HomeGameCard(
                 color = LagCheckColors.TextPrimary,
                 maxLines = 1
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
             Text(
                 text = tr("1 toque ▸"),
                 style = LagCheckTypography.MonoSmall,

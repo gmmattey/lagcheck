@@ -45,6 +45,8 @@ import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
+import com.lagcheck.core.designsystem.theme.LagCheckBrandColors
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
 import com.lagcheck.android.ui.MainViewModel.RegionCandidate
@@ -97,7 +99,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header Canônico: Voltar '‹' + Ajustes
@@ -155,7 +157,7 @@ fun SettingsScreen(
             }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
             // 2. Grupo: Histórico
             SettingsSectionHeader(title = tr("HISTÓRICO"))
@@ -169,7 +171,7 @@ fun SettingsScreen(
             )
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
             // 3. Grupo: Sobre o Lagcheck
             SettingsSectionHeader(title = tr("SOBRE O LAGCHECK"))
@@ -229,7 +231,7 @@ fun SettingsScreen(
             }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
             // 4. Grupo: Suporte
             SettingsSectionHeader(title = tr("SUPORTE"))
@@ -269,13 +271,13 @@ fun SettingsScreen(
                 onDismissRequest = { showLicensesSheet = false },
                 containerColor = LagCheckColors.Surface
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = LagCheckSpacing.space6).padding(bottom = LagCheckSpacing.space6)) {
                     Text(
                         text = tr("Licenças de código aberto"),
                         style = LagCheckTypography.SectionHeader,
                         color = LagCheckColors.TextPrimary
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
                     Text(
                         text = licenseText,
                         style = LagCheckTypography.Subtext,
@@ -295,18 +297,18 @@ fun SettingsScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
                     )
                 }
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = LagCheckSpacing.space6).padding(bottom = LagCheckSpacing.space8)) {
                     Text(tr("Ícone do app"), style = LagCheckTypography.SectionHeader.copy(fontSize = 24.sp), color = LagCheckColors.TextPrimary)
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                     Text(tr("O launcher atualiza em alguns segundos."), fontSize = 12.sp, color = LagCheckColors.TextMuted)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
                     com.lagcheck.android.data.AppIcon.entries.forEach { icon ->
                         val selected = icon == currentIcon
                         Row(
@@ -322,10 +324,10 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconPreview(icon)
-                            Spacer(modifier = Modifier.width(14.dp))
+                            Spacer(modifier = Modifier.width(LagCheckSpacing.space3_5))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(tr(icon.title), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextPrimary)
-                                Spacer(modifier = Modifier.height(3.dp))
+                                Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
                                 Text(tr(icon.subtitle), fontSize = 12.sp, color = LagCheckColors.TextMuted)
                             }
                             if (selected) Text("✓", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.AccentPrimary)
@@ -346,7 +348,7 @@ fun SettingsScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
@@ -356,8 +358,8 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp)
+                        .padding(horizontal = LagCheckSpacing.space6)
+                        .padding(bottom = LagCheckSpacing.space8)
                 ) {
                     Text(
                         text = tr("Idioma"),
@@ -365,7 +367,7 @@ fun SettingsScreen(
                         color = LagCheckColors.TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
                     listOf("Português (Brasil)", "English", "Español").forEach { lang ->
                         val isSelected = currentLanguage == lang
@@ -412,7 +414,7 @@ fun SettingsScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
@@ -422,8 +424,8 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp)
+                        .padding(horizontal = LagCheckSpacing.space6)
+                        .padding(bottom = LagCheckSpacing.space8)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
@@ -432,7 +434,7 @@ fun SettingsScreen(
                         color = LagCheckColors.TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
                     val activeId = manualRegionId ?: "automatic"
 
@@ -480,7 +482,7 @@ fun SettingsScreen(
                 dragHandle = {
                     Box(
                         modifier = Modifier
-                            .padding(top = 10.dp, bottom = 18.dp)
+                            .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space4_5)
                             .size(width = 35.dp, height = 4.dp)
                             .clip(RoundedCornerShape(LagCheckRadius.sm))
                             .background(LagCheckColors.Border)
@@ -490,8 +492,8 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp)
+                        .padding(horizontal = LagCheckSpacing.space6)
+                        .padding(bottom = LagCheckSpacing.space8)
                 ) {
                     Text(
                         text = tr("Apagar todo o histórico?"),
@@ -499,7 +501,7 @@ fun SettingsScreen(
                         color = LagCheckColors.TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
                     Text(
                         text = tr("Esta ação não pode ser desfeita."),
@@ -507,11 +509,11 @@ fun SettingsScreen(
                         color = LagCheckColors.TextMuted
                     )
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4_5))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
                     ) {
                         // Cancelar
                         Box(
@@ -565,7 +567,7 @@ private fun SettingsSectionHeader(title: String) {
         text = title,
         style = LagCheckTypography.MonoSmall,
         color = LagCheckColors.TextMuted,
-        modifier = Modifier.padding(bottom = 10.dp)
+        modifier = Modifier.padding(bottom = LagCheckSpacing.space2_5)
     )
 }
 
@@ -577,7 +579,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(LagCheckRadius.xl))
             .background(LagCheckColors.Surface)
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = LagCheckSpacing.space5)
     ) { content() }
 }
 
@@ -600,7 +602,7 @@ private fun SettingRow(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (value != null) {
                 Text(text = value, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
-                Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                Spacer(modifier = Modifier.padding(horizontal = LagCheckSpacing.space1))
             }
             Text(text = "›", fontSize = 20.sp, color = LagCheckColors.TextMuted)
         }
@@ -623,7 +625,7 @@ private fun SettingRowDestructive(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.CoralWarning)
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
             Text(text = subtext, fontSize = 12.sp, color = LagCheckColors.TextMuted)
         }
 
@@ -646,7 +648,7 @@ private fun IconPreview(icon: com.lagcheck.android.data.AppIcon) {
             .background(
                 if (icon.foreground == null) androidx.compose.ui.graphics.Brush.linearGradient(listOf(LagCheckColors.Background, LagCheckColors.Background))
                 else androidx.compose.ui.graphics.Brush.radialGradient(
-                    0f to androidx.compose.ui.graphics.Color(0xFF3B2A78),
+                    0f to LagCheckBrandColors.AppIconViolet,
                     1f to LagCheckColors.Background
                 )
             ),

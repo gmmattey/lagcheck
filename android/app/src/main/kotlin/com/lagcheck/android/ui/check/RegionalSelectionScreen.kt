@@ -30,6 +30,7 @@ import com.lagcheck.android.ui.MainViewModel
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 @Composable
 fun RegionalSelectionScreen(
@@ -61,7 +62,7 @@ fun RegionalSelectionScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = LagCheckSpacing.space6),
             contentAlignment = Alignment.Center
         ) {
             if (isConfirming) {
@@ -74,7 +75,7 @@ fun RegionalSelectionScreen(
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 3.dp
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
                     Text(
                         text = txtConfirming,
                         style = LagCheckTypography.BodySemibold,
@@ -100,7 +101,7 @@ fun RegionalSelectionScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
                     Text(
                         text = txtNoViableTitle,
@@ -109,7 +110,7 @@ fun RegionalSelectionScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
                     Text(
                         text = txtNoViableMsg,
@@ -126,7 +127,7 @@ fun RegionalSelectionScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
                     TextButton(
                         onClick = onBack,

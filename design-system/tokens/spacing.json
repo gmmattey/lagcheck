@@ -3,20 +3,90 @@
   "description": "Escala de espaçamento do LagCheck Design System com base de 4px. Conteúdo de tela usa 22px nas laterais, controles usam no mínimo 44px e CTA principal 56–62px.",
   "base": 4,
   "scale": {
-    "space1": { "value": 4 },
-    "space2": { "value": 8 },
-    "space3": { "value": 12 },
-    "space4": { "value": 16 },
-    "space5": { "value": 20 },
-    "space6": { "value": 24 },
-    "space7": { "value": 28 },
-    "space8": { "value": 32 }
+    "space1": {
+      "value": 4
+    },
+    "space1_5": {
+      "value": 6,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Meio passo, só Android."
+    },
+    "space2": {
+      "value": 8
+    },
+    "space2_5": {
+      "value": 10,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Meio passo, só Android."
+    },
+    "space3": {
+      "value": 12
+    },
+    "space3_5": {
+      "value": 14,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Meio passo, só Android."
+    },
+    "space4": {
+      "value": 16
+    },
+    "space4_5": {
+      "value": 18,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Meio passo, só Android."
+    },
+    "space5": {
+      "value": 20
+    },
+    "space6": {
+      "value": 24
+    },
+    "space7": {
+      "value": 28
+    },
+    "space8": {
+      "value": 32
+    },
+    "space9": {
+      "value": 36,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Só Android."
+    },
+    "space10": {
+      "value": 40,
+      "platforms": [
+        "android"
+      ],
+      "usage": "Só Android."
+    }
   },
   "semantic": {
-    "screenMarginHorizontal": { "value": 22, "usage": "Margem lateral padrão do conteúdo de tela." },
-    "cardPadding": { "value": 16 },
-    "stackGapTight": { "value": 4 },
-    "stackGapDefault": { "value": 8 },
-    "stackGapComfortable": { "value": 16 }
-  }
+    "screenMarginHorizontal": {
+      "value": 22,
+      "usage": "Margem lateral padrão do conteúdo de tela."
+    },
+    "cardPadding": {
+      "value": 16
+    },
+    "stackGapTight": {
+      "value": 4
+    },
+    "stackGapDefault": {
+      "value": 8
+    },
+    "stackGapComfortable": {
+      "value": 16
+    }
+  },
+  "nota": "Os degraus marcados com platforms existem só no Android (LagCheckSpacing), porque as telas já usavam esses valores. Espaçamentos acima de 40 dp (44, 48, 52 em Spacer de layout) não fazem parte da escala."
 }

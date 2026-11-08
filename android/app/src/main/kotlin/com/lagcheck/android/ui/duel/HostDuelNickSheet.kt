@@ -38,6 +38,7 @@ import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 
 /**
  * Bottom Sheet para definir ou alterar o Nick Gamer local para o Duelo de Host (Decisão 112).
@@ -65,7 +66,7 @@ fun HostDuelNickSheet(
         dragHandle = {
             Box(
                 modifier = Modifier
-                    .padding(top = 10.dp, bottom = 12.dp)
+                    .padding(top = LagCheckSpacing.space2_5, bottom = LagCheckSpacing.space3)
                     .size(width = 36.dp, height = 4.dp)
                     .clip(RoundedCornerShape(LagCheckRadius.xs))
                     .background(LagCheckColors.Border)
@@ -75,11 +76,11 @@ fun HostDuelNickSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 36.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = LagCheckSpacing.space6)
+                .padding(bottom = LagCheckSpacing.space9),
+            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space4)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1_5)) {
                 Text(
                     text = tr("SEU NICK NO LOBBY"),
                     style = LagCheckTypography.MonoSmall,
@@ -105,7 +106,7 @@ fun HostDuelNickSheet(
                     .height(52.dp)
                     .clip(RoundedCornerShape(LagCheckRadius.md))
                     .background(LagCheckColors.Surface)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = LagCheckSpacing.space4),
                 contentAlignment = Alignment.CenterStart
             ) {
                 if (nick.isEmpty()) {
@@ -132,11 +133,11 @@ fun HostDuelNickSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
             ) {
                 Box(
                     modifier = Modifier

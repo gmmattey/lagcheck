@@ -12,7 +12,7 @@
     "android": {
       "cores": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt",
       "tipografia": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt",
-      "espacamento": null,
+      "espacamento": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Spacing.kt",
       "raio": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Radius.kt",
       "componentes": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/"
     },
@@ -36,7 +36,7 @@
       "textPrimary #F4F5F7",
       "textSecondary #8A93A0"
     ],
-    "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16).",
+    "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16). Android segue desde 2026-11-08 via LagCheckSpacing, com meios passos (6, 10, 14, 18) e 36 e 40 extras.",
     "raio": "iOS segue radius.json (8, 13, 17, 26, pill). Android segue desde 2026-11-08 via LagCheckRadius, com xs = 4 extra."
   },
   "divergencias": [
@@ -59,8 +59,8 @@
     },
     {
       "id": "espacamento-e-cores-android",
-      "android": "Raios resolvidos em 2026-11-08 (LagCheckRadius). Ainda sem tokens de espaçamento; 6 arquivos fora de Color.kt declaram cor fixa.",
-      "status": "raios resolvidos (Decisão 117); espaçamento e cores fixas pendentes"
+      "android": "Espaçamento: LagCheckSpacing em 297 usos de padding, spacedBy e Spacer (22 arquivos). Cores: Border, Panel e Good do tema no lugar de 6 literais; marcas de terceiros em LagCheckBrandColors.",
+      "status": "resolvida em 2026-11-08 (Decisão 117). Verde dos gráficos de Detalhes passou de #34D399 para #22C55E."
     },
     {
       "id": "tokens-proprios-windows",
@@ -82,8 +82,17 @@
     },
     {
       "id": "cores-fixas-ios",
-      "ios": "Cor fixa fora de NLColor em NetworkCockpitView, CheckCompletoResultView, ShareCanvas, ShareMediaSheet e SocialBrandIcons.",
-      "status": "pendente de revisão (ícones de redes sociais são marca de terceiros e podem ser exceção)"
+      "ios": "Veredito (NetworkCockpitView, CheckCompletoResultView), paleta do ShareCanvas e sombra de ação usam NLColor. Marcas de terceiros em NLBrandColor.",
+      "excecoes_restantes": [
+        "LagCheckPDFExporter: 16 tons de cinza próprios do PDF (UIColor(white:))",
+        "Color.white e Color.black do sistema (texto sobre acento e sobre imagem)"
+      ],
+      "status": "resolvida em 2026-11-08 (Decisão 117). O 'Não pronto' do PDF passou de #EF4444 para o Coral Solar #FF5A36."
     }
-  ]
+  ],
+  "excecoes_de_marca": {
+    "descricao": "Cores de terceiros e do ícone do app. Não são paleta do LagCheck e ficam só nos arquivos abaixo, nunca soltas em telas.",
+    "android": "LagCheckBrandColors em theme/Color.kt (Discord, WhatsApp, Telegram, X, TikTok, Instagram, AppIconViolet #3B2A78)",
+    "ios": "NLBrandColor em Tokens/NLColor.swift (WhatsApp, Telegram, Instagram, Discord, X, TikTok); ShareCanvas.artFallback #1A0B2E"
+  }
 }
