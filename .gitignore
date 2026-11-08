@@ -33,3 +33,18 @@ release/
 !android/app/src/release/
 !android/app/src/release/google-services.json
 .maestri/
+
+# Segredos e credenciais: nunca versionar (repositório público)
+.env
+.env.*
+!.env.example
+.dev.vars
+*.p8
+*.p12
+*.pem
+*.key
+*.cer
+*.mobileprovision
+service-account*.json
+*-credentials*.json
+*.secret
