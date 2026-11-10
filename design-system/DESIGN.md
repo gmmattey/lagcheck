@@ -20,6 +20,28 @@ Os tokens vivem em [colors_and_type.css](colors_and_type.css). A origem declara 
 
 As pilhas abaixo valem para o iOS e para os protótipos HTML. Android e Windows usam Google Sans Flex (veja a tabela em Plataformas e `tokens/typography.json`). As pilhas são observadas diretamente nos protótipos: `ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif`; `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`; e `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Títulos de produto trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar mono para parágrafos.
 
+
+### Tipografia do site (Web)
+
+Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, implementado em `gmmattey/landings/sites/lagcheck/`. Ela não substitui as escolhas nativas de iOS, Android e Windows acima, nem altera as cores ou o wordmark.
+
+| Papel | Família | Peso recomendado | Uso |
+| --- | --- | --- | --- |
+| Corpo | **Barlow** | 400–500 | Parágrafos, artigos, tutoriais, formulários e textos de orientação |
+| Títulos | **Barlow Semi Condensed** | 700–800 | H1–H3, chamadas, destaques e títulos editoriais |
+| Métricas | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes e diagnósticos, onde houver dados medidos |
+| Fallback | Pilha sans-serif do sistema | conforme componente | Leitura quando a fonte web não carregar |
+
+**Regras de implementação web:**
+- Centralizar as famílias em *custom properties* CSS, sem repetir configurações em páginas individuais. Aplicar as regras por papéis semânticos para que toda a home, páginas de jogos, ferramentas e páginas institucionais compartilhem a mesma tipografia.
+- Usar Barlow em leitura longa; evitar Chakra Petch em parágrafos e evitar Barlow Semi Condensed em textos de leitura contínua.
+- Preservar hierarquia, legibilidade e contraste no mobile (inclusive a 320 px); manter altura de linha adequada e controlar quebras de título e largura dos botões.
+- Carregar apenas pesos e subconjuntos necessários em WOFF2, com `font-display: swap`, alternativas compatíveis e verificação de CLS/LCP. Não introduzir dependência de CDN obrigatória se o self-hosting for viável.
+- Métricas devem continuar diferenciando valor observado, indisponível e inconclusivo. A fonte não é um sinal de estado; as cores semânticas e mensagens textuais continuam sendo a referência.
+- Paleta oficial preservada: fundo `#0B0D10`, Roxo Gamer `#7C3AED` e variações aprovadas. Sem substituir a paleta por cores inspiradas em concorrentes.
+
+**Fonte de implementação web:** `gmmattey/landings/sites/lagcheck/src/styles/global.css` e estilos compartilhados. Antes de publicar, verificar componentes com `font-family` explícita, conferir a renderização desktop/mobile e executar a suíte existente do site. A alteração desta documentação **não publica o site**.
+
 ## Espaçamento, forma e elevação
 
 Base de 4 px. Conteúdo de tela usa 22 px nas laterais, controles usam no mínimo 44 px e CTA principal 56–62 px. Raios: 8 px para mídia e métricas, 13 px para campos/cartões compactos, 17 px para CTA, 26 px para bottom sheet e pill para estado conciso. Elevação só aparece em menu, toast, CTA e sheet.
