@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +29,11 @@ fun LibraryView(
 ) {
     val repo = state.library
     val games = repo.filteredGames
+    // Evita compor centenas de cartões de uma vez no shell com rolagem externa.
+    // A virtualização real exige migrar a rolagem do AppShell para um LazyColumn/LazyGrid único.
+    var visibleCount by remember { mutableIntStateOf(40) }
+    LaunchedEffect(repo.filter, repo.searchQuery) { visibleCount = 40 }
+    val visibleGames = games.take(visibleCount)
 
     if (repo.games.isEmpty()) {
         EmptyLibrary(scanning = repo.isScanning, onSearch = { repo.rescan() }, modifier = modifier)
@@ -99,7 +109,7 @@ fun LibraryView(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    games.chunked(columns).forEach { row ->
+                    visibleGames.chunked(columns).forEach { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                             row.forEach { game ->
                                 GameCard(
@@ -117,6 +127,16 @@ fun LibraryView(
                             }
                         }
                     }
+                }
+            }
+            if (visibleCount < games.size) {
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    LibraryButton(
+                        text = "Mostrar mais jogos (${games.size - visibleCount})",
+                        onClick = { visibleCount += 40 },
+                        isPrimary = false
+                    )
                 }
             }
         }
