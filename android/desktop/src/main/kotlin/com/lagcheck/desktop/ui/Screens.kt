@@ -30,7 +30,7 @@ import com.lagcheck.session.CheckPhase
 import com.lagcheck.desktop.update.UpdateState
 import com.lagcheck.desktop.ui.map.MapPoint
 import com.lagcheck.desktop.ui.map.RouteMap
-import com.lagcheck.desktop.ui.orbit.OrbitLibraryView
+import com.lagcheck.desktop.ui.library.LibraryView
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -57,18 +57,13 @@ private fun relativeTime(time: java.time.LocalDateTime): String {
 @Composable
 fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
     Column(Modifier.fillMaxWidth()) {
-        PageHeader("ORBIT") {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("PLATAFORMA GAMER PC", style = LcType.Section, color = LcColor.OrbitLime)
-                Text(" · ", style = LcType.Section, color = LcColor.TextTertiary)
-                Text("${state.library.games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
-            }
+        PageHeader("Seus jogos") {
+            Text("${state.library.games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
         }
-        Text("Biblioteca unificada e diagnóstico de rota antes da partida.", style = LcType.Body, color = LcColor.TextSecondary, modifier = Modifier.padding(top = LcSpace.xs))
         Spacer(Modifier.height(LcSpace.lg))
 
-        // Experiência ORBIT: Destaque Cinematográfico + Filtros + Grade de Jogos
-        OrbitLibraryView(state)
+        // Destaque do jogo + filtros + grade de jogos
+        LibraryView(state)
 
         Spacer(Modifier.height(LcSpace.xxl))
         Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))

@@ -28,7 +28,12 @@ data class PcGame(
     val isInstalled: Boolean = true,
     val isFavorite: Boolean = false,
     val playTimeMinutes: Long = 0,
+    /** Última execução registrada pelo próprio launcher. Só preenche quando o dado é confiável. */
     val lastPlayedEpochMs: Long? = null,
+    /** Última vez que o jogo foi iniciado pelo LagCheck (botão Jogar). */
+    val lastLaunchedEpochMs: Long? = null,
+    /** Data de instalação, quando o launcher a expõe. Nunca estimada. */
+    val installedAtEpochMs: Long? = null,
     val coverArtworkUrl: String? = null,
     val heroArtworkUrl: String? = null,
     val localArtworkRes: String? = null,

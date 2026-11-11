@@ -1,4 +1,4 @@
-package com.lagcheck.desktop.ui.orbit
+package com.lagcheck.desktop.ui.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,13 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.desktop.AppState
 import com.lagcheck.desktop.ds.*
-import com.lagcheck.desktop.library.launcher.GameLaunchResult
-import com.lagcheck.desktop.library.launcher.GameRunner
 import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.PcGame
 
 @Composable
-fun OrbitHero(
+fun LibraryHero(
     game: PcGame,
     state: AppState,
     modifier: Modifier = Modifier
@@ -53,8 +51,8 @@ fun OrbitHero(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OrbitPlatformBadge(game.platform)
-                OrbitNetworkBadge(game.networkSupport)
+                PlatformBadge(game.platform)
+                NetworkBadge(game.networkSupport)
 
                 Spacer(Modifier.weight(1f))
 
@@ -130,31 +128,24 @@ fun OrbitHero(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Botão principal JOGAR (destaque esportivo verde-lima da interface ORBIT)
-                        OrbitButton(
+                        // Botão principal Jogar (Roxo Gamer, ação primária do design system)
+                        LibraryButton(
                             text = "Jogar",
-                            onClick = {
-                                val res = GameRunner.launch(game)
-                                state.library.launchMessage = when (res) {
-                                    is GameLaunchResult.Success -> res.message
-                                    is GameLaunchResult.Failure -> res.reason
-                                }
-                            },
-                            isPrimary = true,
-                            isLime = true
+                            onClick = { state.library.launch(game) },
+                            isPrimary = true
                         )
 
                         // Botão secundário TESTAR CONEXÃO
                         when (val net = game.networkSupport) {
                             is GameNetworkSupport.LagcheckSupported -> {
-                                OrbitButton(
+                                LibraryButton(
                                     text = "Testar Conexão",
                                     onClick = { state.startForPcGame(game) },
                                     isPrimary = false
                                 )
                             }
                             is GameNetworkSupport.GeneralConnectionOnly -> {
-                                OrbitButton(
+                                LibraryButton(
                                     text = "Testar Rota Geral",
                                     onClick = { state.startForPcGame(game) },
                                     isPrimary = false

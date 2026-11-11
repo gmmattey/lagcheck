@@ -4,15 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.lagcheck.desktop.library.launcher.GameLaunchResult
+import com.lagcheck.desktop.library.launcher.GameRunner
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 import com.lagcheck.desktop.library.scanner.EpicScanner
+import com.lagcheck.desktop.library.scanner.LibraryScanner
 import com.lagcheck.desktop.library.scanner.SteamScanner
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 enum class LibraryFilter(val label: String) {
     ALL("Todos"),
@@ -22,68 +26,95 @@ enum class LibraryFilter(val label: String) {
     EPIC("Epic Games")
 }
 
-class LibraryRepository(private val scope: CoroutineScope) {
-    private val steamScanner = SteamScanner()
-    private val epicScanner = EpicScanner()
-
+/**
+ * Biblioteca de jogos realmente encontrados no computador. Não existe jogo de demonstração:
+ * sem scanner que encontre algo, a lista fica vazia e a interface mostra o estado vazio.
+ */
+class LibraryRepository(
+    private val scope: CoroutineScope,
+    private val scanners: List<LibraryScanner> = listOf(SteamScanner(), EpicScanner()),
+    private val store: LibraryStore = LibraryStore.default(),
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val launcher: (PcGame) -> GameLaunchResult = { GameRunner.launch(it) },
+    private val clock: () -> Long = { System.currentTimeMillis() },
+    autoScan: Boolean = true,
+) {
     val games = mutableStateListOf<PcGame>()
-    var selectedGame by mutableStateOf<PcGame?>(null)
     var filter by mutableStateOf(LibraryFilter.ALL)
     var searchQuery by mutableStateOf("")
     var isScanning by mutableStateOf(false)
+    var hasScanned by mutableStateOf(false)
     var launchMessage by mutableStateOf<String?>(null)
 
-    private val prefsFile: File by lazy {
-        val baseDir = File(System.getProperty("user.home"), ".lagcheck")
-        if (!baseDir.exists()) baseDir.mkdirs()
-        File(baseDir, "orbit_prefs.properties")
-    }
+    private var selectedId by mutableStateOf<String?>(null)
+    private var prefs: LibraryStore.Snapshot = store.load()
+
+    /** Jogo escolhido pelo usuário; sem escolha, o destaque segue a regra do [HeroSelector]. */
+    val selectedGame: PcGame?
+        get() = games.firstOrNull { it.id == selectedId } ?: HeroSelector.pick(games)
 
     init {
-        // 1. Iniciar com os jogos de referência canônicos
-        games.addAll(ReferenceGames.list)
-        selectedGame = ReferenceGames.CALL_OF_DUTY
-        loadPreferences()
-
-        // 2. Realizar varredura assíncrona de launchers instalados
-        rescan()
+        if (autoScan) rescan()
     }
 
-    fun rescan() {
-        if (isScanning) return
+    fun rescan(): Job {
+        if (isScanning) return Job().also { it.complete() }
         isScanning = true
-        scope.launch {
-            val scanned = withContext(Dispatchers.IO) {
-                val steamGames = runCatching { steamScanner.scan() }.getOrDefault(emptyList())
-                val epicGames = runCatching { epicScanner.scan() }.getOrDefault(emptyList())
-                steamGames + epicGames
-            }
-
-            // Preservar jogos de referência e mesclar novos jogos encontrados sem duplicar IDs
-            val existingIds = games.map { it.id }.toSet()
-            for (g in scanned) {
-                if (g.id !in existingIds) {
-                    games.add(g)
+        return scope.launch {
+            try {
+                val scanned = withContext(ioDispatcher) {
+                    scanners.flatMap { runCatching { it.scan() }.getOrDefault(emptyList()) }
                 }
+                merge(scanned)
+            } finally {
+                hasScanned = true
+                isScanning = false
             }
-            isScanning = false
         }
     }
+
+    /** Acrescenta novos jogos e atualiza os já conhecidos, preservando as preferências. */
+    private fun merge(scanned: List<PcGame>) {
+        for (found in scanned) {
+            val withPrefs = applyPrefs(found)
+            val index = games.indexOfFirst { it.id == found.id }
+            if (index == -1) games.add(withPrefs) else games[index] = withPrefs
+        }
+    }
+
+    private fun applyPrefs(game: PcGame): PcGame = game.copy(
+        isFavorite = game.id in prefs.favorites,
+        lastLaunchedEpochMs = prefs.lastLaunched[game.id],
+    )
 
     fun toggleFavorite(game: PcGame) {
         val index = games.indexOfFirst { it.id == game.id }
-        if (index != -1) {
-            val updated = game.copy(isFavorite = !game.isFavorite)
-            games[index] = updated
-            if (selectedGame?.id == game.id) {
-                selectedGame = updated
-            }
-            savePreferences()
-        }
+        if (index == -1) return
+        val nowFavorite = !games[index].isFavorite
+        games[index] = games[index].copy(isFavorite = nowFavorite)
+        prefs = prefs.copy(favorites = if (nowFavorite) prefs.favorites + game.id else prefs.favorites - game.id)
+        store.save(prefs)
     }
 
     fun selectGame(game: PcGame) {
-        selectedGame = game
+        selectedId = game.id
+    }
+
+    /** Inicia o jogo pelo launcher. Só registra "último iniciado" quando a abertura foi aceita. */
+    fun launch(game: PcGame): GameLaunchResult {
+        val result = launcher(game)
+        launchMessage = when (result) {
+            is GameLaunchResult.Success -> result.message
+            is GameLaunchResult.Failure -> result.reason
+        }
+        if (result is GameLaunchResult.Success) {
+            val at = clock()
+            val index = games.indexOfFirst { it.id == game.id }
+            if (index != -1) games[index] = games[index].copy(lastLaunchedEpochMs = at)
+            prefs = prefs.copy(lastLaunched = prefs.lastLaunched + (game.id to at))
+            store.save(prefs)
+        }
+        return result
     }
 
     val filteredGames: List<PcGame>
@@ -102,31 +133,4 @@ class LibraryRepository(private val scope: CoroutineScope) {
                 matchesFilter && matchesQuery
             }
         }
-
-    private fun loadPreferences() {
-        if (!prefsFile.exists()) return
-        try {
-            val lines = prefsFile.readLines()
-            val favoriteIds = lines.filter { it.startsWith("fav:") }.map { it.removePrefix("fav:").trim() }.toSet()
-            for (i in games.indices) {
-                if (games[i].id in favoriteIds) {
-                    games[i] = games[i].copy(isFavorite = true)
-                }
-            }
-            if (selectedGame != null && selectedGame!!.id in favoriteIds) {
-                selectedGame = selectedGame!!.copy(isFavorite = true)
-            }
-        } catch (_: Exception) {
-            // Em caso de falha de leitura, mantém o estado padrão
-        }
-    }
-
-    private fun savePreferences() {
-        try {
-            val favorites = games.filter { it.isFavorite }.map { "fav:${it.id}" }
-            prefsFile.writeText(favorites.joinToString("\n"))
-        } catch (_: Exception) {
-            // Falha silenciosa sem travar a interface
-        }
-    }
 }

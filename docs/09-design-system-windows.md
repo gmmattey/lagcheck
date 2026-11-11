@@ -5,6 +5,8 @@
 > **Protótipo visual de referência:** `design-system/prototypes/windows-premium/index.html`.
 > **Implementação nativa Compose Desktop:** `android/desktop/` (reaproveitando o `core` de medição UDP do Android).
 
+> **Atualização (Decisão 118):** a Home do Windows passou a ser a biblioteca de jogos instalados, e o diagnóstico é contextual ao jogo e não bloqueante. Onde este documento descreve a Home como painel de leitura de partida, vale a Decisão 118 até a Etapa 6 reescrever esta especificação.
+
 ---
 
 ## 1. Princípios e Direção Visual

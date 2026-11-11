@@ -1,6 +1,6 @@
 # Licenças e Atribuições — Playnite
 
-O LagCheck ORBIT reutiliza conceitos arquiteturais, modelos de integração de launchers e padrões de leitura de manifestos de jogos desenvolvidos originalmente pelo projeto open-source **Playnite** e pelo repositório **PlayniteExtensions**, criados por **Josef Nemec**.
+O LagCheck para Windows reutiliza conceitos arquiteturais, modelos de integração de launchers e padrões de leitura de manifestos de jogos desenvolvidos originalmente pelo projeto open-source **Playnite** e pelo repositório **PlayniteExtensions**, criados por **Josef Nemec**.
 
 Em conformidade estrita com os termos da Licença MIT, a notificação de direitos autorais e o texto integral da licença estão reproduzidos abaixo.
 

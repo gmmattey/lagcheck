@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lagcheck ORBIT — Game Library & Conexão</title>
+<title>Lagcheck — Jogos e Conexão</title>
 <style>
 /* Fontes Canônicas Lagcheck Web DS (WOFF2 auto-hospedadas) */
 @font-face {
@@ -42,7 +42,7 @@
   src: url('assets/chakra-petch-latin-600-normal.woff2') format('woff2');
 }
 
-/* Tokens de Design Lagcheck + ORBIT */
+/* Tokens de Design Lagcheck */
 :root {
   --stage: #060709;
   --deep: #0B0D10;
@@ -61,11 +61,10 @@
   --purple-light: #A78BFA;
   --purple-subtle: rgba(124, 58, 237, 0.15);
 
-  /* Verde Esportivo ORBIT (Referência do mockup) */
-  --orbit-green: #22C55E;
-  --orbit-green-light: #4ADE80;
-  --orbit-green-subtle: rgba(34, 197, 94, 0.15);
-  --orbit-lime: #A3E635;
+  /* Destaque da biblioteca: Roxo Gamer do design system (Decisão 118) */
+  --lib-accent: #7C3AED;
+  --lib-accent-light: #A78BFA;
+  --lib-accent-subtle: rgba(124, 58, 237, 0.15);
 
   /* Semânticos */
   --ready: #22C55E;
@@ -131,21 +130,21 @@ button { cursor: pointer; }
   gap: 12px;
   width: 190px;
 }
-.orbit-brand {
+.lib-brand {
   display: flex;
   align-items: center;
   gap: 9px;
   text-decoration: none;
 }
-.orbit-mark {
+.lib-mark {
   width: 32px;
   height: 24px;
 }
-.orbit-brand-text {
+.lib-brand-text {
   display: flex;
   flex-direction: column;
 }
-.orbit-title {
+.lib-title {
   font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 800;
@@ -153,7 +152,7 @@ button { cursor: pointer; }
   letter-spacing: .04em;
   color: #fff;
 }
-.orbit-sub {
+.lib-sub {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
@@ -225,7 +224,7 @@ button { cursor: pointer; }
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--orbit-green);
+  background: var(--lib-accent);
 }
 .tb-avatar {
   width: 32px;
@@ -303,12 +302,12 @@ button { cursor: pointer; }
   color: var(--text-primary);
 }
 .sidebar-link.active {
-  background: var(--orbit-green-subtle);
-  color: var(--orbit-green-light);
+  background: var(--lib-accent-subtle);
+  color: var(--lib-accent-light);
   font-weight: 600;
 }
 .sidebar-link.active svg {
-  color: var(--orbit-green);
+  color: var(--lib-accent);
 }
 .sidebar-badge {
   margin-left: auto;
@@ -439,7 +438,7 @@ button { cursor: pointer; }
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: var(--orbit-green-light);
+  color: var(--lib-accent-light);
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -475,8 +474,8 @@ button { cursor: pointer; }
   height: 48px;
   padding: 0 28px;
   border-radius: 12px;
-  background: var(--orbit-lime);
-  color: #0B0D10;
+  background: var(--lib-accent);
+  color: #fff;
   border: 0;
   font-family: var(--font-heading);
   font-size: 17px;
@@ -577,7 +576,7 @@ button { cursor: pointer; }
 .hero-page-dot.active {
   width: 22px;
   border-radius: 4px;
-  background: var(--orbit-green);
+  background: var(--lib-accent);
 }
 
 /* ==========================================================================
@@ -603,7 +602,7 @@ button { cursor: pointer; }
   width: 3.5px;
   height: 20px;
   border-radius: 2px;
-  background: var(--orbit-green);
+  background: var(--lib-accent);
 }
 .library-title {
   margin: 0;
@@ -634,9 +633,9 @@ button { cursor: pointer; }
 }
 .library-pill-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
 .library-pill-btn.active {
-  border-color: var(--orbit-green);
-  color: var(--orbit-green-light);
-  background: var(--orbit-green-subtle);
+  border-color: var(--lib-accent);
+  color: var(--lib-accent-light);
+  background: var(--lib-accent-subtle);
 }
 
 .library-sort {
@@ -666,8 +665,8 @@ button { cursor: pointer; }
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .game-card.active {
-  border-color: var(--orbit-green);
-  box-shadow: 0 0 0 2px var(--orbit-green), 0 8px 28px rgba(34, 197, 94, 0.25);
+  border-color: var(--lib-accent);
+  box-shadow: 0 0 0 2px var(--lib-accent), 0 8px 28px rgba(124, 58, 237, 0.30);
 }
 .game-card-img {
   width: 100%;
@@ -695,10 +694,10 @@ button { cursor: pointer; }
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  color: var(--orbit-green-light);
+  color: var(--lib-accent-light);
   letter-spacing: .04em;
   width: fit-content;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(124, 58, 237, 0.35);
 }
 
 /* ==========================================================================
@@ -919,11 +918,11 @@ svg.i {
   <!-- 1. TOPBAR NATIVA DESKTOP -->
   <header class="topbar">
     <div class="tb-left">
-      <a href="#" class="orbit-brand" id="brand-home-link">
-        <img class="orbit-mark" src="assets/lagcheck-mark.svg" alt="Símbolo Lagcheck">
-        <div class="orbit-brand-text">
-          <span class="orbit-title">ORBIT</span>
-          <span class="orbit-sub">GAME LIBRARY</span>
+      <a href="#" class="lib-brand" id="brand-home-link">
+        <img class="lib-mark" src="assets/lagcheck-mark.svg" alt="Símbolo Lagcheck">
+        <div class="lib-brand-text">
+          <span class="lib-title">WINDOWS</span>
+          <span class="lib-sub">JOGOS</span>
         </div>
       </a>
     </div>

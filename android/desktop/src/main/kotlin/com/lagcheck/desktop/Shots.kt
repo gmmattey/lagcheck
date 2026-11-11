@@ -13,6 +13,12 @@ import com.lagcheck.domain.model.GameReadinessVerdict
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
+import com.lagcheck.desktop.library.model.GameNetworkSupport
+import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.model.PcGame
+import com.lagcheck.desktop.library.repository.LibraryRepository
+import com.lagcheck.desktop.library.repository.LibraryStore
+import com.lagcheck.desktop.library.scanner.LibraryScanner
 import java.io.File
 import java.time.LocalDateTime
 
@@ -94,7 +100,14 @@ fun renderShots(dir: String) {
                 else -> listOf(ShotVariant())
             }
             variants.forEach { variant ->
-                val state = AppState(CoroutineScope(Dispatchers.Unconfined)).also {
+                val shotScope = CoroutineScope(Dispatchers.Unconfined)
+                val library = LibraryRepository(
+                    shotScope,
+                    scanners = listOf(ShotsLibraryScanner),
+                    store = LibraryStore(File(dir, ".library-state.properties").toPath()),
+                    ioDispatcher = Dispatchers.Unconfined,
+                )
+                val state = AppState(shotScope, library).also {
                     it.stopLocationLoading()
                     it.changeReduceMotion(true)
                     it.showAnalyticsNotice = name == "notice"
@@ -117,4 +130,14 @@ fun renderShots(dir: String) {
             }
         }
     }
+}
+
+/** Jogos de exemplo exclusivos das capturas (`--shots`). Nunca entram na biblioteca do app. */
+private object ShotsLibraryScanner : LibraryScanner {
+    override val name = "Capturas"
+    override fun scan() = listOf(
+        PcGame("shot_steam_1", "Counter-Strike 2", GamePlatform.STEAM, networkSupport = GameNetworkSupport.LagcheckSupported("cs2", "São Paulo, BR")),
+        PcGame("shot_epic_1", "Fall Guys", GamePlatform.EPIC_GAMES, networkSupport = GameNetworkSupport.GeneralConnectionOnly()),
+        PcGame("shot_steam_2", "Cities: Skylines II", GamePlatform.STEAM, networkSupport = GameNetworkSupport.OfflineSingleplayer()),
+    )
 }

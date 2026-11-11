@@ -70,7 +70,7 @@ cd android
 ./gradlew test
 ```
 
-**Windows (LagCheck ORBIT — Biblioteca & Diagnóstico)**
+**Windows (LagCheck — Biblioteca de jogos & Diagnóstico)**
 ```sh
 cd android
 # 1. Executar a interface desktop interativa

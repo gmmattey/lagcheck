@@ -40,9 +40,8 @@ data class HistoryEntry(
 )
 
 /** Estado único do protótipo. Uma sessão de medição por vez; cancelar descarta tudo (sem resultado parcial). */
-class AppState(private val scope: CoroutineScope) {
+class AppState(private val scope: CoroutineScope, val library: LibraryRepository = LibraryRepository(scope)) {
     val updates = UpdateCoordinator()
-    val library = LibraryRepository(scope)
     var route by mutableStateOf<Route>(Route.Home)
     var reduceMotion by mutableStateOf(false)
     val history = mutableStateListOf<HistoryEntry>()

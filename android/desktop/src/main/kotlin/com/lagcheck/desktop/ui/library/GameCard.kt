@@ -1,4 +1,4 @@
-package com.lagcheck.desktop.ui.orbit
+package com.lagcheck.desktop.ui.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +23,7 @@ import com.lagcheck.desktop.ds.*
 import com.lagcheck.desktop.library.model.PcGame
 
 @Composable
-fun OrbitGameCard(
+fun GameCard(
     game: PcGame,
     isSelected: Boolean,
     onClick: () -> Unit,
@@ -110,7 +110,7 @@ fun OrbitGameCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OrbitPlatformBadge(game.platform)
+                PlatformBadge(game.platform)
 
                 Text(
                     text = if (game.isInstalled) "INSTALADO" else "DISPONÍVEL",

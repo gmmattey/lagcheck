@@ -2,38 +2,12 @@ package com.lagcheck.desktop.library
 
 import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
-import com.lagcheck.desktop.library.repository.LibraryFilter
-import com.lagcheck.desktop.library.repository.LibraryRepository
-import com.lagcheck.desktop.library.repository.ReferenceGames
 import com.lagcheck.desktop.library.scanner.EpicScanner
 import com.lagcheck.desktop.library.scanner.SteamScanner
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.test.*
 
 class LibraryCoreTest {
-
-    @Test
-    fun testReferenceGamesIntegrity() {
-        assertEquals(3, ReferenceGames.list.size)
-
-        val cod = ReferenceGames.CALL_OF_DUTY
-        assertEquals("Call of Duty: Warzone", cod.title)
-        assertEquals(GamePlatform.STEAM, cod.platform)
-        assertTrue(cod.networkSupport is GameNetworkSupport.LagcheckSupported)
-        assertEquals("warzone", (cod.networkSupport as GameNetworkSupport.LagcheckSupported).catalogId)
-
-        val fallGuys = ReferenceGames.FALL_GUYS
-        assertEquals("Fall Guys", fallGuys.title)
-        assertEquals(GamePlatform.EPIC_GAMES, fallGuys.platform)
-        assertTrue(fallGuys.networkSupport is GameNetworkSupport.GeneralConnectionOnly)
-
-        val cities = ReferenceGames.CITIES_SKYLINES_2
-        assertEquals("Cities: Skylines II", cities.title)
-        assertTrue(cities.networkSupport is GameNetworkSupport.OfflineSingleplayer)
-    }
 
     @Test
     fun testSteamManifestParsing() {
@@ -131,43 +105,5 @@ class LibraryCoreTest {
         } finally {
             tempDir.deleteRecursively()
         }
-    }
-
-    @Test
-    fun testLibraryRepositoryFilteringAndSearch() = runBlocking {
-        val repo = LibraryRepository(this)
-        assertTrue(repo.games.size >= 3)
-
-        // Teste de Busca
-        repo.searchQuery = "Warzone"
-        val searchResult = repo.filteredGames
-        assertEquals(1, searchResult.size)
-        assertEquals("Call of Duty: Warzone", searchResult.first().title)
-
-        // Limpar busca
-        repo.searchQuery = ""
-
-        // Teste de Filtro Steam
-        repo.filter = LibraryFilter.STEAM
-        val steamOnly = repo.filteredGames
-        assertTrue(steamOnly.all { it.platform == GamePlatform.STEAM })
-
-        // Teste de Filtro Epic
-        repo.filter = LibraryFilter.EPIC
-        val epicOnly = repo.filteredGames
-        assertTrue(epicOnly.all { it.platform == GamePlatform.EPIC_GAMES })
-
-        // Teste de Favoritar
-        val cities = repo.games.first { it.id == ReferenceGames.CITIES_SKYLINES_2.id }
-        assertFalse(cities.isFavorite)
-        repo.toggleFavorite(cities)
-
-        val updatedCities = repo.games.first { it.id == ReferenceGames.CITIES_SKYLINES_2.id }
-        assertTrue(updatedCities.isFavorite)
-
-        // Limpar filtro
-        repo.filter = LibraryFilter.ALL
-        repo.selectGame(updatedCities)
-        assertEquals(updatedCities.id, repo.selectedGame?.id)
     }
 }
