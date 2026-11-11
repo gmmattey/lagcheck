@@ -40,11 +40,12 @@
       "source": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt"
     },
     "windows": {
-      "display": "Google Sans Flex",
-      "body": "Google Sans Flex",
-      "mono": "Consolas do sistema",
-      "decision": "Decisões 114 a 116; docs/09-design-system-windows.md",
-      "source": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt"
+      "display": "Barlow Semi Condensed (700/800), fonte-alvo; empacotamento pendente",
+      "body": "Barlow (400/500), fonte-alvo; empacotamento pendente",
+      "mono": "Chakra Petch (600), fonte-alvo para métricas; empacotamento pendente",
+      "decision": "Referência visual aprovada: gmmattey/landings/sites/lagcheck/src/layouts/Base.astro e src/styles/global.css. Não declarar implementado até incluir fontes licenciadas no desktop e validar renderização.",
+      "source": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt",
+      "status": "alvo aprovado, implementação pendente de assets"
     }
   },
   "nota": "Os campos css e swiftUI de fontFamilies descrevem a pilha da Apple, que vale para iOS e para os protótipos HTML. Android e Windows usam a família própria de cada plataforma, como mostra platforms."
