@@ -55,31 +55,37 @@ private fun relativeTime(time: java.time.LocalDateTime): String {
 }
 
 @Composable
-fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
-    Column(Modifier.fillMaxWidth()) {
-        PageHeader("Seus jogos") {
-            Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
-        }
-        Spacer(Modifier.height(LcSpace.lg))
-        LibraryView(state)
-        Spacer(Modifier.height(LcSpace.xl))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
-        Spacer(Modifier.height(LcSpace.lg))
-        // O launcher é a ação principal; diagnóstico geral é uma ferramenta secundária.
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 44.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(LcSpace.md)
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text("Diagnóstico de conexão", style = LcType.BodyStrong, color = LcColor.TextPrimary)
-                Text("Teste geral opcional; não mede diretamente o servidor do jogo.", style = LcType.Body, color = LcColor.TextSecondary)
+fun HomeScreen(state: AppState, captureTestFocus: Boolean = false, modifier: Modifier = Modifier) {
+    // O Hero, as linhas de jogos e as ferramentas secundárias compartilham
+    // uma única LazyColumn. Não aninhar outra rolagem vertical no shell.
+    LibraryView(
+        state = state,
+        modifier = modifier,
+        header = {
+            PageHeader("Seus jogos") {
+                Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
             }
-            SecondaryButton("INICIAR CHECK", { state.start(null) })
+            Spacer(Modifier.height(LcSpace.lg))
+        },
+        footer = {
+            Spacer(Modifier.height(LcSpace.xl))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
+            Spacer(Modifier.height(LcSpace.lg))
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 44.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(LcSpace.md)
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Diagnóstico de conexão", style = LcType.BodyStrong, color = LcColor.TextPrimary)
+                    Text("Teste geral opcional; não mede diretamente o servidor do jogo.", style = LcType.Body, color = LcColor.TextSecondary)
+                }
+                SecondaryButton("INICIAR CHECK", { state.start(null) })
+            }
+            Spacer(Modifier.height(LcSpace.lg))
+            HomeRecentHistory(state)
         }
-        Spacer(Modifier.height(LcSpace.lg))
-        HomeRecentHistory(state)
-    }
+    )
 }
 
 @Composable
