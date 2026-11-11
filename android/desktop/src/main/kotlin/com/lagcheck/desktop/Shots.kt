@@ -13,6 +13,9 @@ import com.lagcheck.domain.model.GameReadinessVerdict
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
+import com.lagcheck.desktop.library.artwork.ArtworkDiskCache
+import com.lagcheck.desktop.library.artwork.GameArtworkResolver
+import com.lagcheck.desktop.library.artwork.HttpArtworkFetcher
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 import com.lagcheck.desktop.library.repository.LibraryRepository
@@ -110,7 +113,12 @@ fun renderShots(dir: String) {
                     networkResolver = NetworkSupportResolver(catalog = { listOf(CatalogGame("cs2", "Counter-Strike 2")) }, regionLabel = { "São Paulo" }),
                     ioDispatcher = Dispatchers.Unconfined,
                 )
-                val state = AppState(shotScope, library).also {
+                val artwork = GameArtworkResolver(
+                    localSources = emptyList(), remoteSources = emptyList(),
+                    cache = ArtworkDiskCache(File(dir, ".artwork").toPath()), fetcher = HttpArtworkFetcher(),
+                    remoteEnabled = { false }, ioDispatcher = Dispatchers.Unconfined,
+                )
+                val state = AppState(shotScope, library, artwork).also {
                     it.stopLocationLoading()
                     it.changeReduceMotion(true)
                     it.showAnalyticsNotice = name == "notice"

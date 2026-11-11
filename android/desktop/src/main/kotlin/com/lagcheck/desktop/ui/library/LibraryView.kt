@@ -107,6 +107,8 @@ fun LibraryView(
                                     isSelected = repo.selectedGame?.id == game.id,
                                     onClick = { repo.selectGame(game) },
                                     onToggleFavorite = { repo.toggleFavorite(game) },
+                                    artwork = state.artwork,
+                                    artworkGeneration = state.artworkGeneration,
                                     modifier = Modifier.weight(1f)
                                 )
                             }

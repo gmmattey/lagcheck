@@ -8,7 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.lagcheck.desktop.library.artwork.GameArtworkResolver
 import com.lagcheck.desktop.update.UpdateCoordinator
 import com.lagcheck.desktop.analytics.*
 import com.lagcheck.desktop.location.*
@@ -40,7 +42,11 @@ data class HistoryEntry(
 )
 
 /** Estado único do protótipo. Uma sessão de medição por vez; cancelar descarta tudo (sem resultado parcial). */
-class AppState(private val scope: CoroutineScope, val library: LibraryRepository = LibraryRepository(scope, networkResolver = DesktopNetworkSupport.resolver)) {
+class AppState(
+    private val scope: CoroutineScope,
+    val library: LibraryRepository = LibraryRepository(scope, networkResolver = DesktopNetworkSupport.resolver),
+    val artwork: GameArtworkResolver = DesktopArtwork.resolver,
+) {
     val updates = UpdateCoordinator()
     var route by mutableStateOf<Route>(Route.Home)
     var reduceMotion by mutableStateOf(false)
@@ -51,6 +57,9 @@ class AppState(private val scope: CoroutineScope, val library: LibraryRepository
     val series = mutableStateListOf<Double>()
     var loadStart by mutableStateOf<Int?>(null)
     var failed by mutableStateOf(false)
+    var artworkDownloadEnabled by mutableStateOf(DesktopPreferences.artworkDownloadEnabled())
+    /** Muda quando o usuário atualiza as imagens, para a interface recarregá-las. */
+    var artworkGeneration by mutableStateOf(0)
     var approximateLocationEnabled by mutableStateOf(DesktopPreferences.locationEnabled())
     var approximateLocation by mutableStateOf<ApproxLocation?>(null)
     var locationLoading by mutableStateOf(false)
@@ -69,6 +78,7 @@ class AppState(private val scope: CoroutineScope, val library: LibraryRepository
 
     init {
         MotionPreferences.reduced = reduceMotion
+        DesktopArtwork.downloadEnabled = artworkDownloadEnabled
         scope.launch(Dispatchers.IO) { updates.check() }
         if (approximateLocationEnabled) loadApproximateLocation()
     }
@@ -159,6 +169,18 @@ class AppState(private val scope: CoroutineScope, val library: LibraryRepository
     fun onResultViewed(entry: HistoryEntry) { track(ProductAnalyticsEvent.ResultViewed(Measurement.games.firstOrNull { it.name == entry.title }?.id ?: "generic-gaming", "pc", entry.verdict.name.lowercase())) }
     fun changeReduceMotion(enabled: Boolean) { reduceMotion = enabled; MotionPreferences.reduced = enabled; routeMap.reducedMotion = enabled }
     fun setApproximateLocation(enabled: Boolean) { approximateLocationEnabled = enabled; DesktopPreferences.setLocationEnabled(enabled); locationJob?.cancel(); if (!enabled) { locationLoading = false; approximateLocation = null; locationClient.clearCache() } else loadApproximateLocation() }
+    fun changeArtworkDownload(enabled: Boolean) {
+        artworkDownloadEnabled = enabled
+        DesktopArtwork.downloadEnabled = enabled
+        DesktopPreferences.setArtworkDownloadEnabled(enabled)
+        artworkGeneration++
+    }
+    fun refreshArtwork(game: PcGame) {
+        scope.launch {
+            withContext(Dispatchers.IO) { artwork.refresh(game) }
+            artworkGeneration++
+        }
+    }
     fun changeAnalyticsEnabled(enabled: Boolean) { analyticsEnabled = enabled; DesktopPreferences.changeAnalyticsEnabled(enabled) }
     fun dismissAnalyticsNotice() { showAnalyticsNotice = false; DesktopPreferences.setAnalyticsNoticeSeen() }
     fun newAnalyticsId() { InstallationId.renew() }
@@ -193,6 +215,8 @@ private object DesktopPreferences {
     fun setLocationEnabled(value: Boolean) = write("approximateLocation", value.toString())
     fun analyticsEnabled() = !values().getProperty("analyticsExcluded", "false").toBoolean()
     fun changeAnalyticsEnabled(value: Boolean) = write("analyticsExcluded", (!value).toString())
+    fun artworkDownloadEnabled() = values().getProperty("artworkDownload", "true").toBoolean()
+    fun setArtworkDownloadEnabled(value: Boolean) = write("artworkDownload", value.toString())
     fun analyticsNoticeSeen() = values().getProperty("analyticsNoticeSeen", "false").toBoolean()
     fun setAnalyticsNoticeSeen() = write("analyticsNoticeSeen", "true")
 }

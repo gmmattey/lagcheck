@@ -55,7 +55,8 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
 
     private fun isTool(name: String) = name.startsWith("Steamworks") || name.startsWith("Proton") || name.startsWith("Steam Linux")
 
-    private fun detectSteamRoot(): File? {
+    /** Pasta de instalação da Steam neste PC, ou null. Usado também para achar o cache de imagens do cliente. */
+    fun detectSteamRoot(): File? {
         val os = System.getProperty("os.name").lowercase()
         if (os.contains("win")) {
             // 1. Tentar ler do registro do Windows

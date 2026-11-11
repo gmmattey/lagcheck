@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.desktop.ds.*
+import com.lagcheck.desktop.library.artwork.ArtworkType
+import com.lagcheck.desktop.library.artwork.GameArtworkResolver
 import com.lagcheck.desktop.library.model.PcGame
 
 @Composable
@@ -28,6 +30,8 @@ fun GameCard(
     isSelected: Boolean,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
+    artwork: GameArtworkResolver,
+    artworkGeneration: Int,
     modifier: Modifier = Modifier
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -58,23 +62,12 @@ fun GameCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(LcRadius.r8))
                     .background(Color(0xFF0F1115))
                     .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r8))
             ) {
-                if (!game.localArtworkRes.isNullOrBlank()) {
-                    ApprovedArtwork(game.localArtworkRes, game.title, Modifier.fillMaxSize())
-                } else {
-                    // Fallback visual limpo e editorial
-                    Box(Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = game.title.take(2).uppercase(),
-                            style = LcType.DataLarge,
-                            color = LcColor.TextTertiary
-                        )
-                    }
-                }
+                GameArtwork(game, ArtworkType.COVER, artwork, artworkGeneration, Modifier.fillMaxSize())
 
                 // Indicador de favorito no canto superior
                 if (game.isFavorite) {

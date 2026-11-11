@@ -583,6 +583,7 @@ fun SettingsScreen(state: AppState) {
         Spacer(Modifier.height(LcSpace.xl))
         Column(Modifier.widthIn(max = 560.dp)) {
         SettingsToggle("Reduzir movimento", "Para câmera, pacotes, pulsos, gráficos e transições.", state.reduceMotion) { state.changeReduceMotion(it) }
+        SettingsToggle("Baixar imagens dos jogos", "Capas e banners da Steam, guardados neste PC. Só pede a imagem de cada jogo: não envia a lista de jogos nem dado pessoal. Desligado, usa só o que já está no PC.", state.artworkDownloadEnabled) { state.changeArtworkDownload(it) }
         SettingsToggle("Localização aproximada", "Cidade aproximada pelo seu IP, só para posicionar o mapa. Nunca GPS e nunca enviada a lugar nenhum.", state.approximateLocationEnabled) { state.setApproximateLocation(it) }
             Column(Modifier.fillMaxWidth().padding(vertical = LcSpace.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
