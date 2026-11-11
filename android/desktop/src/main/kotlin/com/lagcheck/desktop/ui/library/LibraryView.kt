@@ -5,12 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +42,7 @@ fun LibraryView(
         }
         // Cada item da LazyColumn corresponde a uma linha de cards; somente as
         // linhas visíveis e próximas são compostas.
-        val rows = remember(games, columns) { games.chunked(columns) }
+        val rows = games.chunked(columns)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
