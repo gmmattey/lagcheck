@@ -1,6 +1,5 @@
 package com.lagcheck.desktop.library.scanner
 
-import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 import java.io.File
@@ -12,19 +11,32 @@ import java.io.File
 class EpicScanner(private val customManifestsPath: File? = null) : LibraryScanner {
     override val name: String = "Epic Games"
 
-    override fun scan(): List<PcGame> {
-        val manifestsDir = customManifestsPath ?: detectManifestsDir() ?: return emptyList()
-        if (!manifestsDir.exists() || !manifestsDir.isDirectory) return emptyList()
+    override val platform: GamePlatform = GamePlatform.EPIC_GAMES
 
-        val items = manifestsDir.listFiles { f -> f.isFile && f.name.endsWith(".item") } ?: return emptyList()
+    override fun scan(): ScanResult {
+        val manifestsDir = customManifestsPath ?: detectManifestsDir() ?: return ScanResult.Unavailable("Epic Games não encontrada")
+        if (!manifestsDir.exists() || !manifestsDir.isDirectory) return ScanResult.Unavailable("Pasta da Epic inacessível")
+
+        val items = manifestsDir.listFiles { f -> f.isFile && f.name.endsWith(".item") }
+            ?: return ScanResult.Unavailable("Não foi possível listar os jogos da Epic")
         val games = mutableListOf<PcGame>()
+        var unreadable = false
 
         for (item in items) {
-            parseItem(item)?.let { games.add(it) }
+            val game = parseItem(item)
+            if (game != null) games.add(game) else if (!isIntentionallySkipped(item)) unreadable = true
         }
 
-        return games
+        // O nome do arquivo .item é um hash: não dá para saber a qual jogo a entrada ilegível pertencia.
+        return ScanResult.Found(games = games, incomplete = unreadable)
     }
+
+    private fun isIntentionallySkipped(item: File): Boolean = runCatching {
+        val name = Regex(""""DisplayName"\s*:\s*"([^"]+)"""").find(item.readText())?.groupValues?.get(1) ?: return@runCatching false
+        isTool(name)
+    }.getOrDefault(false)
+
+    private fun isTool(displayName: String) = displayName.contains("Unreal Engine") || displayName.contains("Prerequisites")
 
     private fun detectManifestsDir(): File? {
         val os = System.getProperty("os.name").lowercase()
@@ -48,15 +60,11 @@ class EpicScanner(private val customManifestsPath: File? = null) : LibraryScanne
             val launchExe = Regex(""""LaunchExecutable"\s*:\s*"([^"]+)"""").find(content)?.groupValues?.get(1)
 
             // Filtrar itens de sistema ou ferramentas
-            if (displayName.contains("Unreal Engine") || displayName.contains("Prerequisites")) {
-                return null
-            }
+            if (isTool(displayName)) return null
 
             val fullExecutable = if (installLocation != null && launchExe != null) {
                 File(installLocation, launchExe).absolutePath
             } else null
-
-            val network = resolveNetworkSupport(displayName, appName)
 
             PcGame(
                 id = "epic_$appName",
@@ -66,25 +74,10 @@ class EpicScanner(private val customManifestsPath: File? = null) : LibraryScanne
                 executablePath = fullExecutable,
                 launchUri = "com.epicgames.launcher://apps/$appName?action=launch",
                 isInstalled = true,
-                networkSupport = network,
                 tags = listOf("Epic Games", "PC")
             )
         } catch (_: Exception) {
             null
-        }
-    }
-
-    private fun resolveNetworkSupport(name: String, appName: String): GameNetworkSupport {
-        val lower = name.lowercase()
-        return when {
-            lower.contains("fortnite") || appName.lowercase() == "fortnite" ->
-                GameNetworkSupport.LagcheckSupported("fortnite", "São Paulo, BR")
-            lower.contains("rocket league") ->
-                GameNetworkSupport.LagcheckSupported("rocket-league", "São Paulo, BR")
-            lower.contains("fall guys") || appName == "Sugar" ->
-                GameNetworkSupport.GeneralConnectionOnly("Party game via Epic Online Services")
-            else ->
-                GameNetworkSupport.GeneralConnectionOnly("Testar conexão geral")
         }
     }
 }

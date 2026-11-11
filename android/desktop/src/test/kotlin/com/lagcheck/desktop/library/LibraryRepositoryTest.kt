@@ -1,7 +1,11 @@
 package com.lagcheck.desktop.library
 
 import com.lagcheck.desktop.library.launcher.GameLaunchResult
+import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.network.CatalogGame
+import com.lagcheck.desktop.library.network.NetworkSupportResolver
+import com.lagcheck.desktop.library.scanner.ScanResult
 import com.lagcheck.desktop.library.repository.LibraryFilter
 import com.lagcheck.desktop.library.repository.LibraryRepository
 import com.lagcheck.desktop.library.repository.LibraryStore
@@ -57,7 +61,7 @@ class LibraryRepositoryTest {
     @Test
     fun destaquePadraoSegueARegraEEscolhaDoUsuarioTemPrioridade() {
         withDir { dir ->
-            val r = repo(dir, listOf(FakeScanner(listOf(TestGames.cs2, TestGames.fallGuys, TestGames.cities))))
+            val r = repo(dir, listOf(FakeScanner(listOf(TestGames.cs2, TestGames.cities)), FakeScanner(listOf(TestGames.fallGuys), platform = GamePlatform.EPIC_GAMES)))
             r.scan()
             assertEquals(TestGames.cities.id, r.selectedGame?.id) // ordem por título
             r.selectGame(r.games.first { it.id == TestGames.fallGuys.id })
@@ -68,7 +72,7 @@ class LibraryRepositoryTest {
     @Test
     fun favoritoSobreviveAReabrirOApp() {
         withDir { dir ->
-            val scanners = listOf(FakeScanner(listOf(TestGames.cs2, TestGames.fallGuys)))
+            val scanners = listOf(FakeScanner(listOf(TestGames.cs2)), FakeScanner(listOf(TestGames.fallGuys), platform = GamePlatform.EPIC_GAMES))
             val first = repo(dir, scanners)
             first.scan()
             first.toggleFavorite(first.games.first { it.id == TestGames.cs2.id })
@@ -88,7 +92,7 @@ class LibraryRepositoryTest {
     @Test
     fun jogarRegistraUltimoIniciadoEViraDestaqueNaProximaAbertura() {
         withDir { dir ->
-            val scanners = listOf(FakeScanner(listOf(TestGames.cs2, TestGames.fallGuys, TestGames.cities)))
+            val scanners = listOf(FakeScanner(listOf(TestGames.cs2, TestGames.cities)), FakeScanner(listOf(TestGames.fallGuys), platform = GamePlatform.EPIC_GAMES))
             val first = repo(dir, scanners, clock = { 5_000L })
             first.scan()
             val result = first.launch(first.games.first { it.id == TestGames.fallGuys.id })
@@ -116,7 +120,10 @@ class LibraryRepositoryTest {
     @Test
     fun filtrosEBuscaFuncionamSobreJogosReais() {
         withDir { dir ->
-            val r = repo(dir, listOf(FakeScanner(listOf(TestGames.cs2, TestGames.fallGuys, TestGames.cities, TestGames.apex))))
+            val r = repo(dir, listOf(
+                FakeScanner(listOf(TestGames.cs2, TestGames.cities, TestGames.apex)),
+                FakeScanner(listOf(TestGames.fallGuys), platform = GamePlatform.EPIC_GAMES),
+            ))
             r.scan()
 
             r.searchQuery = "counter"
@@ -127,10 +134,96 @@ class LibraryRepositoryTest {
             assertTrue(r.filteredGames.all { it.platform == GamePlatform.STEAM })
             r.filter = LibraryFilter.EPIC
             assertEquals(listOf(TestGames.fallGuys.id), r.filteredGames.map { it.id })
+            r.filter = LibraryFilter.ALL
+            assertTrue(r.filteredGames.any { it.id == TestGames.apex.id }) // conhecido, não instalado
             r.filter = LibraryFilter.INSTALLED
             assertFalse(r.filteredGames.any { it.id == TestGames.apex.id })
             r.filter = LibraryFilter.FAVORITES
             assertTrue(r.filteredGames.isEmpty())
+        }
+    }
+
+    @Test
+    fun jogoDesinstaladoContinuaConhecidoENaoAbre() {
+        withDir { dir ->
+            val scanner = MutableScanner(ScanResult.Found(listOf(TestGames.cs2, TestGames.cities)))
+            var launched = 0
+            val r = repo(dir, listOf(scanner), launcher = { launched++; GameLaunchResult.Success("ok") })
+            r.scan()
+            r.toggleFavorite(r.games.first { it.id == TestGames.cs2.id })
+
+            scanner.result = ScanResult.Found(listOf(TestGames.cities)) // cs2 desinstalado
+            r.scan()
+            val cs2 = r.games.first { it.id == TestGames.cs2.id }
+            assertFalse(cs2.isInstalled)
+            assertTrue(cs2.isFavorite)
+            assertEquals(1, r.installedCount)
+            assertTrue(r.launch(cs2) is GameLaunchResult.Failure)
+            assertEquals(0, launched)
+            assertNull(r.games.first { it.id == TestGames.cs2.id }.lastLaunchedEpochMs)
+        }
+    }
+
+    @Test
+    fun launcherForaDoArNaoApagaABiblioteca() {
+        withDir { dir ->
+            val scanner = MutableScanner(ScanResult.Found(listOf(TestGames.cs2)))
+            val r = repo(dir, listOf(scanner))
+            r.scan()
+            scanner.result = ScanResult.Unavailable("Steam não encontrada")
+            r.scan()
+            assertTrue(r.games.single().isInstalled)
+        }
+    }
+
+    @Test
+    fun conhecidosSobrevivemAReabrirMesmoComLauncherFora() {
+        withDir { dir ->
+            val first = repo(dir, listOf(MutableScanner(ScanResult.Found(listOf(TestGames.cs2, TestGames.cities)))))
+            first.scan()
+
+            val second = repo(dir, listOf(MutableScanner(ScanResult.Unavailable("fora"))))
+            // Sem varredura bem-sucedida, a lista vem do que já era conhecido.
+            assertEquals(setOf(TestGames.cs2.id, TestGames.cities.id), second.games.map { it.id }.toSet())
+            assertTrue(second.games.all { it.isInstalled })
+            assertNotNull(second.selectedGame)
+        }
+    }
+
+    @Test
+    fun duplicataEntrePlataformasApareceUmaVezEFavoritoVaiNoGrupo() {
+        withDir { dir ->
+            val steamCopy = TestGames.fallGuys.copy(id = "steam_77", platform = GamePlatform.STEAM)
+            val r = repo(dir, listOf(
+                MutableScanner(ScanResult.Found(listOf(steamCopy))),
+                MutableScanner(ScanResult.Found(listOf(TestGames.fallGuys)), GamePlatform.EPIC_GAMES),
+            ))
+            r.scan()
+            assertEquals(1, r.games.size)
+            val g = r.games.single()
+            assertEquals("steam_77", g.id)
+            assertEquals(listOf(TestGames.fallGuys.id), g.alsoIds)
+
+            r.toggleFavorite(g)
+            assertTrue(r.games.single().isFavorite)
+            r.toggleFavorite(r.games.single())
+            assertFalse(r.games.single().isFavorite) // desfavoritar limpa todas as cópias
+        }
+    }
+
+    @Test
+    fun suporteDeRedeVemDoResolvedorECatalogoNaoDoScanner() {
+        withDir { dir ->
+            val resolver = NetworkSupportResolver({ listOf(CatalogGame("cs2", "Counter-Strike 2")) })
+            val r = LibraryRepository(
+                scope = scope, scanners = listOf(FakeScanner(listOf(TestGames.cs2, TestGames.fallGuys))),
+                store = LibraryStore(dir.resolve("state.properties")), networkResolver = resolver,
+                ioDispatcher = Dispatchers.Unconfined, autoScan = false,
+            )
+            r.scan()
+            r.filter = LibraryFilter.ALL
+            assertTrue(r.games.first { it.id == TestGames.cs2.id }.networkSupport is GameNetworkSupport.LagcheckSupported)
+            assertTrue(r.games.first { it.id == TestGames.fallGuys.id }.networkSupport is GameNetworkSupport.GeneralConnectionOnly)
         }
     }
 }

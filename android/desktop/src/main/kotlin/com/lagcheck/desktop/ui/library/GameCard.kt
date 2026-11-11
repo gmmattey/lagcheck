@@ -113,7 +113,7 @@ fun GameCard(
                 PlatformBadge(game.platform)
 
                 Text(
-                    text = if (game.isInstalled) "INSTALADO" else "DISPONÍVEL",
+                    text = if (game.isInstalled) "INSTALADO" else "NÃO INSTALADO",
                     style = LcType.Section.copy(fontSize = 10.sp),
                     color = if (game.isInstalled) LcColor.Good else LcColor.TextTertiary
                 )

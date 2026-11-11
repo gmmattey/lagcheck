@@ -13,12 +13,14 @@ import com.lagcheck.domain.model.GameReadinessVerdict
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
-import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 import com.lagcheck.desktop.library.repository.LibraryRepository
 import com.lagcheck.desktop.library.repository.LibraryStore
+import com.lagcheck.desktop.library.network.CatalogGame
+import com.lagcheck.desktop.library.network.NetworkSupportResolver
 import com.lagcheck.desktop.library.scanner.LibraryScanner
+import com.lagcheck.desktop.library.scanner.ScanResult
 import java.io.File
 import java.time.LocalDateTime
 
@@ -105,6 +107,7 @@ fun renderShots(dir: String) {
                     shotScope,
                     scanners = listOf(ShotsLibraryScanner),
                     store = LibraryStore(File(dir, ".library-state.properties").toPath()),
+                    networkResolver = NetworkSupportResolver(catalog = { listOf(CatalogGame("cs2", "Counter-Strike 2")) }, regionLabel = { "São Paulo" }),
                     ioDispatcher = Dispatchers.Unconfined,
                 )
                 val state = AppState(shotScope, library).also {
@@ -135,9 +138,10 @@ fun renderShots(dir: String) {
 /** Jogos de exemplo exclusivos das capturas (`--shots`). Nunca entram na biblioteca do app. */
 private object ShotsLibraryScanner : LibraryScanner {
     override val name = "Capturas"
-    override fun scan() = listOf(
-        PcGame("shot_steam_1", "Counter-Strike 2", GamePlatform.STEAM, networkSupport = GameNetworkSupport.LagcheckSupported("cs2", "São Paulo, BR")),
-        PcGame("shot_epic_1", "Fall Guys", GamePlatform.EPIC_GAMES, networkSupport = GameNetworkSupport.GeneralConnectionOnly()),
-        PcGame("shot_steam_2", "Cities: Skylines II", GamePlatform.STEAM, networkSupport = GameNetworkSupport.OfflineSingleplayer()),
-    )
+    override val platform = GamePlatform.STEAM
+    override fun scan() = ScanResult.Found(listOf(
+        PcGame("steam_730", "Counter-Strike 2", GamePlatform.STEAM),
+        PcGame("steam_shot_2", "Cities: Skylines II", GamePlatform.STEAM),
+        PcGame("steam_shot_3", "Fall Guys", GamePlatform.STEAM),
+    ))
 }

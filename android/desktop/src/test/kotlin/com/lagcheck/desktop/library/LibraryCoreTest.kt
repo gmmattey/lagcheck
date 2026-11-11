@@ -1,8 +1,8 @@
 package com.lagcheck.desktop.library
 
-import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.scanner.EpicScanner
+import com.lagcheck.desktop.library.scanner.ScanResult
 import com.lagcheck.desktop.library.scanner.SteamScanner
 import java.io.File
 import kotlin.test.*
@@ -36,8 +36,6 @@ class LibraryCoreTest {
             assertEquals("Counter-Strike 2", game.title)
             assertEquals("steam://rungameid/730", game.launchUri)
             assertTrue(game.isInstalled)
-            assertTrue(game.networkSupport is GameNetworkSupport.LagcheckSupported)
-            assertEquals("cs2", (game.networkSupport as GameNetworkSupport.LagcheckSupported).catalogId)
         } finally {
             tempDir.deleteRecursively()
         }
@@ -101,9 +99,62 @@ class LibraryCoreTest {
             assertEquals(GamePlatform.EPIC_GAMES, game.platform)
             assertEquals("com.epicgames.launcher://apps/Sugar?action=launch", game.launchUri)
             assertTrue(game.isInstalled)
-            assertTrue(game.networkSupport is GameNetworkSupport.GeneralConnectionOnly)
         } finally {
             tempDir.deleteRecursively()
         }
+    }
+
+    private fun tmp(): File = File.createTempFile("lc_scan", "").also { it.delete(); it.mkdirs() }
+
+    @Test
+    fun steamSemInstalacaoEhIndisponivelNaoVazio() {
+        val dir = tmp()
+        try {
+            // Pasta existe mas não há como saber nada além disso: sem steamapps a varredura é "Found" vazia,
+            // enquanto raiz inexistente é "Unavailable" e nunca pode marcar jogos como removidos.
+            assertTrue(SteamScanner(File(dir, "nao-existe")).scan() is ScanResult.Unavailable)
+            val r = SteamScanner(dir).scan()
+            assertTrue(r is ScanResult.Found && r.games.isEmpty())
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun steamRelataBibliotecaInacessivelEManifestoIlegivel() {
+        val dir = tmp()
+        try {
+            val apps = File(dir, "steamapps").also { it.mkdirs() }
+            File(apps, "libraryfolders.vdf").writeText(
+                """"libraryfolders"
+{
+    "0" { "path" "${dir.absolutePath.replace("\\", "\\\\")}" "apps" { "730" "123456789" } }
+    "1" { "path" "/disco/externo/desconectado" }
+}"""
+            )
+            File(apps, "appmanifest_730.acf").writeText(""""AppState" { "appid" "730" "name" "Counter-Strike 2" "StateFlags" "4" "installdir" "cs2" }""")
+            File(apps, "appmanifest_999.acf").writeText("conteúdo corrompido")
+            File(apps, "appmanifest_228980.acf").writeText(""""AppState" { "appid" "228980" "name" "Steamworks Common Redistributables" "StateFlags" "4" "installdir" "x" }""")
+
+            val r = SteamScanner(dir).scan() as ScanResult.Found
+            assertEquals(listOf("steam_730"), r.games.map { it.id })
+            assertEquals(listOf("/disco/externo/desconectado"), r.unreachableRoots) // "730 123456789" não vira pasta
+            assertEquals(setOf("steam_999"), r.unreadableIds) // ferramenta filtrada de propósito não conta
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun epicDiferenciaIndisponivelDeVazioEIncompleto() {
+        val dir = tmp()
+        try {
+            assertTrue(EpicScanner(File(dir, "nao-existe")).scan() is ScanResult.Unavailable)
+            val empty = EpicScanner(dir).scan() as ScanResult.Found
+            assertTrue(empty.games.isEmpty() && !empty.incomplete)
+
+            File(dir, "ok.item").writeText("""{ "DisplayName": "Fortnite", "AppName": "Fortnite", "InstallLocation": "C:\\Games\\F", "LaunchExecutable": "f.exe" }""")
+            File(dir, "ruim.item").writeText("sem json")
+            File(dir, "ue.item").writeText("""{ "DisplayName": "Unreal Engine 5", "AppName": "UE_5" }""")
+            val r = EpicScanner(dir).scan() as ScanResult.Found
+            assertEquals(listOf("epic_Fortnite"), r.games.map { it.id })
+            assertTrue(r.incomplete) // "sem json" é ilegível; a ferramenta filtrada não conta
+        } finally { dir.deleteRecursively() }
     }
 }

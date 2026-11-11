@@ -58,7 +58,7 @@ private fun relativeTime(time: java.time.LocalDateTime): String {
 fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
     Column(Modifier.fillMaxWidth()) {
         PageHeader("Seus jogos") {
-            Text("${state.library.games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+            Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
         }
         Spacer(Modifier.height(LcSpace.lg))
 

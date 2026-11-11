@@ -132,7 +132,8 @@ fun LibraryHero(
                         LibraryButton(
                             text = "Jogar",
                             onClick = { state.library.launch(game) },
-                            isPrimary = true
+                            isPrimary = true,
+                            enabled = game.isInstalled
                         )
 
                         // Botão secundário TESTAR CONEXÃO

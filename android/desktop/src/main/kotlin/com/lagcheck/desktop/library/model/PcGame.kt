@@ -38,6 +38,8 @@ data class PcGame(
     val heroArtworkUrl: String? = null,
     val localArtworkRes: String? = null,
     val networkSupport: GameNetworkSupport = GameNetworkSupport.GeneralConnectionOnly(),
+    /** Ids das cópias deste jogo em outras plataformas, agrupadas como duplicata. */
+    val alsoIds: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
     val description: String? = null
 )

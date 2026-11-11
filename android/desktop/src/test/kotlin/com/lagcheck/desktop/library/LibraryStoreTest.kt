@@ -1,6 +1,8 @@
 package com.lagcheck.desktop.library
 
 import com.lagcheck.desktop.library.repository.LibraryStore
+import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.model.PcGame
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,6 +51,35 @@ class LibraryStoreTest {
             assertTrue(Files.exists(legacy))
             // A partir daí lê o arquivo novo, não o antigo.
             assertEquals(setOf("steam_730", "epic_Sugar"), LibraryStore(dir.resolve("library-state.properties")).load().favorites)
+        } finally { dir.toFile().deleteRecursively() }
+    }
+
+    @Test
+    fun persisteJogosConhecidosComDadosOpcionais() {
+        val dir = tempDir()
+        try {
+            val store = LibraryStore(dir.resolve("state.properties"))
+            val games = listOf(
+                PcGame("steam_730", "Counter-Strike 2", GamePlatform.STEAM, installDirectory = "C:\\Steam\\x", launchUri = "steam://rungameid/730", isInstalled = false, lastPlayedEpochMs = 5),
+                PcGame("epic_a", "Jogo = com : símbolos", GamePlatform.EPIC_GAMES, executablePath = "C:\\g.exe"),
+            )
+            store.save(LibraryStore.Snapshot(knownGames = games))
+            val back = LibraryStore(dir.resolve("state.properties")).load().knownGames
+            assertEquals(games.map { it.id }, back.map { it.id })
+            assertEquals(games[0], back[0])
+            assertEquals("Jogo = com : símbolos", back[1].title)
+            assertEquals("C:\\g.exe", back[1].executablePath)
+            assertTrue(back[1].isInstalled)
+        } finally { dir.toFile().deleteRecursively() }
+    }
+
+    @Test
+    fun entradaDeJogoInvalidaEIgnoradaSemDerrubarAsOutras() {
+        val dir = tempDir()
+        try {
+            val f = dir.resolve("state.properties")
+            Files.writeString(f, "game.0.id=a\ngame.0.title=A\ngame.0.platform=NAO_EXISTE\ngame.1.id=b\ngame.1.title=B\ngame.1.platform=STEAM\ngame.2.id=c\n")
+            assertEquals(listOf("b"), LibraryStore(f).load().knownGames.map { it.id })
         } finally { dir.toFile().deleteRecursively() }
     }
 }
