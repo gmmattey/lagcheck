@@ -15,12 +15,21 @@ object LcColor {
     val Surface = Color(0xFF15181E)
     val Panel = Color(0xFF1E232B)
     val BorderHairline = Color(0x14FFFFFF)
-    val BorderStrong = Color(0x29FFFFFF)
+    val BorderSubtle = Color(0x1AFFFFFF) // rgba(255, 255, 255, 0.10)
+    val BorderStrong = Color(0x29FFFFFF) // rgba(255, 255, 255, 0.16)
+    val BorderHover = Color(0x737C3AED)  // rgba(124, 58, 237, 0.45)
+    val Sky = Color(0xFF38BDF8)
     val Accent = Color(0xFF7C3AED)
     val AccentHover = Color(0xFF8B5CF6)
     val AccentPressed = Color(0xFF6D28D9)
     val AccentLight = Color(0xFFA78BFA)
     val AccentSubtle = Color(0x267C3AED)
+    // Destaque visual da interface ORBIT (Verde-lima esportivo)
+    val OrbitLime = Color(0xFFA3E635)
+    val OrbitLimeHover = Color(0xFFBEF264)
+    val OrbitLimePressed = Color(0xFF84CC16)
+    val OrbitLimeDark = Color(0xFF365314)
+    val OrbitLimeSubtle = Color(0x26A3E635)
     val Coral = Color(0xFFFF5A36)
     val Caution = Color(0xFFF59E0B)
     val Good = Color(0xFF22C55E)
@@ -32,8 +41,16 @@ object LcColor {
 }
 
 object LcSpace { val xs = 4.dp; val sm = 8.dp; val md = 12.dp; val lg = 16.dp; val xl = 24.dp; val xxl = 32.dp }
-/** Raios discretos do artefato Windows: controles compactos e painéis sem aspecto de card macio. */
-object LcRadius { val control = 7.dp; val panel = 10.dp }
+/** Raios do OpenDesign e design.md: r8 (mídia/métrica), r13 (controles/cards), r17 (CTAs), r26 (sheets), pill. */
+object LcRadius {
+    val control = 8.dp
+    val panel = 13.dp
+    val r8 = 8.dp
+    val r13 = 13.dp
+    val r17 = 17.dp
+    val r26 = 26.dp
+    val pill = 999.dp
+}
 object LcSize {
     val minTarget = 40.dp          // alvo mínimo com mouse; toque no Windows pede 44.dp (ver docs/09)
     val sidebar = 232.dp

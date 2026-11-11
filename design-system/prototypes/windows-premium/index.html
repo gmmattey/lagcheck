@@ -3,387 +3,1848 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>lagcheck para Windows — protótipo premium</title>
+<title>Lagcheck ORBIT — Game Library & Conexão</title>
 <style>
-/* Tokens: android/core/designsystem/.../theme/Color.kt (fonte de verdade do Android). Sem cor nova. */
-@font-face{font-family:'Google Sans Flex';font-weight:400;src:url(assets/google_sans_flex_regular.ttf)}
-@font-face{font-family:'Google Sans Flex';font-weight:500;src:url(assets/google_sans_flex_medium.ttf)}
-@font-face{font-family:'Google Sans Flex';font-weight:600;src:url(assets/google_sans_flex_semibold.ttf)}
-@font-face{font-family:'Google Sans Flex';font-weight:700 800;src:url(assets/google_sans_flex_bold.ttf)}
-:root{
- --bg:#0B0D10;--surface:#15181E;--panel:#1E232B;--border:#262D38;--hair:rgba(255,255,255,.08);--strong:rgba(255,255,255,.16);--hover:#384352;
- --accent:#7C3AED;--accent-subtle:rgba(124,58,237,.15);--accent-text:#A78BFA; /* accent-text = tint legível do Roxo Gamer em texto pequeno */
- --coral:#FF5A36;--caution:#F59E0B;--good:#22C55E;--inconc:#8A93A0;
- --fg:#F4F5F7;--muted:#8A93A0;--faint:#606873;
- --display:'Google Sans Flex','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;--body:'Google Sans Flex','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;--mono:'Cascadia Mono',Consolas,ui-monospace,monospace;
- --ease:cubic-bezier(.2,0,0,1);--r8:8px;--r13:13px;--r17:17px}
-*{box-sizing:border-box}html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--fg);font:400 14px/20px var(--body);min-width:980px;overflow:hidden;-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit}
-svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-:focus-visible{outline:3px solid var(--accent-text);outline-offset:3px;border-radius:var(--r8)}
-.mono{font-family:var(--mono)}
-.app{height:100vh;display:grid;grid-template-rows:40px 1fr;grid-template-columns:208px 1fr}
+/* Fontes Canônicas Lagcheck Web DS (WOFF2 auto-hospedadas) */
+@font-face {
+  font-family: 'Barlow';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('assets/barlow-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('assets/barlow-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('assets/barlow-semi-condensed-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('assets/barlow-semi-condensed-latin-800-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chakra Petch';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('assets/chakra-petch-latin-600-normal.woff2') format('woff2');
+}
 
-/* barra de título */
-.titlebar{grid-column:1/-1;display:flex;align-items:center;padding-left:16px;background:var(--bg)}
-.titlebar img{height:18px;display:block;position:absolute;left:16px}
-.tb-actions{display:flex;margin-left:0;position:absolute;right:0;top:0}
-.tb-btn{width:46px;height:40px;border:0;background:none;display:grid;place-items:center;color:var(--muted);cursor:pointer}
-.tb-btn:hover{background:var(--hair);color:var(--fg)}.tb-btn.close:hover{background:#C42B1C;color:#fff}
+/* Tokens de Design Lagcheck + ORBIT */
+:root {
+  --stage: #060709;
+  --deep: #0B0D10;
+  --surface: #15181E;
+  --panel: #1E232B;
+  --line: rgba(244, 245, 247, 0.10);
+  --line-strong: rgba(244, 245, 247, 0.18);
 
-/* navegação */
-.nav{padding:12px 12px 16px;display:flex;flex-direction:column;gap:2px;position:relative}
-.ind{position:absolute;left:0;top:0;width:3px;height:20px;border-radius:2px;background:var(--accent);box-shadow:0 0 14px var(--accent);transition:transform .4s var(--ease)}
-.nav-item{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border:0;background:none;border-radius:var(--r8);color:var(--muted);font:600 14px var(--body);cursor:pointer;text-align:left;transition:background .2s,color .2s,transform .12s}
-.nav-item:hover{background:var(--hair);color:var(--fg)}.nav-item:active{transform:scale(.98)}
-.nav-item[aria-current=page]{color:var(--fg);background:var(--surface)}
-.nav-item[aria-current=page] svg{color:var(--accent-text)}
-.nav .foot{margin-top:auto;display:flex;align-items:center;gap:8px;padding:10px 12px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(34,197,94,.5);animation:ping 2.4s var(--ease) infinite}
-@keyframes ping{70%,100%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+  --text-primary: #F4F5F7;
+  --text-secondary: #8A93A0;
+  --text-tertiary: #606873;
 
-/* palco: escuro liso, vinheta fina e grade de pontos */
-.stage{position:relative;background:radial-gradient(900px 420px at 70% -10%,rgba(124,58,237,.10),transparent 70%),var(--surface);border-radius:17px 0 0 0;overflow:auto;box-shadow:inset 1px 1px 0 var(--hair)}
-.stage.out>.page{opacity:0;transform:translateX(calc(var(--dx,24px)*-.4));transition:opacity .14s,transform .14s}
-.page{max-width:1120px;margin:0 auto;padding:32px 32px 56px;display:grid;grid-template-columns:minmax(0,1fr);gap:28px;animation:pageIn .5s var(--ease) both}
-.page>*{animation:rise .55s var(--ease) both;animation-delay:calc(var(--i,0)*70ms)}
-@keyframes pageIn{from{opacity:0;transform:translateX(var(--dx,24px))}}@keyframes rise{from{opacity:0;transform:translateY(14px)}}
-.head{display:flex;align-items:flex-end;gap:16px}
-.head h1{font:800 28px/32px var(--display);margin:0;letter-spacing:-.02em}
-.head p{margin:2px 0 0;color:var(--muted)}
-.head .spacer{margin-left:auto;display:flex;gap:8px;align-items:center}
-.eyebrow{font:500 11px/16px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  /* Roxo Gamer Lagcheck */
+  --purple: #7C3AED;
+  --purple-hover: #8B5CF6;
+  --purple-light: #A78BFA;
+  --purple-subtle: rgba(124, 58, 237, 0.15);
 
-/* botões */
-.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:var(--r13);border:1px solid var(--strong);background:transparent;font:700 14px var(--body);cursor:pointer;transition:transform .12s,border-color .2s,background .2s,box-shadow .25s}
-.btn:hover{border-color:var(--hover);background:var(--hair)}.btn:active{transform:scale(.98)}
-.btn.primary{border:0;min-height:56px;padding:0 32px;border-radius:var(--r17);background:var(--accent);color:#fff;font:800 16px var(--display);box-shadow:0 12px 28px rgba(124,58,237,.34)}
-.btn.primary::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.28) 50%,transparent 62%);transform:translateX(-120%)}
-.btn.primary:hover{background:#8b4cf2;box-shadow:0 16px 36px rgba(124,58,237,.46)}.btn.primary:hover::after{transform:translateX(120%);transition:transform .8s var(--ease)}
-.btn.text{border:0;color:var(--accent-text)}.btn.text:hover{background:var(--accent-subtle)}
-.btn:disabled{opacity:.5;pointer-events:none}
+  /* Verde Esportivo ORBIT (Referência do mockup) */
+  --orbit-green: #22C55E;
+  --orbit-green-light: #4ADE80;
+  --orbit-green-subtle: rgba(34, 197, 94, 0.15);
+  --orbit-lime: #A3E635;
 
-/* pílulas de telemetria */
-.pill{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 0 0 12px;font:700 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;border-left:3px solid currentColor;border-radius:0;background:linear-gradient(90deg,color-mix(in srgb,currentColor 14%,transparent),transparent 85%);padding-right:28px}
-.pill.good{color:var(--good)}.pill.caution{color:var(--caution)}.pill.bad{color:var(--coral)}.pill.inconc{color:var(--inconc)}.pill.accent{color:var(--accent-text)}
+  /* Semânticos */
+  --ready: #22C55E;
+  --caution: #F59E0B;
+  --coral: #FF5A36;
 
-/* seções separadas por linha, não por cards */
-.sec{border-top:1px solid var(--hair);padding-top:24px}
-.panel{background:var(--bg);border:1px solid var(--hair);border-radius:var(--r13);position:relative}
-.panel::before{content:"";position:absolute;left:12px;right:12px;top:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,.55),transparent);opacity:.7}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  --font-body: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-heading: 'Barlow Semi Condensed', 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-metric: 'Chakra Petch', 'Cascadia Mono', Consolas, monospace;
+  --font-mono: 'Cascadia Mono', Consolas, ui-monospace, monospace;
 
-/* início */
-.hero{display:grid;grid-template-columns:1fr 340px;gap:48px;align-items:center;padding:8px 0 4px}
-.hero h2{font:800 52px/56px var(--display);letter-spacing:-.03em;margin:18px 0 12px;max-width:14ch}
-.hero p.lead{font-size:16px;line-height:24px;color:var(--muted);margin:0 0 28px;max-width:46ch}
-/* tiles de jogo: leitura Razer Synapse (tile escuro + círculo de ícone + rótulo em caixa alta), na paleta do Android */
-.games{display:grid;grid-template-columns:repeat(3,132px);gap:10px;margin:0 0 28px}
-.game{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 8px 12px;border-radius:var(--r13);border:1px solid var(--hair);background:var(--bg);cursor:pointer;font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:border-color .25s,background .25s,transform .15s,color .25s,box-shadow .3s}
-.game:hover{border-color:var(--hover);color:var(--fg);transform:translateY(-2px)}.game:active{transform:scale(.98)}
-.game[aria-pressed=true]{border-color:var(--accent);background:var(--accent-subtle);color:var(--fg);box-shadow:0 0 0 1px var(--accent),0 10px 26px -10px rgba(124,58,237,.6)}
-.game i{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--panel);font:800 18px var(--display);color:var(--accent-text);font-style:normal;transition:background .25s,color .25s}
-.game[aria-pressed=true] i{background:var(--accent);color:#fff}
-.ovl{margin:0 auto;display:flex;align-items:center;gap:14px;height:28px;padding:0 14px;border-radius:6px;background:var(--surface);border:1px solid var(--hair);font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.ovl b{color:var(--fg);font-weight:600}.ovl i{width:6px;height:6px;border-radius:50%;background:var(--good)}
-.tele{display:grid;gap:0}
-.trow{display:grid;grid-template-columns:1fr auto;align-items:end;padding:16px 0;border-top:1px solid var(--hair)}
-.trow:first-child{border-top:0}
-.trow .l{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.trow .v{font:600 40px/1 var(--mono);letter-spacing:-.04em;font-variant-numeric:tabular-nums}.trow .v small{font:500 13px var(--mono);color:var(--muted);margin-left:4px;letter-spacing:0}
-.trow svg.sp{grid-column:1/-1;width:100%;height:28px;margin-top:10px;overflow:visible}
-.sp path.l{fill:none;stroke:var(--accent-text);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.3s var(--ease) .4s forwards}
-.sp path.a{fill:var(--accent);opacity:0;animation:fa 1s ease 1.1s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}@keyframes fa{to{opacity:.14}}
-.line{display:grid;grid-template-columns:130px 1fr 240px 90px;align-items:center;gap:16px;min-height:52px;border-top:1px solid var(--hair);transition:background .2s,padding .2s;border-radius:8px}
-.line:first-child{border-top:0}.line:hover{background:rgba(255,255,255,.03);padding:0 8px}
-.line .when{font:500 12px var(--mono);color:var(--muted)}.line .name{font-weight:700}.line .name small{display:block;font-weight:400;color:var(--muted)}
-.line .ms{text-align:right;font:600 14px var(--mono);font-variant-numeric:tabular-nums}
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-control: 160ms;
+}
 
-/* check: mapa */
-.map{overflow:hidden;background:radial-gradient(70% 90% at 50% 40%,#12151b,var(--bg))}
-.map canvas{display:block;width:100%}
-.mapphase{position:absolute;left:20px;top:18px;display:flex;align-items:center;gap:12px;max-width:62%}
-.mapphase .pill{flex:none;white-space:nowrap}
-.mapphase .t{font:700 15px var(--display);line-height:18px}.mapphase small{display:block;font:400 12px var(--mono);color:var(--muted);margin-top:2px}
-.mapms{position:absolute;right:22px;top:14px;text-align:right;pointer-events:none}
-.mapms span{font:600 64px/1 var(--mono);letter-spacing:-.05em;font-variant-numeric:tabular-nums}.mapms small{font:500 14px var(--mono);color:var(--muted);margin-left:4px}
-.mapms em{display:block;font:500 10px var(--mono);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
-.mapfoot{position:absolute;left:20px;bottom:14px;font:400 11px var(--mono);color:var(--faint);max-width:44%}
-.protoctl{position:absolute;right:14px;bottom:12px;display:grid;gap:6px;justify-items:end;padding:8px 10px;border-radius:var(--r13);background:rgba(11,13,16,.85);border:1px solid var(--hair)}
-.protoctl div{display:flex;align-items:center;gap:4px}.protoctl label{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-right:6px}
-.chip{height:26px;padding:0 10px;border-radius:6px;border:1px solid var(--hair);background:none;font:600 11px var(--mono);color:var(--muted);cursor:pointer;transition:all .2s}
-.chip:hover{border-color:var(--hover);color:var(--fg)}.chip[aria-pressed=true]{border-color:var(--accent);background:var(--accent-subtle);color:var(--fg)}
-.srv{display:grid;grid-template-columns:1fr 110px 56px;align-items:center;gap:14px;min-height:56px;border-top:1px solid var(--hair);transition:opacity .4s,background .3s}
-.srv:first-child{border-top:0}
-.srv b{font-weight:700;display:flex;align-items:center;gap:8px}.srv small{display:block;font:400 11px var(--mono);color:var(--muted)}
-.srv .bar{height:4px;border-radius:2px;background:var(--hair);overflow:hidden}.srv .bar i{display:block;height:100%;width:0;border-radius:2px;background:var(--muted);transition:width .9s var(--ease),background .4s}
-.srv .ms{text-align:right;font:600 15px var(--mono);font-variant-numeric:tabular-nums}
-.srv.probing .bar i{width:20%!important;background:var(--accent-text);animation:scan 1s ease-in-out infinite alternate}
-@keyframes scan{to{margin-left:80%}}
-.srv.best .bar i{background:var(--good);box-shadow:0 0 10px var(--good)}.srv.best .ms{color:var(--good)}
-.srv.dim{opacity:.45}
-.tag{font:700 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--good);border-left:2px solid currentColor;padding:0 0 0 7px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:20px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
-.stat{padding:16px 0 16px 16px;border-left:1px solid var(--hair)}.stat:first-child{border-left:0;padding-left:0}
-.stat .l{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.stat .n{display:block;font:600 34px/1.2 var(--mono);letter-spacing:-.04em;font-variant-numeric:tabular-nums}.stat .n small{font:500 12px var(--mono);color:var(--muted);margin-left:3px;letter-spacing:0}
-.probes{display:flex;align-items:flex-end;gap:8px;height:96px}
-.pr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
-.pr span{width:100%;border-radius:4px 4px 2px 2px;min-height:5px;background:linear-gradient(var(--accent-text),var(--accent));box-shadow:0 0 14px -4px var(--accent);animation:grow .55s var(--ease) both}
-.pr.lost span{background:repeating-linear-gradient(135deg,var(--coral) 0 3px,transparent 3px 6px);height:100%!important;opacity:.55;border:1px dashed var(--coral);box-shadow:none}
-.pr.ghost span{background:var(--hair);box-shadow:none;height:5px!important;animation:none}
-.pr small{font:500 10px var(--mono);color:var(--muted)}
-@keyframes grow{from{height:5px!important;opacity:0}}
-.fine{font:400 12px var(--mono);color:var(--muted);margin:16px 0 0}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--stage);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  min-width: 1024px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-/* resultado */
-.res{display:grid;gap:8px}
-.res h2{font:800 60px/64px var(--display);letter-spacing:-.035em;margin:14px 0 8px;max-width:16ch}
-.res p.lead{font-size:16px;line-height:24px;color:var(--muted);margin:0;max-width:56ch}
-.series{width:100%;height:auto;display:block}.series text{font:500 11px var(--mono);fill:var(--muted)}
-.series .gl{stroke:var(--hair)}
-.route{display:flex;align-items:center;gap:0;padding:8px 0}
-.rn{display:flex;flex-direction:column;gap:2px;min-width:150px}.rn b{font-weight:700}.rn small{font:400 11px var(--mono);color:var(--muted)}
-.rl{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 10px);position:relative;margin:0 16px;min-width:80px}
-.rl em{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font:600 13px var(--mono);font-style:normal;color:var(--fg)}
-.empty{padding:48px 0;color:var(--muted)}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
 
-/* histórico */
-.chartwrap{position:relative}
-.chart{width:100%;height:auto;display:block}.chart text{font:500 11px var(--mono);fill:var(--muted)}.chart .gl{stroke:var(--hair)}
-.chart .cross{stroke:var(--accent-text);stroke-dasharray:3 4;opacity:0;transition:opacity .2s}
-.tip{position:absolute;pointer-events:none;padding:8px 12px;border-radius:var(--r8);background:var(--panel);border:1px solid var(--strong);box-shadow:0 10px 28px rgba(0,0,0,.5);font:600 12px var(--mono);white-space:nowrap;opacity:0;transform:translate(-50%,-110%);transition:opacity .15s}.tip.on{opacity:1}
-.switch{width:44px;height:24px;border-radius:6px;border:0;background:var(--border);position:relative;cursor:pointer;flex:none;transition:background .25s}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:3px;background:#fff;transition:transform .3s var(--ease)}
-.switch[aria-checked=true]{background:var(--accent)}.switch[aria-checked=true]::after{transform:translateX(20px)}
-.set{display:flex;align-items:center;gap:16px;min-height:64px;border-top:1px solid var(--hair)}.set:first-of-type{border-top:0}.set div{flex:1}.set b{display:block}.set small{color:var(--muted)}
-.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,24px);opacity:0;background:var(--panel);border:1px solid var(--strong);padding:10px 18px;border-radius:6px;box-shadow:0 12px 30px rgba(0,0,0,.5);font:600 13px var(--body);transition:all .3s var(--ease);pointer-events:none;z-index:60}.toast.show{opacity:1;transform:translate(-50%,0)}
-.proto{position:fixed;right:12px;bottom:12px;font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:6px;background:var(--panel);color:var(--muted);pointer-events:none;z-index:60}
-html.calm *,html.calm *::before,html.calm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-@media(max-width:1180px){.app{grid-template-columns:64px 1fr}.nav-item span,.nav .foot span{display:none}.nav-item{justify-content:center;padding:0}.hero{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.page{padding:24px 20px 48px}}
+:focus-visible {
+  outline: 2px solid var(--purple-light);
+  outline-offset: 2px;
+}
+
+/* Estrutura Desktop */
+.app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  grid-template-columns: 210px 1fr;
+  background: var(--stage);
+}
+
+/* ==========================================================================
+   1. TOPBAR (Barra Superior com Busca Ampla e Controles)
+   ========================================================================== */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 20px;
+  background: var(--stage);
+  border-bottom: 1px solid var(--line);
+  user-select: none;
+  z-index: 20;
+}
+.tb-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 190px;
+}
+.orbit-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+.orbit-mark {
+  width: 32px;
+  height: 24px;
+}
+.orbit-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.orbit-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: #fff;
+}
+.orbit-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Barra de Busca Central */
+.tb-search-wrap {
+  flex: 1;
+  max-width: 520px;
+  margin: 0 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.tb-search-icon {
+  position: absolute;
+  left: 14px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.tb-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 16px 0 40px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  transition: all var(--dur-control) var(--ease);
+}
+.tb-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+.tb-search-input:focus {
+  outline: none;
+  border-color: var(--purple-light);
+  background: var(--panel);
+}
+
+/* Ações Direitas da Topbar */
+.tb-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tb-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  position: relative;
+  transition: background var(--dur-control) var(--ease);
+}
+.tb-icon-btn:hover { background: var(--surface); color: var(--text-primary); }
+.tb-notify-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orbit-green);
+}
+.tb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2A313D;
+  border: 1.5px solid var(--line-strong);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.tb-window-controls {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+.tb-win-btn {
+  width: 42px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  transition: background var(--dur-control) var(--ease);
+}
+.tb-win-btn:hover { background: var(--panel); color: var(--text-primary); }
+.tb-win-btn.close:hover { background: #C42B1C; color: #fff; }
+
+/* ==========================================================================
+   2. SIDEBAR (Navegação Rica em Seções)
+   ========================================================================== */
+.sidebar {
+  background: var(--stage);
+  border-right: 1px solid var(--line);
+  padding: 16px 10px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  gap: 20px;
+}
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  padding: 4px 10px;
+  margin-bottom: 2px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  transition: all var(--dur-control) var(--ease);
+}
+.sidebar-link:hover {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+.sidebar-link.active {
+  background: var(--orbit-green-subtle);
+  color: var(--orbit-green-light);
+  font-weight: 600;
+}
+.sidebar-link.active svg {
+  color: var(--orbit-green);
+}
+.sidebar-badge {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--panel);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.sidebar-foot {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+/* ==========================================================================
+   3. STAGE (Palco Principal com Banner Hero & Biblioteca)
+   ========================================================================== */
+.stage {
+  background: var(--deep);
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra de Inspeção dos 6 Estados */
+.state-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.state-toolbar-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.state-pills { display: flex; gap: 6px; }
+.state-btn {
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  transition: all var(--dur-control) var(--ease);
+}
+.state-btn:hover { background: var(--panel); color: var(--text-primary); }
+.state-btn[aria-pressed="true"] {
+  background: var(--panel);
+  border-color: var(--purple);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--purple);
+}
+
+.stage-content {
+  padding: 24px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   4. HERO BANNER CINEMATOGRÁFICO WIDESCREEN
+   ========================================================================== */
+.hero-banner {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    rgba(11, 13, 16, 0.96) 0%,
+    rgba(11, 13, 16, 0.88) 35%,
+    rgba(11, 13, 16, 0.35) 70%,
+    rgba(11, 13, 16, 0.15) 100%
+  );
+  z-index: 1;
+}
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 34px 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 580px;
+}
+.hero-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.hero-game-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--orbit-green-light);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.hero-title {
+  margin: 0 0 12px;
+  font-family: var(--font-heading);
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.7);
+}
+.hero-desc {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.5;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+}
+
+/* Botões de Ação do Hero */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.btn-hero-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 48px;
+  padding: 0 28px;
+  border-radius: 12px;
+  background: var(--orbit-lime);
+  color: #0B0D10;
+  border: 0;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  box-shadow: 0 8px 24px rgba(163, 230, 53, 0.35);
+  transition: all var(--dur-control) var(--ease);
+}
+.btn-hero-play:hover { background: #BEF264; transform: translateY(-1px); }
+.btn-hero-play:active { transform: scale(0.98); }
+
+.btn-hero-test {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  background: var(--purple);
+  color: #fff;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  transition: all var(--dur-control) var(--ease);
+}
+.btn-hero-test:hover { background: var(--purple-hover); transform: translateY(-1px); }
+
+.btn-hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(30, 35, 43, 0.7);
+  border: 1px solid var(--line-strong);
+  color: var(--text-primary);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+  transition: all var(--dur-control) var(--ease);
+}
+.btn-hero-icon:hover { background: var(--panel); border-color: var(--text-secondary); }
+.btn-hero-icon[aria-pressed="true"] { color: var(--purple-light); border-color: var(--purple-light); }
+
+/* Metadados na Base do Hero */
+.hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Setas do Carrossel */
+.hero-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(11, 13, 16, 0.65);
+  border: 1px solid var(--line-strong);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  z-index: 3;
+  backdrop-filter: blur(6px);
+  transition: background var(--dur-control) var(--ease);
+}
+.hero-nav-arrow:hover { background: rgba(30, 35, 43, 0.9); }
+.hero-nav-arrow.prev { left: 16px; }
+.hero-nav-arrow.next { right: 16px; }
+
+/* Paginação no canto */
+.hero-pagination {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-page-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  transition: all var(--dur-control) var(--ease);
+}
+.hero-page-dot.active {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--orbit-green);
+}
+
+/* ==========================================================================
+   5. SEÇÃO: SUA BIBLIOTECA (Filtros em Pílula e Grade de Cards)
+   ========================================================================== */
+.library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.library-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.library-accent-bar {
+  width: 3.5px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--orbit-green);
+}
+.library-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--text-primary);
+}
+
+/* Filtros em Pílulas */
+.library-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.library-pill-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all var(--dur-control) var(--ease);
+}
+.library-pill-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+.library-pill-btn.active {
+  border-color: var(--orbit-green);
+  color: var(--orbit-green-light);
+  background: var(--orbit-green-subtle);
+}
+
+.library-sort {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* Grade de Cards de Jogos (Proporção ~16:10 / Capa) */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.game-card {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all var(--dur-control) var(--ease);
+}
+.game-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.game-card.active {
+  border-color: var(--orbit-green);
+  box-shadow: 0 0 0 2px var(--orbit-green), 0 8px 28px rgba(34, 197, 94, 0.25);
+}
+.game-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.game-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11,13,16,0.1) 40%, rgba(11,13,16,0.85) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px 14px;
+}
+.game-card-installed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(11, 13, 16, 0.85);
+  backdrop-filter: blur(4px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--orbit-green-light);
+  letter-spacing: .04em;
+  width: fit-content;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* ==========================================================================
+   6. SEÇÃO COCKPIT DE DIAGNÓSTICO LAGCHECK
+   ========================================================================== */
+.cockpit-section {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cockpit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-top: 4px;
+}
+.metric-col {
+  padding: 14px 14px 14px 0;
+  min-width: 0;
+}
+.metric-col + .metric-col {
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+}
+.metric-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.metric-val {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-metric);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.metric-val small { font-size: 13px; color: var(--text-secondary); margin-left: 2px; }
+.metric-note { display: block; margin-top: 4px; font-size: 11.5px; color: var(--text-secondary); }
+
+/* ==========================================================================
+   7. TELAS DOS 6 ESTADOS DE DIAGNÓSTICO DO LAGCHECK
+   ========================================================================== */
+.progress-rail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.step-item::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+}
+.step-item[data-status="done"] { color: var(--text-secondary); }
+.step-item[data-status="done"]::before { background: currentColor; }
+.step-item[data-status="active"] { color: var(--purple-light); }
+.step-item[data-status="active"]::before { border-color: var(--purple); background: var(--purple); }
+
+.map-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.2 / 1;
+  background: var(--deep);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.map-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+.map-overlay-phase {
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(11, 13, 16, 0.85);
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+.map-overlay-telemetry {
+  position: absolute;
+  right: 20px;
+  top: 18px;
+  text-align: right;
+  background: rgba(11, 13, 16, 0.85);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+.map-overlay-telemetry .live-ms {
+  font-family: var(--font-metric);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.status-dot.ready { background: var(--ready); }
+.status-dot.caution { background: var(--caution); border-radius: 2px; }
+.status-dot.coral { background: var(--coral); border-radius: 0; transform: rotate(45deg); }
+.status-dot.neutral { background: transparent; border: 1.5px solid var(--text-secondary); }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--purple);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  transition: all var(--dur-control) var(--ease);
+}
+.btn-primary:hover { background: var(--purple-hover); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.btn-secondary:hover { border-color: var(--text-secondary); background: var(--surface); }
+
+.btn-text {
+  border: 0;
+  background: transparent;
+  color: var(--purple-light);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.btn-text:hover { text-decoration: underline; }
+
+/* Toast */
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%, 20px);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--dur-control) var(--ease);
+  z-index: 100;
+}
+.toast-notice.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* SVG icons */
+svg.i {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
 </style>
 </head>
 <body>
+
 <div class="app">
-  <header class="titlebar"><img src="assets/wordmark-primary.svg" alt="lagcheck">
-    <div class="ovl" aria-label="Último check"><i></i>São Paulo <b>27 ms</b> · jitter <b>1,1</b> · perda <b>0%</b></div>
-    <div class="tb-actions">
-      <button class="tb-btn" aria-label="Minimizar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
-      <button class="tb-btn" aria-label="Maximizar"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>
-      <button class="tb-btn close" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div></header>
-  <nav class="nav" id="nav" aria-label="Navegação principal"></nav>
-  <main class="stage" id="stage" tabindex="-1"></main>
+  <!-- 1. TOPBAR NATIVA DESKTOP -->
+  <header class="topbar">
+    <div class="tb-left">
+      <a href="#" class="orbit-brand" id="brand-home-link">
+        <img class="orbit-mark" src="assets/lagcheck-mark.svg" alt="Símbolo Lagcheck">
+        <div class="orbit-brand-text">
+          <span class="orbit-title">ORBIT</span>
+          <span class="orbit-sub">GAME LIBRARY</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Campo de Busca Amplo e Arredondado (como no mockup) -->
+    <div class="tb-search-wrap">
+      <svg class="tb-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" class="tb-search-input" id="global-search" placeholder="Buscar jogos, coleções ou plataformas...">
+    </div>
+
+    <div class="tb-right">
+      <button class="tb-icon-btn" aria-label="Notificações" title="Notificações">
+        <svg class="i" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="tb-notify-dot"></span>
+      </button>
+
+      <div class="tb-avatar" title="Perfil do Jogador">LF</div>
+
+      <div class="tb-window-controls">
+        <button class="tb-win-btn" aria-label="Minimizar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button class="tb-win-btn" aria-label="Maximizar"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>
+        <button class="tb-win-btn close" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. SIDEBAR (MENU LATERAL COMPLETO DO MOCKUP) -->
+  <aside class="sidebar">
+    <nav class="nav-section" aria-label="Menu Principal">
+      <button class="sidebar-link active" data-nav="home">
+        <svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+        <span>Início</span>
+      </button>
+      <button class="sidebar-link" data-nav="library">
+        <svg class="i" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"/></svg>
+        <span>Biblioteca</span>
+      </button>
+      <button class="sidebar-link" data-nav="favorites">
+        <svg class="i" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <span>Favoritos</span>
+      </button>
+      <button class="sidebar-link" data-nav="installed">
+        <svg class="i" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Instalados</span>
+        <span class="sidebar-badge" id="side-installed-count">3</span>
+      </button>
+    </nav>
+
+    <div class="nav-section">
+      <span class="nav-section-title">Plataformas</span>
+      <button class="sidebar-link" data-nav="steam">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14l3-2m3 2l2-4"/></svg>
+        <span>Steam</span>
+      </button>
+      <button class="sidebar-link" data-nav="epic">
+        <svg class="i" viewBox="0 0 24 24"><path d="M12 2L4 6v12l8 4 8-4V6l-8-4z"/></svg>
+        <span>Epic Games</span>
+      </button>
+      <button class="sidebar-link" data-nav="xbox">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M6.5 6.5C8 9 12 15 12 15s4-6 5.5-8.5"/></svg>
+        <span>Xbox</span>
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-section-title">Coleções</span>
+      <button class="sidebar-link" data-nav="sim">
+        <svg class="i" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span>Simulação</span>
+      </button>
+      <button class="sidebar-link" data-nav="multi">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>
+        <span>Multijogador</span>
+      </button>
+      <button class="sidebar-link" data-nav="strat">
+        <svg class="i" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span>Estratégia</span>
+      </button>
+      <button class="sidebar-link" data-nav="more">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span>Mais</span>
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      <button class="sidebar-link" data-nav="config">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Configurações</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 3. STAGE PRINCIPAL -->
+  <main class="stage" id="stage">
+    <!-- Seletor de Estados no topo -->
+    <div class="state-toolbar">
+      <span class="state-toolbar-label">Alternar Estado:</span>
+      <div class="state-pills" role="group">
+        <button class="state-btn" data-set-state="ready" aria-pressed="true">1. Hub de Games (Lobby)</button>
+        <button class="state-btn" data-set-state="measuring" aria-pressed="false">2. Medindo</button>
+        <button class="state-btn" data-set-state="result-good" aria-pressed="false">3. Resultado Bom</button>
+        <button class="state-btn" data-set-state="result-unstable" aria-pressed="false">4. Instável</button>
+        <button class="state-btn" data-set-state="result-inconclusive" aria-pressed="false">5. Inconclusivo</button>
+        <button class="state-btn" data-set-state="error" aria-pressed="false">6. Erro de Rede</button>
+      </div>
+    </div>
+
+    <!-- Conteúdo da Página -->
+    <div class="stage-content" id="stage-content"></div>
+  </main>
 </div>
-<div class="toast" id="toast" role="status"></div>
-<div class="proto">Protótipo · dados simulados</div>
+
+<div class="toast-notice" id="toast" role="status"></div>
 
 <script>
-const MAP=/*GRID:start*/{"step":1.5,"latTop":84,"latBottom":-58,"cols":240,"rows":95,"grid":["000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000001111111111111111100111111111111111111111111111000111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000001111110001111111100111111111111111111111111111111110000000000000000000000000111111000000000000011000000000000000000000000000011111000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000100001110110111101111111000011111111111111111111111111111111110000000000000000000001111100000000000000000000000000000000000000000000000000000011100000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000011000000000000000000011111100000001111111111111111111111111111111110000000000000000000000111000000000000000000000000000000000000000000000000000000001100000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000111101100011100011000010000000000000001111111111111111111111111110000000000000000000000000000000000000000000000000000111100000000000000000001111111111111100000000000000001111000000000000000000000000","000000000000000000000000000000000000011100000000000000000000000000000000000000000011111111111111111111111100000000000000000000000000000000000000000000000000011000000000000000000011111111111111100000000000000000000000000000000000000000000000","000000000000000000000000000000000000011110111010110011101100111111000000000000000001111111111111111111111000000000000000000000000000000000000000000000000001100000000011000000111111111111111111111111111111110000000110000000000000000000000000","110000000000000100000000000000000000001000111111110000001100111111111111000000000000011111111111111111111000000000000000000000000000000000000000000000000001110000000111011111111111111111111111111111111111110011111111111110000000000000000001","000000000001111111111111110000001111001000111111111110101100000100001111111000000000111111111111111111110000000000000000000000000000011111111100000000000000000010000111011111111111111111111111111111111111111111111111111111111100000001111100","110000000111111111111111111111111111111111110000110000110111100110000001111000000000011111111111111100000000000000000000000000000011111111111111110001100011011111111011101111111111111111111111111111111111111111111111111111111111111111111111","111011000000111111111111111111111111111111111111111111111111111110000001111111100000111111111111100000000000000000000000000000000111111111111111111000111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111","000110000111111111111111111111111111111111111111111111111111110100001111111001000000011111111000000000000111111000000000000000001111110001111110000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111","000000000000011111111111111111111111111111111111111111111111001101100000111110000000001111111000000000000011000000000000000000111111100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110","000000000011111111111111111111111111111111111111111111111100000010001110001100000000000111110000000000000000000000000000000011111111001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101111111100","000000000011111111111011111111111111111111111111111111111000000000001111110000000000000001100000000000000000000000000000000111111111001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110000011111000000","000000000000111110000000000111111111111111111111111111111000000000001111110011000000000000000000000000000000000000000000000011111111000011111111111111111111111111111111111111111111111111111111111111111111111111111111001001100001100000000000","000000000000000101000000000000011111111111111111111111111100000000000111111111100000000000000000000000000000000000001000000000001110000011111111111111111111111111111111111111111111111111111111111111111111111111111000000000000111000000000000","000000000000010000000000000000001111111111111111111111111111110000000111111111100000000000000000000000000000000000001100000001101110001111111111111111111111111111111111111111111111111111111111111111111111111111110000000000001111100000000000","000000000010000000000000000000000111111111111111111111111111111110011111111111111100000000000000000000000000000000010110000000100001011111111111111111111111111111111111111111111111111111111111111111111111111111000000000000001111000000000000","000000000000000000000000000000010011111111111111111111111111111110011111111111111110000000000000000000000000000000110111000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110000000001110000000000000","000000000000000000000000000000000001111111111111111111111111111111011111111111111100000000000000000000000000000000000111100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110000000001000000000000000","000000000000000000000000000000000001111111111111111111111111111111111111111100110000000000000000000000000000000000001100011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101000000000000000000000000","000000000000000000000000000000000000111111111111111111111111111111111111110110000111000000000000000000000000000000000101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111111111110000000100000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111111111111110000000000000000000000000000000000000001111111111111111111110010011111110001111111111111111111111111111111111111111111111111111111110000000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111111110010000000000000000000000000000000000000000001111111110011111111100000001111100011111111111111111111111111111111111111111111111111111111100011000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111111100000000000000000000000000000000000000000111111110000011000111111100000000011110001111111111111111111111111111111111111111111111111111100000111000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111111000000000000000000000000000000000000000000111111100000000110011111100111100111111000111111111111111111111111111111111111111111111111110000000000000000000000000000000000","000000000000000000000000000000000000011111111111111111111111111111111110000000000000000000000000000000000000000000111111000000000010011000111111111111111000111111111111111111111111111111111111111111110101100000000110000000000000000000000000","000000000000000000000000000000000000001111111111111111111111111111111100000000000000000000000000000000000000000000111111000000000010001100111111111111111000111111111111111111111111111111111111111111100001110000000100000000000000000000000000","000000000000000000000000000000000000000111111111111111111111111111111000000000000000000000000000000000000000000000001110001011100000000000111111111111111111111111111111111111111111111111111111111111111000110000011100000000000000000000000000","000000000000000000000000000000000000000111111111111111111111111111111000000000000000000000000000000000000000000000001101111111100000000011000010111111111111111111111111111111111111111111111111111111110000110011111100000000000000000000000000","000000000000000000000000000000000000000001111111111111111111111111110000000000000000000000000000000000000000000000011111111111100000000000000000111111111111111111111111111111111111111111111111111111110000000011100000000000000000000000000000","000000000000000000000000000000000000000000111111111111111111111111000000000000000000000000000000000000000000000000111111111111111100011000000001111111111111111111111111111111111111111111111111111111111000000100000000000000000000000000000000","000000000000000000000000000000000000000000010111111111111111111111000000000000000000000000000000000000000000000000111111111111111111011111111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000","000000000000000000000000000000000000000000010111111111111001000001000000000000000000000000000000000000000000000001111111111111111111111111111111111111110011111111111111111111111111111111111111111111111000000000000000000000000000000000000000","000000000000000000000000000000000000000000011011111111100000000001000000000000000000000000000000000000000000000111111111111111111111111111111100111111111001111111111111111111111111111111111111111111111000000000000000000000000000000000000000","000000000000000000000000000000000000000000000101111111100000000001101000000000000000000000000000000000000000001111111111111111111111111111111110111111111000011111111111111111111111111111111111111111110000000000000000000000000000000000000000","000000000000000000000000000000000000000000000100111111100000000000000000000000000000000000000000000000000000001111111111111111111111111111111110011111111100110000000111111111111111111111111111111111100000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000011111100000000000000000000000000000000000000000000000000000011111111111111111111111111111111111001111111111111000000011111111111111111111111111111111001000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000001111100000000000010000000000000000000000000000000000000000011111111111111111111111111111111111101111111111111100000011111111111110011111111111111000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000001111100000110000001110000000000000000000000000000000000000011111111111111111111111111111111111100111111111111000000000011111111100001111111110000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000111110001110000000000110000000000000000000000000000000000011111111111111111111111111111111111100111111111110000000000011111110000000111111110110000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000001111111100000000000000000000000000000000000000000000000011111111111111111111111111111111111110011111111100000000000011111100000000111111110000000001100000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000010011111100000000000000000000000000000000000000000000011111111111111111111111111111111111110011111110000000000000011111000000000101111111000000001000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000001111110000000000000000000000000000000000000000000011111111111111111111111111111111111111101111000000000000000001110000000000001111111100000001000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000000000000000000011111111111111111111111111111111111111111000000000000000000001110000000000000111111100000000010000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000100000001010000000000000000000000000000000000001111111111111111111111111111111111111110001100000000000000000110000000000000000111000000000101000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000010000011011111100000000000000000000000000000000111111111111111111111111111111111111111111100000000000000000110000000000000000010000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000001001111111111110000000000000000000000000000000111111111111111111111111111111111111111111000000000000000000001000000000001100000000000000011000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000001111111111111000000000000000000000000000000011111111111111111111111111111111111111111000000000000000000001000000000000010000000000000001000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000001111111111111111100000000000000000000000000000111111000111111111111111111111111111110000000000000000000000000000000010011000000001100000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000111111111111111110000000000000000000000000000000000000000111111111111111111111111110000000000000000000000000000000011011000000011000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000001111111111111111110000000000000000000000000000000000000000111111111111111111111111100000000000000000000000000000000001101000001111100000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000011111111111111111111000000000000000000000000000000000000000111111111111111111111110000000000000000000000000000000000000111000011111101110010000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000111111111111111111111110000000000000000000000000000000000000111111111111111111111100000000000000000000000000000000000000011000011111000000010010000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111000000000000000000000000000000000000111111111111111111111000000000000000000000000000000000000000011100011111011000000001011000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111100000000000000000000000000000000011111111111111111111000000000000000000000000000000000000000001110000010000100100001111111000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111000000000000000000000000000000001111111111111111110000000000000000000000000000000000000000000110000000000000000000001111100000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111100000000000000000000000000000001111111111111111110000000000000000000000000000000000000000000011001000000000000001001111110000001000000000000000","000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111100000000000000000000000000000000111111111111111110000000000000000000000000000000000000000000000001110000000000000001111011000000010000000000000","000000000000000000000000000000000000000000000000000000000000000000001111111111111111111111111111000000000000000000000000000000000111111111111111111000000000000000000000000000000000000000000000000000000010000000000000001100000000000000000000","000000000000000000000000000000000000000000000000000000000000000000001111111111111111111111111110000000000000000000000000000000000111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111110000000000000000000000000000000000111111111111111111000000000000000000000000000000000000000000000000000000000000111100001000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111100000000000000000000000000000000001111111111111111111000001000000000000000000000000000000000000000000000000000101111100011000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111100000000000000000000000000000000001111111111111111111000011100000000000000000000000000000000000000000000000001111111100011100000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111100000000000000000000000000000000001111111111111111100001111000000000000000000000000000000000000000000000000011111111111011100000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111100000000000000000000000000000000001111111111111111000001111000000000000000000000000000000000000000000000000111111111111111110000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111000000000000000000000000000000000000111111111111110000000110000000000000000000000000000000000000000000000011111111111111111111000000000010000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111000000000000000000000000000000000000111111111111111000001110000000000000000000000000000000000000000000001111111111111111111111100000000001000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111100000000000000000000000000000000000000011111111111111000001110000000000000000000000000000000000000000000011111111111111111111111110000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111100000000000000000000000000000000000000000011111111111110000001100000000000000000000000000000000000000000000011111111111111111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111100000000000000000000000000000000000000000011111111111100000000000000000000000000000000000000000000000000000011111111111111111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000011111111111111100000000000000000000000000000000000000000011111111111100000000000000000000000000000000000000000000000000000011111111111111111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111111111000000000000000000000000000000000000000000001111111111000000000000000000000000000000000000000000000000000000001111111111111111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111111110000000000000000000000000000000000000000000000111111110000000000000000000000000000000000000000000000000000000001111111111111111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111111100000000000000000000000000000000000000000000000111111100000000000000000000000000000000000000000000000000000000001111111100001111111111111000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111111000000000000000000000000000000000000000000000000111110000000000000000000000000000000000000000000000000000000000001111110000000101111111110000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001111111100000000000000010000","000000000000000000000000000000000000000000000000000000000000000000000001111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111100000000000000001000","000000000000000000000000000000000000000000000000000000000000000000000001111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011010000000000000000001110","000000000000000000000000000000000000000000000000000000000000000000000001111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001100","000000000000000000000000000000000000000000000000000000000000000000000001111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000000000000001000","000000000000000000000000000000000000000000000000000000000000000000000001111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000000000000110000","000000000000000000000000000000000000000000000000000000000000000000000011111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000","000000000000000000000000000000000000000000000000000000000000000000000011111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111000000","000000000000000000000000000000000000000000000000000000000000000000000011111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000011111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000011110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000011110000011000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000001111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"]}/*GRID:end*/;
+/* ==========================================================================
+   DADOS DOS JOGOS (EXATAMENTE COMO NO MOCKUP DO USUÁRIO)
+   ========================================================================== */
+const GAMES_CATALOG = [
+  {
+    id: "cities2",
+    title: "Cities: Skylines II",
+    logoText: "CITIES skylines II",
+    heroBg: "assets/reference_hero.jpg",
+    cardThumb: "assets/reference_hero.jpg",
+    description: "Construa a cidade dos seus sonhos, com simulação avançada, economia dinâmica e uma população viva e realista.",
+    hoursPlayed: 142,
+    achievements: "37 / 51 conquistas",
+    isInstalled: true,
+    isFavorite: false,
+    platform: "Steam",
+    category: "Simulação",
+    netType: "offline",
+    netLabel: "Modo Offline · Sem Teste de Rede"
+  },
+  {
+    id: "fallguys",
+    title: "Fall Guys",
+    logoText: "FALL GUYS",
+    heroBg: "assets/reference_hero.jpg",
+    cardThumb: "assets/reference_hero.jpg",
+    description: "Junte-se a multidões de jogadores tropeçando em arenas caóticas e percursos de obstáculos hilários até a coroa final.",
+    hoursPlayed: 89,
+    achievements: "24 / 35 conquistas",
+    isInstalled: true,
+    isFavorite: true,
+    platform: "Epic Games",
+    category: "Multijogador",
+    netType: "general",
+    netLabel: "Rota Geral do PC · Epic Online Services"
+  },
+  {
+    id: "cod",
+    title: "Call of Duty: Warzone",
+    logoText: "CALL OF DUTY",
+    heroBg: "assets/game_warzone.jpg",
+    cardThumb: "assets/game_warzone.jpg",
+    description: "Combate massivo em primeira pessoa no battle royale competitivo de ritmo acelerado. Cada milissegundo de latência conta.",
+    hoursPlayed: 320,
+    achievements: "45 / 60 conquistas",
+    isInstalled: true,
+    isFavorite: true,
+    platform: "Steam",
+    category: "Multijogador",
+    netType: "supported",
+    netLabel: "Lagcheck Suportado · AWS sa-east-1 (São Paulo)"
+  },
+  {
+    id: "valorant",
+    title: "Valorant",
+    logoText: "VALORANT",
+    heroBg: "assets/game_valorant.jpg",
+    cardThumb: "assets/game_valorant.jpg",
+    description: "Jogo de tiro tático baseado em personagens 5x5 onde a precisão de tiro e habilidades táticas se encontram.",
+    hoursPlayed: 215,
+    achievements: "Competitivo",
+    isInstalled: true,
+    isFavorite: true,
+    platform: "Riot Games",
+    category: "Multijogador",
+    netType: "supported",
+    netLabel: "Lagcheck Suportado · São Paulo, BR"
+  },
+  {
+    id: "cs2",
+    title: "Counter-Strike 2",
+    logoText: "COUNTER-STRIKE 2",
+    heroBg: "assets/game_cs2.jpg",
+    cardThumb: "assets/game_cs2.jpg",
+    description: "O auge dos jogos de tiro tático. Avalie a rota exata até os servidores da Valve antes de buscar partida ranqueada.",
+    hoursPlayed: 480,
+    achievements: "Premier Ranqueado",
+    isInstalled: true,
+    isFavorite: false,
+    platform: "Steam",
+    category: "Multijogador",
+    netType: "supported",
+    netLabel: "Lagcheck Suportado · São Paulo, BR"
+  }
+];
 
-/* ============ utilidades ============ */
-const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,easeOut=t=>1-Math.pow(1-t,3);
-function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const fmt=(n,d=0)=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
-const ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>',check:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/>',history:'<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.5"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.2-1.3L14 3h-4l-.4 2.5a7 7 0 00-2.2 1.3l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 002.2 1.3L10 21h4l.4-2.5a7 7 0 002.2-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/>',pin:'<path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',pulse:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',ok:'<path d="M5 12l5 5 9-10"/>'};
-const ic=(n,s=20)=>`<svg class="i" viewBox="0 0 24 24" width="${s}" height="${s}">${ICONS[n]}</svg>`;
-let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
-function countUp(el,to,dec,dur=1000){const t0=performance.now();const f=n=>{const p=clamp((n-t0)/dur,0,1);el.textContent=fmt(to*easeOut(p),dec);if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
-function spark(pts){const mx=Math.max(...pts),mn=Math.min(...pts),d=pts.map((v,i)=>`${i?'L':'M'}${(i/(pts.length-1)*100).toFixed(1)} ${(24-(v-mn)/(mx-mn||1)*20).toFixed(1)}`).join(' ');return`<svg class="sp" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path class="a" d="${d} L100 28 L0 28Z"/><path class="l" pathLength="1" d="${d}"/></svg>`}
-const C={accent:[124,58,237],accentText:[167,139,250],good:[34,197,94],caution:[245,158,11],coral:[255,90,54],fg:[244,245,247],muted:[138,147,160],bg:[11,13,16],panel:[30,35,43]};
-const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+let selectedGameId = "cities2";
+let currentLibraryFilter = "ALL";
+let currentSort = "RECENT";
+let currentState = "ready";
+let measureInterval = null;
 
-/* ============ veredito (regra do protótipo; o app usa o score versionado) ============ */
-const VERD={ready:{cls:'good',txt:'● Pronto para Ranked',h:'Sua conexão está pronta.',lead:'Rota firme, sem perda e sem oscilação. Pode entrar.'},
- unstable:{cls:'caution',txt:'▲ Condições instáveis',h:'Dá para jogar, com ressalvas.',lead:'A rota varia um pouco. Cabo costuma ajudar.'},
- avoid:{cls:'bad',txt:'▲ Eu evitaria Ranked agora',h:'Evite Ranked agora.',lead:'Houve perda ou oscilação forte. Pode travar no meio da partida.'},
- inconc:{cls:'inconc',txt:'— Inconclusivo',h:'Não deu para avaliar com segurança.',lead:'Poucas sondas voltaram. Não vamos inventar uma nota. Tente de novo.'}};
-function judge(st){if(!st||st.loss>=50)return'inconc';if(st.loss>0||st.jit>15||st.med>80)return'avoid';if(st.jit>6||st.med>40)return'unstable';return'ready'}
-const pill=k=>`<span class="pill ${VERD[k].cls}">${VERD[k].txt}</span>`;
-let RESULT=null,GAME='Valorant';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* ============ histórico ============ */
-const HIST={P:[19,22,18,41,27,24,26,33,22,27],L:['01/11','02/11','02/11','03/11','04/11','05/11','05/11','06/11','06/11','07/11']};
-function chart(){const P=HIST.P,n=P.length,X=i=>56+i*(724/(n-1)),Y=v=>196-v/60*170,pl=P.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
- return`<div class="chartwrap"><div class="tip" id="tip"></div><svg class="chart" id="hc" viewBox="0 0 800 224"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7C3AED" stop-opacity=".35"/><stop offset="1" stop-color="#7C3AED" stop-opacity="0"/></linearGradient><clipPath id="cp"><rect width="0" height="224"><animate attributeName="width" from="0" to="800" dur="1.2s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".2 0 0 1"/></rect></clipPath></defs>
- ${[0,20,40,60].map(v=>`<line class="gl" x1="56" x2="780" y1="${Y(v)}" y2="${Y(v)}"/><text x="46" y="${Y(v)+4}" text-anchor="end">${v}</text>`).join('')}
- <line x1="56" x2="780" y1="${Y(40)}" y2="${Y(40)}" stroke="#F59E0B" stroke-dasharray="2 5" opacity=".5"/><text x="780" y="${Y(40)-6}" text-anchor="end" style="fill:#F59E0B">40 ms</text>
- <g clip-path="url(#cp)"><polygon points="${X(0)},${Y(0)} ${pl} ${X(n-1)},${Y(0)}" fill="url(#ga)"/><polyline points="${pl}" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 0 6px #7C3AED)"/>
- ${P.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="#0B0D10" stroke="#A78BFA" stroke-width="2"/>`).join('')}</g>
- ${HIST.L.map((d,i)=>i%2?'':`<text x="${X(i)}" y="216" text-anchor="middle">${d}</text>`).join('')}
- <line class="cross" id="cross" x1="0" x2="0" y1="14" y2="196"/></svg></div>`}
-function bindChart(){const svg=$('#hc');if(!svg)return;const P=HIST.P,n=P.length,X=i=>56+i*(724/(n-1)),Y=v=>196-v/60*170,tip=$('#tip'),cr=$('#cross');
- svg.onpointermove=e=>{const b=svg.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*800,i=clamp(Math.round((x-56)/(724/(n-1))),0,n-1);cr.setAttribute('x1',X(i));cr.setAttribute('x2',X(i));cr.style.opacity=1;tip.textContent=`${HIST.L[i]} · ${P[i]} ms`;tip.style.left=X(i)/800*b.width+'px';tip.style.top=Y(P[i])/224*b.height+'px';tip.classList.add('on')};
- svg.onpointerleave=()=>{cr.style.opacity=0;tip.classList.remove('on')}}
-
-/* ============ telas ============ */
-const GAMES=['Valorant','CS2','Fortnite','LoL','Free Fire','Rocket League'];
-const mono=(g)=>g.replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase();
-const lines=rows=>rows.map(r=>`<div class="line"><span class="when">${r[0]}</span><span class="name">${r[1]}<small>${r[2]}</small></span>${pill(r[3])}<span class="ms">${r[4]}</span></div>`).join('');
-const ROWS=[['Hoje 09:41','Valorant','São Paulo','ready','27 ms'],['Ontem 21:08','CS2','São Paulo','ready','26 ms'],['06/11 18:22','Fortnite','Virgínia','unstable','118 ms'],['05/11 12:03','Valorant','São Paulo','avoid','41 ms'],['03/11 20:47','Free Fire','São Paulo','inconc','—']];
-const V={
-home:()=>`<div class="page">
- <section class="hero"><div>
-  ${pill('ready')}
-  <h2>Sua conexão está pronta.</h2>
-  <p class="lead">Último check há 12 minutos: rota firme até São Paulo, sem perda.</p>
-  <div class="games" role="group" aria-label="Jogo">${GAMES.map(g=>`<button class="game" aria-pressed="${g===GAME}" data-game="${g}"><i>${mono(g)}</i>${g}</button>`).join('')}</div>
-  <button class="btn primary" data-go="check" data-auto="1">Fazer check</button></div>
-  <div class="tele"><p class="eyebrow">Último check</p>
-   <div class="trow"><span class="l">Ping</span><span class="v"><span data-c="27">27</span><small>ms</small></span>${spark([34,30,28,29,26,27,27])}</div>
-   <div class="trow"><span class="l">Jitter</span><span class="v"><span data-c="1.1" data-d="1">1,1</span><small>ms</small></span>${spark([2.4,1.8,1.5,1.9,1.2,1.3,1.1])}</div>
-   <div class="trow"><span class="l">Perda</span><span class="v"><span data-c="0">0</span><small>%</small></span></div></div></section>
- <section class="sec"><p class="eyebrow">Checks recentes</p>${lines(ROWS.slice(0,4))}</section></div>`,
-
-check:()=>`<div class="page">
- <header class="head"><div><h1>Check</h1><p>Acha a região mais perto e mede a rota até ela</p></div><div class="spacer"><button class="btn text" id="redo" style="display:none">Refazer</button><button class="btn primary" id="detect" style="min-height:48px;padding:0 24px">Iniciar check</button></div></header>
- <section class="panel map" id="mapcard"><canvas id="cv"></canvas>
-  <div class="mapphase"><span class="pill accent" id="mpill">Pronto</span><div><div class="t" id="mph">Pronto para detectar</div><small id="mps">—</small></div></div>
-  <div class="mapms"><span id="liveMs">—</span><small>ms</small><em>ida e volta</em></div>
-  <div class="mapfoot">Animação em tempo expandido. Os milissegundos mostrados são os medidos.</div>
-  <div class="protoctl" aria-label="Controles do protótipo"><div><label>Local</label><button class="chip" data-loc="salvador" aria-pressed="true">Salvador</button><button class="chip" data-loc="miami" aria-pressed="false">Miami</button><button class="chip" data-loc="lisboa" aria-pressed="false">Lisboa</button><button class="chip" data-loc="osaka" aria-pressed="false">Osaka</button></div>
-   <div><label>Cenário</label><button class="chip" data-sc="ok" aria-pressed="true">Estável</button><button class="chip" data-sc="unstable" aria-pressed="false">Instável</button><button class="chip" data-sc="loss" aria-pressed="false">Com perda</button></div></div></section>
- <section class="grid2">
-  <div><p class="eyebrow">Regiões testadas</p><div id="srvlist"></div></div>
-  <div><p class="eyebrow" id="vroute">Rota de referência</p>
-   <div class="stats"><div class="stat"><span class="l">Ping mediano</span><span class="n"><span id="sMed">—</span><small>ms</small></span></div><div class="stat"><span class="l">Jitter</span><span class="n"><span id="sJit">—</span><small>ms</small></span></div><div class="stat"><span class="l">Sem eco</span><span class="n"><span id="sLoss">—</span><small>%</small></span></div></div>
-   <div class="probes" id="probes"></div><p class="fine" id="vfine">Esta rota não representa uma partida.</p></div></section></div>`,
-
-result:()=>{if(!RESULT)return`<div class="page"><header class="head"><div><h1>Resultado</h1><p>Seu último check aparece aqui</p></div></header><p class="empty">Nenhum check feito nesta sessão.</p><div><button class="btn primary" data-go="check" data-auto="1">Fazer check</button></div></div>`;
- const R=RESULT,v=VERD[R.v],S=R.st,pts=R.probes;
- const W=800,H=160,X=i=>40+i*(720/(pts.length-1)),mx=Math.max(60,...pts.filter(p=>!p.lost).map(p=>p.ms)),Y=ms=>H-16-ms/mx*(H-40);
- const seg=[];let cur=[];pts.forEach((p,i)=>{if(p.lost){if(cur.length)seg.push(cur);cur=[]}else cur.push(`${X(i).toFixed(1)},${Y(p.ms).toFixed(1)}`)});if(cur.length)seg.push(cur);
- return`<div class="page"><header class="head"><div><h1>Resultado</h1><p>${GAME} · ${R.when}</p></div><div class="spacer"><button class="btn" data-toast="Card copiado para colar no Discord">Copiar card</button><button class="btn" data-go="check" data-auto="1">Refazer</button></div></header>
- <section class="res">${pill(R.v)}<h2>${v.h}</h2><p class="lead">${v.lead}</p></section>
- <section class="stats" style="margin:0"><div class="stat"><span class="l">Ping mediano</span><span class="n">${S?fmt(S.med,0):'—'}<small>ms</small></span></div><div class="stat"><span class="l">Jitter</span><span class="n">${S?fmt(S.jit,1):'—'}<small>ms</small></span></div><div class="stat"><span class="l">Sondas sem eco</span><span class="n">${S?fmt(S.loss,0):'—'}<small>%</small></span></div></section>
- <section><p class="eyebrow">Sondas (${pts.length})</p><svg class="series" viewBox="0 0 800 ${H}"><line class="gl" x1="40" x2="760" y1="${H-16}" y2="${H-16}"/>
-  ${seg.map(s=>`<polyline points="${s.join(' ')}" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px #7C3AED)"/>`).join('')}
-  ${pts.map((p,i)=>p.lost?`<g stroke="#FF5A36" stroke-width="2.2" stroke-linecap="round"><path d="M${X(i)-5} ${H-26}l10 10M${X(i)+5} ${H-26}l-10 10"/></g><text x="${X(i)}" y="${H-34}" text-anchor="middle" style="fill:#FF5A36">perdida</text>`:`<circle cx="${X(i)}" cy="${Y(p.ms)}" r="3.5" fill="#0B0D10" stroke="#A78BFA" stroke-width="2"/><text x="${X(i)}" y="${Y(p.ms)-10}" text-anchor="middle">${Math.round(p.ms)}</text>`).join('')}</svg></section>
- <section class="sec"><p class="eyebrow">Rota medida</p><div class="route" style="padding-top:28px"><div class="rn"><b>Você</b><small>${R.user.n}, ${R.user.c} · aproximada</small></div><div class="rl"><em>${S?Math.round(S.med):'—'} ms</em></div><div class="rn" style="text-align:right"><b>${R.server.n}</b><small>${R.server.code} · ${fmt(R.km)} km</small></div></div>
- <p class="fine">Rota de referência até uma infraestrutura pública. Não representa o servidor da sua partida.</p></section></div>`},
-
-hist:()=>`<div class="page"><header class="head"><div><h1>Histórico</h1><p>Ping mediano dos seus checks</p></div><div class="spacer"><button class="btn" data-toast="CSV salvo em Downloads">Exportar</button></div></header>
- <section>${chart()}</section><section class="sec"><p class="eyebrow">Checks</p>${lines(ROWS)}</section></div>`,
-
-cfg:()=>`<div class="page"><header class="head"><div><h1>Ajustes</h1><p>Comportamento do app</p></div></header>
- <section><div class="set"><div><b>Reduzir movimento</b><small>Remove pacotes e animações decorativas. Ativo sozinho se o Windows pedir.</small></div><button class="switch" role="switch" aria-checked="false" data-sw="calm"></button></div>
- <div class="set"><div><b>Localização aproximada</b><small>Cidade estimada pelo IP, só no seu PC, para posicionar o mapa. Nunca GPS.</small></div><button class="switch" role="switch" aria-checked="true" data-sw="loc"></button></div>
- <div class="set"><div><b>Iniciar com o Windows</b><small>Abre minimizado na bandeja.</small></div><button class="switch" role="switch" aria-checked="false" data-sw="boot"></button></div></section></div>`};
-
-/* ============ navegação ============ */
-const PAGES=[['home','Início','home'],['check','Check','check'],['hist','Histórico','history'],['cfg','Ajustes','settings']];
-const ORDER=['home','check','result','hist','cfg'],NAVOF={result:'check'};
-let cur=null,teardown=null,token=0;const nav=$('#nav'),stage=$('#stage');
-nav.innerHTML='<i class="ind" id="ind"></i>'+PAGES.map(([id,l,i])=>`<button class="nav-item" data-go="${id}">${ic(i)}<span>${l}</span></button>`).join('')+'<div class="foot"><i class="dot"></i><span>Online</span></div>';
-function moveInd(){const a=$('.nav-item[aria-current=page]');if(a)$('#ind').style.transform=`translateY(${a.offsetTop+12}px)`}
-function go(id,o={}){if(id===cur)return;const dx=ORDER.indexOf(id)>ORDER.indexOf(cur)?24:-24;stage.style.setProperty('--dx',dx+'px');
- const swap=()=>{teardown&&teardown();teardown=null;cur=id;stage.innerHTML=V[id]();stage.scrollTop=0;const n=NAVOF[id]||id;$$('.nav-item').forEach(b=>b.setAttribute('aria-current',b.dataset.go===n?'page':'false'));moveInd();$$('.page>*',stage).forEach((e,i)=>e.style.setProperty('--i',i));after(id,o)};
- cur?(stage.classList.add('out'),setTimeout(()=>{swap();stage.classList.remove('out')},140)):swap()}
-function after(id,o){$$('[data-c]',stage).forEach(e=>countUp(e,+e.dataset.c,+(e.dataset.d||0),1100));
- if(id==='check'){teardown=initCheck();if(o.auto)setTimeout(()=>$('#detect')&&$('#detect').click(),450)}
- if(id==='hist')bindChart();
- if(id==='home')$$('.game').forEach(b=>b.onclick=()=>{GAME=b.dataset.game;$$('.game').forEach(x=>x.setAttribute('aria-pressed',x===b))});
- if(id==='cfg')$$('.switch').forEach(s=>s.onclick=()=>{const on=s.getAttribute('aria-checked')!=='true';s.setAttribute('aria-checked',on);if(s.dataset.sw==='calm')document.documentElement.classList.toggle('calm',on)})}
-document.addEventListener('click',e=>{const t=e.target.closest('[data-go],[data-toast]');if(!t)return;t.dataset.toast?toast(t.dataset.toast):go(t.dataset.go,{auto:t.dataset.auto})});
-window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key>='1'&&e.key<='4')go(PAGES[e.key-1][0])});window.addEventListener('resize',moveInd);
-
-/* ============ Check: detecção de região + animação de ping ============ */
-const USERS={salvador:{n:'Salvador',c:'BR',lat:-12.97,lon:-38.51},miami:{n:'Miami',c:'EUA',lat:25.76,lon:-80.19},lisboa:{n:'Lisboa',c:'PT',lat:38.72,lon:-9.14},osaka:{n:'Osaka',c:'JP',lat:34.69,lon:135.5}};
-const SERVERS=[{n:'São Paulo',code:'sa-east-1',lat:-23.55,lon:-46.63},{n:'Virgínia',code:'us-east-1',lat:38.95,lon:-77.45},{n:'Oregon',code:'us-west-2',lat:45.84,lon:-119.7},{n:'Frankfurt',code:'eu-central-1',lat:50.11,lon:8.68},{n:'Tóquio',code:'ap-northeast-1',lat:35.68,lon:139.75}];
-const km=(a,b)=>{const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,h=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
-const baseRtt=(u,s)=>4+km(u,s)/62; // só no protótipo. No app o RTT vem das respostas UDP.
-const PROBES=8;
-
-function initCheck(){
- const my=++token;const cv=$('#cv'),ctx=cv.getContext('2d');let W=0,H=0,raf=0,alive=true,last=performance.now();
- const S={user:USERS.salvador,sc:'ok',phase:'idle',servers:[],packets:[],rings:[],chosen:-1,probes:[],running:false,tk:0,cam:{lon:0,lat:13,zoom:1},tgt:{lon:0,lat:13,zoom:1},arcA:[]};
- const land=[];for(let r=0;r<MAP.rows;r++){const row=MAP.grid[r];for(let c=0;c<MAP.cols;c++)if(row[c]==='1')land.push([-180+(c+.5)*MAP.step,MAP.latTop-(r+.5)*MAP.step])}
- const proj=(lat,lon)=>{const k=W/360*S.cam.zoom;return[W/2+(lon-S.cam.lon)*k,H/2-(lat-S.cam.lat)*k]};
- const arc=(a,b)=>{const[x0,y0]=proj(a.lat,a.lon),[x1,y1]=proj(b.lat,b.lon),dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy)||1,h=clamp(d*.3,34,170);let nx=-dy/d,ny=dx/d;if(ny>0){nx=-nx;ny=-ny}return{x0,y0,x1,y1,cx:(x0+x1)/2+nx*h,cy:(y0+y1)/2+ny*h}};
- const bez=(A,t)=>{const u=1-t;return[u*u*A.x0+2*u*t*A.cx+t*t*A.x1,u*u*A.y0+2*u*t*A.cy+t*t*A.y1]};
- const dpr=Math.min(window.devicePixelRatio||1,2);
- function resize(){W=cv.parentElement.getBoundingClientRect().width;H=Math.round(W*(MAP.latTop-MAP.latBottom)/360);cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
- const ro=new ResizeObserver(resize);ro.observe(cv.parentElement);resize();
- const reset=()=>{S.servers=SERVERS.map(s=>({...s,rtt:null,state:'idle',lit:0}));S.arcA=SERVERS.map(()=>1);S.chosen=-1;S.probes=[];S.packets=[];S.rings=[]};
- const setPhase=(p,pill,t,sub)=>{S.phase=p;$('#mpill').textContent=pill;$('#mph').textContent=t;$('#mps').textContent=sub};
- const ulabel=()=>`${S.user.n}, ${S.user.c} · localização aproximada`;
- function renderList(){const mx=Math.max(...S.servers.map(s=>s.rtt||0),60);$('#srvlist').innerHTML=S.servers.map((s,i)=>`<div class="srv ${s.state==='probing'?'probing':''} ${S.chosen===i?'best':''} ${S.chosen>=0&&S.chosen!==i?'dim':''}"><div><b>${s.n}${S.chosen===i?'<span class="tag">Mais perto</span>':''}</b><small>${s.code}</small></div><div class="bar"><i style="width:${s.rtt?clamp(s.rtt/mx*100,6,100):0}%"></i></div><span class="ms">${s.rtt?Math.round(s.rtt):s.state==='probing'?'…':'—'}</span></div>`).join('')}
- function renderProbes(){const mx=Math.max(...S.probes.filter(p=>!p.lost).map(p=>p.ms),30);$('#probes').innerHTML=Array.from({length:PROBES},(_,i)=>{const p=S.probes[i];return p?(p.lost?`<div class="pr lost"><span></span><small>perdida</small></div>`:`<div class="pr"><span style="height:${clamp(p.ms/mx*100*.82,8,100)}%"></span><small>${Math.round(p.ms)}</small></div>`):`<div class="pr ghost"><span></span><small>${i+1}</small></div>`}).join('')}
- const stats=()=>{const ok=S.probes.filter(p=>!p.lost).map(p=>p.ms),lost=S.probes.filter(p=>p.lost).length;if(!ok.length)return null;const s=[...ok].sort((a,b)=>a-b),med=s.length%2?s[(s.length-1)/2]:(s[s.length/2-1]+s[s.length/2])/2;let j=0;for(let i=1;i<ok.length;i++)j+=Math.abs(ok[i]-ok[i-1]);return{med,jit:ok.length>1?j/(ok.length-1):0,loss:lost/S.probes.length*100,lost,n:S.probes.length}};
- const renderStats=()=>{const s=stats();if(!s)return;$('#sMed').textContent=Math.round(s.med);$('#sJit').textContent=fmt(s.jit,1);$('#sLoss').textContent=fmt(s.loss,0)};
- const fly=(si,dir,dur,o={})=>new Promise(res=>S.packets.push({si,dir,t0:performance.now(),dur,res,lost:!!o.lost,color:o.color||C.accentText}));
- const ring=(lat,lon,maxPx,dur,color)=>S.rings.push({lat,lon,maxPx,dur,color,t0:performance.now()});
- const frameCam=(a,b,zmax)=>{const span=Math.max(Math.abs(a.lon-b.lon),Math.abs(a.lat-b.lat)*W/H,6);S.tgt={lon:(a.lon+b.lon)/2,lat:(a.lat+b.lat)/2,zoom:clamp(360/(span*2.1),1,zmax)}};
- const wide=()=>{S.tgt={lon:0,lat:13,zoom:1}};
- const rtt=(s,i,k)=>{const r=rng(100+i*17+k*31),b=baseRtt(S.user,s);return S.sc==='unstable'?b+16+(r()<.35?r()*34:r()*10):b+(r()-.5)*(b<30?3:b*.04)};
- const btn=$('#detect'),redo=$('#redo');
- const btnState=(m)=>{redo.style.display=m==='done'?'':'none';btn.disabled=false;btn.onclick=null;
-  if(m==='idle'){btn.textContent='Iniciar check';btn.onclick=run}
-  if(m==='run'){btn.textContent='Cancelar';btn.className='btn';btn.style.cssText='min-height:48px';btn.onclick=()=>{idle();toast('Check cancelado')}}
-  if(m==='done'){btn.textContent='Ver resultado';btn.className='btn primary';btn.style.cssText='min-height:48px;padding:0 24px';btn.onclick=()=>go('result')}
-  if(m==='idle'){btn.className='btn primary';btn.style.cssText='min-height:48px;padding:0 24px'}}
- redo.onclick=run;
- async function run(){if(S.running)return;const tk=++S.tk;S.running=true;reset();renderList();renderProbes();$('#sMed').textContent=$('#sJit').textContent=$('#sLoss').textContent='—';$('#liveMs').textContent='—';$('#vfine').textContent='Esta rota não representa uma partida.';btnState('run');const ok=()=>tk===S.tk&&alive&&my===token;
-  wide();setPhase('locate','Localizando','Localizando você',ulabel());
-  for(let i=0;i<3;i++){ring(S.user.lat,S.user.lon,150,1500,C.accentText);await sleep(420);if(!ok())return}await sleep(450);if(!ok())return;
-  setPhase('detect','Testando',`Testando ${SERVERS.length} regiões`,'Uma sonda por região, todas ao mesmo tempo');S.servers.forEach(s=>s.state='probing');renderList();
-  await Promise.all(S.servers.map((s,i)=>(async()=>{await sleep(i*170);const r=rtt(s,i,-1),rt=clamp(r*8,900,2400);await fly(i,1,rt/2,{color:C.fg});if(!ok())return;ring(s.lat,s.lon,44,900,C.fg);await fly(i,-1,rt/2,{color:C.fg});if(!ok())return;s.rtt=r;s.state='done';s.lit=1;renderList()})()));
-  if(!ok())return;
-  const best=S.servers.reduce((m,s,i)=>s.rtt<S.servers[m].rtt?i:m,0);S.chosen=best;S.servers[best].state='chosen';renderList();
-  setPhase('choose','Escolhida',`Mais perto: ${S.servers[best].n}`,`${Math.round(S.servers[best].rtt)} ms · ${S.servers[best].code}`);ring(S.servers[best].lat,S.servers[best].lon,90,1400,C.good);frameCam(S.user,S.servers[best],3.4);
-  await sleep(1500);if(!ok())return;
-  $('#vroute').textContent=`Rota até ${S.servers[best].n}`;renderProbes();
-  const lossAt=S.sc==='loss'?[2,5]:[];
-  for(let k=0;k<PROBES;k++){setPhase('measure','Medindo',`Medindo a rota até ${S.servers[best].n}`,`Sonda ${k+1} de ${PROBES}`);const s=S.servers[best],lost=lossAt.includes(k),ms=rtt(s,best,k),rt=clamp(ms*16,520,900);$('#liveMs').textContent='…';
-   await fly(best,1,rt/2,{lost,color:C.accentText});if(!ok())return;
-   if(lost){S.probes.push({lost:true});$('#liveMs').textContent='—'}else{ring(s.lat,s.lon,52,800,C.accentText);await fly(best,-1,rt/2,{color:C.good});if(!ok())return;ring(S.user.lat,S.user.lon,60,800,C.good);S.probes.push({ms});$('#liveMs').textContent=Math.round(ms)}
-   renderProbes();renderStats();await sleep(160);if(!ok())return}
-  const st=stats(),v=judge(st),sv=S.servers[best];
-  RESULT={v,st,probes:S.probes.slice(),user:S.user,server:sv,km:km(S.user,sv),when:'agora'};
-  setPhase('done',VERD[v].txt.replace(/^[●▲—]\s*/,''),v==='inconc'?'Medição inconclusiva':`Rota até ${sv.n} medida`,ulabel()+' → '+sv.code);
-  $('#mpill').className='pill '+VERD[v].cls;$('#liveMs').textContent=st?Math.round(st.med):'—';$('#vfine').textContent=VERD[v].lead+' Esta rota não representa uma partida.';
-  wide();S.running=false;btnState('done')}
- function idle(){S.tk++;S.running=false;reset();renderList();renderProbes();wide();setPhase('idle','Pronto','Pronto para detectar',ulabel());$('#mpill').className='pill accent';$('#liveMs').textContent='—';$('#vroute').textContent='Rota de referência';$('#sMed').textContent=$('#sJit').textContent=$('#sLoss').textContent='—';btnState('idle')}
- $$('[data-loc]').forEach(b=>b.onclick=()=>{S.user=USERS[b.dataset.loc];$$('[data-loc]').forEach(x=>x.setAttribute('aria-pressed',x===b));idle()});
- $$('[data-sc]').forEach(b=>b.onclick=()=>{S.sc=b.dataset.sc;$$('[data-sc]').forEach(x=>x.setAttribute('aria-pressed',x===b));idle()});
-
- const calm=()=>document.documentElement.classList.contains('calm')||matchMedia('(prefers-reduced-motion:reduce)').matches;
- function label(x,y,text,strong,above){ctx.font=`${strong?700:500} 12px "Google Sans Flex","Segoe UI",sans-serif`;const w=ctx.measureText(text).width+16,h=22;let lx=x+12,ly=y-h/2;if(above){lx=x-w/2;ly=y-h-14}else if(lx+w>W-8)lx=x-12-w;lx=clamp(lx,6,W-w-6);ly=clamp(ly,6,H-h-6);ctx.fillStyle=rgba(C.bg,.9);ctx.beginPath();ctx.roundRect(lx,ly,w,h,5);ctx.fill();ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.14)';ctx.stroke();ctx.fillStyle='#F4F5F7';ctx.textBaseline='middle';ctx.fillText(text,lx+8,ly+h/2+.5)}
- function draw(now){if(!alive||my!==token)return;const dt=Math.min((now-last)/1000,.05);last=now;const kc=1-Math.exp(-dt*(calm()?30:3.2));for(const k of['lon','lat','zoom'])S.cam[k]+=(S.tgt[k]-S.cam[k])*kc;
-  ctx.clearRect(0,0,W,H);const k=W/360*S.cam.zoom,sp=k*MAP.step,r0=clamp(sp*.30,1.1,4.6);
-  const lights=[],u=proj(S.user.lat,S.user.lon);lights.push({x:u[0],y:u[1],r:46*clamp(S.cam.zoom,1,2),a:.55});
-  S.servers.forEach(s=>{if(s.lit){const p=proj(s.lat,s.lon);lights.push({x:p[0],y:p[1],r:S.servers[S.chosen]===s?60:28,a:S.servers[S.chosen]===s?.8:.3})}});
-  const arcs=S.servers.map(s=>arc(S.user,s));
-  S.packets=S.packets.filter(p=>{const e=(now-p.t0)/p.dur;if(e>=1||(p.lost&&e>=.58)){p.res();return false}const A=arcs[p.si],t=ease(clamp(e,0,1)),tt=p.dir>0?t:1-t,pos=bez(A,tt);p._pos=pos;p._t=tt;p._e=e;lights.push({x:pos[0],y:pos[1],r:58,a:.95});return true});
-  S.rings=S.rings.filter(g=>now-g.t0<g.dur);const rings=S.rings.map(g=>{const p=proj(g.lat,g.lon),e=(now-g.t0)/g.dur;return{x:p[0],y:p[1],r:easeOut(e)*g.maxPx,a:1-e,c:g.color}});
-  ctx.fillStyle='rgba(138,147,160,.30)';ctx.beginPath();const boosted=[];
-  for(let i=0;i<land.length;i++){const[x,y]=proj(land[i][1],land[i][0]);if(x<-6||x>W+6||y<-6||y>H+6)continue;let b=0;
-   for(const L of lights){const dx=x-L.x,dy=y-L.y,d2=dx*dx+dy*dy;if(d2<L.r*L.r){const v=(1-Math.sqrt(d2)/L.r)*L.a;if(v>b)b=v}}
-   for(const g of rings){const d=Math.abs(Math.hypot(x-g.x,y-g.y)-g.r);if(d<16){const v=(1-d/16)*g.a*.9;if(v>b)b=v}}
-   if(b>.04)boosted.push(x,y,b);else{ctx.moveTo(x+r0,y);ctx.arc(x,y,r0,0,6.283)}}
-  ctx.fill();for(let i=0;i<boosted.length;i+=3){const b=boosted[i+2];ctx.fillStyle=rgba(C.accentText,.3+b*.7);ctx.beginPath();ctx.arc(boosted[i],boosted[i+1],r0*(1+b*.55),0,6.283);ctx.fill()}
-  S.servers.forEach((s,i)=>{const A=arcs[i],ch=S.chosen===i,fade=S.chosen>=0&&!ch;S.arcA[i]+=((fade?.1:1)-S.arcA[i])*Math.min(dt*4,1);ctx.save();ctx.globalAlpha=S.arcA[i];ctx.beginPath();ctx.moveTo(A.x0,A.y0);ctx.quadraticCurveTo(A.cx,A.cy,A.x1,A.y1);ctx.lineWidth=ch?2:1.2;ctx.setLineDash(ch?[2,7]:[3,7]);ctx.lineDashOffset=calm()?0:-now/60;ctx.strokeStyle=ch?rgba(C.good,.85):'rgba(138,147,160,.5)';ctx.stroke();ctx.restore()});
-  for(const g of rings){ctx.beginPath();ctx.arc(g.x,g.y,Math.max(g.r,.1),0,6.283);ctx.lineWidth=1.6;ctx.strokeStyle=rgba(g.c,g.a*.8);ctx.stroke()}
-  if(!calm())for(const p of S.packets){const A=arcs[p.si],col=p.color,seg=22,tail=.2;
-   for(let j=0;j<seg;j++){const t1=p.dir>0?Math.max(0,p._t-tail*(j+1)/seg):Math.min(1,p._t+tail*(j+1)/seg),t0=p.dir>0?Math.max(0,p._t-tail*j/seg):Math.min(1,p._t+tail*j/seg),a=bez(A,t0),b=bez(A,t1);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineWidth=3.4*(1-j/seg)+.6;ctx.lineCap='round';ctx.strokeStyle=rgba(col,(1-j/seg)*(p.lost&&p._e>.4?clamp(1-(p._e-.4)/.18,0,1):1));ctx.stroke()}
-   const[hx,hy]=p._pos,g=ctx.createRadialGradient(hx,hy,0,hx,hy,16);g.addColorStop(0,rgba(col,.9));g.addColorStop(1,rgba(col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(hx,hy,16,0,6.283);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hx,hy,3,0,6.283);ctx.fill();
-   if(p.lost&&p._e>.5){ctx.strokeStyle=rgba(C.coral,clamp((p._e-.5)/.08,0,1));ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(hx-6,hy-6);ctx.lineTo(hx+6,hy+6);ctx.moveTo(hx+6,hy-6);ctx.lineTo(hx-6,hy+6);ctx.stroke()}}
-  const tms=now/1000;
-  S.servers.forEach((s,i)=>{const[x,y]=proj(s.lat,s.lon),ch=S.chosen===i,dim=S.chosen>=0&&!ch;ctx.save();ctx.globalAlpha=dim?.35:1;
-   if(ch&&!calm()){const ph=(tms*.9)%1;ctx.beginPath();ctx.arc(x,y,6+ph*22,0,6.283);ctx.strokeStyle=rgba(C.good,(1-ph)*.7);ctx.lineWidth=2;ctx.stroke()}
-   ctx.beginPath();ctx.arc(x,y,ch?7:5,0,6.283);ctx.fillStyle=s.lit?(ch?'#22C55E':'#F4F5F7'):'#15181E';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=ch?'#22C55E':'rgba(138,147,160,.9)';ctx.stroke();label(x,y,s.n+(s.rtt?` · ${Math.round(s.rtt)} ms`:''),ch);ctx.restore()});
-  if(!calm()){const ph=(tms*.8)%1;ctx.beginPath();ctx.arc(u[0],u[1],7+ph*26,0,6.283);ctx.strokeStyle=rgba(C.accentText,(1-ph)*.7);ctx.lineWidth=2;ctx.stroke()}
-  ctx.beginPath();ctx.arc(u[0],u[1],7,0,6.283);ctx.fillStyle='#7C3AED';ctx.shadowColor='#7C3AED';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;ctx.lineWidth=2.5;ctx.strokeStyle='#F4F5F7';ctx.stroke();label(u[0],u[1],'Você · '+S.user.n,true,true);
-  raf=requestAnimationFrame(draw)}
- idle();raf=requestAnimationFrame(draw);
- return()=>{alive=false;cancelAnimationFrame(raf);ro.disconnect();S.tk++}
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
-go('home');
+
+function getSelectedGame() {
+  return GAMES_CATALOG.find(g => g.id === selectedGameId) || GAMES_CATALOG[0];
+}
+
+/* ==========================================================================
+   RENDERIZAÇÃO DO APP
+   ========================================================================== */
+function renderApp() {
+  const container = $('#stage-content');
+  $$('.state-btn').forEach(btn => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.setState === currentState));
+  });
+
+  switch (currentState) {
+    case 'ready':
+      container.innerHTML = getHubViewHtml();
+      break;
+    case 'measuring':
+      container.innerHTML = getMeasuringViewHtml();
+      initMeasuringAnimation();
+      break;
+    case 'result-good':
+      container.innerHTML = getResultGoodHtml();
+      break;
+    case 'result-unstable':
+      container.innerHTML = getResultUnstableHtml();
+      break;
+    case 'result-inconclusive':
+      container.innerHTML = getResultInconclusiveHtml();
+      break;
+    case 'error':
+      container.innerHTML = getErrorViewHtml();
+      break;
+  }
+  bindEvents();
+}
+
+/* ==========================================================================
+   ESTADO 1: HUB DE GAMES (IDÊNTICO À IMAGEM DO USUÁRIO)
+   ========================================================================== */
+function getHubViewHtml() {
+  const g = getSelectedGame();
+  const installedCount = GAMES_CATALOG.filter(x => x.isInstalled).length;
+  const favCount = GAMES_CATALOG.filter(x => x.isFavorite).length;
+
+  // Filtragem da Biblioteca
+  const filtered = GAMES_CATALOG.filter(item => {
+    if (currentLibraryFilter === 'INSTALLED') return item.isInstalled;
+    if (currentLibraryFilter === 'FAVORITES') return item.isFavorite;
+    return true;
+  });
+
+  return `
+    <!-- HERO BANNER WIDESCREEN CINEMATOGRÁFICO -->
+    <section class="hero-banner" aria-label="Jogo em Destaque">
+      <img class="hero-backdrop" src="${g.heroBg}" alt="${g.title}">
+      <div class="hero-gradient-overlay"></div>
+
+      <div class="hero-inner">
+        <div class="hero-logo-row">
+          <span class="hero-game-badge">${g.platform} · ${g.category}</span>
+          <span style="color: var(--text-tertiary);">•</span>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: ${g.netType === 'supported' ? 'var(--purple-light)' : g.netType === 'general' ? 'var(--caution)' : 'var(--text-tertiary)'};">
+            ${g.netLabel}
+          </span>
+        </div>
+
+        <h1 class="hero-title">${g.title}</h1>
+        <p class="hero-desc">${g.description}</p>
+
+        <div class="hero-actions">
+          <button class="btn-hero-play" id="btn-play">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            <span>Jogar</span>
+          </button>
+
+          <button class="btn-hero-test" id="btn-test-route" title="Diagnosticar rota determinística">
+            <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            <span>Testar conexão</span>
+          </button>
+
+          <button class="btn-hero-icon" title="Opções do jogo">
+            <svg class="i" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </button>
+
+          <button class="btn-hero-icon" id="btn-fav" aria-pressed="${g.isFavorite}" title="Favoritar">
+            <svg class="i" viewBox="0 0 24 24" fill="${g.isFavorite ? 'currentColor' : 'none'}"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </button>
+        </div>
+
+        <div class="hero-meta-row">
+          <div class="hero-meta-item">
+            <svg class="i" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>${g.hoursPlayed} horas</span>
+          </div>
+          <div class="hero-meta-item">
+            <svg class="i" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2m12 6h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M6 3h12v7a6 6 0 01-12 0V3z"/><path d="M9 21h6m-3-6v6"/></svg>
+            <span>${g.achievements}</span>
+          </div>
+          <div class="hero-meta-item">
+            <svg class="i" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M19 16.9A5 5 0 0018 7h-1.26A8 8 0 104 15.25"/></svg>
+            <span>Instalado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Setas de navegação do carrossel -->
+      <button class="hero-nav-arrow prev" id="hero-prev" aria-label="Jogo anterior"><svg class="i" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button class="hero-nav-arrow next" id="hero-next" aria-label="Próximo jogo"><svg class="i" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+
+      <!-- Paginação no canto inferior direito -->
+      <div class="hero-pagination">
+        ${GAMES_CATALOG.map(item => `
+          <div class="hero-page-dot ${item.id === selectedGameId ? 'active' : ''}"></div>
+        `).join('')}
+      </div>
+    </section>
+
+    <!-- SEÇÃO: SUA BIBLIOTECA -->
+    <section class="library-section">
+      <div class="library-header">
+        <div class="library-title-group">
+          <div class="library-accent-bar"></div>
+          <h2 class="library-title">Sua Biblioteca</h2>
+        </div>
+
+        <div class="library-pills" role="group" aria-label="Filtros de biblioteca">
+          <button class="library-pill-btn ${currentLibraryFilter === 'ALL' ? 'active' : ''}" data-lib-filter="ALL">Todos (${GAMES_CATALOG.length})</button>
+          <button class="library-pill-btn ${currentLibraryFilter === 'INSTALLED' ? 'active' : ''}" data-lib-filter="INSTALLED">Instalados (${installedCount})</button>
+          <button class="library-pill-btn ${currentLibraryFilter === 'FAVORITES' ? 'active' : ''}" data-lib-filter="FAVORITES">Favoritos (${favCount})</button>
+          <button class="library-pill-btn" data-lib-filter="RECENT">Recente</button>
+        </div>
+
+        <div class="library-sort">
+          <span>Ordenar por: <b>Último jogado ⌵</b></span>
+        </div>
+      </div>
+
+      <!-- Grade de Cards de Jogos (Capas) -->
+      <div class="games-grid">
+        ${filtered.map(item => `
+          <div class="game-card ${item.id === selectedGameId ? 'active' : ''}" data-card-id="${item.id}" role="button" tabindex="0">
+            <img class="game-card-img" src="${item.cardThumb}" alt="${item.title}">
+            <div class="game-card-overlay">
+              <span class="game-card-installed-badge">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Instalado
+              </span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+
+    <!-- SEÇÃO: COCKPIT GERAL DO LAGCHECK -->
+    <section class="cockpit-section">
+      <div class="cockpit-header">
+        <div>
+          <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--purple-light);">
+            Cockpit de Telemetria Determinística
+          </span>
+          <h3 style="margin: 4px 0 0; font-family: var(--font-heading); font-size: 22px; font-weight: 800;">
+            Check Geral de Conexão
+          </h3>
+          <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 13.5px;">
+            Diagnóstico instantâneo da rota deste PC até a infraestrutura pública AWS mais próxima.
+          </p>
+        </div>
+        <button class="btn-primary" id="btn-quick-check">Iniciar diagnóstico</button>
+      </div>
+
+      <div class="metric-strip">
+        <div class="metric-col">
+          <span class="metric-label">Repouso</span>
+          <span class="metric-val">18<small>ms</small></span>
+          <span class="metric-note">latência base de referência</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Jitter</span>
+          <span class="metric-val">2<small>ms</small></span>
+          <span class="metric-note">variação baixa</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Sob carga</span>
+          <span class="metric-val">+4<small>ms</small></span>
+          <span class="metric-note">estável sob download</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Perda UDP</span>
+          <span class="metric-val">0<small>%</small></span>
+          <span class="metric-note">todas as 12 sondas ok</span>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+/* ==========================================================================
+   ESTADOS DE MEDIÇÃO DO LAGCHECK (PRESERVADOS E ALINHADOS)
+   ========================================================================== */
+function getMeasuringViewHtml() {
+  const g = getSelectedGame();
+  return `
+    <div class="progress-rail">
+      <div class="step-item" data-status="done">1. Conexão</div>
+      <div class="step-item" data-status="active">2. Latência</div>
+      <div class="step-item" data-status="">3. Sob carga</div>
+      <div class="step-item" data-status="">4. Análise</div>
+    </div>
+
+    <div class="map-canvas-wrap">
+      <canvas id="map-cv"></canvas>
+      <div class="map-overlay-phase">
+        <span class="status-dot" style="background: var(--purple-light);"></span>
+        <div>
+          <div style="font-family: var(--font-heading); font-size: 15px; font-weight: 700;" id="measure-phase-title">Medindo rota até São Paulo</div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);" id="measure-phase-sub">Sonda UDP 6 de 12 · ${g.title}</div>
+        </div>
+      </div>
+      <div class="map-overlay-telemetry">
+        <div class="live-ms" id="measure-live-ms">18<small>ms</small></div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;">latência atual</div>
+      </div>
+    </div>
+
+    <div>
+      <span class="metric-label">Telemetria ao Vivo</span>
+      <div class="metric-strip">
+        <div class="metric-col">
+          <span class="metric-label">Repouso</span>
+          <span class="metric-val" id="live-rest">18<small>ms</small></span>
+          <span class="metric-note">obtido</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Jitter</span>
+          <span class="metric-val" id="live-jitter">2<small>ms</small></span>
+          <span class="metric-note">calculando</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Sob carga</span>
+          <span class="metric-val" id="live-load">—</span>
+          <span class="metric-note">aguardando carga</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">Perda UDP</span>
+          <span class="metric-val" id="live-loss">0<small>%</small></span>
+          <span class="metric-note">0 de 6</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 20px;">
+      <p style="margin: 0; color: var(--text-secondary); font-size: 13.5px;">
+        Analisando oscilação e bufferbloat. Não inicie downloads concorrentes agora.
+      </p>
+      <button class="btn-secondary" id="btn-cancel">Cancelar análise</button>
+    </div>
+  `;
+}
+
+function getResultGoodHtml() {
+  const g = getSelectedGame();
+  return `
+    <div style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .9fr); gap: 36px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">
+          <span class="status-dot ready"></span>
+          <span>Leitura Concluída · ${g.title}</span>
+        </div>
+        <h2 style="margin: 0; font-family: var(--font-heading); font-size: 38px; font-weight: 800; color: var(--text-primary); line-height: 1.05;">
+          Pronto para ranked
+        </h2>
+        <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 15.5px; line-height: 1.5;">
+          Sua conexão está estável. Latência base baixa e sem degradação perceptível sob tráfego concorrente.
+        </p>
+
+        <div class="metric-strip" style="margin-top: 24px;">
+          <div class="metric-col">
+            <span class="metric-label">Repouso</span>
+            <span class="metric-val" style="color: var(--ready);">18<small>ms</small></span>
+            <span class="metric-note">latência base</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Jitter</span>
+            <span class="metric-val" style="color: var(--ready);">2<small>ms</small></span>
+            <span class="metric-note">variação baixa</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Sob carga</span>
+            <span class="metric-val" style="color: var(--ready);">+4<small>ms</small></span>
+            <span class="metric-note">bufferbloat mínimo</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Perda UDP</span>
+            <span class="metric-val" style="color: var(--ready);">0<small>%</small></span>
+            <span class="metric-note">todas sondas ok</span>
+          </div>
+        </div>
+      </div>
+
+      <aside style="border-left: 1px solid var(--line); padding-left: 28px;">
+        <span class="metric-label">Evidência de Rota</span>
+        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-primary); margin: 8px 0 4px;">PC local → AWS sa-east-1 (São Paulo)</div>
+        <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 20px;">Medição UDP determinística com 12 sondas reais.</p>
+
+        <div style="border-top: 1px solid var(--line); padding-top: 16px;">
+          <span class="metric-label">Fator Dominante</span>
+          <h4 style="margin: 6px 0 0; font-size: 15px; font-weight: 600;">Estabilidade Preservada</h4>
+          <p style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">O aumento sob carga manteve-se abaixo de 10 ms.</p>
+        </div>
+      </aside>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px;">
+      <div style="font-size: 14px; color: var(--text-secondary);">
+        <strong style="color: var(--text-primary);">Recomendação:</strong> Sinal verde para ranqueadas. Teste novamente se outra pessoa começar downloads.
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button class="btn-text" id="btn-copy">Copiar para o Discord</button>
+        <button class="btn-primary" id="btn-repeat">Testar novamente</button>
+      </div>
+    </div>
+  `;
+}
+
+function getResultUnstableHtml() {
+  const g = getSelectedGame();
+  return `
+    <div style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .9fr); gap: 36px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">
+          <span class="status-dot caution"></span>
+          <span>Atenção Necessária · ${g.title}</span>
+        </div>
+        <h2 style="margin: 0; font-family: var(--font-heading); font-size: 38px; font-weight: 800; color: #FFD18A; line-height: 1.05;">
+          Condições instáveis
+        </h2>
+        <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 15.5px; line-height: 1.5;">
+          A rota apresentou oscilação sob carga. A resposta pode engasgar em trocas de tiros intensas.
+        </p>
+
+        <div class="metric-strip" style="margin-top: 24px;">
+          <div class="metric-col">
+            <span class="metric-label">Repouso</span>
+            <span class="metric-val" style="color: var(--caution);">42<small>ms</small></span>
+            <span class="metric-note">moderada</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Jitter</span>
+            <span class="metric-val" style="color: var(--caution);">14<small>ms</small></span>
+            <span class="metric-note">oscilação alta</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Sob carga</span>
+            <span class="metric-val" style="color: var(--caution);">+38<small>ms</small></span>
+            <span class="metric-note">spike de fila</span>
+          </div>
+          <div class="metric-col">
+            <span class="metric-label">Perda UDP</span>
+            <span class="metric-val" style="color: var(--caution);">1.8<small>%</small></span>
+            <span class="metric-note">descarte leve</span>
+          </div>
+        </div>
+      </div>
+
+      <aside style="border-left: 1px solid var(--line); padding-left: 28px;">
+        <span class="metric-label">Diagnóstico</span>
+        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-primary); margin: 8px 0 4px;">PC local → AWS sa-east-1</div>
+        <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 20px;">Bufferbloat elevado durante simulação de download concorrente.</p>
+      </aside>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px;">
+      <div style="font-size: 14px; color: var(--text-secondary);">
+        <strong style="color: var(--text-primary);">Recomendação:</strong> Evite fila ranqueada agora. Use cabo Ethernet e pause downloads em segundo plano.
+      </div>
+      <button class="btn-primary" id="btn-repeat">Repetir análise</button>
+    </div>
+  `;
+}
+
+function getResultInconclusiveHtml() {
+  const g = getSelectedGame();
+  return `
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">
+        <span class="status-dot neutral"></span>
+        <span>Dados Insuficientes · ${g.title}</span>
+      </div>
+      <h2 style="margin: 0; font-family: var(--font-heading); font-size: 38px; font-weight: 800; color: var(--text-secondary);">
+        Leitura inconclusiva
+      </h2>
+      <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 15.5px; max-width: 680px;">
+        Poucas sondas UDP retornaram eco válido. O Lagcheck não inventa pontuação quando a medição real é incompleta.
+      </p>
+
+      <div class="metric-strip" style="margin-top: 24px;">
+        <div class="metric-col"><span class="metric-label">Repouso</span><span class="metric-val" style="color: var(--text-tertiary);">—</span></div>
+        <div class="metric-col"><span class="metric-label">Jitter</span><span class="metric-val" style="color: var(--text-tertiary);">—</span></div>
+        <div class="metric-col"><span class="metric-label">Sob carga</span><span class="metric-val" style="color: var(--text-tertiary);">—</span></div>
+        <div class="metric-col"><span class="metric-label">Perda UDP</span><span class="metric-val" style="color: var(--text-tertiary);">> 60%</span></div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; margin-top: 28px;">
+        <div style="font-size: 14px; color: var(--text-secondary);">Verifique o cabo de rede ou se o firewall está bloqueando UDP.</div>
+        <button class="btn-primary" id="btn-repeat">Tentar novamente</button>
+      </div>
+    </div>
+  `;
+}
+
+function getErrorViewHtml() {
+  return `
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--coral); text-transform: uppercase; margin-bottom: 8px;">
+        <span class="status-dot coral"></span>
+        <span>Falha de Conectividade</span>
+      </div>
+      <h2 style="margin: 0; font-family: var(--font-heading); font-size: 38px; font-weight: 800; color: var(--coral);">
+        Falha na medição
+      </h2>
+      <p style="margin: 10px 0 0; color: var(--text-secondary); font-size: 15.5px;">
+        O adaptador de rede não conseguiu alcançar a infraestrutura de referência dentro do tempo limite.
+      </p>
+
+      <div class="metric-strip" style="margin-top: 24px;">
+        <div class="metric-col"><span class="metric-label">Status</span><span class="metric-val" style="color: var(--coral); font-size: 20px;">TIMEOUT</span></div>
+        <div class="metric-col"><span class="metric-label">Gateway</span><span class="metric-val" style="color: var(--text-tertiary);">Sem resposta</span></div>
+        <div class="metric-col"><span class="metric-label">DNS</span><span class="metric-val" style="color: var(--text-tertiary);">Não resolvido</span></div>
+        <div class="metric-col"><span class="metric-label">Tentativas</span><span class="metric-val">3x</span></div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; margin-top: 28px;">
+        <div style="font-size: 14px; color: var(--text-secondary);">Reinicie o modem/roteador da operadora ou conecte o cabo Ethernet.</div>
+        <button class="btn-primary" id="btn-repeat">Tentar novamente</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================================
+   EVENTOS E NAVEGAÇÃO
+   ========================================================================== */
+function bindEvents() {
+  // Clique nos cards de jogos
+  $$('.game-card').forEach(card => {
+    card.onclick = () => {
+      selectedGameId = card.dataset.cardId;
+      renderApp();
+    };
+  });
+
+  // Filtros de pílula da biblioteca
+  $$('.library-pill-btn').forEach(btn => {
+    btn.onclick = () => {
+      currentLibraryFilter = btn.dataset.libFilter;
+      renderApp();
+    };
+  });
+
+  // Setas do carrossel do Hero
+  const prevBtn = $('#hero-prev');
+  const nextBtn = $('#hero-next');
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      const idx = GAMES_CATALOG.findIndex(g => g.id === selectedGameId);
+      const newIdx = (idx - 1 + GAMES_CATALOG.length) % GAMES_CATALOG.length;
+      selectedGameId = GAMES_CATALOG[newIdx].id;
+      renderApp();
+    };
+  }
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      const idx = GAMES_CATALOG.findIndex(g => g.id === selectedGameId);
+      const newIdx = (idx + 1) % GAMES_CATALOG.length;
+      selectedGameId = GAMES_CATALOG[newIdx].id;
+      renderApp();
+    };
+  }
+
+  // Botão Jogar
+  const btnPlay = $('#btn-play');
+  if (btnPlay) {
+    btnPlay.onclick = () => {
+      const g = getSelectedGame();
+      showToast(`Iniciando ${g.title} via ${g.platform}...`);
+    };
+  }
+
+  // Botão Favoritar
+  const btnFav = $('#btn-fav');
+  if (btnFav) {
+    btnFav.onclick = () => {
+      const g = getSelectedGame();
+      g.isFavorite = !g.isFavorite;
+      renderApp();
+      showToast(g.isFavorite ? `${g.title} adicionado aos Favoritos` : `${g.title} removido dos Favoritos`);
+    };
+  }
+
+  // Botão Testar Conexão no Hero
+  const btnHeroTest = $('#btn-test-route');
+  if (btnHeroTest) {
+    btnHeroTest.onclick = () => {
+      currentState = 'measuring';
+      renderApp();
+    };
+  }
+
+  // Botão Iniciar Diagnóstico no Cockpit
+  const btnQuickCheck = $('#btn-quick-check');
+  if (btnQuickCheck) {
+    btnQuickCheck.onclick = () => {
+      currentState = 'measuring';
+      renderApp();
+    };
+  }
+
+  // Botão Cancelar
+  const btnCancel = $('#btn-cancel');
+  if (btnCancel) {
+    btnCancel.onclick = () => {
+      if (measureInterval) clearInterval(measureInterval);
+      currentState = 'ready';
+      renderApp();
+      showToast('Diagnóstico cancelado');
+    };
+  }
+
+  // Botão Repetir
+  const btnRepeat = $('#btn-repeat');
+  if (btnRepeat) {
+    btnRepeat.onclick = () => {
+      currentState = 'measuring';
+      renderApp();
+    };
+  }
+
+  // Botão Copiar
+  const btnCopy = $('#btn-copy');
+  if (btnCopy) {
+    btnCopy.onclick = () => {
+      showToast('Resumo copiado para colar no Discord!');
+    };
+  }
+}
+
+/* ==========================================================================
+   CANVAS DE ROTA DA TELA MEDINDO
+   ========================================================================== */
+function initMeasuringAnimation() {
+  const cv = $('#map-cv');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let w = cv.parentElement.clientWidth;
+  let h = cv.parentElement.clientHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = w * dpr;
+  cv.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  let step = 0;
+  if (measureInterval) clearInterval(measureInterval);
+
+  measureInterval = setInterval(() => {
+    step++;
+    const msEl = $('#measure-live-ms');
+    const jitterEl = $('#live-jitter');
+    const loadEl = $('#live-load');
+    const lossEl = $('#live-loss');
+
+    if (step <= 4) {
+      if (msEl) msEl.innerHTML = `${17 + Math.floor(Math.random() * 3)}<small>ms</small>`;
+    } else if (step <= 8) {
+      $('#measure-phase-title').textContent = 'Testando variação sob carga paralela';
+      $('#measure-phase-sub').textContent = 'Simulando tráfego de download e upload';
+      if ($$('.step-item')[1]) $$('.step-item')[1].dataset.status = 'done';
+      if ($$('.step-item')[2]) $$('.step-item')[2].dataset.status = 'active';
+      if (msEl) msEl.innerHTML = `${20 + Math.floor(Math.random() * 4)}<small>ms</small>`;
+      if (jitterEl) jitterEl.innerHTML = `2<small>ms</small>`;
+      if (loadEl) loadEl.innerHTML = `+4<small>ms</small>`;
+    } else if (step >= 11) {
+      clearInterval(measureInterval);
+      currentState = 'result-good';
+      renderApp();
+      showToast('Diagnóstico finalizado');
+      return;
+    }
+
+    drawMapFrame(ctx, w, h);
+  }, 450);
+
+  drawMapFrame(ctx, w, h);
+}
+
+function drawMapFrame(ctx, w, h) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0B0D10';
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = 'rgba(138, 147, 160, 0.22)';
+  const cols = 40;
+  const rows = 18;
+  const gapX = w / cols;
+  const gapY = h / rows;
+
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
+      const isLand = (c > 8 && c < 18 && r > 3 && r < 15) ||
+                     (c >= 18 && c < 28 && r > 2 && r < 12) ||
+                     (c >= 28 && c < 37 && r > 2 && r < 14);
+      if (isLand) {
+        ctx.beginPath();
+        ctx.arc(c * gapX + gapX/2, r * gapY + gapY/2, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  const userX = w * 0.35;
+  const userY = h * 0.72;
+  const srvX = w * 0.42;
+  const srvY = h * 0.68;
+
+  ctx.beginPath();
+  ctx.moveTo(userX, userY);
+  ctx.quadraticCurveTo((userX + srvX)/2, userY - 40, srvX, srvY);
+  ctx.strokeStyle = '#7C3AED';
+  ctx.lineWidth = 1.8;
+  ctx.setLineDash([3, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.arc(userX, userY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#7C3AED';
+  ctx.fill();
+  ctx.strokeStyle = '#F4F5F7';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(srvX, srvY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#22C55E';
+  ctx.fill();
+  ctx.strokeStyle = '#0B0D10';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.font = '600 11px "Barlow", sans-serif';
+  ctx.fillStyle = '#F4F5F7';
+  ctx.fillText('Você (São Paulo)', userX - 45, userY + 18);
+  ctx.fillText('AWS sa-east-1', srvX + 10, srvY + 4);
+}
+
+/* ==========================================================================
+   NAVEGAÇÃO LATERAL E TOOLBAR DE ESTADOS
+   ========================================================================== */
+$$('.state-btn').forEach(btn => {
+  btn.onclick = () => {
+    if (measureInterval) clearInterval(measureInterval);
+    currentState = btn.dataset.setState;
+    renderApp();
+  };
+});
+
+$$('.sidebar-link').forEach(link => {
+  link.onclick = () => {
+    const nav = link.dataset.nav;
+    $$('.sidebar-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+
+    if (nav === 'home') {
+      currentState = 'ready';
+      renderApp();
+    } else if (nav === 'library') {
+      currentLibraryFilter = 'ALL';
+      currentState = 'ready';
+      renderApp();
+    } else if (nav === 'favorites') {
+      currentLibraryFilter = 'FAVORITES';
+      currentState = 'ready';
+      renderApp();
+    } else if (nav === 'installed') {
+      currentLibraryFilter = 'INSTALLED';
+      currentState = 'ready';
+      renderApp();
+    } else {
+      showToast(`Filtro ${link.textContent.trim()} selecionado`);
+    }
+  };
+});
+
+// Busca global
+$('#global-search').oninput = (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  const match = GAMES_CATALOG.find(g => g.title.toLowerCase().includes(query));
+  if (match) {
+    selectedGameId = match.id;
+    if (currentState === 'ready') renderApp();
+  }
+};
+
+renderApp();
 </script>
 </body>
 </html>

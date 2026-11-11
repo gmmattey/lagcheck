@@ -68,8 +68,8 @@ fun AppShell(
 @Composable
 private fun WorkspaceTopbar(route: Route, compact: Boolean) {
     val page = when (route) {
-        Route.Home -> "Início"
-        Route.Games -> "Jogos"
+        Route.Home -> "Biblioteca"
+        Route.Games -> "Catálogo"
         Route.History -> "Histórico"
         Route.Settings -> "Ajustes"
         Route.Components -> "Componentes"
@@ -132,11 +132,14 @@ private fun Sidebar(state: AppState, showComponents: Boolean, width: Dp, compact
     ) {
         Column(Modifier.padding(start = if (compact) 16.dp else 20.dp, bottom = LcSpace.xl)) {
             OfficialWordmark(Modifier.width(if (compact) 156.dp else 174.dp).height(30.dp))
-            Text("PARA WINDOWS", style = LcType.Section, color = LcColor.TextTertiary, modifier = Modifier.padding(top = LcSpace.sm))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = LcSpace.sm)) {
+                Text("ORBIT", style = LcType.Section.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black, color = LcColor.OrbitLime))
+                Text(" · WINDOWS", style = LcType.Section, color = LcColor.TextTertiary)
+            }
         }
         Spacer(Modifier.height(if (compact) 38.dp else 55.dp))
-        SidebarItem("Início", SidebarIcon.Home, route == Route.Home || route is Route.Check || route is Route.Result, !locked) { state.navigate(Route.Home) }
-        SidebarItem("Jogos", SidebarIcon.Games, route == Route.Games, !locked) { state.navigate(Route.Games) }
+        SidebarItem("Biblioteca", SidebarIcon.Home, route == Route.Home || route is Route.Check || route is Route.Result, !locked) { state.navigate(Route.Home) }
+        SidebarItem("Catálogo", SidebarIcon.Games, route == Route.Games, !locked) { state.navigate(Route.Games) }
         SidebarItem("Histórico", SidebarIcon.History, route == Route.History, !locked) { state.navigate(Route.History) }
         SidebarItem("Ajustes", SidebarIcon.Settings, route == Route.Settings, !locked) { state.navigate(Route.Settings) }
         if (showComponents) SidebarItem("Componentes", SidebarIcon.Components, route == Route.Components, !locked) { state.navigate(Route.Components) }

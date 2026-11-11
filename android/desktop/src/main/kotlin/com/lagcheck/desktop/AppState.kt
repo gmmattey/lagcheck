@@ -12,6 +12,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import com.lagcheck.desktop.update.UpdateCoordinator
 import com.lagcheck.desktop.analytics.*
 import com.lagcheck.desktop.location.*
+import com.lagcheck.desktop.library.model.GameNetworkSupport
+import com.lagcheck.desktop.library.model.PcGame
+import com.lagcheck.desktop.library.repository.LibraryRepository
 import com.lagcheck.desktop.ui.map.RouteMapState
 import com.lagcheck.desktop.ui.map.MapPoint
 import com.lagcheck.desktop.ds.MotionPreferences
@@ -39,6 +42,7 @@ data class HistoryEntry(
 /** Estado único do protótipo. Uma sessão de medição por vez; cancelar descarta tudo (sem resultado parcial). */
 class AppState(private val scope: CoroutineScope) {
     val updates = UpdateCoordinator()
+    val library = LibraryRepository(scope)
     var route by mutableStateOf<Route>(Route.Home)
     var reduceMotion by mutableStateOf(false)
     val history = mutableStateListOf<HistoryEntry>()
@@ -76,6 +80,13 @@ class AppState(private val scope: CoroutineScope) {
     fun navigate(r: Route) { if (!checking) route = r }
 
     fun start(game: GameEntry?) = start(game, selectedNow = true)
+    fun startForPcGame(pcGame: PcGame) {
+        val entry = when (val net = pcGame.networkSupport) {
+            is GameNetworkSupport.LagcheckSupported -> GameEntry(net.catalogId, pcGame.title, pcGame.localArtworkRes)
+            else -> null
+        }
+        start(entry, selectedNow = true)
+    }
     private fun start(game: GameEntry?, selectedNow: Boolean) {
         job?.cancel()
         ratio = 0f; livePing = null; phase = CheckPhase.REST; series.clear(); loadStart = null; failed = false

@@ -70,10 +70,23 @@ cd android
 ./gradlew test
 ```
 
-**Windows (prévia)**
+**Windows (LagCheck ORBIT — Biblioteca & Diagnóstico)**
 ```sh
 cd android
+# 1. Executar a interface desktop interativa
 ./gradlew :desktop:run
+
+# 2. Executar suíte de testes automatizados
+./gradlew :desktop:test
+
+# 3. Rodar diagnóstico UDP via terminal (sem janela)
+./gradlew :desktop:runCli
+
+# 4. Gerar capturas visuais automatizadas
+./gradlew :desktop:shots
+
+# 5. Gerar instalador Windows (.exe / .msi)
+./gradlew :desktop:packageExe
 ```
 
 **Worker**

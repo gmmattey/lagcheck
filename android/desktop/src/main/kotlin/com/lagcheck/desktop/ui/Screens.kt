@@ -30,6 +30,7 @@ import com.lagcheck.session.CheckPhase
 import com.lagcheck.desktop.update.UpdateState
 import com.lagcheck.desktop.ui.map.MapPoint
 import com.lagcheck.desktop.ui.map.RouteMap
+import com.lagcheck.desktop.ui.orbit.OrbitLibraryView
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -56,30 +57,27 @@ private fun relativeTime(time: java.time.LocalDateTime): String {
 @Composable
 fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
     Column(Modifier.fillMaxWidth()) {
-        PageHeader("Início") { Text("CONEXÃO GERAL", style = LcType.Section, color = LcColor.TextTertiary) }
-        Text("Sua conexão, antes da partida.", style = LcType.Body, color = LcColor.TextSecondary, modifier = Modifier.padding(top = LcSpace.xs))
+        PageHeader("ORBIT") {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("PLATAFORMA GAMER PC", style = LcType.Section, color = LcColor.OrbitLime)
+                Text(" · ", style = LcType.Section, color = LcColor.TextTertiary)
+                Text("${state.library.games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+            }
+        }
+        Text("Biblioteca unificada e diagnóstico de rota antes da partida.", style = LcType.Body, color = LcColor.TextSecondary, modifier = Modifier.padding(top = LcSpace.xs))
         Spacer(Modifier.height(LcSpace.lg))
-        HomeCommand(state, captureTestFocus)
+
+        // Experiência ORBIT: Destaque Cinematográfico + Filtros + Grade de Jogos
+        OrbitLibraryView(state)
+
         Spacer(Modifier.height(LcSpace.xxl))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel("Testar por jogo", Modifier.weight(1f))
-            Interactive({ state.navigate(Route.Games) }, description = "Ver todos os jogos") { hovered ->
-                Text("VER TODOS ›", style = LcType.Section, color = if (hovered) LcColor.TextPrimary else LcColor.AccentLight,
-                    modifier = Modifier.padding(vertical = LcSpace.sm))
-            }
-        }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
+        Spacer(Modifier.height(LcSpace.xxl))
+
+        // Check Geral de Conexão (Cockpit Preservado do LagCheck)
+        SectionLabel("Check Geral de Conexão")
         Spacer(Modifier.height(LcSpace.md))
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val columns = if (maxWidth < 800.dp) 2 else 4
-            Column(verticalArrangement = Arrangement.spacedBy(LcSpace.md)) {
-                Measurement.games.take(4).chunked(columns).forEach { row ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LcSpace.md)) {
-                        row.forEach { game -> GameQuickTile(game, state.reduceMotion, Modifier.weight(1f)) { state.start(game) } }
-                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-                    }
-                }
-            }
-        }
+        HomeCommand(state, captureTestFocus)
         Spacer(Modifier.height(LcSpace.xxl))
         HomeRecentHistory(state)
         Spacer(Modifier.height(LcSpace.xxl))
