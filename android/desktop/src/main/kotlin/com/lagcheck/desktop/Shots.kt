@@ -13,6 +13,17 @@ import com.lagcheck.domain.model.GameReadinessVerdict
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.skia.EncodedImageFormat
+import com.lagcheck.desktop.library.artwork.ArtworkDiskCache
+import com.lagcheck.desktop.library.artwork.GameArtworkResolver
+import com.lagcheck.desktop.library.artwork.HttpArtworkFetcher
+import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.model.PcGame
+import com.lagcheck.desktop.library.repository.LibraryRepository
+import com.lagcheck.desktop.library.repository.LibraryStore
+import com.lagcheck.desktop.library.network.CatalogGame
+import com.lagcheck.desktop.library.network.NetworkSupportResolver
+import com.lagcheck.desktop.library.scanner.LibraryScanner
+import com.lagcheck.desktop.library.scanner.ScanResult
 import java.io.File
 import java.time.LocalDateTime
 
@@ -94,7 +105,20 @@ fun renderShots(dir: String) {
                 else -> listOf(ShotVariant())
             }
             variants.forEach { variant ->
-                val state = AppState(CoroutineScope(Dispatchers.Unconfined)).also {
+                val shotScope = CoroutineScope(Dispatchers.Unconfined)
+                val library = LibraryRepository(
+                    shotScope,
+                    scanners = listOf(ShotsLibraryScanner),
+                    store = LibraryStore(File(dir, ".library-state.properties").toPath()),
+                    networkResolver = NetworkSupportResolver(catalog = { listOf(CatalogGame("cs2", "Counter-Strike 2")) }, regionLabel = { "São Paulo" }),
+                    ioDispatcher = Dispatchers.Unconfined,
+                )
+                val artwork = GameArtworkResolver(
+                    localSources = emptyList(), remoteSources = emptyList(),
+                    cache = ArtworkDiskCache(File(dir, ".artwork").toPath()), fetcher = HttpArtworkFetcher(),
+                    remoteEnabled = { false }, ioDispatcher = Dispatchers.Unconfined,
+                )
+                val state = AppState(shotScope, library, artwork).also {
                     it.stopLocationLoading()
                     it.changeReduceMotion(true)
                     it.showAnalyticsNotice = name == "notice"
@@ -117,4 +141,15 @@ fun renderShots(dir: String) {
             }
         }
     }
+}
+
+/** Jogos de exemplo exclusivos das capturas (`--shots`). Nunca entram na biblioteca do app. */
+private object ShotsLibraryScanner : LibraryScanner {
+    override val name = "Capturas"
+    override val platform = GamePlatform.STEAM
+    override fun scan() = ScanResult.Found(listOf(
+        PcGame("steam_730", "Counter-Strike 2", GamePlatform.STEAM),
+        PcGame("steam_shot_2", "Cities: Skylines II", GamePlatform.STEAM),
+        PcGame("steam_shot_3", "Fall Guys", GamePlatform.STEAM),
+    ))
 }

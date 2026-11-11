@@ -1,6 +1,5 @@
 package com.lagcheck.desktop.library.scanner
 
-import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 import java.io.File
@@ -12,14 +11,17 @@ import java.io.File
 class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
     override val name: String = "Steam"
 
-    override fun scan(): List<PcGame> {
-        val root = customSteamPath ?: detectSteamRoot() ?: return emptyList()
-        if (!root.exists() || !root.isDirectory) return emptyList()
+    override val platform: GamePlatform = GamePlatform.STEAM
 
-        val libraryFolders = findLibraryFolders(root)
+    override fun scan(): ScanResult {
+        val root = customSteamPath ?: detectSteamRoot() ?: return ScanResult.Unavailable("Steam não encontrada")
+        if (!root.exists() || !root.isDirectory) return ScanResult.Unavailable("Pasta da Steam inacessível")
+
+        val libraries = readLibraryFolders(root)
         val games = mutableListOf<PcGame>()
+        val unreadable = mutableSetOf<String>()
 
-        for (folder in libraryFolders) {
+        for (folder in libraries.existing) {
             val steamApps = File(folder, "steamapps")
             if (!steamApps.exists() || !steamApps.isDirectory) continue
 
@@ -28,14 +30,33 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
             } ?: continue
 
             for (manifest in manifests) {
-                parseManifest(manifest, folder)?.let { games.add(it) }
+                val game = parseManifest(manifest, folder)
+                if (game != null) {
+                    games.add(game)
+                } else {
+                    // Ferramenta filtrada de propósito não conta; arquivo ilegível sim.
+                    val id = manifest.name.removePrefix("appmanifest_").removeSuffix(".acf")
+                    if (id.all { it.isDigit() } && !isIntentionallySkipped(manifest)) unreadable.add("steam_$id")
+                }
             }
         }
 
-        return games
+        return ScanResult.Found(
+            games = games,
+            unreachableRoots = libraries.missing.map { it.path },
+            unreadableIds = unreadable,
+        )
     }
 
-    private fun detectSteamRoot(): File? {
+    private fun isIntentionallySkipped(acf: File): Boolean = runCatching {
+        val name = Regex(""""name"\s+"([^"]+)"""").find(acf.readText())?.groupValues?.get(1) ?: return@runCatching false
+        isTool(name)
+    }.getOrDefault(false)
+
+    private fun isTool(name: String) = name.startsWith("Steamworks") || name.startsWith("Proton") || name.startsWith("Steam Linux")
+
+    /** Pasta de instalação da Steam neste PC, ou null. Usado também para achar o cache de imagens do cliente. */
+    fun detectSteamRoot(): File? {
         val os = System.getProperty("os.name").lowercase()
         if (os.contains("win")) {
             // 1. Tentar ler do registro do Windows
@@ -75,36 +96,37 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
         }
     }
 
-    internal fun findLibraryFolders(steamRoot: File): List<File> {
-        val folders = mutableListOf(steamRoot)
+    internal data class LibraryFolders(val existing: List<File>, val missing: List<File>)
+
+    internal fun findLibraryFolders(steamRoot: File): List<File> = readLibraryFolders(steamRoot).existing
+
+    /** Separa as bibliotecas acessíveis das listadas no VDF que não existem agora (ex.: disco externo). */
+    internal fun readLibraryFolders(steamRoot: File): LibraryFolders {
+        val existing = mutableListOf(steamRoot)
+        val missing = mutableListOf<File>()
         val vdfFile = File(File(steamRoot, "steamapps"), "libraryfolders.vdf")
-        if (!vdfFile.exists()) return folders
+        if (!vdfFile.exists()) return LibraryFolders(existing, missing)
 
         try {
             val content = vdfFile.readText()
-            // Formato novo do VDF: "path" "D:\\SteamLibrary"
-            val pathMatches = Regex(""""path"\s+"([^"]+)"""").findAll(content)
-            for (m in pathMatches) {
-                val p = m.groupValues[1].replace("\\\\", "\\")
-                val f = File(p)
-                if (f.exists() && f.isDirectory && !folders.contains(f)) {
-                    folders.add(f)
-                }
-            }
-            // Formato legado do VDF: "1" "D:\\SteamLibrary"
-            val legacyMatches = Regex(""""\d+"\s+"([^"]+)"""").findAll(content)
-            for (m in legacyMatches) {
-                val p = m.groupValues[1].replace("\\\\", "\\")
-                val f = File(p)
-                if (f.exists() && f.isDirectory && !folders.contains(f)) {
-                    folders.add(f)
+            // Formato novo do VDF: "path" "D:\\SteamLibrary"; formato legado: "1" "D:\\SteamLibrary"
+            val listed = (Regex(""""path"\s+"([^"]+)"""").findAll(content) + Regex(""""\d+"\s+"([^"]+)"""").findAll(content))
+                .map { it.groupValues[1] }
+                // O formato legado também casa linhas "appid" "tamanho"; só valores com cara de caminho contam.
+                .filter { it.length > 2 && (it[1] == ':' || it.startsWith("/") || it.startsWith("\\\\")) }
+                .map { File(it.replace("\\\\", "\\")) }
+            for (f in listed) {
+                if (f.exists() && f.isDirectory) {
+                    if (!existing.contains(f)) existing.add(f)
+                } else if (!missing.contains(f)) {
+                    missing.add(f)
                 }
             }
         } catch (_: Exception) {
             // Em caso de erro, usa ao menos a pasta raiz
         }
 
-        return folders
+        return LibraryFolders(existing, missing)
     }
 
     internal fun parseManifest(acfFile: File, libraryRoot: File): PcGame? {
@@ -117,15 +139,12 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
             val stateFlags = stateFlagsStr?.toIntOrNull() ?: 4
 
             // Filtrar ferramentas da Steam e runtimes
-            if (name.startsWith("Steamworks") || name.startsWith("Proton") || name.startsWith("Steam Linux")) {
-                return null
-            }
+            if (isTool(name)) return null
 
             // Flag 4 = Fully Installed (ou flag 6 = update required but installed)
             val isInstalled = (stateFlags and 4) != 0 || stateFlags == 4
 
             val fullInstallPath = installDir?.let { File(File(libraryRoot, "steamapps/common"), it).absolutePath }
-            val network = resolveNetworkSupport(appId, name)
 
             PcGame(
                 id = "steam_$appId",
@@ -134,39 +153,10 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
                 installDirectory = fullInstallPath,
                 launchUri = "steam://rungameid/$appId",
                 isInstalled = isInstalled,
-                networkSupport = network,
                 tags = listOf("Steam", "PC")
             )
         } catch (_: Exception) {
             null
-        }
-    }
-
-    private fun resolveNetworkSupport(appId: String, name: String): GameNetworkSupport {
-        val lower = name.lowercase()
-        return when {
-            lower.contains("counter-strike") || appId == "730" ->
-                GameNetworkSupport.LagcheckSupported("cs2", "São Paulo, BR")
-            lower.contains("dota 2") || appId == "570" ->
-                GameNetworkSupport.LagcheckSupported("dota2", "São Paulo, BR")
-            lower.contains("apex legends") || appId == "1172470" ->
-                GameNetworkSupport.LagcheckSupported("apex-legends", "São Paulo, BR")
-            lower.contains("warzone") || lower.contains("call of duty") || appId == "1938090" ->
-                GameNetworkSupport.LagcheckSupported("warzone", "São Paulo, BR")
-            lower.contains("dead by daylight") || appId == "381210" ->
-                GameNetworkSupport.LagcheckSupported("dead-by-daylight", "São Paulo, BR")
-            lower.contains("for honor") || appId == "304390" ->
-                GameNetworkSupport.LagcheckSupported("for-honor", "São Paulo, BR")
-            lower.contains("rust") || appId == "252490" ->
-                GameNetworkSupport.LagcheckSupported("rust", "São Paulo, BR")
-            lower.contains("darktide") || appId == "1361210" ->
-                GameNetworkSupport.LagcheckSupported("warhammer-darktide", "São Paulo, BR")
-            lower.contains("palworld") || appId == "1623730" ->
-                GameNetworkSupport.LagcheckSupported("palworld", "São Paulo, BR")
-            lower.contains("cities: skylines") || lower.contains("cities skylines") ->
-                GameNetworkSupport.OfflineSingleplayer("Simulação urbana solo")
-            else ->
-                GameNetworkSupport.GeneralConnectionOnly("Testar conexão geral")
         }
     }
 }

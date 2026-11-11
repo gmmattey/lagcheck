@@ -1,4 +1,4 @@
-package com.lagcheck.desktop.ui.orbit
+package com.lagcheck.desktop.ui.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,17 +18,22 @@ import com.lagcheck.desktop.ds.*
 import com.lagcheck.desktop.library.repository.LibraryFilter
 
 @Composable
-fun OrbitLibraryView(
+fun LibraryView(
     state: AppState,
     modifier: Modifier = Modifier
 ) {
     val repo = state.library
     val games = repo.filteredGames
 
+    if (repo.games.isEmpty()) {
+        EmptyLibrary(scanning = repo.isScanning, onSearch = { repo.rescan() }, modifier = modifier)
+        return
+    }
+
     Column(modifier.fillMaxWidth()) {
         // Destaque Cinematográfico do Jogo Ativo
         repo.selectedGame?.let { selected ->
-            OrbitHero(selected, state)
+            LibraryHero(selected, state)
             Spacer(Modifier.height(28.dp))
         }
 
@@ -97,11 +102,13 @@ fun OrbitLibraryView(
                     games.chunked(columns).forEach { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                             row.forEach { game ->
-                                OrbitGameCard(
+                                GameCard(
                                     game = game,
                                     isSelected = repo.selectedGame?.id == game.id,
                                     onClick = { repo.selectGame(game) },
                                     onToggleFavorite = { repo.toggleFavorite(game) },
+                                    artwork = state.artwork,
+                                    artworkGeneration = state.artworkGeneration,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -111,6 +118,32 @@ fun OrbitLibraryView(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Biblioteca sem nenhum jogo: ou ainda procurando, ou nada encontrado nos launchers. */
+@Composable
+private fun EmptyLibrary(scanning: Boolean, onSearch: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(320.dp)
+            .clip(RoundedCornerShape(LcRadius.r17))
+            .background(LcColor.Surface)
+            .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r17)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (scanning) {
+                Text("Procurando seus jogos…", style = LcType.PageTitle, color = LcColor.TextPrimary)
+            } else {
+                Text("Nenhum jogo encontrado", style = LcType.PageTitle, color = LcColor.TextPrimary)
+                Spacer(Modifier.height(6.dp))
+                Text("Procuramos na Steam e na Epic Games.", style = LcType.Body, color = LcColor.TextSecondary)
+                Spacer(Modifier.height(20.dp))
+                LibraryButton(text = "Procurar de novo", onClick = onSearch)
             }
         }
     }

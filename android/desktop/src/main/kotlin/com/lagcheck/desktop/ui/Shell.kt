@@ -133,8 +133,7 @@ private fun Sidebar(state: AppState, showComponents: Boolean, width: Dp, compact
         Column(Modifier.padding(start = if (compact) 16.dp else 20.dp, bottom = LcSpace.xl)) {
             OfficialWordmark(Modifier.width(if (compact) 156.dp else 174.dp).height(30.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = LcSpace.sm)) {
-                Text("ORBIT", style = LcType.Section.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black, color = LcColor.OrbitLime))
-                Text(" · WINDOWS", style = LcType.Section, color = LcColor.TextTertiary)
+                Text("WINDOWS", style = LcType.Section, color = LcColor.TextTertiary)
             }
         }
         Spacer(Modifier.height(if (compact) 38.dp else 55.dp))

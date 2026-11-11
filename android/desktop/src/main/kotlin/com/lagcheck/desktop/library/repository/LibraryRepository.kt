@@ -4,15 +4,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
+import com.lagcheck.desktop.library.launcher.GameLaunchResult
+import com.lagcheck.desktop.library.launcher.GameRunner
 import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
+import com.lagcheck.desktop.library.network.NetworkSupportResolver
 import com.lagcheck.desktop.library.scanner.EpicScanner
+import com.lagcheck.desktop.library.scanner.LibraryScanner
+import com.lagcheck.desktop.library.scanner.ScanResult
 import com.lagcheck.desktop.library.scanner.SteamScanner
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 enum class LibraryFilter(val label: String) {
     ALL("Todos"),
@@ -22,68 +29,106 @@ enum class LibraryFilter(val label: String) {
     EPIC("Epic Games")
 }
 
-class LibraryRepository(private val scope: CoroutineScope) {
-    private val steamScanner = SteamScanner()
-    private val epicScanner = EpicScanner()
-
+/**
+ * Biblioteca de jogos realmente encontrados no computador. Não existe jogo de demonstração:
+ * sem scanner que encontre algo, a lista fica vazia e a interface mostra o estado vazio.
+ *
+ * Guarda dois níveis: [known] (tudo que já foi visto, persistido, sem deduplicar) e [games]
+ * (o que a interface mostra: sem duplicatas entre plataformas e com as preferências aplicadas).
+ */
+class LibraryRepository(
+    private val scope: CoroutineScope,
+    private val scanners: List<LibraryScanner> = listOf(SteamScanner(), EpicScanner()),
+    private val store: LibraryStore = LibraryStore.default(),
+    private val networkResolver: NetworkSupportResolver = NetworkSupportResolver.NONE,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val launcher: (PcGame) -> GameLaunchResult = { GameRunner.launch(it) },
+    private val clock: () -> Long = { System.currentTimeMillis() },
+    autoScan: Boolean = true,
+) {
     val games = mutableStateListOf<PcGame>()
-    var selectedGame by mutableStateOf<PcGame?>(null)
-    var filter by mutableStateOf(LibraryFilter.ALL)
+    var filter by mutableStateOf(LibraryFilter.INSTALLED)
     var searchQuery by mutableStateOf("")
     var isScanning by mutableStateOf(false)
+    var hasScanned by mutableStateOf(false)
     var launchMessage by mutableStateOf<String?>(null)
 
-    private val prefsFile: File by lazy {
-        val baseDir = File(System.getProperty("user.home"), ".lagcheck")
-        if (!baseDir.exists()) baseDir.mkdirs()
-        File(baseDir, "orbit_prefs.properties")
-    }
+    private var selectedId by mutableStateOf<String?>(null)
+    private var prefs: LibraryStore.Snapshot = store.load()
+    private var known: List<PcGame> = prefs.knownGames
+
+    /** Jogo escolhido pelo usuário; sem escolha, o destaque segue a regra do [HeroSelector]. */
+    val selectedGame: PcGame?
+        get() = games.firstOrNull { it.id == selectedId || selectedId in it.alsoIds } ?: HeroSelector.pick(games)
+
+    val installedCount: Int get() = games.count { it.isInstalled }
 
     init {
-        // 1. Iniciar com os jogos de referência canônicos
-        games.addAll(ReferenceGames.list)
-        selectedGame = ReferenceGames.CALL_OF_DUTY
-        loadPreferences()
-
-        // 2. Realizar varredura assíncrona de launchers instalados
-        rescan()
+        publish()
+        if (autoScan) rescan()
     }
 
-    fun rescan() {
-        if (isScanning) return
+    fun rescan(): Job {
+        if (isScanning) return Job().also { it.complete() }
         isScanning = true
-        scope.launch {
-            val scanned = withContext(Dispatchers.IO) {
-                val steamGames = runCatching { steamScanner.scan() }.getOrDefault(emptyList())
-                val epicGames = runCatching { epicScanner.scan() }.getOrDefault(emptyList())
-                steamGames + epicGames
-            }
-
-            // Preservar jogos de referência e mesclar novos jogos encontrados sem duplicar IDs
-            val existingIds = games.map { it.id }.toSet()
-            for (g in scanned) {
-                if (g.id !in existingIds) {
-                    games.add(g)
+        return scope.launch {
+            try {
+                val results = withContext(ioDispatcher) {
+                    scanners.map { s ->
+                        s.platform to runCatching { s.scan() }.getOrElse { ScanResult.Unavailable(it.message ?: "erro") }
+                    }
                 }
+                known = LibraryReconciler.reconcile(known, results)
+                prefs = prefs.copy(knownGames = known)
+                store.save(prefs)
+                publish()
+            } finally {
+                hasScanned = true
+                isScanning = false
             }
-            isScanning = false
         }
     }
+
+    /** Recalcula a lista visível: rede, preferências, depois deduplicação entre plataformas. */
+    private fun publish() {
+        val view = LibraryReconciler.dedupe(known.map(::withPrefsAndNetwork))
+        Snapshot.withMutableSnapshot {
+            games.clear()
+            games.addAll(view)
+        }
+    }
+
+    private fun withPrefsAndNetwork(game: PcGame): PcGame = game.copy(
+        isFavorite = game.id in prefs.favorites,
+        lastLaunchedEpochMs = prefs.lastLaunched[game.id],
+        networkSupport = networkResolver.resolve(game),
+    )
 
     fun toggleFavorite(game: PcGame) {
-        val index = games.indexOfFirst { it.id == game.id }
-        if (index != -1) {
-            val updated = game.copy(isFavorite = !game.isFavorite)
-            games[index] = updated
-            if (selectedGame?.id == game.id) {
-                selectedGame = updated
-            }
-            savePreferences()
-        }
+        val ids = listOf(game.id) + game.alsoIds
+        val nowFavorite = !game.isFavorite
+        prefs = prefs.copy(favorites = if (nowFavorite) prefs.favorites + game.id else prefs.favorites - ids.toSet())
+        store.save(prefs)
+        publish()
     }
 
     fun selectGame(game: PcGame) {
-        selectedGame = game
+        selectedId = game.id
+    }
+
+    /** Inicia o jogo pelo launcher. Jogo não instalado não abre; só registra "último iniciado" se a abertura foi aceita. */
+    fun launch(game: PcGame): GameLaunchResult {
+        val result = if (game.isInstalled) launcher(game) else GameLaunchResult.Failure("${game.title} não está instalado")
+        launchMessage = when (result) {
+            is GameLaunchResult.Success -> result.message
+            is GameLaunchResult.Failure -> result.reason
+        }
+        if (result is GameLaunchResult.Success) {
+            prefs = prefs.copy(lastLaunched = prefs.lastLaunched + (game.id to clock()))
+            store.save(prefs)
+            publish()
+        }
+        return result
     }
 
     val filteredGames: List<PcGame>
@@ -102,31 +147,4 @@ class LibraryRepository(private val scope: CoroutineScope) {
                 matchesFilter && matchesQuery
             }
         }
-
-    private fun loadPreferences() {
-        if (!prefsFile.exists()) return
-        try {
-            val lines = prefsFile.readLines()
-            val favoriteIds = lines.filter { it.startsWith("fav:") }.map { it.removePrefix("fav:").trim() }.toSet()
-            for (i in games.indices) {
-                if (games[i].id in favoriteIds) {
-                    games[i] = games[i].copy(isFavorite = true)
-                }
-            }
-            if (selectedGame != null && selectedGame!!.id in favoriteIds) {
-                selectedGame = selectedGame!!.copy(isFavorite = true)
-            }
-        } catch (_: Exception) {
-            // Em caso de falha de leitura, mantém o estado padrão
-        }
-    }
-
-    private fun savePreferences() {
-        try {
-            val favorites = games.filter { it.isFavorite }.map { "fav:${it.id}" }
-            prefsFile.writeText(favorites.joinToString("\n"))
-        } catch (_: Exception) {
-            // Falha silenciosa sem travar a interface
-        }
-    }
 }

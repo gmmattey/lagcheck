@@ -1,5 +1,6 @@
-package com.lagcheck.desktop.ui.orbit
+package com.lagcheck.desktop.ui.library
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -7,28 +8,34 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.desktop.AppState
 import com.lagcheck.desktop.ds.*
-import com.lagcheck.desktop.library.launcher.GameLaunchResult
-import com.lagcheck.desktop.library.launcher.GameRunner
+import com.lagcheck.desktop.library.artwork.ArtworkType
 import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.PcGame
 
 @Composable
-fun OrbitHero(
+fun LibraryHero(
     game: PcGame,
     state: AppState,
     modifier: Modifier = Modifier
 ) {
+    val heroArt by rememberArtwork(game, ArtworkType.HERO, state.artwork, state.artworkGeneration)
+    val coverArt by rememberArtwork(game, ArtworkType.COVER, state.artwork, state.artworkGeneration)
+    val heroBitmap = (heroArt as? ArtworkState.Loaded)?.bitmap
+    val coverBitmap = (coverArt as? ArtworkState.Loaded)?.bitmap
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -44,19 +51,42 @@ fun OrbitHero(
                 )
             )
             .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r17))
-            .padding(28.dp)
     ) {
-        Column(Modifier.fillMaxWidth()) {
+        // Banner do jogo ao fundo, com degradê para o texto à esquerda continuar legível.
+        if (heroBitmap != null) {
+            Image(heroBitmap, null, Modifier.matchParentSize(), alignment = Alignment.CenterEnd, contentScale = ContentScale.Crop)
+            Box(
+                Modifier.matchParentSize().background(
+                    Brush.horizontalGradient(
+                        0f to Color(0xF20B0D10),
+                        0.55f to Color(0xB30B0D10),
+                        1f to Color(0x330B0D10)
+                    )
+                )
+            )
+        }
+        Column(Modifier.fillMaxWidth().padding(28.dp)) {
             // Badges superiores
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OrbitPlatformBadge(game.platform)
-                OrbitNetworkBadge(game.networkSupport)
+                PlatformBadge(game.platform)
+                NetworkBadge(game.networkSupport)
 
                 Spacer(Modifier.weight(1f))
+
+                // Atualizar imagem do jogo: apaga a cópia guardada e busca de novo
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(LcRadius.r8))
+                        .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r8))
+                        .clickable { state.refreshArtwork(game) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text("ATUALIZAR IMAGEM", style = LcType.Section.copy(fontSize = 11.sp), color = LcColor.TextSecondary)
+                }
 
                 // Botão de Favorito
                 Box(
@@ -130,31 +160,25 @@ fun OrbitHero(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Botão principal JOGAR (destaque esportivo verde-lima da interface ORBIT)
-                        OrbitButton(
+                        // Botão principal Jogar (Roxo Gamer, ação primária do design system)
+                        LibraryButton(
                             text = "Jogar",
-                            onClick = {
-                                val res = GameRunner.launch(game)
-                                state.library.launchMessage = when (res) {
-                                    is GameLaunchResult.Success -> res.message
-                                    is GameLaunchResult.Failure -> res.reason
-                                }
-                            },
+                            onClick = { state.library.launch(game) },
                             isPrimary = true,
-                            isLime = true
+                            enabled = game.isInstalled
                         )
 
                         // Botão secundário TESTAR CONEXÃO
                         when (val net = game.networkSupport) {
                             is GameNetworkSupport.LagcheckSupported -> {
-                                OrbitButton(
+                                LibraryButton(
                                     text = "Testar Conexão",
                                     onClick = { state.startForPcGame(game) },
                                     isPrimary = false
                                 )
                             }
                             is GameNetworkSupport.GeneralConnectionOnly -> {
-                                OrbitButton(
+                                LibraryButton(
                                     text = "Testar Rota Geral",
                                     onClick = { state.startForPcGame(game) },
                                     isPrimary = false
@@ -179,8 +203,8 @@ fun OrbitHero(
                     }
                 }
 
-                // Miniatura / Arte Editorial do jogo
-                if (!game.localArtworkRes.isNullOrBlank()) {
+                // Sem banner, mas com capa: mostra a capa emoldurada à direita
+                if (heroBitmap == null && coverBitmap != null) {
                     Spacer(Modifier.width(28.dp))
                     Box(
                         modifier = Modifier
@@ -188,7 +212,7 @@ fun OrbitHero(
                             .clip(RoundedCornerShape(LcRadius.r13))
                             .border(1.dp, LcColor.BorderStrong, RoundedCornerShape(LcRadius.r13))
                     ) {
-                        ApprovedArtwork(game.localArtworkRes, game.title, Modifier.fillMaxSize())
+                        Image(coverBitmap, game.title, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                     }
                 }
             }

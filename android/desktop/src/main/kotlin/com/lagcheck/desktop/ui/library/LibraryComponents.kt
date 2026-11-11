@@ -1,4 +1,4 @@
-package com.lagcheck.desktop.ui.orbit
+package com.lagcheck.desktop.ui.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,12 +27,11 @@ import com.lagcheck.desktop.library.model.GamePlatform
 import com.lagcheck.desktop.library.model.PcGame
 
 @Composable
-fun OrbitButton(
+fun LibraryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isPrimary: Boolean = true,
-    isLime: Boolean = false,
     enabled: Boolean = true
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -40,8 +39,6 @@ fun OrbitButton(
 
     val bg = when {
         !enabled -> LcColor.Panel
-        isLime && hovered -> LcColor.OrbitLimeHover
-        isLime -> LcColor.OrbitLime
         isPrimary && hovered -> LcColor.AccentHover
         isPrimary -> LcColor.Accent
         hovered -> LcColor.HoverOverlay
@@ -50,12 +47,11 @@ fun OrbitButton(
 
     val textColor = when {
         !enabled -> LcColor.TextTertiary
-        isLime -> Color(0xFF0B0D10) // Alto contraste preto sobre verde-lima
         isPrimary -> Color.White
         else -> LcColor.TextPrimary
     }
 
-    val borderModifier = if (!isPrimary && !isLime) {
+    val borderModifier = if (!isPrimary) {
         Modifier.border(1.dp, if (hovered) LcColor.BorderHover else LcColor.BorderStrong, RoundedCornerShape(LcRadius.r13))
     } else Modifier
 
@@ -78,7 +74,7 @@ fun OrbitButton(
 }
 
 @Composable
-fun OrbitPlatformBadge(platform: GamePlatform) {
+fun PlatformBadge(platform: GamePlatform) {
     val (label, bg, color) = when (platform) {
         GamePlatform.STEAM -> Triple("STEAM", Color(0xFF171A21), Color(0xFF66C0F4))
         GamePlatform.EPIC_GAMES -> Triple("EPIC GAMES", Color(0xFF202020), Color(0xFFF4F5F7))
@@ -102,7 +98,7 @@ fun OrbitPlatformBadge(platform: GamePlatform) {
 }
 
 @Composable
-fun OrbitNetworkBadge(support: GameNetworkSupport) {
+fun NetworkBadge(support: GameNetworkSupport) {
     val (text, color, bg) = when (support) {
         is GameNetworkSupport.LagcheckSupported -> Triple("DIAGNÓSTICO HOMOLOGADO", LcColor.Good, Color(0x1F22C55E))
         is GameNetworkSupport.GeneralConnectionOnly -> Triple("CONEXÃO GERAL", LcColor.AccentLight, Color(0x1F7C3AED))

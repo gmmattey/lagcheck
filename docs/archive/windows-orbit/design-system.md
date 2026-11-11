@@ -1,3 +1,5 @@
+> **Histórico (Decisão 118).** Registro da primeira versão da biblioteca do Windows, quando ela ainda tinha um nome interno que foi abandonado. O que vale hoje está em `docs/09-design-system-windows.md` e na Decisão 118 de `docs/DECISOES.md`. Este arquivo não é mais atualizado.
+
 # LagCheck ORBIT — Design System e Especificação Visual
 
 > **Diretrizes de Design da Interface Desktop ORBIT**  
