@@ -41,14 +41,7 @@ fun LibraryHero(
             .fillMaxWidth()
             .clip(RoundedCornerShape(LcRadius.r17))
             .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        LcColor.Panel.copy(alpha = 0.9f),
-                        LcColor.Surface,
-                        LcColor.Background
-                    ),
-                    radius = 1200f
-                )
+                LcColor.Surface
             )
             .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r17))
     ) {
