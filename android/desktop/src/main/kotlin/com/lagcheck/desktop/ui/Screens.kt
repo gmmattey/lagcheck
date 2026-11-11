@@ -61,22 +61,24 @@ fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
             Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
         }
         Spacer(Modifier.height(LcSpace.lg))
-
-        // Destaque do jogo + filtros + grade de jogos
         LibraryView(state)
-
-        Spacer(Modifier.height(LcSpace.xxl))
+        Spacer(Modifier.height(LcSpace.xl))
         Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
-        Spacer(Modifier.height(LcSpace.xxl))
-
-        // Check Geral de Conexão (Cockpit Preservado do LagCheck)
-        SectionLabel("Check Geral de Conexão")
-        Spacer(Modifier.height(LcSpace.md))
-        HomeCommand(state, captureTestFocus)
-        Spacer(Modifier.height(LcSpace.xxl))
+        Spacer(Modifier.height(LcSpace.lg))
+        // O launcher é a ação principal; diagnóstico geral é uma ferramenta secundária.
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(LcSpace.md)
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("Diagnóstico de conexão", style = LcType.BodyStrong, color = LcColor.TextPrimary)
+                Text("Teste geral opcional; não mede diretamente o servidor do jogo.", style = LcType.Body, color = LcColor.TextSecondary)
+            }
+            SecondaryButton("INICIAR CHECK", { state.start(null) })
+        }
+        Spacer(Modifier.height(LcSpace.lg))
         HomeRecentHistory(state)
-        Spacer(Modifier.height(LcSpace.xxl))
-        Text("O check mede a rota deste PC até uma região de referência. Não mede o ping exato de um servidor do jogo.", style = LcType.Body, color = LcColor.TextTertiary)
     }
 }
 
