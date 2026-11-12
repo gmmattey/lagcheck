@@ -80,6 +80,7 @@ fun SettingsScreen(
     /** Só quando o UMP exigir (anúncios ligados). */
     privacyOptionsRequired: Boolean = false,
     onOpenPrivacyOptions: () -> Unit = {},
+    onCheckForUpdates: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -195,6 +196,11 @@ fun SettingsScreen(
                 Text(text = tr("Versão"), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LagCheckColors.TextPrimary)
                 Text(text = versionText, style = LagCheckTypography.MonoSmall, color = LagCheckColors.TextMuted)
             }
+
+            SettingRow(
+                title = tr("Verificar atualizações"),
+                onClick = onCheckForUpdates
+            )
 
             // Termos e "avaliar" no iOS atual só exibem um aviso; permanecem fora até haver destino real.
             SettingRow(

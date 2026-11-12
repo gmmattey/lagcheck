@@ -123,6 +123,7 @@
 | [118](#decisão-118) | Windows: Home vira biblioteca de jogos; diagnóstico contextual e não bloqueante | **Em implementação (protótipo, não publicável)** | Refina as Decisões 114 a 116: a Home deixa de ser painel de diagnóstico | Marcelo / Priscila / Camillo / Renan |
 | [119](#decisão-119) | Windows: interface WinUI 3 com motor Kotlin compartilhado | **Em implementação (protótipo, não publicável)** | Substitui somente a apresentação Compose Desktop, preservando o núcleo de diagnóstico | Luiz / Squad |
 | [120](#decisão-120) | Reorganização do repositório em camadas de produtos e pastas canônicas | **Vigente** | Isola `apps/`, `services/`, `shared/`, `distribution/`, `docs/`, `scripts/` | Luiz / Squad |
+| [121](#decisão-121) | Verificação automática de versão e atualização transparente no Android (APK e Loja) | **Vigente** | Detecção de origem (Play Store vs sideload APK), diálogo Dark Competitive UI, download direto e Google Play In-App Updates | Luiz / Marcelo / Camillo / Priscila / Renan |
 
 
 
@@ -1359,6 +1360,34 @@
   - `.github/`: acolhe os markdowns de governança comunitária (`CONTRIBUTING.md`, `SECURITY.md`).
 - **Guardrails:** nenhuma funcionalidade de rede, catálogo, score ou veredito foi alterada; os scripts de release e validação continuam funcionando sem quebrar CI/CD ou compilação local.
 - **Critérios de aceite:** `xcodegen generate` e build iOS bem-sucedidos em `apps/ios/`, suíte do worker com 59/59 testes passando, testes do Android `:core:domain:test` verdes, script `validate_store_assets.py discover` detectando plataformas corretamente.
+
+#### Decisão 121
+
+- **Data:** 12 de novembro de 2026.
+- **Título:** Verificação automática de versão e atualização transparente no Android (APK direto e Loja).
+- **Status Atual:** **Vigente.** Solicitada e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (direção), Marcelo (produto e aceite), Camillo (arquitetura e implementação), Priscila (experiência e Dark Competitive UI) e Renan (testes e conformidade).
+- **Contexto e problema:** Jogadores no Android frequentemente obtêm o app por sideload/download direto de APKs gerados nos releases do GitHub, além dos que instalam via Google Play Store. Sem mecanismo de auto-update, quem usa o APK fica com versões defasadas e sem as melhorias contínuas de diagnóstico de rota.
+- **Decisão (arquitetura e fluxos):**
+  1. **Detecção da Origem de Instalação (`InstallerDetector`):**
+     - O app identifica se a instalação veio da Google Play Store (`com.android.vending`) ou de sideload/APK direto (instalador nulo, gerenciador de pacotes, navegador ou adb).
+  2. **Fluxo de APK Direto / Sideload (`GitHubReleaseFeed` + `ApkDownloader` + `ApkInstaller`):**
+     - Consulta automática de versão contra os releases públicos do GitHub (`gmmattey/lagcheck`) ao abrir o app (com debounce de 1h) ou manual em Ajustes/Configurações.
+     - Comparação semântica de versões (`VersionComparer` suportando `major.minor.patch` e `-b<buildNumber>`).
+     - Pop-up nativo (`UpdateDialog`) em **Dark Competitive UI** apresentando a nova versão, tamanho e notas.
+     - Ao autorizar ("ATUALIZAR AGORA"), o download do APK é realizado de forma transparente em segundo plano com indicador de progresso e salvo no cache (`updates/lagcheck-update.apk`).
+     - Ao concluir, invoca a instalação nativa do sistema via `FileProvider` (`ACTION_VIEW`). Caso a permissão `REQUEST_INSTALL_PACKAGES` ainda não tenha sido concedida pelo usuário nas configurações do Android, direciona com 1 toque para autorização antes de prosseguir.
+     - Contingência com link direto para download via navegador caso o usuário prefira.
+  3. **Fluxo de Loja / Google Play Store (`PlayStoreUpdateManager`):**
+     - Integração com a API oficial Google Play In-App Updates (`com.google.android.play:app-update-ktx:2.1.0`).
+     - Suporte a download transparente / flexível do Google Play e contingência com redirecionamento para a página oficial do app (`market://details?id=com.lagcheck.app` / fallback web).
+  4. **Proteção da Experiência Gamer:**
+     - O pop-up de atualização nunca interrompe uma medição ativa (`Screen.Measurement` ou `Screen.RegionalSelection`); aguarda a conclusão ou cancelamento do teste.
+     - Botão "Verificar atualizações" disponível em Ajustes com texto localizado em PT-BR, EN e ES.
+- **Critérios de validação e aceite:**
+  - Testes unitários puros cobrindo parser de releases, comparador de versões, detecção de instalador e máquina de estados (`VersionComparerTest`, `GitHubReleaseParserTest`, `InstallerDetectorTest`, `AppUpdateCoordinatorTest`).
+  - Suíte completa `:app:testProductionDebugUnitTest` e `:app:testValidationReleaseUnitTest` passando sem falhas.
+  - Conformidade visual com os tokens da Dark Competitive UI e textos registrados em `UiStrings.kt`/`ScreenStrings.kt`.
 
 ## Como Registrar Novas Decisões
 

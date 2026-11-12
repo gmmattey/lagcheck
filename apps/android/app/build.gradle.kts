@@ -134,6 +134,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.play.review)
+    implementation(libs.play.app.update)
     // AdMob + UMP (Decisão 82). Dormente enquanto ADS_ENABLED for falso.
     implementation(libs.play.services.ads)
     implementation(platform(libs.firebase.bom))

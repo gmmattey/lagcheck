@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Atualização transparente para distribuição via APK direto (sideload) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Anúncios (Decisão 82): ID de publicidade para o AdMob; só usado com ADS_ENABLED e consentimento. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />

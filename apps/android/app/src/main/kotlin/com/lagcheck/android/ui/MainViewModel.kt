@@ -173,6 +173,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val reviewPromptTrigger: kotlinx.coroutines.flow.Flow<Unit> = _reviewPromptTrigger.receiveAsFlow()
     private var reviewPromptJob: Job? = null
 
+    val updateCoordinator = com.lagcheck.android.update.AppUpdateCoordinator(
+        context = application,
+        scope = viewModelScope,
+        installedVersionName = BuildConfig.VERSION_NAME,
+        installedVersionCode = BuildConfig.VERSION_CODE
+    )
+    val updateUiState = updateCoordinator.uiState
+
+    fun checkForUpdates(manual: Boolean = true) {
+        updateCoordinator.checkForUpdates(manual = manual)
+    }
+
+    fun startUpdate(activity: android.app.Activity) {
+        updateCoordinator.startUpdate(activity)
+    }
+
+    fun dismissUpdatePrompt() {
+        updateCoordinator.dismissUpdatePrompt()
+    }
+
+    fun cancelUpdateDownload() {
+        updateCoordinator.cancelDownload()
+    }
+
+    fun proceedWithApkInstall(apkFile: java.io.File) {
+        updateCoordinator.proceedWithInstallation(apkFile)
+    }
+
+    fun openUpdateInBrowser() {
+        updateCoordinator.openInBrowser(getApplication())
+    }
+
+    fun openUpdateInStore() {
+        updateCoordinator.openStore(getApplication())
+    }
+
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
@@ -312,6 +348,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         refreshRadioTelemetry()
         refreshPlatformHealth()
         telemetry.appOpen()
+        updateCoordinator.checkForUpdates(manual = false)
         // Valida a fonte local fora da thread principal. Ela nunca é substituída
         // por uma resposta remota que poderia remover referências globais.
         viewModelScope.launch(Dispatchers.IO) {

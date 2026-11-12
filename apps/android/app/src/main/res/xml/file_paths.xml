@@ -4,4 +4,5 @@
     <cache-path name="route_reports" path="reports/" />
     <cache-path name="network_reports" path="network-reports/" />
     <cache-path name="share_media" path="share/" />
+    <cache-path name="updates" path="updates/" />
 </paths>

@@ -125,6 +125,7 @@ class MainActivity : ComponentActivity() {
             val analyticsCollectionEnabled by viewModel.analyticsCollectionEnabled.collectAsState()
             val pendingDuel by viewModel.pendingDuelInvitation.collectAsState()
             val lastDuelResolution by viewModel.lastDuelResolution.collectAsState()
+            val updateState by viewModel.updateUiState.collectAsState()
 
             // Decisão 77: Sistema Unificado de Avaliação In-App (Google Play In-App Review)
             androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -208,6 +209,18 @@ class MainActivity : ComponentActivity() {
                     gameName = duelGameName,
                     onAccept = { viewModel.acceptDuelInvitation(duelInvite) },
                     onDecline = { viewModel.declineDuelInvitation() }
+                )
+            }
+            val isMeasuring = currentScreen is Screen.Measurement || currentScreen is Screen.RegionalSelection
+            if (!isMeasuring) {
+                com.lagcheck.android.ui.components.UpdateDialog(
+                    state = updateState,
+                    onStartUpdate = { viewModel.startUpdate(this@MainActivity) },
+                    onInstallApk = { apkFile -> viewModel.proceedWithApkInstall(apkFile) },
+                    onDismiss = { viewModel.dismissUpdatePrompt() },
+                    onCancelDownload = { viewModel.cancelUpdateDownload() },
+                    onOpenInBrowser = { viewModel.openUpdateInBrowser() },
+                    onOpenInStore = { viewModel.openUpdateInStore() }
                 )
             }
             Scaffold(
@@ -492,6 +505,7 @@ class MainActivity : ComponentActivity() {
                             },
                             privacyOptionsRequired = privacyOptionsRequired,
                             onOpenPrivacyOptions = { ads.showPrivacyOptions() },
+                            onCheckForUpdates = { viewModel.checkForUpdates(manual = true) },
                             onBack = { viewModel.navigateTo(Screen.Home) }
                         )
                     }
