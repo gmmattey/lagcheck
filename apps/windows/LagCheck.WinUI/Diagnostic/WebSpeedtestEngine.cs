@@ -1,30 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using LagCheck.WinUI.Diagnostic.Rules;
 
 namespace LagCheck.WinUI.Diagnostic;
 
 /// <summary>
-/// Motor de medição de diagnóstico que replica exatamente o comportamento do lagcheck.signallq.com:
-/// 1. Probes HTTPS contra os endpoints públicos de ping da AWS nas regiões mundiais (DynamoDB /ping).
-/// 2. Escolha da região mais próxima por menor RTT (São Paulo / sa-east-1).
-/// 3. Medição de latência em repouso e jitter real através de probes sequenciais de alta precisão.
-/// 4. Medição sob carga via download concorrente na Cloudflare (speed.cloudflare.com/__down).
-/// 5. Cálculo determinístico de veredito pré-partida (READY, CAUTION, NOT_READY).
+/// Coleta de amostras do protótipo Windows. Este tipo só mede: toda métrica, score e veredito vêm dos
+/// avaliadores de Diagnostic.Rules (port 1:1 do domínio Android/iOS).
+///
+/// Transporte do protótipo: probes HTTPS contra os endpoints públicos de ping da AWS (DynamoDB /ping).
+/// Cada probe vira um <see cref="ProbeSample"/> (recebido, timeout ou resposta inválida); nada é
+/// preenchido por valor padrão. Sem 10 amostras válidas na região escolhida, o resultado é inconclusivo.
+/// A carga é um download concorrente na Cloudflare enquanto a segunda janela de probes roda.
 /// </summary>
 public sealed class WebSpeedtestEngine
 {
-    private static readonly HttpClient HttpClient = new(new SocketsHttpHandler
+    private static readonly HttpClient ProbeClient = new(new SocketsHttpHandler
     {
         PooledConnectionLifetime = TimeSpan.FromMinutes(2),
         ConnectTimeout = TimeSpan.FromSeconds(3),
         EnableMultipleHttp2Connections = true
     })
     {
-        Timeout = TimeSpan.FromSeconds(5)
+        Timeout = Timeout.InfiniteTimeSpan // o prazo de 2 s é aplicado por probe
+    };
+
+    private static readonly HttpClient LoadClient = new(new SocketsHttpHandler
+    {
+        ConnectTimeout = TimeSpan.FromSeconds(5)
+    })
+    {
+        Timeout = Timeout.InfiniteTimeSpan // a janela de 15 s cancela a transferência
     };
 
     public static readonly IReadOnlyList<(string Id, string Name, string Url, double Latitude, double Longitude)> Regions =
@@ -38,7 +49,18 @@ public sealed class WebSpeedtestEngine
         ("ap-southeast-1", "Singapura", "https://dynamodb.ap-southeast-1.amazonaws.com/ping", 1.35, 103.82)
     ];
 
-    private const string LoadUrl = "https://speed.cloudflare.com/__down?bytes=5000000";
+    private const string LoadUrl = "https://speed.cloudflare.com/__down?bytes=25000000";
+    private const int LoadStreams = 4;
+
+    /// <summary>Perfil do protótipo: jogo competitivo. Mapear por jogo exige o catálogo (fora do escopo do motor).</summary>
+    public const QualityProfileId Profile = QualityProfileId.BattleRoyaleCompetitive;
+
+    /// <summary>
+    /// Rota genérica de referência (não é servidor de jogo): confiança média, margem de 10% do readiness-v2.0.
+    /// </summary>
+    public const MeasurementConfidence Confidence = MeasurementConfidence.Medium;
+
+    private const string ProfileLabel = "BATTLE_ROYALE_COMPETITIVE";
 
     public async Task<DiagnosticResult> RunAsync(
         Action<DiagnosticProgress> onProgress,
@@ -46,161 +68,311 @@ public sealed class WebSpeedtestEngine
         CancellationToken cancellationToken)
     {
         var sessionId = Guid.NewGuid().ToString("N");
-        var series = new List<double>();
 
-        // ETAPA 1: Varredura de regiões (Identificar a mais próxima)
-        onProgress(new DiagnosticProgress(sessionId, "connect", 0.05, null));
-        var probedRegions = new List<(string Id, string Name, double PingMs)>();
-
-        foreach (var reg in Regions)
+        // ETAPA 1: região de menor RTT medido. Sem região respondendo, não há o que medir.
+        onProgress(new DiagnosticProgress(sessionId, "connect", 0.02, null));
+        string? chosenId = null;
+        double chosenRtt = double.MaxValue;
+        for (int i = 0; i < Regions.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            double? rtt = await ProbeTargetAsync(reg.Url, cancellationToken).ConfigureAwait(false);
+            var reg = Regions[i];
+            double? rtt = await ProbeRegionAsync(reg.Url, cancellationToken).ConfigureAwait(false);
             onRegionSample(reg.Id, rtt);
-            if (rtt is { } val)
+            if (rtt is { } value && value < chosenRtt)
             {
-                probedRegions.Add((reg.Id, reg.Name, val));
+                chosenRtt = value;
+                chosenId = reg.Id;
             }
+            onProgress(new DiagnosticProgress(sessionId, "connect", 0.02 + 0.13 * (i + 1) / Regions.Count, rtt));
         }
 
-        probedRegions.Sort((a, b) => a.PingMs.CompareTo(b.PingMs));
-        var chosenRegion = probedRegions.Count > 0 ? probedRegions[0] : (Id: "sa-east-1", Name: "São Paulo", PingMs: 14.0);
-        string chosenUrl = $"https://dynamodb.{chosenRegion.Id}.amazonaws.com/ping";
-
-        onProgress(new DiagnosticProgress(sessionId, "connect", 0.20, chosenRegion.PingMs));
-
-        // ETAPA 2: Latência em repouso e Jitter
-        var restPings = new List<double>();
-        for (int i = 0; i < 12; i++)
+        if (chosenId is null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            double ratio = 0.20 + (i / 12.0) * 0.35;
-            double? ping = await ProbeTargetAsync(chosenUrl, cancellationToken).ConfigureAwait(false);
-            if (ping is { } p)
-            {
-                restPings.Add(p);
-                series.Add(p);
-                onProgress(new DiagnosticProgress(sessionId, "rest", ratio, p));
-            }
-            await Task.Delay(40, cancellationToken).ConfigureAwait(false);
+            return Inconclusive(sessionId, null, restDiagnostics: null, series: []);
         }
 
-        double restAvg = CalculateAverage(restPings, fallback: chosenRegion.PingMs);
-        double jitterVal = CalculateJitter(restPings, fallback: 0.8);
+        string chosenUrl = Regions.First(r => r.Id == chosenId).Url;
 
-        // ETAPA 3: Medição sob Carga (Bufferbloat)
-        var loadPings = new List<double>();
+        // ETAPA 2: janela de repouso (30 probes, 2/s, prazo de 2 s por probe).
+        var restSeries = new List<double>();
+        var rest = await RunProbeWindowAsync(
+            chosenUrl,
+            sampleOnDone: (sample, all) =>
+            {
+                double ratio = 0.15 + 0.40 * all.Count / ProbeAcceptancePolicy.PlannedProbeCount;
+                onProgress(new DiagnosticProgress(sessionId, "rest", Math.Min(ratio, 0.55), sample.RoundTripMilliseconds,
+                    LiveJitterMs: LiveJitter(all)));
+            },
+            abortOnPoorQuality: true,
+            cancellationToken).ConfigureAwait(false);
+
+        var restEvaluation = QualityEvaluator.Evaluate(rest.Samples, Profile);
+        if (rest.Aborted || restEvaluation is not MeasurementEvaluation.Completed)
+        {
+            var diagnostics = (restEvaluation as MeasurementEvaluation.Inconclusive)?.Diagnostics;
+            return Inconclusive(sessionId, chosenId, diagnostics, ValidSeries(rest.Samples));
+        }
+        restSeries.AddRange(ValidSeries(rest.Samples));
+        double? restP50 = ((MeasurementEvaluation.Completed)restEvaluation).Result.Metrics.P50Milliseconds;
+
+        // ETAPA 3: janela sob carga. O download roda durante toda a janela; falha da transferência
+        // remove a conclusão de carga sem invalidar o repouso (spec 5.3).
         using var loadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        loadCts.CancelAfter(TimeSpan.FromSeconds(6));
+        var load = new LoadGenerator();
+        var loadTask = load.RunAsync(loadCts.Token);
 
-        // Dispara carga concorrente em background
-        var loadTask = Task.Run(async () =>
+        WindowResult loadWindow;
+        try
         {
-            try
-            {
-                for (int stream = 0; stream < 4; stream++)
+            loadWindow = await RunProbeWindowAsync(
+                chosenUrl,
+                sampleOnDone: (sample, all) =>
                 {
-                    if (loadCts.IsCancellationRequested) break;
-                    _ = HttpClient.GetByteArrayAsync(LoadUrl, loadCts.Token);
-                }
-                await Task.Delay(4500, loadCts.Token).ConfigureAwait(false);
-            }
-            catch { }
-        }, loadCts.Token);
-
-        for (int i = 0; i < 8; i++)
+                    double ratio = 0.55 + 0.40 * all.Count / ProbeAcceptancePolicy.PlannedProbeCount;
+                    double? loadP50 = restP50 is not null ? LiveP50(all) : null;
+                    onProgress(new DiagnosticProgress(sessionId, "load", Math.Min(ratio, 0.95), sample.RoundTripMilliseconds,
+                        LiveJitterMs: LiveJitter(all),
+                        LiveLoadDeltaMs: loadP50 is { } lp && restP50 is { } rp ? Math.Max(0.0, lp - rp) : null));
+                },
+                abortOnPoorQuality: false,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            double ratio = 0.55 + (i / 8.0) * 0.35;
-            double? ping = await ProbeTargetAsync(chosenUrl, cancellationToken).ConfigureAwait(false);
-            if (ping is { } p)
-            {
-                loadPings.Add(p);
-                series.Add(p);
-                onProgress(new DiagnosticProgress(sessionId, "load", ratio, p));
-            }
-            await Task.Delay(60, cancellationToken).ConfigureAwait(false);
+            loadCts.Cancel();
+            await loadTask.ConfigureAwait(false);
         }
 
-        try { loadCts.Cancel(); } catch { }
+        // Carga só vale se a transferência esteve ativa durante a janela inteira.
+        IReadOnlyList<ProbeSample>? loadSamples = load.CoveredWholeWindow ? loadWindow.Samples : null;
 
-        // ETAPA 4: Análise e Veredito Final
-        onProgress(new DiagnosticProgress(sessionId, "analysis", 0.98, restAvg));
-
-        double loadAvg = CalculateAverage(loadPings, fallback: restAvg + 2.0);
-        double deltaLoad = Math.Max(0.0, loadAvg - restAvg);
-
-        // Determinação do Veredito segundo a especificação canônica do LagCheck
-        string verdict;
-        int score;
-
-        if (restAvg <= 45.0 && jitterVal <= 7.0 && deltaLoad <= 35.0)
+        // ETAPA 4: análise. Tudo sai do domínio canônico.
+        onProgress(new DiagnosticProgress(sessionId, "analysis", 0.98, restP50));
+        var deep = DeepCheckEvaluator.Evaluate(rest.Samples, loadSamples, Profile);
+        if (deep is not DeepCheckEvaluation.Completed completed)
         {
-            verdict = "ready";
-            score = Math.Clamp((int)(100 - (restAvg * 0.4 + jitterVal * 1.5 + deltaLoad * 0.3)), 80, 99);
+            return Inconclusive(sessionId, chosenId, (restEvaluation as MeasurementEvaluation.Inconclusive)?.Diagnostics, restSeries);
         }
-        else if (restAvg <= 90.0 && deltaLoad <= 75.0)
+
+        var assessment = GameReadinessEvaluator.Evaluate(rest.Samples, loadSamples, Profile, Confidence);
+        if (assessment.Verdict == GameReadinessVerdict.Inconclusive)
         {
-            verdict = "caution";
-            score = Math.Clamp((int)(75 - (restAvg * 0.3 + deltaLoad * 0.3)), 50, 79);
+            return Inconclusive(sessionId, chosenId, completed.Result.RestResult.Metrics, restSeries);
         }
-        else
-        {
-            verdict = "not_ready";
-            score = Math.Clamp((int)(50 - (restAvg * 0.2 + deltaLoad * 0.2)), 20, 49);
-        }
+
+        var impact = completed.Result.Metrics.LoadImpact;
+        var series = new List<double>(restSeries);
+        if (loadSamples is not null) series.AddRange(ValidSeries(loadSamples));
 
         return new DiagnosticResult(
             SessionId: sessionId,
             Status: "completed",
-            Verdict: verdict,
-            Score: score,
-            PingMs: Math.Round(restAvg, 1),
-            JitterMs: Math.Round(jitterVal, 1),
-            PacketLossPercentage: 0.0,
-            WorstSpikeMs: Math.Round(deltaLoad, 1),
-            LoadMeasured: true,
-            RegionId: chosenRegion.Id,
-            ProfileId: "competitive_gaming",
+            Verdict: VerdictWire(assessment.Verdict),
+            Score: assessment.Score,
+            PingMs: Round1(assessment.PingMs),
+            JitterMs: Round1(assessment.JitterMs),
+            PacketLossPercentage: Round1(assessment.PacketLossPercentage),
+            WorstSpikeMs: Round1(assessment.WorstSpikeMs),
+            LoadMeasured: impact is not null,
+            RegionId: chosenId,
+            ProfileId: ProfileLabel,
             AbortReason: null,
-            LatencySeries: series.ToArray()
-        );
+            LatencySeries: series.ToArray(),
+            LoadDeltaMs: impact is null ? null : Round1(Math.Max(0.0, impact.IncreaseMilliseconds)),
+            LoadTier: impact?.Tier.ToString());
     }
 
-    private static async Task<double?> ProbeTargetAsync(string url, CancellationToken cancellationToken)
+    public static string VerdictWire(GameReadinessVerdict verdict) => verdict switch
     {
+        GameReadinessVerdict.Ready => "ready",
+        GameReadinessVerdict.Caution => "caution",
+        GameReadinessVerdict.NotReady => "not_ready",
+        _ => "inconclusive"
+    };
+
+    private static DiagnosticResult Inconclusive(string sessionId, string? regionId, QualityMetrics? restDiagnostics, IReadOnlyList<double> series) =>
+        new(
+            SessionId: sessionId,
+            Status: "inconclusive",
+            Verdict: "inconclusive",
+            Score: null,
+            PingMs: Round1(restDiagnostics?.P50Milliseconds),
+            JitterMs: Round1(restDiagnostics?.JitterMilliseconds),
+            PacketLossPercentage: restDiagnostics is null ? null : Round1(restDiagnostics.PacketLossPercentage),
+            WorstSpikeMs: null,
+            LoadMeasured: false,
+            RegionId: regionId,
+            ProfileId: ProfileLabel,
+            AbortReason: "insufficient_valid_responses",
+            LatencySeries: series.ToArray());
+
+    private static double? Round1(double? value) => value is { } v ? Math.Round(v, 1) : null;
+
+    private static double[] ValidSeries(IReadOnlyList<ProbeSample> samples) =>
+        samples.Where(s => s.IsValidResponse).OrderBy(s => s.Sequence).Select(s => s.RoundTripMilliseconds!.Value).ToArray();
+
+    private static double? LiveJitter(IReadOnlyList<ProbeSample> samples)
+    {
+        var rtts = ValidSeries(samples);
+        return rtts.Length >= 2 ? QualityEvaluator.AverageAdjacentDifference(rtts) : null;
+    }
+
+    private static double? LiveP50(IReadOnlyList<ProbeSample> samples)
+    {
+        var rtts = ValidSeries(samples);
+        return rtts.Length >= 1 ? QualityEvaluator.Percentile(rtts, 0.50) : null;
+    }
+
+    private sealed record WindowResult(IReadOnlyList<ProbeSample> Samples, bool Aborted);
+
+    /// <summary>
+    /// Envia <see cref="ProbeAcceptancePolicy.PlannedProbeCount"/> probes a cada 500 ms, sem esperar a resposta
+    /// do anterior. Cada probe escreve só na própria posição do vetor, então não há lock; a ordem de chegada
+    /// vem de um contador atômico.
+    /// </summary>
+    private static async Task<WindowResult> RunProbeWindowAsync(
+        string url,
+        Action<ProbeSample, IReadOnlyList<ProbeSample>> sampleOnDone,
+        bool abortOnPoorQuality,
+        CancellationToken cancellationToken)
+    {
+        int planned = ProbeAcceptancePolicy.PlannedProbeCount;
+        var slots = new ProbeSample?[planned];
+        int arrivals = -1;
+        var gate = new object();
+        using var windowCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        int aborted = 0;
+        var tasks = new List<Task>(planned);
+
+        IReadOnlyList<ProbeSample> Snapshot()
+        {
+            lock (gate) return slots.Where(s => s is not null).Select(s => s!).ToList();
+        }
+
+        for (int seq = 0; seq < planned; seq++)
+        {
+            if (windowCts.IsCancellationRequested) break;
+            int sequence = seq;
+            tasks.Add(Task.Run(async () =>
+            {
+                var sample = await SendProbeAsync(url, sequence, () => Interlocked.Increment(ref arrivals), windowCts.Token).ConfigureAwait(false);
+                if (sample is null) return; // janela cancelada: probe pendente não vira amostra
+                IReadOnlyList<ProbeSample> snapshot;
+                lock (gate)
+                {
+                    slots[sequence] = sample;
+                    snapshot = slots.Where(s => s is not null).Select(s => s!).ToList();
+                }
+                sampleOnDone(sample, snapshot);
+                if (abortOnPoorQuality && SampleQualityEvaluator.Assess(snapshot).ShouldAbort)
+                {
+                    Interlocked.Exchange(ref aborted, 1);
+                    windowCts.Cancel();
+                }
+            }, CancellationToken.None));
+
+            if (seq < planned - 1)
+            {
+                try { await Task.Delay(ProbeAcceptancePolicy.SendIntervalMillis, windowCts.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { break; }
+            }
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return new WindowResult(Snapshot(), Volatile.Read(ref aborted) == 1);
+    }
+
+    /// <summary>
+    /// Um probe: RTT = recebido − enviado, só aceito se chegar em menos de 2 s com resposta HTTP de sucesso.
+    /// Resposta fora do prazo é timeout; resposta de erro é inválida e nunca vira RTT. Devolve null se a
+    /// janela foi cancelada antes do desfecho.
+    /// </summary>
+    private static async Task<ProbeSample?> SendProbeAsync(string url, int sequence, Func<int> nextArrival, CancellationToken windowToken)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(windowToken);
+        timeout.CancelAfter(ProbeAcceptancePolicy.TimeoutMillis);
+        long start = Stopwatch.GetTimestamp();
         try
         {
-            long start = Stopwatch.GetTimestamp();
             using var req = new HttpRequestMessage(HttpMethod.Get, url);
             req.Headers.Add("Cache-Control", "no-cache");
-            using var resp = await HttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-            long end = Stopwatch.GetTimestamp();
-            double ms = (end - start) * 1000.0 / Stopwatch.Frequency;
-            return Math.Round(ms, 1);
+            using var resp = await ProbeClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
+            double ms = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+            if (ms >= ProbeAcceptancePolicy.TimeoutMillis) return ProbeSample.Timeout(sequence);
+            if (!resp.IsSuccessStatusCode) return new ProbeSample(sequence, null, ProbeOutcome.InvalidResponse);
+            return ProbeSample.Received(sequence, Math.Round(ms, 1), nextArrival());
         }
-        catch
+        catch (OperationCanceledException)
         {
-            return null;
+            return windowToken.IsCancellationRequested ? null : ProbeSample.Timeout(sequence);
+        }
+        catch (HttpRequestException)
+        {
+            return new ProbeSample(sequence, null, ProbeOutcome.TransportError);
         }
     }
 
-    private static double CalculateAverage(List<double> values, double fallback)
+    /// <summary>Menor de dois RTTs: o primeiro aquece a conexão (TCP + TLS) e não representa a rota.</summary>
+    private static async Task<double?> ProbeRegionAsync(string url, CancellationToken cancellationToken)
     {
-        if (values.Count == 0) return fallback;
-        double sum = 0;
-        foreach (var v in values) sum += v;
-        return sum / values.Count;
+        double? best = null;
+        for (int i = 0; i < 2; i++)
+        {
+            var sample = await SendProbeAsync(url, i, static () => 0, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (sample is { IsValidResponse: true } && (best is null || sample.RoundTripMilliseconds < best))
+                best = sample.RoundTripMilliseconds;
+        }
+        return best;
     }
 
-    private static double CalculateJitter(List<double> values, double fallback)
+    /// <summary>
+    /// Gera carga de download concorrente até ser cancelado (fim da janela de 15 s). Registra se ao menos
+    /// uma transferência esteve ativa o tempo todo; se todas falharem, a carga é descartada.
+    /// </summary>
+    private sealed class LoadGenerator
     {
-        if (values.Count < 2) return fallback;
-        double sumDiff = 0;
-        for (int i = 1; i < values.Count; i++)
+        private int _failedStreams;
+        private long _bytes;
+
+        /// <summary>Verdadeiro se nenhuma transferência morreu por erro e algum byte chegou.</summary>
+        public bool CoveredWholeWindow => Volatile.Read(ref _failedStreams) == 0 && Interlocked.Read(ref _bytes) > 0;
+
+        public async Task RunAsync(CancellationToken token)
         {
-            sumDiff += Math.Abs(values[i] - values[i - 1]);
+            var streams = Enumerable.Range(0, LoadStreams).Select(_ => Task.Run(() => StreamAsync(token), CancellationToken.None));
+            await Task.WhenAll(streams).ConfigureAwait(false);
         }
-        return sumDiff / (values.Count - 1);
+
+        private async Task StreamAsync(CancellationToken token)
+        {
+            var buffer = new byte[64 * 1024];
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    using var resp = await LoadClient.GetAsync(LoadUrl, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+                    resp.EnsureSuccessStatusCode();
+                    await using var body = await resp.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+                    int read;
+                    while ((read = await body.ReadAsync(buffer, token).ConfigureAwait(false)) > 0)
+                        Interlocked.Add(ref _bytes, read);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // fim normal da janela
+            }
+            catch (Exception) when (!token.IsCancellationRequested)
+            {
+                Interlocked.Increment(ref _failedStreams);
+            }
+            catch (Exception)
+            {
+                // erro de leitura causado pelo cancelamento do fim da janela
+            }
+        }
     }
 }

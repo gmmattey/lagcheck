@@ -92,7 +92,7 @@ function Test-EngineHandshake([string]$Java, [string]$EngineRoot, [string]$Expec
     }
 }
 
-$repoRoot = Resolve-AbsolutePath (Join-Path $PSScriptRoot "..\..") "A raiz do repositório"
+$repoRoot = Resolve-AbsolutePath (Join-Path $PSScriptRoot "..\..\..") "A raiz do repositório"
 $outputRoot = Resolve-AbsolutePath $OutputDirectory "O diretório de saída"
 $repoPrefix = Get-DirectoryPrefix $repoRoot
 $outputPrefix = Get-DirectoryPrefix $outputRoot
@@ -105,9 +105,9 @@ if ((Test-Path -LiteralPath $outputRoot) -and -not (Get-Item -LiteralPath $outpu
 }
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 
-$gradleWrapper = Join-Path $repoRoot "android\gradle\wrapper\gradle-wrapper.jar"
-$winuiProject = Join-Path $repoRoot "windows\LagCheck.WinUI\LagCheck.WinUI.csproj"
-$hostInstall = Join-Path $repoRoot "android\engine-host\build\install\engine-host"
+$gradleWrapper = Join-Path $repoRoot "apps\android\gradle\wrapper\gradle-wrapper.jar"
+$winuiProject = Join-Path $repoRoot "apps\windows\LagCheck.WinUI\LagCheck.WinUI.csproj"
+$hostInstall = Join-Path $repoRoot "apps\android\engine-host\build\install\engine-host"
 Assert-Exists $gradleWrapper "Gradle Wrapper"
 Assert-Exists $winuiProject "Projeto WinUI"
 
@@ -134,7 +134,7 @@ New-Item -ItemType Directory -Path $stage | Out-Null
 
 Write-Host "[1/5] Gerando a distribuição local do engine-host"
 $previousJavaHome = $env:JAVA_HOME
-Push-Location (Join-Path $repoRoot "android")
+Push-Location (Join-Path $repoRoot "apps\android")
 try {
     # Gradle e jlink usam o mesmo JDK para não gerar um host com bytecode
     # diferente do runtime local que seguirá no pacote.

@@ -10,9 +10,9 @@
     </Grid.RowDefinitions>
     
     <StackPanel Spacing="6">
-      <TextBlock Text="REGISTRO LOCAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}"/>
-      <TextBlock Text="Histórico de Sessões" Style="{StaticResource PageTitleStyle}"/>
-      <TextBlock Text="Resultados concluídos ficam guardados apenas neste PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Margin="0,2,0,0"/>
+      <TextBlock x:Name="EyebrowText" Text="REGISTRO LOCAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}"/>
+      <TextBlock x:Name="TitleText" Text="Histórico de Sessões" Style="{StaticResource PageTitleStyle}"/>
+      <TextBlock x:Name="SubtitleText" Text="Resultados concluídos ficam guardados apenas neste PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Margin="0,2,0,0"/>
     </StackPanel>
     
     <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar por região ou veredito" TextChanged="SearchBox_TextChanged" />
@@ -45,8 +45,8 @@
       </ListView>
       
       <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="12">
-        <TextBlock Text="Sem testes nesta sessão" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" />
-        <TextBlock Text="Quando uma medição terminar pelo motor compartilhado, o resultado real aparece aqui." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="14"/>
+        <TextBlock x:Name="EmptyTitle" Text="Sem testes nesta sessão" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" />
+        <TextBlock x:Name="EmptyDesc" Text="Quando uma medição terminar pelo motor compartilhado, o resultado real aparece aqui." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="14"/>
       </StackPanel>
       
       <TextBlock x:Name="NoResults" Text="Nenhuma medição corresponde à busca." Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>

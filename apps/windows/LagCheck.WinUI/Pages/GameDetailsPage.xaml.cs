@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using LagCheck.WinUI.Library;
+using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Pages;
 
@@ -16,6 +17,35 @@ public sealed partial class GameDetailsPage : Page
     {
         InitializeComponent();
         _bridge = LibraryPageServices.Bridge;
+        LocalizeUI();
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Unloaded += (_, _) => LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() =>
+    {
+        LocalizeUI();
+        BindGame();
+    });
+
+    private void LocalizeUI()
+    {
+        BackBtnText.Text = Strings.Tr("Voltar");
+        LaunchBtn.Content = Strings.Tr("▶ JOGAR AGORA");
+        CheckConnBtn.Content = Strings.Tr("Checar conexão");
+        ToolTipService.SetToolTip(FavBtn, Strings.Tr("Favoritar jogo"));
+
+        DaysPlayedEyebrow.Text = Strings.Tr("DIAS JOGADOS");
+        DaysPlayedDesc.Text = Strings.Tr("Registro das sessões jogadas nas últimas semanas.");
+        HeatmapDesc.Text = Strings.Tr("Heatmap de atividade ativo localmente neste PC.");
+        LessLabel.Text = Strings.Tr("Menos");
+        MoreLabel.Text = Strings.Tr("Mais");
+
+        PlatformEyebrow.Text = Strings.Tr("PLATAFORMA");
+        NetworkEyebrow.Text = Strings.Tr("REDE E DIAGNÓSTICO");
+        HistEyebrow.Text = Strings.Tr("HISTÓRICO DE MEDIÇÕES");
+        HistStatusText.Text = Strings.Tr("Nenhuma medição registrada para este jogo nesta sessão.");
+        MeasureNowBtn.Content = Strings.Tr("Medir agora");
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

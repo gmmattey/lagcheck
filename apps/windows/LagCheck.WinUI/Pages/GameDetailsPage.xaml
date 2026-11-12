@@ -41,7 +41,7 @@
                         ToolTipService.ToolTip="Voltar à tela anterior" automation:AutomationProperties.Name="Voltar">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE72B;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="BackBtnText" Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
@@ -106,20 +106,20 @@
                     <!-- Painel Dias Jogados (Heatmap) -->
                     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="DIAS JOGADOS" Style="{StaticResource EyebrowTextStyle}" />
-                            <TextBlock Text="Registro das sessões jogadas nas últimas semanas." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                            <TextBlock x:Name="DaysPlayedEyebrow" Text="DIAS JOGADOS" Style="{StaticResource EyebrowTextStyle}" />
+                            <TextBlock x:Name="DaysPlayedDesc" Text="Registro das sessões jogadas nas últimas semanas." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
                             <!-- Grade de Heatmap Visual -->
                             <Border Height="80" Background="#11141B" CornerRadius="8" Padding="12">
-                                <TextBlock Text="Heatmap de atividade ativo localmente neste PC." Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="HeatmapDesc" Text="Heatmap de atividade ativo localmente neste PC." Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             </Border>
                             <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-                                <TextBlock Text="Menos" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="LessLabel" Text="Menos" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
                                 <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#1C212B"/>
                                 <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#3B2A6B"/>
                                 <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#5B3BA8"/>
                                 <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="{StaticResource PurpleBrush}"/>
                                 <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="{StaticResource PurpleLightBrush}"/>
-                                <TextBlock Text="Mais" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="MoreLabel" Text="Mais" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -131,12 +131,12 @@
                     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,14">
                         <StackPanel Spacing="14">
                             <StackPanel Spacing="2">
-                                <TextBlock Text="PLATAFORMA" Style="{StaticResource EyebrowTextStyle}"/>
+                                <TextBlock x:Name="PlatformEyebrow" Text="PLATAFORMA" Style="{StaticResource EyebrowTextStyle}"/>
                                 <TextBlock x:Name="MetaPlatformText" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
                             <Border Background="{StaticResource LineBrush}" Height="1"/>
                             <StackPanel Spacing="2">
-                                <TextBlock Text="REDE E DIAGNÓSTICO" Style="{StaticResource EyebrowTextStyle}"/>
+                                <TextBlock x:Name="NetworkEyebrow" Text="REDE E DIAGNÓSTICO" Style="{StaticResource EyebrowTextStyle}"/>
                                 <TextBlock x:Name="MetaNetworkText" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </StackPanel>
@@ -145,9 +145,9 @@
                     <!-- Card Histórico de Medições do Jogo -->
                     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource EyebrowTextStyle}"/>
+                            <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource EyebrowTextStyle}"/>
                             <TextBlock x:Name="HistStatusText" Text="Nenhuma medição registrada para este jogo nesta sessão." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
-                            <Button Content="Medir agora" Style="{StaticResource SecondaryButtonStyle}"
+                            <Button x:Name="MeasureNowBtn" Content="Medir agora" Style="{StaticResource SecondaryButtonStyle}"
                                     CornerRadius="20" Height="40" Padding="20,0" Margin="0,8,0,0"
                                     Click="CheckConnection_Click" HorizontalAlignment="Left"/>
                         </StackPanel>

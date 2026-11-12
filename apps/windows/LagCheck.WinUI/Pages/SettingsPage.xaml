@@ -7,9 +7,9 @@
       
       <!-- Cabeçalho da Página -->
       <StackPanel Spacing="4" Margin="0,0,0,8">
-        <TextBlock Text="SISTEMA · CONFIGURAÇÕES" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource PurpleLightBrush}"/>
-        <TextBlock Text="Ajustes do Launcher" Style="{StaticResource PageTitleStyle}"/>
-        <TextBlock Text="Controle o comportamento da interface e diagnósticos de rede neste PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
+        <TextBlock x:Name="HeaderEyebrow" Text="SISTEMA · CONFIGURAÇÕES" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource PurpleLightBrush}"/>
+        <TextBlock x:Name="HeaderTitle" Text="Ajustes do Launcher" Style="{StaticResource PageTitleStyle}"/>
+        <TextBlock x:Name="HeaderSubtitle" Text="Controle o comportamento da interface e diagnósticos de rede neste PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
         
         <Border Background="#1C212B" CornerRadius="8" Padding="12,6" HorizontalAlignment="Left" Margin="0,8,0,0">
           <StackPanel Orientation="Horizontal" Spacing="8">
@@ -19,12 +19,39 @@
         </Border>
       </StackPanel>
 
+      <!-- Card 0: Idioma da Interface -->
+      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
+        <StackPanel Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <FontIcon Glyph="&#xE774;" FontSize="18" Foreground="{StaticResource PurpleLightBrush}" VerticalAlignment="Center"/>
+            <TextBlock x:Name="LanguageCardTitle" Text="Idioma do aplicativo" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="220"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="3" Margin="0,0,16,0">
+              <TextBlock x:Name="LanguageTitle" Text="Idioma da interface" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="LanguageDesc" Text="Escolha o idioma da interface. Por padrão, segue as configurações do Windows." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+            </StackPanel>
+            <ComboBox x:Name="LanguageComboBox" Grid.Column="1" HorizontalAlignment="Stretch" SelectionChanged="LanguageComboBox_SelectionChanged" Height="42" CornerRadius="12">
+              <ComboBoxItem x:Name="LangItemSystem" Content="Sistema (Padrão)" Tag="system"/>
+              <ComboBoxItem Content="Português (Brasil)" Tag="pt-BR"/>
+              <ComboBoxItem Content="English" Tag="en"/>
+              <ComboBoxItem Content="Español" Tag="es"/>
+            </ComboBox>
+          </Grid>
+        </StackPanel>
+      </Border>
+
       <!-- Card 1: Interface e Visual -->
       <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <FontIcon Glyph="&#xE790;" FontSize="18" Foreground="{StaticResource PurpleLightBrush}" VerticalAlignment="Center"/>
-            <TextBlock Text="Interface e Visual" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="VisualCardTitle" Text="Interface e Visual" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Reduzir Movimento -->
@@ -34,8 +61,8 @@
               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="3" Margin="0,0,16,0">
-              <TextBlock Text="Reduzir movimento" FontWeight="SemiBold" FontSize="14"/>
-              <TextBlock Text="Desativa animações e transições visuais para resposta imediata." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+              <TextBlock x:Name="ReduceMotionTitle" Text="Reduzir movimento" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="ReduceMotionDesc" Text="Desativa animações e transições visuais para resposta imediata." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
             </StackPanel>
             <ToggleSwitch x:Name="ReduceMotionSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="reduceMotion" OffContent="" OnContent="" VerticalAlignment="Center"/>
           </Grid>
@@ -49,8 +76,8 @@
               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="3" Margin="0,0,16,0">
-              <TextBlock Text="Baixar imagens dos jogos" FontWeight="SemiBold" FontSize="14"/>
-              <TextBlock Text="Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+              <TextBlock x:Name="ArtworkTitle" Text="Baixar imagens dos jogos" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="ArtworkDesc" Text="Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
             </StackPanel>
             <ToggleSwitch x:Name="ArtworkSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="artworkDownload" OffContent="" OnContent="" VerticalAlignment="Center"/>
           </Grid>
@@ -62,7 +89,7 @@
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <FontIcon Glyph="&#xE72D;" FontSize="18" Foreground="{StaticResource PurpleLightBrush}" VerticalAlignment="Center"/>
-            <TextBlock Text="Privacidade e Rede" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="NetworkCardTitle" Text="Privacidade e Rede" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Localização Aproximada -->
@@ -72,8 +99,8 @@
               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="3" Margin="0,0,16,0">
-              <TextBlock Text="Localização aproximada" FontWeight="SemiBold" FontSize="14"/>
-              <TextBlock Text="Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+              <TextBlock x:Name="LocationTitle" Text="Localização aproximada" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="LocationDesc" Text="Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
             </StackPanel>
             <ToggleSwitch x:Name="ApproximateLocationSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="approximateLocation" OffContent="" OnContent="" VerticalAlignment="Center"/>
           </Grid>
@@ -87,8 +114,8 @@
               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="3" Margin="0,0,16,0">
-              <TextBlock Text="Enviar estatísticas anônimas" FontWeight="SemiBold" FontSize="14"/>
-              <TextBlock Text="Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+              <TextBlock x:Name="AnalyticsTitle" Text="Enviar estatísticas anônimas" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="AnalyticsDesc" Text="Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
             </StackPanel>
             <ToggleSwitch x:Name="AnalyticsSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="analytics" OffContent="" OnContent="" VerticalAlignment="Center"/>
           </Grid>
@@ -105,7 +132,7 @@
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <FontIcon Glyph="&#xE896;" FontSize="18" Foreground="{StaticResource PurpleLightBrush}" VerticalAlignment="Center"/>
-            <TextBlock Text="Atualizações" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="UpdatesCardTitle" Text="Atualizações" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Verificar Automaticamente -->
@@ -115,8 +142,8 @@
               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="3" Margin="0,0,16,0">
-              <TextBlock Text="Verificar automaticamente" FontWeight="SemiBold" FontSize="14"/>
-              <TextBlock Text="Consulta periodicamente por novas versões no canal oficial do GitHub." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+              <TextBlock x:Name="AutoUpdatesTitle" Text="Verificar automaticamente" FontWeight="SemiBold" FontSize="14"/>
+              <TextBlock x:Name="AutoUpdatesDesc" Text="Consulta periodicamente por novas versões no canal oficial do GitHub." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
             </StackPanel>
             <ToggleSwitch x:Name="AutomaticUpdatesSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="automaticUpdates" OffContent="" OnContent="" VerticalAlignment="Center"/>
           </Grid>
@@ -139,10 +166,10 @@
         <StackPanel Spacing="10">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <FontIcon Glyph="&#xE946;" FontSize="18" Foreground="{StaticResource PurpleLightBrush}" VerticalAlignment="Center"/>
-            <TextBlock Text="Sobre o LagCheck" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="AboutCardTitle" Text="Sobre o LagCheck" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
           </StackPanel>
-          <TextBlock Text="LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
-          <TextBlock Text="Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial" FontFamily="{StaticResource TechnicalFont}" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+          <TextBlock x:Name="AboutDesc" Text="LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+          <TextBlock x:Name="AboutVersion" Text="Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial" FontFamily="{StaticResource TechnicalFont}" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
         </StackPanel>
       </Border>
 

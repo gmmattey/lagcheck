@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Library;
 
@@ -28,6 +29,12 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
         _bridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
         _diagnosticNavigator = diagnosticNavigator ?? UnavailableLibraryDiagnosticNavigator.Instance;
         VisibleGames = new ObservableCollection<LibraryGame>();
+
+        LocalizationService.Instance.LanguageChanged += () =>
+        {
+            OnPropertyChanged(nameof(SelectedFilterLabel));
+            OnPropertyChanged(nameof(GameCountLabel));
+        };
         RefreshCommand = new AsyncCommand(_ => RefreshAsync());
         SelectFilterCommand = new AsyncCommand(SetFilterAsync);
         SelectGameCommand = new AsyncCommand(SelectGameAsync);
@@ -71,15 +78,15 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
 
     public string SelectedFilterLabel => SelectedFilter switch
     {
-        LibraryFilter.All => "TODOS",
-        LibraryFilter.Installed => "INSTALADOS",
-        LibraryFilter.Recent => "RECENTES",
-        LibraryFilter.Favorites => "FAVORITOS",
+        LibraryFilter.All => Strings.Tr("TODOS"),
+        LibraryFilter.Installed => Strings.Tr("INSTALADOS"),
+        LibraryFilter.Recent => Strings.Tr("RECENTES"),
+        LibraryFilter.Favorites => Strings.Tr("FAVORITOS"),
         LibraryFilter.Steam => "STEAM",
         LibraryFilter.Epic => "EPIC GAMES",
         LibraryFilter.Xbox => "XBOX",
-        LibraryFilter.Manual => "PC LOCAL",
-        _ => "TODOS",
+        LibraryFilter.Manual => Strings.Tr("PC LOCAL"),
+        _ => Strings.Tr("TODOS"),
     };
 
     public LibrarySort SelectedSort
@@ -108,7 +115,9 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
     public bool HasScanned { get => _hasScanned; private set => Set(ref _hasScanned, value); }
     public bool HasGames => _games.Count > 0;
     public bool HasVisibleGames => VisibleGames.Count > 0;
-    public string GameCountLabel => $"{VisibleGames.Count} {(VisibleGames.Count == 1 ? "JOGO" : "JOGOS")}";
+    public string GameCountLabel => VisibleGames.Count == 1
+        ? Strings.Format("{0} JOGO", VisibleGames.Count)
+        : Strings.Format("{0} JOGOS", VisibleGames.Count);
 
     public async Task LoadAsync()
     {
@@ -120,7 +129,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
             if (!HasScanned && !IsScanning) await RefreshAsync();
             else if (IsScanning) await WaitForScanCompletionAsync();
         }
-        catch (Exception) { Notice = "Não foi possível ler a biblioteca local agora."; }
+        catch (Exception) { Notice = Strings.Tr("Não foi possível ler a biblioteca local agora."); }
     }
 
     private async Task RefreshAsync()

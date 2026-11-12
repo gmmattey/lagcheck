@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Library;
 
@@ -42,9 +43,9 @@ public sealed record LibraryGame(
         }
     }
 
-    public string AvailabilityLabel => IsInstalled ? Platform.DisplayName() : "NÃO INSTALADO";
+    public string AvailabilityLabel => IsInstalled ? Platform.DisplayName() : Strings.Tr("NÃO INSTALADO");
     public string PlatformLabel => Platform.DisplayName();
-    public string FavoriteActionLabel => IsFavorite ? "REMOVER FAVORITO" : "FAVORITAR";
+    public string FavoriteActionLabel => IsFavorite ? Strings.Tr("REMOVER FAVORITO") : Strings.Tr("FAVORITAR");
     /// <summary>
     /// Somente abre o Check manual; nunca inicia uma medição ao selecionar o jogo.
     /// Um jogo homologado precisa trazer o id canônico do catálogo do LagCheck. O id
@@ -55,10 +56,10 @@ public sealed record LibraryGame(
         && (NetworkKind != GameNetworkKind.Supported || !string.IsNullOrWhiteSpace(DiagnosticGameId));
     public string DiagnosticLabel => NetworkKind switch
     {
-        GameNetworkKind.Supported when string.IsNullOrWhiteSpace(DiagnosticGameId) => "DIAGNÓSTICO INDISPONÍVEL",
-        GameNetworkKind.Supported => "DIAGNÓSTICO HOMOLOGADO",
-        GameNetworkKind.Offline => "SEM DIAGNÓSTICO ONLINE",
-        _ => "CONEXÃO GERAL",
+        GameNetworkKind.Supported when string.IsNullOrWhiteSpace(DiagnosticGameId) => Strings.Tr("Sem diagnóstico"),
+        GameNetworkKind.Supported => Strings.Tr("Conexão suportada"),
+        GameNetworkKind.Offline => Strings.Tr("Offline / Sem medição"),
+        _ => Strings.Tr("Conexão geral"),
     };
 }
 

@@ -1,5 +1,6 @@
 using LagCheck.WinUI.Settings;
 using LagCheck.WinUI.Diagnostic;
+using LagCheck.WinUI.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -10,6 +11,7 @@ public sealed partial class SettingsPage : Page
     private readonly ISettingsBridge _bridge;
     private WindowsPreferences? _preferences;
     private bool _loading;
+    private bool _loadingLanguage;
 
     public SettingsPage() : this(SettingsPageServices.Bridge) { }
 
@@ -17,7 +19,73 @@ public sealed partial class SettingsPage : Page
     {
         _bridge = bridge;
         InitializeComponent();
+        LocalizeUI();
+        InitLanguageSelection();
         Loaded += SettingsPage_Loaded;
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Unloaded += (_, _) => LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(LocalizeUI);
+
+    private void InitLanguageSelection()
+    {
+        _loadingLanguage = true;
+        LanguageComboBox.SelectedIndex = LocalizationService.Instance.SelectedLanguage switch
+        {
+            AppLanguage.System => 0,
+            AppLanguage.PtBr => 1,
+            AppLanguage.En => 2,
+            AppLanguage.Es => 3,
+            _ => 0
+        };
+        _loadingLanguage = false;
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingLanguage || LanguageComboBox.SelectedItem is not ComboBoxItem item || item.Tag is not string tag)
+            return;
+
+        var selected = AppLanguageExtensions.FromCode(tag);
+        if (LocalizationService.Instance.SelectedLanguage != selected)
+        {
+            LocalizationService.Instance.SelectedLanguage = selected;
+        }
+    }
+
+    private void LocalizeUI()
+    {
+        HeaderEyebrow.Text = Strings.Tr("SISTEMA · CONFIGURAÇÕES");
+        HeaderTitle.Text = Strings.Tr("Ajustes do Launcher");
+        HeaderSubtitle.Text = Strings.Tr("Controle o comportamento da interface e diagnósticos de rede neste PC.");
+
+        LanguageCardTitle.Text = Strings.Tr("Idioma do aplicativo");
+        LanguageTitle.Text = Strings.Tr("Idioma do aplicativo");
+        LanguageDesc.Text = Strings.Tr("Escolha o idioma da interface. Por padrão, segue as configurações do Windows.");
+        LangItemSystem.Content = Strings.Tr("Sistema (Padrão)");
+
+        VisualCardTitle.Text = Strings.Tr("Interface e Visual");
+        ReduceMotionTitle.Text = Strings.Tr("Reduzir movimento");
+        ReduceMotionDesc.Text = Strings.Tr("Desativa animações e transições visuais para resposta imediata.");
+        ArtworkTitle.Text = Strings.Tr("Baixar imagens dos jogos");
+        ArtworkDesc.Text = Strings.Tr("Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras.");
+
+        NetworkCardTitle.Text = Strings.Tr("Privacidade e Rede");
+        LocationTitle.Text = Strings.Tr("Localização aproximada");
+        LocationDesc.Text = Strings.Tr("Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS.");
+        AnalyticsTitle.Text = Strings.Tr("Enviar estatísticas anônimas");
+        AnalyticsDesc.Text = Strings.Tr("Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal.");
+        RenewAnalyticsIdButton.Content = Strings.Tr("Gerar novo ID local");
+
+        UpdatesCardTitle.Text = Strings.Tr("Atualizações");
+        AutoUpdatesTitle.Text = Strings.Tr("Verificar automaticamente");
+        AutoUpdatesDesc.Text = Strings.Tr("Consulta periodicamente por novas versões no canal oficial do GitHub.");
+        CheckUpdatesButton.Content = Strings.Tr("Verificar agora");
+
+        AboutCardTitle.Text = Strings.Tr("Sobre o LagCheck");
+        AboutDesc.Text = Strings.Tr("LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios.");
+        AboutVersion.Text = Strings.Tr("Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial");
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)
@@ -26,11 +94,11 @@ public sealed partial class SettingsPage : Page
         try
         {
             Apply(await _bridge.GetAsync());
-            ConnectionStatus.Text = "Ajustes locais conectados.";
+            ConnectionStatus.Text = Strings.Tr("Ajustes locais conectados.");
         }
         catch
         {
-            ConnectionStatus.Text = "Ajustes indisponíveis: o host local não respondeu.";
+            ConnectionStatus.Text = Strings.Tr("Ajustes indisponíveis: o host local não respondeu.");
         }
         await RefreshUpdateStatusAsync(checkNow: false);
     }
@@ -54,12 +122,12 @@ public sealed partial class SettingsPage : Page
                 _ => current,
             };
             Apply(await _bridge.SetAsync(next));
-            ConnectionStatus.Text = "Ajustes salvos neste PC.";
+            ConnectionStatus.Text = Strings.Tr("Ajustes salvos neste PC.");
         }
         catch
         {
             Apply(_preferences);
-            ConnectionStatus.Text = "Não foi possível salvar os ajustes. Nada foi alterado.";
+            ConnectionStatus.Text = Strings.Tr("Não foi possível salvar os ajustes. Nada foi alterado.");
         }
     }
 
@@ -91,15 +159,15 @@ public sealed partial class SettingsPage : Page
     private async void RenewAnalyticsId_Click(object sender, RoutedEventArgs e)
     {
         RenewAnalyticsIdButton.IsEnabled = false;
-        AnalyticsStatus.Text = "Gerando um novo identificador local…";
+        AnalyticsStatus.Text = Strings.Tr("Gerando um novo identificador local…");
         try
         {
             await WinUiEngineComposition.RenewAnalyticsIdAsync();
-            AnalyticsStatus.Text = "Novo identificador gerado neste PC.";
+            AnalyticsStatus.Text = Strings.Tr("Novo identificador gerado neste PC.");
         }
         catch
         {
-            AnalyticsStatus.Text = "Não foi possível gerar um novo identificador agora.";
+            AnalyticsStatus.Text = Strings.Tr("Não foi possível gerar um novo identificador agora.");
         }
         finally
         {
@@ -110,7 +178,7 @@ public sealed partial class SettingsPage : Page
     private async Task RefreshUpdateStatusAsync(bool checkNow)
     {
         CheckUpdatesButton.IsEnabled = false;
-        if (checkNow) UpdateStatus.Text = "Verificando a fonte configurada…";
+        if (checkNow) UpdateStatus.Text = Strings.Tr("Verificando a fonte configurada…");
         try
         {
             var update = checkNow
@@ -118,24 +186,24 @@ public sealed partial class SettingsPage : Page
                 : await WinUiEngineComposition.GetUpdateStatusAsync();
             if (!update.Configured)
             {
-                UpdateStatus.Text = "Nenhuma fonte de atualização está configurada.";
+                UpdateStatus.Text = Strings.Tr("Nenhuma fonte de atualização está configurada.");
                 return;
             }
             var lastChecked = update.LastCheckedEpochMs is { } epoch
-                ? $"Última verificação: {DateTimeOffset.FromUnixTimeMilliseconds(epoch).ToLocalTime():g}. "
-                : "Ainda não verificado. ";
+                ? Strings.Format("Última verificação: {0}. ", DateTimeOffset.FromUnixTimeMilliseconds(epoch).ToLocalTime().ToString("g"))
+                : Strings.Tr("Ainda não verificado. ");
             UpdateStatus.Text = update.State.ToLowerInvariant() switch
             {
-                "available" => $"{lastChecked}Atualização {update.Version ?? "disponível"} encontrada.",
-                "ready" => $"{lastChecked}Atualização pronta no host local.",
-                "failed" => $"{lastChecked}Não foi possível verificar agora.",
-                _ => $"{lastChecked}Nenhuma atualização disponível.",
+                "available" => $"{lastChecked}{Strings.Format("Atualização {0} encontrada.", update.Version ?? Strings.Tr("disponível"))}",
+                "ready" => $"{lastChecked}{Strings.Tr("Atualização pronta no host local.")}",
+                "failed" => $"{lastChecked}{Strings.Tr("Não foi possível verificar agora.")}",
+                _ => $"{lastChecked}{Strings.Tr("Nenhuma atualização disponível.")}",
             };
             CheckUpdatesButton.IsEnabled = true;
         }
         catch
         {
-            UpdateStatus.Text = "Não foi possível consultar atualizações agora.";
+            UpdateStatus.Text = Strings.Tr("Não foi possível consultar atualizações agora.");
         }
     }
 }

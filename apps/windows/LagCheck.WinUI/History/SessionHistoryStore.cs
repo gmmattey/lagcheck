@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using LagCheck.WinUI.Diagnostic;
+using LagCheck.WinUI.Localization;
 using Microsoft.UI.Dispatching;
 
 namespace LagCheck.WinUI.History;
@@ -26,7 +27,7 @@ public sealed class SessionHistoryStore
         {
             Entries.Clear();
             foreach (var entry in entries)
-                Entries.Add(new SessionHistoryEntry(entry.SessionId, entry.Verdict ?? "— INCONCLUSIVO", entry.PingMs, entry.JitterMs, entry.PacketLossPercentage, entry.RegionId, DateTimeOffset.Now));
+                Entries.Add(new SessionHistoryEntry(entry.SessionId, entry.Verdict ?? Strings.Tr("— INCONCLUSIVO"), entry.PingMs, entry.JitterMs, entry.PacketLossPercentage, entry.RegionId, DateTimeOffset.Now));
         });
     }
 
@@ -42,7 +43,7 @@ public sealed class SessionHistoryStore
         _dispatcher?.TryEnqueue(() =>
         {
             if (Entries.Any(entry => entry.SessionId == result.SessionId)) return;
-            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? "— INCONCLUSIVO", result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now));
+            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? Strings.Tr("— INCONCLUSIVO"), result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now));
         });
     }
 }
@@ -52,7 +53,7 @@ public sealed record SessionHistoryEntry(string SessionId, string Verdict, doubl
     public string PingLabel => PingMs is { } value ? $"{value:0.#} ms" : "—";
     public string JitterLabel => JitterMs is { } value ? $"{value:0.#} ms" : "—";
     public string LossLabel => PacketLossPercentage is { } value ? $"{value:0.#}%" : "—";
-    public string RegionLabel => string.IsNullOrWhiteSpace(RegionId) ? "REGIÃO NÃO INFORMADA" : RegionId;
+    public string RegionLabel => string.IsNullOrWhiteSpace(RegionId) ? Strings.Tr("REGIÃO NÃO INFORMADA") : RegionId;
     public string TimeLabel => CapturedAt.ToLocalTime().ToString("HH:mm");
 }
 

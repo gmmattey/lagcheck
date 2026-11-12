@@ -11,9 +11,9 @@
     </Grid.RowDefinitions>
     
     <StackPanel Spacing="6">
-      <TextBlock Text="CATÁLOGO OFICIAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}"/>
-      <TextBlock Text="Catálogo de Jogos" Style="{StaticResource PageTitleStyle}"/>
-      <TextBlock Text="Escolha um contexto de diagnóstico quando a fonte local estiver disponível." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Margin="0,2,0,0"/>
+      <TextBlock x:Name="EyebrowText" Text="CATÁLOGO OFICIAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}"/>
+      <TextBlock x:Name="TitleText" Text="Catálogo de Jogos" Style="{StaticResource PageTitleStyle}"/>
+      <TextBlock x:Name="SubtitleText" Text="Escolha um contexto de diagnóstico quando a fonte local estiver disponível." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Margin="0,2,0,0"/>
     </StackPanel>
     
     <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar no catálogo" TextChanged="SearchBox_TextChanged" IsEnabled="False" />

@@ -22,7 +22,9 @@ public sealed record DiagnosticProgress(
     string SessionId,
     string Phase,
     double Ratio,
-    double? LatestPingMs);
+    double? LatestPingMs,
+    double? LiveJitterMs = null,
+    double? LiveLoadDeltaMs = null);
 
 public sealed record DiagnosticResult(
     string SessionId,
@@ -37,7 +39,9 @@ public sealed record DiagnosticResult(
     string? RegionId,
     string? ProfileId,
     string? AbortReason,
-    IReadOnlyList<double> LatencySeries);
+    IReadOnlyList<double> LatencySeries,
+    double? LoadDeltaMs = null,
+    string? LoadTier = null);
 
 public sealed record EngineCatalogGame(string Id, string Name, string? ArtworkResource, string? RegionId, string? RegionLabel);
 public sealed record EngineHistoryEntry(string SessionId, string? Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, string? ProfileId);

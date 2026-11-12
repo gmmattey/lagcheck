@@ -23,12 +23,12 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom">
-                    <TextBlock Text="BIBLIOTECA" FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold" FontSize="36" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock x:Name="LibraryTitle" Text="BIBLIOTECA" FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold" FontSize="36" Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Botão Procurar Jogos (Rescan) -->
-                <Button Grid.Column="1" Click="Rescan_Click"
+                <Button x:Name="RescanButton" Grid.Column="1" Click="Rescan_Click"
                         Height="38" Padding="20,0" CornerRadius="19"
                         Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextPrimaryBrush}"
                         FontSize="13" FontWeight="SemiBold" BorderThickness="0"
@@ -36,7 +36,7 @@
                         automation:AutomationProperties.Name="Procurar jogos">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <TextBlock Text="Procurar jogos" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="RescanButtonText" Text="Procurar jogos" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>
@@ -63,31 +63,31 @@
                           Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
                           Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"
                           SelectedIndex="0">
-                    <ComboBoxItem Content="Ordenar: Nome A–Z" Tag="Name" />
-                    <ComboBoxItem Content="Ordenar: Mais recentes" Tag="Recent" />
-                    <ComboBoxItem Content="Ordenar: Plataforma" Tag="Platform" />
-                    <ComboBoxItem Content="Ordenar: Favoritos primeiro" Tag="Favorites" />
+                    <ComboBoxItem x:Name="SortNameItem" Content="Ordenar: Nome A–Z" Tag="Name" />
+                    <ComboBoxItem x:Name="SortRecentItem" Content="Ordenar: Mais recentes" Tag="Recent" />
+                    <ComboBoxItem x:Name="SortPlatformItem" Content="Ordenar: Plataforma" Tag="Platform" />
+                    <ComboBoxItem x:Name="SortFavoritesItem" Content="Ordenar: Favoritos primeiro" Tag="Favorites" />
                 </ComboBox>
             </Grid>
 
             <!-- Pílulas de Filtro de Plataforma -->
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Click="Filter_Click" Tag="All" Content="Todos os jogos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
-                    <Button Click="Filter_Click" Tag="Installed" Content="Instalados" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button x:Name="FilterAllBtn" Click="Filter_Click" Tag="All" Content="Todos os jogos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button x:Name="FilterInstalledBtn" Click="Filter_Click" Tag="Installed" Content="Instalados" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
                     <Button Click="Filter_Click" Tag="Steam" Content="Steam" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
                     <Button Click="Filter_Click" Tag="Epic" Content="Epic Games" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
                     <Button Click="Filter_Click" Tag="Xbox" Content="Xbox" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
-                    <Button Click="Filter_Click" Tag="Manual" Content="PC local" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
-                    <Button Click="Filter_Click" Tag="Favorites" Content="Favoritos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
-                    <Button Click="Filter_Click" Tag="Recent" Content="Recentes" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button x:Name="FilterManualBtn" Click="Filter_Click" Tag="Manual" Content="PC local" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button x:Name="FilterFavoritesBtn" Click="Filter_Click" Tag="Favorites" Content="Favoritos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button x:Name="FilterRecentBtn" Click="Filter_Click" Tag="Recent" Content="Recentes" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- Estado Vazio / Sem Resultados -->
             <Border x:Name="EmptyResultsBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28"
                     Visibility="{Binding HasVisibleGames, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
-                <TextBlock Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" />
+                <TextBlock x:Name="EmptyResultsText" Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" />
             </Border>
 
             <!-- Grid de Cards de Jogos em Proporção 2:3 -->

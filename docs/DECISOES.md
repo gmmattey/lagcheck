@@ -124,6 +124,7 @@
 | [119](#decisão-119) | Windows: interface WinUI 3 com motor Kotlin compartilhado | **Em implementação (protótipo, não publicável)** | Substitui somente a apresentação Compose Desktop, preservando o núcleo de diagnóstico | Luiz / Squad |
 | [120](#decisão-120) | Reorganização do repositório em camadas de produtos e pastas canônicas | **Vigente** | Isola `apps/`, `services/`, `shared/`, `distribution/`, `docs/`, `scripts/` | Luiz / Squad |
 | [121](#decisão-121) | Verificação automática de versão e atualização transparente no Android (APK e Loja) | **Vigente** | Detecção de origem (Play Store vs sideload APK), diálogo Dark Competitive UI, download direto e Google Play In-App Updates | Luiz / Marcelo / Camillo / Priscila / Renan |
+| [122](#decisão-122) | Windows (WinUI 3): suporte multi-idioma nativo (PT-BR, EN e ES) com detecção de sistema e seletor em Ajustes | **Vigente** | Internacionalização completa da interface WinUI 3 com chave PT-BR, fallback robusto e troca instantânea | Luiz / Squad |
 
 
 
@@ -1388,6 +1389,36 @@
   - Testes unitários puros cobrindo parser de releases, comparador de versões, detecção de instalador e máquina de estados (`VersionComparerTest`, `GitHubReleaseParserTest`, `InstallerDetectorTest`, `AppUpdateCoordinatorTest`).
   - Suíte completa `:app:testProductionDebugUnitTest` e `:app:testValidationReleaseUnitTest` passando sem falhas.
   - Conformidade visual com os tokens da Dark Competitive UI e textos registrados em `UiStrings.kt`/`ScreenStrings.kt`.
+
+#### Decisão 122
+
+- **Data:** 12 de novembro de 2026.
+- **Título:** Windows (WinUI 3): suporte multi-idioma nativo (PT-BR, EN e ES) com detecção de sistema e seletor em Ajustes.
+- **Status Atual:** **Vigente.** Solicitada e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (aprovação), Marcelo (enquadramento e aceite), Camillo (arquitetura e implementação), Priscila (copy gamer e tom de produto) e Renan (testes e conformidade).
+- **Contexto e problema:** O app no Windows está migrando para WinUI 3 (Decisão 119) e o Compose Desktop será descontinuado. A nova interface em WinUI 3 precisava de suporte nativo a múltiplos idiomas (Português do Brasil, Inglês e Espanhol), respeitando a identidade do produto (`docs/07-voz-do-produto.md`) e a Decisão 64 ("O Gamer Não Lê"), sem exibir chaves técnicas vazias nem travar a interface.
+- **Decisão (arquitetura e internacionalização):**
+  1. **Serviço Central de Localização (`LocalizationService` e `Strings`):**
+     - Chave canônica baseada no texto em PT-BR (mesmo padrão adotado com sucesso no Android via `UiStrings.kt`).
+     - Fallback seguro para PT-BR em chaves desconhecidas ou não traduzidas (garantia de zero tela em branco e zero chaves técnicas expostas).
+     - Detecção automática da cultura do sistema operacional (`CultureInfo.CurrentUICulture` mapeando `pt` para PT-BR, `en` para EN, `es` para ES e outras línguas para PT-BR).
+     - Persistência da preferência manual em `%LOCALAPPDATA%/LagCheck/ui_settings.json` (independente e desacoplado do protocolo de motor backend).
+     - Evento reativo `LanguageChanged` que notifica todas as páginas ativas e a Shell para re-renderização instantânea.
+  2. **Card de Idioma em Ajustes (`SettingsPage`):**
+     - Seletor em ComboBox com 4 opções: Sistema (Padrão), Português (Brasil), English e Español.
+     - Troca em tempo real de toda a interface sem necessidade de reiniciar o executável.
+  3. **Cobertura 100% das Telas do WinUI 3:**
+     - `ShellPage`: sidebar retrátil, barra superior, rodapé de hardware e tooltips.
+     - `HomePage`: cockpit hero, vereditos semânticos, estados vazios e ações rápidas.
+     - `LibraryPage`: contagem de jogos, busca, ordenações, pílulas de filtros e cards.
+     - `DiagnosticPage`: estágios de medição, telemetria ao vivo, coluna de resultado e seções de voz, streaming e NAT.
+     - `HistoryPage`: registros de sessões, filtros e avisos locais.
+     - `GameDetailsPage`, `CatalogPage`, `UnavailableLibraryPage` e `DiagnosticUnavailablePage`.
+- **Critérios de validação e aceite:**
+  - Testes unitários puros em `LagCheck.WinUI.Tests/LocalizationTests.cs` cobrindo completude das chaves (208 entradas traduzidas), integridade dos placeholders (`{0}`), fallbacks e mapeamento de culturas.
+  - Testes de domínio `:core:domain:test` verdes (100% de sucesso).
+  - Testes do Cloudflare Worker com 59/59 asserções verdes.
+  - Zero dependência quebrada ou impacto no motor de medição de rede e rotas.
 
 ## Como Registrar Novas Decisões
 

@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using LagCheck.WinUI.Diagnostic;
 using LagCheck.WinUI.Library;
+using LagCheck.WinUI.Localization;
 using LagCheck.WinUI.Pages;
 
 namespace LagCheck.WinUI;
@@ -12,23 +13,80 @@ public sealed partial class ShellPage : Page
     private bool _navigationLocked;
     private bool _isSidebarCollapsed;
     private DispatcherTimer? _toastTimer;
+    private NavigationRoute _currentRoute = NavigationRoute.Home;
+    private string? _currentGameTitle;
 
     public ShellPage()
     {
         InitializeComponent();
         ShellNavigation.Configure(NavigateToDiagnostic);
         UpdateSidebarVisualState();
+        LocalizeUI();
         Navigate(NavigationRoute.Home);
         WinUiEngineComposition.Client.SessionActivityChanged += OnSessionActivityChanged;
-        Unloaded += (_, _) => WinUiEngineComposition.Client.SessionActivityChanged -= OnSessionActivityChanged;
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Unloaded += (_, _) =>
+        {
+            WinUiEngineComposition.Client.SessionActivityChanged -= OnSessionActivityChanged;
+            LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+        };
+    }
+
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() =>
+    {
+        LocalizeUI();
+        UpdateRouteTitle();
+    });
+
+    private void LocalizeUI()
+    {
+        SearchLabel.Text = Strings.Tr("Buscar jogo...");
+        HomeLabel.Text = Strings.Tr("Início");
+        LibraryLabel.Text = Strings.Tr("Biblioteca");
+        GeneralCheckLabel.Text = Strings.Tr("Conexão");
+        HistoryLabel.Text = Strings.Tr("Histórico");
+        SettingsLabel.Text = Strings.Tr("Ajustes");
+        ActiveNetworkLabel.Text = Strings.Tr("REDE ATIVA");
+
+        ToolTipService.SetToolTip(QuickSearchButton, Strings.Tr("Buscar jogo (Ctrl+F)"));
+        ToolTipService.SetToolTip(HomeButton, Strings.Tr("Início"));
+        ToolTipService.SetToolTip(LibraryButton, Strings.Tr("Biblioteca de jogos instalados"));
+        ToolTipService.SetToolTip(GeneralCheckButton, Strings.Tr("Diagnóstico de rota de rede"));
+        ToolTipService.SetToolTip(HistoryButton, Strings.Tr("Histórico de conexões"));
+        ToolTipService.SetToolTip(SettingsButton, Strings.Tr("Ajustes do launcher"));
+        ToolTipService.SetToolTip(SidebarCollapseButton, Strings.Tr("Recolher barra lateral"));
+        ToolTipService.SetToolTip(SidebarExpandButton, Strings.Tr("Expandir barra lateral"));
+        ToolTipService.SetToolTip(CollapsedFooterDot, Strings.Tr("Rede ativa · Conectado"));
+    }
+
+    private void UpdateRouteTitle()
+    {
+        if (_currentRoute == NavigationRoute.GeneralCheck)
+        {
+            RouteText.Text = string.IsNullOrWhiteSpace(_currentGameTitle)
+                ? Strings.Tr("Conexão")
+                : Strings.Format("Conexão · {0}", _currentGameTitle);
+            return;
+        }
+
+        RouteText.Text = _currentRoute switch
+        {
+            NavigationRoute.Home => Strings.Tr("Início"),
+            NavigationRoute.Library => Strings.Tr("Biblioteca"),
+            NavigationRoute.History => Strings.Tr("Histórico"),
+            _ => Strings.Tr("Ajustes")
+        };
     }
 
     public void Navigate(NavigationRoute route)
     {
+        _currentRoute = route;
+        _currentGameTitle = null;
+
         if (route == NavigationRoute.GeneralCheck)
         {
             NavigateToDiagnostic(null, null);
-            RouteText.Text = "Conexão";
+            UpdateRouteTitle();
             SetActive(route);
             return;
         }
@@ -43,13 +101,7 @@ public sealed partial class ShellPage : Page
         };
 
         ContentFrame.Navigate(pageType);
-        RouteText.Text = route switch
-        {
-            NavigationRoute.Home => "Início",
-            NavigationRoute.Library => "Biblioteca",
-            NavigationRoute.History => "Histórico",
-            _ => "Ajustes"
-        };
+        UpdateRouteTitle();
         SetActive(route);
     }
 
@@ -62,8 +114,10 @@ public sealed partial class ShellPage : Page
     /// <summary>Medição de rede contextual (com gameId) ou genérica de referência (sem gameId).</summary>
     public void NavigateToDiagnostic(string? gameId = null, string? gameTitle = null)
     {
+        _currentRoute = NavigationRoute.GeneralCheck;
+        _currentGameTitle = gameTitle;
         ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle);
-        RouteText.Text = string.IsNullOrWhiteSpace(gameTitle) ? "Conexão" : $"Conexão · {gameTitle}";
+        UpdateRouteTitle();
         SetActive(NavigationRoute.GeneralCheck);
     }
 

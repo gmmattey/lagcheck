@@ -4,9 +4,9 @@
       Background="{StaticResource DeepBrush}">
   <Grid Padding="38,32,38,48">
     <StackPanel MaxWidth="560" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
-      <TextBlock Text="INTEGRAÇÃO LOCAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" TextAlignment="Center"/>
-      <TextBlock Text="Diagnóstico indisponível" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" />
-      <TextBlock Text="O motor compartilhado ainda não está conectado a esta interface. Nenhuma medição foi iniciada e nenhum resultado foi criado." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="15" />
+      <TextBlock x:Name="EyebrowText" Text="INTEGRAÇÃO LOCAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" TextAlignment="Center"/>
+      <TextBlock x:Name="TitleText" Text="Diagnóstico indisponível" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" />
+      <TextBlock x:Name="DescText" Text="O motor compartilhado ainda não está conectado a esta interface. Nenhuma medição foi iniciada e nenhum resultado foi criado." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="15" />
     </StackPanel>
   </Grid>
 </Page>

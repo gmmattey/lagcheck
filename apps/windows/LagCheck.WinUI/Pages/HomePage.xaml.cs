@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using LagCheck.WinUI.Library;
+using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Pages;
 
@@ -16,6 +17,29 @@ public sealed partial class HomePage : Page
         InitializeComponent();
         ViewModel = new LibraryViewModel(LibraryPageServices.Bridge, LibraryPageServices.DiagnosticNavigator);
         DataContext = ViewModel;
+        LocalizeUI();
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Unloaded += (_, _) => LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(LocalizeUI);
+
+    private void LocalizeUI()
+    {
+        VerdictText.Text = Strings.Tr("● PRONTO PARA RANKED");
+        LaunchBtn.Content = Strings.Tr("▶ JOGAR AGORA");
+        CheckConnBtn.Content = Strings.Tr("Checar conexão");
+
+        ToolTipService.SetToolTip(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
+        ToolTipService.SetToolTip(CheckConnBtn, Strings.Tr("Avaliar rota e estabilidade pré-partida"));
+        ToolTipService.SetToolTip(FavBtn, Strings.Tr("Favoritar jogo"));
+        ToolTipService.SetToolTip(RefreshArtBtn, Strings.Tr("Atualizar imagem oficial"));
+
+        CockpitEyebrow.Text = Strings.Tr("COCKPIT DE TELEMETRIA");
+        EmptyHeroTitle.Text = Strings.Tr("NENHUM JOGO LOCAL ENCONTRADO");
+        EmptyHeroDesc.Text = Strings.Tr("O LagCheck monitora seus jogos instalados (Steam, Epic, Xbox) ou sua rota geral.");
+        ScanGamesBtn.Content = Strings.Tr("Procurar jogos instalados");
+        GeneralCheckBtn.Content = Strings.Tr("Testar conexão geral");
     }
 
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)

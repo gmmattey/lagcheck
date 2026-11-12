@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
+using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Diagnostic;
 
@@ -41,7 +42,7 @@ public sealed class DiagnosticPage : Page
     private CancellationTokenSource? _measurementCts;
 
     // Cabeçalho da página
-    private readonly TextBlock _title = Title("DIAGNÓSTICO DE CONEXÃO");
+    private readonly TextBlock _title = Title(Strings.Tr("DIAGNÓSTICO DE CONEXÃO"));
     private readonly Border _pillBorder = new()
     {
         Background = Brush(0x2C, 0x2C, 0x2E),
@@ -64,31 +65,26 @@ public sealed class DiagnosticPage : Page
         HorizontalAlignment = HorizontalAlignment.Stretch
     };
     private readonly TextBlock _liveMetric = MetricLarge("—");
-    private readonly TextBlock _phaseName = Label("CONECTANDO", 13, PurpleLightBrush);
-    private readonly TextBlock _statusMessage = Body("Varrendo servidores mais próximos…");
-    private readonly TextBlock _stepIndicator = Label("● CONEXÃO   ● LATÊNCIA   ● SOB CARGA   ● ANÁLISE", 12, TextTertiaryBrush);
-    private readonly TextBlock _regionStatusLine = Label("Varrendo regiões mundiais…", 12, TextTertiaryBrush);
+    private readonly TextBlock _phaseName = Label(Strings.Tr("CONECTANDO"), 13, PurpleLightBrush);
+    private readonly TextBlock _statusMessage = Body(Strings.Tr("Varrendo servidores mais próximos…"));
+    private readonly TextBlock _stepIndicator = Label(Strings.Tr("● CONEXÃO   ● LATÊNCIA   ● SOB CARGA   ● ANÁLISE"), 12, TextTertiaryBrush);
+    private readonly TextBlock _regionStatusLine = Label(Strings.Tr("Varrendo regiões mundiais…"), 12, TextTertiaryBrush);
 
     // Métricas Instantâneas (Strip em execução)
     private readonly TextBlock _livePingText = Metric("—");
     private readonly TextBlock _liveJitterText = Metric("—");
     private readonly TextBlock _liveDeltaText = Metric("—");
-    private readonly TextBlock _liveUploadText = Metric("—");
+    private readonly TextBlock _liveLossText = Metric("—");
 
     // Métricas Finais do Resultado (Done)
     private readonly TextBlock _resultContext = Label("", 11, TextSecondaryBrush);
-    private readonly TextBlock _verdictStatusWord = Label("Conexão boa", 13, ReadyBrush);
-    private readonly TextBlock _verdictHeadline = Title("Pronto para jogar");
-    private readonly TextBlock _resultPing = MetricLarge("12");
-    private readonly TextBlock _resultJitter = MetricLarge("1.8");
-    private readonly TextBlock _resultLoad = MetricLarge("+6.0");
-    private readonly TextBlock _resultUpload = MetricLarge("35");
-    private readonly TextBlock _resultRouteInfo = Label("São Paulo (sa-east-1) · 12 ms", 14, TextPrimaryBrush);
-
-    // Avaliação Voz, Streaming e NAT
-    private readonly TextBlock _voiceStatus = Label("● Bom · Latência e jitter baixos: voz sem cortes nem atraso.", 13, TextSecondaryBrush);
-    private readonly TextBlock _streamingStatus = Label("● Bom · Upload estável para transmissão em 1080p60.", 13, TextSecondaryBrush);
-    private readonly TextBlock _natStatus = Label("● Aberto ou moderado · Bom para partidas online e chat.", 13, TextSecondaryBrush);
+    private readonly TextBlock _verdictStatusWord = Label(Strings.Tr("Conexão boa"), 13, ReadyBrush);
+    private readonly TextBlock _verdictHeadline = Title(Strings.Tr("Pronto para jogar"));
+    private readonly TextBlock _resultPing = MetricLarge("—");
+    private readonly TextBlock _resultJitter = MetricLarge("—");
+    private readonly TextBlock _resultLoad = MetricLarge("—");
+    private readonly TextBlock _resultLoss = MetricLarge("—");
+    private readonly TextBlock _resultRouteInfo = Label("", 14, TextPrimaryBrush);
 
     // Mapa de Rota Permanente
     private readonly Canvas _mapCanvas = new()
@@ -99,10 +95,10 @@ public sealed class DiagnosticPage : Page
     };
 
     // Botões
-    private readonly Button _startBtn = new() { Content = "Teste agora", Height = 56, CornerRadius = new CornerRadius(14), Padding = new Thickness(44, 0, 44, 0), HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly Button _cancelBtn = new() { Content = "Cancelar", Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Center };
-    private readonly Button _measureAgainBtn = new() { Content = "Testar novamente", Height = 50, CornerRadius = new CornerRadius(14), Padding = new Thickness(28, 0, 28, 0), HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly Button _chooseOtherBtn = new() { Content = "Escolher outro jogo", Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Left };
+    private readonly Button _startBtn = new() { Content = Strings.Tr("Teste agora"), Height = 56, CornerRadius = new CornerRadius(14), Padding = new Thickness(44, 0, 44, 0), HorizontalAlignment = HorizontalAlignment.Left };
+    private readonly Button _cancelBtn = new() { Content = Strings.Tr("Cancelar"), Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Center };
+    private readonly Button _measureAgainBtn = new() { Content = Strings.Tr("Testar novamente"), Height = 50, CornerRadius = new CornerRadius(14), Padding = new Thickness(28, 0, 28, 0), HorizontalAlignment = HorizontalAlignment.Left };
+    private readonly Button _chooseOtherBtn = new() { Content = Strings.Tr("Escolher outro jogo"), Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Left };
 
     // Painéis de estado
     private readonly StackPanel _idleControls = new() { Spacing = 16, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -111,7 +107,7 @@ public sealed class DiagnosticPage : Page
     private readonly Border _mapHostBorder = new();
 
     private string? _gameId;
-    private string _gameTitle = "sua conexão";
+    private string _gameTitle = Strings.Tr("sua conexão");
     private ApproximateLocation? _location;
     private string? _selectedRegionId = "sa-east-1";
     private bool _running;
@@ -141,13 +137,26 @@ public sealed class DiagnosticPage : Page
 
         Loaded += DiagnosticPage_Loaded;
         Unloaded += OnUnloaded;
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            _startBtn.Content = Strings.Tr("Teste agora");
+            _cancelBtn.Content = Strings.Tr("Cancelar");
+            _measureAgainBtn.Content = Strings.Tr("Testar novamente");
+            _chooseOtherBtn.Content = Strings.Tr("Escolher outro jogo");
+            if (!_running) ResetToIdle();
+        });
     }
 
     public void ConfigureGame(string? gameId, string? gameTitle)
     {
         if (_running) return;
         _gameId = gameId;
-        _gameTitle = string.IsNullOrWhiteSpace(gameTitle) ? "sua conexão" : gameTitle;
+        _gameTitle = string.IsNullOrWhiteSpace(gameTitle) ? Strings.Tr("sua conexão") : gameTitle;
         ResetToIdle();
     }
 
@@ -188,10 +197,10 @@ public sealed class DiagnosticPage : Page
         runningBox.Children.Add(_stepIndicator);
 
         var runningStrip = CreateLiveMetricStrip(
-            ("RESPOSTA", _livePingText),
-            ("JITTER", _liveJitterText),
-            ("SOB CARGA", _liveDeltaText),
-            ("UPLOAD", _liveUploadText)
+            (Strings.Tr("RESPOSTA"), _livePingText),
+            (Strings.Tr("JITTER"), _liveJitterText),
+            (Strings.Tr("SOB CARGA"), _liveDeltaText),
+            (Strings.Tr("PERDA"), _liveLossText)
         );
         runningBox.Children.Add(runningStrip);
         runningBox.Children.Add(_regionStatusLine);
@@ -251,10 +260,10 @@ public sealed class DiagnosticPage : Page
         leftCol.Children.Add(_verdictHeadline);
 
         var resMetrics = CreateLiveMetricStrip(
-            ("RESPOSTA", _resultPing),
-            ("JITTER", _resultJitter),
-            ("SOB CARGA", _resultLoad),
-            ("UPLOAD", _resultUpload)
+            (Strings.Tr("RESPOSTA"), _resultPing),
+            (Strings.Tr("JITTER"), _resultJitter),
+            (Strings.Tr("SOB CARGA"), _resultLoad),
+            (Strings.Tr("PERDA"), _resultLoss)
         );
         leftCol.Children.Add(resMetrics);
         Grid.SetColumn(leftCol, 0);
@@ -262,7 +271,7 @@ public sealed class DiagnosticPage : Page
 
         // Coluna Direita: Evidência de Rota
         var rightCol = new StackPanel { Spacing = 10 };
-        rightCol.Children.Add(Label("EVIDÊNCIA DE ROTA", 11, TextTertiaryBrush));
+        rightCol.Children.Add(Label(Strings.Tr("EVIDÊNCIA DE ROTA"), 11, TextTertiaryBrush));
         
         var miniMapBorder = new Border
         {
@@ -277,7 +286,7 @@ public sealed class DiagnosticPage : Page
                 {
                     new TextBlock
                     {
-                        Text = "Traçado de rota ativa até o datacenter regional",
+                        Text = Strings.Tr("Traçado de rota ativa até o datacenter regional"),
                         FontSize = 12,
                         Foreground = TextTertiaryBrush,
                         HorizontalAlignment = HorizontalAlignment.Center,
@@ -293,28 +302,6 @@ public sealed class DiagnosticPage : Page
         topGrid.Children.Add(rightCol);
 
         mainStack.Children.Add(topGrid);
-
-        // Seção: Voz, Streaming e NAT
-        var usageBorder = new Border
-        {
-            Background = SurfaceBrush,
-            CornerRadius = new CornerRadius(16),
-            Padding = new Thickness(24, 20, 24, 20),
-            Child = new StackPanel
-            {
-                Spacing = 14,
-                Children =
-                {
-                    Label("VOZ, STREAMING E NAT", 11, TextTertiaryBrush),
-                    _voiceStatus,
-                    new Border { Background = LineBrush, Height = 1 },
-                    _streamingStatus,
-                    new Border { Background = LineBrush, Height = 1 },
-                    _natStatus
-                }
-            }
-        };
-        mainStack.Children.Add(usageBorder);
 
         // Ações Finais
         var actionsRow = new StackPanel
@@ -384,9 +371,13 @@ public sealed class DiagnosticPage : Page
         _runningControls.Visibility = Visibility.Visible;
 
         _progressBar.Value = 0;
-        _phaseName.Text = "CONECTANDO";
+        _phaseName.Text = Strings.Tr("CONECTANDO");
         _liveMetric.Text = "—";
-        _statusMessage.Text = "Varrendo servidores mais próximos…";
+        _livePingText.Text = "—";
+        _liveJitterText.Text = "—";
+        _liveDeltaText.Text = "—";
+        _liveLossText.Text = "—";
+        _statusMessage.Text = Strings.Tr("Varrendo servidores mais próximos…");
 
         _animationTimer.Start();
         _measurementCts = new CancellationTokenSource();
@@ -431,24 +422,24 @@ public sealed class DiagnosticPage : Page
         switch (progress.Phase.ToLowerInvariant())
         {
             case "connect":
-                _phaseName.Text = "CONECTANDO";
+                _phaseName.Text = Strings.Tr("CONECTANDO");
                 _phaseName.Foreground = Brush(0xBF, 0x5A, 0xF2);
-                _statusMessage.Text = "Testando servidores de menor latência…";
+                _statusMessage.Text = Strings.Tr("Testando servidores de menor latência…");
                 break;
             case "rest":
-                _phaseName.Text = "LATÊNCIA EM REPOUSO";
+                _phaseName.Text = Strings.Tr("LATÊNCIA EM REPOUSO");
                 _phaseName.Foreground = PurpleLightBrush;
-                _statusMessage.Text = "Medindo a resposta e os reflexos da sua conexão…";
+                _statusMessage.Text = Strings.Tr("Medindo a resposta e os reflexos da sua conexão…");
                 break;
             case "load":
-                _phaseName.Text = "SOB CARGA";
+                _phaseName.Text = Strings.Tr("SOB CARGA");
                 _phaseName.Foreground = CautionBrush;
-                _statusMessage.Text = "Simulando tráfego na rede para medir acréscimo de atraso…";
+                _statusMessage.Text = Strings.Tr("Simulando tráfego na rede para medir acréscimo de atraso…");
                 break;
             case "analysis":
-                _phaseName.Text = "ANALISANDO";
+                _phaseName.Text = Strings.Tr("ANALISANDO");
                 _phaseName.Foreground = Brush(0xBF, 0x5A, 0xF2);
-                _statusMessage.Text = "Comparando os resultados com as exigências de jogo…";
+                _statusMessage.Text = Strings.Tr("Comparando os resultados com as exigências de jogo…");
                 break;
         }
 
@@ -456,10 +447,10 @@ public sealed class DiagnosticPage : Page
         {
             _liveMetric.Text = $"{ping:0} ms";
             _livePingText.Text = $"{ping:0} ms";
-            _liveJitterText.Text = "1.8 ms";
-            _liveDeltaText.Text = progress.Phase == "load" ? "+15 ms" : "+0 ms";
-            _liveUploadText.Text = "35 Mbps";
         }
+        // Jitter e acréscimo sob carga ao vivo vêm do motor; sem amostras suficientes ficam em "—".
+        if (progress.LiveJitterMs is { } jitter) _liveJitterText.Text = $"{jitter:0.#} ms";
+        if (progress.LiveLoadDeltaMs is { } delta) _liveDeltaText.Text = $"+{delta:0.#} ms";
     }
 
     private void OnRegionSample(string regionId, double? ms)
@@ -470,48 +461,48 @@ public sealed class DiagnosticPage : Page
             var regInfo = WebSpeedtestEngine.Regions;
             string name = regionId;
             foreach (var r in regInfo) if (r.Id == regionId) { name = r.Name; break; }
-            _regionStatusLine.Text = $"Mais rápido até agora: {name} ({ms:0} ms)";
+            _regionStatusLine.Text = Strings.Format("Mais rápido até agora: {0} ({1:0} ms)", name, ms);
         }
     }
 
     private void ShowResult(DiagnosticResult result)
     {
-        _selectedRegionId = result.RegionId ?? "sa-east-1";
+        // Sem veredito medido (inconclusivo) não há nota nem métrica inventada.
+        if (result.Verdict is null or "inconclusive" || result.PingMs is null)
+        {
+            ShowInconclusive();
+            return;
+        }
+
+        _selectedRegionId = result.RegionId ?? _selectedRegionId ?? "sa-east-1";
         _idleControls.Visibility = Visibility.Collapsed;
         _runningControls.Visibility = Visibility.Collapsed;
         _doneControls.Visibility = Visibility.Visible;
         _mapHostBorder.Visibility = Visibility.Collapsed;
 
-        double ping = result.PingMs ?? 12.0;
-        double jitter = result.JitterMs ?? 1.8;
-        double load = result.WorstSpikeMs ?? 6.0;
-        double upload = 35.0;
+        double ping = result.PingMs.Value;
 
         _resultPing.Text = $"{ping:0}";
-        _resultJitter.Text = $"{jitter:0.#}";
-        _resultLoad.Text = $"+{load:0.#}";
-        _resultUpload.Text = $"{upload:0}";
+        _resultJitter.Text = result.JitterMs is { } jitter ? $"{jitter:0.#}" : "—";
+        _resultLoad.Text = result.LoadDeltaMs is { } delta ? $"+{delta:0.#}" : "—";
+        _resultLoss.Text = result.PacketLossPercentage is { } loss ? $"{loss:0.#}%" : "—";
 
-        var (label, color, headline) = result.Verdict?.ToLowerInvariant() switch
+        var (label, color, headline) = result.Verdict.ToLowerInvariant() switch
         {
-            "ready" => ("Conexão boa", ReadyBrush, !string.IsNullOrWhiteSpace(_gameId) ? "Pronto para ranked" : "Pronto para jogar"),
-            "caution" => ("Conexão instável", CautionBrush, "Condições instáveis"),
-            "not_ready" => ("Conexão ruim", CoralBrush, "Eu evitaria ranked agora"),
-            _ => ("Conexão indeterminada", TextTertiaryBrush, "Medição inconclusiva")
+            "ready" => (Strings.Tr("Conexão boa"), ReadyBrush, !string.IsNullOrWhiteSpace(_gameId) ? Strings.Tr("Pronto para ranked") : Strings.Tr("Pronto para jogar")),
+            "caution" => (Strings.Tr("Conexão instável"), CautionBrush, Strings.Tr("Condições instáveis")),
+            "not_ready" => (Strings.Tr("Conexão ruim"), CoralBrush, Strings.Tr("Eu evitaria ranked agora")),
+            _ => (Strings.Tr("Conexão indeterminada"), TextTertiaryBrush, Strings.Tr("Medição inconclusiva"))
         };
 
-        _resultContext.Text = !string.IsNullOrWhiteSpace(_gameTitle) ? $"{_gameTitle.ToUpperInvariant()} · COMPETITIVO" : "CONEXÃO GERAL · PC";
+        _resultContext.Text = !string.IsNullOrWhiteSpace(_gameTitle) ? $"{_gameTitle.ToUpperInvariant()} · {Strings.Tr("COMPETITIVO")}" : $"{Strings.Tr("CONEXÃO GERAL")} · PC";
         _verdictStatusWord.Text = $"● {label}";
         _verdictStatusWord.Foreground = color;
         _verdictHeadline.Text = headline;
 
-        string regionName = "São Paulo";
+        string regionName = _selectedRegionId ?? "";
         foreach (var r in WebSpeedtestEngine.Regions) if (r.Id == _selectedRegionId) { regionName = r.Name; break; }
         _resultRouteInfo.Text = $"{regionName} ({_selectedRegionId}) · {ping:0} ms";
-
-        _voiceStatus.Text = ping <= 45 ? "● Voz e chamadas: Bom · Sem cortes nem atraso." : "▲ Voz e chamadas: Atenção · Possível atraso em chamadas.";
-        _streamingStatus.Text = $"● Streaming ao vivo: Bom · Upload de {upload:0} Mbps (1080p60).";
-        _natStatus.Text = "● NAT: Aberto ou moderado · Bom para partidas online.";
     }
 
     private void ShowInconclusive()
@@ -521,14 +512,15 @@ public sealed class DiagnosticPage : Page
         _doneControls.Visibility = Visibility.Visible;
         _mapHostBorder.Visibility = Visibility.Collapsed;
 
-        _verdictStatusWord.Text = "— Medição inconclusiva";
+        _verdictStatusWord.Text = Strings.Tr("— Medição inconclusiva");
         _verdictStatusWord.Foreground = TextTertiaryBrush;
-        _verdictHeadline.Text = "Não foi possível concluir";
+        _verdictHeadline.Text = Strings.Tr("Não foi possível concluir");
+        _resultRouteInfo.Text = "";
 
         _resultPing.Text = "—";
         _resultJitter.Text = "—";
         _resultLoad.Text = "—";
-        _resultUpload.Text = "—";
+        _resultLoss.Text = "—";
     }
 
     private void ResetToIdle()
@@ -539,10 +531,10 @@ public sealed class DiagnosticPage : Page
         _doneControls.Visibility = Visibility.Collapsed;
         _mapHostBorder.Visibility = Visibility.Visible;
 
-        _title.Text = string.IsNullOrWhiteSpace(_gameId) ? "DIAGNÓSTICO DE CONEXÃO" : _gameTitle.ToUpperInvariant();
+        _title.Text = string.IsNullOrWhiteSpace(_gameId) ? Strings.Tr("DIAGNÓSTICO DE CONEXÃO") : _gameTitle.ToUpperInvariant();
         if (!string.IsNullOrWhiteSpace(_gameId))
         {
-            _pillText.Text = $"{_gameTitle} · Competitivo";
+            _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
             _pillBorder.Visibility = Visibility.Visible;
         }
         else
@@ -676,6 +668,7 @@ public sealed class DiagnosticPage : Page
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
         _animationTimer.Stop();
         _measurementCts?.Cancel();
     }
