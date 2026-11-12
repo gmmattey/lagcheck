@@ -44,6 +44,12 @@ public sealed partial class LibraryPage : Page
         UpdateVisualStates();
     }
 
+    public void FocusSearchBox()
+    {
+        SearchBox.Focus(FocusState.Programmatic);
+        SearchBox.SelectAll();
+    }
+
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(LibraryViewModel.HasGames) or nameof(LibraryViewModel.HasVisibleGames) or nameof(LibraryViewModel.HeroGame) or nameof(LibraryViewModel.Notice) or nameof(LibraryViewModel.IsScanning))

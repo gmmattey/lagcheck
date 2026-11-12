@@ -1,161 +1,197 @@
 # LagCheck Windows — Design System
 
-> **Posicionamento do Produto:** O **LagCheck para Windows é um launcher gamer com check de rede integrado**. Ele reúne e inicia os jogos de PC instalados e avalia a rota e estabilidade da conexão antes do jogador entrar na partida.
+> **Posicionamento do Produto:** O **LagCheck para Windows é um launcher gamer com cockpit de telemetria integrado**. Ele centraliza e inicia os jogos de PC instalados e avalia a rota e estabilidade da conexão antes do jogador entrar na partida.
 > **Status:** Especificação de design desktop para Windows (Decisões 114 a 119 de `docs/DECISOES.md`).
+> **Referência Visual:** Layout estilo Steam Redesign adaptado com Dark Competitive UI, tokens canônicos (`Theme.xaml`) e regras de produto do LagCheck.
 > **Plataforma alvo:** WinUI 3 / Windows App SDK (`windows/LagCheck.WinUI/`) sobre motor de diagnóstico Kotlin compartilhado via protocolo local `lagcheck-engine-v1`.
-> **Referência canônica de tokens e fontes:** `design-system/DESIGN.md`, `design-system/tokens/` e `windows/LagCheck.WinUI/Styles/Theme.xaml`.
 
 ---
 
-## 1. Contexto e proposta de valor
+## 1. Proposta de valor e espírito da tela
 
-O LagCheck para Windows **não é apenas um medidor de ping ou ferramenta de diagnóstico utilitária**: ele é o **launcher gamer do PC**.
+O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai jogar** e **ter certeza de que a conexão não vai estragar a partida ranqueada**.
 
-O jogador de PC abre o LagCheck para escolher e iniciar seus jogos instalados (Steam, Epic Games, Xbox / PC Game Pass, Battle.net e manuais). A vantagem competitiva única do LagCheck frente a launchers convencionais (como Steam, Xbox App ou Playnite) é o **cockpit de telemetria de rede pré-partida (pre-flight check)**:
-1. **Centraliza e inicia jogos:** detecta automaticamente a biblioteca instalada, exibe capas e banners oficiais locais e dispara o jogo em um clique.
-2. **Avalia a rota antes do play:** para títulos com servidores suportados (ou via rota de referência geral), o launcher exibe o estado de rota, latência em repouso, jitter e perda UDP diretamente no painel do jogo.
-3. **Decisão rápida no lobby:** o jogador sabe se pode jogar partidas competitivas ranqueadas agora ou se deve reiniciar o roteador / aguardar a rota estabilizar antes de perder pontos na partida.
-4. **A **Regra do Discord** segue inegociável:** toda leitura de rede deve ser traduzível para uma frase curta falada entre amigos na chamada de voz (ex: *"Minha rota pro servidor de SP tá com jitter alto hoje, vou jogar casual"*).
-
----
-
-## 2. Fundamentos visuais
-
-Visual escuro, esportivo, técnico e focado em performance, construído para o jogador de PC no lobby:
-1. **Estética de Cockpit Gamer:** Foco na biblioteca e na telemetria. Sem estética de cassino gamer, sem HUD ornamental futurista, sem anéis orbitais, sem neon exagerado, sem vidro espelhado (*glassmorphism*) e sem auroras ou halos de fundo.
-2. **Biblioteca de Jogos em Primeiro Plano:** O palco inicial é a estante de jogos do jogador. Grid visual de capas verticais com navegação fluida, filtros rápidos por plataforma/status e busca instantânea.
-3. **Hierarquia Clara no Hero do Jogo:**
-   - **1. Ação Primária de Lançamento:** Botão **"Jogar"** / **"Iniciar Jogo"** de destaque máximo;
-   - **2. Leitura de Rede Pré-Partida:** Veredito semântico contextual (ex: `● PRONTO PARA RANKED` ou `▲ INSTÁVEL SOB CARGA`) e botão de conferência rápida de rota;
-   - **3. Evidência Técnica:** Métricas numéricas tabulares (Ping, Jitter, Perda UDP, Delta de Carga);
-   - **4. Plataforma e Launcher de Origem:** Identificação do cliente (Steam, Epic, Xbox).
-4. **Sem Sopa de Cards (*Card Soup*):** Linhas de divisão de 1 px hairline (`--line`) organizam os dados de forma contínua. Cards só existem para as capas na biblioteca e seletores de contexto.
-5. **Métrica é Medição Real:** Numerais tabulares em Chakra Petch. Onde não houver dado medido, exibe-se travessão (`—`); proibido exibir `0 ms` falso ou inventar estabilidade.
+O layout une a estética limpa de um launcher moderno (com hero imersivo e cantos arredondados) com um cockpit de telemetria esportivo e direto ao ponto:
+1. **Zero enrolação:** O botão de jogar está sempre na mão e nunca fica bloqueado por medições.
+2. **Sem catálogo próprio:** O LagCheck para Windows **não possui catálogo de jogos próprio**. Os jogos exibidos são única e exclusivamente os títulos instalados no PC do usuário (Steam, Epic Games, Xbox / PC Game Pass ou executáveis locais). As opções de medição são: testar a conexão do jogo instalado ou fazer um Check Geral de referência sem jogo selecionado.
+3. **Regra do Discord:** Toda informação de rede deve ser traduzível para uma frase curta falada na chamada de voz (*"Minha rota tá lisa hoje, vou jogar tranquilo"*).
+4. **Cockpit em vez de vitrine:** Sem notícias, sem promoções, sem banners comerciais e sem textos didáticos de IA. O palco é 100% focado nos jogos instalados do usuário e no play rápido.
 
 ---
 
-## 3. Cores e tokens funcionais
+## 2. Anatomia do Layout
 
-Os tokens vivem canonicamente em `windows/LagCheck.WinUI/Styles/Theme.xaml` e seguem os padrões do produto:
+O layout é composto por três áreas principais: **Sidebar Retrátil**, **Top Bar de Controle** e o **Palco Principal** (dividido entre o Hero do Jogo e a Tríade de Telemetria/Biblioteca).
 
-| Token XAML / CSS | Hex / Valor | Função no Launcher Windows | Uso correto | Onde NÃO usar |
-| :--- | :--- | :--- | :--- | :--- |
-| `StageBrush` / `--stage` | `#060709` | Fundo externo e barra de título | Moldura externa da janela e titlebar nativa | Cards, textos ou áreas de leitura |
-| `DeepBrush` / `--deep` | `#0B0D10` | Fundo principal da biblioteca | Palco central (`main`), tela da biblioteca, grade de jogos | Gradientes decorativos ou texturas |
-| `SurfaceBrush` / `--surface` | `#15181E` | Superfície funcional e cartões | Item ativo da sidebar, cards de jogos na grade, painel hero | Fundo de títulos ou textos soltos |
-| `PanelBrush` / `--panel` | `#1E232B` | Camada ativa e microcontroles | Hover forte de card, chips de launcher, caixas de status | Fundo geral da aplicação |
-| `LineBrush` / `--line` | `rgba(244, 245, 247, 0.10)` | Hairline de divisão | Separadores sutis de seções, linhas de tabela e divisores | Bordas grossas ou ornamentais |
-| `LineStrongBrush` / `--line-strong` | `rgba(244, 245, 247, 0.16)` | Contorno de controle | Bordas de botões secundários, inputs de busca, switches | Divisores de leitura de conteúdo |
-| `TextPrimaryBrush` / `--text-primary` | `#F4F5F7` | Decisões e títulos | Nomes de jogos, vereditos, numerais em Chakra Petch e texto do CTA | Textos longos de suporte |
-| `TextSecondaryBrush` / `--text-secondary` | `#8A93A0` | Metadados e contexto | Plataforma do jogo, detalhes da rota, explicações técnicas | Valores numéricos de métricas |
-| `TextTertiaryBrush` / `--text-tertiary` | `#606873` | Apoio técnico e labels | Eyebrow técnico, horas jogadas, timestamps, hash de build | Textos essenciais de acessibilidade (contraste 3,45:1) |
-| `PurpleBrush` / `--purple` | `#7C3AED` | Ação primária e foco | Botão "Jogar", foco de teclado, fase ativa da medição | Fundo amplo de tela ou cor de vitória |
-| `PurpleLightBrush` / `--purple-light` | `#A78BFA` | Foco acessível e acento | Anel de foco de teclado (3 px) e acento textual suave | Fundo de botões primários |
-| `ReadyBrush` / `--ready` | `#22C55E` | Conexão favorável | Indicador de rota limpa e veredito positivo para o jogo | Sinal isolado sem rótulo textual |
-| `CautionBrush` / `--caution` | `#F59E0B` | Alerta contextual de rede | Jitter alto, aumento sob carga, aviso para usar cabo de rede | Decoração ou badge promocional |
-| `CoralBrush` / `--coral` | `#FF5A36` | Erro de conexão ou risco | Perda de pacotes crítica, rota congestionada, erro de socket | Botão de ação comum ou alertas falsos |
-
----
-
-## 4. Tipografia oficial
-
-A tipografia do Windows é empacotada no projeto (`ms-appx:///Assets/Fonts/`) e espelha a identidade do ecossistema LagCheck:
-
-| Papel | Família | Pesos recomendados | Tamanhos e entrelinhas | Uso exclusivo no Launcher |
-| :--- | :--- | :--- | :--- | :--- |
-| **Títulos / Jogo / Veredito** | **Barlow Semi Condensed** | 700 (Bold), 800 (ExtraBold) | H1: 30–38 px / 1.1; H2: 24–28 px; Veredito: 32–40 px (tracking `-0.015em`) | Título do jogo em destaque no Hero, veredito de rede, títulos de seção |
-| **Corpo / UI** | **Barlow** | 400 (Regular), 500 (Medium), 600 (SemiBold) | 13–16 px / 1.5 | Rótulos de botões ("Jogar", "Checar rota"), textos de apoio e configurações |
-| **Telemetria de Rede** | **Chakra Petch** | 600 (SemiBold) | 20–36 px / 1.0 (números tabulares) | Latência em repouso, jitter, carga e perda UDP de servidores de jogos |
-| **Técnica / Metadados** | **Cascadia Mono** / `ui-monospace` | 600 (SemiBold/Bold) | 10–12 px / 1.2 (tracking `0.08em` a `0.12em`, caixa alta) | Região do servidor (ex: `SA-EAST-1 (SP)`), launcher (STEAM), status de rota |
-
-**Regras estritas:**
-- **Chakra Petch** é restrita a métricas e valores numéricos; nunca use em parágrafos de texto.
-- **Barlow Semi Condensed** é restrita a títulos, nomes de jogos e vereditos; nunca use em parágrafos de texto corrido.
-- Textos técnicos em **Cascadia Mono** não recebem sublinhado nem gradientes decorativos.
+```text
++------------------------------------------------------------------------------------------+
+|  [Wordmark] [<<]   |  E aí, Luiz!   [Todos] [Recentes] [Favoritos] [Steam]   | [● SP 14ms] [-][#][X] |
++--------------------+---------------------------------------------------------------------+
+| (Q) Busca          | +-----------------------------------------------------------------+ |
+|                    | | HERO DO JOGO SELECIONADO                                        | |
+| [*] Início         | | [Banner horizontal oficial local com cantos de 24px]            | |
+| [=] Biblioteca     | |                                                                 | |
+|                    | | (Tempo jogado)                                                  | |
+| [S] Catálogo       | | NOME DO JOGO                                                    | |
+| [H] Histórico      | | Veredito pré-partida + Rota ativa                               | |
+|                    | |                                         [(Engrenagem)] [(i)] [▶ JOGAR] |
+|                    | +-----------------------------------------------------------------+ |
+|                    | +-------------------+ +---------------------+ +-------------------+ |
+|                    | | TELEMETRIA DA ROTA| | SERVIDORES DO JOGO  | | ESTABILIDADE      | |
+|                    | | 14 ms             | | ● SP - 14 ms        | | Heatmap semanal   | |
+|                    | | Jitter: 0.8 ms    | | ● BA - 38 ms        | | de horários de    | |
+| [x] Ajustes        | | Perda: 0.0%       | | ▲ VA - 118 ms       | | pico e conexão    | |
+| [v] v0.1.0 (Eth)   | +-------------------+ +---------------------+ +-------------------+ |
++--------------------+---------------------------------------------------------------------+
+```
 
 ---
 
-## 5. Marca e identificação visual
+## 3. Especificação Detalhada das Áreas
 
-A marca oficial do LagCheck é rigorosamente protegida:
+### 3.1. Barra Lateral Retrátil (Sidebar)
 
-- **Wordmark primária (`wordmark-primary.svg`):**
-  - Aplicação no topo esquerdo da sidebar ou cabeçalho da janela.
-  - Altura fixa entre 18 px e 22 px, preservando proporção ~4.9:1.
-  - Uso estrito com “Check” em Roxo Gamer (`#7C3AED`) e “Lag” em branco (`#F4F5F7`). Proibido aplicar sombras projetadas ou gradientes alternativos por código.
-- **Símbolo isolado (`lagcheck-mark.svg`):**
-  - Ícone nativo da barra de título do Windows (16×16 ou 20×14 px), ícone da barra de tarefas, atalho na área de trabalho e ícone na bandeja do sistema (system tray).
-  - Versão compacta da barra lateral quando colapsada.
+A sidebar opera em dois modos: **Expandida** (220 px de largura) e **Compacta / Ícones** (64 px de largura), com transição suave de 150 ms e persistência do estado escolhido pelo usuário.
 
----
+- **Topo:**
+  - Wordmark `lagcheck` (em modo expandido, altura 20 px) ou símbolo isolado `lagcheck-mark` (em modo compacto, 20×14 px).
+  - Botão de colapsar/expandir (`<<` / `>>`) em formato de pílula sutil.
+- **Busca Rápida:**
+  - Atalho global `Ctrl+F` integrado. Em modo expandido, exibe campo com placeholder *"Buscar jogo ou rota..."*. Em modo compacto, exibe ícone de lupa com tooltip.
+- **Navegação Principal:**
+  - **Biblioteca:** Grade completa de capas verticais (2:3) dos jogos instalados no PC (Steam, Epic, Xbox) com o Hero do título selecionado e botão direto de Play e Checar Rota;
+  - **Conexão:** Diagnóstico de conexão de referência do PC sem necessidade de jogo selecionado, com mapa mundi vetorial em tempo real, arco de rota e avaliação de uso (idêntico ao padrão de `lagcheck.signallq.com`);
+  - **Histórico:** Gráficos e registros de medições reais anteriores;
+  - **Ajustes:** Configurações de interface, inicialização, launchers detectados e telemetria.
+- **Estilo dos Itens:**
+  - Item ativo usa fundo de pílula arredondada em `--surface` (`#15181E`), texto `--text-primary` e acento Roxo Gamer (`#7C3AED`) na borda esquerda ou ícone.
+  - Itens inativos em `--text-secondary` (`#8A93A0`) com transição suave no hover para `--panel` (`#1E232B`).
+- **Rodapé da Sidebar:**
+  - **Ajustes:** Configurações de inicialização com o Windows, launchers detectados e seleção de adaptadores.
+  - **Status de Hardware de Rede:** Chip discreto com ícone de cabo/Wi-Fi e velocidade do link (ex: `Ethernet · 1 Gbps` ou `Wi-Fi 6`).
+  - **Versão:** Build do app em Cascadia Mono (`v0.1.0`).
 
-## 6. Arquitetura da janela e experiência do Launcher
+### 3.2. Barra Superior (Top Bar)
 
-- **Dimensões do shell:**
-  - Janela padrão recomendada: **1120 × 740 px** (otimizada para telas 1080p e 1440p).
-  - Janela mínima suportada: **960 × 600 px**.
-  - Responsividade: em larguras maiores (>1200 px), a grade de jogos expande o número de colunas (5 a 6 colunas) mantendo o painel Hero proeminente no topo.
-- **Barra de Título Nativa (Titlebar):**
-  - Altura de 42 px integrada ao fundo `--stage`, com botões nativos do Windows.
-  - Indicador central sutil: `BIBLIOTECA · JOGOS INSTALADOS` ou `CONEXÃO GERAL`.
-- **Barra Lateral de Navegação (Sidebar):**
-  - 4 destinos fixos:
-    1. **Biblioteca (Início):** Grade de jogos instalados no PC com o Hero do título selecionado;
-    2. **Catálogo de Jogos:** Catálogo completo de jogos monitorados com servidores mapeados;
-    3. **Histórico:** Registro de sessões de diagnóstico e estabilidade ao longo do tempo;
-    4. **Ajustes:** Configurações de inicialização com o Windows, launchers detectados e opções de rede.
-  - Rodapé exibe a interface de rede ativa (`Ethernet` ou `Wi-Fi`) e a versão do build.
-- **Comportamento em Background / Bandeja (System Tray):**
-  - Ao iniciar um jogo, o LagCheck pode minimizar para a bandeja do sistema para não consumir recursos de CPU/GPU durante a jogatina.
-  - O app é leve, instantâneo e não executa processos invasivos durante a partida.
+Integrada diretamente à janela nativa (altura 48 px), eliminando a separação visual clássica de janelas corporativas:
 
----
+- **Lado Esquerdo — Saudação e Contexto:**
+  - Saudação personalizada curta (ex: *"E aí, Luiz!"* ou *"Lobby pronto"*).
+  - Status em subtítulo fino: *"Sua rota principal está pronta para partidas"*.
+- **Centro — Segmented Pill Filters (Chips de Filtro em Pílula):**
+  - Grupo de filtros com cantos totalmente arredondados (estilo pill-tab):
+    - `Todos` | `Recentes` (ativo por padrão) | `Favoritos` | `Steam` | `Epic Games` | `Xbox`
+  - A pílula ativa ganha fundo `--panel` (`#1E232B`), contorno sutil de 1 px `--line-strong` e texto branco.
+- **Lado Direito — Telemetria Global e Ações de Janela:**
+  - **Chip de Ping Global:** Pílula sutil com indicador circular verde e valor em Chakra Petch (`● SP 14 ms`), servindo de pulso rápido de conectividade.
+  - Botões nativos de controle de janela do Windows (Minimizar, Maximizar, Fechar) integrados harmoniosamente.
 
-## 7. Componentes do Launcher
+### 3.3. Hero do Jogo Selecionado
 
-### 7.1. Hero do Jogo Selecionado
-O topo da Biblioteca exibe o jogo atualmente selecionado em destaque:
-- **Arte de fundo:** Banner horizontal oficial (`library_hero`), carregado em runtime do cache local da Steam/PC do jogador (Decisão 118).
-- **Cabeçalho:** Nome do jogo em Barlow Semi Condensed (32–36 px), badge do launcher de origem (Steam, Epic, Xbox) e badge de suporte de rota (`ROTA DEDICADA` ou `ROTA GERAL`).
-- **Ações duplas coordenadas:**
-  1. **Botão Primário "Jogar":** Botão roxo de 48–52 px de altura, largo e de clique rápido. Dispara o jogo via protocolo de launcher ou executável local.
-  2. **Check de Rede Contextual:** Ao lado do botão "Jogar", exibe o veredito pré-jogo (ex: `● Conexão ideal · 14 ms SP`) com botão secundário rápido `Checar conexão` para rodar novo probe UDP.
-  3. O check de rede **nunca bloqueia o botão de jogar**: o jogador tem a liberdade de entrar no jogo quando quiser.
+O elemento central da experiência. Um banner cinematográfico amplo com cantos arredondados de **24 px**:
 
-### 7.2. Grade da Biblioteca de Jogos
-- **Cards de Capa Vertical:** Formato 2:3 padronizado (ex: 140×210 px).
-- **Arte autêntica local:** Capa vertical oficial (`library_600x900`) obtida do cache do launcher local. Para jogos sem arte disponível, usa miniatura neutra estilizada do LagCheck com o nome e plataforma.
-- **Filtros e busca rápida:** Barra de filtro no topo da grade:
-  - Campo de busca instantânea (filtro por nome com atalho `Ctrl+F`);
-  - Chips de filtro: `Todos`, `Instalados`, `Steam`, `Epic`, `Xbox`, `Favoritos`;
-  - Ordenação: `Últimos jogados`, `Nome (A-Z)`, `Ping mais baixo`.
-
-### 7.3. Painel de Diagnóstico Contextual
-- Quando o jogador clica em `Checar conexão` no jogo:
-  - O launcher consulta os servidores específicos daquele jogo através do motor Kotlin compartilhado (`lagcheck-engine-v1`).
-  - Faixa de métricas sob o Hero: Repouso, Jitter, Sob Carga e Perda de Pacotes.
-  - Se a conexão estiver com perda de pacotes ou instabilidade, exibe recomendação prática e direta (ex: *"Perda de pacotes na rota de SP detectada. Evite filas ranqueadas agora"*).
-
-### 7.4. Botões e controles WinUI 3
-- **Botão Primário ("Jogar"):** altura mínima de 48 px, Roxo Gamer (`#7C3AED`), raio de 12 px, texto Barlow SemiBold branco (`#F4F5F7`).
-- **Botão Secundário ("Checar conexão"):** altura de 44 px, fundo transparente, contorno de 1 px (`--line-strong`), raio de 8 px e texto `--text-primary`.
-- **Chips de filtro:** botões compactos de 32 px em `--surface` com contorno de 1 px e texto `--text-secondary` (ativo em `--panel` e `--text-primary`).
+- **Arte de Fundo (`library_hero`):**
+  - Banner oficial de alta resolução carregado exclusivamente em tempo de execução do cache local da Steam/PC do usuário (Decisão 118).
+  - Tratamento visual: vinheta escura suave na parte inferior e esquerda para garantir legibilidade absoluta dos textos e do veredito.
+- **Cabeçalho Interno do Hero:**
+  - **Última Sessão:** Texto discreto no topo esquerdo (ex: `Jogado ontem · 31 de out`).
+  - **Badge de Tempo de Jogo:** Pílula translúcida com ícone de relógio e horas jogadas (ex: `🕒 102 hrs jogadas`).
+- **Identificação do Título:**
+  - Nome do jogo em **Barlow Semi Condensed Bold** (32 a 38 px, caixa alta ou título natural), com sombra tipográfica suave.
+- **Cockpit de Veredito Pré-Partida:**
+  - No lugar de sinopses genéricas, o Hero exibe a saúde da conexão para este título específico:
+    - **Manchete de Veredito:** Badge em pílula esportiva (`● PRONTO PARA RANKED` em verde neon suave, ou `▲ OSCILAÇÃO SOB CARGA` em amarelo cautela).
+    - **Resumo de Rota:** Linha descritiva direta (ex: *"Servidores Valve São Paulo · Rota direta sem perda de pacotes"*).
+- **Ações no Canto Inferior Direito:**
+  - **Botão de Configurações da Rota:** Botão circular (44×44 px) translúcido escuro com ícone de engrenagem.
+  - **Botão de Detalhes da Conexão:** Botão circular (44×44 px) translúcido com ícone de informação/diagnóstico, abrindo a prova real completa.
+  - **Botão Primário "▶ JOGAR" / "▶ INICIAR JOGO":**
+    - Formato de pílula arredondada esportiva (altura 50 px, padding lateral 28 px).
+    - Fundo em **Roxo Gamer** (`#7C3AED`) ou acento de alto contraste, com texto em Barlow Bold.
+    - Dispara o jogo instantaneamente através da URI do launcher (`steam://run/...`) ou executável nativo.
 
 ---
 
-## 8. Movimento, foco e acessibilidade
+## 4. A Tríade Inferior (Os 3 Painéis do Cockpit)
 
-- **Fluidez desktop:** transições suaves de 150 ms a 200 ms ao selecionar jogos e alternar abas (`cubic-bezier(0.2, 0, 0, 1)`).
-- **Foco por teclado e gamepad:** navegação completa por teclado na grade de jogos (setas direcionais, Enter para jogar, Barra de espaço para checar conexão).
-- **Anel de foco visível:** todo elemento interativo focado recebe borda de 3 px na cor `PurpleLightBrush` (`#A78BFA`).
-- **Prefers-Reduced-Motion:** respeita configurações de acessibilidade do Windows, eliminando transições de banner e pulsos visuais.
+Abaixo do Hero, a tela se divide em três cartões modulares com cantos arredondados de **20 px**, fundo em `--surface` (`#15181E`) e borda hairline de 1 px (`--line`):
+
+### Painel 1: Telemetria da Rota (Diagnóstico do Jogo)
+Substitui a área de conquistas convencional por telemetria competitiva real:
+- **Cabeçalho:** `Telemetria de Rota` acompanhado de link sutil `Detalhes >`.
+- **Métrica Principal:** Latência em repouso exibida em **Chakra Petch Bold** (36 px) com unidade (ex: `14 ms`).
+- **Barra de Estabilidade:** Barra horizontal graduada mostrando jitter e bufferbloat sob carga.
+- **Grid de Indicadores:**
+  - `Jitter`: `0.8 ms` (ideal)
+  - `Perda UDP`: `0.0%` (limpo)
+  - `Delta Carga`: `+2 ms` (rota não engasga durante downloads)
+  - `Protocolo`: `UDP Direto`
+
+### Painel 2: Servidores e Regiões do Jogo
+Substitui a lista de amigos por rotas oficiais mapeadas:
+- **Cabeçalho:** `Regiões do Servidor` com link `Ver todas >`.
+- **Lista de Regiões:**
+  - Cada linha exibe a região, o datacenter e a latência medida em tempo real:
+    - `● Brasil (São Paulo)` — `14 ms` · Rota recomendada
+    - `● Argentina (Buenos Aires)` — `38 ms` · Rota alternativa
+    - `▲ América do Norte (Virgínia)` — `118 ms` · Alto ping para ranked
+- **Ação Rápida:** Botão para alternar região de referência ou disparar novo probe UDP.
+
+### Painel 3: Heatmap de Estabilidade Semanal
+Adapta o calendário de atividade do Steam para a **confiabilidade da rota nos horários de pico**:
+- **Cabeçalho:** `Estabilidade na Semana` com seletor de período (`Últimos 7 dias` / `Mês`).
+- **Legenda Visual:**
+  - Blocos vazios / hachurados: sem testes no horário.
+  - Blocos cinza: conexão estável e normal.
+  - Blocos ciano / verde neon: conexão excelente nos horários jogados.
+  - Blocos coral / alerta: horários com degradação na operadora (ex: sexta-feira às 20h com jitter alto).
+- **Grade Semanal (Seg a Dom):** Mostra ao jogador quais são os melhores horários para jogar competitivo na rota da casa dele.
 
 ---
 
-## 9. Anti-padrões no Launcher Windows
+## 5. Modo Grade Completa da Biblioteca (Toggle de Visualização)
 
-- **Não ser bloatware:** o LagCheck é ultra-leve e rápido. Não adiciona overlays invasivos de tela cheia que degradem FPS nem serviços pesados em segundo plano.
-- **Não travar o play:** a telemetria é uma ferramenta de auxílio e confiança para o jogador; o botão "Jogar" nunca deve ficar travado enquanto um check é executado.
-- **Não distribuir artes proprietárias no instalador:** capas e banners de jogos são exclusivamente carregados em tempo de execução da biblioteca do próprio jogador (Decisão 118).
-- **Não prometer "zero lag" ou melhorias milagrosas:** o app diagnostica a verdade da rota com evidência real, sem promessas de VPN milagrosa ou "otimizadores" de sistema falsos.
-- **Não poluir a tela com notícias ou anúncios promocionais:** o espaço pertence exclusivamente aos jogos do usuário e à integridade da sua conexão.
+Quando o jogador clica na aba **Biblioteca** na sidebar ou no seletor de exibição:
+- O painel inferior das 3 colunas recolhe suavemente e dá lugar à **Grade de Capas Verticais (2:3)**.
+- **Capas dos Jogos (140 × 210 px):**
+  - Carregadas do cache oficial local do PC (`library_600x900`).
+  - Efeito hover esportivo: elevação sutil de 4 px, brilho de borda em `--line-strong` e indicador do launcher de origem no canto superior.
+  - Ao clicar em qualquer capa, o Hero superior atualiza instantaneamente a arte de fundo, o nome do jogo e a rota correspondente.
+
+---
+
+## 6. Cores e Tokens Oficiais (Dark Competitive UI)
+
+| Token XAML | Hex / Valor | Função no Layout |
+| :--- | :--- | :--- |
+| `StageBrush` | `#060709` | Fundo externo da janela e barra superior |
+| `DeepBrush` | `#0B0D10` | Fundo principal da área de conteúdo |
+| `SurfaceBrush` | `#15181E` | Fundo dos 3 cartões inferiores e sidebar ativa |
+| `PanelBrush` | `#1E232B` | Pílulas de filtro ativas, hover e caixas de status |
+| `LineBrush` | `rgba(244, 245, 247, 0.08)` | Bordas de 1 px nos cartões e divisórias |
+| `LineStrongBrush` | `rgba(244, 245, 247, 0.16)` | Contorno de botões secundários e foco |
+| `TextPrimaryBrush` | `#F4F5F7` | Nomes de jogos, títulos e CTA primário |
+| `TextSecondaryBrush` | `#8A93A0` | Metadados, descrições de rota e horas jogadas |
+| `TextTertiaryBrush` | `#606873` | Rótulos técnicos, Cascadia Mono e versão |
+| `PurpleBrush` | `#7C3AED` | Botão "Jogar" primário e acentos ativos |
+| `ReadyBrush` | `#22C55E` | Indicador de rota perfeita e pronto para ranked |
+| `CautionBrush` | `#F59E0B` | Aviso de oscilação ou ping elevado |
+| `CoralBrush` | `#FF5A36` | Alerta de perda de pacotes ou rota rompida |
+
+---
+
+## 7. Tipografia Oficial
+
+- **Títulos e Jogos:** **Barlow Semi Condensed** (Bold 700 / ExtraBold 800) — Título do jogo no Hero (34 px), vereditos e cabeçalhos dos cartões.
+- **Corpo e Navegação:** **Barlow** (Medium 500 / SemiBold 600) — Itens da sidebar, pílulas de filtro e botões.
+- **Telemetria e Latência:** **Chakra Petch** (SemiBold 600) — Valores numéricos de ping (`14 ms`), jitter (`0.8 ms`) e perda (`0.0%`).
+- **Metadados de Rede:** **Cascadia Mono** (SemiBold 600) — Nomes de datacenters (`SA-EAST-1`), versão do build e taxas de interface.
+
+---
+
+## 8. Anti-padrões e Diretrizes Rígidas
+
+1. **Nunca travar o botão de jogar:** O jogador é dono do PC dele; o check de rota informa a realidade, mas jamais impede ou atrasa o clique no jogo.
+2. **Sem artes proprietárias no instalador:** Capas e banners são lidos do cache local do próprio PC do usuário em tempo de execução (Decisão 118).
+3. **Sem poluição de loja:** O LagCheck não é uma loja de jogos. Não existem preços, promoções ou botões de compra.
+4. **Sem dados inventados:** Se a rota ainda não foi testada para um título, exibe-se travessão (`— ms`), nunca estimativa falsa ou zero milissegundos.

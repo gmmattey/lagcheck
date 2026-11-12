@@ -13,76 +13,86 @@
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="24" Padding="38,32,38,48">
-            <!-- Cabeçalho da Biblioteca (windows/DESIGN.md § 2 e § 6) -->
-            <Grid ColumnSpacing="24">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="6">
-                    <TextBlock Text="BIBLIOTECA DE JOGOS" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                    <TextBlock Text="Sua próxima partida começa aqui." Style="{StaticResource PageTitleStyle}" TextWrapping="Wrap" />
-                    <TextBlock Text="Escolha o jogo e confira a conexão antes de entrar na fila." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" TextWrapping="Wrap" />
-                </StackPanel>
-                <Button Grid.Column="1" Content="ATUALIZAR BIBLIOTECA" Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding RefreshCommand}" automation:AutomationProperties.Name="Atualizar biblioteca de jogos" />
-            </Grid>
-
-            <!-- Notificações e Status de Varredura -->
+        <StackPanel Spacing="32" Padding="40,32,40,56">
+            
+            <!-- Notificações e Status -->
             <TextBlock x:Name="NoticeText" Text="{Binding Notice}" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
-            <TextBlock x:Name="LoadingState" Text="PROCURANDO JOGOS INSTALADOS…" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" Visibility="Collapsed" />
+            <TextBlock x:Name="LoadingState" Text="Procurando jogos instalados no PC…" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" Visibility="Collapsed" />
 
-            <!-- Hero do Jogo Selecionado (windows/DESIGN.md § 7.1) -->
-            <Border x:Name="HeroSection" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="14" MinHeight="250">
+            <!-- Hero do Jogo Selecionado -->
+            <Border x:Name="HeroSection" Background="{StaticResource SurfaceBrush}" CornerRadius="24" MinHeight="420">
                 <ContentControl Content="{Binding HeroGame}">
                     <ContentControl.ContentTemplate>
                         <DataTemplate x:DataType="local:LibraryGame">
-                            <Grid>
-                                <!-- Banner oficial e camadas de contraste -->
-                                <Image Source="{Binding HeroArtworkPath}" Stretch="UniformToFill" Opacity="0.52" />
-                                <Rectangle Fill="#C8060709" />
-                                <Rectangle Fill="#1A7C3AED" />
+                            <Grid Height="420">
+                                <!-- Banner oficial do jogo instalado -->
+                                <Image Source="{Binding HeroArtworkPath}" Stretch="UniformToFill" Opacity="0.80" />
                                 
-                                <Grid Padding="32,28" VerticalAlignment="Stretch">
+                                <!-- Degradê cinematográfico: escuro à esquerda para leitura, translúcido à direita -->
+                                <Rectangle>
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#F40B0D12" Offset="0.0" />
+                                            <GradientStop Color="#D40B0D12" Offset="0.45" />
+                                            <GradientStop Color="#250B0D12" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Rectangle>
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="Transparent" Offset="0.5" />
+                                            <GradientStop Color="#900B0D12" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                
+                                <Grid Padding="42,36" VerticalAlignment="Stretch">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     
-                                    <!-- Badges Superiores -->
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock Text="EM DESTAQUE" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                                        <TextBlock Text="·" Foreground="{StaticResource TextTertiaryBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                                        <TextBlock Text="{Binding PlatformLabel}" Foreground="{StaticResource TextSecondaryBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                                        <TextBlock Text="·" Foreground="{StaticResource TextTertiaryBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                                        <TextBlock Text="{Binding DiagnosticLabel}" Foreground="{StaticResource ReadyBrush}" Style="{StaticResource EyebrowTextStyle}" />
+                                    <!-- Badges: Launcher e Estado de Instalação (Sólidos, sem arame) -->
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border Background="#282E3C" CornerRadius="12" Padding="14,6">
+                                            <TextBlock Text="{Binding PlatformLabel}" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        </Border>
+                                        <Border Background="#2022C55E" CornerRadius="12" Padding="14,6">
+                                            <TextBlock Text="{Binding AvailabilityLabel}" Foreground="{StaticResource ReadyBrush}" Style="{StaticResource EyebrowTextStyle}" FontWeight="SemiBold"/>
+                                        </Border>
                                     </StackPanel>
                                     
-                                    <!-- Identificação do Título -->
-                                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="8" Margin="0,14,0,18">
-                                        <TextBlock Text="{Binding Title}" Style="{StaticResource HeroTitleStyle}" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding NetworkLabel}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding AvailabilityLabel}" Foreground="{StaticResource TextTertiaryBrush}" Style="{StaticResource EyebrowTextStyle}" />
+                                    <!-- Nome do Jogo -->
+                                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="8" Margin="0,18,0,18">
+                                        <TextBlock Text="{Binding Title}" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="44" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" />
                                     </StackPanel>
                                     
-                                    <!-- Ações do Hero: Jogar prioritário + Checar Conexão (DESIGN.md § 7.1) -->
-                                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-                                        <Button Content="JOGAR" Style="{StaticResource PrimaryButtonStyle}" MinHeight="50" Padding="32,0"
+                                    <!-- Ações do Jogo -->
+                                    <Grid Grid.Row="2">
+                                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource CircleIconButtonStyle}" Width="46" Height="46" CornerRadius="23"
+                                                    Command="{Binding DataContext.ToggleFavoriteCommand, ElementName=Root}" CommandParameter="{Binding}"
+                                                    ToolTipService.ToolTip="{Binding FavoriteActionLabel}" automation:AutomationProperties.Name="Alternar favorito">
+                                                <FontIcon Glyph="&#xE734;" FontSize="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            </Button>
+                                            <Button Style="{StaticResource CircleIconButtonStyle}" Width="46" Height="46" CornerRadius="23"
+                                                    Command="{Binding DataContext.RefreshArtworkCommand, ElementName=Root}" CommandParameter="{Binding}"
+                                                    ToolTipService.ToolTip="Atualizar imagem oficial" automation:AutomationProperties.Name="Atualizar imagem do jogo">
+                                                <FontIcon Glyph="&#xE72C;" FontSize="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            </Button>
+                                            <Button Content="Checar conexão" Style="{StaticResource SecondaryButtonStyle}" MinHeight="46" CornerRadius="23" Padding="26,0" FontSize="14" FontWeight="SemiBold"
+                                                    Visibility="{Binding CanTestConnection, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                    Command="{Binding DataContext.TestConnectionCommand, ElementName=Root}" CommandParameter="{Binding}"
+                                                    automation:AutomationProperties.Name="Checar conexão para este jogo" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" HorizontalAlignment="Right" Content="▶ Jogar agora" Style="{StaticResource PillPrimaryButtonStyle}"
+                                                MinHeight="52" Padding="38,0" CornerRadius="26" FontSize="15" FontWeight="Bold"
                                                 Command="{Binding DataContext.LaunchCommand, ElementName=Root}" CommandParameter="{Binding}"
                                                 automation:AutomationProperties.Name="Jogar agora" />
-                                        <Button Content="CHECAR CONEXÃO" Style="{StaticResource SecondaryButtonStyle}"
-                                                Visibility="{Binding CanTestConnection, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                                Command="{Binding DataContext.TestConnectionCommand, ElementName=Root}" CommandParameter="{Binding}"
-                                                automation:AutomationProperties.Name="Checar conexão deste jogo" />
-                                        <Button Content="{Binding FavoriteActionLabel}" Style="{StaticResource SecondaryButtonStyle}"
-                                                Command="{Binding DataContext.ToggleFavoriteCommand, ElementName=Root}" CommandParameter="{Binding}"
-                                                automation:AutomationProperties.Name="Alternar favorito" />
-                                        <Button Content="ATUALIZAR IMAGEM" Style="{StaticResource SecondaryButtonStyle}"
-                                                Command="{Binding DataContext.RefreshArtworkCommand, ElementName=Root}" CommandParameter="{Binding}"
-                                                automation:AutomationProperties.Name="Atualizar imagem do jogo" />
-                                    </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </Grid>
                         </DataTemplate>
@@ -90,61 +100,69 @@
                 </ContentControl>
             </Border>
 
-            <!-- Barra de Controles: Busca e Chips de Filtro (windows/DESIGN.md § 7.2) -->
-            <StackPanel x:Name="LibraryControls" Spacing="14">
-                <TextBlock Text="ENCONTRE SUA PARTIDA" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" />
-                <TextBox x:Name="SearchBox" PlaceholderText="Buscar na biblioteca (Ctrl+F)" TextChanged="SearchBox_TextChanged"
-                         automation:AutomationProperties.Name="Buscar na biblioteca" />
+            <!-- Barra de Filtros e Busca da Biblioteca -->
+            <StackPanel x:Name="LibraryControls" Spacing="16">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <TextBlock Text="Jogos instalados" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="24" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource TextSecondaryBrush}" Style="{StaticResource EyebrowTextStyle}" VerticalAlignment="Center" Margin="6,4,0,0"/>
+                    </StackPanel>
+                    
+                    <Button HorizontalAlignment="Right" Content="Procurar jogos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="18" MinHeight="36" Padding="18,0" FontSize="13"
+                            Command="{Binding RefreshCommand}" automation:AutomationProperties.Name="Atualizar biblioteca de jogos" />
+                </Grid>
+
+                <TextBox x:Name="SearchBox" PlaceholderText="Buscar na sua biblioteca (Ctrl+F)" TextChanged="SearchBox_TextChanged"
+                         MinHeight="46" CornerRadius="14" Padding="16,0" FontSize="14" automation:AutomationProperties.Name="Buscar na biblioteca" />
+
+                <!-- Filtros em Pílulas Suaves (Sólidas, sem borda de arame) -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="TODOS" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="All" />
-                        <Button Content="INSTALADOS" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Installed" />
-                        <Button Content="STEAM" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Steam" />
-                        <Button Content="EPIC GAMES" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Epic" />
-                        <Button Content="XBOX" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Xbox" />
-                        <Button Content="FAVORITOS" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Favorites" />
-                        <Button Content="RECENTES" Style="{StaticResource ChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Recent" />
-                        <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource TextSecondaryBrush}" Style="{StaticResource EyebrowTextStyle}" VerticalAlignment="Center" Margin="14,0,0,0" />
+                        <Button Content="Todos os jogos" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="All" />
+                        <Button Content="Instalados" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Installed" />
+                        <Button Content="Steam" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Steam" />
+                        <Button Content="Epic Games" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Epic" />
+                        <Button Content="Xbox" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Xbox" />
+                        <Button Content="Favoritos" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Favorites" />
+                        <Button Content="Recentes" Style="{StaticResource PillChipButtonStyle}" Command="{Binding SelectFilterCommand}" CommandParameter="Recent" />
                     </StackPanel>
                 </ScrollViewer>
             </StackPanel>
 
             <!-- Estados Vazios -->
-            <Border x:Name="EmptyState" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="14" Padding="32" Visibility="Collapsed">
+            <Border x:Name="EmptyState" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="32" Visibility="Collapsed">
                 <StackPanel Spacing="10" MaxWidth="580">
                     <TextBlock Text="Nenhum jogo instalado apareceu ainda." Style="{StaticResource PageTitleStyle}" />
-                    <TextBlock Text="Abra a Steam, Epic Games ou Xbox e atualize a biblioteca. Seus favoritos e jogos conhecidos continuam guardados mesmo se um launcher estiver indisponível." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
-                    <Button Content="PROCURAR JOGOS" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Margin="0,8,0,0"/>
+                    <TextBlock Text="Abra a Steam, Epic Games ou Xbox e atualize a biblioteca. Seus favoritos continuam guardados mesmo se um launcher estiver fechado." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    <Button Content="Procurar jogos" Style="{StaticResource PillPrimaryButtonStyle}" HorizontalAlignment="Left" Command="{Binding RefreshCommand}" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="NoResults" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="14" Padding="28" Visibility="Collapsed">
+            <Border x:Name="NoResults" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28" Visibility="Collapsed">
                 <TextBlock Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" />
             </Border>
 
-            <!-- Grade da Biblioteca: Capas Verticais 2:3 Padronizadas (DESIGN.md § 7.2) -->
+            <!-- Grade de Capas Verticais 2:3 dos Jogos Instalados -->
             <ItemsRepeater x:Name="GameGrid" ItemsSource="{Binding VisibleGames}" ElementPrepared="GameGrid_ElementPrepared">
                 <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="190" MinRowSpacing="16" MinColumnSpacing="16" />
+                    <UniformGridLayout MinItemWidth="200" MinRowSpacing="22" MinColumnSpacing="22" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:LibraryGame">
-                        <Button Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="0"
+                        <Button Background="{StaticResource SurfaceBrush}" BorderThickness="0" CornerRadius="18" Padding="0"
                                 Command="{Binding DataContext.SelectGameCommand, ElementName=Root}" CommandParameter="{Binding}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                 automation:AutomationProperties.Name="{Binding Title}">
-                            <!-- Proporção 2:3 vertical padronizada (ex: 190x285 px) -->
-                            <Grid Height="285">
-                                <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" Opacity="0.90" />
-                                <Grid VerticalAlignment="Bottom" Padding="14,12" Background="#E615181E" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+                            <!-- Capa Vertical 2:3 -->
+                            <Grid Height="300">
+                                <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" Opacity="0.94" />
+                                <Grid VerticalAlignment="Bottom" Padding="16,14" Background="#F2161A22">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
-                                    <TextBlock Text="{Binding Title}" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="18" TextWrapping="Wrap" MaxLines="2" />
-                                    <TextBlock Grid.Row="1" Text="{Binding AvailabilityLabel}" Foreground="{StaticResource TextSecondaryBrush}" Style="{StaticResource EyebrowTextStyle}" Margin="0,4,0,0" />
-                                    <TextBlock Grid.Row="2" Text="{Binding DiagnosticLabel}" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}" Margin="0,3,0,0" />
+                                    <TextBlock Text="{Binding Title}" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="17" TextWrapping="Wrap" MaxLines="2" />
+                                    <TextBlock Grid.Row="1" Text="{Binding PlatformLabel}" Foreground="{StaticResource TextSecondaryBrush}" Style="{StaticResource EyebrowTextStyle}" Margin="0,4,0,0" />
                                 </Grid>
                             </Grid>
                         </Button>

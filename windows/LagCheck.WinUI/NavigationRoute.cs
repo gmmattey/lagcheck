@@ -3,7 +3,7 @@ namespace LagCheck.WinUI;
 public enum NavigationRoute
 {
     Library,
-    Catalog,
+    GeneralCheck,
     History,
     Settings,
 }
