@@ -4,17 +4,23 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,20 +41,17 @@ fun LibraryHero(
     val coverArt by rememberArtwork(game, ArtworkType.COVER, state.artwork, state.artworkGeneration)
     val heroBitmap = (heroArt as? ArtworkState.Loaded)?.bitmap
     val coverBitmap = (coverArt as? ArtworkState.Loaded)?.bitmap
+    val refreshInteraction = remember { MutableInteractionSource() }
+    val refreshFocused by refreshInteraction.collectIsFocusedAsState()
+    val favoriteInteraction = remember { MutableInteractionSource() }
+    val favoriteFocused by favoriteInteraction.collectIsFocusedAsState()
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(LcRadius.r17))
             .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        LcColor.Panel.copy(alpha = 0.9f),
-                        LcColor.Surface,
-                        LcColor.Background
-                    ),
-                    radius = 1200f
-                )
+                LcColor.Surface
             )
             .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r17))
     ) {
@@ -81,9 +84,13 @@ fun LibraryHero(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LcRadius.r8))
-                        .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r8))
-                        .clickable { state.refreshArtwork(game) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .background(LcColor.Background)
+                        .border(if (refreshFocused) LcSize.focusRing else 1.dp, if (refreshFocused) LcColor.AccentLight else LcColor.BorderStrong, RoundedCornerShape(LcRadius.r8))
+                        .semantics { contentDescription = "Atualizar imagem de ${game.title}" }
+                        .clickable(interactionSource = refreshInteraction, indication = null, role = Role.Button) { state.refreshArtwork(game) }
+                        .heightIn(min = 40.dp)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text("ATUALIZAR IMAGEM", style = LcType.Section.copy(fontSize = 11.sp), color = LcColor.TextSecondary)
                 }
@@ -92,10 +99,13 @@ fun LibraryHero(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(LcRadius.r8))
-                        .background(if (game.isFavorite) LcColor.AccentSubtle else Color.Transparent)
-                        .border(1.dp, if (game.isFavorite) LcColor.AccentLight else LcColor.BorderHairline, RoundedCornerShape(LcRadius.r8))
-                        .clickable { state.library.toggleFavorite(game) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .background(LcColor.Background)
+                        .border(if (favoriteFocused) LcSize.focusRing else 1.dp, if (favoriteFocused) LcColor.AccentLight else if (game.isFavorite) LcColor.AccentLight else LcColor.BorderStrong, RoundedCornerShape(LcRadius.r8))
+                        .semantics { contentDescription = if (game.isFavorite) "Remover ${game.title} dos favoritos" else "Adicionar ${game.title} aos favoritos" }
+                        .clickable(interactionSource = favoriteInteraction, indication = null, role = Role.Button) { state.library.toggleFavorite(game) }
+                        .heightIn(min = 40.dp)
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = if (game.isFavorite) "★ FAVORITO" else "☆ FAVORITAR",
@@ -203,8 +213,8 @@ fun LibraryHero(
                     }
                 }
 
-                // Sem banner, mas com capa: mostra a capa emoldurada à direita
-                if (heroBitmap == null && coverBitmap != null) {
+                // Sem banner: mantém uma coluna visual à direita com a capa ou fallback neutro.
+                if (heroBitmap == null) {
                     Spacer(Modifier.width(28.dp))
                     Box(
                         modifier = Modifier
@@ -212,7 +222,11 @@ fun LibraryHero(
                             .clip(RoundedCornerShape(LcRadius.r13))
                             .border(1.dp, LcColor.BorderStrong, RoundedCornerShape(LcRadius.r13))
                     ) {
-                        Image(coverBitmap, game.title, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        if (coverBitmap != null) {
+                            Image(coverBitmap, game.title, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        } else {
+                            NeutralArtwork(game.title, ArtworkType.COVER, Modifier.fillMaxSize())
+                        }
                     }
                 }
             }

@@ -54,7 +54,7 @@
       "tokens_json": "Pilha Apple: SF arredondada (títulos), SF (corpo) e SF mono (métricas)",
       "ios": "SF arredondada, SF e SF mono do sistema",
       "android": "Google Sans Flex em tudo, com algarismos tabulares nas métricas (Decisão 80)",
-      "windows": "Google Sans Flex; Consolas para dados (Decisões 114 a 116)",
+      "windows": "Barlow Semi Condensed para títulos, Barlow para corpo, Chakra Petch para métricas e Cascadia Mono/ui-monospace para rótulos técnicos (Decisão 118)",
       "status": "resolvida em 2026-11-08: Android e Windows estão decididos; faltava o design system registrar. A fonte \"técnica\" difere nas três plataformas (SF Mono, Google Sans com tnum, Consolas) e isso é intencional na Decisão 80 para o Android."
     },
     {

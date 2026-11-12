@@ -52,24 +52,30 @@ object LcSize {
     val focusRing = 2.dp
 }
 
-/** Segoe UI no Windows (família do sistema) e Consolas para números: telemetria estável sem embarcar fonte. */
+/** Famílias oficiais do Windows, empacotadas para manter o desenho igual em qualquer instalação. */
 object LcType {
-    private val Sans = FontFamily(
-        Font(resource = "fonts/google_sans_flex_regular.ttf", weight = FontWeight.Normal),
-        Font(resource = "fonts/google_sans_flex_medium.ttf", weight = FontWeight.Medium),
-        Font(resource = "fonts/google_sans_flex_semibold.ttf", weight = FontWeight.SemiBold),
-        Font(resource = "fonts/google_sans_flex_bold.ttf", weight = FontWeight.Bold),
+    private val BodyFamily = FontFamily(
+        Font(resource = "fonts/barlow_regular.ttf", weight = FontWeight.Normal),
+        Font(resource = "fonts/barlow_medium.ttf", weight = FontWeight.Medium),
+        Font(resource = "fonts/barlow_semibold.ttf", weight = FontWeight.SemiBold),
     )
-    private val Mono = FontFamily.Monospace
-    val VerdictHero = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Black, fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-1).sp)
-    val PageTitle = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp, letterSpacing = (-0.6).sp)
-    val Section = TextStyle(fontFamily = Sans, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 1.4.sp)
-    val Body = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp)
-    val BodyStrong = TextStyle(fontFamily = Sans, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp)
-    val Button = TextStyle(fontFamily = Sans, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = 1.sp)
-    val DataHero = TextStyle(fontFamily = Mono, fontWeight = FontWeight.Bold, fontSize = 56.sp, lineHeight = 60.sp)
-    val DataLarge = TextStyle(fontFamily = Mono, fontWeight = FontWeight.Bold, fontSize = 24.sp, lineHeight = 28.sp)
-    val DataSmall = TextStyle(fontFamily = Mono, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 16.sp)
+    private val DisplayFamily = FontFamily(
+        Font(resource = "fonts/barlow_semicondensed_bold.ttf", weight = FontWeight.Bold),
+        Font(resource = "fonts/barlow_semicondensed_extrabold.ttf", weight = FontWeight.ExtraBold),
+    )
+    private val MetricFamily = FontFamily(
+        Font(resource = "fonts/chakra_petch_semibold.ttf", weight = FontWeight.SemiBold),
+    )
+    private val TechnicalFamily = FontFamily.Monospace
+    val VerdictHero = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.ExtraBold, fontSize = 40.sp, lineHeight = 44.sp, letterSpacing = (-1).sp)
+    val PageTitle = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp, letterSpacing = (-0.6).sp)
+    val Section = TextStyle(fontFamily = TechnicalFamily, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 1.4.sp)
+    val Body = TextStyle(fontFamily = BodyFamily, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp)
+    val BodyStrong = TextStyle(fontFamily = BodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp)
+    val Button = TextStyle(fontFamily = BodyFamily, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = 1.sp)
+    val DataHero = TextStyle(fontFamily = MetricFamily, fontWeight = FontWeight.SemiBold, fontSize = 56.sp, lineHeight = 60.sp)
+    val DataLarge = TextStyle(fontFamily = MetricFamily, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 28.sp)
+    val DataSmall = TextStyle(fontFamily = MetricFamily, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 16.sp)
 }
 
 /** Veredito sempre com símbolo + texto + cor: cor sozinha nunca carrega o estado. */

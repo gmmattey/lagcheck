@@ -36,6 +36,21 @@ fun AppShell(
             Sidebar(state, showComponents, sidebarWidth, compact)
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 WorkspaceTopbar(state.route, compact)
+                if (state.route == Route.Home) {
+                    Column(
+                        Modifier.weight(1f).fillMaxWidth()
+                            .widthIn(max = LcSize.contentMax)
+                            .padding(horizontal = if (compact) 26.dp else 38.dp)
+                    ) {
+                        UpdateBanner(state)
+                        if (state.showAnalyticsNotice) AnalyticsNotice(state)
+                        HomeScreen(
+                            state,
+                            captureFocusTarget == CaptureFocusTarget.HomeTest,
+                            Modifier.weight(1f).fillMaxWidth()
+                        )
+                    }
+                } else {
                 Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState(initialScrollOffset)), contentAlignment = Alignment.TopCenter) {
                     Column(
                         Modifier.widthIn(max = LcSize.contentMax).fillMaxWidth()
@@ -59,6 +74,7 @@ fun AppShell(
                             }
                         }
                     }
+                }
                 }
             }
         }

@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 enum class LibraryFilter(val label: String) {
     ALL("Todos"),
     INSTALLED("Instalados"),
+    RECENT("Recentes"),
     FAVORITES("Favoritos"),
     STEAM("Steam"),
     EPIC("Epic Games")
@@ -134,10 +135,11 @@ class LibraryRepository(
     val filteredGames: List<PcGame>
         get() {
             val query = searchQuery.trim().lowercase()
-            return games.filter { game ->
+            val filtered = games.filter { game ->
                 val matchesFilter = when (filter) {
                     LibraryFilter.ALL -> true
                     LibraryFilter.INSTALLED -> game.isInstalled
+                    LibraryFilter.RECENT -> game.isInstalled && game.recentActivityEpochMs != null
                     LibraryFilter.FAVORITES -> game.isFavorite
                     LibraryFilter.STEAM -> game.platform == GamePlatform.STEAM
                     LibraryFilter.EPIC -> game.platform == GamePlatform.EPIC_GAMES
@@ -146,5 +148,13 @@ class LibraryRepository(
                         game.tags.any { it.lowercase().contains(query) }
                 matchesFilter && matchesQuery
             }
+            return if (filter == LibraryFilter.RECENT) {
+                filtered.sortedByDescending { it.recentActivityEpochMs }
+            } else {
+                filtered
+            }
         }
+
+    private val PcGame.recentActivityEpochMs: Long?
+        get() = listOfNotNull(lastLaunchedEpochMs, lastPlayedEpochMs).maxOrNull()
 }

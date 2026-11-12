@@ -207,7 +207,8 @@ class AppState(
     }
 }
 
-private object DesktopPreferences {
+/** Preferências persistidas compartilhadas pelo shell Compose e pelo host WinUI. */
+object DesktopPreferences {
     private val file get() = LocalData.directory.resolve("desktop-preferences.properties")
     private fun values() = java.util.Properties().apply { runCatching { Files.newInputStream(file).use { load(it) } } }
     private fun write(key: String, value: String) { values().apply { setProperty(key, value); Files.newOutputStream(file).use { store(it, null) } } }

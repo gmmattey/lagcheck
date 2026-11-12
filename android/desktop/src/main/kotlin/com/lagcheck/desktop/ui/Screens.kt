@@ -55,29 +55,37 @@ private fun relativeTime(time: java.time.LocalDateTime): String {
 }
 
 @Composable
-fun HomeScreen(state: AppState, captureTestFocus: Boolean = false) {
-    Column(Modifier.fillMaxWidth()) {
-        PageHeader("Seus jogos") {
-            Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+fun HomeScreen(state: AppState, captureTestFocus: Boolean = false, modifier: Modifier = Modifier) {
+    // O Hero, as linhas de jogos e as ferramentas secundárias compartilham
+    // uma única LazyColumn. Não aninhar outra rolagem vertical no shell.
+    LibraryView(
+        state = state,
+        modifier = modifier,
+        header = {
+            PageHeader("Seus jogos") {
+                Text("${state.library.installedCount} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+            }
+            Spacer(Modifier.height(LcSpace.lg))
+        },
+        footer = {
+            Spacer(Modifier.height(LcSpace.xl))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
+            Spacer(Modifier.height(LcSpace.lg))
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 44.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(LcSpace.md)
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Diagnóstico de conexão", style = LcType.BodyStrong, color = LcColor.TextPrimary)
+                    Text("Teste geral opcional; não mede diretamente o servidor do jogo.", style = LcType.Body, color = LcColor.TextSecondary)
+                }
+                SecondaryButton("INICIAR CHECK", { state.start(null) })
+            }
+            Spacer(Modifier.height(LcSpace.lg))
+            HomeRecentHistory(state)
         }
-        Spacer(Modifier.height(LcSpace.lg))
-
-        // Destaque do jogo + filtros + grade de jogos
-        LibraryView(state)
-
-        Spacer(Modifier.height(LcSpace.xxl))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(LcColor.BorderHairline))
-        Spacer(Modifier.height(LcSpace.xxl))
-
-        // Check Geral de Conexão (Cockpit Preservado do LagCheck)
-        SectionLabel("Check Geral de Conexão")
-        Spacer(Modifier.height(LcSpace.md))
-        HomeCommand(state, captureTestFocus)
-        Spacer(Modifier.height(LcSpace.xxl))
-        HomeRecentHistory(state)
-        Spacer(Modifier.height(LcSpace.xxl))
-        Text("O check mede a rota deste PC até uma região de referência. Não mede o ping exato de um servidor do jogo.", style = LcType.Body, color = LcColor.TextTertiary)
-    }
+    )
 }
 
 @Composable
