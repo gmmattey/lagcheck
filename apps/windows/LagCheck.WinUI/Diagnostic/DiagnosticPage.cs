@@ -36,7 +36,29 @@ public sealed class DiagnosticPage : Page
     private static readonly SolidColorBrush CoralBrush = Brush(0xFF, 0x5A, 0x36);
     private static readonly SolidColorBrush LineBrush = Brush(0x1F, 0x26, 0x36);
 
-    private readonly WebSpeedtestEngine _webEngine = new();
+    public sealed record MapRegion(string Id, string Name, double Latitude, double Longitude);
+
+    public static readonly IReadOnlyList<MapRegion> KnownRegions =
+    [
+        new("sa-east-1", "São Paulo", -23.55, -46.63),
+        new("us-east-1", "Virgínia", 38.95, -77.45),
+        new("us-west-2", "Oregon", 45.52, -122.68),
+        new("eu-central-1", "Frankfurt", 50.11, 8.68),
+        new("eu-west-1", "Irlanda", 53.35, -6.26),
+        new("ap-northeast-1", "Tóquio", 35.68, 139.69),
+        new("ap-southeast-1", "Singapura", 1.35, 103.82)
+    ];
+
+    private static string GetRegionName(string? regionId)
+    {
+        if (string.IsNullOrWhiteSpace(regionId)) return Strings.Tr("Região de referência");
+        foreach (var r in KnownRegions)
+        {
+            if (string.Equals(r.Id, regionId, StringComparison.OrdinalIgnoreCase)) return r.Name;
+        }
+        return regionId;
+    }
+
     private readonly DiagnosticEngineClient _client;
     private readonly DispatcherTimer _animationTimer;
     private CancellationTokenSource? _measurementCts;
@@ -382,17 +404,23 @@ public sealed class DiagnosticPage : Page
         _animationTimer.Start();
         _measurementCts = new CancellationTokenSource();
 
+        void ProgressHandler(object? sender, DiagnosticProgress p)
+        {
+            DispatcherQueue.TryEnqueue(() => OnEngineProgress(p));
+        }
+
+        _client.ProgressChanged += ProgressHandler;
+
         try
         {
-            var result = await _webEngine.RunAsync(
-                onProgress: p => DispatcherQueue.TryEnqueue(() => OnWebProgress(p)),
-                onRegionSample: (regId, ms) => DispatcherQueue.TryEnqueue(() => OnRegionSample(regId, ms)),
-                cancellationToken: _measurementCts.Token
-            );
-
+            var result = await _client.StartAsync(_gameId, _measurementCts.Token);
             ShowResult(result);
         }
         catch (OperationCanceledException)
+        {
+            ResetToIdle();
+        }
+        catch (DiagnosticEngineException dex) when (dex.Code == "CANCELLED")
         {
             ResetToIdle();
         }
@@ -402,6 +430,7 @@ public sealed class DiagnosticPage : Page
         }
         finally
         {
+            _client.ProgressChanged -= ProgressHandler;
             _running = false;
             _startBtn.IsEnabled = true;
             _animationTimer.Stop();
@@ -409,12 +438,20 @@ public sealed class DiagnosticPage : Page
         }
     }
 
-    private void CancelMeasurement()
+    private async void CancelMeasurement()
     {
         _measurementCts?.Cancel();
+        try
+        {
+            await _client.CancelAsync();
+        }
+        catch
+        {
+            // cancelado no host
+        }
     }
 
-    private void OnWebProgress(DiagnosticProgress progress)
+    private void OnEngineProgress(DiagnosticProgress progress)
     {
         if (!_running) return;
         _progressBar.Value = Math.Clamp(progress.Ratio, 0, 1);
@@ -448,21 +485,8 @@ public sealed class DiagnosticPage : Page
             _liveMetric.Text = $"{ping:0} ms";
             _livePingText.Text = $"{ping:0} ms";
         }
-        // Jitter e acréscimo sob carga ao vivo vêm do motor; sem amostras suficientes ficam em "—".
         if (progress.LiveJitterMs is { } jitter) _liveJitterText.Text = $"{jitter:0.#} ms";
         if (progress.LiveLoadDeltaMs is { } delta) _liveDeltaText.Text = $"+{delta:0.#} ms";
-    }
-
-    private void OnRegionSample(string regionId, double? ms)
-    {
-        if (ms != null)
-        {
-            _selectedRegionId = regionId;
-            var regInfo = WebSpeedtestEngine.Regions;
-            string name = regionId;
-            foreach (var r in regInfo) if (r.Id == regionId) { name = r.Name; break; }
-            _regionStatusLine.Text = Strings.Format("Mais rápido até agora: {0} ({1:0} ms)", name, ms);
-        }
     }
 
     private void ShowResult(DiagnosticResult result)
@@ -500,8 +524,7 @@ public sealed class DiagnosticPage : Page
         _verdictStatusWord.Foreground = color;
         _verdictHeadline.Text = headline;
 
-        string regionName = _selectedRegionId ?? "";
-        foreach (var r in WebSpeedtestEngine.Regions) if (r.Id == _selectedRegionId) { regionName = r.Name; break; }
+        string regionName = GetRegionName(_selectedRegionId);
         _resultRouteInfo.Text = $"{regionName} ({_selectedRegionId}) · {ping:0} ms";
     }
 
@@ -570,7 +593,7 @@ public sealed class DiagnosticPage : Page
 
         var regId = _selectedRegionId ?? "sa-east-1";
         (string Name, double Lat, double Lon) dest = ("São Paulo", -23.55, -46.63);
-        foreach (var r in WebSpeedtestEngine.Regions)
+        foreach (var r in KnownRegions)
         {
             if (r.Id == regId) { dest = (r.Name, r.Latitude, r.Longitude); break; }
         }
@@ -589,7 +612,7 @@ public sealed class DiagnosticPage : Page
         }
 
         // 2. Pontos das outras regiões mundiais
-        foreach (var r in WebSpeedtestEngine.Regions)
+        foreach (var r in KnownRegions)
         {
             if (r.Id.Equals(regId, StringComparison.OrdinalIgnoreCase)) continue;
             var (rx, ry) = RouteMapEngine.Project(r.Latitude, r.Longitude, camLat, camLon, zoom, w, h);
@@ -666,11 +689,16 @@ public sealed class DiagnosticPage : Page
         canvas.Children.Add(destDot);
     }
 
-    private void OnUnloaded(object sender, RoutedEventArgs e)
+    private async void OnUnloaded(object sender, RoutedEventArgs e)
     {
         LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
         _animationTimer.Stop();
         _measurementCts?.Cancel();
+        if (_running)
+        {
+            try { await _client.CancelAsync(); }
+            catch { }
+        }
     }
 
     private static SolidColorBrush Brush(byte r, byte g, byte b) => new(Color.FromArgb(255, r, g, b));

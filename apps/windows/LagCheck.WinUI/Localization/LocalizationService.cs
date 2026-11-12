@@ -148,7 +148,9 @@ public sealed class LocalizationService
         // 3. Ações Rápidas do Launcher (Home & Game Details)
         // -------------------------------------------------------------
         Add("▶ JOGAR AGORA", "▶ PLAY NOW", "▶ JUGAR AHORA");
+        Add("Iniciar jogo instalado", "Launch installed game", "Iniciar juego instalado");
         Add("Checar conexão", "Check connection", "Chequear conexión");
+        Add("Avaliar rota e estabilidade pré-partida", "Evaluate pre-match route and stability", "Evaluar ruta y estabilidad pre-partida");
         Add("Favoritar jogo", "Favorite game", "Agregar a favoritos");
         Add("Remover favorito", "Remove favorite", "Quitar de favoritos");
         Add("FAVORITAR", "FAVORITE", "FAVORITO");

@@ -35,10 +35,10 @@
                 </Rectangle>
 
                 <!-- Botão Voltar -->
-                <Button Click="GoBack_Click" Style="{StaticResource SecondaryButtonStyle}"
+                <Button x:Name="BackBtn" Click="GoBack_Click" Style="{StaticResource SecondaryButtonStyle}"
                         HorizontalAlignment="Left" VerticalAlignment="Top"
                         Margin="40,24,0,0" Height="36" CornerRadius="18" Padding="14,0"
-                        ToolTipService.ToolTip="Voltar à tela anterior" automation:AutomationProperties.Name="Voltar">
+                        automation:AutomationProperties.Name="Voltar">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE72B;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                         <TextBlock x:Name="BackBtnText" Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>

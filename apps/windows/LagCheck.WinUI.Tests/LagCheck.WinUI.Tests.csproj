@@ -19,7 +19,9 @@
     <Compile Include="..\LagCheck.WinUI\Localization\AppLanguage.cs" Link="Localization\AppLanguage.cs" />
     <Compile Include="..\LagCheck.WinUI\Localization\LocalizationService.cs" Link="Localization\LocalizationService.cs" />
     <Compile Include="..\LagCheck.WinUI\Localization\Strings.cs" Link="Localization\Strings.cs" />
-    <Compile Include="..\LagCheck.WinUI\Diagnostic\Rules\*.cs" Link="Diagnostic\Rules\%(Filename)%(Extension)" />
+    <Compile Include="..\LagCheck.WinUI\Diagnostic\EngineProtocol.cs" Link="Diagnostic\EngineProtocol.cs" />
+    <Compile Include="..\LagCheck.WinUI\ShellNavigation.cs" Link="ShellNavigation.cs" />
+    <Compile Include="..\LagCheck.WinUI\NavigationRoute.cs" Link="NavigationRoute.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\AsyncCommand.cs" Link="Library\AsyncCommand.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\LibraryContracts.cs" Link="Library\LibraryContracts.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\LibraryViewModel.cs" Link="Library\LibraryViewModel.cs" />

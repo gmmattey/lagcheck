@@ -31,6 +31,7 @@ public sealed partial class GameDetailsPage : Page
     private void LocalizeUI()
     {
         BackBtnText.Text = Strings.Tr("Voltar");
+        ToolTipService.SetToolTip(BackBtn, Strings.Tr("Voltar à tela anterior"));
         LaunchBtn.Content = Strings.Tr("▶ JOGAR AGORA");
         CheckConnBtn.Content = Strings.Tr("Checar conexão");
         ToolTipService.SetToolTip(FavBtn, Strings.Tr("Favoritar jogo"));

@@ -3,7 +3,7 @@
 > **Posicionamento do Produto:** O **LagCheck para Windows é um launcher gamer com cockpit de telemetria integrado**. Ele centraliza e inicia os jogos de PC instalados e avalia a rota e estabilidade da conexão antes do jogador entrar na partida.
 > **Status:** Especificação de design desktop canônica para Windows (Decisões 114 a 120 de `docs/DECISOES.md`).
 > **Referência Visual Canônica 1:1:** Protótipo `LagCheck Windows v2.dc.html` (Design Canvas), tokens canônicos (`Theme.xaml`) e regras de produto do LagCheck.
-> **Plataforma alvo:** WinUI 3 / Windows App SDK (`apps/windows/LagCheck.WinUI/`) sobre motor de diagnóstico real sem mock (`WebSpeedtestEngine` e integração com `ILibraryBridge`).
+> **Plataforma alvo:** WinUI 3 / Windows App SDK (`apps/windows/LagCheck.WinUI/`) sobre motor de diagnóstico compartilhado Kotlin via NDJSON local (`DiagnosticEngineClient` e `ILibraryBridge`, Decisão 119).
 
 ---
 
@@ -15,7 +15,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 2. **Sem catálogo próprio:** O LagCheck para Windows exibe única e exclusivamente os títulos instalados no PC do usuário (Steam, Epic Games, Xbox / PC Game Pass ou executáveis locais). As opções de medição são: testar a conexão contextual ao jogo instalado ou fazer um Check Geral de referência sem jogo selecionado.
 3. **Regra do Discord:** Toda informação de rede deve ser traduzível para uma frase curta falada na chamada de voz (*"Minha rota tá lisa hoje, vou jogar tranquilo"*).
 4. **Cockpit em vez de vitrine:** Sem notícias, sem promoções, sem banners comerciais e sem textos didáticos de IA. O palco é 100% focado nos jogos instalados do usuário e no play rápido.
-5. **Rigorosamente sem mock:** Medições de rede executam testes determinísticos reais HTTPS contra datacenters mundiais e Cloudflare speed. A biblioteca reflete os jogos reais instalados na máquina.
+5. **Rigorosamente sem mock:** Medições de rede executam testes determinísticos reais através do motor compartilhado do produto (UDP, sem fallbacks HTTP artificiais, Decisão 119). A biblioteca reflete os jogos reais instalados na máquina.
 
 ---
 

@@ -165,7 +165,7 @@ internal class EngineHost(
                     terminalEmitted.set(true)
                     emitError(sessionId = validSessionId, code = "INCONCLUSIVE", message = "Medição inconclusiva")
                 } else {
-                    history += result.history(validSessionId)
+                    history += result.history(validSessionId, telemetry.gameId)
                     trackOnce(telemetry) { ProductAnalyticsEvent.LagcheckCompleted(telemetry.gameId, "pc", "unknown", result.regionId, result.verdict, telemetry.durationSeconds()) }
                     clearActive(validSessionId)
                     terminalEmitted.set(true)
@@ -430,14 +430,16 @@ private data class EngineResult(private val check: com.lagcheck.session.CheckRes
         target.put("latencySeries", buildJsonArray { check.latencySeries.forEach { add(JsonPrimitive(it)) } })
     }
 
-    fun history(sessionId: String): JsonObject = buildJsonObject {
+    fun history(sessionId: String, gameId: String? = null): JsonObject = buildJsonObject {
         put("sessionId", sessionId)
+        if (!gameId.isNullOrBlank()) put("gameId", gameId)
         put("verdict", check.assessment.verdict.rawValue)
         check.assessment.score?.let { put("score", it) }
         check.assessment.pingMs?.let { put("pingMs", it) }
         check.assessment.jitterMs?.let { put("jitterMs", it) }
         check.assessment.packetLossPercentage?.let { put("packetLossPercentage", it) }
         put("regionId", check.context.regionId)
+        put("profileId", check.context.profileId.rawValue)
         put("loadMeasured", check.loadMeasured)
     }
 }

@@ -41,10 +41,11 @@ public sealed record DiagnosticResult(
     string? AbortReason,
     IReadOnlyList<double> LatencySeries,
     double? LoadDeltaMs = null,
-    string? LoadTier = null);
+    string? LoadTier = null,
+    string? GameId = null);
 
 public sealed record EngineCatalogGame(string Id, string Name, string? ArtworkResource, string? RegionId, string? RegionLabel);
-public sealed record EngineHistoryEntry(string SessionId, string? Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, string? ProfileId);
+public sealed record EngineHistoryEntry(string SessionId, string? Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, string? ProfileId, string? GameId = null);
 public sealed record EngineSettings(bool ReduceMotion, bool ArtworkDownloadEnabled, bool ApproximateLocationEnabled, bool AnalyticsEnabled, bool AutomaticUpdates);
 public sealed record EngineUpdateStatus(bool Configured, long? LastCheckedEpochMs, string State, string? Version);
 public sealed record ApproximateLocation(bool Enabled, string? City, string? Country, double? Latitude, double? Longitude)
@@ -74,6 +75,8 @@ internal sealed class EngineWireMessage
     public string? Phase { get; init; }
     public double? Ratio { get; init; }
     public double? LatestPingMs { get; init; }
+    public double? LiveJitterMs { get; init; }
+    public double? LiveLoadDeltaMs { get; init; }
     public string? Status { get; init; }
     public string? Verdict { get; init; }
     public int? Score { get; init; }
@@ -82,6 +85,8 @@ internal sealed class EngineWireMessage
     public double? PacketLossPercentage { get; init; }
     public double? WorstSpikeMs { get; init; }
     public bool LoadMeasured { get; init; }
+    public double? LoadDeltaMs { get; init; }
+    public string? LoadTier { get; init; }
     public string? RegionId { get; init; }
     public string? ProfileId { get; init; }
     public string? AbortReason { get; init; }

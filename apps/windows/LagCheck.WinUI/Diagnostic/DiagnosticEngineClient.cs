@@ -25,6 +25,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
     private TaskCompletionSource<EngineHello>? _hello;
     private TaskCompletionSource<DiagnosticResult>? _activeResult;
     private string? _activeSessionId;
+    private string? _activeGameId;
     private bool _disposed;
 
     public DiagnosticEngineClient(string? hostPath = null)
@@ -99,6 +100,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
                 throw new DiagnosticEngineException("SESSION_ACTIVE", "Já existe uma medição em andamento.");
             }
             _activeSessionId = sessionId;
+            _activeGameId = gameId;
             _activeResult = completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
         }
         SessionActivityChanged?.Invoke(this, true);
@@ -235,7 +237,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
         var response = await RequestAsync("history.snapshot", null, cancellationToken).ConfigureAwait(false);
         return Array(response.Entries).Select(entry => new EngineHistoryEntry(
             String(entry, "sessionId") ?? string.Empty, String(entry, "verdict"), Number(entry, "pingMs"), Number(entry, "jitterMs"),
-            Number(entry, "packetLossPercentage"), String(entry, "regionId"), String(entry, "profileId"))).ToArray();
+            Number(entry, "packetLossPercentage"), String(entry, "regionId"), String(entry, "profileId"), String(entry, "gameId"))).ToArray();
     }
 
     public Task<IReadOnlyList<EngineHistoryEntry>> GetSessionHistoryAsync(CancellationToken cancellationToken = default) => GetHistorySnapshotAsync(cancellationToken);
@@ -381,12 +383,12 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
                 _hello?.TrySetResult(new EngineHello(message.Protocol ?? string.Empty, message.Engine ?? string.Empty));
                 break;
             case "progress" when message.SessionId is not null:
-                ProgressChanged?.Invoke(this, new DiagnosticProgress(message.SessionId, message.Phase ?? "rest", message.Ratio ?? 0, message.LatestPingMs));
+                ProgressChanged?.Invoke(this, new DiagnosticProgress(message.SessionId, message.Phase ?? "rest", message.Ratio ?? 0, message.LatestPingMs, message.LiveJitterMs, message.LiveLoadDeltaMs));
                 break;
             case "result" when message.SessionId is not null:
                 var result = new DiagnosticResult(message.SessionId, message.Status ?? "completed", message.Verdict, message.Score,
                     message.PingMs, message.JitterMs, message.PacketLossPercentage, message.WorstSpikeMs, message.LoadMeasured,
-                    message.RegionId, message.ProfileId, message.AbortReason, message.LatencySeries ?? []);
+                    message.RegionId, message.ProfileId, message.AbortReason, message.LatencySeries ?? [], message.LoadDeltaMs, message.LoadTier);
                 CompleteSession(result);
                 break;
             case "error":
@@ -407,16 +409,20 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
     private void CompleteSession(DiagnosticResult result)
     {
         TaskCompletionSource<DiagnosticResult>? completion = null;
+        string? gameId = null;
         lock (_gate)
         {
             if (_activeSessionId != result.SessionId) return;
             completion = _activeResult;
+            gameId = _activeGameId;
             _activeResult = null;
             _activeSessionId = null;
+            _activeGameId = null;
         }
-        completion?.TrySetResult(result);
+        var finalResult = result.GameId is null && gameId is not null ? result with { GameId = gameId } : result;
+        completion?.TrySetResult(finalResult);
         SessionActivityChanged?.Invoke(this, false);
-        ResultReceived?.Invoke(this, result);
+        ResultReceived?.Invoke(this, finalResult);
     }
 
     private void Fault(DiagnosticEngineException error)

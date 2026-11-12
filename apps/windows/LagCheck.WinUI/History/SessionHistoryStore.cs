@@ -26,8 +26,8 @@ public sealed class SessionHistoryStore
         _dispatcher?.TryEnqueue(() =>
         {
             Entries.Clear();
-            foreach (var entry in entries)
-                Entries.Add(new SessionHistoryEntry(entry.SessionId, entry.Verdict ?? Strings.Tr("— INCONCLUSIVO"), entry.PingMs, entry.JitterMs, entry.PacketLossPercentage, entry.RegionId, DateTimeOffset.Now));
+            foreach (var entry in entries.Reverse())
+                Entries.Add(new SessionHistoryEntry(entry.SessionId, entry.Verdict ?? Strings.Tr("— INCONCLUSIVO"), entry.PingMs, entry.JitterMs, entry.PacketLossPercentage, entry.RegionId, DateTimeOffset.Now, entry.GameId ?? entry.ProfileId));
         });
     }
 
@@ -43,12 +43,12 @@ public sealed class SessionHistoryStore
         _dispatcher?.TryEnqueue(() =>
         {
             if (Entries.Any(entry => entry.SessionId == result.SessionId)) return;
-            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? Strings.Tr("— INCONCLUSIVO"), result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now));
+            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? Strings.Tr("— INCONCLUSIVO"), result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now, result.GameId ?? result.ProfileId));
         });
     }
 }
 
-public sealed record SessionHistoryEntry(string SessionId, string Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, DateTimeOffset CapturedAt)
+public sealed record SessionHistoryEntry(string SessionId, string Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, DateTimeOffset CapturedAt, string? GameId = null)
 {
     public string PingLabel => PingMs is { } value ? $"{value:0.#} ms" : "—";
     public string JitterLabel => JitterMs is { } value ? $"{value:0.#} ms" : "—";

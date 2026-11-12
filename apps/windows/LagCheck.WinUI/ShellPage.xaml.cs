@@ -19,7 +19,7 @@ public sealed partial class ShellPage : Page
     public ShellPage()
     {
         InitializeComponent();
-        ShellNavigation.Configure(NavigateToDiagnostic);
+        ShellNavigation.Configure(NavigateToDiagnostic, Navigate);
         UpdateSidebarVisualState();
         LocalizeUI();
         Navigate(NavigationRoute.Home);

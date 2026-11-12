@@ -68,15 +68,15 @@
                                Foreground="{StaticResource TextPrimaryBrush}"
                                TextWrapping="Wrap" />
 
-                    <!-- Tag de Veredito Pré-Partida / Conexão -->
-                    <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" Margin="0,2,0,0">
-                        <Border Background="#2522C55E" CornerRadius="14" Padding="16,7">
+                    <!-- Tag de Veredito Pré-Partida / Conexão (exibida apenas quando houver medição real) -->
+                    <StackPanel x:Name="HeroVerdictPanel" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" Margin="0,2,0,0" Visibility="Collapsed">
+                        <Border x:Name="VerdictBorder" Background="#2522C55E" CornerRadius="14" Padding="16,7">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Ellipse Width="7" Height="7" Fill="{StaticResource ReadyBrush}" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="VerdictText" Text="● PRONTO PARA RANKED" Foreground="{StaticResource ReadyBrush}" FontWeight="Bold" FontSize="13" />
+                                <Ellipse x:Name="VerdictDot" Width="7" Height="7" Fill="{StaticResource ReadyBrush}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="VerdictText" Foreground="{StaticResource ReadyBrush}" FontWeight="Bold" FontSize="13" />
                             </StackPanel>
                         </Border>
-                        <TextBlock x:Name="PingEstimateText" Text="12 ms" FontFamily="{StaticResource MetricFont}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="PingEstimateText" FontFamily="{StaticResource MetricFont}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <!-- Ações Principais do Jogo -->
