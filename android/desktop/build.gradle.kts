@@ -63,6 +63,11 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.lagcheck.desktop.MainKt"
+        // Evita a alteração intermitente de cores observada com Direct3D no Windows,
+        // preservando aceleração pela GPU. Skiko tenta os backends compatíveis se falhar.
+        if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+            jvmArgs("-Dskiko.renderApi=OPENGL")
+        }
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
             // O runtime enxuto (jlink) não inclui o cliente HTTP por padrão: sem este módulo

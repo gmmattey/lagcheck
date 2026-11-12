@@ -18,7 +18,7 @@ Os tokens vivem em [colors_and_type.css](colors_and_type.css). A origem declara 
 - Corpo: `--lc-font-body`, nativa Apple, para leitura e controles.
 - Técnica: `--lc-font-mono`, para rota, métricas, tempo e contexto de rede.
 
-As pilhas abaixo valem para o iOS e para os protótipos HTML. Android usa Google Sans Flex; Windows passa a ter como alvo Barlow / Barlow Semi Condensed / Chakra Petch, conforme o site (veja Plataformas e `tokens/typography.json`). A troca no Windows só estará concluída quando os arquivos de fonte forem empacotados e a renderização validada. As pilhas são observadas diretamente nos protótipos: `ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif`; `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`; e `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Títulos de produto trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar mono para parágrafos.
+As pilhas abaixo valem para o iOS e para os protótipos HTML. Android usa Google Sans Flex; Windows empacota Barlow, Barlow Semi Condensed e Chakra Petch, conforme o site (veja Plataformas e `tokens/typography.json`). As fontes Windows e suas licenças OFL ficam em `android/desktop/src/main/resources/fonts/`. As pilhas são observadas diretamente nos protótipos: `ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif`; `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`; e `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Títulos de produto trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar mono para parágrafos.
 
 
 ### Tipografia do site (Web)
@@ -78,7 +78,7 @@ O sistema vale para iOS, Android e Windows (prévia). Os valores de referência 
 | --- | --- | --- | --- |
 | Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
 | Cores, espaçamento, raio | Tokens completos (`NLColor`, `NLSpacing`, `NLRadius`) | `LagCheckColors`, `LagCheckSpacing`, `LagCheckRadius` | Tokens próprios |
-| Fonte | SF arredondada, SF e SF mono | Google Sans Flex em tudo, números tabulares (Decisão 80) | Alvo: Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas); código ainda usa Google Sans Flex e mono |
+| Fonte | SF arredondada, SF e SF mono | Google Sans Flex em tudo, números tabulares (Decisão 80) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas), com fontes empacotadas |
 | Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
 | Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
 

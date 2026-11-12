@@ -144,6 +144,24 @@ class LibraryRepositoryTest {
     }
 
     @Test
+    fun recentesMostraSomenteInstaladosEOrdenaPelaUltimaAtividadeConfiavel() {
+        withDir { dir ->
+            val cs2 = TestGames.cs2.copy(lastPlayedEpochMs = 100)
+            val cities = TestGames.cities.copy(lastPlayedEpochMs = 200)
+            val fallGuys = TestGames.fallGuys.copy(lastPlayedEpochMs = 300)
+            val r = repo(dir, listOf(
+                FakeScanner(listOf(cs2, cities)),
+                FakeScanner(listOf(fallGuys), platform = GamePlatform.EPIC_GAMES),
+            ), clock = { 400 })
+            r.scan()
+            r.launch(r.games.first { it.id == cs2.id })
+
+            r.filter = LibraryFilter.RECENT
+            assertEquals(listOf(cs2.id, fallGuys.id, cities.id), r.filteredGames.map { it.id })
+        }
+    }
+
+    @Test
     fun jogoDesinstaladoContinuaConhecidoENaoAbre() {
         withDir { dir ->
             val scanner = MutableScanner(ScanResult.Found(listOf(TestGames.cs2, TestGames.cities)))

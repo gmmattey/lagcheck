@@ -2,8 +2,16 @@ package com.lagcheck.desktop.ui.library
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -14,10 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lagcheck.desktop.ds.LcColor
+import com.lagcheck.desktop.ds.LcRadius
 import com.lagcheck.desktop.ds.LcType
 import com.lagcheck.desktop.library.artwork.ArtworkResult
 import com.lagcheck.desktop.library.artwork.ArtworkType
@@ -82,21 +91,49 @@ fun GameArtwork(
     when (val s = state) {
         is ArtworkState.Loaded -> Image(s.bitmap, game.title, modifier, alignment = alignment, contentScale = ContentScale.Crop)
         ArtworkState.Loading -> Box(modifier.background(LcColor.Panel))
-        ArtworkState.Missing -> NeutralArtwork(game.title, modifier)
+        ArtworkState.Missing -> NeutralArtwork(game.title, type, modifier)
     }
 }
 
-/** Miniatura neutra do LagCheck: o nome do jogo sobre a superfície padrão. */
+/**
+ * Fallback local quando a loja não fornece arte. Mantém a identificação do jogo legível
+ * sem simular uma capa oficial nem depender de download.
+ */
 @Composable
-fun NeutralArtwork(title: String, modifier: Modifier = Modifier) {
-    Box(modifier.background(LcColor.Panel).padding(12.dp), contentAlignment = Alignment.Center) {
-        Text(
-            text = title,
-            style = LcType.BodyStrong,
-            color = LcColor.TextSecondary,
-            textAlign = TextAlign.Center,
-            maxLines = 4,
-            overflow = TextOverflow.Ellipsis,
-        )
+fun NeutralArtwork(title: String, type: ArtworkType, modifier: Modifier = Modifier) {
+    val isHero = type == ArtworkType.HERO
+    Box(
+        modifier
+            .background(LcColor.Panel)
+            .border(1.dp, LcColor.BorderHairline, RoundedCornerShape(LcRadius.r8))
+            .padding(if (isHero) 28.dp else 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row {
+            Box(
+                Modifier
+                    .width(3.dp)
+                    .height(if (isHero) 76.dp else 52.dp)
+                    .background(LcColor.Accent)
+            )
+            Spacer(Modifier.width(if (isHero) 16.dp else 12.dp))
+            Column(Modifier.widthIn(max = if (isHero) 420.dp else 150.dp)) {
+                Text(
+                    text = "SEM CAPA",
+                    style = LcType.Section,
+                    color = LcColor.TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = title,
+                    style = if (isHero) LcType.PageTitle else LcType.BodyStrong.copy(fontWeight = FontWeight.Bold),
+                    color = LcColor.TextPrimary,
+                    maxLines = if (isHero) 2 else 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }

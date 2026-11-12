@@ -136,7 +136,7 @@ class LibraryCoreTest {
 
             val r = SteamScanner(dir).scan() as ScanResult.Found
             assertEquals(listOf("steam_730"), r.games.map { it.id })
-            assertEquals(listOf("/disco/externo/desconectado"), r.unreachableRoots) // "730 123456789" não vira pasta
+            assertEquals(listOf(File("/disco/externo/desconectado").path), r.unreachableRoots) // "730 123456789" não vira pasta
             assertEquals(setOf("steam_999"), r.unreadableIds) // ferramenta filtrada de propósito não conta
         } finally { dir.deleteRecursively() }
     }

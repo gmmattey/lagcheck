@@ -3,22 +3,33 @@ package com.lagcheck.desktop.ui.library
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.desktop.AppState
 import com.lagcheck.desktop.ds.*
 import com.lagcheck.desktop.library.repository.LibraryFilter
+import com.lagcheck.desktop.ui.SearchField
 
 /**
  * Uma única rolagem virtualizada para a Home. Não existe paginação de 40 jogos.
@@ -67,28 +78,51 @@ fun LibraryView(
                 }
             } else {
                 item(key = "filters") {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SearchField(
+                            value = repo.searchQuery,
+                            onChange = { repo.searchQuery = it },
+                            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Buscar na biblioteca" },
+                            placeholder = "Buscar na biblioteca"
+                        )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                             LibraryFilter.values().forEach { filter ->
                                 val active = repo.filter == filter
+                                val interaction = remember(filter) { MutableInteractionSource() }
+                                val focused by interaction.collectIsFocusedAsState()
                                 Box(
                                     Modifier
                                         .clip(RoundedCornerShape(LcRadius.pill))
                                         .background(if (active) LcColor.Accent else LcColor.Surface)
-                                        .border(1.dp, if (active) LcColor.AccentLight else LcColor.BorderHairline, RoundedCornerShape(LcRadius.pill))
-                                        .clickable { repo.filter = filter }
-                                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                                        .border(
+                                            if (focused) LcSize.focusRing else 1.dp,
+                                            if (focused) LcColor.AccentLight else if (active) LcColor.AccentLight else LcColor.BorderHairline,
+                                            RoundedCornerShape(LcRadius.pill)
+                                        )
+                                        .semantics(mergeDescendants = true) {
+                                            contentDescription = "Filtro ${filter.label}"
+                                            stateDescription = if (active) "Selecionado" else "Não selecionado"
+                                        }
+                                        .clickable(interactionSource = interaction, indication = null, role = Role.Tab) { repo.filter = filter }
+                                        .heightIn(min = 40.dp)
+                                        .padding(horizontal = 14.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Text(filter.label.uppercase(), style = LcType.Section.copy(fontSize = 11.sp),
                                         color = if (active) Color.White else LcColor.TextSecondary)
                                 }
                             }
                         }
-                        Text("${games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+                            Text("${games.size} JOGOS", style = LcType.Section, color = LcColor.TextTertiary)
+                        }
                     }
                 }
                 if (games.isEmpty()) {
@@ -99,7 +133,7 @@ fun LibraryView(
                                 .background(LcColor.Surface),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Nenhum jogo corresponde ao filtro.", style = LcType.Body, color = LcColor.TextSecondary)
+                            Text("Nenhum jogo corresponde à busca ou ao filtro.", style = LcType.Body, color = LcColor.TextSecondary)
                         }
                     }
                 } else {

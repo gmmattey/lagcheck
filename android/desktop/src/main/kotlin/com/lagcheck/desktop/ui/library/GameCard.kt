@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,6 +40,7 @@ fun GameCard(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val isHovered by interaction.collectIsHoveredAsState()
+    val isFocused by interaction.collectIsFocusedAsState()
 
     val borderColor = when {
         isSelected -> LcColor.Accent
@@ -53,8 +58,15 @@ fun GameCard(
         modifier = modifier
             .clip(RoundedCornerShape(LcRadius.r13))
             .background(bgColor)
-            .border(if (isSelected) 2.dp else 1.dp, borderColor, RoundedCornerShape(LcRadius.r13))
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .border(
+                if (isFocused) LcSize.focusRing else if (isSelected) 2.dp else 1.dp,
+                if (isFocused) LcColor.AccentLight else borderColor,
+                RoundedCornerShape(LcRadius.r13)
+            )
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${game.title}, ${if (game.isInstalled) "instalado" else "não instalado"}${if (game.isFavorite) ", favorito" else ""}"
+            }
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
             .padding(12.dp)
     ) {
         Column(Modifier.fillMaxWidth()) {

@@ -34,6 +34,11 @@ release/
 !android/app/src/release/google-services.json
 .maestri/
 
+# Windows build outputs
+windows/**/bin/
+windows/**/obj/
+windows/artifacts/
+
 # Segredos e credenciais: nunca versionar (repositório público)
 .env
 .env.*
