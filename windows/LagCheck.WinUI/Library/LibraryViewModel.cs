@@ -75,7 +75,9 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
         LibraryFilter.Recent => "RECENTES",
         LibraryFilter.Favorites => "FAVORITOS",
         LibraryFilter.Steam => "STEAM",
-        _ => "EPIC GAMES",
+        LibraryFilter.Epic => "EPIC GAMES",
+        LibraryFilter.Xbox => "XBOX",
+        _ => "TODOS",
     };
 
     public LibraryGame? HeroGame { get => _heroGame; private set => Set(ref _heroGame, value); }
@@ -237,6 +239,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
         LibraryFilter.Favorites => game.IsFavorite,
         LibraryFilter.Steam => game.Platform == GamePlatform.Steam,
         LibraryFilter.Epic => game.Platform == GamePlatform.EpicGames,
+        LibraryFilter.Xbox => game.Platform == GamePlatform.Xbox,
         _ => true,
     };
 

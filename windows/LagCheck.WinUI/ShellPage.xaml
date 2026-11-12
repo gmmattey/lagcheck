@@ -1,31 +1,72 @@
 <Page x:Class="LagCheck.WinUI.ShellPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:automation="using:Microsoft.UI.Xaml.Automation">
   <Grid Background="{StaticResource DeepBrush}">
-    <Grid.ColumnDefinitions><ColumnDefinition Width="228"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="236"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    
+    <!-- Sidebar de Navegação (windows/DESIGN.md § 6) -->
     <Grid Grid.Column="0" Background="{StaticResource StageBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
-      <Grid.RowDefinitions><RowDefinition Height="104"/><RowDefinition Height="*"/><RowDefinition Height="108"/></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="104"/><RowDefinition Height="*"/><RowDefinition Height="96"/></Grid.RowDefinitions>
+      
+      <!-- Cabeçalho da Marca -->
       <StackPanel Padding="24,28,20,0">
         <Image Source="ms-appx:///Assets/wordmark-primary.svg" Height="20" HorizontalAlignment="Left" automation:AutomationProperties.Name="LagCheck" />
-        <TextBlock Text="WINDOWS" Style="{StaticResource EyebrowTextStyle}" Margin="0,8,0,0" />
+        <TextBlock Text="WINDOWS LAUNCHER" Style="{StaticResource EyebrowTextStyle}" Margin="0,8,0,0" />
       </StackPanel>
-      <StackPanel Grid.Row="1" Padding="0,18,0,0">
-        <Button x:Name="LibraryButton" Style="{StaticResource NavButtonStyle}" Click="Library_Click"><StackPanel Orientation="Horizontal"><SymbolIcon Symbol="Home" Margin="0,0,9,0"/><TextBlock Text="Biblioteca"/></StackPanel></Button>
-        <Button x:Name="CatalogButton" Style="{StaticResource NavButtonStyle}" Click="Catalog_Click"><StackPanel Orientation="Horizontal"><SymbolIcon Symbol="AllApps" Margin="0,0,9,0"/><TextBlock Text="Catálogo"/></StackPanel></Button>
-        <Button x:Name="HistoryButton" Style="{StaticResource NavButtonStyle}" Click="History_Click"><StackPanel Orientation="Horizontal"><SymbolIcon Symbol="Clock" Margin="0,0,9,0"/><TextBlock Text="Histórico"/></StackPanel></Button>
-        <Button x:Name="SettingsButton" Style="{StaticResource NavButtonStyle}" Click="Settings_Click"><StackPanel Orientation="Horizontal"><SymbolIcon Symbol="Setting" Margin="0,0,9,0"/><TextBlock Text="Ajustes"/></StackPanel></Button>
+      
+      <!-- Destinos Fixos -->
+      <StackPanel Grid.Row="1" Padding="12,18,12,0">
+        <Button x:Name="LibraryButton" Style="{StaticResource NavButtonStyle}" Click="Library_Click">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <SymbolIcon Symbol="Home" />
+            <TextBlock Text="Biblioteca" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="CatalogButton" Style="{StaticResource NavButtonStyle}" Click="Catalog_Click">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <SymbolIcon Symbol="AllApps" />
+            <TextBlock Text="Catálogo" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="HistoryButton" Style="{StaticResource NavButtonStyle}" Click="History_Click">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <SymbolIcon Symbol="Clock" />
+            <TextBlock Text="Histórico" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Button>
+        <Button x:Name="SettingsButton" Style="{StaticResource NavButtonStyle}" Click="Settings_Click">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <SymbolIcon Symbol="Setting" />
+            <TextBlock Text="Ajustes" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Button>
       </StackPanel>
-      <StackPanel Grid.Row="2" Padding="16,14" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
-        <TextBlock Text="ANTES DE ENTRAR NA FILA." FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="14"/>
-        <TextBlock Text="Um check. Uma decisão mais clara." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0"/>
+      
+      <!-- Rodapé: Interface de Rede e Versão do Build (DESIGN.md § 6) -->
+      <StackPanel Grid.Row="2" Padding="20,16" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" VerticalAlignment="Center" Spacing="6">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Ellipse Width="8" Height="8" Fill="{StaticResource ReadyBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="REDE ATIVA · ETHERNET" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource ReadyBrush}"/>
+        </StackPanel>
+        <TextBlock Text="BUILD v0.1.0 · WINUI 3" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextTertiaryBrush}"/>
       </StackPanel>
     </Grid>
+    
+    <!-- Palco Principal -->
     <Grid Grid.Column="1">
-      <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="70"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      
+      <!-- Barra Superior / Contexto -->
       <Grid Background="{StaticResource DeepBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="38,0">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="260"/></Grid.ColumnDefinitions>
-        <StackPanel VerticalAlignment="Center" Orientation="Horizontal"><TextBlock Text="LAGCHECK" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource PurpleLightBrush}"/><TextBlock Text="  /  " Style="{StaticResource EyebrowTextStyle}"/><TextBlock x:Name="RouteText" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}"/></StackPanel>
-        <TextBlock Grid.Column="1" Text="PRÉVIA WINDOWS" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="6">
+          <TextBlock Text="LAGCHECK" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource PurpleLightBrush}"/>
+          <TextBlock Text=" / " Style="{StaticResource EyebrowTextStyle}"/>
+          <TextBlock x:Name="RouteText" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}"/>
+        </StackPanel>
+        <TextBlock Grid.Column="1" Text="PRE-FLIGHT TELEMETRY" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
       </Grid>
-      <Frame x:Name="ContentFrame" Grid.Row="1" Padding="38,32" />
+      
+      <!-- Conteúdo da Página -->
+      <Frame x:Name="ContentFrame" Grid.Row="1" />
     </Grid>
   </Grid>
 </Page>

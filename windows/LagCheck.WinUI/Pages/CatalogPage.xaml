@@ -1,7 +1,52 @@
-<Page x:Class="LagCheck.WinUI.Pages.CatalogPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:automation="using:Microsoft.UI.Xaml.Automation">
-  <Grid RowSpacing="22"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-    <StackPanel><TextBlock Text="Catálogo" Style="{StaticResource PageTitleStyle}"/><TextBlock Text="Escolha um contexto de diagnóstico quando a fonte local estiver disponível." Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0"/></StackPanel>
+<Page x:Class="LagCheck.WinUI.Pages.CatalogPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+      Background="{StaticResource DeepBrush}">
+  <Grid RowSpacing="22" Padding="38,32,38,48">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    
+    <StackPanel Spacing="6">
+      <TextBlock Text="CATÁLOGO OFICIAL" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource EyebrowTextStyle}"/>
+      <TextBlock Text="Catálogo de Jogos" Style="{StaticResource PageTitleStyle}"/>
+      <TextBlock Text="Escolha um contexto de diagnóstico quando a fonte local estiver disponível." Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Margin="0,2,0,0"/>
+    </StackPanel>
+    
     <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar no catálogo" TextChanged="SearchBox_TextChanged" IsEnabled="False" />
-    <Grid Grid.Row="2"><ListView x:Name="CatalogList" SelectionMode="None" Visibility="Collapsed"><ListView.ItemTemplate><DataTemplate><Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="0,14"><Grid ColumnSpacing="14"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border Width="64" Height="64" Background="{StaticResource PanelBrush}" CornerRadius="8"><Image Source="{Binding ArtworkPath}" Stretch="UniformToFill"/></Border><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="{Binding Name}" FontFamily="{StaticResource HeadingFont}" FontSize="20" FontWeight="Bold"/><TextBlock Text="{Binding RegionLabel}" Style="{StaticResource EyebrowTextStyle}"/></StackPanel><Button Grid.Column="2" Content="TESTAR" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" Click="Test_Click" Tag="{Binding}" automation:AutomationProperties.Name="Testar contexto do jogo"/></Grid></Border></DataTemplate></ListView.ItemTemplate></ListView><StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460" Spacing="10"><TextBlock x:Name="EmptyTitle" Text="Catálogo indisponível" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" /><TextBlock x:Name="EmptyDetail" Text="O catálogo local ainda não respondeu. Esta tela não inventa jogos, endpoints ou compatibilidade." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center"/></StackPanel></Grid>
+    
+    <Grid Grid.Row="2">
+      <ListView x:Name="CatalogList" SelectionMode="None" Visibility="Collapsed">
+        <ListView.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="0,14">
+              <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="64"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="64" Height="64" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="8">
+                  <Image Source="{Binding ArtworkPath}" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                  <TextBlock Text="{Binding Name}" FontFamily="{StaticResource HeadingFont}" FontSize="20" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding RegionLabel}" Style="{StaticResource EyebrowTextStyle}"/>
+                </StackPanel>
+                <Button Grid.Column="2" Content="TESTAR" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" Click="Test_Click" Tag="{Binding}" automation:AutomationProperties.Name="Testar contexto do jogo"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ListView.ItemTemplate>
+      </ListView>
+      
+      <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="12">
+        <TextBlock x:Name="EmptyTitle" Text="Catálogo indisponível" Style="{StaticResource PageTitleStyle}" TextAlignment="Center" />
+        <TextBlock x:Name="EmptyDetail" Text="O catálogo local ainda não respondeu. Esta tela não inventa jogos, endpoints ou compatibilidade." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" TextAlignment="Center" FontSize="14"/>
+      </StackPanel>
+    </Grid>
   </Grid>
 </Page>

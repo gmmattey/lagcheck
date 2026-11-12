@@ -96,6 +96,7 @@ public enum LibraryFilter
     Favorites,
     Steam,
     Epic,
+    Xbox,
 }
 
 public sealed record LibrarySnapshot(

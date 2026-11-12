@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\design-system\assets\brand\wordmark-primary.svg" Link="Assets\wordmark-primary.svg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\design-system\prototypes\windows-premium\assets\lagcheck-mark.svg" Link="Assets\lagcheck-mark.svg" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\android\desktop\src\main\resources\fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\android\desktop\src\main\resources\fonts\licenses\*.txt" Link="Assets\Fonts\licenses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
