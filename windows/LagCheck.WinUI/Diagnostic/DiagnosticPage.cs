@@ -19,6 +19,9 @@ public sealed class DiagnosticPage : Page
     private static readonly SolidColorBrush TextBrush = Brush(0xF8, 0xFA, 0xFC);
     private static readonly SolidColorBrush MutedBrush = Brush(0xA8, 0xB3, 0xC7);
     private static readonly SolidColorBrush BorderBrush = Brush(0x3A, 0x43, 0x52);
+    private static readonly SolidColorBrush GoodBrush = Brush(0x22, 0xC5, 0x5E);
+    private static readonly SolidColorBrush CautionBrush = Brush(0xF5, 0x9E, 0x0B);
+    private static readonly SolidColorBrush WarningBrush = Brush(0xFF, 0x5A, 0x36);
 
     private readonly DiagnosticEngineClient _engine;
     private readonly bool _ownsEngine;
@@ -26,18 +29,18 @@ public sealed class DiagnosticPage : Page
     private readonly TextBlock _title = Title("Preparar medição");
     private readonly TextBlock _detail = Body("A medição usa uma rota de referência. O jogo não é iniciado por esta tela.");
     private readonly TextBlock _phase = Label("PRONTO", 12, MutedBrush);
-    private readonly ProgressBar _progress = new() { Minimum = 0, Maximum = 1, Value = 0, Height = 6, Foreground = PrimaryBrush, Background = PanelBrush };
+    private readonly ProgressBar _progress = new() { Minimum = 0, Maximum = 1, Value = 0, Height = 5, Foreground = PrimaryBrush, Background = PanelBrush };
     private readonly TextBlock _ping = Metric("—");
     private readonly TextBlock _jitter = Metric("—");
     private readonly TextBlock _loss = Metric("—");
     private readonly TextBlock _currentPing = Metric("—");
     private readonly TextBlock _currentJitter = Metric("—");
     private readonly TextBlock _currentLoss = Metric("—");
-    private readonly TextBlock _verdict = Title("—");
+    private readonly TextBlock _verdict = Verdict("—");
     private readonly TextBlock _resultDetail = Body("Ainda não há resultado.");
     private readonly Canvas _routeMap = new() { Width = 600, Height = 150, Background = PanelBrush };
     private readonly TextBlock _routeStatus = Body("Localização aproximada não carregada.");
-    private readonly Button _primary = new() { MinHeight = 44, Content = "INICIAR CHECK" };
+    private readonly Button _primary = new() { MinHeight = 56, Content = "INICIAR CHECK" };
     private readonly Button _cancel = new() { MinHeight = 44, Content = "CANCELAR", Visibility = Visibility.Collapsed };
     private readonly StackPanel _checkContent = new() { Spacing = 18 };
     private readonly StackPanel _resultContent = new() { Spacing = 16, Visibility = Visibility.Collapsed };
@@ -89,32 +92,28 @@ public sealed class DiagnosticPage : Page
         _checkContent.Children.Add(_progress);
         _checkContent.Children.Add(_primary);
         _checkContent.Children.Add(_cancel);
-        _checkContent.Children.Add(MetricRow("PING ATUAL", _currentPing));
-        _checkContent.Children.Add(MetricRow("JITTER", _currentJitter));
-        _checkContent.Children.Add(MetricRow("PERDA", _currentLoss));
-        _checkContent.Children.Add(new TextBlock { Text = "TRAJETO ESQUEMÁTICO", FontFamily = new FontFamily("Barlow Semi Condensed"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = MutedBrush, CharacterSpacing = 60 });
+        _checkContent.Children.Add(MetricStrip(("PING ATUAL", _currentPing), ("JITTER", _currentJitter), ("PERDA", _currentLoss)));
+        _checkContent.Children.Add(Label("TRAJETO DA MEDIÇÃO", 12, MutedBrush));
         _checkContent.Children.Add(new Border { Background = PanelBrush, BorderBrush = BorderBrush, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(8), Padding = new Thickness(8), Child = _routeMap });
         _checkContent.Children.Add(_routeStatus);
 
         _resultContent.Children.Add(Label("RESULTADO DA MEDIÇÃO", 12, MutedBrush));
         _resultContent.Children.Add(_verdict);
         _resultContent.Children.Add(_resultDetail);
-        _resultContent.Children.Add(MetricRow("PING", _ping));
-        _resultContent.Children.Add(MetricRow("JITTER", _jitter));
-        _resultContent.Children.Add(MetricRow("PERDA", _loss));
-        var again = new Button { MinHeight = 44, Content = "MEDIR NOVAMENTE" };
+        _resultContent.Children.Add(MetricStrip(("PING", _ping), ("JITTER", _jitter), ("PERDA DE PACOTES", _loss)));
+        var again = new Button { MinHeight = 56, Content = "MEDIR NOVAMENTE" };
         again.Click += (_, _) => ResetCheck();
         ApplyButtonStyle(again, PrimaryBrush, TextBrush);
         _resultContent.Children.Add(again);
 
-        var root = new Grid { MaxWidth = 700, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(32, 36, 32, 48) };
+        var root = new Grid { MaxWidth = 920, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(32, 36, 32, 48) };
         var panel = new Border
         {
             Background = SurfaceBrush,
             BorderBrush = BorderBrush,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
-            Padding = new Thickness(28),
+            Padding = new Thickness(32),
             Child = new Grid()
         };
         ((Grid)panel.Child).Children.Add(_checkContent);
@@ -216,16 +215,19 @@ public sealed class DiagnosticPage : Page
             || !string.IsNullOrWhiteSpace(result.AbortReason))
         {
             _verdict.Text = "— INCONCLUSIVO";
+            _verdict.Foreground = MutedBrush;
             _resultDetail.Text = "Não houve dados UDP suficientes. Nenhuma nota foi calculada.";
             return;
         }
-        _verdict.Text = result.Verdict.ToLowerInvariant() switch
+        var (label, color) = result.Verdict.ToLowerInvariant() switch
         {
-            "ready" => "● PRONTO PARA RANKED",
-            "caution" => "▲ CONDIÇÕES INSTÁVEIS",
-            "not_ready" => "▲ EU EVITARIA RANKED AGORA",
-            _ => "— INCONCLUSIVO",
+            "ready" => ("● PRONTO PARA RANKED", GoodBrush),
+            "caution" => ("▲ CONDIÇÕES INSTÁVEIS", CautionBrush),
+            "not_ready" => ("▲ EU EVITARIA RANKED AGORA", WarningBrush),
+            _ => ("— INCONCLUSIVO", MutedBrush),
         };
+        _verdict.Text = label;
+        _verdict.Foreground = color;
         _resultDetail.Text = result.LoadMeasured
             ? "Repouso e carga foram medidos pelo motor."
             : "O motor concluiu a medição sem fase de carga.";
@@ -245,6 +247,7 @@ public sealed class DiagnosticPage : Page
         _regionId = null;
         RenderRoute();
         _verdict.Text = "— INCONCLUSIVO";
+        _verdict.Foreground = MutedBrush;
         _resultDetail.Text = "Não houve respostas UDP suficientes. Nenhuma nota foi calculada.";
         _resultContent.Visibility = Visibility.Visible;
         _checkContent.Visibility = Visibility.Collapsed;
@@ -267,6 +270,7 @@ public sealed class DiagnosticPage : Page
         _phase.Text = "PRONTO";
         _progress.Value = 0;
         _ping.Text = _jitter.Text = _loss.Text = "—";
+        _verdict.Foreground = TextBrush;
         _currentPing.Text = _currentJitter.Text = _currentLoss.Text = "—";
         _regionId = null;
         RenderRoute();
@@ -322,6 +326,48 @@ public sealed class DiagnosticPage : Page
         if (_ownsEngine) await _engine.DisposeAsync();
     }
 
+    private static Grid MetricStrip(params (string Label, TextBlock Value)[] metrics)
+    {
+        var grid = new Grid();
+        for (var index = 0; index < metrics.Length; index++)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var (label, value) = metrics[index];
+            value.HorizontalAlignment = HorizontalAlignment.Left;
+            var metric = new Border
+            {
+                BorderBrush = BorderBrush,
+                BorderThickness = index == 0 ? new Thickness(0) : new Thickness(1, 0, 0, 0),
+                Padding = new Thickness(16, 14, 16, 14),
+                Child = new StackPanel
+                {
+                    Spacing = 5,
+                    Children =
+                    {
+                        Label(label, 11, MutedBrush),
+                        value
+                    }
+                }
+            };
+            Grid.SetColumn(metric, index);
+            grid.Children.Add(metric);
+        }
+        return new Grid
+        {
+            Children =
+            {
+                new Border
+                {
+                    Background = PanelBrush,
+                    BorderBrush = BorderBrush,
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(8),
+                    Child = grid
+                }
+            }
+        };
+    }
+
     private static Border MetricRow(string label, TextBlock value) => new Border
     {
         Background = PanelBrush,
@@ -348,6 +394,13 @@ public sealed class DiagnosticPage : Page
         FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Foreground = TextBrush, TextWrapping = TextWrapping.Wrap
     };
 
+    private static TextBlock Verdict(string text) => new()
+    {
+        Text = text, FontFamily = new FontFamily("Barlow Semi Condensed"), FontSize = 38,
+        FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Foreground = TextBrush, TextWrapping = TextWrapping.Wrap,
+        CharacterSpacing = -20
+    };
+
     private static TextBlock Body(string text) => new()
     {
         Text = text, FontFamily = new FontFamily("Barlow"), FontSize = 15, Foreground = MutedBrush, TextWrapping = TextWrapping.Wrap
@@ -355,8 +408,8 @@ public sealed class DiagnosticPage : Page
 
     private static TextBlock Metric(string text) => new()
     {
-        Text = text, FontFamily = new FontFamily("Chakra Petch"), FontSize = 18,
-        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = TextBrush, HorizontalAlignment = HorizontalAlignment.Right
+        Text = text, FontFamily = new FontFamily("Chakra Petch"), FontSize = 21,
+        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = TextBrush, TextTrimming = TextTrimming.CharacterEllipsis
     };
 
     private static void ApplyButtonStyle(Button button, Brush background, Brush foreground)

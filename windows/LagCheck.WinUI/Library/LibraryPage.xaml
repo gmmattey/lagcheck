@@ -31,6 +31,7 @@
             <Setter Property="MinHeight" Value="36" />
             <Setter Property="Padding" Value="14,0" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
         </Style>
         <Style x:Key="Eyebrow" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource TertiaryBrush}" />
@@ -43,15 +44,16 @@
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="20" Padding="38,32,38,40">
+        <StackPanel Spacing="24" Padding="38,36,38,48">
             <Grid ColumnSpacing="24">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Spacing="5">
-                    <TextBlock Text="ÁREA DE JOGO / BIBLIOTECA" Style="{StaticResource Eyebrow}" />
-                    <TextBlock Text="Seus jogos" Foreground="{StaticResource PrimaryBrush}" FontFamily="Barlow Semi Condensed" FontSize="32" FontWeight="ExtraBold" />
+                <StackPanel Spacing="6">
+                    <TextBlock Text="BIBLIOTECA DE JOGOS" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource Eyebrow}" />
+                    <TextBlock Text="Sua próxima partida começa aqui." Foreground="{StaticResource PrimaryBrush}" FontFamily="Barlow Semi Condensed" FontSize="36" FontWeight="ExtraBold" TextWrapping="Wrap" />
+                    <TextBlock Text="Escolha o jogo e confira a conexão antes de entrar na fila." Foreground="{StaticResource SecondaryBrush}" FontSize="15" TextWrapping="Wrap" />
                 </StackPanel>
                 <Button Grid.Column="1" Content="ATUALIZAR BIBLIOTECA" Style="{StaticResource LibrarySecondaryButton}"
                         Command="{Binding RefreshCommand}" automation:AutomationProperties.Name="Atualizar biblioteca de jogos" />
@@ -65,8 +67,9 @@
                     <ContentControl.ContentTemplate>
                         <DataTemplate x:DataType="local:LibraryGame">
                             <Grid>
-                                <Image Source="{Binding HeroArtworkPath}" Stretch="UniformToFill" Opacity="0.44" />
-                                <Rectangle Fill="#B3060709" />
+                                <Image Source="{Binding HeroArtworkPath}" Stretch="UniformToFill" Opacity="0.52" />
+                                <Rectangle Fill="#C3060709" />
+                                <Rectangle Fill="#1A7C3AED" />
                                 <Grid Padding="28" VerticalAlignment="Stretch">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -74,16 +77,17 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="EM DESTAQUE" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource Eyebrow}" />
                                         <TextBlock Text="{Binding PlatformLabel}" Foreground="{StaticResource SecondaryBrush}" Style="{StaticResource Eyebrow}" />
                                         <TextBlock Text="{Binding DiagnosticLabel}" Foreground="#22C55E" Style="{StaticResource Eyebrow}" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="8">
                                         <TextBlock Text="{Binding Title}" Foreground="{StaticResource PrimaryBrush}" FontFamily="Barlow Semi Condensed" FontSize="38" FontWeight="ExtraBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{Binding NetworkLabel}" Foreground="{StaticResource SecondaryBrush}" FontSize="15" TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding AvailabilityLabel}" Foreground="{StaticResource TertiaryBrush}" Style="{StaticResource Eyebrow}" />
+                                        <TextBlock Text="{Binding AvailabilityLabel}" Foreground="{StaticResource SecondaryBrush}" Style="{StaticResource Eyebrow}" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10">
-                                        <Button Content="JOGAR" Background="{StaticResource PurpleBrush}" Foreground="White" MinHeight="48" Padding="24,0" CornerRadius="10"
+                                        <Button Content="JOGAR" Background="{StaticResource PurpleBrush}" Foreground="White" MinHeight="56" Padding="26,0" CornerRadius="12"
                                                 Command="{Binding DataContext.LaunchCommand, ElementName=Root}" CommandParameter="{Binding}"
                                                 automation:AutomationProperties.Name="Jogar" />
                                         <Button Content="TESTAR CONEXÃO" Style="{StaticResource LibrarySecondaryButton}"
@@ -105,18 +109,21 @@
             </Border>
 
             <StackPanel x:Name="LibraryControls" Spacing="14">
+                <TextBlock Text="ENCONTRE SUA PARTIDA" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource Eyebrow}" />
                 <TextBox x:Name="SearchBox" PlaceholderText="Buscar na biblioteca" TextChanged="SearchBox_TextChanged"
                          Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource PrimaryBrush}" BorderBrush="{StaticResource LineBrush}"
                          MinHeight="46" Padding="14,0" automation:AutomationProperties.Name="Buscar na biblioteca" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="TODOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="All" />
-                    <Button Content="INSTALADOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Installed" />
-                    <Button Content="RECENTES" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Recent" />
-                    <Button Content="FAVORITOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Favorites" />
-                    <Button Content="STEAM" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Steam" />
-                    <Button Content="EPIC GAMES" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Epic" />
-                    <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource TertiaryBrush}" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" Margin="12,0,0,0" />
-                </StackPanel>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="TODOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="All" />
+                        <Button Content="INSTALADOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Installed" />
+                        <Button Content="RECENTES" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Recent" />
+                        <Button Content="FAVORITOS" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Favorites" />
+                        <Button Content="STEAM" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Steam" />
+                        <Button Content="EPIC GAMES" Style="{StaticResource LibraryFilterButton}" Command="{Binding SelectFilterCommand}" CommandParameter="Epic" />
+                        <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource SecondaryBrush}" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
             </StackPanel>
 
             <Border x:Name="EmptyState" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="13" Padding="28" Visibility="Collapsed">
@@ -141,8 +148,8 @@
                                 Command="{Binding DataContext.SelectGameCommand, ElementName=Root}" CommandParameter="{Binding}"
                                 automation:AutomationProperties.Name="{Binding Title}">
                             <Grid Height="286">
-                                <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" Opacity="0.80" />
-                                <Grid VerticalAlignment="Bottom" Padding="14" Background="#D915181E">
+                                <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" Opacity="0.88" />
+                                <Grid VerticalAlignment="Bottom" Padding="16" Background="#E315181E">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
@@ -150,7 +157,7 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="{Binding Title}" Foreground="{StaticResource PrimaryBrush}" FontFamily="Barlow Semi Condensed" FontWeight="Bold" FontSize="20" TextWrapping="Wrap" MaxLines="2" />
                                     <TextBlock Grid.Row="1" Text="{Binding AvailabilityLabel}" Foreground="{StaticResource SecondaryBrush}" Style="{StaticResource Eyebrow}" Margin="0,5,0,0" />
-                                    <TextBlock Grid.Row="2" Text="{Binding DiagnosticLabel}" Foreground="{StaticResource TertiaryBrush}" Style="{StaticResource Eyebrow}" Margin="0,4,0,0" />
+                                    <TextBlock Grid.Row="2" Text="{Binding DiagnosticLabel}" Foreground="{StaticResource PurpleLightBrush}" Style="{StaticResource Eyebrow}" Margin="0,4,0,0" />
                                 </Grid>
                             </Grid>
                         </Button>

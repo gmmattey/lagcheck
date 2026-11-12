@@ -20,10 +20,10 @@
     </Grid>
     <Grid Grid.Column="1">
       <Grid.RowDefinitions><RowDefinition Height="76"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-      <Grid Background="{StaticResource StageBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="38,0">
+      <Grid Background="{StaticResource DeepBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="38,0">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="260"/></Grid.ColumnDefinitions>
-        <StackPanel VerticalAlignment="Center" Orientation="Horizontal"><TextBlock Text="ÁREA DE JOGO" Style="{StaticResource EyebrowTextStyle}"/><TextBlock Text="  /  " Style="{StaticResource EyebrowTextStyle}"/><TextBlock x:Name="RouteText" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}"/></StackPanel>
-        <TextBlock Grid.Column="1" Text="PROTÓTIPO INTERNO&#x0a;DADOS REAIS QUANDO HOUVER" Style="{StaticResource EyebrowTextStyle}" TextAlignment="Right" VerticalAlignment="Center"/>
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal"><TextBlock Text="LAGCHECK" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource PurpleLightBrush}"/><TextBlock Text="  /  " Style="{StaticResource EyebrowTextStyle}"/><TextBlock x:Name="RouteText" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}"/></StackPanel>
+        <TextBlock Grid.Column="1" Text="PRÉVIA WINDOWS" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right" VerticalAlignment="Center"/>
       </Grid>
       <Frame x:Name="ContentFrame" Grid.Row="1" Padding="38,32" />
     </Grid>
