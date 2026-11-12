@@ -74,11 +74,11 @@ fun HostDuelVersusScreen(
             HostDuelWinner.TIE -> "Empate"
         }
         val text = """
-            ⚔️ **DUELO DE HOST — $gameTitle**
-            🏆 **${resolution.headline}**
+            **DUELO DE HOST — $gameTitle**
+            **${resolution.headline}**
             _${resolution.subheadline}_
             
-            📊 **Placar da Rota:**
+            **Placar da Rota:**
             • ${challenger.challengerNick.ifBlank { "Desafiante" }}: ${challenger.p50Ms.roundToInt()}ms (${challenger.packetLossPercent.roundToInt()}% perda)
             • ${opponent.challengerNick.ifBlank { "Você" }}: ${opponent.p50Ms.roundToInt()}ms (${opponent.packetLossPercent.roundToInt()}% perda)
             

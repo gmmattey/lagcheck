@@ -165,7 +165,7 @@ class HostDuelModelsTest {
         )
 
         val text = payload.generateDiscordShareText()
-        assertTrue(text.contains("⚔️ [DUELO DE HOST] Luiz cravou 18ms no Valorant (0% perda)."))
+        assertTrue(text.contains("[DUELO DE HOST] Luiz cravou 18ms no Valorant (0% perda)."))
         assertTrue(text.contains("https://lagcheck.signallq.com/vs?"))
     }
 }

@@ -470,7 +470,7 @@ fun VerdictScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "⚔️ " + tr("Desafiar Duo no Lobby"),
+                            text = tr("Desafiar Duo no Lobby"),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = LagCheckColors.TextPrimary

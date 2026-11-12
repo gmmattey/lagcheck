@@ -136,7 +136,7 @@ data class HostDuelPayload(
         val lossInt = packetLossPercent.roundToInt()
         val link = toWebUrl()
 
-        return "⚔️ [DUELO DE HOST] $name cravou ${pingInt}ms no $displayGame (${lossInt}% perda).\nQuem cria a sala? Aceita o duelo pra ver sua rota:\n$link"
+        return "[DUELO DE HOST] $name cravou ${pingInt}ms no $displayGame (${lossInt}% perda).\nQuem cria a sala? Aceita o duelo pra ver sua rota:\n$link"
     }
 }
 
