@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="design-system/assets/brand/wordmark-primary.svg" alt="lagcheck" height="56">
+  <img src="shared/design-system/assets/brand/wordmark-primary.svg" alt="lagcheck" height="56">
 </p>
 
 <p align="center">
@@ -15,13 +15,13 @@
 </p>
 
 <p align="center">
-  <img src="store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png" alt="Veredito do LagCheck" width="190">
-  <img src="store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png" alt="Leitura em repouso" width="190">
-  <img src="store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png" alt="Leitura sob carga" width="190">
-  <img src="store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png" alt="Detalhes da rota" width="190">
+  <img src="shared/distribution/store/google-play/pt-BR/pre-registration/final/03-veredito-direto.png" alt="Veredito do LagCheck" width="190">
+  <img src="shared/distribution/store/google-play/pt-BR/pre-registration/final/01-leitura-em-repouso.png" alt="Leitura em repouso" width="190">
+  <img src="shared/distribution/store/google-play/pt-BR/pre-registration/final/02-leitura-sob-carga.png" alt="Leitura sob carga" width="190">
+  <img src="shared/distribution/store/google-play/pt-BR/pre-registration/final/04-detalhes-da-rota.png" alt="Detalhes da rota" width="190">
 </p>
 
-> ⚠️ **Código visível, uso restrito.** Este repositório é público para transparência, mas **não tem licença de uso**. Todos os direitos reservados. Não copie, redistribua nem use o código, a marca ou os ativos sem avisar e receber autorização. Veja o [aviso de uso](NOTICE.md).
+> ⚠️ **Código visível, uso restrito.** Este repositório é público para transparência, mas **não tem licença de uso**. Todos os direitos reservados. Não copie, redistribua nem use o código, a marca ou os ativos sem avisar e receber autorização. Veja o [aviso de uso](docs/NOTICE.md).
 
 ## O que é
 
@@ -46,10 +46,11 @@ Um app para jogador competitivo que quer saber, antes da partida, se a rede ague
 
 | Plataforma | Tecnologia | Pasta | Estado |
 | --- | --- | --- | --- |
-| iPhone (iOS 17+) | Swift, SwiftUI | [`Sources/`](Sources) | Na App Store |
-| Android (API 26+) | Kotlin, Jetpack Compose | [`android/app/`](android/app) | Em teste (alpha e beta) |
-| Windows | Kotlin, Compose Desktop | [`android/desktop/`](android/desktop) | Protótipo, [`windows-v0.1.0`](https://github.com/gmmattey/lagcheck/releases/tag/windows-v0.1.0) |
-| Backend | Cloudflare Worker | [`worker/`](worker) | Em produção |
+| iPhone (iOS 17+) | Swift, SwiftUI | [`apps/ios/`](apps/ios) | Na App Store |
+| Android (API 26+) | Kotlin, Jetpack Compose | [`apps/android/app/`](apps/android/app) | Em teste (alpha e beta) |
+| Windows (WinUI 3) | C#, WinUI 3 | [`apps/windows/`](apps/windows) | Protótipo |
+| Windows (Desktop) | Kotlin, Compose Desktop | [`apps/android/desktop/`](apps/android/desktop) | Prévia, [`windows-v0.1.0`](https://github.com/gmmattey/lagcheck/releases/tag/windows-v0.1.0) |
+| Backend | Cloudflare Worker | [`apps/worker/`](apps/worker) | Em produção |
 
 **Quer testar o Android?** Entre no [grupo de testadores](https://groups.google.com/g/lagcheck) para receber acesso ao teste alpha e beta.
 
@@ -59,20 +60,21 @@ O app Windows ainda não é um alvo oficial. É uma prévia.
 
 **iOS** (Xcode 16+)
 ```sh
+cd apps/ios
 open Nolaggy.xcodeproj
 ```
 Escolha o target `Nolaggy` e rode no simulador. Testes: `Cmd + U`.
 
 **Android** (JDK 21)
 ```sh
-cd android
+cd apps/android
 ./gradlew assembleDebug
 ./gradlew test
 ```
 
-**Windows (LagCheck — Biblioteca de jogos & Diagnóstico)**
+**Windows (LagCheck — Desktop Compose)**
 ```sh
-cd android
+cd apps/android
 # 1. Executar a interface desktop interativa
 ./gradlew :desktop:run
 
@@ -91,25 +93,26 @@ cd android
 
 **Worker**
 ```sh
-cd worker
+cd apps/worker
 npm install
 npm test
 ```
 
 > O nome `Nolaggy` em pastas e no projeto Xcode vem da marca anterior. A marca oficial é **LagCheck**.
 
-## Estrutura
+## Estrutura (Decisão 120)
 
 ```text
-Sources/        app iOS (SwiftUI) e motor de medição
-Tests/          testes do motor e do catálogo
-android/        app Android e prévia desktop (Windows)
-worker/         Cloudflare Worker (carga do Deep Check e telemetria)
-design-system/  tokens, ativos de marca e protótipos
+apps/
+  ios/          app iOS (SwiftUI) e motor de medição
+  android/      app Android e prévia desktop (Compose Desktop)
+  windows/      app Windows (WinUI 3)
+  worker/       Cloudflare Worker (carga do Deep Check e telemetria)
+shared/
+  design-system/ tokens, ativos de marca e protótipos
+  distribution/  textos de loja, campanhas e chaves/bundles de release
+  scripts/       automações de build e validação
 docs/           especificação, arquitetura e decisões
-store/          textos e criativos das lojas
-marketing/      campanhas, vídeos e plano de crescimento
-scripts/        automações de build e release
 ```
 
 ## Documentação
@@ -122,7 +125,7 @@ scripts/        automações de build e release
 
 ## Contribuir e reportar problemas
 
-Bugs e ideias entram como [issue](https://github.com/gmmattey/lagcheck/issues/new/choose). Antes de enviar código, leia o [CONTRIBUTING](CONTRIBUTING.md). Falhas de segurança seguem o [SECURITY](SECURITY.md).
+Bugs e ideias entram como [issue](https://github.com/gmmattey/lagcheck/issues/new/choose). Antes de enviar código, leia o [CONTRIBUTING](.github/CONTRIBUTING.md). Falhas de segurança seguem o [SECURITY](.github/SECURITY.md).
 
 ## Sobre o fluxo de trabalho
 

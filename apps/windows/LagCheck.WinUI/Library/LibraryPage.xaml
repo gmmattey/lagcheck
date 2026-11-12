@@ -1,0 +1,148 @@
+<Page
+    x:Class="LagCheck.WinUI.Library.LibraryPage"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LagCheck.WinUI.Library"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+    Background="{StaticResource DeepBrush}"
+    Loaded="LibraryPage_Loaded">
+
+    <Page.Resources>
+        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="22" Padding="40,32,40,56">
+            
+            <!-- Cabeçalho da Biblioteca -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom">
+                    <TextBlock Text="BIBLIOTECA" FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold" FontSize="36" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding GameCountLabel}" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Botão Procurar Jogos (Rescan) -->
+                <Button Grid.Column="1" Click="Rescan_Click"
+                        Height="38" Padding="20,0" CornerRadius="19"
+                        Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextPrimaryBrush}"
+                        FontSize="13" FontWeight="SemiBold" BorderThickness="0"
+                        ToolTipService.ToolTip="Fazer varredura de launchers instalados"
+                        automation:AutomationProperties.Name="Procurar jogos">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE72C;" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Procurar jogos" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Linha de Busca e Ordenação -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="220" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Campo de Busca -->
+                <TextBox x:Name="SearchBox" Grid.Column="0"
+                         PlaceholderText="Buscar na sua biblioteca (Ctrl+F)"
+                         Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Height="46" CornerRadius="14" Padding="16,0"
+                         Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
+                         Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" />
+
+                <!-- Seletor de Ordenação -->
+                <ComboBox Grid.Column="1" SelectionChanged="Sort_SelectionChanged"
+                          Height="46" CornerRadius="14" Padding="14,0"
+                          HorizontalAlignment="Stretch"
+                          Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
+                          Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"
+                          SelectedIndex="0">
+                    <ComboBoxItem Content="Ordenar: Nome A–Z" Tag="Name" />
+                    <ComboBoxItem Content="Ordenar: Mais recentes" Tag="Recent" />
+                    <ComboBoxItem Content="Ordenar: Plataforma" Tag="Platform" />
+                    <ComboBoxItem Content="Ordenar: Favoritos primeiro" Tag="Favorites" />
+                </ComboBox>
+            </Grid>
+
+            <!-- Pílulas de Filtro de Plataforma -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Click="Filter_Click" Tag="All" Content="Todos os jogos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Installed" Content="Instalados" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Steam" Content="Steam" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Epic" Content="Epic Games" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Xbox" Content="Xbox" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Manual" Content="PC local" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Favorites" Content="Favoritos" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                    <Button Click="Filter_Click" Tag="Recent" Content="Recentes" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="19" Height="38" Padding="20,0" FontSize="13" FontWeight="SemiBold"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Estado Vazio / Sem Resultados -->
+            <Border x:Name="EmptyResultsBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28"
+                    Visibility="{Binding HasVisibleGames, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
+                <TextBlock Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" />
+            </Border>
+
+            <!-- Grid de Cards de Jogos em Proporção 2:3 -->
+            <GridView x:Name="GamesGrid"
+                      ItemsSource="{Binding VisibleGames}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="True"
+                      ItemClick="GameCard_Click">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid Orientation="Horizontal" ItemWidth="200" ItemHeight="300" MaximumRowsOrColumns="-1" />
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="local:LibraryGame">
+                        <Border Margin="10" CornerRadius="16" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                            <Grid>
+                                <!-- Capa Vertical 2:3 -->
+                                <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" />
+                                
+                                <!-- Gradiente Escuro no Rodapé para Leitura do Nome -->
+                                <Rectangle VerticalAlignment="Bottom" Height="90">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="Transparent" Offset="0.0" />
+                                            <GradientStop Color="#EC0D0F14" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+
+                                <!-- Título do Jogo -->
+                                <TextBlock Text="{Binding Title}"
+                                           VerticalAlignment="Bottom" Margin="14,0,14,12"
+                                           FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="17"
+                                           Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" MaxLines="2"/>
+
+                                <!-- Badge da Plataforma no Topo Esquerdo -->
+                                <Border Background="#B00D0F14" CornerRadius="15" Width="30" Height="30"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+                                        ToolTipService.ToolTip="{Binding PlatformLabel}">
+                                    <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <!-- Ícone de Favorito no Topo Direito se Ativo -->
+                                <Border Background="#B00D0F14" CornerRadius="14" Width="28" Height="28"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
+                                        Visibility="{Binding IsFavorite, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <FontIcon Glyph="&#xE735;" FontSize="13" Foreground="{StaticResource CoralBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

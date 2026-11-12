@@ -1,6 +1,8 @@
 .DS_Store
 build/
+**/build/
 DerivedData/
+**/DerivedData/
 xcuserdata/
 *.xcuserstate
 node_modules/
@@ -8,6 +10,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 Secrets/
+**/Secrets/
 *.xcconfig
 .build/
 .wrangler/
@@ -15,9 +18,13 @@ Secrets/
 
 # Android & Gradle
 .gradle/
+**/apps/android/**/build/
 **/android/**/build/
+apps/android/.idea/
 android/.idea/
+apps/android/local.properties
 android/local.properties
+apps/android/.kotlin/
 android/.kotlin/
 *.apk
 *.aab
@@ -26,17 +33,24 @@ android/.kotlin/
 
 # Local release artifacts and upload keys
 release/
+distribution/release/
+shared/distribution/release/
+**/release/
 
 # Configuração pública do Firebase para o variant Android Release. A regra
-# acima continua protegendo release/ na raiz (artefatos e chaves locais).
+# acima continua protegendo release/ (artefatos e chaves locais).
+!apps/android/app/src/
+!apps/android/app/src/release/
+!apps/android/app/src/release/google-services.json
 !android/app/src/
 !android/app/src/release/
 !android/app/src/release/google-services.json
 .maestri/
 
 # Windows build outputs
-windows/**/bin/
-windows/**/obj/
+**/bin/
+**/obj/
+apps/windows/artifacts/
 windows/artifacts/
 
 # Segredos e credenciais: nunca versionar (repositório público)

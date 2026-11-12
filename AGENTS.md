@@ -16,27 +16,24 @@ Você está trabalhando no LagCheck, um app para iPhone que ajuda jogadores a en
 - **Zero cara de IA e o Gamer Não Lê (Decisão 64):** O app é para jovem gamer competitivo no lobby esperando a partida. Proibido cardlização em excesso, títulos com subtítulos didáticos e textão explicativo. Interface rápida, visual, limpa e esportiva (cockpit de telemetria). Toda informação na tela deve cumprir a "Regra do Discord": ser traduzível para uma frase curta falada entre amigos na call.
 - O app suporta PT-BR e inglês desde a V1.
 - **Centralização da Landing Page e Presença Web:** O repositório `lagcheck` é estritamente dedicado aos aplicativos nativos (**iOS e Android**). A landing page pública, termos de privacidade e suporte do LagCheck estão centralizados no monorepo em `~/Projetos/web/landings` (`sites/lagcheck/`). **Não recrie pasta `web/` ou scripts de servidor web neste repositório.** Qualquer evolução de páginas públicas, ASO web ou rotas do site deve ser feita exclusivamente em `~/Projetos/web/landings`.
-- **Infraestrutura de Release Autocontida:** Chaves de assinatura e certificados de release ficam isolados em `release/keys/` (ignorado no Git). Builds de produção são direcionados para `release/android/` via `scripts/android-release.sh`. A pasta externa `lagcheck-release` foi descontinuada e eliminada.
+- **Infraestrutura de Release Autocontida:** Chaves de assinatura e certificados de release ficam isolados em `shared/distribution/release/keys/` (ignorado no Git). Builds de produção são direcionados para `shared/distribution/release/android/` via `shared/scripts/android-release.sh`. A pasta externa `lagcheck-release` foi descontinuada e eliminada.
 
-## Estrutura do Repositório e Estado Real
+## Estrutura do Repositório e Estado Real (Decisão 120)
 
-O repositório é 100% autocontido para desenvolvimento mobile nativo (Apple + Android):
+O repositório é organizado em camadas canônicas minimalistas:
 
 ```text
 lagcheck/
-├── Sources/                   # Código Swift nativo (iOS 17+ / macOS)
-├── Nolaggy.xcodeproj          # Projeto Xcode gerado via XcodeGen (project.yml)
-├── Tests/                     # Testes unitários e de integração de medição UDP
-├── android/                   # App nativo Android (Kotlin + Jetpack Compose, Material 3, API 26+)
-│   ├── app/build.gradle.kts   # Configuração Gradle com resolução de assinatura local em release/keys/
-│   └── desktop/               # Protótipo interno Windows (Compose Desktop; Decisões 114 a 116), não é alvo oficial
-├── release/                   # Infraestrutura de release autocontida (no .gitignore)
-│   ├── keys/                  # Chaves de upload Android (lagcheck-upload.jks e .properties)
-│   └── android/               # Saída padronizada de bundles AAB e mapeamentos R8
-├── worker/                    # Cloudflare Worker 'nolaggy-deep-check' (/v1/load e /v1/telemetry)
-├── design-system/             # Dark Competitive UI, tokens de cor, tipografia e assets
-├── store/                     # Metadados e criativos para App Store e Google Play
-├── scripts/                   # Automações de build e release (ex: android-release.sh)
+├── apps/
+│   ├── ios/                   # Código Swift nativo (iOS 17+), testes, XcodeGen (project.yml)
+│   ├── android/               # App nativo Android (Kotlin + Jetpack Compose, Material 3, API 26+)
+│   │   └── desktop/           # Protótipo interno Windows (Compose Desktop; Decisões 114 a 116)
+│   ├── windows/               # Protótipo Windows WinUI 3 (C#; Decisões 119 e 120)
+│   └── worker/                # Cloudflare Worker 'nolaggy-deep-check' (/v1/load e /v1/telemetry)
+├── shared/
+│   ├── design-system/         # Dark Competitive UI, tokens de cor, tipografia e assets
+│   ├── distribution/          # store/ (App Store/Google Play), marketing/ e release/ (chaves/bundles)
+│   └── scripts/               # Automações de validação, build e release (ex: android-release.sh)
 └── docs/                      # Documentação técnica e funcional (docs/DECISOES.md canônico)
 ```
 

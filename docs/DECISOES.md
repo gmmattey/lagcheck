@@ -122,6 +122,7 @@
 | [117](#decisão-117) | Design system: mapa por plataforma e divergências abertas entre tokens, iOS, Android e Windows | **Vigente** | Mapa por plataforma; texto terciário, raios, espaçamento e cores fixas alinhados aos tokens | Priscila / Camillo |
 | [118](#decisão-118) | Windows: Home vira biblioteca de jogos; diagnóstico contextual e não bloqueante | **Em implementação (protótipo, não publicável)** | Refina as Decisões 114 a 116: a Home deixa de ser painel de diagnóstico | Marcelo / Priscila / Camillo / Renan |
 | [119](#decisão-119) | Windows: interface WinUI 3 com motor Kotlin compartilhado | **Em implementação (protótipo, não publicável)** | Substitui somente a apresentação Compose Desktop, preservando o núcleo de diagnóstico | Luiz / Squad |
+| [120](#decisão-120) | Reorganização do repositório em camadas de produtos e pastas canônicas | **Vigente** | Isola `apps/`, `services/`, `shared/`, `distribution/`, `docs/`, `scripts/` | Luiz / Squad |
 
 
 
@@ -1336,6 +1337,28 @@
 - **Decisão:** preservar o motor Kotlin/JVM compartilhado com Android como fonte única para sessão, catálogo, rede, score e veredito. A interface Windows consome esse motor por uma fronteira local versionada, sem duplicar regras de diagnóstico, sem novo serviço de rede e sem Worker adicional. A implementação Swift atual do iOS permanece como está; sua eventual unificação é trabalho separado, não implícito nesta migração.
 - **Escopo:** manter Biblioteca, Catálogo, Histórico, Ajustes, Check e Resultado, o comportamento e os dados existentes, as regras da Decisão 118, os tokens e a acessibilidade. A interface anterior permanece preservada até a nova passar pelos gates. Sem alteração de score, protocolo UDP, catálogo, políticas ou custos.
 - **Aceite:** compilação e testes do núcleo e da ponte; provas de versão, cancelamento, erro e sessão única; capturas e interação real de todas as telas; comparação de resultados do motor, dados e funcionalidades existentes; validação em Windows de escala, teclado, jogos reais, instalação e atualização antes de qualquer distribuição. Não confundir implantação local com publicação.
+
+#### Decisão 120
+
+- **Data:** 12 de novembro de 2026.
+- **Título:** Reorganização estrutural do repositório em camadas de produtos e pastas canônicas.
+- **Status Atual:** **Vigente.** Aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (aprovação), Marcelo (enquadramento e orquestração), Camillo (migração e automações) e Renan (testes e conformidade).
+- **Contexto e problema:** o repositório possuía uma assimetria estrutural na raiz: o código do iOS (`Sources/`, `Tests/`, `project.yml`, `Nolaggy.xcodeproj`, `Secrets/`) ficava esparramado na raiz, enquanto Android e Windows possuíam diretórios próprios (`android/`, `windows/`). Pastas de marketing, store, release e design-system também competiam na raiz com documentação e scripts, gerando desorganização visual e arquitetural.
+- **Decisão:** migrar o repositório para uma estrutura monorepo minimalista por camadas de produto (mantendo na raiz apenas `apps/`, `shared/`, `docs/`, `AGENTS.md` e `README.md`):
+  - `apps/`:
+    - `ios/`: código nativo Swift, testes, projeto Xcode e manifesto `project.yml` (XcodeGen).
+    - `android/`: código nativo Kotlin/Compose e protótipo desktop.
+    - `windows/`: protótipo WinUI 3 (C#).
+    - `worker/`: Cloudflare Worker `nolaggy-deep-check` (/v1/load e /v1/telemetry).
+  - `shared/`:
+    - `design-system/`: Dark Competitive UI, tokens de cor, tipografia e assets.
+    - `distribution/`: `store/` (metadados App Store e Google Play), `marketing/` e `release/` (chaves de upload locais e bundles).
+    - `scripts/`: automações de release e validação.
+  - `docs/`: documentação técnica, especificações e `NOTICE.md`.
+  - `.github/`: acolhe os markdowns de governança comunitária (`CONTRIBUTING.md`, `SECURITY.md`).
+- **Guardrails:** nenhuma funcionalidade de rede, catálogo, score ou veredito foi alterada; os scripts de release e validação continuam funcionando sem quebrar CI/CD ou compilação local.
+- **Critérios de aceite:** `xcodegen generate` e build iOS bem-sucedidos em `apps/ios/`, suíte do worker com 59/59 testes passando, testes do Android `:core:domain:test` verdes, script `validate_store_assets.py discover` detectando plataformas corretamente.
 
 ## Como Registrar Novas Decisões
 

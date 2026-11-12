@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600&display=swap" rel="stylesheet"/>
+<style>html,body{margin:0;background:#0D0F14;overflow:hidden}*{box-sizing:border-box}a{color:#A78BFA}a:hover{color:#F5F7FC}::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#202633;border-radius:5px}input::placeholder{color:#687285}</style>
+</helmet>
+<div style="height:100vh;display:flex;flex-direction:column;background:#0D0F14;color:#F5F7FC;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;font-size:14px">
+  <div style="flex:1;min-height:0;display:flex;background:#11141B;position:relative">
+    <!-- Sidebar -->
+    <div style="flex:none;width:{{ sidebarW }};background:#0D0F14;border-right:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column">
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:16px 12px 12px 16px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.3px;line-height:18px">lagcheck</div>
+            <div style="font-size:13px;font-weight:600;color:#687285;margin-top:4px">GAME LAUNCHER</div>
+          </div>
+          <div onClick="{{ toggleSidebar }}" title="Recolher barra lateral" style="width:32px;height:32px;border-radius:16px;background:#252A36;display:flex;align-items:center;justify-content:center;color:#9AA3B5;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 6l-6 6 6 6"/></svg></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ collapsed }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:16px 0 12px;display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div style="font-weight:700;font-size:13px;color:#A78BFA;letter-spacing:-.5px">lc</div>
+          <div onClick="{{ toggleSidebar }}" title="Expandir barra lateral" style="width:34px;height:34px;border-radius:17px;background:#252A36;display:flex;align-items:center;justify-content:center;color:#9AA3B5;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>
+      </sc-if>
+      <div style="flex:1;padding:8px 12px 0;display:flex;flex-direction:column;gap:4px;align-items:{{ navAlign }}">
+        <div onClick="{{ quickSearch }}" title="Buscar jogo (Ctrl+F)" style="height:44px;width:{{ navW }};margin:3px 0;border-radius:12px;display:flex;align-items:center;color:#9AA3B5;cursor:pointer" style-hover="background:#171B24">
+          <div style="width:40px;flex:none;display:flex;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5"/></svg></div>
+          <sc-if value="{{ expanded }}"><span style="color:#687285;margin-left:2px">Buscar jogo...</span></sc-if>
+        </div>
+        <sc-if value="{{ expanded }}"><div style="height:1px;background:rgba(255,255,255,.05);margin:4px 4px;align-self:stretch"></div></sc-if>
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <div onClick="{{ n.go }}" title="{{ n.tip }}" style="height:44px;width:{{ navW }};margin:3px 0;border-radius:12px;display:flex;align-items:center;font-weight:600;font-size:14px;cursor:{{ n.cursor }};opacity:{{ n.opacity }};background:{{ n.bg }};color:{{ n.fg }}">
+            <div style="width:40px;flex:none;display:flex;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.path }}"/></svg></div>
+            <sc-if value="{{ expanded }}"><span style="margin-left:2px">{{ n.label }}</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)">
+        <sc-if value="{{ expanded }}">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:4px;background:#22C55E"></span><span style="font-size:13px;font-weight:600;color:#22C55E">REDE ATIVA</span></div>
+            <span style="font-size:13px;font-weight:600;color:#687285">BUILD v0.1.0 · WINUI 3</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ collapsed }}"><div style="display:flex;justify-content:center"><span title="Rede ativa · Conectado" style="width:9px;height:9px;border-radius:5px;background:#22C55E"></span></div></sc-if>
+      </div>
+    </div>
+    <!-- Stage -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="height:56px;flex:none;background:#11141B;border-bottom:1px solid rgba(255,255,255,.05);padding:0 36px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;gap:8px;align-items:center"><span style="font-weight:700;font-size:14px;color:#A78BFA">LAGCHECK</span><span style="color:#687285">·</span><span>{{ routeText }}</span></div>
+        <span style="font-size:13px;font-weight:600;color:#687285;margin-right:138px">PC GAMER</span>
+        <div style="position:absolute;top:0;right:0;height:32px;z-index:5"><div style="display:flex;height:100%">
+      <div style="width:46px;display:flex;align-items:center;justify-content:center" style-hover="background:#202633"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="#F5F7FC" fill="none"/></svg></div>
+      <div style="width:46px;display:flex;align-items:center;justify-content:center" style-hover="background:#202633"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" stroke="#F5F7FC" fill="none"/></svg></div>
+      <div style="width:46px;display:flex;align-items:center;justify-content:center" style-hover="background:#C42B1C"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="#F5F7FC" fill="none"/></svg></div>
+    </div>
+      </div>
+      </div>
+      <div id="scroller" style="flex:1;min-height:0;overflow-y:auto;position:relative">
+
+        <!-- LIBRARY -->
+        <sc-if value="{{ isLibrary }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:32px 40px 56px;display:flex;flex-direction:column;gap:32px">
+            <div style="border-radius:24px;background:#171B24;height:420px;position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;opacity:.8;background:repeating-linear-gradient(135deg,#1c2230 0 18px,#232a3a 18px 36px)"></div>
+              <div style="position:absolute;inset:0;display:flex;width:300%;transform:translateX({{ hero.shift }});transition:transform .8s cubic-bezier(.4,0,.2,1)"><sc-for list="{{ hero.slides }}" as="sl" hint-placeholder-count="3"><div style="width:33.3333%;height:100%;position:relative;background:repeating-linear-gradient(135deg,#1c2230 0 18px,#232a3a 18px 36px)"><img data-art="{{ sl.art }}" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8"/></div></sc-for></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,13,18,.957),rgba(11,13,18,.83) 45%,rgba(11,13,18,.145))"></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(11,13,18,.565))"></div>
+              <div style="position:absolute;inset:0;padding:36px 42px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="display:flex;gap:10px;align-items:center">
+                  <span style="background:#282E3C;border-radius:12px;padding:6px 14px;font-size:13px;font-weight:600">{{ hero.platform }}</span>
+                  <span style="background:rgba(34,197,94,.125);color:#22C55E;border-radius:12px;padding:6px 14px;font-size:13px;font-weight:600">{{ hero.platform }}</span>
+                </div>
+                <div><div style="font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:700;font-size:44px;line-height:1.1">{{ hero.title }}</div><div style="display:flex;gap:8px;margin-top:18px"><sc-for list="{{ hero.dots }}" as="d" hint-placeholder-count="3"><div onClick="{{ d.pick }}" style="height:6px;width:{{ d.w }};border-radius:3px;background:{{ d.bg }};cursor:pointer;transition:width .3s"></div></sc-for></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <div onClick="{{ heroFav }}" title="{{ hero.favLabel }}" style="width:46px;height:46px;border-radius:23px;background:#252A36;display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ hero.favColor }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="{{ hero.favFill }}" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z"/></svg></div>
+                    <div onClick="{{ refreshArt }}" title="Atualizar imagem oficial" style="width:46px;height:46px;border-radius:23px;background:#252A36;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5F7FC" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></div>
+                    <sc-if value="{{ hero.canTest }}"><div onClick="{{ heroTest }}" style="height:46px;border-radius:23px;background:#252A36;padding:0 26px;display:flex;align-items:center;font-size:14px;font-weight:600;cursor:pointer">Checar conexão</div></sc-if>
+                  </div>
+                  <div onClick="{{ heroLaunch }}" style="height:52px;border-radius:26px;background:#7C3AED;padding:0 38px;display:flex;align-items:center;font-size:15px;font-weight:700;color:#fff;cursor:pointer" style-hover="background:#8d52f0">▶ Jogar agora</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:700;font-size:24px">Jogos instalados</span><span style="font-size:13px;font-weight:600;color:#9AA3B5;margin-left:6px">{{ countLabel }}</span></div>
+                <div onClick="{{ rescan }}" style="height:36px;border-radius:18px;background:#252A36;padding:0 18px;display:flex;align-items:center;font-size:13px;font-weight:600;cursor:pointer">{{ rescanLabel }}</div>
+              </div>
+              <input id="libsearch" value="{{ search }}" onInput="{{ onSearch }}" placeholder="Buscar na sua biblioteca (Ctrl+F)" style="height:46px;border-radius:14px;padding:0 16px;font:inherit;font-size:14px;color:#F5F7FC;background:#171B24;border:1px solid rgba(255,255,255,.10);outline:none"/>
+              <div style="display:flex;gap:8px;overflow-x:auto">
+                <sc-for list="{{ filters }}" as="f" hint-placeholder-count="7">
+                  <div onClick="{{ f.pick }}" style="height:38px;flex:none;border-radius:19px;padding:0 20px;display:flex;align-items:center;font-size:13px;font-weight:500;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ noResults }}"><div style="background:#171B24;border-radius:20px;padding:28px;color:#9AA3B5">Nenhum jogo corresponde à busca ou ao filtro atual.</div></sc-if>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px">
+              <sc-for list="{{ games }}" as="g" hint-placeholder-count="6">
+                <div onClick="{{ g.pick }}" style="height:300px;border-radius:18px;background:#171B24;position:relative;overflow:hidden;cursor:pointer;outline:{{ g.outline }}" style-hover="filter:brightness(1.12)">
+                  <div style="position:absolute;inset:0;opacity:.94;background:repeating-linear-gradient(135deg,#1c2230 0 14px,#232a3a 14px 28px)"></div>
+                  <img data-art="{{ g.art }}" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.94"/>
+                  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:rgba(22,26,34,.95)">
+                    <div style="font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:700;font-size:17px;line-height:1.2">{{ g.title }}</div>
+                    <div style="font-size:13px;font-weight:600;color:#9AA3B5;margin-top:4px">{{ g.platform }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- DIAGNOSTIC -->
+        <sc-if value="{{ isDiag }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:28px 36px 48px;display:flex;flex-direction:column;gap:20px">
+            <div style="font-size:12px;font-weight:700;color:#A78BFA">LAGCHECK · CONEXÃO</div>
+            <div style="font-size:26px;font-weight:700">{{ diagTitle }}</div>
+            <div style="color:#9AA3B5">Medição da rota da sua máquina até os servidores de jogos e teste sob carga para validar estabilidade pré-partida.</div>
+            <div style="background:#0B0D12;border:1px solid #1F2636;border-radius:16px;padding:4px">
+              <svg viewBox="0 0 900 280" preserveAspectRatio="xMidYMid slice" style="display:block;width:100%;height:280px">
+                <sc-for list="{{ dots }}" as="d" hint-placeholder-count="0"><circle cx="{{ d.x }}" cy="{{ d.y }}" r="1.2" fill="#283040"></circle></sc-for>
+                <path d="{{ arcD }}" stroke="#7C3AED" stroke-width="2.6" fill="none" opacity=".95"></path>
+                <sc-for list="{{ waves }}" as="w" hint-placeholder-count="0"><circle cx="{{ w.x }}" cy="{{ w.y }}" r="{{ w.r }}" fill="none" stroke="#22C55E" stroke-width="1.4" opacity="{{ w.o }}"></circle></sc-for>
+                <sc-for list="{{ probes }}" as="p" hint-placeholder-count="0"><g><circle cx="{{ p.x }}" cy="{{ p.y }}" r="7" fill="#A78BFA" opacity=".4"></circle><circle cx="{{ p.x }}" cy="{{ p.y }}" r="3" fill="#F5F7FC" stroke="#7C3AED" stroke-width="1.2"></circle></g></sc-for>
+                <circle cx="{{ pin.ux }}" cy="{{ pin.uy }}" r="8" fill="#A78BFA" opacity=".28"></circle><circle cx="{{ pin.ux }}" cy="{{ pin.uy }}" r="4" fill="#A78BFA" stroke="#F5F7FC" stroke-width="1.2"></circle>
+                <text x="{{ pin.utx }}" y="{{ pin.uty }}" fill="#F5F7FC" font-size="11" font-weight="700" font-family="Segoe UI, sans-serif">Você (Rio de Janeiro)</text>
+                <circle cx="{{ pin.dx }}" cy="{{ pin.dy }}" r="8" fill="#22C55E" opacity=".28"></circle><circle cx="{{ pin.dx }}" cy="{{ pin.dy }}" r="4" fill="#22C55E" stroke="#F5F7FC" stroke-width="1.2"></circle>
+                <text x="{{ pin.dtx }}" y="{{ pin.dty }}" fill="#F5F7FC" font-size="11" font-weight="700" font-family="Segoe UI, sans-serif">São Paulo (sa-east-1)</text>
+              </svg>
+            </div>
+            <sc-if value="{{ isIdle }}"><div onClick="{{ startDiag }}" style="align-self:flex-start;height:48px;border-radius:24px;background:#7C3AED;padding:0 32px;display:flex;align-items:center;font-size:14px;font-weight:700;cursor:pointer" style-hover="background:#8d52f0">TESTAR CONEXÃO</div></sc-if>
+            <sc-if value="{{ isRunning }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="font-size:11px;font-weight:700;color:#687285">01 · CONEXÃO   02 · LATÊNCIA   03 · SOB CARGA   04 · ANÁLISE</div>
+                <div style="height:4px;background:#1E2432;border-radius:2px;overflow:hidden"><div style="height:4px;background:#7C3AED;width:{{ progressPct }}"></div></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <div style="font-size:13px;font-weight:700;color:#A78BFA">{{ phaseName }}</div>
+                    <div style="font-size:28px;font-weight:700">{{ liveMetric }}</div>
+                    <div style="color:#9AA3B5">{{ statusMsg }}</div>
+                  </div>
+                  <div onClick="{{ cancelDiag }}" style="height:40px;flex:none;border-radius:20px;background:#1E2432;padding:0 24px;display:flex;align-items:center;font-size:13px;font-weight:600;cursor:pointer">CANCELAR MEDIÇÃO</div>
+                </div>
+                <div style="background:#0B0D12;border:1px solid #1F2636;border-radius:12px;padding:4px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                  <sc-for list="{{ liveStrip }}" as="s" hint-placeholder-count="4"><div style="background:#151822;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;font-weight:700;color:#687285">{{ s.label }}</span><span style="font-size:16px;font-weight:700">{{ s.value }}</span></div></sc-for>
+                </div></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isDone }}">
+              <div style="display:flex;flex-direction:column;gap:22px">
+                <div style="background:#151822;border-radius:14px;padding:20px 24px;display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:13px;font-weight:700;color:{{ verdict.color }}">{{ verdict.kicker }}</div>
+                  <div style="font-size:26px;font-weight:700">{{ verdict.headline }}</div>
+                  <div style="color:#9AA3B5">{{ verdict.sub }}</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                  <sc-for list="{{ resultBoxes }}" as="b" hint-placeholder-count="4"><div style="background:#151822;border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;font-weight:700;color:#687285">{{ b.title }}</span><div style="display:flex;gap:4px;align-items:flex-end"><span style="font-size:28px;font-weight:700;line-height:1.2">{{ b.value }}</span><span style="font-size:13px;color:#687285;margin-bottom:4px">{{ b.unit }}</span></div><span style="font-size:12px;color:#9AA3B5">{{ b.hint }}</span></div></sc-for>
+                </div>
+                <div style="background:#151822;border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:18px">
+                  <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#A78BFA">AVALIAÇÃO DE USO DA CONEXÃO</span><span style="font-size:13px;color:#687285">Compatibilidade medida para jogos competitivos e aplicações em tempo real</span></div>
+                  <div style="height:1px;background:#1F2636"></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 28px">
+                    <sc-for list="{{ usage }}" as="u" hint-placeholder-count="6"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">{{ u.title }}</span><span style="font-size:13px;font-weight:700;color:#22C55E">● {{ u.status }}</span></div><span style="font-size:12px;color:#687285">{{ u.ex }}</span><span style="font-size:13px;color:#9AA3B5;margin-top:2px">{{ u.detail }}</span></div></sc-for>
+                  </div>
+                </div>
+                <div onClick="{{ again }}" style="align-self:flex-start;height:48px;border-radius:24px;background:#7C3AED;padding:0 32px;display:flex;align-items:center;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">MEDIR NOVAMENTE</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- HISTORY -->
+        <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:32px 38px 48px;display:flex;flex-direction:column;gap:22px;min-height:100%">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:13px;font-weight:600;color:#A78BFA">REGISTRO LOCAL</span>
+              <span style="font-size:26px;font-weight:700">Histórico de Sessões</span>
+              <span style="color:#9AA3B5;font-size:15px;margin-top:2px">Resultados concluídos ficam guardados apenas neste PC.</span>
+            </div>
+            <input value="{{ hsearch }}" onInput="{{ onHSearch }}" placeholder="Buscar por região ou veredito" style="height:44px;border-radius:12px;padding:0 16px;font:inherit;font-size:14px;color:#F5F7FC;background:#171B24;border:1px solid rgba(255,255,255,.10);outline:none"/>
+            <sc-if value="{{ hasHistory }}">
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="0">
+                  <div style="display:grid;grid-template-columns:1fr 100px 100px 100px 70px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);align-items:center">
+                    <div><div style="font-size:18px;font-weight:700">{{ h.verdict }}</div><div style="font-size:13px;font-weight:600;color:#687285;margin-top:4px">{{ h.region }}</div></div>
+                    <span style="text-align:right;font-family:'Chakra Petch','Cascadia Mono',Consolas,monospace;font-size:18px">{{ h.ping }}</span>
+                    <span style="text-align:right;font-family:'Chakra Petch','Cascadia Mono',Consolas,monospace;font-size:18px">{{ h.jitter }}</span>
+                    <span style="text-align:right;font-family:'Chakra Petch','Cascadia Mono',Consolas,monospace;font-size:18px">{{ h.loss }}</span>
+                    <span style="text-align:right;font-size:13px;font-weight:600;color:#687285">{{ h.time }}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noHistoryMatch }}"><div style="text-align:center;color:#9AA3B5;padding:40px">Nenhuma medição corresponde à busca.</div></sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noHistory }}">
+              <div style="flex:1;display:flex;align-items:center;justify-content:center"><div style="max-width:520px;display:flex;flex-direction:column;gap:12px;text-align:center"><span style="font-size:26px;font-weight:700">Sem testes nesta sessão</span><span style="color:#9AA3B5">Quando uma medição terminar pelo motor compartilhado, o resultado real aparece aqui.</span></div></div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- SETTINGS -->
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:760px;padding:32px 40px 80px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+              <span style="font-size:13px;font-weight:600;color:#A78BFA">SISTEMA · CONFIGURAÇÕES</span>
+              <span style="font-size:26px;font-weight:700">Ajustes do Launcher</span>
+              <span style="color:#9AA3B5">Controle o comportamento da interface e diagnósticos de rede neste PC.</span>
+              <div style="align-self:flex-start;background:#1C212B;border-radius:8px;padding:6px 12px;display:flex;gap:8px;align-items:center;margin-top:8px"><span style="width:6px;height:6px;border-radius:3px;background:#22C55E"></span><span style="font-size:12px;color:#9AA3B5">Ajustes locais conectados</span></div>
+            </div>
+            <sc-for list="{{ cards }}" as="c" hint-placeholder-count="2">
+              <div style="background:#171B24;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;gap:10px;align-items:center;color:#A78BFA"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.icon }}"/></svg><span style="font-size:16px;font-weight:700;color:#F5F7FC">{{ c.title }}</span></div>
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="2">
+                  <div style="display:flex;flex-direction:column;gap:16px">
+                    <sc-if value="{{ r.sep }}"><div style="height:1px;background:rgba(255,255,255,.05)"></div></sc-if>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                      <div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:14px">{{ r.title }}</span><span style="font-size:13px;color:#9AA3B5">{{ r.desc }}</span></div>
+                      <div onClick="{{ r.toggle }}" style="flex:none;width:40px;height:20px;border-radius:10px;position:relative;cursor:pointer;background:{{ r.bg }};border:1px solid {{ r.bd }}"><div style="position:absolute;top:3px;left:{{ r.left }};width:12px;height:12px;border-radius:6px;background:{{ r.knob }}"></div></div>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ c.isPrivacy }}"><div style="display:flex;gap:14px;align-items:center;margin-top:4px"><div onClick="{{ renewId }}" style="height:44px;border-radius:22px;background:#252A36;padding:0 22px;display:flex;align-items:center;font-size:13px;font-weight:600;cursor:pointer">Gerar novo ID local</div><span style="font-size:13px;color:#687285">{{ analyticsStatus }}</span></div></sc-if>
+                <sc-if value="{{ c.isUpdates }}"><div style="height:1px;background:rgba(255,255,255,.05)"></div><div style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:13px;color:#9AA3B5">{{ updateStatus }}</span><div onClick="{{ checkUpdates }}" style="flex:none;height:44px;border-radius:22px;background:#252A36;padding:0 22px;display:flex;align-items:center;font-size:13px;font-weight:600;cursor:pointer">Verificar agora</div></div></sc-if>
+                <sc-if value="{{ c.isAbout }}"><span style="font-size:13px;color:#9AA3B5">LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios.</span><span style="font-family:'Cascadia Mono',Consolas,monospace;font-size:12px;color:#687285;margin-top:4px">Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ toast }}"><div style="position:absolute;right:28px;bottom:24px;background:#202633;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:12px 18px;font-size:13px">{{ toast }}</div></sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { slide: 0, route: 'library', collapsed: false, filter: 'All', search: '', sel: 'cs2', favs: { dota: true }, scanning: false,
+    diag: 'idle', ratio: 0, tick: 0, diagGame: null, history: [], hsearch: '', toast: '', result: null,
+    prefs: { motion: false, art: true, loc: true, analytics: false, updates: true }, aStatus: '', uStatus: 'Versão v0.1.0 instalada.' };
+  games = [
+    { id: 'cs2', app: 730, title: 'Counter-Strike 2', p: 'Steam', net: 'sup' },
+    { id: 'dota', app: 570, title: 'Dota 2', p: 'Steam', net: 'sup' },
+    { id: 'apex', app: 1172470, title: 'Apex Legends', p: 'Steam', net: 'sup' },
+    { id: 'fn', app: 252950, title: 'Rocket League', p: 'Epic', net: 'sup' },
+    { id: 'hades', app: 1145360, title: 'Hades', p: 'Epic', net: 'off' },
+    { id: 'fh5', app: 1551360, title: 'Forza Horizon 5', p: 'Xbox', net: 'gen' },
+    { id: 'val', app: 359550, title: 'Rainbow Six Siege', p: 'Manual', net: 'gen' }
+  ];
+  plat = { Steam: 'STEAM', Epic: 'EPIC GAMES', Xbox: 'XBOX / PC', Manual: 'PC LOCAL' };
+  tm = null;
+  componentDidMount() {
+    this._k = e => { if (e.ctrlKey && e.key === 'f' && this.state.route === 'library') { e.preventDefault(); const i = document.getElementById('libsearch'); i && i.focus(); } };
+    window.addEventListener('keydown', this._k); this.fillArt();
+    this._s = setInterval(() => { if (this.state.route === 'library' && !this.state.prefs.motion) this.setState({ slide: (this.state.slide + 1) % 3 }); }, 5000);
+  }
+  componentDidUpdate() { this.fillArt(); }
+  fillArt() { document.querySelectorAll('img[data-art]').forEach(i => { const a = i.getAttribute('data-art'); if (a && a.startsWith('http') && i.getAttribute('src') !== a) { i.style.display = ''; i.setAttribute('src', a); } }); }
+  componentWillUnmount() { window.removeEventListener('keydown', this._k); clearInterval(this.tm); clearInterval(this._s); }
+  say(t) { this.setState({ toast: t }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2600); }
+  go(route) { if (this.state.diag === 'running') return; this.setState({ route, diagGame: route === 'diag' ? null : this.state.diagGame, diag: route === 'diag' ? 'idle' : this.state.diag }); }
+  openDiag(g) { this.setState({ route: 'diag', diag: 'idle', diagGame: g ? g.title : null }); }
+  startDiag = () => {
+    this.setState({ diag: 'running', ratio: 0, tick: 0 });
+    clearInterval(this.tm);
+    this.tm = setInterval(() => {
+      const r = this.state.ratio + 0.011;
+      if (r >= 1) { clearInterval(this.tm); this.finish(); } else this.setState({ ratio: r, tick: (this.state.tick + 0.035) % 1 });
+    }, 100);
+  };
+  finish() {
+    const ping = 9 + Math.round(Math.random() * 4), jitter = +(1 + Math.random() * 1.6).toFixed(1), load = +(8 + Math.random() * 12).toFixed(1);
+    const res = { ping, jitter, load, loss: 0 };
+    const h = [{ verdict: 'Pronto para ranked', region: 'São Paulo · sa-east-1' + (this.state.diagGame ? ' · ' + this.state.diagGame : ''), ping: ping + ' ms', jitter: jitter + ' ms', loss: '0.0%', time: 'agora' }, ...this.state.history];
+    this.setState({ diag: 'done', result: res, history: h });
+  }
+  renderVals() {
+    const s = this.state, exp = !s.collapsed, locked = s.diag === 'running';
+    const navDefs = [['library', 'Biblioteca', 'M3 11l9-8 9 8v10h-6v-6H9v6H3z', 'Biblioteca de jogos instalados'], ['diag', 'Conexão', 'M4 20v-4M10 20v-8M16 20V8M22 20V4', 'Conexão'], ['history', 'Histórico', 'M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7M3 4v5h5', 'Histórico de conexões'], ['settings', 'Ajustes', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', 'Ajustes do launcher']];
+    const nav = navDefs.map(([k, label, path, tip]) => ({ label, path, tip, go: () => this.go(k),
+      bg: s.route === k ? '#171B24' : 'transparent', fg: s.route === k ? '#F5F7FC' : '#9AA3B5', cursor: locked ? 'default' : 'pointer', opacity: locked ? 0.45 : 1 }));
+    const fl = [['All', 'Todos os jogos'], ['Installed', 'Instalados'], ['Steam', 'Steam'], ['Epic', 'Epic Games'], ['Xbox', 'Xbox'], ['Favorites', 'Favoritos'], ['Recent', 'Recentes']];
+    const filters = fl.map(([k, label]) => ({ label, pick: () => this.setState({ filter: k }), bg: s.filter === k ? '#202633' : '#1C212B', fg: s.filter === k ? '#F5F7FC' : '#9AA3B5' }));
+    let vis = this.games.filter(g => {
+      if (s.search && !g.title.toLowerCase().includes(s.search.toLowerCase())) return false;
+      if (['Steam', 'Epic', 'Xbox'].includes(s.filter)) return g.p === s.filter;
+      if (s.filter === 'Favorites') return !!s.favs[g.id];
+      if (s.filter === 'Recent') return ['cs2', 'dota', 'fn'].includes(g.id);
+      return true;
+    });
+    const hg = this.games.find(g => g.id === s.sel) || this.games[0];
+    const fav = !!s.favs[hg.id];
+    const art = (g, k) => 'https://cdn.akamai.steamstatic.com/steam/apps/' + g.app + '/' + k + '.jpg';
+    const keys = ['library_hero', 'page_bg_generated_v6b', 'capsule_616x353'];
+    const hero = { shift: (-s.slide * 33.3333) + '%', slides: keys.map(k => ({ art: art(hg, k) })), dots: keys.map((k, i) => ({ w: i === s.slide ? '28px' : '10px', bg: i === s.slide ? '#F5F7FC' : 'rgba(245,247,252,.35)', pick: () => this.setState({ slide: i }) })), title: hg.title, platform: this.plat[hg.p], favLabel: fav ? 'REMOVER FAVORITO' : 'FAVORITAR', favColor: fav ? '#FF5A36' : '#F5F7FC', favFill: fav ? 'currentColor' : 'none', canTest: hg.net !== 'off' };
+    const games = vis.map(g => ({ art: art(g, 'library_600x900'), title: g.title, platform: this.plat[g.p], outline: g.id === s.sel ? '2px solid rgba(255,255,255,.16)' : 'none', pick: () => this.setState({ sel: g.id, slide: 0 }) }));
+    // diag
+    const W = 900, ux = 470, uy = 150, dx = 555, dy = 95, cx = (ux + dx) / 2, cy = Math.min(uy, dy) - 55;
+    const bez = t => [(1 - t) * (1 - t) * ux + 2 * (1 - t) * t * cx + t * t * dx, (1 - t) * (1 - t) * uy + 2 * (1 - t) * t * cy + t * t * dy];
+    const blobs = [[480, 170, 70, 85], [520, 110, 55, 28], [430, 70, 40, 22], [740, 120, 60, 55], [300, 90, 90, 40], [790, 230, 50, 25]];
+    const dots = []; for (let x = 6; x < W; x += 9) for (let y = 6; y < 280; y += 9) if (blobs.some(([bx, by, rx, ry]) => ((x - bx) / rx) ** 2 + ((y - by) / ry) ** 2 < 1)) dots.push({ x, y });
+    const running = s.diag === 'running';
+    const probes = running ? [0, 0.5].map(o => { const [x, y] = bez((s.tick + o) % 1); return { x, y }; }) : [];
+    const waves = running ? [0, 0.5].map(o => { const f = (s.tick + o) % 1; return { x: dx, y: dy, r: f * 38, o: Math.max(0, (1 - f) * 0.8) }; }) : [];
+    const rr = s.ratio, ph = rr < 0.25 ? 0 : rr < 0.5 ? 1 : rr < 0.8 ? 2 : 3;
+    const names = ['01 · ESCOLHENDO SERVIDORES', '02 · LATÊNCIA EM REPOUSO', '03 · MEDIÇÃO SOB CARGA', '04 · ANÁLISE DO VEREDITO'];
+    const msgs = ['Varrendo regiões AWS para encontrar o datacenter de menor latência…', 'Medindo a resposta e os reflexos da sua conexão sem tráfego concorrente…', 'Simulando tráfego na rede para medir acréscimo de atraso (bufferbloat)…', 'Comparando os resultados com as exigências de partidas ranqueadas…'];
+    const livePing = rr > 0.1 ? (10 + Math.round(Math.sin(rr * 40) * 2)) + ' ms' : '—';
+    const R = s.result || { ping: 10, jitter: 1.8, load: 15.5, loss: 0 };
+    const U = (title, ex, status, detail) => ({ title, ex, status, detail });
+    const T = this;
+    const cardsDef = [
+      { title: 'Interface e Visual', icon: 'M12 3a9 9 0 1 0 9 9c0-1-1-1.5-2-1.5h-2a2 2 0 0 1-2-2V6c0-1.5-1-3-3-3z', rows: [['motion', 'Reduzir movimento', 'Desativa animações e transições visuais para resposta imediata.'], ['art', 'Baixar imagens dos jogos', 'Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras.']] },
+      { title: 'Privacidade e Rede', icon: 'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z', isPrivacy: true, rows: [['loc', 'Localização aproximada', 'Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS.'], ['analytics', 'Enviar estatísticas anônimas', 'Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal.']] },
+      { title: 'Atualizações', icon: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5', isUpdates: true, rows: [['updates', 'Verificar automaticamente', 'Consulta periodicamente por novas versões no canal oficial do GitHub.']] },
+      { title: 'Sobre o LagCheck', icon: 'M12 8v.01M12 11v6M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', isAbout: true, rows: [] }
+    ];
+    const cards = cardsDef.map(c => ({ title: c.title, icon: c.icon, isPrivacy: !!c.isPrivacy, isUpdates: !!c.isUpdates, isAbout: !!c.isAbout,
+      rows: c.rows.map(([k, title, desc], i) => { const on = s.prefs[k]; return { title, desc, sep: i > 0, bg: on ? '#7C3AED' : 'transparent', bd: on ? '#7C3AED' : '#9AA3B5', knob: on ? '#fff' : '#9AA3B5', left: on ? '23px' : '3px', toggle: () => T.setState({ prefs: { ...T.state.prefs, [k]: !on } }) }; }) }));
+    const hq = s.hsearch.toLowerCase();
+    const historyRows = s.history.filter(h => !hq || (h.verdict + h.region).toLowerCase().includes(hq));
+    return {
+      expanded: exp, collapsed: !exp, sidebarW: exp ? '220px' : '64px', navAlign: exp ? 'stretch' : 'center', navW: exp ? 'auto' : '44px',
+      toggleSidebar: () => this.setState({ collapsed: !s.collapsed }),
+      quickSearch: () => { if (locked) return; if (s.route !== 'library') this.go('library'); setTimeout(() => { const i = document.getElementById('libsearch'); i && i.focus(); }, 30); },
+      nav, routeText: s.route === 'diag' ? (s.diagGame ? 'Conexão · ' + s.diagGame : 'Conexão') : { library: 'Biblioteca', history: 'Histórico', settings: 'Ajustes' }[s.route],
+      isLibrary: s.route === 'library', isDiag: s.route === 'diag', isHistory: s.route === 'history', isSettings: s.route === 'settings',
+      hero, heroFav: () => this.setState({ favs: { ...s.favs, [hg.id]: !fav } }),
+      refreshArt: () => this.say('Imagem oficial atualizada a partir do cache local.'),
+      heroTest: () => this.openDiag(hg), heroLaunch: () => this.say('Abrindo ' + hg.title + '…'),
+      countLabel: vis.length + (vis.length === 1 ? ' JOGO' : ' JOGOS'), rescanLabel: s.scanning ? 'Procurando…' : 'Procurar jogos',
+      rescan: () => { this.setState({ scanning: true }); setTimeout(() => this.setState({ scanning: false }), 1200); },
+      search: s.search, onSearch: e => this.setState({ search: e.target.value }), filters, games, noResults: vis.length === 0,
+      diagTitle: s.diagGame ? 'Conexão · ' + s.diagGame : 'Diagnóstico de Conexão',
+      dots, arcD: `M${ux} ${uy} Q${cx} ${cy} ${dx} ${dy}`, probes, waves,
+      pin: { ux, uy, utx: ux + 12, uty: uy - 18 + 36, dx, dy, dtx: dx + 12, dty: dy - 18 },
+      isIdle: s.diag === 'idle', isRunning: running, isDone: s.diag === 'done',
+      startDiag: this.startDiag, cancelDiag: () => { clearInterval(this.tm); this.setState({ diag: 'idle', ratio: 0 }); }, again: () => this.setState({ diag: 'idle' }),
+      progressPct: (s.ratio * 100).toFixed(1) + '%', phaseName: names[ph], statusMsg: msgs[ph], liveMetric: livePing,
+      liveStrip: [{ label: 'RESPOSTA', value: livePing }, { label: 'JITTER', value: rr > 0.1 ? '1.8 ms' : '—' }, { label: 'SOB CARGA', value: rr > 0.1 ? (ph >= 2 ? '+15 ms' : '+0 ms') : '—' }, { label: 'REGIÃO', value: rr > 0.05 ? 'São Paulo' : '—' }],
+      verdict: { kicker: '● PRONTO PARA RANKED', color: '#22C55E', headline: 'Pronto para partidas ranqueadas', sub: 'Sua rota tem latência baixa e estabilidade sob carga para disputar partidas ranqueadas sem surpresas.' },
+      resultBoxes: [{ title: 'RESPOSTA EM REPOUSO', value: R.ping, unit: 'ms', hint: 'Latência de rota' }, { title: 'JITTER', value: R.jitter, unit: 'ms', hint: 'Oscilação entre pacotes' }, { title: 'SOB CARGA', value: '+' + R.load, unit: 'ms', hint: 'Bufferbloat / fila da rede' }, { title: 'PERDA DE PACOTES', value: '0.0', unit: '%', hint: 'Estimativa de integridade' }],
+      usage: [U('FPS Tático & Competitivo', 'CS2, Valorant, Rainbow Six Siege', 'Excelente', 'Registro imediato de disparos e reflexos precisos.'), U('Battle Royale & eSports', 'Fortnite, Warzone, Apex, Free Fire', 'Excelente', 'Movimentação fluida em mapas densos e rotações sem atraso.'), U('MOBA & Estratégia', 'League of Legends, Dota 2', 'Excelente', 'Sincronização milimétrica de cliques e skills conjuntas.'), U('Chamadas de Voz & Discord', 'Discord, TeamSpeak, Meet, Zoom', 'Perfeita', 'Áudio cristalino sem atraso, picotes ou voz robótica.'), U('Transmissão ao Vivo & Streaming', 'Twitch, YouTube via OBS 1080p60', 'Estável', 'Taxa de upload firme sem derrubar o ping do jogo.'), U('Cloud Gaming', 'GeForce NOW, Xbox Cloud Gaming', 'Apto', 'Comandos responsivos com sensação próxima de hardware local.')],
+      hsearch: s.hsearch, onHSearch: e => this.setState({ hsearch: e.target.value }),
+      hasHistory: s.history.length > 0, noHistory: s.history.length === 0, historyRows, noHistoryMatch: s.history.length > 0 && historyRows.length === 0,
+      cards, renewId: () => this.setState({ aStatus: 'Novo ID local gerado.' }), analyticsStatus: s.aStatus,
+      checkUpdates: () => { this.setState({ uStatus: 'Verificando…' }); setTimeout(() => this.setState({ uStatus: 'Você já está na versão mais recente (v0.1.0).' }), 900); }, updateStatus: s.uStatus,
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>

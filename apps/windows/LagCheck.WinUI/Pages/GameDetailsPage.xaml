@@ -1,0 +1,159 @@
+<Page
+    x:Class="LagCheck.WinUI.Pages.GameDetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LagCheck.WinUI.Library"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+    Background="{StaticResource DeepBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="0">
+            <!-- Banner Superior com Hero e Controles (456px) -->
+            <Grid Height="456">
+                <!-- Imagem do Banner do Jogo -->
+                <Image x:Name="BannerImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Rectangle Fill="{StaticResource SurfaceBrush}" Opacity="0.4" />
+                <!-- Gradientes Cinematográficos -->
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#F00B0D12" Offset="0.0" />
+                            <GradientStop Color="#A00B0D12" Offset="0.50" />
+                            <GradientStop Color="#200B0D12" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#800B0D12" Offset="0.0" />
+                            <GradientStop Color="Transparent" Offset="0.30" />
+                            <GradientStop Color="Transparent" Offset="0.55" />
+                            <GradientStop Color="{StaticResource DeepColor}" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- Botão Voltar -->
+                <Button Click="GoBack_Click" Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Margin="40,24,0,0" Height="36" CornerRadius="18" Padding="14,0"
+                        ToolTipService.ToolTip="Voltar à tela anterior" automation:AutomationProperties.Name="Voltar">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72B;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Informações e Ações do Jogo no Rodapé do Banner -->
+                <StackPanel VerticalAlignment="Bottom" Margin="48,0,48,30" Spacing="16">
+                    <Border Background="#D0282E3C" CornerRadius="14" Padding="14,7" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock x:Name="PlatformText" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="GameTitleText" FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold"
+                               FontSize="60" LineHeight="62" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Button x:Name="LaunchBtn" Content="▶ JOGAR AGORA" Click="Launch_Click"
+                                Height="56" Padding="42,0" CornerRadius="28"
+                                Background="{StaticResource PurpleBrush}" Foreground="White"
+                                FontSize="16" FontWeight="Bold" BorderThickness="0" />
+
+                        <Button x:Name="CheckConnBtn" Content="Checar conexão" Click="CheckConnection_Click"
+                                Height="56" Padding="28,0" CornerRadius="28"
+                                Background="#D0252A36" Foreground="{StaticResource TextPrimaryBrush}"
+                                FontSize="14" FontWeight="SemiBold" BorderThickness="0" />
+
+                        <Button x:Name="FavBtn" Click="ToggleFavorite_Click"
+                                Width="46" Height="46" CornerRadius="23"
+                                Background="#D0252A36" BorderThickness="0"
+                                ToolTipService.ToolTip="Favoritar jogo">
+                            <FontIcon Glyph="&#xE734;" FontSize="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Grade Inferior em 2 Colunas -->
+            <Grid Padding="48,16,48,56" ColumnSpacing="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="340" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Coluna Principal (Esquerda) -->
+                <StackPanel Grid.Column="0" Spacing="22">
+                    <!-- Tags de Gêneros / Modos -->
+                    <ItemsControl x:Name="TagsList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#1C212B" CornerRadius="16" Padding="16,6">
+                                    <TextBlock Text="{Binding}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Painel Dias Jogados (Heatmap) -->
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="DIAS JOGADOS" Style="{StaticResource EyebrowTextStyle}" />
+                            <TextBlock Text="Registro das sessões jogadas nas últimas semanas." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                            <!-- Grade de Heatmap Visual -->
+                            <Border Height="80" Background="#11141B" CornerRadius="8" Padding="12">
+                                <TextBlock Text="Heatmap de atividade ativo localmente neste PC." Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                <TextBlock Text="Menos" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                                <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#1C212B"/>
+                                <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#3B2A6B"/>
+                                <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="#5B3BA8"/>
+                                <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="{StaticResource PurpleBrush}"/>
+                                <Rectangle Width="12" Height="12" RadiusX="3" RadiusY="3" Fill="{StaticResource PurpleLightBrush}"/>
+                                <TextBlock Text="Mais" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Coluna Lateral (Direita - 340px) -->
+                <StackPanel Grid.Column="1" Spacing="20">
+                    <!-- Ficha Técnica -->
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,14">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="PLATAFORMA" Style="{StaticResource EyebrowTextStyle}"/>
+                                <TextBlock x:Name="MetaPlatformText" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <Border Background="{StaticResource LineBrush}" Height="1"/>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="REDE E DIAGNÓSTICO" Style="{StaticResource EyebrowTextStyle}"/>
+                                <TextBlock x:Name="MetaNetworkText" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card Histórico de Medições do Jogo -->
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource EyebrowTextStyle}"/>
+                            <TextBlock x:Name="HistStatusText" Text="Nenhuma medição registrada para este jogo nesta sessão." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <Button Content="Medir agora" Style="{StaticResource SecondaryButtonStyle}"
+                                    CornerRadius="20" Height="40" Padding="20,0" Margin="0,8,0,0"
+                                    Click="CheckConnection_Click" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
