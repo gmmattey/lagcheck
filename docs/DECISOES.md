@@ -125,6 +125,8 @@
 | [120](#decisão-120) | Reorganização do repositório em camadas de produtos e pastas canônicas | **Vigente** | Isola `apps/`, `services/`, `shared/`, `distribution/`, `docs/`, `scripts/` | Luiz / Squad |
 | [121](#decisão-121) | Verificação automática de versão e atualização transparente no Android (APK e Loja) | **Vigente** | Detecção de origem (Play Store vs sideload APK), diálogo Dark Competitive UI, download direto e Google Play In-App Updates | Luiz / Marcelo / Camillo / Priscila / Renan |
 | [122](#decisão-122) | Windows (WinUI 3): suporte multi-idioma nativo (PT-BR, EN e ES) com detecção de sistema e seletor em Ajustes | **Vigente** | Internacionalização completa da interface WinUI 3 com chave PT-BR, fallback robusto e troca instantânea | Luiz / Squad |
+| [123](#decisão-123) | Mapa de medição nativo igual ao site, localização aproximada por IP e pré-leitura regional em todo Check do iOS | **Vigente (implementado localmente; aparelho físico pendente)** | Refina as Decisões 50 e 90; usa o endpoint do site já usado pelo Windows (Decisão 116), sem Worker novo | Luiz / Camillo |
+| [124](#decisão-124) | Nova logo (símbolo L + check e wordmark "Lagcheck") nos apps, ícones e lojas | **Vigente (implementado localmente; envio às lojas pendente)** | Substitui o símbolo da Decisão 91 e a grafia minúscula da wordmark da Decisão 25 | Luiz / Priscila |
 
 
 
@@ -1419,6 +1421,30 @@
   - Testes de domínio `:core:domain:test` verdes (100% de sucesso).
   - Testes do Cloudflare Worker com 59/59 asserções verdes.
   - Zero dependência quebrada ou impacto no motor de medição de rede e rotas.
+
+#### Decisão 123
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Mapa de medição nativo igual ao site, localização aproximada por IP e pré-leitura regional em todo Check do iOS.
+- **Status Atual:** **Vigente (implementado localmente; validado em simulador iOS e emulador Android com rede real; aparelho físico pendente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Camillo (implementação), Priscila (fidelidade visual), Renan (testes).
+- **Decisão:**
+  1. `RouteMapController` (iOS `NolaggyDesign`, Android `core:designsystem`) é porta direta de `RouteMap` do site (`pages/lagcheck/src/lib/map/route-map.ts`): varredura dos servidores candidatos, câmera com suavização exponencial (`k = 1 - exp(-dt·3,2)`) que sai da visão geral e se aproxima da região escolhida (zoom ≤ 3,4), uma sonda por resposta UDP real (ida 420 ms, volta `clamp(RTT·8, 300, 700)` ms, até 6 em voo), rótulos sem sobreposição e quadros só enquanto há movimento. A varredura usa os envios e respostas reais da pré-leitura regional; nada se move sem evento do motor.
+  2. Telas: escolha do servidor e medição (proporção 4:3) e resultado (16:10, câmera se aproximando da rota, sem sondas porque a medição terminou; inconclusivo não ganha mapa). Raio 13, borda de 1 px, fundo `#0B0D10`.
+  3. "Você" vem da localização aproximada pelo IP no endpoint público do site `GET https://lagcheck.signallq.com/v1/approx-location` (o mesmo do site e do Windows; cidade e coordenadas arredondadas a 0,5°, cerca de 50 km). Consulta só ao iniciar um check, sem cookies, sem cache HTTP, sem cabeçalho de identificação, limite de 3 s e resultado mantido só em memória. Se falhar, usa o país configurado no aparelho; sem país conhecido, mostra "Localização aproximada indisponível". Nenhum Worker, endpoint ou serviço novo; o Worker `nolaggy-deep-check` não muda.
+  4. iOS: todo Check (Home, Jogos, deep link, detalhes do jogo, duelo, repetir) passa pela pré-leitura regional dentro da própria tela do Check, como o Android já fazia, cumprindo a Decisão 90 (referência pela menor latência UDP). Antes, esses caminhos mediam direto a região padrão do catálogo. Sem rede real (simulador sem `-simulator-real-network`, só em DEBUG, e fixtures de UI) o Check mede direto, como antes.
+  5. Correção: `fitCamera` passa a dividir os dois eixos pela largura, como o site.
+- **Pendências:** validar em iPhone e Android físicos; revisar as declarações de privacidade das lojas (o IP chega ao servidor do site para devolver a localização aproximada, que não é guardada nem vinculada ao usuário).
+- **Critérios de aceite:** testes do controlador (iOS 23, Android 18), do cliente de localização (3 + 3) e suítes completas verdes nas duas plataformas; protótipo Windows compilando.
+
+#### Decisão 124
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Nova logo nos apps, ícones e lojas.
+- **Status Atual:** **Vigente (implementado localmente; envio às lojas pendente).** Pedida pelo Luiz.
+- **Decisão:** a logo oficial passa a ser a publicada no site em 10 de novembro de 2026: símbolo "L + check" com órbita (`shared/design-system/assets/brand/lagcheck-mark.svg`) e wordmark "Lagcheck" (`wordmark-primary.svg`), copiados sem alteração de `gmmattey/landings/pages/lagcheck/src/assets/brand/`. Substitui o símbolo da Decisão 91 e a regra de wordmark em minúsculas da Decisão 25 (o nome do produto continua LagCheck no texto).
+- **Aplicação:** ícone do app iOS (claro, escuro e tingido), App Clip, ícone adaptativo Android (fundo, frente na zona segura de 66 dp, monocromático e legado redondo), wordmark nas telas iOS/Android e nos cards de compartilhamento, ícones de loja (`shared/distribution/store/app-store/icon-1024.png` sem alfa e `shared/distribution/store/google-play/icon-512.png`) e ativos do design system. O ícone só posiciona o símbolo oficial sobre o fundo grafite do ícone anterior; tudo é gerado por `shared/scripts/generate-brand-icons.py`.
+- **Fora do escopo / pendências:** ícones alternativos do Android com mascote (`ic_launcher_cheer/thumbs/wink`), wordmarks monocromáticas, favicon e apple-touch-icon do site (ainda com o símbolo anterior, no repositório `landings`), screenshots e feature graphic das lojas, protótipo Windows. Envio às lojas exige autorização explícita.
 
 ## Como Registrar Novas Decisões
 

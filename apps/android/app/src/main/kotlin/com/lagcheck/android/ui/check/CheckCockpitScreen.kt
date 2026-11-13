@@ -34,6 +34,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.core.designsystem.components.MeasurementLiveTrail
+import androidx.compose.foundation.layout.aspectRatio
+import com.lagcheck.core.designsystem.components.map.RouteMapController
+import com.lagcheck.android.ui.components.LagCheckRouteMap
+import com.lagcheck.android.ui.components.RouteMapSupport
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
@@ -61,6 +65,9 @@ fun CheckCockpitScreen(
     isCancelled: Boolean = false,
     cancelReason: CancelReason? = null,
     destinationName: String = "",
+    routeRegionId: String? = null,
+    routeMap: RouteMapController? = null,
+    routeRegionName: (String) -> String = { it },
     showMobileDataConsent: Boolean = false,
     onCancel: () -> Unit,
     onRetry: () -> Unit,
@@ -104,6 +111,16 @@ fun CheckCockpitScreen(
                     text = game.name,
                     style = LagCheckTypography.MonoData,
                     color = LagCheckColors.TextMuted
+                )
+            }
+
+            if (!isCancelled && routeMap != null && RouteMapSupport.canDraw(routeRegionId)) {
+                // Mesmo mapa do site: a câmera se aproxima da região escolhida e cada resposta real sai de "Você",
+                // chega e volta.
+                LagCheckRouteMap(
+                    controller = routeMap,
+                    regionName = routeRegionName,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)
                 )
             }
 

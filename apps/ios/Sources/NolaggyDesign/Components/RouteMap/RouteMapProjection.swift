@@ -43,52 +43,8 @@ public struct MapLandPoint: Equatable, Sendable {
     public let lon: Double
 }
 
-/// Estado observado de uma região candidata no mapa.
-public struct MapRegionSample: Equatable, Sendable {
-    public let id: String
-    public let label: String
-    public let latencyMs: Double?
-    public let answered: Bool
-
-    public init(id: String, label: String, latencyMs: Double? = nil, answered: Bool = false) {
-        self.id = id
-        self.label = label
-        self.latencyMs = latencyMs
-        self.answered = answered
-    }
-}
-
-/// Evento real de sonda para animar pacotes ao longo do arco da rota.
-public struct MapProbeFlight: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let regionId: String
-    public let isSweep: Bool
-    public let isInbound: Bool
-    public let startedAt: TimeInterval
-    public let durationSeconds: TimeInterval
-
-    public init(
-        id: UUID = UUID(),
-        regionId: String,
-        isSweep: Bool = false,
-        isInbound: Bool,
-        startedAt: TimeInterval,
-        durationSeconds: TimeInterval
-    ) {
-        self.id = id
-        self.regionId = regionId
-        self.isSweep = isSweep
-        self.isInbound = isInbound
-        self.startedAt = startedAt
-        self.durationSeconds = durationSeconds
-    }
-}
-
 /// Regras determinísticas de projeção, câmera, arcos e movimento espelhadas de `pages/lagcheck/src/lib/map/`.
 public enum RouteMapProjection {
-    public static let outFlightSeconds: TimeInterval = 0.420
-    public static let sweepStaggerSeconds: TimeInterval = 0.045
-    public static let sweepFlightSeconds: TimeInterval = 0.620
     public static let routeMaxZoom: Double = 3.4
     public static let minZoom: Double = 1.0
     public static let maxZoom: Double = 7.0
@@ -171,7 +127,8 @@ public enum RouteMapProjection {
         let availX = max(width - padX * 2.0, 20.0)
         let availY = max(height - padY * 2.0, 20.0)
         let zoomByLon = (availX * 360.0) / (width * lonSpan)
-        let zoomByLat = (availY * 360.0) / (height * latSpan)
+        // Como no site: k = zoom * largura / 360 vale para os dois eixos.
+        let zoomByLat = (availY * 360.0) / (width * latSpan)
         let zoom = min(maxZoom, max(minZoom, min(zoomByLon, zoomByLat)))
         return MapCamera(
             lon: (maxLon + minLon) / 2.0,

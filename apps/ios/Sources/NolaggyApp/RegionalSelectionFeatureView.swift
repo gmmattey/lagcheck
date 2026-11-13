@@ -11,16 +11,19 @@ struct RegionalSelectionFeatureView: View {
     @State private var retryInProgress = false
 
     private let gameTitle: String
+    private let routeMap: RouteMapController
     private let onRetry: () -> Void
     private let onBackOrCancel: () -> Void
 
     init(
         gameTitle: String,
+        routeMap: RouteMapController,
         presentation: Binding<RegionalSelectionPresentation>,
         onRetry: @escaping () -> Void,
         onBackOrCancel: @escaping () -> Void
     ) {
         self.gameTitle = gameTitle
+        self.routeMap = routeMap
         _presentation = presentation
         self.onRetry = onRetry
         self.onBackOrCancel = onBackOrCancel
@@ -50,8 +53,15 @@ struct RegionalSelectionFeatureView: View {
     private var content: some View {
         switch presentation {
         case .confirming:
-            RegionalReferenceConfirming()
-                .accessibilityIdentifier("regional-selection-confirming")
+            VStack(spacing: NLSpacing.xl) {
+                // Varredura: uma sonda real para cada servidor candidato, como no site.
+                RouteMapPresentation.mapView(routeMap)
+                    .aspectRatio(4 / 3, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("regional-selection-route-map")
+                RegionalReferenceConfirming()
+                    .accessibilityIdentifier("regional-selection-confirming")
+            }
         case .noViableCandidate:
             noViableCandidate
         }

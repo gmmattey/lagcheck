@@ -9,6 +9,7 @@ import NolaggyDomain
 struct HistoryView: View {
     let entries: [MeasurementHistoryEntry]
     let gameName: (MeasurementHistoryEntry) -> String
+    var catalogGame: (MeasurementHistoryEntry) -> CatalogMeasurementJourney.Game? = { _ in nil }
     let retry: (MeasurementHistoryEntry) -> Void
     let returnToHome: () -> Void
     var showsBackHeader: Bool = true
@@ -435,12 +436,12 @@ struct HistoryView: View {
     }
 
     private func catalogCoverView(for entry: MeasurementHistoryEntry) -> some View {
-        let dummyGame = CatalogMeasurementJourney.Game(
+        let game = catalogGame(entry) ?? CatalogMeasurementJourney.Game(
             id: entry.resolvedContext.context.gameID,
             name: gameName(entry),
             context: entry.resolvedContext.context,
             profileID: .battleRoyaleCompetitive
         )
-        return VerifiedGameArtwork(game: dummyGame, aspectRatio: 38 / 46)
+        return VerifiedGameArtwork(game: game, aspectRatio: 38 / 46)
     }
 }

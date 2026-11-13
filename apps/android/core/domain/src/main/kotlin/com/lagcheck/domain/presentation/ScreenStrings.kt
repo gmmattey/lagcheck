@@ -141,6 +141,8 @@ internal val SCREEN_STRINGS: List<Triple<String, String, String>> = listOf(
     Triple("Veredito", "Verdict", "Veredicto"),
     Triple("Versão", "Version", "Versión"),
     Triple("Voltar", "Back", "Volver"),
+    Triple("Mapa da rota medida", "Map of the measured route", "Mapa de la ruta medida"),
+    Triple("Localização aproximada indisponível", "Approximate location unavailable", "Ubicación aproximada no disponible"),
     Triple("WI-FI OBSERVADO NO DISPOSITIVO", "WI-FI OBSERVED ON DEVICE", "WI-FI OBSERVADO EN EL DISPOSITIVO"),
     Triple("Compartilhar resultado", "Share result", "Compartir resultado"),
     Triple("Abrir opções de compartilhamento", "Open sharing options", "Abrir opciones para compartir"),

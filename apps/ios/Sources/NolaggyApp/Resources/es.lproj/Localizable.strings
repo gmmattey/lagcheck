@@ -907,3 +907,7 @@
 "share.video.cancel" = "Cancelar";
 "share.video.failed" = "No se pudo crear el video.";
 "share.caption.copied" = "Leyenda y hashtags copiados. Pégalos en tu publicación.";
+
+"route_map.you" = "Tú";
+"route_map.a11y" = "Mapa de la ruta medida";
+"route_map.unavailable" = "Ubicación aproximada no disponible";

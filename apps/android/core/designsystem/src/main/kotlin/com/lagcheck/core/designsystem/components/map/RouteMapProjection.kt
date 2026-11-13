@@ -37,29 +37,8 @@ data class MapArc(
     val cy: Double
 )
 
-/** Estado observado de uma região candidata no mapa. */
-data class MapRegionSample(
-    val id: String,
-    val label: String,
-    val latencyMs: Double? = null,
-    val answered: Boolean = false
-)
-
-/** Evento real de sonda para animar pacotes ao longo do arco da rota. */
-data class MapProbeFlight(
-    val id: String,
-    val regionId: String,
-    val isSweep: Boolean = false,
-    val isInbound: Boolean,
-    val startedAtMs: Long,
-    val durationMs: Long
-)
-
 /** Regras determinísticas de projeção, câmera, arcos e movimento espelhadas de `pages/lagcheck/src/lib/map/`. */
 object RouteMapProjection {
-    const val OUT_FLIGHT_MS: Long = 420L
-    const val SWEEP_STAGGER_MS: Long = 45L
-    const val SWEEP_FLIGHT_MS: Long = 620L
     const val ROUTE_MAX_ZOOM: Double = 3.4
     const val MIN_ZOOM: Double = 1.0
     const val MAX_ZOOM: Double = 7.0
@@ -133,7 +112,8 @@ object RouteMapProjection {
         val availX = max(width - padX * 2.0, 20.0)
         val availY = max(height - padY * 2.0, 20.0)
         val zoomByLon = (availX * 360.0) / (width * lonSpan)
-        val zoomByLat = (availY * 360.0) / (height * latSpan)
+        // Como no site: k = zoom * largura / 360 vale para os dois eixos.
+        val zoomByLat = (availY * 360.0) / (width * latSpan)
         val zoom = min(maxZoom, max(MIN_ZOOM, min(zoomByLon, zoomByLat)))
         return MapCamera(
             lon = (maxLon + minLon) / 2.0,

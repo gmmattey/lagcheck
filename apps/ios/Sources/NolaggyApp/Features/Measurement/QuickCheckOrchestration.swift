@@ -25,6 +25,7 @@ extension QuickCheckFeatureView {
     func start() {
         guard let remoteCatalog, let activeContext = requestedMeasurementContext ?? context else { return }
         regionalPresentation = .confirming
+        RouteMapPresentation.beginSession(routeMap)
         showingRegionalSelection = true
         Task { @MainActor in
             await Task.yield()
@@ -40,7 +41,9 @@ extension QuickCheckFeatureView {
         do {
             decision = try await coordinator.selectRegionalCandidate(
                 snapshot: snapshot,
-                using: RegionalPreReadCoordinator(collector: MeasurementTransportFactory.regionalPreReadCollector()),
+                using: RegionalPreReadCoordinator(collector: MeasurementTransportFactory.regionalPreReadCollector(
+                    onEvent: RouteMapPresentation.preReadEventHandler(for: routeMap)
+                )),
                 manualRegionID: manualRegionID
             )
         } catch RegionalSelectionError.manualCandidateNotAllowed where manualRegionID != nil {
@@ -49,7 +52,10 @@ extension QuickCheckFeatureView {
         } catch { return }
 
         switch decision {
-        case let .selected(selection): openDeepCheck(resolvedContext: selection.selected.resolvedContext)
+        case let .selected(selection):
+            let resolved = selection.selected.resolvedContext
+            routeMap.selectRegion(resolved.regionID)
+            openDeepCheck(resolvedContext: resolved, routeMap: routeMap, runsRegionalPreRead: false)
         case .inconclusive: regionalPresentation = .noViableCandidate
         }
     }
@@ -57,6 +63,7 @@ extension QuickCheckFeatureView {
     func retryRegionalPreRead() {
         guard let remoteCatalog, let activeContext = requestedMeasurementContext ?? context else { return }
         regionalPresentation = .confirming
+        RouteMapPresentation.beginSession(routeMap)
         Task { @MainActor in
             let manualRegionID = await regionalPreferenceRepository.manualRegionID()
             guard let snapshot = await automaticRegionalSnapshot(for: activeContext, in: remoteCatalog, manualRegionID: manualRegionID) else { return }
@@ -123,7 +130,13 @@ extension QuickCheckFeatureView {
         presentation = .context
     }
 
-    func openDeepCheck(resolvedContext: ResolvedMeasurementContext? = nil, platform: Platform? = nil, incomingDuel: HostDuelPayload? = nil) {
+    func openDeepCheck(
+        resolvedContext: ResolvedMeasurementContext? = nil,
+        platform: Platform? = nil,
+        incomingDuel: HostDuelPayload? = nil,
+        routeMap: RouteMapController? = nil,
+        runsRegionalPreRead: Bool = true
+    ) {
         guard let baseContext = resolvedContext ?? selectedRegionalContext ?? completedEntry?.resolvedContext else {
             return
         }
@@ -155,8 +168,30 @@ extension QuickCheckFeatureView {
         deepCheckDestination = DeepCheckDestination(
             resolvedContext: context,
             gameName: gameName(forGameID: context.context.gameID),
-            incomingDuel: incomingDuel
+            incomingDuel: incomingDuel,
+            // A varredura só continua no Check quando a região é a mesma escolhida nela.
+            routeMap: routeMap?.selectedId == context.regionID ? routeMap : nil,
+            regionalSnapshotProvider: runsRegionalPreRead ? regionalSnapshotProvider(for: context.context) : nil
         )
+    }
+
+    /// Todo Check passa pela pré-leitura regional (Decisão 90), como no Android:
+    /// os servidores candidatos são medidos e o de menor latência UDP é o medido.
+    /// Sem rede real (simulador sem `-simulator-real-network` e fixtures), mede
+    /// direto a rota resolvida, como antes.
+    func regionalSnapshotProvider(for gameContext: GameContext) -> RegionalSnapshotProvider? {
+        guard MeasurementTransportFactory.usesRealNetwork,
+              !UITestFixtures.isEnabled("-ui-fixture-confirmed-region"),
+              let remoteCatalog else { return nil }
+        let preferences = regionalPreferenceRepository
+        let shell = self
+        return {
+            let manualRegionID = await preferences.manualRegionID()
+            guard let snapshot = await shell.automaticRegionalSnapshot(
+                for: gameContext, in: remoteCatalog, manualRegionID: manualRegionID
+            ) else { return nil }
+            return RegionalSnapshotRequest(snapshot: snapshot, manualRegionID: manualRegionID)
+        }
     }
 
     func back() {

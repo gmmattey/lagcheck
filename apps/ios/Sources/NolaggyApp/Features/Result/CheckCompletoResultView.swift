@@ -17,6 +17,8 @@ public struct CheckCompletoResultView: View {
     public let gameName: String
     public let platform: Platform
     public let regionFriendlyName: String
+    /// Região medida (id do catálogo). Sem ela, o resultado não desenha mapa.
+    public let regionID: String?
     public let destinationKind: RouteDestinationKind
     public let isWiFi: Bool
     public let showDetails: () -> Void
@@ -26,6 +28,7 @@ public struct CheckCompletoResultView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var activePlatformForTips: Platform? = nil
+    @State private var resultMap = RouteMapController()
 
     private enum ShareDestination: Identifiable {
         case discord(items: [Any])
@@ -68,6 +71,7 @@ public struct CheckCompletoResultView: View {
         gameName: String,
         platform: Platform = .iphone,
         regionFriendlyName: String,
+        regionID: String? = nil,
         destinationKind: RouteDestinationKind = .regionalReference,
         isWiFi: Bool = true,
         showDetails: @escaping () -> Void = {},
@@ -82,6 +86,7 @@ public struct CheckCompletoResultView: View {
         self.gameName = gameName
         self.platform = platform
         self.regionFriendlyName = regionFriendlyName
+        self.regionID = regionID
         self.destinationKind = destinationKind
         self.isWiFi = isWiFi
         self.showDetails = showDetails
@@ -204,6 +209,23 @@ public struct CheckCompletoResultView: View {
                         .clipped()
                     )
 
+                    // Rota medida, como no site: a câmera sai da visão dos servidores e
+                    // se aproxima da região escolhida, com a mediana no rótulo. Não há
+                    // sondas aqui porque a medição terminou. Inconclusivo não ganha mapa.
+                    if evaluation.verdict != .inconclusive,
+                       let regionID,
+                       RouteMapPresentation.canDraw(regionID: regionID) {
+                        RouteMapPresentation.mapView(resultMap)
+                            .aspectRatio(16 / 10, contentMode: .fit)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 20)
+                            .accessibilityIdentifier("check-completo-route-map")
+                            .onAppear {
+                                RouteMapPresentation.ensureUser(resultMap)
+                                resultMap.selectRegion(regionID, ms: evaluation.pingMs)
+                            }
+                    }
+
                     if let grade = evaluation.metrics?.loadImpact?.bufferbloatGrade {
                         HStack(spacing: 6) {
                             Text(LocalizedStringKey("result.bufferbloat.label"))
@@ -238,7 +260,11 @@ public struct CheckCompletoResultView: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 18)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+                            .stroke(NLColor.borderHairline, lineWidth: 1)
+                    )
                     .padding(.top, 32)
                 }
 

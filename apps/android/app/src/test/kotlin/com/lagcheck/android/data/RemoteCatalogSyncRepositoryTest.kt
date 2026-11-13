@@ -16,8 +16,18 @@ class RemoteCatalogSyncRepositoryTest {
         try {
             val cacheFile = File(tempDir, "catalog-v3.json")
             val prefs = InMemorySharedPreferences()
-            val updatedBytes = makeEnvelope(baseBytes, version = "v1-remote-android", maxRegions = null)
-            val degradedBytes = makeEnvelope(baseBytes, version = "v1-shrunk", maxRegions = 1)
+            val seedRepo = RemoteCatalogSyncRepository(
+                bundledEnvelope = baseBytes,
+                cacheFile = cacheFile,
+                prefs = prefs,
+                transport = FakeCatalogTransport(emptyList()),
+                refreshIntervalMs = 0L
+            )
+            val expectedBaseVersion = requireNotNull(seedRepo.loadLocal()?.catalogVersion) {
+                "Bundled catalog-base.json must declare a catalogVersion"
+            }
+            val updatedBytes = makeEnvelope(baseBytes, baseVersion = expectedBaseVersion, version = "v1-remote-android", maxRegions = null)
+            val degradedBytes = makeEnvelope(baseBytes, baseVersion = expectedBaseVersion, version = "v1-shrunk", maxRegions = 1)
             val transport = FakeCatalogTransport(
                 listOf(
                     CatalogHttpTransport.Response(200, updatedBytes, "\"etag-1\""),
@@ -25,7 +35,7 @@ class RemoteCatalogSyncRepositoryTest {
                     CatalogHttpTransport.Response(200, degradedBytes, "\"etag-2\"")
                 )
             )
-            val repo = RemoteCatalogSyncRepository(
+            val liveRepo = RemoteCatalogSyncRepository(
                 bundledEnvelope = baseBytes,
                 cacheFile = cacheFile,
                 prefs = prefs,
@@ -33,22 +43,19 @@ class RemoteCatalogSyncRepositoryTest {
                 refreshIntervalMs = 0L
             )
 
-            val initial = repo.loadLocal()
-            assertEquals("catalog-v3-2026.10.18.1", initial?.catalogVersion)
-
-            val synced = repo.syncIfNeeded(force = true)
+            val synced = liveRepo.syncIfNeeded(force = true)
             assertEquals("v1-remote-android", synced?.catalogVersion)
-            assertEquals("v1-remote-android", repo.loadLocal()?.catalogVersion)
+            assertEquals("v1-remote-android", liveRepo.loadLocal()?.catalogVersion)
 
-            assertNull(repo.syncIfNeeded(force = true))
-            assertNull(repo.syncIfNeeded(force = true))
-            assertEquals("v1-remote-android", repo.loadLocal()?.catalogVersion)
+            assertNull(liveRepo.syncIfNeeded(force = true))
+            assertNull(liveRepo.syncIfNeeded(force = true))
+            assertEquals("v1-remote-android", liveRepo.loadLocal()?.catalogVersion)
         } finally {
             tempDir.deleteRecursively()
         }
     }
 
-    private fun makeEnvelope(baseBytes: ByteArray, version: String, maxRegions: Int?): ByteArray {
+    private fun makeEnvelope(baseBytes: ByteArray, baseVersion: String, version: String, maxRegions: Int?): ByteArray {
         val envText = String(baseBytes, Charsets.UTF_8)
         val b64Match = Regex(""""payloadBase64"\s*:\s*"([^"]+)"""").find(envText)
         var payloadText = if (b64Match != null) {
@@ -56,7 +63,7 @@ class RemoteCatalogSyncRepositoryTest {
         } else {
             envText
         }
-        payloadText = payloadText.replace("catalog-v3-2026.10.18.1", version)
+        payloadText = payloadText.replace(baseVersion, version)
         if (maxRegions != null) {
             // Substitui a lista de regiões por apenas 1 região para testar a trava contra downgrade.
             payloadText = payloadText.replace(

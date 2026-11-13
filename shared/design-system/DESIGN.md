@@ -50,7 +50,8 @@ O mapa de medição mostra de onde o check sai e até qual região ele foi medid
 - **Câmera e enquadramento:** `WORLD_CAMERA` (`lon = 0`, `lat = 12`, `zoom = 1`) durante a varredura e `fitCamera` com teto de `zoom <= 3.4` quando a rota é fechada (acima disso a grade de 1,5° perde o contorno dos continentes), garantindo que pinos e rótulos caibam sem corte.
 - **Arcos e sondas reais:** arco quadrático de Bézier (`computeArc` / `bezierPoint`) em `--purple` (`#7C3AED`). Tudo que se move vem de medição real: saída fixa em `420 ms` (`620 ms` na varredura inicial com `45 ms` de escalonamento entre regiões) e volta proporcional ao RTT observado (`clamp(rttMs * 8, 300, 700)` ms) com easing cúbico simétrico.
 - **Rótulos sem sobreposição:** apenas “Você” e a região escolhida (ou mais rápida na varredura) recebem rótulo, com detecção de colisão de caixas para nunca sobrepor nem sair da área útil.
-- **Implementação nativa:** `RouteMeasurementMapView` (`NolaggyDesign/Components/RouteMap/` no iOS) e `RouteMeasurementMap` (`core/designsystem/components/map/` no Android).
+- **"Você":** localização aproximada pelo IP no endpoint do site (`/v1/approx-location`, 0,5°), com rótulo "Você · Cidade"; a varredura espera por ela, como o `trySweep()` do site. Se falhar, os apps usam o país do aparelho; sem país, a nota "Localização aproximada indisponível".
+- **Implementação nativa:** `RouteMapController` + `RouteMeasurementMapView` (`NolaggyDesign/Components/RouteMap/` no iOS) e `RouteMapController` + `RouteMeasurementMap` (`core/designsystem/components/map/` no Android), porta direta de `route-map.ts` (Decisão 123). Contêiner com raio 13, borda de 1 px, proporção 4:3 na medição e 16:10 no resultado.
 
 ## Espaçamento, forma e elevação
 
@@ -62,8 +63,9 @@ O shell é mobile-first: status, barra superior, conteúdo de decisão e indicad
 
 ## Componentes
 
-- **Wordmark:** `wordmark-primary.svg`, a peça oficial preservada com símbolo e “Check” em Roxo Gamer, enquanto “Lag” segue branco; usar em superfícies escuras. `assets/lagcheck-wordmark-light.svg` é o adaptador compatível para as telas preservadas.
-- **Ícone do app:** `app-icon-source.svg`, o símbolo oficial refinado para a família roxa.
+- **Wordmark:** `wordmark-primary.svg` (Decisão 124), "Lagcheck" com o símbolo L + check: "Lag" branco e "check" em degradê roxo; usar em superfícies escuras. As variantes `wordmark-mono-*` e `lagcheck-wordmark-light.svg` ainda são da marca anterior.
+- **Símbolo:** `lagcheck-mark.svg`, "L" roxo com faixas de velocidade, check branco e órbita com dois nós.
+- **Ícone do app:** `app-icon-source.svg`, o símbolo oficial sobre o fundo grafite com brilho roxo embaixo, gerado por `shared/scripts/generate-brand-icons.py`.
 - **Botão primário:** largura cheia na tela, roxo, alto contraste e sombra de ação. Um por viewport para a mesma ação.
 - **Botão secundário/atalho:** transparente ou bordado; nunca compete com o primário.
 - **Pill de telemetria:** estado curto com ponto de status e texto mono.

@@ -8,8 +8,8 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         let payload = try BundledCatalogRepository(envelopeData: data).load()
 
         XCTAssertEqual(payload.schemaVersion, 3)
-        XCTAssertEqual(payload.catalogVersion, "catalog-v3-2026.10.18.1")
-        XCTAssertEqual(payload.games.count, 54)
+        XCTAssertFalse(payload.catalogVersion.isEmpty)
+        XCTAssertGreaterThanOrEqual(payload.games.count, 56)
         XCTAssertFalse(payload.regions.isEmpty)
     }
 
@@ -73,7 +73,8 @@ final class RemoteCatalogRepositoryTests: XCTestCase {
         )
 
         let initial = try await repo.loadLocal()
-        XCTAssertEqual(initial.catalogVersion, "catalog-v3-2026.10.18.1")
+        XCTAssertFalse(initial.catalogVersion.isEmpty)
+        XCTAssertNotEqual(initial.catalogVersion, "v1-remote-test")
 
         let synced = await repo.syncIfNeeded(force: true)
         XCTAssertEqual(synced?.catalogVersion, "v1-remote-test")

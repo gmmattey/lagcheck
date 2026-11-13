@@ -91,11 +91,15 @@ sealed class Screen {
         val isCancelled: Boolean = false,
         val showMobileDataConsent: Boolean = false,
         val cancelReason: CancelReason? = null,
-        val destinationName: String = ""
+        val destinationName: String = "",
+        /** Região medida (id do catálogo); o mapa em si vive em [MainViewModel.routeMap]. */
+        val routeRegionId: String? = null
     ) : Screen()
     data class Verdict(
         val game: CatalogGame,
-        val evaluation: GameReadinessEvaluation
+        val evaluation: GameReadinessEvaluation,
+        /** Região medida, para o mapa estático da rota. Nulo quando não há região conhecida. */
+        val routeRegionId: String? = null
     ) : Screen()
     data class HostDuelVersus(
         val challenger: com.lagcheck.domain.model.HostDuelPayload,
@@ -105,7 +109,9 @@ sealed class Screen {
     data class TechnicalDetails(
         val game: CatalogGame,
         val evaluation: GameReadinessEvaluation,
-        val fromHistory: Boolean = false
+        val fromHistory: Boolean = false,
+        /** Preserva a região do Veredito de origem para o mapa voltar igual. */
+        val routeRegionId: String? = null
     ) : Screen()
     data class HistoryDetails(
         val item: CheckHistoryItem,
@@ -121,7 +127,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val radioTelemetryProvider = AndroidRadioTelemetryProvider(application)
     private val localDiagnostics = LocalDiagnostics()
     private val orchestrator = CheckOrchestrator(UdpProbeTransport(), HttpLoadTransport(), localDiagnostics)
-    private val regionalPreReadCoordinator = com.lagcheck.session.RegionalPreReadCoordinator()
+    /**
+     * Mapa de medição (comportamento do site), compartilhado entre a escolha do servidor e o Check: a varredura recebe
+     * cada envio e resposta reais da pré-leitura; o Check, uma sonda por resposta UDP válida. Só a thread principal mexe.
+     */
+    val routeMap = com.lagcheck.core.designsystem.components.map.RouteMapController()
+
+    /**
+     * "Você" no mapa: resultado em memória na hora; senão a varredura espera (como o site) enquanto o IP é consultado
+     * em paralelo ao check. Se a consulta falhar, usa o país do aparelho.
+     */
+    private fun resolveRouteUser() {
+        val cached = com.lagcheck.android.data.ApproxLocationClient.cachedLocation()
+        if (cached != null) {
+            routeMap.setUser(com.lagcheck.core.designsystem.components.map.MapGeoPoint(cached.lat, cached.lon), cached.city)
+            return
+        }
+        routeMap.clearUser()
+        viewModelScope.launch {
+            val location = com.lagcheck.android.data.ApproxLocationClient.location()
+            if (location != null) {
+                routeMap.setUser(com.lagcheck.core.designsystem.components.map.MapGeoPoint(location.lat, location.lon), location.city)
+            } else {
+                routeMap.setUser(com.lagcheck.android.ui.components.RouteMapSupport.countryPoint())
+            }
+        }
+    }
+
+    private fun onRouteMapThread(block: com.lagcheck.core.designsystem.components.map.RouteMapController.() -> Unit) {
+        viewModelScope.launch(Dispatchers.Main.immediate) { routeMap.block() }
+    }
+
+    private val regionalPreReadCoordinator = com.lagcheck.session.RegionalPreReadCoordinator(
+        com.lagcheck.session.RegionalPreReadCollector(onEvent = { regionId, event ->
+            onRouteMapThread {
+                when (event) {
+                    com.lagcheck.session.RegionalPreReadEvent.Sent -> regionSent(regionId)
+                    is com.lagcheck.session.RegionalPreReadEvent.Answered -> regionSample(regionId, event.rttMs)
+                    com.lagcheck.session.RegionalPreReadEvent.Unanswered -> regionSample(regionId, null)
+                }
+            }
+        })
+    )
     private val routePreflight = com.lagcheck.network.preflight.SteamA2sRoutePreflight()
     private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
@@ -568,6 +615,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (isRetest) telemetry.retestStarted(targetGame.id, platformEnum) else telemetry.checkStarted(targetGame.id, platformEnum)
 
         _currentScreen.value = Screen.RegionalSelection(targetGame, platform, connectionType, isConfirming = true)
+        // Começo de um check: visão de todos os servidores; "Você" vem da localização aproximada pelo IP, como no site.
+        routeMap.reset()
+        resolveRouteUser()
         measurementJob = viewModelScope.launch {
             val payload = currentCatalog()
             if (payload == null) {
@@ -627,13 +677,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val selectedContext = (decision as com.lagcheck.domain.rules.RegionalSelectionDecision.Selected).result.selected.resolvedContext
 
             var destinationLabel = ""
+            // A região escolhida: a câmera do mapa se aproxima dela (a varredura termina aqui, como no site).
+            routeMap.selectRegion(selectedContext.regionId)
+            val restRtts = mutableListOf<Double>()
             fun measuring(ratio: Float, ping: Double?, rest: Boolean) {
                 // Eventos tardios de um check já cancelado não podem sobrescrever a tela atual.
                 if (job?.isActive == true) {
                     _currentScreen.value = Screen.Measurement(
                         game = targetGame, platform = platform, connectionType = connectionType,
                         progressRatio = ratio.coerceIn(0.04f, 1f), currentPingMs = ping, isPhaseRest = rest,
-                        isCancelled = false, showMobileDataConsent = false, destinationName = destinationLabel
+                        isCancelled = false, showMobileDataConsent = false, destinationName = destinationLabel,
+                        routeRegionId = selectedContext.regionId
                     )
                 }
             }
@@ -653,7 +707,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 var lastPing: Double? = null
                 val result = orchestrator.run(selectedContext, environmentOf(radioSnapshot)) { p ->
-                    if (p.latestPingMs != null) lastPing = p.latestPingMs
+                    // CheckProgress com RTT é uma resposta válida já correlacionada (`ProbeProgress.Received`).
+                    val ping = p.latestPingMs
+                    if (ping != null) {
+                        lastPing = ping
+                        val restMedian = if (p.phase == CheckPhase.REST) {
+                            synchronized(restRtts) { restRtts.add(ping); restRtts.sorted() }.let { sorted ->
+                                val mid = sorted.size / 2
+                                if (sorted.size % 2 == 1) sorted[mid] else (sorted[mid - 1] + sorted[mid]) / 2.0
+                            }
+                        } else null
+                        // Como no site: cada resposta real sai de "Você", chega e volta; o rótulo mostra a mediana do repouso.
+                        onRouteMapThread {
+                            probe(ping)
+                            if (restMedian != null) updateSelectedMs(restMedian)
+                        }
+                    }
                     measuring(p.ratio, lastPing, p.phase == CheckPhase.REST)
                 }
 
@@ -750,7 +819,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _currentScreen.value = Screen.HostDuelVersus(duelChallenger, opponent, targetGame.name)
                 } else {
                     activeDuelChallenger = null
-                    _currentScreen.value = Screen.Verdict(targetGame, evaluation)
+                    _currentScreen.value = Screen.Verdict(targetGame, evaluation, routeRegionId = selectedContext.regionId)
                 }
             } catch (error: Exception) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
@@ -763,6 +832,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun readinessLanguage(): ReadinessLanguage = language.value.toAppLanguage()
+
+    /** Nome da região no idioma do app, para os rótulos do mapa de medição (catálogo; sem catálogo, o id). */
+    fun routeRegionName(regionId: String): String =
+        _catalogPayload.value?.regions?.firstOrNull { it.id == regionId }
+            ?.label?.get(readinessLanguage().catalogLabelKey()) ?: regionId
 
     /** Sem host/porta na UI: só a distinção entre servidor de jogo (rota própria validada) e referência regional. */
     private fun gameServerLabel(): String = when (readinessLanguage()) {

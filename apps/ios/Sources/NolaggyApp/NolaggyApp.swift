@@ -1,4 +1,5 @@
 import SwiftUI
+import NolaggyDesign
 import UIKit
 @preconcurrency import UserNotifications
 import NolaggyApplication
@@ -188,6 +189,8 @@ private struct RegionalSelectionFixtureHost: View {
     @State private var presentation: RegionalSelectionPresentation
     @State private var returnedHome = false
 
+    @State private var routeMap = RouteMapController()
+
     init(presentation: RegionalSelectionPresentation) {
         _presentation = State(initialValue: presentation)
     }
@@ -201,6 +204,7 @@ private struct RegionalSelectionFixtureHost: View {
         } else {
             RegionalSelectionFeatureView(
                 gameTitle: "Fortnite",
+                routeMap: routeMap,
                 presentation: $presentation,
                 onRetry: { presentation = .confirming },
                 onBackOrCancel: { returnedHome = true }

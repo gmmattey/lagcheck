@@ -1,3 +1,4 @@
+import Foundation
 import NolaggyApplication
 import NolaggyDomain
 import NolaggyInfrastructure
@@ -5,25 +6,32 @@ import NolaggyInfrastructure
 /// Único lugar que escolhe adaptadores reais, no-op de simulador e fixtures.
 /// Não altera algoritmo, plano de probes ou contratos da sessão.
 enum MeasurementTransportFactory {
-    static func quickCheckTransport() -> any MeasurementTransport {
+    /// Aparelho: sempre rede real. Simulador: no-op, exceto em DEBUG com
+    /// `-simulator-real-network`, que usa os mesmos adaptadores UDP reais do
+    /// aparelho (para validar o mapa de medição com sondas de verdade).
+    static var usesRealNetwork: Bool {
         #if !targetEnvironment(simulator)
-        NWConnectionMeasurementTransport()
+        return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-simulator-real-network")
         #else
-        NoopMeasurementTransport(completionDelay: .seconds(15))
+        return false
         #endif
+    }
+
+    static func quickCheckTransport() -> any MeasurementTransport {
+        usesRealNetwork ? NWConnectionMeasurementTransport() : NoopMeasurementTransport(completionDelay: .seconds(15))
     }
 
     static func pathObserver() -> any NetworkPathObserver {
         UITestFixtures.isEnabled("-ui-fixture-confirmed-region") ? NoopNetworkPathObserver() : NWPathMonitorNetworkPathObserver()
     }
 
-    static func regionalPreReadCollector() -> any RegionalPreReadCollecting {
+    /// `onEvent` recebe envios e respostas reais da pré-leitura (mapa de medição).
+    /// Fixtures e simulador não emitem eventos: nada se move sem sonda real.
+    static func regionalPreReadCollector(onEvent: RegionalPreReadEventHandler? = nil) -> any RegionalPreReadCollecting {
         if UITestFixtures.isEnabled("-ui-fixture-confirmed-region") { return ConfirmedRegionalPreReadFixture() }
-        #if !targetEnvironment(simulator)
-        return NWRegionalPreReadCollector()
-        #else
-        return NoopRegionalPreReadCollector()
-        #endif
+        return usesRealNetwork ? NWRegionalPreReadCollector(onEvent: onEvent) : NoopRegionalPreReadCollector()
     }
 
     static func quickCheckPlan(for context: ResolvedMeasurementContext) -> QuickCheckPlan {
@@ -44,11 +52,10 @@ enum MeasurementTransportFactory {
                 historyRepository: historyRepository
             )
         }
-        #if !targetEnvironment(simulator)
-        return DeepCheckSessionCoordinator(transport: NWConnectionMeasurementTransport(), loadTransport: URLSessionLoadTransport(), pathObserver: NWPathMonitorNetworkPathObserver(), wifiAvailability: NWPathWiFiAvailability(), historyRepository: historyRepository)
-        #else
+        if usesRealNetwork {
+            return DeepCheckSessionCoordinator(transport: NWConnectionMeasurementTransport(), loadTransport: URLSessionLoadTransport(), pathObserver: NWPathMonitorNetworkPathObserver(), wifiAvailability: NWPathWiFiAvailability(), historyRepository: historyRepository)
+        }
         return DeepCheckSessionCoordinator(transport: NoopMeasurementTransport(), loadTransport: NoopLoadTransport(), pathObserver: NoopNetworkPathObserver(), wifiAvailability: NoopWiFiAvailability(), historyRepository: historyRepository)
-        #endif
     }
 }
 

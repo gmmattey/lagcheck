@@ -59,6 +59,9 @@ import com.lagcheck.core.designsystem.components.PdfDocumentIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
+import com.lagcheck.core.designsystem.components.map.RouteMapController
+import com.lagcheck.android.ui.components.LagCheckRouteMap
+import com.lagcheck.android.ui.components.RouteMapSupport
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
@@ -90,6 +93,8 @@ import kotlinx.coroutines.withContext
 fun VerdictScreen(
     game: CatalogGame,
     evaluation: GameReadinessEvaluation,
+    /** Região medida (id do catálogo). Sem ela, o resultado não desenha mapa. */
+    routeRegionId: String? = null,
     onRetry: () -> Unit,
     onDetails: () -> Unit,
     onClose: () -> Unit,
@@ -402,14 +407,32 @@ fun VerdictScreen(
             color = LagCheckColors.TextMuted
         )
 
+        // 5b. Rota medida, como no site: a câmera sai da visão dos servidores e se aproxima da região escolhida, com a
+        // mediana no rótulo. Não há sondas aqui porque a medição terminou. Inconclusivo não ganha mapa nem número.
+        if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE && RouteMapSupport.canDraw(routeRegionId)) {
+            val regionId = routeRegionId!!
+            val resultMap = remember(regionId) { RouteMapController() }
+            LaunchedEffect(resultMap, evaluation.pingMs) {
+                RouteMapSupport.ensureUser(resultMap)
+                resultMap.selectRegion(regionId, evaluation.pingMs)
+            }
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
+            LagCheckRouteMap(
+                controller = resultMap,
+                regionName = { id -> if (id == regionId) regionLabel.ifBlank { id } else id },
+                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 10f)
+            )
+        }
+
         Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
 
-        // 6. Card "O que mais pesou"
+        // 6. Painel "O que mais pesou": container de evidência (raio md, borda de 1 px), um só, sem lista de cartões.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LagCheckRadius.xl))
+                .clip(RoundedCornerShape(LagCheckRadius.md))
                 .background(LagCheckColors.Surface)
+                .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(LagCheckRadius.md))
                 .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
         ) {
             Column {

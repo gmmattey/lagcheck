@@ -20,7 +20,7 @@ class RemoteCatalogResolverTest {
         val r = available("fortnite", Platform.MOBILE)
         assertThat(r.destination).isEqualTo(ProbeDestination("gamelift-ping.sa-east-1.api.aws", 7770, ProbeProtocolKind.GAMELIFT_PING))
         assertThat(r.routeKind).isEqualTo(RouteKind.AWS_FALLBACK)
-        assertThat(r.routeId).isEqualTo("fortnite-iphone-aws")
+        assertThat(r.routeId).isEqualTo("fortnite-android-aws")
         assertThat(r.confidence).isEqualTo(MeasurementConfidence.MEDIUM)
         assertThat(r.strategy).isEqualTo(MeasurementStrategy.GENERIC_REGION)
         assertThat(r.profileId).isEqualTo(QualityProfileId.BATTLE_ROYALE_COMPETITIVE)
@@ -80,7 +80,7 @@ class RemoteCatalogResolverTest {
 
     @Test fun excludingTheOnlyActiveRouteMakesItUnavailableInsteadOfInventingOne() {
         val r = RemoteCatalogResolver.resolve(
-            GameContext("fortnite", "BR", Platform.MOBILE), payload, catalogNow, excludingRouteIds = setOf("fortnite-iphone-aws")
+            GameContext("fortnite", "BR", Platform.MOBILE), payload, catalogNow, excludingRouteIds = setOf("fortnite-android-aws")
         )
         assertThat(r).isEqualTo(RemoteCatalogResolution.Unavailable)
     }
@@ -98,7 +98,8 @@ class RemoteCatalogResolverTest {
         }
         assertThat(resolvable).containsAtLeast(
             "fortnite", "call-of-duty-mobile", "free-fire", "pubg-mobile", "brawl-stars", "wild-rift",
-            "roblox", "minecraft", "blood-strike", "eafc", "rainbow-six-mobile", "rocket-league-sideswipe"
+            "roblox", "minecraft", "blood-strike", "rainbow-six-mobile", "rocket-league-sideswipe",
+            "clash-royale", "delta-force", "standoff-2"
         )
     }
 

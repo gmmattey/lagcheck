@@ -144,7 +144,12 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
 /// Coleta exclusiva da pré-leitura regional: três probes, um por segundo,
 /// cada um válido apenas durante dois segundos. O destino vem do snapshot.
 public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
-    public init() {}
+    private let onEvent: RegionalPreReadEventHandler?
+
+    /// `onEvent` recebe cada envio e cada resposta real, para o mapa de medição.
+    public init(onEvent: RegionalPreReadEventHandler? = nil) {
+        self.onEvent = onEvent
+    }
 
     public func collect(candidate: RegionalSelectionCandidate) async -> [RegionalPreReadSample] {
         let portRaw = candidate.resolvedContext.destination.port
@@ -165,8 +170,13 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
             return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
         }
         let ledger = ProbeLedger(probes: generated.probes, isCorrelatedResponse: generated.validator)
+        let regionID = candidate.regionID
+        let onEvent = onEvent
         let connection = UDPConnection(host: NWEndpoint.Host(candidate.resolvedContext.destination.host), port: port) { response, receivedAt in
-            _ = ledger.accept(response: response, receivedAt: receivedAt)
+            if let sample = ledger.accept(response: response, receivedAt: receivedAt),
+               sample.isValidResponse, let rtt = sample.roundTripMilliseconds {
+                onEvent?(regionID, .answered(rttMilliseconds: rtt))
+            }
         }
         connection.start()
         let start = DispatchTime.now().uptimeNanoseconds
@@ -178,10 +188,15 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
             let sentAt = DispatchTime.now().uptimeNanoseconds
             ledger.register(sequence: sequence, payload: payload, sentAt: sentAt)
             connection.send(payload) { ledger.markTransportError(sequence: sequence) }
+            onEvent?(regionID, .sent)
         }
         try? await Task.sleep(nanoseconds: 2_000_000_000)
         connection.cancel()
-        return ledger.finish(at: DispatchTime.now().uptimeNanoseconds).filter { $0.sequence >= 0 }.map { RegionalPreReadSample(outcome: $0.outcome, roundTripMilliseconds: $0.roundTripMilliseconds) }
+        let samples = ledger.finish(at: DispatchTime.now().uptimeNanoseconds).filter { $0.sequence >= 0 }
+        for sample in samples where !sample.isValidResponse {
+            onEvent?(regionID, .unanswered)
+        }
+        return samples.map { RegionalPreReadSample(outcome: $0.outcome, roundTripMilliseconds: $0.roundTripMilliseconds) }
     }
 }
 

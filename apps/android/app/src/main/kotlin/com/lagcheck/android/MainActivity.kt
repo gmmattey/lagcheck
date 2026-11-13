@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
                         if (screen.fromHistory) {
                             viewModel.navigateTo(Screen.History)
                         } else {
-                            viewModel.navigateTo(Screen.Verdict(screen.game, screen.evaluation))
+                            viewModel.navigateTo(Screen.Verdict(screen.game, screen.evaluation, routeRegionId = screen.routeRegionId))
                         }
                     }
                     is Screen.HistoryDetails -> {
@@ -378,6 +378,9 @@ class MainActivity : ComponentActivity() {
                             isCancelled = screen.isCancelled,
                             cancelReason = screen.cancelReason,
                             destinationName = screen.destinationName,
+                            routeRegionId = screen.routeRegionId,
+                            routeMap = viewModel.routeMap,
+                            routeRegionName = viewModel::routeRegionName,
                             showMobileDataConsent = screen.showMobileDataConsent,
                             onCancel = {
                                 viewModel.cancelCheck()
@@ -398,12 +401,18 @@ class MainActivity : ComponentActivity() {
                         VerdictScreen(
                             game = screen.game,
                             evaluation = screen.evaluation,
+                            routeRegionId = screen.routeRegionId,
                             onRetry = {
                                 viewModel.retryCheck()
                             },
                             onDetails = {
                                 viewModel.navigateTo(
-                                    Screen.TechnicalDetails(screen.game, screen.evaluation, fromHistory = false)
+                                    Screen.TechnicalDetails(
+                                        screen.game,
+                                        screen.evaluation,
+                                        fromHistory = false,
+                                        routeRegionId = screen.routeRegionId
+                                    )
                                 )
                             },
                             onClose = {
@@ -440,7 +449,7 @@ class MainActivity : ComponentActivity() {
                                 if (screen.fromHistory) {
                                     viewModel.navigateTo(Screen.History)
                                 } else {
-                                    viewModel.navigateTo(Screen.Verdict(screen.game, screen.evaluation))
+                                    viewModel.navigateTo(Screen.Verdict(screen.game, screen.evaluation, routeRegionId = screen.routeRegionId))
                                 }
                             }
                         )

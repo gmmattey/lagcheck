@@ -216,10 +216,11 @@ private fun GameCard(
 ) {
     Box(modifier) {
         Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(LagCheckRadius.md)).clickable { onClick(game) }
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(LagCheckRadius.sm)).clickable { onClick(game) }
                 .semantics { contentDescription = trf("Fazer Check de %s", game.name) }
         ) {
-            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(LagCheckRadius.md)).background(LagCheckColors.Panel)) {
+            // Capa é mídia: raio sm (8), igual à linha de busca e ao GameArtwork do iOS.
+            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(LagCheckRadius.sm)).background(LagCheckColors.Panel)) {
                 com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
             }
             Text(
