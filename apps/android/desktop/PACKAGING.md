@@ -72,3 +72,20 @@ Os identificadores de telemetria nunca ficam versionados no código. Devem ser p
 3. Renomeie para `LagCheck-Windows-X.Y.Z-x64-setup.exe` e `LagCheck-Windows-X.Y.Z-x64.msi` (nomes que a página e o atualizador esperam) e gere `SHA256SUMS.txt` e `LagCheck-Windows-X.Y.Z-x64-setup.exe.sha256`.
 4. `gh release create windows-vX.Y.Z --target main --latest=false` com o **`.exe` primeiro**; depois `gh release upload` do `.msi` e dos checksums. O `.exe` precisa ser o primeiro asset: o atualizador lê o primeiro `.exe/.msi` e o primeiro `digest` do bloco da release. Não marque como prerelease (a página e o atualizador ignoram).
 5. Publicação de release e deploy do site exigem autorização expressa do Luiz. O segredo do GA4 fica dentro do binário público (próprio do Measurement Protocol); restrinja o uso no GA4 se houver abuso.
+
+---
+
+## 5. Release do app WinUI 3 (a partir da `windows-v0.2.0`)
+
+O app atual é o WinUI 3 (`apps/windows/`), não o Compose Desktop das seções acima. O instalador é feito com Inno Setup 6 (`winget install --id JRSoftware.InnoSetup -e`):
+
+```powershell
+# JAVA_HOME = JDK 17+ (jlink). Gera o pacote, o setup.exe e os checksums em apps/windows/artifacts/release
+apps/windows/scripts/build-installer.ps1 -Version X.Y.Z
+```
+
+- Antes, alinhe a versão: `<Version>` em `LagCheck.WinUI.csproj` e `UpdateSource.installedVersion` (`X.Y`). O script recusa versões divergentes.
+- O build é reprodutível: o mesmo pacote gera o mesmo SHA-256.
+- Esse empacotamento **não liga o GA4** (só as tarefas `package*` do Compose ligam); as notas da release devem dizer que não há envio de dados de uso.
+- Teste o instalador antes de publicar: `setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /DIR=<pasta>`, abra o app instalado e desinstale com `unins000.exe /VERYSILENT`.
+- Publicar (tag, `gh release create` com o `.exe` primeiro, `--latest=false`) segue a seção 4 e exige autorização expressa do Luiz.
