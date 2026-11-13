@@ -11,7 +11,7 @@ struct NolaggyApp: App {
     @AppStorage(AppLocalization.selectedLanguageKey) private var selectedLanguage: String = AppLanguage.system.rawValue
     private let historyRepository: any MeasurementHistoryRepository
     private let regionalPreferenceRepository: any RegionalPreferenceRepository
-    private let catalogRepository: BundledCatalogRepository
+    private let catalogRepository: RemoteSyncedCatalogRepository
     private let analyticsCollectionPreference: AnalyticsCollectionPreference
     private let analyticsTracker: any AnalyticsTracker
     @State private var catalogState: CatalogState
@@ -45,7 +45,7 @@ struct NolaggyApp: App {
             ])
         )
         let base = DebugCatalogBase.envelopeData() ?? Data()
-        catalogRepository = BundledCatalogRepository(envelopeData: base)
+        catalogRepository = RemoteSyncedCatalogRepository(bundled: BundledCatalogRepository(envelopeData: base))
         if (UITestFixtures.isEnabled("-ui-fixture-confirmed-region") || UITestFixtures.isEnabled("-ui-fixture-inconclusive-history")),
            let data = DebugCatalogBase.envelopeData(),
            let payload = try? RemoteCatalogVerifier.decodeBundled(data) {
@@ -98,12 +98,18 @@ struct NolaggyApp: App {
     @MainActor
     private func loadCatalogForHome() async {
         do {
-            let payload = try catalogRepository.load()
+            let payload = try await catalogRepository.loadLocal()
             catalogState = .ready(payload)
-            
+
             // Indexa jogos no CoreSpotlight em background não-bloqueante (Decisão 76)
             let coordinator = SpotlightIndexCoordinator(indexer: AppleCoreSpotlightIndexer())
             await coordinator.indexCatalogGames(games: payload.games)
+
+            if let updated = await catalogRepository.syncIfNeeded(),
+               updated.catalogVersion != payload.catalogVersion {
+                catalogState = .ready(updated)
+                await coordinator.indexCatalogGames(games: updated.games)
+            }
         } catch {
             // Sem base válida não existe descoberta nem sessão; a Home segue
             // navegável e a feature apresenta indisponibilidade explícita.
