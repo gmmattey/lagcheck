@@ -68,7 +68,9 @@ public sealed partial class GameDetailsPage : Page
 
     private async System.Threading.Tasks.Task ResolveArtworkAsync(LibraryGame game)
     {
-        if (!game.IsInstalled || (Artwork.FirstExisting(game.HeroArtworkPath) is not null && Artwork.FirstExisting(game.CoverArtworkPath) is not null)) return;
+        var hasArt = Artwork.FirstExisting(game.HeroArtworkPath) is not null && Artwork.FirstExisting(game.CoverArtworkPath) is not null;
+        // As informações de catálogo vêm na mesma chamada da arte: pede também quando só elas faltam.
+        if (!game.IsInstalled || (hasArt && game.Info is not null)) return;
         try
         {
             var result = await _bridge.ResolveArtworkAsync(new[] { game.Id });
@@ -106,8 +108,20 @@ public sealed partial class GameDetailsPage : Page
         FavIcon.Foreground = game.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, game.FavoriteActionLabel);
 
+        var description = !string.IsNullOrWhiteSpace(game.Info?.Description) ? game.Info!.Description : game.Description;
+        DescriptionText.Text = description ?? string.Empty;
+        DescriptionText.Visibility = string.IsNullOrWhiteSpace(description) ? Visibility.Collapsed : Visibility.Visible;
+
         TagsPanel.Children.Clear();
-        foreach (var tag in game.Tags.Count > 0 ? game.Tags.ToList() : new List<string> { "PC", game.PlatformLabel })
+        var chips = new List<string>(game.Tags.Count > 0 ? game.Tags : new List<string> { "PC", game.PlatformLabel });
+        if (game.Info is { } info)
+        {
+            // Selo de rede primeiro: é o dado que mais importa para um diagnóstico de conexão.
+            var modes = info.Modes.Select(GameInfo.ModeLabel).Where(label => label is not null).Cast<string>().ToList();
+            var genres = info.Genres.Take(3);
+            chips = modes.Concat(genres).Concat(chips.Where(tag => !modes.Contains(tag))).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+        foreach (var tag in chips)
         {
             TagsPanel.Children.Add(new Border
             {
@@ -131,6 +145,12 @@ public sealed partial class GameDetailsPage : Page
             (Strings.Tr("PLATAFORMA"), game.PlatformLabel),
             (Strings.Tr("REDE E DIAGNÓSTICO"), game.DiagnosticLabel),
         };
+        if (game.Info is { } info)
+        {
+            if (!string.IsNullOrWhiteSpace(info.Developer)) rows.Add((Strings.Tr("DESENVOLVEDORA"), info.Developer!));
+            if (!string.IsNullOrWhiteSpace(info.Publisher) && !string.Equals(info.Publisher, info.Developer, StringComparison.OrdinalIgnoreCase)) rows.Add((Strings.Tr("PUBLICADORA"), info.Publisher!));
+            if (FormatRelease(info.ReleaseDate) is { } release) rows.Add((Strings.Tr("LANÇAMENTO"), release));
+        }
         if (game.RecentActivityEpochMs is { } recent) rows.Add((Strings.Tr("ÚLTIMA ATIVIDADE"), FormatDate(recent)));
         if (game.InstalledAtEpochMs is { } installed) rows.Add((Strings.Tr("INSTALADO EM"), FormatDate(installed)));
 
@@ -147,6 +167,15 @@ public sealed partial class GameDetailsPage : Page
             row.Children.Add(new TextBlock { Text = rows[i].Value, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, LineHeight = 19.6, TextWrapping = TextWrapping.Wrap });
             FactsPanel.Children.Add(row);
         }
+    }
+
+    /// <summary>A Microsoft entrega ISO (2012-07-28); a Steam já entrega texto localizado, mostrado como veio.</summary>
+    private static string? FormatRelease(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        return DateTime.TryParseExact(raw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date.ToString("d MMM yyyy", CultureInfo.CurrentUICulture)
+            : raw;
     }
 
     private static string FormatDate(long epochMs) => DateTimeOffset.FromUnixTimeMilliseconds(epochMs).ToLocalTime().ToString("d MMM yyyy", CultureInfo.CurrentUICulture);

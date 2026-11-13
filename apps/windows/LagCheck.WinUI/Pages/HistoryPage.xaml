@@ -14,41 +14,69 @@
 
     <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar por região ou veredito" TextChanged="SearchBox_TextChanged" Height="44" CornerRadius="12"/>
 
-    <Grid Grid.Row="2">
-      <ScrollViewer x:Name="HistoryScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+    <Grid Grid.Row="2" RowSpacing="0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <Grid x:Name="HeaderRow" ColumnSpacing="16" Padding="0,0,0,10" BorderBrush="#17FFFFFF" BorderThickness="0,0,0,1" Visibility="Collapsed">
+        <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="1.4*"/>
+                  <ColumnDefinition Width="1*"/>
+                  <ColumnDefinition Width="1.3*"/>
+                  <ColumnDefinition Width="92"/>
+                  <ColumnDefinition Width="92"/>
+                  <ColumnDefinition Width="80"/>
+                  <ColumnDefinition Width="72"/>
+                </Grid.ColumnDefinitions>
+        <TextBlock x:Name="HGame" Text="JOGO" Style="{StaticResource TechLabelStyle}"/>
+        <TextBlock x:Name="HRegion" Grid.Column="1" Text="REGIÃO" Style="{StaticResource TechLabelStyle}"/>
+        <TextBlock x:Name="HResult" Grid.Column="2" Text="RESULTADO" Style="{StaticResource TechLabelStyle}"/>
+        <TextBlock Grid.Column="3" Text="PING" Style="{StaticResource TechLabelStyle}" HorizontalAlignment="Right"/>
+        <TextBlock Grid.Column="4" Text="JITTER" Style="{StaticResource TechLabelStyle}" HorizontalAlignment="Right"/>
+        <TextBlock x:Name="HLoss" Grid.Column="5" Text="PERDA" Style="{StaticResource TechLabelStyle}" HorizontalAlignment="Right"/>
+        <TextBlock x:Name="HTime" Grid.Column="6" Text="HORA" Style="{StaticResource TechLabelStyle}" HorizontalAlignment="Right"/>
+      </Grid>
+
+      <ScrollViewer x:Name="HistoryScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
         <ItemsRepeater x:Name="HistoryList">
           <ItemsRepeater.Layout>
             <StackLayout Orientation="Vertical" Spacing="0"/>
           </ItemsRepeater.Layout>
           <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="local:HistoryRow">
-              <Grid BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="0,14">
+              <Grid BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="0,14" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="100"/>
-                  <ColumnDefinition Width="70"/>
+                  <ColumnDefinition Width="1.4*"/>
+                  <ColumnDefinition Width="1*"/>
+                  <ColumnDefinition Width="1.3*"/>
+                  <ColumnDefinition Width="92"/>
+                  <ColumnDefinition Width="92"/>
+                  <ColumnDefinition Width="80"/>
+                  <ColumnDefinition Width="72"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="{x:Bind Verdict}" FontSize="18" FontWeight="Bold"/>
-                  <TextBlock Text="{x:Bind Region}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+                <TextBlock Text="{x:Bind Game}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{x:Bind Region}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                  <Ellipse Width="9" Height="9" Fill="{x:Bind ToneBrush}" VerticalAlignment="Center"/>
+                  <TextBlock Text="{x:Bind Verdict}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
-                <TextBlock Grid.Column="1" Text="{x:Bind Ping}" Style="{StaticResource MetricTextStyle}" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="{x:Bind Jitter}" Style="{StaticResource MetricTextStyle}" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Text="{x:Bind Loss}" Style="{StaticResource MetricTextStyle}" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="4" Text="{x:Bind Time}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Text="{x:Bind Ping}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="4" Text="{x:Bind Jitter}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="5" Text="{x:Bind Loss}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="6" Text="{x:Bind Time}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
               </Grid>
             </DataTemplate>
           </ItemsRepeater.ItemTemplate>
         </ItemsRepeater>
       </ScrollViewer>
 
-      <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="12">
+      <StackPanel x:Name="EmptyState" Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="12">
         <TextBlock x:Name="EmptyTitle" Text="Sem testes nesta sessão" Style="{StaticResource PageTitleStyle}" TextAlignment="Center"/>
       </StackPanel>
 
-      <TextBlock x:Name="NoResults" Text="Nenhuma medição corresponde à busca." Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+      <TextBlock x:Name="NoResults" Grid.RowSpan="2" Text="Nenhuma medição corresponde à busca." Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
     </Grid>
   </Grid>
 </Page>

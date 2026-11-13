@@ -43,12 +43,12 @@ public sealed class SessionHistoryStore
         _dispatcher?.TryEnqueue(() =>
         {
             if (Entries.Any(entry => entry.SessionId == result.SessionId)) return;
-            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? Strings.Tr("— INCONCLUSIVO"), result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now, result.GameId ?? result.ProfileId));
+            Entries.Insert(0, new SessionHistoryEntry(result.SessionId, result.Verdict ?? Strings.Tr("— INCONCLUSIVO"), result.PingMs, result.JitterMs, result.PacketLossPercentage, result.RegionId, DateTimeOffset.Now, result.GameId ?? result.ProfileId, result.GameTitle));
         });
     }
 }
 
-public sealed record SessionHistoryEntry(string SessionId, string Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, DateTimeOffset CapturedAt, string? GameId = null)
+public sealed record SessionHistoryEntry(string SessionId, string Verdict, double? PingMs, double? JitterMs, double? PacketLossPercentage, string? RegionId, DateTimeOffset CapturedAt, string? GameId = null, string? GameTitle = null)
 {
     public string PingLabel => PingMs is { } value ? $"{value:0.#} ms" : "—";
     public string JitterLabel => JitterMs is { } value ? $"{value:0.#} ms" : "—";

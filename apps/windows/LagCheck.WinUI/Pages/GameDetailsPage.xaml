@@ -71,9 +71,10 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Spacing="22">
+                    <TextBlock x:Name="DescriptionText" Visibility="Collapsed" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" LineHeight="23" TextWrapping="Wrap" MaxWidth="760" HorizontalAlignment="Left"/>
                     <ctl:WrapPanel x:Name="TagsPanel" Spacing="8"/>
 
-                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
+                    <Border Style="{StaticResource PremiumCardStyle}" Padding="22,18">
                         <StackPanel Spacing="12">
                             <TextBlock x:Name="DaysPlayedEyebrow" Text="DIAS JOGADOS" Style="{StaticResource TechLabelStyle}"/>
                             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
@@ -100,16 +101,16 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Spacing="20">
-                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,8">
+                    <Border Style="{StaticResource PremiumCardStyle}" Padding="22,8">
                         <StackPanel x:Name="FactsPanel"/>
                     </Border>
 
-                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="22,18">
+                    <Border Style="{StaticResource PremiumCardStyle}" Padding="22,18">
                         <StackPanel Spacing="6">
                             <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource TechLabelStyle}"/>
                             <StackPanel x:Name="HistoryPanel"/>
                             <TextBlock x:Name="HistStatusText" Text="Sem medições" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="19.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <Button x:Name="MeasureNowBtn" Content="Medir agora" Style="{StaticResource SecondaryButtonStyle}" CornerRadius="20" Height="40" MinHeight="40"
+                            <Button x:Name="MeasureNowBtn" Content="Medir agora" Style="{StaticResource SecondaryCompactButtonStyle}"
                                     Margin="0,8,0,0" Click="CheckConnection_Click" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </Border>

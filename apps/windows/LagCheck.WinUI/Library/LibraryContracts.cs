@@ -8,6 +8,37 @@ using LagCheck.WinUI.Localization;
 namespace LagCheck.WinUI.Library;
 
 /// <summary>
+/// O que as lojas publicam sobre o jogo (descrição, estúdio, lançamento, gêneros, modos). Só o que a fonte devolveu:
+/// campo ausente fica nulo ou vazio e a interface o omite. Modos usam chaves estáveis do host.
+/// </summary>
+public sealed record GameInfo(
+    string? Description,
+    string? Developer,
+    string? Publisher,
+    string? ReleaseDate,
+    IReadOnlyList<string> Genres,
+    IReadOnlyList<string> Modes)
+{
+    private static readonly HashSet<string> OnlineModes = new(StringComparer.Ordinal) { "online_multiplayer", "online_coop", "mmo", "crossplay" };
+
+    public bool IsEmpty => Description is null && Developer is null && Publisher is null && ReleaseDate is null && Genres.Count == 0 && Modes.Count == 0;
+    public bool IsOnline => Modes.Any(OnlineModes.Contains);
+
+    /// <summary>Rótulo traduzido de um modo; null para chave desconhecida (não inventa texto).</summary>
+    public static string? ModeLabel(string mode) => mode switch
+    {
+        "singleplayer" => Strings.Tr("Um jogador"),
+        "multiplayer" => Strings.Tr("Multijogador"),
+        "online_multiplayer" => Strings.Tr("Multijogador online"),
+        "coop" => Strings.Tr("Co-op"),
+        "online_coop" => Strings.Tr("Co-op online"),
+        "mmo" => Strings.Tr("MMO"),
+        "crossplay" => Strings.Tr("Jogo entre plataformas"),
+        _ => null,
+    };
+}
+
+/// <summary>
 /// Projeção da biblioteca emitida pelo host Kotlin. Esta camada não lê launchers,
 /// não grava LibraryStore e não calcula prioridade do Hero: isso preserva os dados
 /// reais e as regras já existentes no núcleo compartilhado.
@@ -29,7 +60,8 @@ public sealed record LibraryGame(
     string NetworkLabel,
     IReadOnlyList<string> Tags,
     string? Description,
-    IReadOnlyList<string> AlsoIds)
+    IReadOnlyList<string> AlsoIds,
+    GameInfo? Info = null)
 {
     public long? RecentActivityEpochMs
     {

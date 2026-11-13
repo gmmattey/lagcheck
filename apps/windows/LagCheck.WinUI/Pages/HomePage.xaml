@@ -79,8 +79,8 @@
 
         <!-- Faixa de recentes -->
         <ScrollViewer x:Name="RecentsScroll" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
-                      HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
-            <StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom" Padding="0,6,4,6"/>
+                      HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled" Margin="-12,0,-12,0">
+            <StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom" Padding="12,14,12,10"/>
         </ScrollViewer>
     </Grid>
 </Page>

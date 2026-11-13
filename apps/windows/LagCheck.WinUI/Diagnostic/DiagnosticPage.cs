@@ -45,10 +45,20 @@ public sealed class DiagnosticPage : Page
     private readonly DiagnosticEngineClient _client;
     private CancellationTokenSource? _measurementCts;
     private string? _gameId;
+    private readonly TextBlock _liveText = new();
+    private readonly Border _outerPad = new();
+    private Grid? _topGrid;
+    private StackPanel? _topLeft;
+    private StackPanel? _topRight;
+    private double _viewW = 1100, _viewH = 760;
     private string _gameTitle = string.Empty;
     private ApproximateLocation? _location;
     private bool _running;
     private double _lastRestPing = double.NaN;
+    private bool _converged;
+    private string? _pendingRegion;
+    private readonly bool _autoStart;
+    private const int DiscoveryMs = 2100;
 
     // Containers
     private readonly StackPanel _flowPanel = new() { MaxWidth = 820, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -58,8 +68,8 @@ public sealed class DiagnosticPage : Page
     private readonly TextBlock _idleTitle = new() { FontFamily = Res("HeadingFont"), FontSize = 40, LineHeight = 42, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, TextWrapping = TextWrapping.Wrap };
     private readonly Border _pill = new() { Background = Brush(Color.FromArgb(255, 0x2C, 0x2C, 0x2E)), CornerRadius = new CornerRadius(999), Padding = new Thickness(14, 6, 14, 6), HorizontalAlignment = HorizontalAlignment.Center, Visibility = Visibility.Collapsed };
     private readonly TextBlock _pillText = new() { FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Brush(Color.FromArgb(255, 0xEB, 0xEB, 0xF5)) };
-    private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 16, 0, 0) };
-    private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(12) };
+    private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(20), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 16, 0, 0) };
+    private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(19) };
     private readonly Button _startBtn = new();
     private readonly StackPanel _idleControls = new() { Margin = new Thickness(0, 26, 0, 0) };
     private readonly StackPanel _runningPanel = new() { Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -83,16 +93,18 @@ public sealed class DiagnosticPage : Page
     private readonly Grid _resMetrics = new() { BorderBrush = Brush(Line), BorderThickness = new Thickness(0, 1, 0, 1), Margin = new Thickness(0, 24, 0, 0) };
     private readonly TextBlock _resRouteName = new() { FontSize = 14, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _resRouteMs = new() { FontFamily = Res("MetricFont"), FontSize = 14 };
-    private readonly RouteMapView _resultMap = new(animate: false) { CornerRadius = new CornerRadius(12) };
-    private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 12, 0, 0) };
+    private readonly RouteMapView _resultMap = new(animate: false) { CornerRadius = new CornerRadius(17) };
+    private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 12, 0, 0) };
     private readonly Button _againBtn = new();
     private readonly Button _chooseBtn = new();
     private readonly TextBlock _evidenceLabel = new();
 
     public DiagnosticPage() : this(null, null, WinUiEngineComposition.Client) { }
 
-    public DiagnosticPage(string? gameId, string? gameTitle, DiagnosticEngineClient? engine)
+    /// <param name="autoStart">Vindo de um jogo, a medição começa sozinha: não há um segundo botão para confirmar.</param>
+    public DiagnosticPage(string? gameId, string? gameTitle, DiagnosticEngineClient? engine, bool autoStart = false)
     {
+        _autoStart = autoStart && !string.IsNullOrWhiteSpace(gameId);
         _gameId = gameId;
         _gameTitle = gameTitle ?? string.Empty;
         _client = engine ?? WinUiEngineComposition.Client;
@@ -138,7 +150,6 @@ public sealed class DiagnosticPage : Page
 
         // Moldura 2:1 do mapa
         _mapFrame.Child = _map;
-        _mapFrame.SizeChanged += (_, e) => _mapFrame.Height = Math.Max(e.NewSize.Width / 2, 120);
 
         // Botão Teste agora
         _startBtn.Style = (Style)Application.Current.Resources["PillPrimaryButtonStyle"];
@@ -165,15 +176,91 @@ public sealed class DiagnosticPage : Page
         var root = new StackPanel();
         root.Children.Add(_flowPanel);
         root.Children.Add(_donePanel);
-        Content = new ScrollViewer
+        _outerPad.Padding = new Thickness(40, 28, 40, 56);
+        _outerPad.Child = root;
+        var scroller = new ScrollViewer
         {
-            Content = new Border { Padding = new Thickness(40, 28, 40, 56), Child = root },
+            Content = _outerPad,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
         };
+        scroller.SizeChanged += (_, e) => ApplyResponsive(e.NewSize.Width, e.NewSize.Height);
+        Content = scroller;
 
         ApplyStaticText();
         ResetToIdle();
+    }
+
+    // ------------------------------------------------------------------ responsividade
+
+    /// <summary>Altura do mapa: proporção natural, mas nunca mais que uma fração da altura da janela.</summary>
+    private double MapHeight(double width, double aspect, double maxFractionOfWindow) =>
+        Math.Max(Math.Min(width / aspect, _viewH * maxFractionOfWindow), 120);
+
+    private void ApplyResponsive(double width, double height)
+    {
+        if (width <= 0 || height <= 0) return;
+        _viewW = width;
+        _viewH = height;
+        var compactW = width < 760;
+        var compactH = height < 640;
+        var side = compactW ? 20 : width < 1000 ? 28 : 40;
+        _outerPad.Padding = new Thickness(side, compactH ? 16 : 28, side, compactH ? 32 : 56);
+
+        var content = Math.Max(width - side * 2, 320);
+        _flowPanel.MaxWidth = Math.Clamp(content, 320, 1000);
+        _donePanel.MaxWidth = Math.Clamp(content, 320, 1280);
+
+        // Tipografia acompanha a altura útil
+        _idleTitle.FontSize = Math.Clamp(height * 0.055, 26, 44);
+        _idleTitle.LineHeight = _idleTitle.FontSize + 2;
+        _liveText.FontSize = Math.Clamp(height * 0.095, 44, 84);
+        _liveText.LineHeight = _liveText.FontSize;
+        _resHeadline.FontSize = Math.Clamp(height * 0.06, 28, 48);
+        _resHeadline.LineHeight = _resHeadline.FontSize + 2;
+        _resHeadline.MaxWidth = Math.Max(content * 0.7, 280);
+
+        // Resultado: duas colunas em janelas largas, uma coluna em janelas estreitas
+        if (_topGrid is { } grid && _topLeft is not null)
+        {
+            var right = grid.Children.OfType<StackPanel>().FirstOrDefault(c => !ReferenceEquals(c, _topLeft));
+            if (right is not null)
+            {
+                _topRight = right;
+                grid.RowDefinitions.Clear();
+                if (compactW)
+                {
+                    grid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+                    grid.ColumnDefinitions[1].Width = new GridLength(0);
+                    grid.ColumnDefinitions[1].MinWidth = 0;
+                    grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    Grid.SetColumn(right, 0);
+                    Grid.SetRow(right, 1);
+                    right.Padding = new Thickness(0, 16, 0, 0);
+                    right.BorderThickness = new Thickness(0, 1, 0, 0);
+                    grid.ColumnSpacing = 0;
+                }
+                else
+                {
+                    grid.ColumnDefinitions[0].Width = new GridLength(1.3, GridUnitType.Star);
+                    grid.ColumnDefinitions[1].Width = new GridLength(0.7, GridUnitType.Star);
+                    grid.ColumnDefinitions[1].MinWidth = 260;
+                    Grid.SetColumn(right, 1);
+                    Grid.SetRow(right, 0);
+                    right.Padding = new Thickness(24, 0, 0, 0);
+                    right.BorderThickness = new Thickness(1, 0, 0, 0);
+                    grid.ColumnSpacing = width < 1000 ? 28 : 48;
+                }
+            }
+        }
+
+        // Altura dos mapas calculada só a partir do tamanho da janela (nunca do tamanho medido do próprio mapa):
+        // medir o próprio quadro e redimensioná-lo no SizeChanged cria ciclo de layout com a barra de rolagem.
+        _mapFrame.Height = MapHeight(_flowPanel.MaxWidth, 2.0, 0.44);
+        var donePanelWidth = _donePanel.MaxWidth;
+        var rightColumn = compactW ? donePanelWidth : Math.Max((donePanelWidth - (width < 1000 ? 28 : 48)) * 0.35, 260) - 25;
+        _resultMapFrame.Height = MapHeight(Math.Max(rightColumn, 200), 1.6, 0.5);
     }
 
     private void BuildRunning()
@@ -182,16 +269,14 @@ public sealed class DiagnosticPage : Page
         _progressTrack.SizeChanged += (_, _) => UpdateProgress(_progressRatio);
         _runningPanel.Children.Add(_progressTrack);
 
-        var live = new TextBlock
-        {
-            FontFamily = Res("MetricFont"),
-            FontSize = 72,
-            LineHeight = 72,
-            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 16, 0, 0),
-            Foreground = Brush(Primary),
-        };
+        var live = _liveText;
+        live.FontFamily = Res("MetricFont");
+        live.FontSize = 72;
+        live.LineHeight = 72;
+        live.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
+        live.HorizontalAlignment = HorizontalAlignment.Center;
+        live.Margin = new Thickness(0, 16, 0, 0);
+        live.Foreground = Brush(Primary);
         _liveUnit.FontSize = 18;
         _liveUnit.FontFamily = Res("BodyFont");
         _liveUnit.Foreground = Brush(Dim);
@@ -233,6 +318,7 @@ public sealed class DiagnosticPage : Page
         var topGrid = new Grid { ColumnSpacing = 48, Padding = new Thickness(0, 8, 0, 28) };
         topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) });
         topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.7, GridUnitType.Star), MinWidth = 260 });
+        _topGrid = topGrid;
 
         var left = new StackPanel();
         _resContext.FontFamily = Res("TechnicalFont");
@@ -255,6 +341,7 @@ public sealed class DiagnosticPage : Page
         left.Children.Add(_resHeadline);
         left.Children.Add(_resMetrics);
         topGrid.Children.Add(left);
+        _topLeft = left;
 
         var right = new StackPanel { Padding = new Thickness(24, 0, 0, 0), BorderBrush = Brush(Line), BorderThickness = new Thickness(1, 0, 0, 0) };
         Grid.SetColumn(right, 1);
@@ -265,7 +352,6 @@ public sealed class DiagnosticPage : Page
         _evidenceLabel.Foreground = Brush(Tech);
         right.Children.Add(_evidenceLabel);
         _resultMapFrame.Child = _resultMap;
-        _resultMapFrame.SizeChanged += (_, e) => _resultMapFrame.Height = Math.Max(e.NewSize.Width * 10 / 16, 120);
         right.Children.Add(_resultMapFrame);
         var routeRow = new Grid { Margin = new Thickness(0, 12, 0, 0), ColumnSpacing = 12 };
         routeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -335,9 +421,13 @@ public sealed class DiagnosticPage : Page
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         Loaded -= OnLoaded;
+        // Vindo de um jogo, a medição já começa; a localização chega depois e entra no mapa assim que estiver pronta.
+        var started = _autoStart && !_running && _donePanel.Visibility != Visibility.Visible ? StartAsync() : Task.CompletedTask;
         try
         {
             _location = await _client.GetApproximateLocationAsync();
+            // O cache local vale 24 h: vencido, o motor só devolve a posição se for pedido que renove.
+            if (_location is { Enabled: true, HasCoordinates: false }) _location = await _client.RefreshApproximateLocationAsync();
         }
         catch
         {
@@ -345,6 +435,7 @@ public sealed class DiagnosticPage : Page
         }
         ApplyLocation(_map);
         ApplyLocation(_resultMap);
+        await started;
     }
 
     private void ApplyLocation(RouteMapView map)
@@ -433,9 +524,12 @@ public sealed class DiagnosticPage : Page
         SetStage(0);
         ApplyPhase("connect");
         _regionLine.Text = Strings.Tr("Enviando sondas a todos os servidores…");
+        _converged = false;
+        _pendingRegion = null;
         _map.Reset();
         ApplyLocation(_map);
-        _map.StartSweep();
+        _map.BeginDiscovery();
+        _ = ConvergeAfterDiscoveryAsync();
 
         _measurementCts = new CancellationTokenSource();
         void ProgressHandler(object? sender, DiagnosticProgress p) => DispatcherQueue.TryEnqueue(() => OnEngineProgress(p));
@@ -443,7 +537,7 @@ public sealed class DiagnosticPage : Page
 
         try
         {
-            var result = await _client.StartAsync(_gameId, _measurementCts.Token);
+            var result = await _client.StartAsync(_gameId, _measurementCts.Token, string.IsNullOrWhiteSpace(_gameTitle) ? null : _gameTitle);
             await ShowResultAsync(result);
         }
         catch (OperationCanceledException)
@@ -487,11 +581,36 @@ public sealed class DiagnosticPage : Page
         SetStage(stage);
     }
 
+    /// <summary>Dá tempo à descoberta (sondas a todos os servidores) antes de fixar a rota que o motor está medindo.</summary>
+    private async Task ConvergeAfterDiscoveryAsync()
+    {
+        await Task.Delay(DiscoveryMs);
+        TryConverge();
+    }
+
+    private void TryConverge()
+    {
+        if (!_running || _converged || _pendingRegion is null) return;
+        _converged = true;
+        _map.Converge(_pendingRegion);
+        _regionLine.Text = Strings.Tr("Testando os reflexos da sua rede.");
+    }
+
     private void OnEngineProgress(DiagnosticProgress progress)
     {
         if (!_running) return;
         UpdateProgress(progress.Ratio);
+        if (progress.RegionId is { Length: > 0 } regionId) _pendingRegion = regionId;
         var phase = progress.Phase.ToLowerInvariant();
+
+        // Enquanto a descoberta acontece no mapa, a etapa mostrada continua sendo "Conectando".
+        if (!_converged)
+        {
+            ApplyPhase("connect");
+            _regionLine.Text = Strings.Tr("Enviando sondas a todos os servidores…");
+            if (progress.LatestPingMs is { } early && phase is "rest" or "load") _lastRestPing = phase == "rest" ? early : _lastRestPing;
+            return;
+        }
         ApplyPhase(phase);
 
         _regionLine.Text = phase switch
@@ -502,7 +621,6 @@ public sealed class DiagnosticPage : Page
             "analysis" => HasGame ? Strings.Format("Comparando com o que {0} exige.", _gameTitle) : Strings.Tr("Comparando com o que jogos competitivos exigem."),
             _ => string.Empty,
         };
-        if (phase != "connect") _map.PulseSweep();
 
         if (progress.LatestPingMs is { } ping && phase is "rest" or "load")
         {

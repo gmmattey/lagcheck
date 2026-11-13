@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <ApplicationIcon>Assets\lagcheck.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
@@ -16,7 +17,9 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\shared\design-system\assets\brand\wordmark-primary.svg" Link="Assets\wordmark-primary.svg" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Wordmark e marca do protótipo v2: o par que a barra lateral usa expandida e recolhida -->
+    <Content Include="..\..\..\shared\design-system\prototypes\windows-premium\assets\wordmark-primary.svg" Link="Assets\wordmark-primary.svg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\lagcheck.ico" Link="Assets\lagcheck.ico" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\shared\design-system\prototypes\windows-premium\assets\lagcheck-mark.svg" Link="Assets\lagcheck-mark.svg" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\apps\android\desktop\src\main\resources\map\map-grid.json" Link="Assets\map-grid.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\apps\android\desktop\src\main\resources\fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

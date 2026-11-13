@@ -49,7 +49,16 @@ public static class LibraryWireParser
             ReadString(game, "networkLabel") ?? "Conexão geral",
             ReadArray(game, "tags").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray(),
             ReadString(game, "description"),
-            ReadArray(game, "alsoIds").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray());
+            ReadArray(game, "alsoIds").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray(),
+            ParseInfo(game));
+    }
+
+    private static GameInfo? ParseInfo(JsonElement game)
+    {
+        if (!game.TryGetProperty("info", out var info) || info.ValueKind != JsonValueKind.Object) return null;
+        string[] Strs(string name) => ReadArray(info, name).Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray();
+        var parsed = new GameInfo(ReadString(info, "description"), ReadString(info, "developer"), ReadString(info, "publisher"), ReadString(info, "releaseDate"), Strs("genres"), Strs("modes"));
+        return parsed.IsEmpty ? null : parsed;
     }
 
     private static string? ReadLocalPath(JsonElement source, string name)

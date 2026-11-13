@@ -22,7 +22,7 @@
                     <TextBlock x:Name="LibraryTitle" Text="BIBLIOTECA" Style="{StaticResource DisplayTitleStyle}" FontSize="36" LineHeight="36" LineStackingStrategy="BlockLineHeight"/>
                     <TextBlock x:Name="CountText" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Bottom" Margin="0,0,0,6"/>
                 </StackPanel>
-                <Button x:Name="RescanButton" Grid.Column="1" Style="{StaticResource SecondaryButtonStyle}" Height="38" MinHeight="38" Padding="20,0" CornerRadius="19"
+                <Button x:Name="RescanButton" Grid.Column="1" Style="{StaticResource SecondaryCompactButtonStyle}"
                         Click="Rescan_Click" VerticalAlignment="Bottom" automation:AutomationProperties.Name="Procurar jogos">
                     <TextBlock x:Name="RescanButtonText" Text="Procurar jogos" FontSize="13" FontWeight="SemiBold"/>
                 </Button>
@@ -34,7 +34,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="SearchBox" PlaceholderText="Buscar na sua biblioteca (Ctrl+F)"
+                <TextBox x:Name="SearchBox" PlaceholderText="Buscar na sua biblioteca"
                          Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Height="46" CornerRadius="14" Padding="16,13,16,0" FontSize="14"/>
                 <ComboBox x:Name="SortBox" Grid.Column="1" SelectionChanged="Sort_SelectionChanged" Height="46" MinWidth="230" CornerRadius="14" Padding="14,0" FontSize="14" SelectedIndex="0">
@@ -48,7 +48,7 @@
             <!-- Filtros -->
             <ctl:WrapPanel x:Name="FilterChips" Spacing="8"/>
 
-            <Border x:Name="EmptyResultsBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28" Visibility="Collapsed">
+            <Border x:Name="EmptyResultsBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28" BorderBrush="#12FFFFFF" BorderThickness="1" Visibility="Collapsed">
                 <TextBlock x:Name="EmptyResultsText" Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
             </Border>
 
@@ -59,9 +59,8 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:LibraryGame">
-                        <Grid CornerRadius="16"
+                        <Grid CornerRadius="18" IsTabStop="True" UseSystemFocusVisuals="True" automation:AutomationProperties.Name="{x:Bind Title}"
                               ToolTipService.ToolTip="{x:Bind Title}" Background="#171B24">
-                            <Grid.RenderTransform><CompositeTransform/></Grid.RenderTransform>
                             <ctl:StripedBackground Band="14"/>
                             <Image Source="{x:Bind local:CardBind.Cover(CoverArtworkPath)}" Stretch="UniformToFill"/>
                             <Grid VerticalAlignment="Bottom" Padding="14,30,14,12">
@@ -88,7 +87,8 @@
                                 <ctl:SvgIcon Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" IsFilled="True" Size="14" Foreground="{StaticResource CoralBrush}"
                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <Border CornerRadius="16" BorderThickness="1" BorderBrush="#29FFFFFF" Opacity="0" IsHitTestVisible="False"/>
+                            <Border CornerRadius="18" BorderThickness="1" BorderBrush="#14FFFFFF" IsHitTestVisible="False"/>
+                            <Border CornerRadius="18" BorderThickness="2" BorderBrush="#B3A78BFA" Opacity="0" IsHitTestVisible="False"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

@@ -112,7 +112,6 @@ public sealed class LocalizationService
         Add("Ajustes do launcher", "Launcher settings", "Ajustes del launcher");
         Add("REDE ATIVA", "ACTIVE NETWORK", "RED ACTIVA");
         Add("Rede ativa · Conectado", "Active network · Connected", "Red activa · Conectado");
-        Add("GAME LAUNCHER", "GAME LAUNCHER", "GAME LAUNCHER");
         Add("PC GAMER", "PC GAMER", "PC GAMER");
         Add("BUILD v0.1.0 · WINUI 3", "BUILD v0.1.0 · WINUI 3", "BUILD v0.1.0 · WINUI 3");
         Add("Conexão · {0}", "Connection · {0}", "Conexión · {0}");
@@ -174,7 +173,7 @@ public sealed class LocalizationService
         Add("BIBLIOTECA", "LIBRARY", "BIBLIOTECA");
         Add("{0} JOGO", "{0} GAME", "{0} JUEGO");
         Add("{0} JOGOS", "{0} GAMES", "{0} JUEGOS");
-        Add("Buscar na sua biblioteca (Ctrl+F)", "Search in your library (Ctrl+F)", "Buscar en tu biblioteca (Ctrl+F)");
+        Add("Buscar na sua biblioteca", "Search in your library", "Buscar en tu biblioteca");
         Add("Fazer varredura de launchers instalados", "Scan installed game launchers", "Escanear launchers instalados");
         Add("Procurar jogos", "Scan games", "Buscar juegos");
         Add("Varrendo launchers instalados...", "Scanning installed launchers...", "Escaneando launchers instalados...");
@@ -313,6 +312,21 @@ public sealed class LocalizationService
             "When a measurement finishes through the engine, the real result appears here.",
             "Cuando finalice una medición con el motor compartido, el resultado real aparecerá aquí.");
         Add("Nenhuma medição corresponde à busca.", "No measurements match the search.", "Ninguna medición coincide con la búsqueda.");
+        Add("Um jogador", "Single-player", "Un jugador");
+        Add("Multijogador", "Multiplayer", "Multijugador");
+        Add("Multijogador online", "Online multiplayer", "Multijugador en línea");
+        Add("Co-op", "Co-op", "Cooperativo");
+        Add("Co-op online", "Online co-op", "Cooperativo en línea");
+        Add("MMO", "MMO", "MMO");
+        Add("Jogo entre plataformas", "Cross-platform", "Multiplataforma");
+        Add("DESENVOLVEDORA", "DEVELOPER", "DESARROLLADORA");
+        Add("PUBLICADORA", "PUBLISHER", "DISTRIBUIDORA");
+        Add("LANÇAMENTO", "RELEASE", "LANZAMIENTO");
+        Add("JOGO", "GAME", "JUEGO");
+        Add("REGIÃO", "REGION", "REGIÓN");
+        Add("RESULTADO", "RESULT", "RESULTADO");
+        Add("HORA", "TIME", "HORA");
+        Add("Buscar por jogo, região ou resultado", "Search by game, region or result", "Buscar por juego, región o resultado");
         Add("REGIÃO NÃO INFORMADA", "REGION NOT SPECIFIED", "REGIÓN NO ESPECIFICADA");
 
         // -------------------------------------------------------------

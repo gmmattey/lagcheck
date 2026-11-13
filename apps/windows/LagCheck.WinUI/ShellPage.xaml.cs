@@ -39,7 +39,8 @@ public sealed partial class ShellPage : Page
 
     private bool _navigationLocked;
     private bool _pinnedExpanded;
-    private bool _hover;
+    private double _stageTop = 56;
+    private bool _sidebarReady;
     private DispatcherTimer? _toastTimer;
     private NavigationRoute _currentRoute = NavigationRoute.Home;
     private NavigationRoute _detailsBackRoute = NavigationRoute.Home;
@@ -170,7 +171,7 @@ public sealed partial class ShellPage : Page
         ClearBackdrop();
         try
         {
-            ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle);
+            ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle, autoStart: !string.IsNullOrWhiteSpace(gameId));
         }
         catch (Exception)
         {
@@ -213,13 +214,30 @@ public sealed partial class ShellPage : Page
         }
     }
 
+    public static readonly DependencyProperty StageLeftProperty = DependencyProperty.Register(
+        nameof(StageLeft), typeof(double), typeof(ShellPage),
+        new PropertyMetadata(CollapsedWidth, (d, e) => ((ShellPage)d).ApplyStage((double)e.NewValue)));
+
+    /// <summary>Largura que a sidebar ocupa à esquerda; o palco começa logo depois dela.</summary>
+    public double StageLeft
+    {
+        get => (double)GetValue(StageLeftProperty);
+        set => SetValue(StageLeftProperty, value);
+    }
+
+    private void ApplyStage(double left)
+    {
+        Sidebar.Width = left;
+        SidebarShadow.Margin = new Thickness(left, 0, 0, 0);
+        ContentFrame.Margin = new Thickness(left, _stageTop, 0, 0);
+        DragRegion.Margin = new Thickness(left, 0, 0, 0);
+    }
+
     /// <summary>Faixa de 56px da barra de título; só o banner de Detalhes sobe por baixo dela.</summary>
     private void ApplyStageMargins(Type? pageType)
     {
-        var left = _pinnedExpanded ? ExpandedWidth : CollapsedWidth;
-        var top = pageType == typeof(GameDetailsPage) ? 0 : 56;
-        ContentFrame.Margin = new Thickness(left, top, 0, 0);
-        DragRegion.Margin = new Thickness(left, 0, 0, 0);
+        _stageTop = pageType == typeof(GameDetailsPage) ? 0 : 56;
+        ApplyStage(StageLeft);
     }
 
     // ------------------------------------------------------------------ arte de fundo
@@ -266,6 +284,19 @@ public sealed partial class ShellPage : Page
         }
         UpdateSidebarVisualState();
         LayoutBackdrop(animate: false);
+        FadeBackdropIn();
+    }
+
+    /// <summary>A arte nova entra por dissolução em vez de trocar de uma vez.</summary>
+    private void FadeBackdropIn()
+    {
+        if (Motion.Reduced) return;
+        var fade = new DoubleAnimation { From = 0.25, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(380)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+        Storyboard.SetTarget(fade, BackdropSlides);
+        Storyboard.SetTargetProperty(fade, "Opacity");
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(fade);
+        storyboard.Begin();
     }
 
     public void SelectBackdropSlide(int index)
@@ -346,63 +377,109 @@ public sealed partial class ShellPage : Page
         };
         var inactive = (Brush)Application.Current.Resources["TextSecondaryBrush"];
         var primary = (Brush)Application.Current.Resources["TextPrimaryBrush"];
-        var surface = (Brush)Application.Current.Resources["SurfaceBrush"];
+        var accent = (Brush)Application.Current.Resources["PurpleLightBrush"];
         var clear = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         foreach (var button in new[] { HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton })
         {
             var on = ReferenceEquals(button, active);
-            button.Background = on ? surface : clear;
+            // Item ativo: brilho roxo que se dissolve para a direita + barra de destaque à esquerda
+            button.Background = on ? CreateActiveGlow() : clear;
+            button.BorderBrush = on ? accent : clear;
             button.Foreground = on ? primary : inactive;
         }
+    }
+
+    private static LinearGradientBrush CreateActiveGlow()
+    {
+        var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0.5), EndPoint = new Windows.Foundation.Point(1, 0.5) };
+        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x4D, 0x7C, 0x3A, 0xED), Offset = 0 });
+        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x1F, 0x7C, 0x3A, 0xED), Offset = 1 });
+        return brush;
+    }
+
+    private static LinearGradientBrush CreateSidebarSurface(byte alpha)
+    {
+        var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0), EndPoint = new Windows.Foundation.Point(0, 1) };
+        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x14, 0x17, 0x1F), Offset = 0 });
+        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x0D, 0x0F, 0x14), Offset = 0.55 });
+        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x0A, 0x0B, 0x10), Offset = 1 });
+        return brush;
     }
 
     private void SidebarToggle_Click(object sender, RoutedEventArgs e)
     {
         _pinnedExpanded = !_pinnedExpanded;
         UpdateSidebarVisualState();
-        ApplyStageMargins(ContentFrame.Content?.GetType());
+        AnimateSidebar(_pinnedExpanded ? ExpandedWidth : CollapsedWidth);
     }
 
-    private void Sidebar_PointerEntered(object sender, PointerRoutedEventArgs e)
+    /// <summary>Abre e fecha a sidebar empurrando o palco, sem nunca cobrir título ou cards.</summary>
+    private void AnimateSidebar(double target)
     {
-        _hover = true;
-        UpdateSidebarVisualState();
+        if (Motion.Reduced)
+        {
+            StageLeft = target;
+            FinishSidebar();
+            return;
+        }
+        var animation = new DoubleAnimation
+        {
+            To = target,
+            Duration = new Duration(TimeSpan.FromMilliseconds(260)),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
+            EnableDependentAnimation = true,
+        };
+        Storyboard.SetTarget(animation, this);
+        Storyboard.SetTargetProperty(animation, nameof(StageLeft));
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(animation);
+        storyboard.Completed += (_, _) => { StageLeft = target; FinishSidebar(); };
+        storyboard.Begin();
     }
 
-    private void Sidebar_PointerExited(object sender, PointerRoutedEventArgs e)
+    private void FinishSidebar()
     {
-        _hover = false;
-        UpdateSidebarVisualState();
+        if (!_pinnedExpanded) SetLabelsVisible(false);
     }
+
+    private void SetLabelsVisible(bool visible)
+    {
+        var visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        SearchLabel.Visibility = visibility;
+        HomeLabel.Visibility = visibility;
+        LibraryLabel.Visibility = visibility;
+        GeneralCheckLabel.Visibility = visibility;
+        HistoryLabel.Visibility = visibility;
+        SettingsLabel.Visibility = visibility;
+        SearchSeparator.Visibility = visibility;
+    }
+
+    private Button[] NavButtons => new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton };
 
     private void UpdateSidebarVisualState()
     {
-        var expanded = _pinnedExpanded || _hover;
+        var expanded = _pinnedExpanded;
         var buttons = new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton };
 
-        Sidebar.Width = expanded ? ExpandedWidth : CollapsedWidth;
         // Com arte atrás (Início / resultado de um jogo) a sidebar fica translúcida; nas demais telas é sólida.
-        Sidebar.Background = new SolidColorBrush(_hasBackdrop
-            ? Windows.UI.Color.FromArgb(0x99, 0x0D, 0x0F, 0x14)
-            : Windows.UI.Color.FromArgb(0xFF, 0x0D, 0x0F, 0x14));
+        Sidebar.Background = CreateSidebarSurface(_hasBackdrop ? (byte)0xB3 : (byte)0xFF);
 
         ExpandedHeader.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         CollapsedHeader.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
-        SearchSeparator.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
-        var labelVisibility = expanded ? Visibility.Visible : Visibility.Collapsed;
-        SearchLabel.Visibility = labelVisibility;
-        HomeLabel.Visibility = labelVisibility;
-        LibraryLabel.Visibility = labelVisibility;
-        GeneralCheckLabel.Visibility = labelVisibility;
-        HistoryLabel.Visibility = labelVisibility;
-        SettingsLabel.Visibility = labelVisibility;
+        if (expanded) SetLabelsVisible(true);
 
-        NavItemsPanel.Width = expanded ? ExpandedWidth : CollapsedWidth;
-        NavItemsPanel.Padding = expanded ? new Thickness(12, 8, 12, 0) : new Thickness(0, 8, 0, 0);
+        NavItemsPanel.Width = double.NaN;
+        NavItemsPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
+        NavItemsPanel.Padding = expanded ? new Thickness(12, 8, 12, 0) : new Thickness(10, 8, 10, 0);
         foreach (var button in buttons)
         {
             button.Width = expanded ? double.NaN : 44;
             button.HorizontalAlignment = expanded ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+        }
+        if (!_sidebarReady)
+        {
+            _sidebarReady = true;
+            Sidebar.SizeChanged += (_, args) => Sidebar.Clip = new RectangleGeometry { Rect = new Windows.Foundation.Rect(0, 0, args.NewSize.Width, args.NewSize.Height) };
         }
     }
 

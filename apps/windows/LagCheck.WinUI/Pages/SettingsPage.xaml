@@ -4,12 +4,12 @@
       xmlns:ctl="using:LagCheck.WinUI.Controls"
       Background="Transparent">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
-    <StackPanel MaxWidth="760" HorizontalAlignment="Left" Padding="40,32,40,80" Spacing="20">
+    <StackPanel MaxWidth="820" HorizontalAlignment="Stretch" Padding="40,32,40,80" Spacing="20">
 
       <TextBlock x:Name="HeaderTitle" Text="Ajustes" Style="{StaticResource PageTitleStyle}" Margin="0,0,0,8"/>
 
       <!-- Interface e Visual -->
-      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
+      <Border Style="{StaticResource PremiumCardStyle}" Padding="24,20">
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <ctl:SvgIcon Data="M12 3a9 9 0 1 0 9 9c0-1-1-1.5-2-1.5h-2a2 2 0 0 1-2-2V6c0-1.5-1-3-3-3z" Size="18" Foreground="{StaticResource PurpleLightBrush}"/>
@@ -46,7 +46,7 @@
       </Border>
 
       <!-- Privacidade e Rede -->
-      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
+      <Border Style="{StaticResource PremiumCardStyle}" Padding="24,20">
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <ctl:SvgIcon Data="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" Size="18" Foreground="{StaticResource PurpleLightBrush}"/>
@@ -75,7 +75,7 @@
       </Border>
 
       <!-- Atualizações -->
-      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
+      <Border Style="{StaticResource PremiumCardStyle}" Padding="24,20">
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <ctl:SvgIcon Data="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" Size="18" Foreground="{StaticResource PurpleLightBrush}"/>
@@ -99,7 +99,7 @@
       </Border>
 
       <!-- Sobre -->
-      <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Padding="24,20">
+      <Border Style="{StaticResource PremiumCardStyle}" Padding="24,20">
         <StackPanel Spacing="16">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <ctl:SvgIcon Data="M12 8v.01M12 11v6M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" Size="18" Foreground="{StaticResource PurpleLightBrush}"/>

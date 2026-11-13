@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Windows.UI;
 using LagCheck.WinUI.Controls;
 using LagCheck.WinUI.Localization;
@@ -25,7 +26,7 @@ public sealed partial class LibraryPage : Page
         ViewModel = new LibraryViewModel(LibraryPageServices.Bridge, LibraryPageServices.DiagnosticNavigator);
         DataContext = ViewModel;
         BuildChips();
-        GamesGrid.ElementPrepared += (_, e) => WireCard(e.Element);
+        GamesGrid.ElementPrepared += (_, e) => WireCard(e.Element, e.Index);
         GamesGrid.ElementClearing += (_, e) => UnwireCard(e.Element);
         LocalizeUI();
         ViewModel.PropertyChanged += OnViewModelChanged;
@@ -45,7 +46,7 @@ public sealed partial class LibraryPage : Page
             (LibraryFilter.Steam, "Steam", Glyphs.Steam),
             (LibraryFilter.Epic, "Epic Games", Glyphs.Epic),
             (LibraryFilter.Xbox, "Xbox", Glyphs.Xbox),
-            (LibraryFilter.Manual, "PC local", null),
+            (LibraryFilter.Manual, "PC local", Glyphs.Windows),
             (LibraryFilter.Favorites, "Favoritos", null),
             (LibraryFilter.Recent, "Recentes", null),
         };
@@ -62,7 +63,7 @@ public sealed partial class LibraryPage : Page
     {
         LibraryTitle.Text = Strings.Tr("BIBLIOTECA");
         ToolTipService.SetToolTip(RescanButton, Strings.Tr("Fazer varredura de launchers instalados"));
-        SearchBox.PlaceholderText = Strings.Tr("Buscar na sua biblioteca (Ctrl+F)");
+        SearchBox.PlaceholderText = Strings.Tr("Buscar na sua biblioteca");
         SortNameItem.Content = Strings.Tr("Ordenar: Nome A–Z");
         SortRecentItem.Content = Strings.Tr("Ordenar: Mais recentes");
         SortPlatformItem.Content = Strings.Tr("Ordenar: Plataforma");
@@ -145,12 +146,29 @@ public sealed partial class LibraryPage : Page
             ViewModel.SelectFilterCommand.Execute(tag);
     }
 
-    private void WireCard(UIElement element)
+    private void WireCard(UIElement element, int index)
     {
         if (element is not Grid card) return;
+        // O jogo do card vem do índice (não depende de DataContext, que o ItemsRepeater nem sempre preenche).
+        card.Tag = index >= 0 && index < ViewModel.VisibleGames.Count ? ViewModel.VisibleGames[index] : null;
+        Fluid.Prepare(card);
+        if (card.Children.LastOrDefault() is Border ring) ring.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(200) };
+        card.Tapped -= GameCard_Tapped;
+        card.PointerEntered -= Card_PointerEntered;
+        card.PointerExited -= Card_PointerExited;
+        card.PointerPressed -= Card_PointerPressed;
+        card.PointerReleased -= Card_PointerReleased;
+        card.KeyDown -= Card_KeyDown;
+        card.GotFocus -= Card_PointerEntered;
+        card.LostFocus -= Card_PointerExited;
         card.Tapped += GameCard_Tapped;
         card.PointerEntered += Card_PointerEntered;
         card.PointerExited += Card_PointerExited;
+        card.PointerPressed += Card_PointerPressed;
+        card.PointerReleased += Card_PointerReleased;
+        card.KeyDown += Card_KeyDown;
+        card.GotFocus += Card_PointerEntered;
+        card.LostFocus += Card_PointerExited;
     }
 
     private void UnwireCard(UIElement element)
@@ -159,25 +177,44 @@ public sealed partial class LibraryPage : Page
         card.Tapped -= GameCard_Tapped;
         card.PointerEntered -= Card_PointerEntered;
         card.PointerExited -= Card_PointerExited;
+        card.PointerPressed -= Card_PointerPressed;
+        card.PointerReleased -= Card_PointerReleased;
+        card.KeyDown -= Card_KeyDown;
+        card.GotFocus -= Card_PointerEntered;
+        card.LostFocus -= Card_PointerExited;
+        card.Tag = null;
         SetHover(card, false);
     }
 
-    private void GameCard_Tapped(object sender, TappedRoutedEventArgs e)
+    private void OpenCard(object sender)
     {
-        if (sender is FrameworkElement { DataContext: LibraryGame game })
+        if (sender is FrameworkElement { Tag: LibraryGame game })
         {
             if (ViewModel.SelectGameCommand.CanExecute(game)) ViewModel.SelectGameCommand.Execute(game);
             ShellNavigation.OpenGameDetails(game, NavigationRoute.Library);
         }
     }
 
-    private void Card_PointerEntered(object sender, PointerRoutedEventArgs e) => SetHover(sender, true);
-    private void Card_PointerExited(object sender, PointerRoutedEventArgs e) => SetHover(sender, false);
+    private void GameCard_Tapped(object sender, TappedRoutedEventArgs e) => OpenCard(sender);
+
+    private void Card_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key is Windows.System.VirtualKey.Enter or Windows.System.VirtualKey.Space)
+        {
+            e.Handled = true;
+            OpenCard(sender);
+        }
+    }
+
+    private void Card_PointerEntered(object sender, RoutedEventArgs e) => SetHover(sender, true);
+    private void Card_PointerExited(object sender, RoutedEventArgs e) => SetHover(sender, false);
+    private void Card_PointerPressed(object sender, PointerRoutedEventArgs e) { if (sender is UIElement card) Fluid.Press(card, true); }
+    private void Card_PointerReleased(object sender, PointerRoutedEventArgs e) { if (sender is UIElement card) Fluid.Press(card, false); }
 
     private static void SetHover(object sender, bool hover)
     {
         if (sender is not Grid card) return;
-        if (card.RenderTransform is CompositeTransform transform) transform.TranslateY = hover ? -4 : 0;
+        Fluid.Hover(card, hover);
         if (card.Children.LastOrDefault() is Border ring) ring.Opacity = hover ? 1 : 0;
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
 using LagCheck.WinUI.Controls;
@@ -18,7 +19,10 @@ namespace LagCheck.WinUI.Pages;
 /// <summary>Início (v2): hero em tela cheia do jogo em foco + faixa de recentes. A arte fica no shell, atrás da janela.</summary>
 public sealed partial class HomePage : Page
 {
-    private const int MaxRecents = 12;
+    /// <summary>Y: tamanho máximo da fila (faixa de recentes e rotação automática do hero).</summary>
+    private const int MaxRecents = 8;
+    /// <summary>Máximo de artes mostradas por jogo antes de passar ao próximo da fila.</summary>
+    private const int MaxArtsPerGame = 3;
 
     public LibraryViewModel ViewModel { get; }
 
@@ -29,6 +33,11 @@ public sealed partial class HomePage : Page
     private List<string> _slides = new();
     private bool _refreshQueued;
     private bool _wired;
+    private readonly List<RecentTile> _tiles = new();
+    private readonly DispatcherTimer _hoverTimer = new() { Interval = TimeSpan.FromMilliseconds(110) };
+    private string? _hoverId;
+
+    private sealed record RecentTile(LibraryGame Game, Grid Tile, Border Ring);
 
     public HomePage()
     {
@@ -39,10 +48,12 @@ public sealed partial class HomePage : Page
         LocalizeUI();
 
         _historyChangedHandler = (_, _) => QueueRefresh();
-        _slideTimer.Tick += (_, _) =>
+        _hoverTimer.Tick += (_, _) =>
         {
-            if (_slides.Count > 1 && !Motion.Reduced) SelectSlide((_slide + 1) % _slides.Count);
+            _hoverTimer.Stop();
+            if (_hoverId is { } id && id != _selectedId) SelectRecent(id);
         };
+        _slideTimer.Tick += (_, _) => AdvanceCarousel();
     }
 
     private void Wire()
@@ -124,9 +135,13 @@ public sealed partial class HomePage : Page
 
     // ------------------------------------------------------------------ dados
 
+    /// <summary>Data que coloca o jogo na fila: último uso e, na falta dele, a instalação. Nunca estimada.</summary>
+    private static long? RecencyOf(LibraryGame game) => game.RecentActivityEpochMs ?? game.InstalledAtEpochMs;
+
+    /// <summary>Fila do carrossel: jogos instalados com data real de uso ou de instalação, do mais recente ao mais antigo, até Y.</summary>
     private IReadOnlyList<LibraryGame> Recents() => ViewModel.VisibleGames
-        .Where(game => game.IsInstalled)
-        .OrderByDescending(game => game.RecentActivityEpochMs ?? long.MinValue)
+        .Where(game => game.IsInstalled && RecencyOf(game).HasValue)
+        .OrderByDescending(game => RecencyOf(game) ?? long.MinValue)
         .ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase)
         .Take(MaxRecents)
         .ToList();
@@ -143,7 +158,7 @@ public sealed partial class HomePage : Page
 
     private double ViewportHeight => Math.Max((ShellChrome.Shell?.ActualHeight ?? 0) is > 0 ? ShellChrome.Shell!.ActualHeight : ActualHeight + 56, 320);
 
-    private void ApplyViewportSizing()
+    private void ApplyHeroSizing()
     {
         var vh = ViewportHeight / 100.0;
         GameTitleText.FontSize = Math.Clamp(8 * vh, 36, 76);
@@ -151,10 +166,38 @@ public sealed partial class HomePage : Page
         GameHeroPanel.Spacing = Math.Clamp(2 * vh, 8, 18);
         GameHeroPanel.Margin = new Thickness(0, 0, 0, Math.Clamp(3 * vh, 12, 30));
         EmptyHeroPanel.Margin = GameHeroPanel.Margin;
+    }
+
+    private void ApplyViewportSizing()
+    {
+        ApplyHeroSizing();
         BuildRecents();
     }
 
-    private void Refresh()
+    /// <summary>Troca o jogo em destaque sem refazer a faixa: o hero some e volta rápido, os cards animam o tamanho.</summary>
+    private void SelectRecent(string id)
+    {
+        _selectedId = id;
+        _slide = 0;
+        _slideTimer.Stop();
+        _slideTimer.Start();
+        Refresh(rebuildRecents: false);
+        FadeHero();
+        UpdateRecentSelection(animate: true);
+    }
+
+    private void FadeHero()
+    {
+        if (Motion.Reduced) return;
+        var fade = new DoubleAnimation { From = 0.15, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(260)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+        Storyboard.SetTarget(fade, GameHeroPanel);
+        Storyboard.SetTargetProperty(fade, "Opacity");
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(fade);
+        storyboard.Begin();
+    }
+
+    private void Refresh(bool rebuildRecents = true)
     {
         var hero = CurrentHero();
         if (hero is null)
@@ -163,7 +206,7 @@ public sealed partial class HomePage : Page
             EmptyHeroPanel.Visibility = Visibility.Visible;
             HeroVerdictPanel.Visibility = Visibility.Collapsed;
             SetSlides(Array.Empty<string>());
-            BuildRecents();
+            if (rebuildRecents) BuildRecents();
             return;
         }
 
@@ -181,8 +224,9 @@ public sealed partial class HomePage : Page
         FavIcon.Foreground = hero.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, hero.FavoriteActionLabel);
 
-        SetSlides(new[] { Artwork.FirstExisting(hero.HeroArtworkPath) }.Where(path => path is not null).Cast<string>().ToList());
-        ApplyViewportSizing();
+        SetSlides(ArtsOf(hero));
+        if (rebuildRecents) ApplyViewportSizing();
+        else ApplyHeroSizing();
     }
 
     private void ApplyPlatform(LibraryGame hero)
@@ -248,6 +292,31 @@ public sealed partial class HomePage : Page
 
     // ------------------------------------------------------------------ slides
 
+    /// <summary>Artes horizontais existentes do jogo (até <see cref="MaxArtsPerGame"/>), sem repetir arquivo.</summary>
+    private static List<string> ArtsOf(LibraryGame game) => new[] { game.HeroArtworkPath }
+        .Select(path => Artwork.FirstExisting(path))
+        .Where(path => path is not null)
+        .Cast<string>()
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Take(MaxArtsPerGame)
+        .ToList();
+
+    /// <summary>Passa à próxima arte do jogo; depois da última, vai ao próximo jogo da fila (e volta ao primeiro no fim).</summary>
+    private void AdvanceCarousel()
+    {
+        if (Motion.Reduced) return;
+        if (_slide < _slides.Count - 1)
+        {
+            SelectSlide(_slide + 1);
+            return;
+        }
+        var queue = Recents();
+        if (queue.Count < 2) return;
+        var current = queue.ToList().FindIndex(game => game.Id == _selectedId);
+        var next = queue[(current + 1) % queue.Count];
+        SelectRecent(next.Id);
+    }
+
     private void SetSlides(IReadOnlyList<string> images)
     {
         var changed = !images.SequenceEqual(_slides);
@@ -292,52 +361,105 @@ public sealed partial class HomePage : Page
 
     // ------------------------------------------------------------------ recentes
 
+    private (double W, double H, double RestW, double RestH) TileSizes()
+    {
+        var vh = ViewportHeight / 100.0;
+        return (Math.Min(140, 12 * vh), Math.Min(210, 18 * vh), Math.Min(98, 8.6 * vh), Math.Min(147, 13 * vh));
+    }
+
     private void BuildRecents()
     {
         RecentsPanel.Children.Clear();
-        var vh = ViewportHeight / 100.0;
-        var selectedWidth = Math.Min(140, 12 * vh);
-        var selectedHeight = Math.Min(210, 18 * vh);
-        var restWidth = Math.Min(98, 8.6 * vh);
-        var restHeight = Math.Min(147, 13 * vh);
+        _tiles.Clear();
+        var (selectedWidth, selectedHeight, restWidth, restHeight) = TileSizes();
         var hero = CurrentHero();
 
         foreach (var game in Recents())
         {
             var selected = hero is not null && game.Id == hero.Id;
             var tile = new Grid { Width = selected ? selectedWidth : restWidth, Height = selected ? selectedHeight : restHeight, VerticalAlignment = VerticalAlignment.Bottom };
-            var clip = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)) };
+            var clip = new Border { CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)) };
             var content = new Grid();
             content.Children.Add(new StripedBackground { Band = 14 });
             if (Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath), 280) is { } cover)
                 content.Children.Add(new Image { Source = cover, Stretch = Stretch.UniformToFill });
             clip.Child = content;
             tile.Children.Add(clip);
-            if (selected)
+            tile.Children.Add(new Border
             {
-                tile.Children.Add(new Border
-                {
-                    CornerRadius = new CornerRadius(16),
-                    BorderThickness = new Thickness(2),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
-                    Margin = new Thickness(-2),
-                    IsHitTestVisible = false,
-                });
-            }
+                CornerRadius = new CornerRadius(16),
+                BorderThickness = new Thickness(1),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255)),
+                IsHitTestVisible = false,
+            });
+            var ring = new Border
+            {
+                CornerRadius = new CornerRadius(18),
+                BorderThickness = new Thickness(2),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
+                Margin = new Thickness(-3),
+                Opacity = selected ? 1 : 0,
+                IsHitTestVisible = false,
+                OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(220) },
+            };
+            tile.Children.Add(ring);
+            Fluid.Prepare(tile);
             tile.Opacity = selected ? 1 : 0.7;
             ToolTipService.SetToolTip(tile, game.Title);
+
+            var id = game.Id;
             tile.PointerEntered += (_, _) =>
             {
-                tile.Opacity = 1;
-                if (_selectedId == game.Id) return;
-                _selectedId = game.Id;
-                _slide = 0;
-                Refresh();
+                Fluid.Hover(tile, true, 1.04f, -4f);
+                _hoverId = id;
+                if (id == _selectedId) { _hoverTimer.Stop(); return; }
+                _hoverTimer.Stop();
+                _hoverTimer.Start();
             };
-            tile.PointerExited += (_, _) => tile.Opacity = _selectedId == game.Id ? 1 : 0.7;
+            tile.PointerExited += (_, _) =>
+            {
+                Fluid.Hover(tile, false);
+                if (_hoverId == id) { _hoverId = null; _hoverTimer.Stop(); }
+            };
             tile.Tapped += (_, _) => OpenDetails(game);
+            _tiles.Add(new RecentTile(game, tile, ring));
             RecentsPanel.Children.Add(tile);
         }
+    }
+
+    /// <summary>Atualiza só o tamanho, o anel e a opacidade dos cards já criados.</summary>
+    private void UpdateRecentSelection(bool animate)
+    {
+        var (selectedWidth, selectedHeight, restWidth, restHeight) = TileSizes();
+        var storyboard = new Storyboard();
+        foreach (var item in _tiles)
+        {
+            var selected = item.Game.Id == _selectedId;
+            var width = selected ? selectedWidth : restWidth;
+            var height = selected ? selectedHeight : restHeight;
+            item.Ring.Opacity = selected ? 1 : 0;
+            item.Tile.Opacity = selected ? 1 : 0.7;
+            if (!animate || Motion.Reduced)
+            {
+                item.Tile.Width = width;
+                item.Tile.Height = height;
+                continue;
+            }
+            foreach (var (property, target) in new[] { ("Width", width), ("Height", height) })
+            {
+                var animation = new DoubleAnimation
+                {
+                    To = target,
+                    Duration = new Duration(TimeSpan.FromMilliseconds(260)),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                    EnableDependentAnimation = true,
+                };
+                Storyboard.SetTarget(animation, item.Tile);
+                Storyboard.SetTargetProperty(animation, property);
+                storyboard.Children.Add(animation);
+            }
+        }
+        if (animate && !Motion.Reduced && storyboard.Children.Count > 0) storyboard.Begin();
     }
 
     private void OpenDetails(LibraryGame game)

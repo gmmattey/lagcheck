@@ -55,7 +55,11 @@ public sealed class RouteMapView : Grid
     private (double Lat, double Lon, string? City)? _user;
     private string? _selId;
     private double? _selMs;
-    private bool _sweepWanted;
+    private bool _discovering;
+    private double _discoveryT0;
+    private double _routeT0 = -2; // -2: rota completa/sem animação; >=0: rota sendo desenhada
+    private readonly List<Ellipse> _rings = new();
+    private const double DiscoveryCycle = 1500;
     private bool _rendering;
     private double _lastFrame;
     private Cam _cam = new(0, 12, 1);
@@ -114,7 +118,6 @@ public sealed class RouteMapView : Grid
     {
         _user = latitude is { } lat && longitude is { } lon ? (lat, lon, city) : null;
         Retarget();
-        TrySweep();
     }
 
     public void Reset()
@@ -123,21 +126,42 @@ public sealed class RouteMapView : Grid
         _selMs = null;
         _regions.Clear();
         _packets.Clear();
-        _sweepWanted = false;
+        _discovering = false;
+        _routeT0 = -2;
         Retarget();
     }
 
-    public void StartSweep()
+    /// <summary>Fase 1: sondas saem do usuário para todos os servidores, em ondas, até a rota ser escolhida.</summary>
+    public void BeginDiscovery()
     {
-        _sweepWanted = true;
-        TrySweep();
+        if (!_animate) return;
+        _selId = null;
+        _selMs = null;
+        _packets.Clear();
+        _discovering = true;
+        _routeT0 = -2;
+        _discoveryT0 = Now();
+        Retarget();
+        EnsureRendering();
+    }
+
+    /// <summary>Fase 2: o servidor escolhido ganha a rota, a câmera aproxima e a medição passa a pulsar nela.</summary>
+    public void Converge(string id)
+    {
+        if (!_animate || RegionCatalog.Find(id) is null) return;
+        _discovering = false;
+        _selId = id;
+        _packets.Clear();
+        _routeT0 = Now();
+        Retarget();
+        EnsureRendering();
     }
 
     public void SelectRegion(string id, double? ms)
     {
         if (RegionCatalog.Find(id) is null) return;
         _selId = id;
-        _sweepWanted = false;
+        _discovering = false;
         _packets.RemoveAll(packet => packet.Sweep);
         _selMs = ms ?? (_regions.TryGetValue(id, out var sample) ? sample.Ms : null) ?? _selMs;
         Retarget();
@@ -145,28 +169,11 @@ public sealed class RouteMapView : Grid
 
     public void Probe(double rtt)
     {
-        if (!_animate || _user is null || _selId is null || _packets.Count >= 6) return;
+        if (!_animate || _selId is null) return;
+        _selMs = rtt;
+        if (_user is null || _packets.Count >= 6) return;
         _packets.Add(new Packet { Id = _selId, Sweep = false, Out = true, Start = Now(), Dur = 420, Rtt = rtt });
         EnsureRendering();
-    }
-
-    private void TrySweep()
-    {
-        if (!_animate || !_sweepWanted || _selId is not null || _user is null) return;
-        _sweepWanted = false;
-        var t0 = Now();
-        var i = 0;
-        foreach (var region in RegionCatalog.All)
-            _packets.Add(new Packet { Id = region.Id, Sweep = true, Out = true, Start = t0 + i++ * 45, Dur = 620, Rtt = 0 });
-        EnsureRendering();
-    }
-
-    /// <summary>Repete a varredura de sondas enquanto a região vencedora ainda não é conhecida.</summary>
-    public void PulseSweep()
-    {
-        if (!_animate || _selId is not null || _user is null || _packets.Any(packet => packet.Sweep)) return;
-        _sweepWanted = true;
-        TrySweep();
     }
 
     // ------------------------------------------------------------------ câmera
@@ -252,7 +259,7 @@ public sealed class RouteMapView : Grid
 
         Redraw();
         var settled = Math.Abs(target.Lon - _cam.Lon) < 0.01 && Math.Abs(target.Lat - _cam.Lat) < 0.01 && Math.Abs(target.Zoom - _cam.Zoom) < 0.002;
-        if (settled && _packets.Count == 0) StopRendering();
+        if (settled && _packets.Count == 0 && !_discovering && _routeT0 == -2) StopRendering();
     }
 
     private static double ReturnMs(double rtt) => Math.Min(Math.Max(rtt * 8, 300), 700);
@@ -293,6 +300,33 @@ public sealed class RouteMapView : Grid
         Canvas.SetTop(element, y);
     }
 
+    private static PathGeometry PartialArcGeometry(Arc a, double t)
+    {
+        var steps = Math.Max(2, (int)Math.Ceiling(24 * Math.Clamp(t, 0, 1)));
+        var figure = new PathFigure { StartPoint = new Point(a.X0, a.Y0) };
+        var points = new PointCollection();
+        for (var i = 1; i <= steps; i++)
+        {
+            var p = Bezier(a, t * i / steps);
+            points.Add(new Point(p.X, p.Y));
+        }
+        figure.Segments.Add(new PolyLineSegment { Points = points });
+        var geometry = new PathGeometry();
+        geometry.Figures.Add(figure);
+        return geometry;
+    }
+
+    private Ellipse Ring(int index)
+    {
+        while (_rings.Count <= index)
+        {
+            var ring = new Ellipse { IsHitTestVisible = false, StrokeThickness = 1.4, Stroke = new SolidColorBrush(PurpleLight), Visibility = Visibility.Collapsed };
+            _rings.Add(ring);
+            _canvas.Children.Add(ring);
+        }
+        return _rings[index];
+    }
+
     private void Redraw()
     {
         var w = ActualWidth;
@@ -310,35 +344,90 @@ public sealed class RouteMapView : Grid
         (double X, double Y)? sp = sel is not null ? Project(sel.Latitude, sel.Longitude, cam) : null;
 
         string? leader = null;
-        if (_selId is null)
+        if (_selId is null && !_discovering)
         {
             var best = double.PositiveInfinity;
             foreach (var (id, sample) in _regions)
                 if (sample.Ms is { } ms && ms < best) { best = ms; leader = id; }
         }
 
+        var packetIndex = 0;
+        var ringIndex = 0;
+        foreach (var arc in _sweepArcs.Values) arc.Visibility = Visibility.Collapsed;
+
+        var regionIndex = 0;
         foreach (var region in RegionCatalog.All)
         {
+            var index = regionIndex++;
             var dot = _regionDots[region.Id];
             if (region.Id == _selId) { dot.Visibility = Visibility.Collapsed; continue; }
             dot.Visibility = Visibility.Visible;
             var p = Project(region.Latitude, region.Longitude, cam);
             _regions.TryGetValue(region.Id, out var sample);
+
+            // Descoberta: cada servidor recebe uma sonda em onda; ao chegar, o ponto acende e solta um anel.
+            double? discoveryPhase = null;
+            if (_discovering)
+            {
+                var local = now - _discoveryT0 - index * 80;
+                if (local >= 0) discoveryPhase = local % DiscoveryCycle / DiscoveryCycle;
+            }
+            var reached = discoveryPhase is >= 0.62;
+
             double size;
             if (region.Id == leader) { size = 8.4; dot.Fill = new SolidColorBrush(PurpleLight); dot.Stroke = null; }
+            else if (reached) { size = 7; dot.Fill = new SolidColorBrush(PurpleLight); dot.Stroke = null; }
             else if (sample is { Ok: true }) { size = 5.6; dot.Fill = new SolidColorBrush(RegionColor); dot.Stroke = null; }
-            else { size = 5.6; dot.Fill = null; dot.Stroke = new SolidColorBrush(Muted); dot.StrokeThickness = 1.2; }
+            else { size = 5.6; dot.Fill = null; dot.Stroke = new SolidColorBrush(_selId is not null ? Color.FromArgb(0x70, 0x60, 0x68, 0x73) : Muted); dot.StrokeThickness = 1.2; }
             dot.Width = size;
             dot.Height = size;
             Place(dot, p.X - size / 2, p.Y - size / 2);
+
+            if (discoveryPhase is { } phase)
+            {
+                if (up is { } origin)
+                {
+                    var arc = ArcOf(origin, p, h * 0.38);
+                    var travel = Ease(Math.Min(phase / 0.62, 1));
+                    var path = _sweepArcs[region.Id];
+                    path.Data = PartialArcGeometry(arc, Math.Max(travel, 0.02));
+                    path.Opacity = phase < 0.62 ? 1 : Math.Max(0, 1 - (phase - 0.62) / 0.38);
+                    path.Visibility = Visibility.Visible;
+                    if (phase < 0.62)
+                    {
+                        var head = Bezier(arc, travel);
+                        var packet = PacketDot(packetIndex++);
+                        packet.Width = packet.Height = 5.2;
+                        packet.Fill = new SolidColorBrush(PurpleLight);
+                        packet.Visibility = Visibility.Visible;
+                        Place(packet, head.X - 2.6, head.Y - 2.6);
+                    }
+                }
+                if (phase >= 0.62)
+                {
+                    var q = (phase - 0.62) / 0.38;
+                    var ring = Ring(ringIndex++);
+                    var diameter = 7 + q * 26;
+                    ring.Width = ring.Height = diameter;
+                    ring.Opacity = (1 - q) * 0.75;
+                    ring.Visibility = Visibility.Visible;
+                    Place(ring, p.X - diameter / 2, p.Y - diameter / 2);
+                }
+            }
         }
 
-        // Arco principal usuário -> região escolhida.
+        // Arco principal usuário -> região escolhida, desenhado aos poucos quando acabou de ser escolhido.
         Arc? routeArc = null;
+        var routeProgress = 1.0;
+        if (_routeT0 >= 0)
+        {
+            routeProgress = Ease((now - _routeT0) / 850);
+            if ((now - _routeT0) / 850 >= 1) _routeT0 = -2;
+        }
         if (up is { } u && sp is { } s)
         {
             routeArc = ArcOf(u, s, h * 0.38);
-            _routeArc.Data = ArcGeometry(routeArc.Value);
+            _routeArc.Data = routeProgress >= 1 ? ArcGeometry(routeArc.Value) : PartialArcGeometry(routeArc.Value, Math.Max(routeProgress, 0.02));
             _routeArc.Visibility = Visibility.Visible;
         }
         else
@@ -346,36 +435,30 @@ public sealed class RouteMapView : Grid
             _routeArc.Visibility = Visibility.Collapsed;
         }
 
-        // Pacotes.
-        var packetIndex = 0;
-        foreach (var arc in _sweepArcs.Values) arc.Visibility = Visibility.Collapsed;
+        // Anel de chegada no servidor escolhido.
+        if (_routeT0 >= 0 && sp is { } arrival && routeProgress > 0.7)
+        {
+            var q = Math.Clamp((routeProgress - 0.7) / 0.3, 0, 1);
+            var ring = Ring(ringIndex++);
+            var diameter = 11 + q * 34;
+            ring.Width = ring.Height = diameter;
+            ring.Opacity = (1 - q) * 0.9;
+            ring.Visibility = Visibility.Visible;
+            Place(ring, arrival.X - diameter / 2, arrival.Y - diameter / 2);
+        }
+        for (var i = ringIndex; i < _rings.Count; i++) _rings[i].Visibility = Visibility.Collapsed;
+
+        // Pacotes de medição na rota escolhida.
         foreach (var packet in _packets)
         {
-            if (now < packet.Start || up is not { } origin) continue;
+            if (now < packet.Start || up is null || routeArc is not { } main || routeProgress < 1) continue;
             var t = Ease((now - packet.Start) / packet.Dur);
-            Arc arc;
-            double radius;
-            if (packet.Sweep)
-            {
-                if (sp is not null || RegionCatalog.Find(packet.Id) is not { } region) continue;
-                arc = ArcOf(origin, Project(region.Latitude, region.Longitude, cam), h * 0.38);
-                var path = _sweepArcs[packet.Id];
-                path.Data = ArcGeometry(arc);
-                path.Visibility = Visibility.Visible;
-                radius = 2.6;
-            }
-            else
-            {
-                if (routeArc is not { } main) continue;
-                arc = main;
-                radius = 3.2;
-            }
-            var position = Bezier(arc, packet.Out ? t : 1 - t);
+            var position = Bezier(main, packet.Out ? t : 1 - t);
             var dot = PacketDot(packetIndex++);
-            dot.Width = dot.Height = radius * 2;
+            dot.Width = dot.Height = 6.4;
             dot.Fill = new SolidColorBrush(packet.Out ? PurpleLight : TextColor);
             dot.Visibility = Visibility.Visible;
-            Place(dot, position.X - radius, position.Y - radius);
+            Place(dot, position.X - 3.2, position.Y - 3.2);
         }
         for (var i = packetIndex; i < _packetDots.Count; i++) _packetDots[i].Visibility = Visibility.Collapsed;
 
@@ -408,7 +491,7 @@ public sealed class RouteMapView : Grid
             placed.Add(Label(_userLabel, uPoint, true, new[] { (text, false) }, placed));
         }
         var labelId = _selId ?? leader;
-        if (labelId is not null && RegionCatalog.Find(labelId) is { } labelRegion)
+        if (labelId is not null && routeProgress > 0.85 && RegionCatalog.Find(labelId) is { } labelRegion)
         {
             var anchor = sp ?? Project(labelRegion.Latitude, labelRegion.Longitude, cam);
             double? ms = _selId is not null ? _selMs : (_regions.TryGetValue(labelId, out var sample) ? sample.Ms : null);

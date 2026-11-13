@@ -127,11 +127,25 @@
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
 
+  <!-- Card premium: degradê discreto, filete de luz e cantos de 20 -->
+  <LinearGradientBrush x:Key="PremiumCardBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#1B202B" Offset="0"/>
+    <GradientStop Color="#151922" Offset="1"/>
+  </LinearGradientBrush>
+  <Style x:Key="PremiumCardStyle" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource PremiumCardBrush}"/>
+    <Setter Property="BorderBrush" Value="#14FFFFFF"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="20"/>
+  </Style>
+
   <!-- Template plano de botão: cor sólida + véu claro no hover/pressed, sem bordas nem animações do sistema -->
   <ControlTemplate x:Key="FlatButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><ScalarTransition Duration="0:0:0.18"/></Border.OpacityTransition>
+      </Border>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
                         Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -146,17 +160,39 @@
     </Grid>
   </ControlTemplate>
 
+  <ControlTemplate x:Key="SearchNavButtonTemplate" TargetType="Button">
+    <Grid x:Name="RootGrid">
+      <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><ScalarTransition Duration="0:0:0.18"/></Border.OpacityTransition>
+      </Border>
+      <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                        Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+    </Grid>
+  </ControlTemplate>
+
   <!-- Navegação lateral: o v2 só marca o item ativo (sem véu no hover) -->
   <ControlTemplate x:Key="NavButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><ScalarTransition Duration="0:0:0.18"/></Border.OpacityTransition>
+      </Border>
+      <!-- Barra de destaque do item ativo (BorderBrush transparente quando inativo) -->
+      <Border x:Name="Accent" Width="3" Height="20" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-1,0,0,0"
+              CornerRadius="2" Background="{TemplateBinding BorderBrush}"/>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal"/>
-          <VisualState x:Name="PointerOver"/>
-          <VisualState x:Name="Pressed"/>
           <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
@@ -169,6 +205,8 @@
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Background" Value="#252A36"/>
     <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="24,0"/>
+    <Setter Property="MinHeight" Value="40"/>
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
   </Style>
@@ -189,10 +227,12 @@
     <Setter Property="CornerRadius" Value="12"/>
   </Style>
   <Style x:Key="SearchNavButtonStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
-    <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="Template" Value="{StaticResource SearchNavButtonTemplate}"/>
   </Style>
 
   <Style x:Key="PillPrimaryButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#33FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="Height" Value="56"/>
     <Setter Property="Padding" Value="42,0"/>
@@ -205,9 +245,11 @@
   </Style>
 
   <Style x:Key="GhostPillButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="Height" Value="56"/>
-    <Setter Property="Padding" Value="28,0"/>
+    <Setter Property="Padding" Value="32,0"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="FontWeight" Value="SemiBold"/>
     <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
@@ -215,6 +257,8 @@
   </Style>
 
   <Style x:Key="CircleIconButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="Width" Value="46"/>
     <Setter Property="Height" Value="46"/>
@@ -224,19 +268,31 @@
   </Style>
 
   <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="MinHeight" Value="44"/>
-    <Setter Property="Padding" Value="22,0"/>
+    <Setter Property="Padding" Value="28,0"/>
     <Setter Property="FontSize" Value="13"/>
     <Setter Property="FontWeight" Value="SemiBold"/>
     <Setter Property="Background" Value="#252A36"/>
     <Setter Property="CornerRadius" Value="22"/>
   </Style>
 
+  <!-- Variante compacta do secundário (Procurar jogos, Medir agora): mesmo respiro lateral, altura menor -->
+  <Style x:Key="SecondaryCompactButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+    <Setter Property="Height" Value="40"/>
+    <Setter Property="MinHeight" Value="40"/>
+    <Setter Property="Padding" Value="26,0"/>
+    <Setter Property="CornerRadius" Value="20"/>
+  </Style>
+
   <Style x:Key="PillChipButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="Height" Value="38"/>
-    <Setter Property="Padding" Value="20,0"/>
+    <Setter Property="Padding" Value="22,0"/>
     <Setter Property="FontSize" Value="13"/>
     <Setter Property="FontWeight" Value="Medium"/>
     <Setter Property="Background" Value="{StaticResource ChipSurfaceBrush}"/>
@@ -251,7 +307,7 @@
     <Setter Property="Foreground" Value="{StaticResource PurpleLightBrush}"/>
     <Setter Property="FontSize" Value="15"/>
     <Setter Property="FontWeight" Value="Medium"/>
-    <Setter Property="Padding" Value="12,0"/>
+    <Setter Property="Padding" Value="16,0"/>
     <Setter Property="MinHeight" Value="44"/>
     <Setter Property="CornerRadius" Value="10"/>
   </Style>

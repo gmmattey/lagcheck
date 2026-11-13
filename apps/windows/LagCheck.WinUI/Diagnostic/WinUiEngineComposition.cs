@@ -56,8 +56,8 @@ public static class WinUiEngineComposition
     public static Task RenewAnalyticsIdAsync(CancellationToken cancellationToken = default) =>
         Client.RenewAnalyticsIdAsync(cancellationToken);
 
-    public static DiagnosticPage CreateDiagnosticPage(string? gameId = null, string? gameTitle = null) =>
-        new(gameId, gameTitle, Client);
+    public static DiagnosticPage CreateDiagnosticPage(string? gameId = null, string? gameTitle = null, bool autoStart = false) =>
+        new(gameId, gameTitle, Client, autoStart);
 
     public static async ValueTask ShutdownAsync()
     {

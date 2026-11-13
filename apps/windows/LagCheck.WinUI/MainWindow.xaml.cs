@@ -11,6 +11,16 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         AppWindow.Resize(new SizeInt32(1120, 740));
+        Title = "LagCheck";
+        try
+        {
+            var icon = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "lagcheck.ico");
+            if (System.IO.File.Exists(icon)) AppWindow.SetIcon(icon);
+        }
+        catch
+        {
+            // Sem o .ico a janela só mantém o ícone genérico: nunca impede o app de abrir.
+        }
 
         // Integração total da barra de título à janela do aplicativo (ExtendsContentIntoTitleBar)
         ExtendsContentIntoTitleBar = true;

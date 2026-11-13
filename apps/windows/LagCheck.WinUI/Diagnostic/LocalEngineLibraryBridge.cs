@@ -60,7 +60,15 @@ internal static class EngineLibraryParser
         String(game, "networkLabel") ?? "Conexão geral",
         Strings(game, "tags"),
         String(game, "description"),
-        Strings(game, "alsoIds"));
+        Strings(game, "alsoIds"),
+        ReadInfo(game));
+
+    private static GameInfo? ReadInfo(JsonElement game)
+    {
+        if (!game.TryGetProperty("info", out var info) || info.ValueKind != JsonValueKind.Object) return null;
+        var parsed = new GameInfo(String(info, "description"), String(info, "developer"), String(info, "publisher"), String(info, "releaseDate"), Strings(info, "genres"), Strings(info, "modes"));
+        return parsed.IsEmpty ? null : parsed;
+    }
 
     private static GamePlatform Platform(string? value) => value?.ToLowerInvariant() switch
     {

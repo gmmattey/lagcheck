@@ -26,6 +26,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
     private TaskCompletionSource<DiagnosticResult>? _activeResult;
     private string? _activeSessionId;
     private string? _activeGameId;
+    private string? _activeGameTitle;
     private bool _disposed;
 
     public DiagnosticEngineClient(string? hostPath = null)
@@ -88,7 +89,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
         finally { _connectLock.Release(); }
     }
 
-    public async Task<DiagnosticResult> StartAsync(string? gameId, CancellationToken cancellationToken = default)
+    public async Task<DiagnosticResult> StartAsync(string? gameId, CancellationToken cancellationToken = default, string? gameTitle = null)
     {
         await ConnectAsync(cancellationToken).ConfigureAwait(false);
         var sessionId = NewId();
@@ -101,6 +102,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
             }
             _activeSessionId = sessionId;
             _activeGameId = gameId;
+            _activeGameTitle = string.IsNullOrWhiteSpace(gameTitle) ? null : gameTitle;
             _activeResult = completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
         }
         SessionActivityChanged?.Invoke(this, true);
@@ -383,7 +385,7 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
                 _hello?.TrySetResult(new EngineHello(message.Protocol ?? string.Empty, message.Engine ?? string.Empty));
                 break;
             case "progress" when message.SessionId is not null:
-                ProgressChanged?.Invoke(this, new DiagnosticProgress(message.SessionId, message.Phase ?? "rest", message.Ratio ?? 0, message.LatestPingMs, message.LiveJitterMs, message.LiveLoadDeltaMs));
+                ProgressChanged?.Invoke(this, new DiagnosticProgress(message.SessionId, message.Phase ?? "rest", message.Ratio ?? 0, message.LatestPingMs, message.LiveJitterMs, message.LiveLoadDeltaMs, message.RegionId));
                 break;
             case "result" when message.SessionId is not null:
                 var result = new DiagnosticResult(message.SessionId, message.Status ?? "completed", message.Verdict, message.Score,
@@ -410,16 +412,20 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
     {
         TaskCompletionSource<DiagnosticResult>? completion = null;
         string? gameId = null;
+        string? gameTitle = null;
         lock (_gate)
         {
             if (_activeSessionId != result.SessionId) return;
             completion = _activeResult;
             gameId = _activeGameId;
+            gameTitle = _activeGameTitle;
             _activeResult = null;
             _activeSessionId = null;
             _activeGameId = null;
+            _activeGameTitle = null;
         }
         var finalResult = result.GameId is null && gameId is not null ? result with { GameId = gameId } : result;
+        if (gameTitle is not null) finalResult = finalResult with { GameTitle = gameTitle };
         completion?.TrySetResult(finalResult);
         SessionActivityChanged?.Invoke(this, false);
         ResultReceived?.Invoke(this, finalResult);

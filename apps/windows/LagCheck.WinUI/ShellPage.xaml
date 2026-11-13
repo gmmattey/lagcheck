@@ -54,10 +54,20 @@
       <TextBlock x:Name="ToastText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"/>
     </Border>
 
+    <!-- Sombra projetada pela sidebar quando expande sobre o conteúdo -->
+    <Rectangle x:Name="SidebarShadow" HorizontalAlignment="Left" Width="22" Margin="64,0,0,0" IsHitTestVisible="False">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+          <GradientStop Color="#66000000" Offset="0"/>
+          <GradientStop Color="#22000000" Offset="0.45"/>
+          <GradientStop Color="#00000000" Offset="1"/>
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
     <!-- Sidebar retrátil: ocupa 64px de layout e se expande SOBRE o conteúdo ao passar o mouse -->
     <Grid x:Name="Sidebar" HorizontalAlignment="Left" Width="64" Background="#0D0F14"
-          BorderBrush="#0FFFFFFF" BorderThickness="0,0,1,0"
-          PointerEntered="Sidebar_PointerEntered" PointerExited="Sidebar_PointerExited">
+          BorderBrush="#14FFFFFF" BorderThickness="0,0,1,0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
@@ -70,8 +80,7 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <StackPanel VerticalAlignment="Center">
-          <Image Source="ms-appx:///Assets/wordmark-primary.svg" Height="18" HorizontalAlignment="Left" automation:AutomationProperties.Name="LagCheck"/>
-          <TextBlock Text="GAME LAUNCHER" Style="{StaticResource EyebrowTextStyle}" Margin="0,4,0,0"/>
+          <Image Source="ms-appx:///Assets/wordmark-primary.svg" Height="30" HorizontalAlignment="Left" automation:AutomationProperties.Name="LagCheck"/>
         </StackPanel>
         <Button x:Name="SidebarCollapseButton" Grid.Column="1" Style="{StaticResource CircleIconButtonStyle}" Width="32" Height="32" CornerRadius="16"
                 Background="#252A36" Click="SidebarToggle_Click" automation:AutomationProperties.Name="Recolher barra lateral">
