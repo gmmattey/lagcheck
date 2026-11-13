@@ -1,1 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024" width="1024" height="1024"><defs><radialGradient id="bg" cx="50%" cy="34%" r="80%"><stop offset="0" stop-color="#1E232B"/><stop offset=".55" stop-color="#15181E"/><stop offset="1" stop-color="#0B0D10"/></radialGradient><radialGradient id="glow" gradientUnits="objectBoundingBox" cx=".5" cy="1.0" r=".72" fx=".5" fy="1.0"><stop offset="0" stop-color="#7C3AED" stop-opacity="0.44"/><stop offset=".55" stop-color="#7C3AED" stop-opacity="0.132"/><stop offset="1" stop-color="#7C3AED" stop-opacity="0"/></radialGradient></defs><rect width="1024" height="1024" fill="url(#bg)"/><rect width="1024" height="1024" fill="url(#glow)"/><defs><g id="G" fill="none" stroke-width="77.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="309.75" cy="676.15" r="83.04"/><path d="M251.03,617.44 L479.38,389.09 L548.54,458.24"/><circle cx="714.25" cy="323.85" r="83.04"/><path d="M772.97,382.56 L544.62,610.91 L475.46,541.76"/></g><filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="20.0"/></filter><linearGradient id="face" gradientUnits="userSpaceOnUse" x1="122.0" y1="149.0" x2="824.0" y2="890.0"><stop offset="0" stop-color="#DDD6FE"/><stop offset=".3" stop-color="#A78BFA"/><stop offset=".62" stop-color="#7C3AED"/><stop offset="1" stop-color="#5B21B6"/></linearGradient><mask id="rim" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#000"/><use href="#G" stroke="#fff"/><use href="#G" stroke="#000" transform="translate(0,9.0)"/></mask><linearGradient id="gloss" gradientUnits="userSpaceOnUse" x1="0" y1="141.60000000000002" x2="0" y2="602.4"><stop offset="0" stop-color="#fff" stop-opacity="0.3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><mask id="gm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#000"/><use href="#G" stroke="#fff"/></mask><use href="#G" stroke="#000" opacity="0.55" filter="url(#blur)" transform="translate(0,30.0)"/><use href="#G" stroke="#2E1065" transform="translate(0,14.0)"/><use href="#G" stroke="#3B1585" transform="translate(0,10.5)"/><use href="#G" stroke="#4C1D95" transform="translate(0,6.3)"/><use href="#G" stroke="#5B21B6" transform="translate(0,2.8000000000000003)"/><use href="#G" stroke="url(#face)"/><rect width="1024" height="1024" fill="url(#gloss)" mask="url(#gm)"/><rect width="1024" height="1024" fill="#EDE9FE" opacity="0.8" mask="url(#rim)"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><defs><radialGradient id="bg" cx="50%" cy="34%" r="80%"><stop offset="0" stop-color="#1E232B"/><stop offset=".55" stop-color="#15181E"/><stop offset="1" stop-color="#0B0D10"/></radialGradient><radialGradient id="glow" gradientUnits="objectBoundingBox" cx=".5" cy="1.0" r=".72" fx=".5" fy="1.0"><stop offset="0" stop-color="#7C3AED" stop-opacity="0.44"/><stop offset=".55" stop-color="#7C3AED" stop-opacity="0.132"/><stop offset="1" stop-color="#7C3AED" stop-opacity="0"/></radialGradient></defs><rect width="1024" height="1024" fill="url(#bg)"/><rect width="1024" height="1024" fill="url(#glow)"/><defs></defs><g><svg x="133.12" y="270.89" width="757.76" height="482.21" viewBox="0 0 440 280">
+  
+  
+  <defs>
+    <linearGradient id="lcm-speed" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="226" y2="0">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#b06cff" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#c99bff"/>
+    </linearGradient>
+    <linearGradient id="lcm-stem" gradientUnits="userSpaceOnUse" x1="300" y1="312" x2="190" y2="512">
+      <stop offset="0" stop-color="#c58bff"/>
+      <stop offset=".5" stop-color="#9b3df6"/>
+      <stop offset="1" stop-color="#7417e0"/>
+    </linearGradient>
+    <linearGradient id="lcm-foot" gradientUnits="userSpaceOnUse" x1="170" y1="510" x2="428" y2="456">
+      <stop offset="0" stop-color="#560db8"/>
+      <stop offset="1" stop-color="#8d32f0"/>
+    </linearGradient>
+    <linearGradient id="lcm-arc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d4abff"/>
+      <stop offset=".5" stop-color="#a34ff8"/>
+      <stop offset="1" stop-color="#7a1fe4"/>
+    </linearGradient>
+    <linearGradient id="lcm-swoosh" gradientUnits="userSpaceOnUse" x1="456" y1="466" x2="194" y2="536">
+      <stop offset="0" stop-color="#b878ff"/>
+      <stop offset=".6" stop-color="#8b2ef0"/>
+      <stop offset="1" stop-color="#6d16d8"/>
+    </linearGradient>
+    <radialGradient id="lcm-halo">
+      <stop offset=".35" stop-color="#b46cff" stop-opacity=".7"/>
+      <stop offset=".65" stop-color="#9d16f2" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#9d16f2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(-55.7 -265.5)">
+    <path fill="url(#lcm-speed)" d="M112 368.9 225 357 219.9 367ZM62 409.1 206 394 200.9 404ZM94 440.8 187 431 181.9 441Z"/>
+    <g transform="translate(332 413) rotate(-36)">
+      <path fill="url(#lcm-arc)" d="M39.09 -66.51A188 68 0 0 1 94 58.89A226 74.3 0 0 0 39.09 -66.51Z"/>
+    </g>
+    <path fill="url(#lcm-swoosh)" d="M194 536Q311 523 456 466Q311 501 194 536Z"/>
+    <path fill="url(#lcm-foot)" d="M263 312H322L250.6 452H428L419.8 468L158 518Z"/>
+    <path fill="url(#lcm-stem)" d="M263 312H322L250.6 452L158 518Z"/>
+    <path fill="#dcb8ff" fill-opacity=".5" d="M250.6 452H428L424.4 459H240.8Z"/>
+    <path fill="#f7f7f8" d="M295 404 309.8 385.1 344.7 412.3 461 328 345 443Z"/>
+    <circle cx="411.4" cy="298.9" r="24" fill="url(#lcm-halo)"/>
+    <circle cx="305" cy="510" r="24" fill="url(#lcm-halo)"/>
+    <circle cx="411.4" cy="298.9" r="12" fill="#d8b4fe"/>
+    <circle cx="305" cy="510" r="12" fill="#d8b4fe"/>
+    <circle cx="411.4" cy="298.9" r="9" fill="#fff"/>
+    <circle cx="305" cy="510" r="9" fill="#fff"/>
+  </g>
+</svg></g></svg>
