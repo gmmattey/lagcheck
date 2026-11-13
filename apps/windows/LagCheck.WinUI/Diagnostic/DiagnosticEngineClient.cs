@@ -52,7 +52,10 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
         await _connectLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if (_process is { HasExited: false })
+            // Process.HasExited espera num handle; na thread de UI (STA) essa espera bombeia mensagens e
+            // reentra no XAML no meio de um Loaded (E_UNEXPECTED / 0xc000027b). Checa fora da thread de UI.
+            var current = _process;
+            if (current is not null && await Task.Run(() => !current.HasExited).ConfigureAwait(false))
             {
                 return await (_hello?.Task ?? Task.FromResult(new EngineHello(EngineProtocol.Version, "connected")))
                     .WaitAsync(cancellationToken).ConfigureAwait(false);
