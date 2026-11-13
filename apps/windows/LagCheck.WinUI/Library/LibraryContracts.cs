@@ -38,6 +38,9 @@ public sealed record GameInfo(
     };
 }
 
+/// <summary>Print que o usuário tirou no jogo. Caminhos locais; a miniatura é opcional.</summary>
+public sealed record GameScreenshot(string Path, string? ThumbnailPath, long? CreatedEpochMs, int? Width, int? Height);
+
 /// <summary>
 /// Projeção da biblioteca emitida pelo host Kotlin. Esta camada não lê launchers,
 /// não grava LibraryStore e não calcula prioridade do Hero: isso preserva os dados
@@ -61,8 +64,12 @@ public sealed record LibraryGame(
     IReadOnlyList<string> Tags,
     string? Description,
     IReadOnlyList<string> AlsoIds,
-    GameInfo? Info = null)
+    GameInfo? Info = null,
+    IReadOnlyList<GameScreenshot>? Screenshots = null)
 {
+    /// <summary>Prints do próprio usuário (hoje só Steam); vazio quando o launcher não os expõe.</summary>
+    public IReadOnlyList<GameScreenshot> UserScreenshots => Screenshots ?? Array.Empty<GameScreenshot>();
+
     public long? RecentActivityEpochMs
     {
         get

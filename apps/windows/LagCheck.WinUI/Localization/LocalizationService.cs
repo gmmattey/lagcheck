@@ -411,6 +411,10 @@ public sealed class LocalizationService
         Add("Voltar à tela anterior", "Go back to previous screen", "Volver a la pantalla anterior");
         Add("ATIVIDADE RECENTE", "RECENT ACTIVITY", "ACTIVIDAD RECIENTE");
         Add("DIAS JOGADOS", "DAYS PLAYED", "DÍAS JUGADOS");
+        Add("CAPTURAS", "SCREENSHOTS", "CAPTURAS");
+        Add("Prints que você tirou neste jogo na Steam.", "Screenshots you took in this game on Steam.", "Capturas que tomaste en este juego en Steam.");
+        Add("Abrir no visualizador", "Open in viewer", "Abrir en el visor");
+        Add("Fechar", "Close", "Cerrar");
         Add("Heatmap de atividade ativo localmente neste PC.", "Activity heatmap stored locally on this PC.", "Mapa de calor de actividad almacenado localmente en esta PC.");
         Add("Menos", "Less", "Menos");
         Add("Mais", "More", "Más");

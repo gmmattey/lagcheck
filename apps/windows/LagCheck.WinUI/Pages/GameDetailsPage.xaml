@@ -98,6 +98,16 @@
                             <TextBlock x:Name="HeatmapNote" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
+
+                    <Border x:Name="ShotsCard" Style="{StaticResource PremiumCardStyle}" Padding="22,18" Visibility="Collapsed">
+                        <StackPanel Spacing="12">
+                            <TextBlock x:Name="ShotsEyebrow" Text="CAPTURAS" Style="{StaticResource TechLabelStyle}"/>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
+                                <StackPanel x:Name="ShotsPanel" Orientation="Horizontal" Spacing="12" Padding="0,0,0,8"/>
+                            </ScrollViewer>
+                            <TextBlock x:Name="ShotsNote" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Spacing="20">

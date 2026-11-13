@@ -52,6 +52,7 @@ public sealed partial class GameDetailsPage : Page
         HistEyebrow.Text = Strings.Tr("HISTÓRICO DE MEDIÇÕES");
         HistStatusText.Text = Strings.Tr("Sem medições");
         MeasureNowBtn.Content = Strings.Tr("Medir agora");
+        ShotsEyebrow.Text = Strings.Tr("CAPTURAS");
         HeatmapNote.Text = Strings.Tr("Mostra a última atividade registrada pelo launcher neste PC.");
     }
 
@@ -134,7 +135,66 @@ public sealed partial class GameDetailsPage : Page
         }
         BindFacts(game);
         BuildHeatmap(game);
+        BindScreenshots(game);
         BindHistory();
+    }
+
+    // ------------------------------------------------------------------ capturas
+
+    private void BindScreenshots(LibraryGame game)
+    {
+        ShotsPanel.Children.Clear();
+        // Só arquivos que ainda existem: print movido ou apagado some da lista em vez de virar quadro vazio.
+        var shots = game.UserScreenshots.Where(shot => Artwork.FirstExisting(shot.Path) is not null).ToList();
+        ShotsCard.Visibility = shots.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (shots.Count == 0) return;
+
+        ShotsEyebrow.Text = $"{Strings.Tr("CAPTURAS")} · {shots.Count}";
+        ShotsNote.Text = Strings.Tr("Prints que você tirou neste jogo na Steam.");
+        foreach (var shot in shots)
+        {
+            var image = new Image
+            {
+                Stretch = Stretch.UniformToFill,
+                Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 480),
+            };
+            var button = new Button
+            {
+                Width = 240,
+                Height = 135,
+                Padding = new Thickness(0),
+                CornerRadius = new CornerRadius(10),
+                Content = image,
+                Tag = shot,
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, shot.CreatedEpochMs is { } at ? $"{Strings.Tr("CAPTURAS")} {FormatDate(at)}" : Strings.Tr("CAPTURAS"));
+            if (shot.CreatedEpochMs is { } created) ToolTipService.SetToolTip(button, FormatDate(created));
+            button.Click += Screenshot_Click;
+            ShotsPanel.Children.Add(button);
+        }
+    }
+
+    private async void Screenshot_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: GameScreenshot shot }) return;
+        var viewer = new Image { Stretch = Stretch.Uniform, MaxHeight = 560, Source = Artwork.Load(shot.Path, 1920) };
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Content = viewer,
+            PrimaryButtonText = Strings.Tr("Abrir no visualizador"),
+            CloseButtonText = Strings.Tr("Fechar"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+        try
+        {
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                await Windows.System.Launcher.LaunchFileAsync(await Windows.Storage.StorageFile.GetFileFromPathAsync(shot.Path));
+        }
+        catch
+        {
+            // Visualizar é complementar: falha ao abrir o arquivo não afeta a página.
+        }
     }
 
     private void BindFacts(LibraryGame game)

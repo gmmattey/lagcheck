@@ -505,7 +505,17 @@ private class LibraryBridge {
         put("isScanning", repository.isScanning)
         put("hasScanned", repository.hasScanned)
         repository.selectedGame?.id?.let { put("heroGameId", it); put("selectedGameId", it) }
-        put("games", buildJsonArray { repository.games.forEach { add(it.toJson(artwork[it.id], info[it.id])) } })
+        put("games", buildJsonArray { repository.games.forEach { add(it.toJson(artwork[it.id], info[it.id], screenshotsOf(it))) } })
+    }
+
+    // Só Steam por enquanto; o índice é lido uma vez e reaproveitado enquanto os arquivos da Steam não mudam.
+    private val steamScreenshots = com.lagcheck.desktop.library.scanner.SteamScreenshots(steamRoot = { steamRoot })
+    private val steamRoot: java.io.File? by lazy { runCatching { com.lagcheck.desktop.library.scanner.SteamScanner().detectSteamRoot() }.getOrNull() }
+
+    private fun screenshotsOf(game: PcGame): List<com.lagcheck.desktop.library.scanner.GameScreenshot> {
+        if (game.platform != com.lagcheck.desktop.library.model.GamePlatform.STEAM) return emptyList()
+        val appId = game.id.removePrefix("steam_").takeIf { it.isNotEmpty() && it.all(Char::isDigit) } ?: return emptyList()
+        return runCatching { steamScreenshots.forApp(appId) }.getOrDefault(emptyList())
     }
 
     private fun find(id: String): PcGame? = repository.games.firstOrNull { it.id == id || id in it.alsoIds }
@@ -571,7 +581,7 @@ private sealed interface ArtworkAction {
 }
 private data class ArtworkPaths(val cover: String?, val hero: String?)
 
-private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.library.model.GameInfo? = null): JsonObject = buildJsonObject {
+private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.library.model.GameInfo? = null, screenshots: List<com.lagcheck.desktop.library.scanner.GameScreenshot> = emptyList()): JsonObject = buildJsonObject {
     put("id", id)
     put("title", title)
     put("platform", platform.name.lowercase())
@@ -600,6 +610,17 @@ private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.lib
         })
     }
     put("alsoIds", buildJsonArray { alsoIds.forEach { add(JsonPrimitive(it)) } })
+    if (screenshots.isNotEmpty()) put("screenshots", buildJsonArray {
+        screenshots.forEach { shot ->
+            add(buildJsonObject {
+                put("path", shot.path)
+                shot.thumbnailPath?.let { put("thumbnailPath", it) }
+                shot.createdEpochMs?.let { put("createdEpochMs", it) }
+                shot.width?.let { put("width", it) }
+                shot.height?.let { put("height", it) }
+            })
+        }
+    })
 }
 
 /** O identificador da loja nunca entra no motor: só o catálogo homologado pode contextualizar o Check. */

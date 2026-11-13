@@ -50,8 +50,19 @@ public static class LibraryWireParser
             ReadArray(game, "tags").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray(),
             ReadString(game, "description"),
             ReadArray(game, "alsoIds").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray(),
-            ParseInfo(game));
+            ParseInfo(game),
+            ParseScreenshots(game));
     }
+
+    private static GameScreenshot[] ParseScreenshots(JsonElement game) =>
+        ReadArray(game, "screenshots")
+            .Where(item => item.ValueKind == JsonValueKind.Object)
+            .Select(item => (Path: ReadLocalPath(item, "path"), Item: item))
+            .Where(entry => entry.Path is not null)
+            .Select(entry => new GameScreenshot(
+                entry.Path!, ReadLocalPath(entry.Item, "thumbnailPath"), ReadInt64(entry.Item, "createdEpochMs"),
+                (int?)ReadInt64(entry.Item, "width"), (int?)ReadInt64(entry.Item, "height")))
+            .ToArray();
 
     private static GameInfo? ParseInfo(JsonElement game)
     {
