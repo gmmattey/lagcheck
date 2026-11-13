@@ -221,6 +221,22 @@ object UiStrings {
         t("INCONCLUSIVO", "INCONCLUSIVE", "INCONCLUSO")
         // endregion
 
+        // region Nova Home, Resultado e Atualização (Decisões 125-133)
+        t("POPULARES", "POPULAR", "POPULARES")
+        t("SEUS FAVORITOS", "YOUR FAVORITES", "TUS FAVORITOS")
+        t("TESTAR AGORA", "TEST NOW", "PROBAR AHORA")
+        t("Buscar jogo...", "Search game...", "Buscar juego...")
+        t("NOVA VERSÃO DISPONÍVEL", "NEW VERSION AVAILABLE", "NUEVA VERSIÓN DISPONIBLE")
+        t("Uma nova versão está pronta para instalar.", "A new version is ready to install.", "Una nueva versión está lista para instalar.")
+        t("VER NA LOJA", "VIEW IN STORE", "VER EN LA TIENDA")
+        t("Deixar para depois", "Remind me later", "Dejar para después")
+        t("PRONTO PRA RANKED?", "READY FOR RANKED?", "¿LISTO PARA RANKED?")
+        t("PRONTO PARA RANKED", "READY FOR RANKED", "LISTO PARA RANKED")
+        t("EVITARIA RANKED AGORA", "WOULD AVOID RANKED NOW", "EVITARÍA RANKED AHORA")
+        t("CONDIÇÕES INSTÁVEIS", "UNSTABLE CONDITIONS", "CONDICIONES INESTABLES")
+        t("Bufferbloat", "Bufferbloat", "Bufferbloat")
+        // endregion
+
         for ((pt, en, es) in SCREEN_STRINGS) t(pt, en, es)
     }
 }
