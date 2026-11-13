@@ -16,3 +16,9 @@ As fontes oficiais (Barlow, Barlow Semi Condensed e Chakra Petch) e a wordmark/�
 ## Verificação local
 
 O projeto fixa `Microsoft.WindowsAppSDK` em `1.7.250606001` e segmenta `net10.0-windows10.0.19041.0`. A restauração/build deve ocorrer somente no ambiente Windows autorizado, junto com o host Kotlin e seus testes.
+
+## Paridade com o protótipo v2
+
+A interface segue `LagCheck Windows v2.dc.html` (tokens em `Styles/Theme.xaml`, ícones SVG em `Controls/Glyphs.cs`, mapa em `Controls/RouteMapView.cs`). Pontos que **não** são desenhados porque o motor não os entrega, em respeito à regra "sem mock": upload e streaming, NAT, ranking de servidores e recomendações da tela de resultado; a faixa de métricas ao vivo mostra Resposta, Jitter e Sob carga, e o resultado soma Perda. O mapa só marca a origem quando a localização aproximada está autorizada nos Ajustes.
+
+Armadilhas do build: `FlowLayout` em XAML derruba o `MarkupCompilePass1` sem mensagem (use `Controls/WrapPanel`), e um `Geometry` não pode ser compartilhado entre dois `Path`.

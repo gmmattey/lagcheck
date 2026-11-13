@@ -14,6 +14,7 @@ public sealed partial class MainWindow : Window
 
         // Integração total da barra de título à janela do aplicativo (ExtendsContentIntoTitleBar)
         ExtendsContentIntoTitleBar = true;
+        SetTitleBar(ShellRoot.TitleBarDragRegion);
 
         if (AppWindowTitleBar.IsCustomizationSupported())
         {

@@ -56,35 +56,30 @@ public sealed partial class SettingsPage : Page
 
     private void LocalizeUI()
     {
-        HeaderEyebrow.Text = Strings.Tr("SISTEMA · CONFIGURAÇÕES");
-        HeaderTitle.Text = Strings.Tr("Ajustes do Launcher");
-        HeaderSubtitle.Text = Strings.Tr("Controle o comportamento da interface e diagnósticos de rede neste PC.");
-
-        LanguageCardTitle.Text = Strings.Tr("Idioma do aplicativo");
+        HeaderTitle.Text = Strings.Tr("Ajustes");
         LanguageTitle.Text = Strings.Tr("Idioma do aplicativo");
-        LanguageDesc.Text = Strings.Tr("Escolha o idioma da interface. Por padrão, segue as configurações do Windows.");
         LangItemSystem.Content = Strings.Tr("Sistema (Padrão)");
 
         VisualCardTitle.Text = Strings.Tr("Interface e Visual");
         ReduceMotionTitle.Text = Strings.Tr("Reduzir movimento");
-        ReduceMotionDesc.Text = Strings.Tr("Desativa animações e transições visuais para resposta imediata.");
         ArtworkTitle.Text = Strings.Tr("Baixar imagens dos jogos");
-        ArtworkDesc.Text = Strings.Tr("Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras.");
+        // O v2 mostra só o título; a explicação completa fica no tooltip.
+        ToolTipService.SetToolTip(ReduceMotionTitle, Strings.Tr("Desativa animações e transições visuais para resposta imediata."));
+        ToolTipService.SetToolTip(ArtworkTitle, Strings.Tr("Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras."));
 
         NetworkCardTitle.Text = Strings.Tr("Privacidade e Rede");
         LocationTitle.Text = Strings.Tr("Localização aproximada");
-        LocationDesc.Text = Strings.Tr("Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS.");
+        ToolTipService.SetToolTip(LocationTitle, Strings.Tr("Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS."));
         AnalyticsTitle.Text = Strings.Tr("Enviar estatísticas anônimas");
-        AnalyticsDesc.Text = Strings.Tr("Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal.");
+        ToolTipService.SetToolTip(AnalyticsTitle, Strings.Tr("Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal."));
         RenewAnalyticsIdButton.Content = Strings.Tr("Gerar novo ID local");
 
         UpdatesCardTitle.Text = Strings.Tr("Atualizações");
         AutoUpdatesTitle.Text = Strings.Tr("Verificar automaticamente");
-        AutoUpdatesDesc.Text = Strings.Tr("Consulta periodicamente por novas versões no canal oficial do GitHub.");
+        ToolTipService.SetToolTip(AutoUpdatesTitle, Strings.Tr("Consulta periodicamente por novas versões no canal oficial do GitHub."));
         CheckUpdatesButton.Content = Strings.Tr("Verificar agora");
 
         AboutCardTitle.Text = Strings.Tr("Sobre o LagCheck");
-        AboutDesc.Text = Strings.Tr("LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios.");
         AboutVersion.Text = Strings.Tr("Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial");
     }
 
@@ -94,11 +89,10 @@ public sealed partial class SettingsPage : Page
         try
         {
             Apply(await _bridge.GetAsync());
-            ConnectionStatus.Text = Strings.Tr("Ajustes locais conectados.");
         }
         catch
         {
-            ConnectionStatus.Text = Strings.Tr("Ajustes indisponíveis: o host local não respondeu.");
+            UpdateStatus.Text = Strings.Tr("Ajustes indisponíveis: o host local não respondeu.");
         }
         await RefreshUpdateStatusAsync(checkNow: false);
     }
@@ -122,12 +116,12 @@ public sealed partial class SettingsPage : Page
                 _ => current,
             };
             Apply(await _bridge.SetAsync(next));
-            ConnectionStatus.Text = Strings.Tr("Ajustes salvos neste PC.");
+            ShellChrome.Shell?.ShowToast(Strings.Tr("Ajustes salvos neste PC."));
         }
         catch
         {
             Apply(_preferences);
-            ConnectionStatus.Text = Strings.Tr("Não foi possível salvar os ajustes. Nada foi alterado.");
+            ShellChrome.Shell?.ShowToast(Strings.Tr("Não foi possível salvar os ajustes. Nada foi alterado."));
         }
     }
 
@@ -140,6 +134,7 @@ public sealed partial class SettingsPage : Page
         ApproximateLocationSwitch.IsOn = preferences.ApproximateLocationEnabled;
         AnalyticsSwitch.IsOn = preferences.AnalyticsEnabled;
         AutomaticUpdatesSwitch.IsOn = preferences.AutomaticUpdates;
+        LagCheck.WinUI.Controls.Motion.Reduced = preferences.ReduceMotion;
         _loading = false;
         SetEnabled(true);
     }

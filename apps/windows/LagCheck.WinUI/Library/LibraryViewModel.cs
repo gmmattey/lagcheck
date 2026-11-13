@@ -111,6 +111,8 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
     public LibraryGame? HeroGame { get => _heroGame; private set => Set(ref _heroGame, value); }
     public LibraryGame? SelectedGame { get => _selectedGame; private set => Set(ref _selectedGame, value); }
     public string? Notice { get => _notice; private set => Set(ref _notice, value); }
+    /// <summary>Resultado da última operação pedida ao host (lançar, favoritar, atualizar arte...).</summary>
+    public bool LastOperationSucceeded { get; private set; } = true;
     public bool IsScanning { get => _isScanning; private set => Set(ref _isScanning, value); }
     public bool HasScanned { get => _hasScanned; private set => Set(ref _hasScanned, value); }
     public bool HasGames => _games.Count > 0;
@@ -129,7 +131,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
             if (!HasScanned && !IsScanning) await RefreshAsync();
             else if (IsScanning) await WaitForScanCompletionAsync();
         }
-        catch (Exception) { Notice = Strings.Tr("Não foi possível ler a biblioteca local agora."); }
+        catch (Exception) { LastOperationSucceeded = false; Notice = Strings.Tr("Não foi possível ler a biblioteca local agora."); }
     }
 
     private async Task RefreshAsync()
@@ -141,7 +143,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
             ApplyResult(await _bridge.RescanAsync());
             if (IsScanning) await WaitForScanCompletionAsync();
         }
-        catch (Exception) { Notice = "Não foi possível procurar os jogos agora."; }
+        catch (Exception) { LastOperationSucceeded = false; Notice = "Não foi possível procurar os jogos agora."; }
     }
 
     private async Task WaitForScanCompletionAsync()
@@ -170,21 +172,21 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
     {
         if (parameter is not LibraryGame game) return;
         try { ApplyResult(await _bridge.SelectAsync(game.Id)); }
-        catch (Exception) { Notice = "Não foi possível selecionar esse jogo."; }
+        catch (Exception) { LastOperationSucceeded = false; Notice = "Não foi possível selecionar esse jogo."; }
     }
 
     private async Task ToggleFavoriteAsync(object? parameter)
     {
         if (parameter is not LibraryGame game) return;
         try { ApplyResult(await _bridge.SetFavoriteAsync(game.Id, !game.IsFavorite)); }
-        catch (Exception) { Notice = "Não foi possível atualizar os favoritos."; }
+        catch (Exception) { LastOperationSucceeded = false; Notice = "Não foi possível atualizar os favoritos."; }
     }
 
-    private async Task LaunchAsync(object? parameter)
+    public async Task LaunchAsync(object? parameter)
     {
         if (parameter is not LibraryGame game || !game.IsInstalled || !game.IsLaunchable) return;
         try { ApplyResult(await _bridge.LaunchAsync(game.Id)); }
-        catch (Exception) { Notice = "Não foi possível pedir a abertura do jogo."; }
+        catch (Exception) { LastOperationSucceeded = false; Notice = "Não foi possível pedir a abertura do jogo."; }
     }
 
     private Task TestConnectionAsync(object? parameter)
@@ -206,11 +208,11 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    private async Task RefreshArtworkAsync(object? parameter)
+    public async Task RefreshArtworkAsync(object? parameter)
     {
         if (parameter is not LibraryGame game || !game.IsInstalled) return;
         try { ApplyResult(await _bridge.RefreshArtworkAsync(game.Id)); }
-        catch (Exception) { Notice = "Não foi possível atualizar a imagem agora."; }
+        catch (Exception) { LastOperationSucceeded = false; Notice = "Não foi possível atualizar a imagem agora."; }
     }
 
     /// <summary>Chamado pela viewport da Page, nunca por todos os jogos conhecidos.</summary>
@@ -230,6 +232,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
 
     private void ApplyResult(LibraryOperationResult result)
     {
+        LastOperationSucceeded = result.Succeeded;
         Notice = result.Message;
         if (result.Snapshot is not null) ApplySnapshot(result.Snapshot);
     }

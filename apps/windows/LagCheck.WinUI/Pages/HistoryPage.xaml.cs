@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using LagCheck.WinUI.Controls;
+using LagCheck.WinUI.Diagnostic;
 using LagCheck.WinUI.History;
 using LagCheck.WinUI.Localization;
 using Microsoft.UI.Xaml;
@@ -8,9 +11,13 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace LagCheck.WinUI.Pages;
 
+/// <summary>Linha já formatada do histórico (veredito traduzido em frase curta, região nomeada).</summary>
+public sealed record HistoryRow(string Verdict, string Region, string Ping, string Jitter, string Loss, string Time);
+
 public sealed partial class HistoryPage : Page
 {
     private readonly SessionHistoryStore _history = SessionHistoryServices.Store;
+    private Dictionary<string, string> _gameNames = new(StringComparer.OrdinalIgnoreCase);
 
     public HistoryPage()
     {
@@ -19,6 +26,7 @@ public sealed partial class HistoryPage : Page
         _history.Entries.CollectionChanged += Entries_CollectionChanged;
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
         UpdateVisibleEntries();
+        Loaded += async (_, _) => await LoadGameNamesAsync();
         Unloaded += (_, _) =>
         {
             _history.Entries.CollectionChanged -= Entries_CollectionChanged;
@@ -34,24 +42,51 @@ public sealed partial class HistoryPage : Page
 
     private void LocalizeUI()
     {
-        EyebrowText.Text = Strings.Tr("REGISTRO LOCAL");
         TitleText.Text = Strings.Tr("Histórico de Sessões");
-        SubtitleText.Text = Strings.Tr("Resultados concluídos ficam guardados apenas neste PC.");
         SearchBox.PlaceholderText = Strings.Tr("Buscar por região ou veredito");
         EmptyTitle.Text = Strings.Tr("Sem testes nesta sessão");
-        EmptyDesc.Text = Strings.Tr("Quando uma medição terminar pelo motor compartilhado, o resultado real aparece aqui.");
         NoResults.Text = Strings.Tr("Nenhuma medição corresponde à busca.");
+    }
+
+    /// <summary>Nomes dos jogos do catálogo do motor, para dar contexto às medições (sem inventar nada).</summary>
+    private async System.Threading.Tasks.Task LoadGameNamesAsync()
+    {
+        try
+        {
+            var catalog = await WinUiEngineComposition.Client.GetCatalogSnapshotAsync();
+            _gameNames = catalog.ToDictionary(game => game.Id, game => game.Name, StringComparer.OrdinalIgnoreCase);
+            UpdateVisibleEntries();
+        }
+        catch
+        {
+            // Sem catálogo, as linhas continuam corretas, só sem o nome do jogo.
+        }
     }
 
     private void Entries_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => DispatcherQueue.TryEnqueue(UpdateVisibleEntries);
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => UpdateVisibleEntries();
+
+    private HistoryRow ToRow(SessionHistoryEntry entry)
+    {
+        var tone = Verdicts.ToneOf(entry.Verdict);
+        var game = entry.GameId is { } id && _gameNames.TryGetValue(id, out var name) ? name : null;
+        var verdict = Verdicts.Headline(tone, game is not null);
+        var region = RegionCatalog.Label(entry.RegionId);
+        if (string.IsNullOrEmpty(region)) region = Strings.Tr("REGIÃO NÃO INFORMADA");
+        if (game is not null) region += " · " + game;
+        var time = entry.CapturedAt.ToLocalTime().Date == DateTime.Today ? entry.TimeLabel : entry.CapturedAt.ToLocalTime().ToString("d MMM");
+        return new HistoryRow(verdict, region, entry.PingLabel, entry.JitterLabel, entry.LossLabel, time);
+    }
+
     private void UpdateVisibleEntries()
     {
         var query = SearchBox?.Text?.Trim() ?? string.Empty;
-        var items = _history.Entries.Where(entry => string.IsNullOrEmpty(query) || entry.RegionLabel.Contains(query, StringComparison.OrdinalIgnoreCase) || entry.Verdict.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
-        HistoryList.ItemsSource = items;
-        HistoryList.Visibility = items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var rows = _history.Entries.Select(ToRow)
+            .Where(row => string.IsNullOrEmpty(query) || row.Region.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Verdict.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        HistoryList.ItemsSource = rows;
+        HistoryScroll.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyState.Visibility = _history.Entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        NoResults.Visibility = _history.Entries.Count > 0 && items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        NoResults.Visibility = _history.Entries.Count > 0 && rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 }

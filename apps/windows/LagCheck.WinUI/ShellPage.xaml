@@ -1,173 +1,147 @@
 <Page x:Class="LagCheck.WinUI.ShellPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ctl="using:LagCheck.WinUI.Controls"
       xmlns:automation="using:Microsoft.UI.Xaml.Automation">
-  <Grid Background="{StaticResource DeepBrush}">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition x:Name="SidebarColumn" Width="220"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
-    
-    <!-- Sidebar Retrátil de Navegação (LagCheck Windows v2) -->
-    <Grid Grid.Column="0" Background="{StaticResource StageBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-      </Grid.RowDefinitions>
-      
-      <!-- Cabeçalho Expandido (220px) -->
-      <Grid x:Name="ExpandedHeader" Padding="16,16,12,12">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        
-        <StackPanel VerticalAlignment="Center">
-          <Image Source="ms-appx:///Assets/wordmark-primary.svg" Height="18" HorizontalAlignment="Left" automation:AutomationProperties.Name="LagCheck" />
-          <TextBlock Text="GAME LAUNCHER" Style="{StaticResource EyebrowTextStyle}" Margin="0,4,0,0" />
-        </StackPanel>
+  <Grid x:Name="RootGrid" Background="{StaticResource DeepBrush}">
 
-        <Button x:Name="SidebarCollapseButton" Grid.Column="1" Style="{StaticResource CircleIconButtonStyle}" Width="32" Height="32" Click="SidebarToggle_Click" ToolTipService.ToolTip="Recolher barra lateral" automation:AutomationProperties.Name="Recolher barra lateral">
-          <FontIcon Glyph="&#xE76B;" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-        </Button>
+    <!-- Camada de arte atrás de toda a janela (Início e resultado de um jogo): cobre também a sidebar, como no v2 -->
+    <Grid x:Name="BackdropHost" Visibility="Collapsed" Background="#0B0D10" IsHitTestVisible="False">
+      <Grid x:Name="BackdropSlides" HorizontalAlignment="Left">
+        <Grid.RenderTransform>
+          <CompositeTransform x:Name="BackdropShift"/>
+        </Grid.RenderTransform>
       </Grid>
-
-      <!-- Cabeçalho Colapsado (64px) -->
-      <StackPanel x:Name="CollapsedHeader" HorizontalAlignment="Center" Padding="0,16,0,12" Spacing="10" Visibility="Collapsed">
-        <Image Source="ms-appx:///Assets/lagcheck-mark.svg" Width="22" Height="16" HorizontalAlignment="Center" automation:AutomationProperties.Name="LagCheck" />
-        <Button x:Name="SidebarExpandButton" Style="{StaticResource CircleIconButtonStyle}" Width="34" Height="34" Click="SidebarToggle_Click" ToolTipService.ToolTip="Expandir barra lateral" automation:AutomationProperties.Name="Expandir barra lateral">
-          <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
-        </Button>
-      </StackPanel>
-      
-      <!-- Destinos e Ações da Sidebar -->
-      <StackPanel x:Name="NavItemsPanel" Grid.Row="1" Padding="12,8,12,0" Spacing="4">
-        <!-- Botão Busca Rápida -->
-        <Button x:Name="QuickSearchButton" Style="{StaticResource NavButtonStyle}" Click="QuickSearch_Click" ToolTipService.ToolTip="Buscar jogo (Ctrl+F)" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE721;" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="SearchLabel" Grid.Column="1" Text="Buscar jogo..." Foreground="{StaticResource TextTertiaryBrush}" FontWeight="Normal" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-
-        <MenuFlyoutSeparator x:Name="SearchSeparator" Margin="4,4" Background="{StaticResource LineBrush}" />
-
-        <!-- 1. Início (Home) -->
-        <Button x:Name="HomeButton" Style="{StaticResource NavButtonStyle}" Click="Home_Click" ToolTipService.ToolTip="Início" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE80F;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="HomeLabel" Grid.Column="1" Text="Início" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-
-        <!-- 2. Biblioteca -->
-        <Button x:Name="LibraryButton" Style="{StaticResource NavButtonStyle}" Click="Library_Click" ToolTipService.ToolTip="Biblioteca de jogos instalados" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE8A9;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="LibraryLabel" Grid.Column="1" Text="Biblioteca" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-
-        <!-- 3. Conexão -->
-        <Button x:Name="GeneralCheckButton" Style="{StaticResource NavButtonStyle}" Click="GeneralCheck_Click" ToolTipService.ToolTip="Conexão" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE774;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="GeneralCheckLabel" Grid.Column="1" Text="Conexão" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-
-        <!-- 4. Histórico -->
-        <Button x:Name="HistoryButton" Style="{StaticResource NavButtonStyle}" Click="History_Click" ToolTipService.ToolTip="Histórico de conexões" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE81C;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="HistoryLabel" Grid.Column="1" Text="Histórico" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-
-        <!-- 5. Ajustes -->
-        <Button x:Name="SettingsButton" Style="{StaticResource NavButtonStyle}" Click="Settings_Click" ToolTipService.ToolTip="Ajustes do launcher" HorizontalAlignment="Stretch">
-          <Grid Height="44" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="40"/>
-              <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE713;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="SettingsLabel" Grid.Column="1" Text="Ajustes" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="2,0,0,0"/>
-          </Grid>
-        </Button>
-      </StackPanel>
-      
-      <!-- Rodapé: Hardware de Rede e Versão -->
-      <Grid Grid.Row="2" Padding="16,14" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
-        <StackPanel x:Name="ExpandedFooter" Spacing="4">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Ellipse Width="8" Height="8" Fill="{StaticResource ReadyBrush}" VerticalAlignment="Center"/>
-            <TextBlock x:Name="ActiveNetworkLabel" Text="REDE ATIVA" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource ReadyBrush}"/>
-          </StackPanel>
-          <TextBlock Text="BUILD v0.1.0 · WINUI 3" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextTertiaryBrush}"/>
-        </StackPanel>
-
-        <Ellipse x:Name="CollapsedFooterDot" Width="9" Height="9" Fill="{StaticResource ReadyBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" ToolTipService.ToolTip="Rede ativa · Conectado"/>
-      </Grid>
+      <Rectangle x:Name="BackdropHeroSide">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#F00B0D12" Offset="0"/>
+            <GradientStop Color="#9E0B0D12" Offset="0.42"/>
+            <GradientStop Color="#1F0B0D12" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle x:Name="BackdropHeroDepth">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#800B0D12" Offset="0"/>
+            <GradientStop Color="#000B0D12" Offset="0.22"/>
+            <GradientStop Color="#000B0D12" Offset="0.5"/>
+            <GradientStop Color="#EB0B0D12" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle x:Name="BackdropVeil" Visibility="Collapsed">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#E60B0D10" Offset="0"/>
+            <GradientStop Color="#F50B0D10" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
     </Grid>
-    
-    <!-- Palco Principal -->
-    <Grid Grid.Column="1">
+
+    <!-- Palco: o Frame ocupa a janela à direita da faixa reservada da sidebar -->
+    <Frame x:Name="ContentFrame" Margin="64,56,0,0"/>
+
+    <!-- Região arrastável da barra de título (os botões nativos ficam por cima, à direita) -->
+    <Border x:Name="DragRegion" VerticalAlignment="Top" Height="32" Background="Transparent" Margin="64,0,0,0"/>
+
+    <!-- Toast flutuante -->
+    <Border x:Name="ToastBorder" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,24"
+            Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineStrongBrush}"
+            BorderThickness="1" CornerRadius="12" Padding="18,12" Visibility="Collapsed">
+      <TextBlock x:Name="ToastText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"/>
+    </Border>
+
+    <!-- Sidebar retrátil: ocupa 64px de layout e se expande SOBRE o conteúdo ao passar o mouse -->
+    <Grid x:Name="Sidebar" HorizontalAlignment="Left" Width="64" Background="#0D0F14"
+          BorderBrush="#0FFFFFFF" BorderThickness="0,0,1,0"
+          PointerEntered="Sidebar_PointerEntered" PointerExited="Sidebar_PointerExited">
       <Grid.RowDefinitions>
-        <RowDefinition Height="56"/>
+        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      
-      <!-- Barra Superior / Top Bar Integrada com Espaço para os Botões Nativos -->
-      <Grid x:Name="TopBarGrid" Background="{StaticResource DeepBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="36,0,140,0">
+
+      <!-- Cabeçalho expandido -->
+      <Grid x:Name="ExpandedHeader" Padding="16,16,12,12" Visibility="Collapsed">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        
-        <!-- Contexto do Launcher -->
-        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
-          <TextBlock Text="LAGCHECK" FontFamily="{StaticResource HeadingFont}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource PurpleLightBrush}"/>
-          <TextBlock Text="·" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
-          <TextBlock x:Name="RouteText" Text="Início" FontFamily="{StaticResource BodyFont}" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+        <StackPanel VerticalAlignment="Center">
+          <Image Source="ms-appx:///Assets/wordmark-primary.svg" Height="18" HorizontalAlignment="Left" automation:AutomationProperties.Name="LagCheck"/>
+          <TextBlock Text="GAME LAUNCHER" Style="{StaticResource EyebrowTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
-
-        <!-- Indicador de Interface Ativa -->
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <TextBlock Text="PC GAMER" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextTertiaryBrush}"/>
-        </StackPanel>
+        <Button x:Name="SidebarCollapseButton" Grid.Column="1" Style="{StaticResource CircleIconButtonStyle}" Width="32" Height="32" CornerRadius="16"
+                Background="#252A36" Click="SidebarToggle_Click" automation:AutomationProperties.Name="Recolher barra lateral">
+          <ctl:SvgIcon Data="M15 6l-6 6 6 6" Size="11" StrokeWidth="2.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </Button>
       </Grid>
-      
-      <!-- Conteúdo da Página -->
-      <Frame x:Name="ContentFrame" Grid.Row="1" />
 
-      <!-- Toast Flutuante de Feedback Rápido -->
-      <Border x:Name="ToastBorder" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-              Margin="0,0,28,24" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineStrongBrush}"
-              BorderThickness="1" CornerRadius="12" Padding="18,12" Visibility="Collapsed">
-        <TextBlock x:Name="ToastText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" />
-      </Border>
+      <!-- Cabeçalho recolhido -->
+      <StackPanel x:Name="CollapsedHeader" HorizontalAlignment="Center" Padding="0,16,0,12" Spacing="10">
+        <Image Source="ms-appx:///Assets/lagcheck-mark.svg" Width="22" Height="16" HorizontalAlignment="Center" automation:AutomationProperties.Name="LagCheck"/>
+        <Button x:Name="SidebarExpandButton" Style="{StaticResource CircleIconButtonStyle}" Width="34" Height="34" CornerRadius="17"
+                Background="#252A36" Click="SidebarToggle_Click" automation:AutomationProperties.Name="Expandir barra lateral">
+          <ctl:SvgIcon Data="M9 6l6 6-6 6" Size="11" StrokeWidth="2.5" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </Button>
+      </StackPanel>
+
+      <StackPanel x:Name="NavItemsPanel" Grid.Row="1" Padding="0,8,0,0" Spacing="4" HorizontalAlignment="Center" Width="64">
+        <!-- Busca rápida -->
+        <Button x:Name="QuickSearchButton" Style="{StaticResource SearchNavButtonStyle}" Click="QuickSearch_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="40"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5" Size="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="SearchLabel" Grid.Column="1" Text="Buscar jogo..." Foreground="{StaticResource TextTertiaryBrush}" FontWeight="Normal" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+        <Border x:Name="SearchSeparator" Height="1" Background="#0DFFFFFF" Margin="16,4" Visibility="Collapsed"/>
+
+        <Button x:Name="HomeButton" Style="{StaticResource NavButtonStyle}" Click="Home_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M3 11l9-8 9 8v10h-6v-6H9v6H3z" Size="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="HomeLabel" Grid.Column="1" Text="Início" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Foreground, ElementName=HomeButton}" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+
+        <Button x:Name="LibraryButton" Style="{StaticResource NavButtonStyle}" Click="Library_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" Size="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="LibraryLabel" Grid.Column="1" Text="Biblioteca" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Foreground, ElementName=LibraryButton}" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+
+        <Button x:Name="GeneralCheckButton" Style="{StaticResource NavButtonStyle}" Click="GeneralCheck_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M4 20v-4M10 20v-8M16 20V8M22 20V4" Size="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="GeneralCheckLabel" Grid.Column="1" Text="Conexão" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Foreground, ElementName=GeneralCheckButton}" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+
+        <Button x:Name="HistoryButton" Style="{StaticResource NavButtonStyle}" Click="History_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7M3 4v5h5" Size="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="HistoryLabel" Grid.Column="1" Text="Histórico" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Foreground, ElementName=HistoryButton}" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+
+        <Button x:Name="SettingsButton" Style="{StaticResource NavButtonStyle}" Click="Settings_Click" Width="44" HorizontalAlignment="Center">
+          <Grid Height="44">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="40"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ctl:SvgIcon Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" Size="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="SettingsLabel" Grid.Column="1" Text="Ajustes" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Foreground, ElementName=SettingsButton}" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
+          </Grid>
+        </Button>
+      </StackPanel>
     </Grid>
   </Grid>
 </Page>

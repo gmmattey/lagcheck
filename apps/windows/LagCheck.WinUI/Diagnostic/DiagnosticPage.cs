@@ -1,376 +1,340 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
+using LagCheck.WinUI.Controls;
+using LagCheck.WinUI.Library;
 using LagCheck.WinUI.Localization;
+using Ellipse = Microsoft.UI.Xaml.Shapes.Ellipse;
 
 namespace LagCheck.WinUI.Diagnostic;
 
 /// <summary>
-/// Tela canônica de Conexão do LagCheck para Windows.
-/// Alinhada 1:1 com LagCheck Windows v2:
-/// - Mapa de rota permanente (Idle, Running e Done) com sondas e grade de continentes.
-/// - Telemetria ao vivo em Chakra Petch e etapas tabulares.
-/// - Resultado com coluna de Veredito + Rota evidenciada no mapa lateral.
-/// - Seções de Voz, Streaming ao vivo e NAT.
-/// - Motor determinístico de medição HTTPS contra endpoints AWS/Cloudflare reais (sem mock).
+/// Conexão (v2): ociosa com mapa 2:1, medindo com número ao vivo + etapas + faixa de métricas,
+/// e resultado em duas colunas com a evidência de rota. Toda medida vem do motor compartilhado;
+/// o que o motor não entrega (upload, NAT, ranking de servidores) não é desenhado nem inventado.
 /// </summary>
 public sealed class DiagnosticPage : Page
 {
-    private static readonly SolidColorBrush DeepBrush = Brush(0x0B, 0x0D, 0x12);
-    private static readonly SolidColorBrush SurfaceBrush = Brush(0x15, 0x18, 0x22);
-    private static readonly SolidColorBrush PanelBrush = Brush(0x1E, 0x24, 0x32);
-    private static readonly SolidColorBrush PurpleBrush = Brush(0x7C, 0x3A, 0xED);
-    private static readonly SolidColorBrush PurpleLightBrush = Brush(0xA7, 0x8B, 0xFA);
-    private static readonly SolidColorBrush TextPrimaryBrush = Brush(0xF5, 0xF7, 0xFC);
-    private static readonly SolidColorBrush TextSecondaryBrush = Brush(0x9A, 0xA3, 0xB5);
-    private static readonly SolidColorBrush TextTertiaryBrush = Brush(0x68, 0x72, 0x85);
-    private static readonly SolidColorBrush ReadyBrush = Brush(0x22, 0xC5, 0x5E);
-    private static readonly SolidColorBrush CautionBrush = Brush(0xF5, 0x9E, 0x0B);
-    private static readonly SolidColorBrush CoralBrush = Brush(0xFF, 0x5A, 0x36);
-    private static readonly SolidColorBrush LineBrush = Brush(0x1F, 0x26, 0x36);
+    private static readonly Color Primary = Color.FromArgb(255, 0xF5, 0xF7, 0xFC);
+    private static readonly Color Secondary = Color.FromArgb(255, 0x9A, 0xA3, 0xB5);
+    private static readonly Color Tertiary = Color.FromArgb(255, 0x68, 0x72, 0x85);
+    private static readonly Color Tech = Color.FromArgb(255, 0x60, 0x68, 0x73);
+    private static readonly Color Dim = Color.FromArgb(255, 0x8E, 0x8E, 0x93);
+    private static readonly Color Purple = Color.FromArgb(255, 0x7C, 0x3A, 0xED);
+    private static readonly Color PurpleLight = Color.FromArgb(255, 0xA7, 0x8B, 0xFA);
+    private static readonly Color Line = Color.FromArgb(0x14, 255, 255, 255);
 
-    public sealed record MapRegion(string Id, string Name, double Latitude, double Longitude);
-
-    public static readonly IReadOnlyList<MapRegion> KnownRegions =
-    [
-        new("sa-east-1", "São Paulo", -23.55, -46.63),
-        new("us-east-1", "Virgínia", 38.95, -77.45),
-        new("us-west-2", "Oregon", 45.52, -122.68),
-        new("eu-central-1", "Frankfurt", 50.11, 8.68),
-        new("eu-west-1", "Irlanda", 53.35, -6.26),
-        new("ap-northeast-1", "Tóquio", 35.68, 139.69),
-        new("ap-southeast-1", "Singapura", 1.35, 103.82)
-    ];
-
-    private static string GetRegionName(string? regionId)
+    private static readonly Color[] StageColors =
     {
-        if (string.IsNullOrWhiteSpace(regionId)) return Strings.Tr("Região de referência");
-        foreach (var r in KnownRegions)
-        {
-            if (string.Equals(r.Id, regionId, StringComparison.OrdinalIgnoreCase)) return r.Name;
-        }
-        return regionId;
-    }
+        Color.FromArgb(255, 0xBF, 0x5A, 0xF2), Color.FromArgb(255, 0x8B, 0x5C, 0xF6), Color.FromArgb(255, 0xF5, 0x9E, 0x0B), Color.FromArgb(255, 0xBF, 0x5A, 0xF2),
+    };
+
+    private static SolidColorBrush Brush(Color color) => new(color);
+    private static FontFamily Res(string key) => (FontFamily)Application.Current.Resources[key];
 
     private readonly DiagnosticEngineClient _client;
-    private readonly DispatcherTimer _animationTimer;
     private CancellationTokenSource? _measurementCts;
-
-    // Cabeçalho da página
-    private readonly TextBlock _title = Title(Strings.Tr("DIAGNÓSTICO DE CONEXÃO"));
-    private readonly Border _pillBorder = new()
-    {
-        Background = Brush(0x2C, 0x2C, 0x2E),
-        CornerRadius = new CornerRadius(14),
-        Padding = new Thickness(14, 6, 14, 6),
-        HorizontalAlignment = HorizontalAlignment.Center,
-        Visibility = Visibility.Collapsed
-    };
-    private readonly TextBlock _pillText = Label("", 13, Brush(0xEB, 0xEB, 0xF5));
-
-    // Controles durante a medição (Running)
-    private readonly ProgressBar _progressBar = new()
-    {
-        Minimum = 0,
-        Maximum = 1,
-        Value = 0,
-        Height = 2,
-        Foreground = PurpleBrush,
-        Background = LineBrush,
-        HorizontalAlignment = HorizontalAlignment.Stretch
-    };
-    private readonly TextBlock _liveMetric = MetricLarge("—");
-    private readonly TextBlock _phaseName = Label(Strings.Tr("CONECTANDO"), 13, PurpleLightBrush);
-    private readonly TextBlock _statusMessage = Body(Strings.Tr("Varrendo servidores mais próximos…"));
-    private readonly TextBlock _stepIndicator = Label(Strings.Tr("● CONEXÃO   ● LATÊNCIA   ● SOB CARGA   ● ANÁLISE"), 12, TextTertiaryBrush);
-    private readonly TextBlock _regionStatusLine = Label(Strings.Tr("Varrendo regiões mundiais…"), 12, TextTertiaryBrush);
-
-    // Métricas Instantâneas (Strip em execução)
-    private readonly TextBlock _livePingText = Metric("—");
-    private readonly TextBlock _liveJitterText = Metric("—");
-    private readonly TextBlock _liveDeltaText = Metric("—");
-    private readonly TextBlock _liveLossText = Metric("—");
-
-    // Métricas Finais do Resultado (Done)
-    private readonly TextBlock _resultContext = Label("", 11, TextSecondaryBrush);
-    private readonly TextBlock _verdictStatusWord = Label(Strings.Tr("Conexão boa"), 13, ReadyBrush);
-    private readonly TextBlock _verdictHeadline = Title(Strings.Tr("Pronto para jogar"));
-    private readonly TextBlock _resultPing = MetricLarge("—");
-    private readonly TextBlock _resultJitter = MetricLarge("—");
-    private readonly TextBlock _resultLoad = MetricLarge("—");
-    private readonly TextBlock _resultLoss = MetricLarge("—");
-    private readonly TextBlock _resultRouteInfo = Label("", 14, TextPrimaryBrush);
-
-    // Mapa de Rota Permanente
-    private readonly Canvas _mapCanvas = new()
-    {
-        Height = 320,
-        HorizontalAlignment = HorizontalAlignment.Stretch,
-        Background = DeepBrush
-    };
-
-    // Botões
-    private readonly Button _startBtn = new() { Content = Strings.Tr("Teste agora"), Height = 56, CornerRadius = new CornerRadius(14), Padding = new Thickness(44, 0, 44, 0), HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly Button _cancelBtn = new() { Content = Strings.Tr("Cancelar"), Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Center };
-    private readonly Button _measureAgainBtn = new() { Content = Strings.Tr("Testar novamente"), Height = 50, CornerRadius = new CornerRadius(14), Padding = new Thickness(28, 0, 28, 0), HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly Button _chooseOtherBtn = new() { Content = Strings.Tr("Escolher outro jogo"), Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent), Foreground = PurpleLightBrush, BorderThickness = new Thickness(0), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Left };
-
-    // Painéis de estado
-    private readonly StackPanel _idleControls = new() { Spacing = 16, HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly StackPanel _runningControls = new() { Spacing = 14, Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly StackPanel _doneControls = new() { Spacing = 24, Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly Border _mapHostBorder = new();
-
     private string? _gameId;
-    private string _gameTitle = Strings.Tr("sua conexão");
+    private string _gameTitle = string.Empty;
     private ApproximateLocation? _location;
-    private string? _selectedRegionId = "sa-east-1";
     private bool _running;
-    private double _animationTick;
+    private double _lastRestPing = double.NaN;
+
+    // Containers
+    private readonly StackPanel _flowPanel = new() { MaxWidth = 820, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly StackPanel _donePanel = new() { MaxWidth = 1100, HorizontalAlignment = HorizontalAlignment.Stretch, Visibility = Visibility.Collapsed };
+
+    // Fluxo (idle + running)
+    private readonly TextBlock _idleTitle = new() { FontFamily = Res("HeadingFont"), FontSize = 40, LineHeight = 42, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, TextWrapping = TextWrapping.Wrap };
+    private readonly Border _pill = new() { Background = Brush(Color.FromArgb(255, 0x2C, 0x2C, 0x2E)), CornerRadius = new CornerRadius(999), Padding = new Thickness(14, 6, 14, 6), HorizontalAlignment = HorizontalAlignment.Center, Visibility = Visibility.Collapsed };
+    private readonly TextBlock _pillText = new() { FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Brush(Color.FromArgb(255, 0xEB, 0xEB, 0xF5)) };
+    private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 16, 0, 0) };
+    private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(12) };
+    private readonly Button _startBtn = new();
+    private readonly StackPanel _idleControls = new() { Margin = new Thickness(0, 26, 0, 0) };
+    private readonly StackPanel _runningPanel = new() { Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly Border _progressFill = new() { Height = 2, Background = Brush(Purple), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
+    private readonly Grid _progressTrack = new() { Height = 2, Margin = new Thickness(0, 8, 0, 0), Background = Brush(Color.FromArgb(0x14, 255, 255, 255)) };
+    private readonly Run _liveValue = new() { Text = "—" };
+    private readonly Run _liveUnit = new() { Text = string.Empty };
+    private readonly TextBlock _phaseName = new() { FontSize = 13, FontWeight = FontWeights.SemiBold, CharacterSpacing = 40, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0) };
+    private readonly StackPanel _steps = new() { Orientation = Orientation.Horizontal, Spacing = 18, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 14, 0, 0) };
+    private readonly Grid _strip = new() { BorderBrush = Brush(Line), BorderThickness = new Thickness(0, 1, 0, 1), Margin = new Thickness(0, 16, 0, 0) };
+    private readonly TextBlock[] _stripValues = new TextBlock[3];
+    private readonly TextBlock[] _stripUnits = new TextBlock[3];
+    private readonly TextBlock _regionLine = new() { FontSize = 12, Foreground = Brush(Dim), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0), MinHeight = 18, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center };
+    private readonly Button _cancelBtn = new();
+
+    // Resultado
+    private readonly TextBlock _resContext = new();
+    private readonly StackPanel _resStatusRow = new() { Orientation = Orientation.Horizontal, Spacing = 8 };
+    private readonly TextBlock _resStatusWord = new() { FontSize = 13, Foreground = Brush(Secondary), VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _resHeadline = new();
+    private readonly Grid _resMetrics = new() { BorderBrush = Brush(Line), BorderThickness = new Thickness(0, 1, 0, 1), Margin = new Thickness(0, 24, 0, 0) };
+    private readonly TextBlock _resRouteName = new() { FontSize = 14, TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _resRouteMs = new() { FontFamily = Res("MetricFont"), FontSize = 14 };
+    private readonly RouteMapView _resultMap = new(animate: false) { CornerRadius = new CornerRadius(12) };
+    private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 12, 0, 0) };
+    private readonly Button _againBtn = new();
+    private readonly Button _chooseBtn = new();
+    private readonly TextBlock _evidenceLabel = new();
 
     public DiagnosticPage() : this(null, null, WinUiEngineComposition.Client) { }
 
     public DiagnosticPage(string? gameId, string? gameTitle, DiagnosticEngineClient? engine)
     {
         _gameId = gameId;
-        if (!string.IsNullOrWhiteSpace(gameTitle)) _gameTitle = gameTitle;
+        _gameTitle = gameTitle ?? string.Empty;
         _client = engine ?? WinUiEngineComposition.Client;
-
-        _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(33) };
-        _animationTimer.Tick += OnAnimationTick;
-
-        Background = DeepBrush;
+        Background = Brush(Color.FromArgb(0, 0, 0, 0));
         Build();
-
-        _mapCanvas.SizeChanged += (_, e) =>
-        {
-            if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
-            {
-                RenderMap(_mapCanvas, _running);
-            }
-        };
-
-        Loaded += DiagnosticPage_Loaded;
+        Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
     }
 
-    private void OnLanguageChanged()
-    {
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            _startBtn.Content = Strings.Tr("Teste agora");
-            _cancelBtn.Content = Strings.Tr("Cancelar");
-            _measureAgainBtn.Content = Strings.Tr("Testar novamente");
-            _chooseOtherBtn.Content = Strings.Tr("Escolher outro jogo");
-            if (!_running) ResetToIdle();
-        });
-    }
+    private bool HasGame => !string.IsNullOrWhiteSpace(_gameId);
 
     public void ConfigureGame(string? gameId, string? gameTitle)
     {
         if (_running) return;
         _gameId = gameId;
-        _gameTitle = string.IsNullOrWhiteSpace(gameTitle) ? Strings.Tr("sua conexão") : gameTitle;
+        _gameTitle = gameTitle ?? string.Empty;
         ResetToIdle();
     }
+
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() =>
+    {
+        ApplyStaticText();
+        if (!_running && _flowPanel.Visibility == Visibility.Visible) ResetToIdle();
+    });
+
+    // ------------------------------------------------------------------ construção
+
+    private static TextBlock TechLabel(string text, double size = 11, int spacing = 100) => new()
+    {
+        Text = text.ToUpper(CultureInfo.CurrentCulture),
+        FontFamily = Res("TechnicalFont"),
+        FontSize = size,
+        FontWeight = FontWeights.Bold,
+        CharacterSpacing = spacing,
+        Foreground = Brush(Tech),
+    };
 
     private void Build()
     {
-        ApplyPrimaryButtonStyle(_startBtn);
-        ApplyPrimaryButtonStyle(_measureAgainBtn);
+        _idleTitle.Foreground = Brush(Primary);
+        _pill.Child = _pillText;
 
+        // Moldura 2:1 do mapa
+        _mapFrame.Child = _map;
+        _mapFrame.SizeChanged += (_, e) => _mapFrame.Height = Math.Max(e.NewSize.Width / 2, 120);
+
+        // Botão Teste agora
+        _startBtn.Style = (Style)Application.Current.Resources["PillPrimaryButtonStyle"];
+        _startBtn.Height = 56;
+        _startBtn.MinWidth = 240;
+        _startBtn.Padding = new Thickness(44, 0, 44, 0);
+        _startBtn.CornerRadius = new CornerRadius(14);
+        _startBtn.FontSize = 17;
+        _startBtn.FontWeight = FontWeights.SemiBold;
+        _startBtn.CharacterSpacing = 0;
+        _startBtn.HorizontalAlignment = HorizontalAlignment.Left;
         _startBtn.Click += async (_, _) => await StartAsync();
-        _cancelBtn.Click += (_, _) => CancelMeasurement();
-        _measureAgainBtn.Click += async (_, _) => await StartAsync();
-        _chooseOtherBtn.Click += (_, _) => ShellNavigation.Navigate(NavigationRoute.Library);
-
-        _pillBorder.Child = _pillText;
-
-        // Moldura do Mapa
-        _mapHostBorder.Background = DeepBrush;
-        _mapHostBorder.BorderBrush = LineBrush;
-        _mapHostBorder.BorderThickness = new Thickness(1);
-        _mapHostBorder.CornerRadius = new CornerRadius(12);
-        _mapHostBorder.HorizontalAlignment = HorizontalAlignment.Stretch;
-        _mapHostBorder.Child = _mapCanvas;
-
-        // 1. Painel Idle
         _idleControls.Children.Add(_startBtn);
 
-        // 2. Painel Running (Centralizado)
-        var runningBox = new StackPanel
-        {
-            Spacing = 12,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            MaxWidth = 720
-        };
-        runningBox.Children.Add(_progressBar);
-        runningBox.Children.Add(_liveMetric);
-        runningBox.Children.Add(_phaseName);
-        runningBox.Children.Add(_statusMessage);
-        runningBox.Children.Add(_stepIndicator);
+        BuildRunning();
+        BuildDone();
 
-        var runningStrip = CreateLiveMetricStrip(
-            (Strings.Tr("RESPOSTA"), _livePingText),
-            (Strings.Tr("JITTER"), _liveJitterText),
-            (Strings.Tr("SOB CARGA"), _liveDeltaText),
-            (Strings.Tr("PERDA"), _liveLossText)
-        );
-        runningBox.Children.Add(runningStrip);
-        runningBox.Children.Add(_regionStatusLine);
-        runningBox.Children.Add(_cancelBtn);
+        _flowPanel.Children.Add(_idleTitle);
+        _flowPanel.Children.Add(_pill);
+        _flowPanel.Children.Add(_mapFrame);
+        _flowPanel.Children.Add(_idleControls);
+        _flowPanel.Children.Add(_runningPanel);
 
-        _runningControls.Children.Add(runningBox);
-
-        // 3. Painel Done (Resultado em 2 colunas)
-        var resultLayout = BuildResultLayout();
-        _doneControls.Children.Add(resultLayout);
-
-        // Container Geral
-        var contentStack = new StackPanel
-        {
-            Spacing = 16,
-            MaxWidth = 1000,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        contentStack.Children.Add(_pillBorder);
-        contentStack.Children.Add(_title);
-        contentStack.Children.Add(_mapHostBorder);
-        contentStack.Children.Add(_idleControls);
-        contentStack.Children.Add(_runningControls);
-        contentStack.Children.Add(_doneControls);
-
-        var rootContainer = new Border
-        {
-            Padding = new Thickness(40, 28, 40, 56),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Child = contentStack
-        };
-
+        var root = new StackPanel();
+        root.Children.Add(_flowPanel);
+        root.Children.Add(_donePanel);
         Content = new ScrollViewer
         {
-            Content = rootContainer,
+            Content = new Border { Padding = new Thickness(40, 28, 40, 56), Child = root },
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch
         };
 
+        ApplyStaticText();
         ResetToIdle();
     }
 
-    private UIElement BuildResultLayout()
+    private void BuildRunning()
     {
-        var mainStack = new StackPanel { Spacing = 24, HorizontalAlignment = HorizontalAlignment.Stretch };
+        _progressTrack.Children.Add(_progressFill);
+        _progressTrack.SizeChanged += (_, _) => UpdateProgress(_progressRatio);
+        _runningPanel.Children.Add(_progressTrack);
 
-        // Grid Superior em 2 Colunas (Veredito e Métricas à esquerda, Mapa à direita)
-        var topGrid = new Grid { ColumnSpacing = 36, HorizontalAlignment = HorizontalAlignment.Stretch };
-        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) });
-        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.9, GridUnitType.Star) });
-
-        // Coluna Esquerda
-        var leftCol = new StackPanel { Spacing = 12 };
-        leftCol.Children.Add(_resultContext);
-        leftCol.Children.Add(_verdictStatusWord);
-        leftCol.Children.Add(_verdictHeadline);
-
-        var resMetrics = CreateLiveMetricStrip(
-            (Strings.Tr("RESPOSTA"), _resultPing),
-            (Strings.Tr("JITTER"), _resultJitter),
-            (Strings.Tr("SOB CARGA"), _resultLoad),
-            (Strings.Tr("PERDA"), _resultLoss)
-        );
-        leftCol.Children.Add(resMetrics);
-        Grid.SetColumn(leftCol, 0);
-        topGrid.Children.Add(leftCol);
-
-        // Coluna Direita: Evidência de Rota
-        var rightCol = new StackPanel { Spacing = 10 };
-        rightCol.Children.Add(Label(Strings.Tr("EVIDÊNCIA DE ROTA"), 11, TextTertiaryBrush));
-        
-        var miniMapBorder = new Border
+        var live = new TextBlock
         {
-            Background = SurfaceBrush,
-            BorderBrush = LineBrush,
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(12),
-            Height = 160,
-            Child = new Grid
-            {
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = Strings.Tr("Traçado de rota ativa até o datacenter regional"),
-                        FontSize = 12,
-                        Foreground = TextTertiaryBrush,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center
-                    }
-                }
-            }
+            FontFamily = Res("MetricFont"),
+            FontSize = 72,
+            LineHeight = 72,
+            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 16, 0, 0),
+            Foreground = Brush(Primary),
         };
-        rightCol.Children.Add(miniMapBorder);
-        rightCol.Children.Add(_resultRouteInfo);
+        _liveUnit.FontSize = 18;
+        _liveUnit.FontFamily = Res("BodyFont");
+        _liveUnit.Foreground = Brush(Dim);
+        live.Inlines.Add(_liveValue);
+        live.Inlines.Add(_liveUnit);
+        _runningPanel.Children.Add(live);
+        _runningPanel.Children.Add(_phaseName);
+        _runningPanel.Children.Add(_steps);
 
-        Grid.SetColumn(rightCol, 1);
-        topGrid.Children.Add(rightCol);
-
-        mainStack.Children.Add(topGrid);
-
-        // Ações Finais
-        var actionsRow = new StackPanel
+        _strip.ColumnDefinitions.Clear();
+        for (var i = 0; i < 3; i++)
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 20,
-            Margin = new Thickness(0, 10, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        actionsRow.Children.Add(_measureAgainBtn);
-        actionsRow.Children.Add(_chooseOtherBtn);
-        mainStack.Children.Add(actionsRow);
-
-        return mainStack;
-    }
-
-    private static UIElement CreateLiveMetricStrip(params (string Label, TextBlock Text)[] items)
-    {
-        var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch, ColumnSpacing = 12 };
-        for (int i = 0; i < items.Length; i++)
-        {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            var box = new Border
-            {
-                Background = SurfaceBrush,
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(14, 10, 14, 10),
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                Child = new StackPanel
-                {
-                    Spacing = 2,
-                    Children =
-                    {
-                        Label(items[i].Label, 10, TextTertiaryBrush),
-                        items[i].Text
-                    }
-                }
-            };
-            Grid.SetColumn(box, i);
-            grid.Children.Add(box);
+            _strip.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var cell = new StackPanel { Padding = new Thickness(14, 12, 12, 12), BorderBrush = Brush(Line), BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
+            cell.Tag = i;
+            _stripValues[i] = new TextBlock { FontFamily = Res("MetricFont"), FontSize = 26, LineHeight = 26, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Margin = new Thickness(0, 6, 0, 0), Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)), Text = "—" };
+            _stripUnits[i] = new TextBlock { FontSize = 12, Foreground = Brush(Dim), VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(2, 0, 0, 0) };
+            var valueRow = new StackPanel { Orientation = Orientation.Horizontal };
+            valueRow.Children.Add(_stripValues[i]);
+            valueRow.Children.Add(_stripUnits[i]);
+            cell.Children.Add(new TextBlock { Tag = "label" });
+            cell.Children.Add(valueRow);
+            Grid.SetColumn(cell, i);
+            _strip.Children.Add(cell);
         }
-        return grid;
+        _runningPanel.Children.Add(_strip);
+        _runningPanel.Children.Add(_regionLine);
+
+        _cancelBtn.Style = (Style)Application.Current.Resources["TextLinkButtonStyle"];
+        _cancelBtn.Foreground = Brush(Purple);
+        _cancelBtn.HorizontalAlignment = HorizontalAlignment.Center;
+        _cancelBtn.Margin = new Thickness(0, 8, 0, 0);
+        _cancelBtn.Click += (_, _) => CancelMeasurement();
+        _runningPanel.Children.Add(_cancelBtn);
     }
 
-    private async void DiagnosticPage_Loaded(object sender, RoutedEventArgs e)
+    private void BuildDone()
     {
-        Loaded -= DiagnosticPage_Loaded;
+        var topGrid = new Grid { ColumnSpacing = 48, Padding = new Thickness(0, 8, 0, 28) };
+        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) });
+        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.7, GridUnitType.Star), MinWidth = 260 });
+
+        var left = new StackPanel();
+        _resContext.FontFamily = Res("TechnicalFont");
+        _resContext.FontSize = 11;
+        _resContext.FontWeight = FontWeights.Bold;
+        _resContext.CharacterSpacing = 100;
+        _resContext.Foreground = Brush(Secondary);
+        _resContext.Margin = new Thickness(0, 0, 0, 12);
+        left.Children.Add(_resContext);
+        left.Children.Add(_resStatusRow);
+        _resHeadline.FontFamily = Res("HeadingFont");
+        _resHeadline.FontSize = 46;
+        _resHeadline.LineHeight = 48;
+        _resHeadline.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
+        _resHeadline.CharacterSpacing = -15;
+        _resHeadline.TextWrapping = TextWrapping.Wrap;
+        _resHeadline.MaxWidth = 560;
+        _resHeadline.HorizontalAlignment = HorizontalAlignment.Left;
+        _resHeadline.Margin = new Thickness(0, 12, 0, 0);
+        left.Children.Add(_resHeadline);
+        left.Children.Add(_resMetrics);
+        topGrid.Children.Add(left);
+
+        var right = new StackPanel { Padding = new Thickness(24, 0, 0, 0), BorderBrush = Brush(Line), BorderThickness = new Thickness(1, 0, 0, 0) };
+        Grid.SetColumn(right, 1);
+        _evidenceLabel.FontFamily = Res("TechnicalFont");
+        _evidenceLabel.FontSize = 11;
+        _evidenceLabel.FontWeight = FontWeights.Bold;
+        _evidenceLabel.CharacterSpacing = 100;
+        _evidenceLabel.Foreground = Brush(Tech);
+        right.Children.Add(_evidenceLabel);
+        _resultMapFrame.Child = _resultMap;
+        _resultMapFrame.SizeChanged += (_, e) => _resultMapFrame.Height = Math.Max(e.NewSize.Width * 10 / 16, 120);
+        right.Children.Add(_resultMapFrame);
+        var routeRow = new Grid { Margin = new Thickness(0, 12, 0, 0), ColumnSpacing = 12 };
+        routeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        routeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(_resRouteMs, 1);
+        routeRow.Children.Add(_resRouteName);
+        routeRow.Children.Add(_resRouteMs);
+        right.Children.Add(routeRow);
+        topGrid.Children.Add(right);
+        _donePanel.Children.Add(topGrid);
+
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 20, Margin = new Thickness(0, 24, 0, 0) };
+        _againBtn.Style = (Style)Application.Current.Resources["PillPrimaryButtonStyle"];
+        _againBtn.MinHeight = 50;
+        _againBtn.Height = 50;
+        _againBtn.Padding = new Thickness(28, 0, 28, 0);
+        _againBtn.CornerRadius = new CornerRadius(14);
+        _againBtn.FontSize = 17;
+        _againBtn.FontWeight = FontWeights.SemiBold;
+        _againBtn.CharacterSpacing = 0;
+        _againBtn.Click += async (_, _) => await StartAsync();
+        _chooseBtn.Style = (Style)Application.Current.Resources["TextLinkButtonStyle"];
+        _chooseBtn.Padding = new Thickness(0);
+        _chooseBtn.Click += (_, _) => ShellNavigation.Navigate(NavigationRoute.Library);
+        actions.Children.Add(_againBtn);
+        actions.Children.Add(_chooseBtn);
+        _donePanel.Children.Add(actions);
+    }
+
+    private void ApplyStaticText()
+    {
+        _startBtn.Content = Strings.Tr("Teste agora");
+        _cancelBtn.Content = Strings.Tr("Cancelar");
+        _againBtn.Content = Strings.Tr("Testar novamente");
+        _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
+        _evidenceLabel.Text = Strings.Tr("EVIDÊNCIA DE ROTA");
+
+        var labels = new[] { Strings.Tr("RESPOSTA"), Strings.Tr("JITTER"), Strings.Tr("SOB CARGA") };
+        for (var i = 0; i < 3; i++)
+        {
+            var cell = _strip.Children.OfType<StackPanel>().First(panel => (int)panel.Tag == i);
+            var label = cell.Children.OfType<TextBlock>().First(text => Equals(text.Tag, "label"));
+            label.Text = labels[i];
+            label.FontFamily = Res("TechnicalFont");
+            label.FontSize = 11;
+            label.FontWeight = FontWeights.Bold;
+            label.CharacterSpacing = 100;
+            label.Foreground = Brush(Tech);
+        }
+
+        _steps.Children.Clear();
+        var stepLabels = new[] { Strings.Tr("Conexão"), Strings.Tr("LATÊNCIA").ToLower(CultureInfo.CurrentCulture), Strings.Tr("SOB CARGA").ToLower(CultureInfo.CurrentCulture), Strings.Tr("ANÁLISE").ToLower(CultureInfo.CurrentCulture) };
+        stepLabels[0] = stepLabels[0];
+        for (var i = 0; i < 4; i++)
+        {
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            row.Children.Add(new Ellipse { Width = 8, Height = 8, Fill = Brush(Color.FromArgb(255, 0x48, 0x48, 0x4A)), VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = Capitalize(stepLabels[i]), FontSize = 13, Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)) });
+            _steps.Children.Add(row);
+        }
+    }
+
+    private static string Capitalize(string text) => string.IsNullOrEmpty(text) ? text : char.ToUpper(text[0], CultureInfo.CurrentCulture) + text[1..];
+
+    // ------------------------------------------------------------------ ciclo de vida
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= OnLoaded;
         try
         {
             _location = await _client.GetApproximateLocationAsync();
@@ -379,42 +343,108 @@ public sealed class DiagnosticPage : Page
         {
             _location = null;
         }
-        RenderMap(_mapCanvas, animated: false);
+        ApplyLocation(_map);
+        ApplyLocation(_resultMap);
+    }
+
+    private void ApplyLocation(RouteMapView map)
+    {
+        if (_location is { Enabled: true, HasCoordinates: true } location) map.SetUser(location.Latitude, location.Longitude, location.City);
+        else map.SetUser(null, null, null);
+    }
+
+    private async void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
+        _measurementCts?.Cancel();
+        if (_running)
+        {
+            try { await _client.CancelAsync(); }
+            catch { /* cancelado no host */ }
+        }
+    }
+
+    // ------------------------------------------------------------------ estados
+
+    private void ResetToIdle()
+    {
+        _running = false;
+        ShellChrome.Shell?.ClearBackdrop();
+        _flowPanel.Visibility = Visibility.Visible;
+        _donePanel.Visibility = Visibility.Collapsed;
+        _idleControls.Visibility = Visibility.Visible;
+        _runningPanel.Visibility = Visibility.Collapsed;
+        _idleTitle.Visibility = Visibility.Visible;
+        _idleTitle.Text = (HasGame ? _gameTitle : Strings.Tr("Diagnóstico de Conexão")).ToUpper(CultureInfo.CurrentCulture);
+        _pill.Visibility = Visibility.Collapsed;
+        _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
+        _map.Reset();
+        UpdateProgress(0);
+    }
+
+    private double _progressRatio;
+
+    private void UpdateProgress(double ratio)
+    {
+        _progressRatio = ratio;
+        _progressFill.Width = Math.Max(0, _progressTrack.ActualWidth * Math.Clamp(ratio, 0, 1));
+    }
+
+    private void SetStage(int stage)
+    {
+        for (var i = 0; i < _steps.Children.Count; i++)
+        {
+            var row = (StackPanel)_steps.Children[i];
+            var dot = (Ellipse)row.Children[0];
+            var text = (TextBlock)row.Children[1];
+            var current = i == stage;
+            var done = i < stage;
+            dot.Fill = Brush(current ? Color.FromArgb(255, 0x8B, 0x5C, 0xF6) : done ? Color.FromArgb(255, 0x22, 0xC5, 0x5E) : Color.FromArgb(255, 0x48, 0x48, 0x4A));
+            text.Foreground = Brush(current ? Colors.White : done ? Color.FromArgb(255, 0xEB, 0xEB, 0xF5) : Color.FromArgb(255, 0x63, 0x63, 0x66));
+        }
     }
 
     private async Task StartAsync()
     {
         if (_running) return;
         _running = true;
-        _startBtn.IsEnabled = false;
+        _lastRestPing = double.NaN;
+        ShellChrome.Shell?.ClearBackdrop();
 
+        _flowPanel.Visibility = Visibility.Visible;
+        _donePanel.Visibility = Visibility.Collapsed;
         _idleControls.Visibility = Visibility.Collapsed;
-        _doneControls.Visibility = Visibility.Collapsed;
-        _runningControls.Visibility = Visibility.Visible;
-
-        _progressBar.Value = 0;
-        _phaseName.Text = Strings.Tr("CONECTANDO");
-        _liveMetric.Text = "—";
-        _livePingText.Text = "—";
-        _liveJitterText.Text = "—";
-        _liveDeltaText.Text = "—";
-        _liveLossText.Text = "—";
-        _statusMessage.Text = Strings.Tr("Varrendo servidores mais próximos…");
-
-        _animationTimer.Start();
-        _measurementCts = new CancellationTokenSource();
-
-        void ProgressHandler(object? sender, DiagnosticProgress p)
+        _idleTitle.Visibility = Visibility.Collapsed;
+        _runningPanel.Visibility = Visibility.Visible;
+        if (HasGame)
         {
-            DispatcherQueue.TryEnqueue(() => OnEngineProgress(p));
+            _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
+            _pill.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            _pill.Visibility = Visibility.Collapsed;
         }
 
+        UpdateProgress(0.02);
+        _liveValue.Text = "—";
+        _liveUnit.Text = string.Empty;
+        for (var i = 0; i < 3; i++) { _stripValues[i].Text = "—"; _stripValues[i].Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)); _stripUnits[i].Text = string.Empty; }
+        SetStage(0);
+        ApplyPhase("connect");
+        _regionLine.Text = Strings.Tr("Enviando sondas a todos os servidores…");
+        _map.Reset();
+        ApplyLocation(_map);
+        _map.StartSweep();
+
+        _measurementCts = new CancellationTokenSource();
+        void ProgressHandler(object? sender, DiagnosticProgress p) => DispatcherQueue.TryEnqueue(() => OnEngineProgress(p));
         _client.ProgressChanged += ProgressHandler;
 
         try
         {
             var result = await _client.StartAsync(_gameId, _measurementCts.Token);
-            ShowResult(result);
+            await ShowResultAsync(result);
         }
         catch (OperationCanceledException)
         {
@@ -432,64 +462,104 @@ public sealed class DiagnosticPage : Page
         {
             _client.ProgressChanged -= ProgressHandler;
             _running = false;
-            _startBtn.IsEnabled = true;
-            _animationTimer.Stop();
-            RenderMap(_mapCanvas, animated: false);
         }
     }
 
     private async void CancelMeasurement()
     {
         _measurementCts?.Cancel();
-        try
+        try { await _client.CancelAsync(); }
+        catch { /* cancelado no host */ }
+    }
+
+    private void ApplyPhase(string phase)
+    {
+        var (stage, name) = phase.ToLowerInvariant() switch
         {
-            await _client.CancelAsync();
-        }
-        catch
-        {
-            // cancelado no host
-        }
+            "connect" => (0, Strings.Tr("CONECTANDO")),
+            "rest" => (1, Strings.Tr("LATÊNCIA")),
+            "load" => (2, Strings.Tr("SOB CARGA")),
+            "analysis" => (3, Strings.Tr("ANALISANDO")),
+            _ => (0, Strings.Tr("CONECTANDO")),
+        };
+        _phaseName.Text = name.ToUpper(CultureInfo.CurrentCulture);
+        _phaseName.Foreground = Brush(StageColors[stage]);
+        SetStage(stage);
     }
 
     private void OnEngineProgress(DiagnosticProgress progress)
     {
         if (!_running) return;
-        _progressBar.Value = Math.Clamp(progress.Ratio, 0, 1);
+        UpdateProgress(progress.Ratio);
+        var phase = progress.Phase.ToLowerInvariant();
+        ApplyPhase(phase);
 
-        switch (progress.Phase.ToLowerInvariant())
+        _regionLine.Text = phase switch
         {
-            case "connect":
-                _phaseName.Text = Strings.Tr("CONECTANDO");
-                _phaseName.Foreground = Brush(0xBF, 0x5A, 0xF2);
-                _statusMessage.Text = Strings.Tr("Testando servidores de menor latência…");
-                break;
-            case "rest":
-                _phaseName.Text = Strings.Tr("LATÊNCIA EM REPOUSO");
-                _phaseName.Foreground = PurpleLightBrush;
-                _statusMessage.Text = Strings.Tr("Medindo a resposta e os reflexos da sua conexão…");
-                break;
-            case "load":
-                _phaseName.Text = Strings.Tr("SOB CARGA");
-                _phaseName.Foreground = CautionBrush;
-                _statusMessage.Text = Strings.Tr("Simulando tráfego na rede para medir acréscimo de atraso…");
-                break;
-            case "analysis":
-                _phaseName.Text = Strings.Tr("ANALISANDO");
-                _phaseName.Foreground = Brush(0xBF, 0x5A, 0xF2);
-                _statusMessage.Text = Strings.Tr("Comparando os resultados com as exigências de jogo…");
-                break;
-        }
+            "connect" => Strings.Tr("Enviando sondas a todos os servidores…"),
+            "rest" => progress.Ratio < 0.32 ? Strings.Tr("Testando os reflexos da sua rede.") : HasGame ? Strings.Format("Cada milissegundo conta em {0}.", _gameTitle) : Strings.Tr("Cada milissegundo conta em jogos competitivos."),
+            "load" => progress.Ratio < 0.72 ? Strings.Tr("Enchendo a fila para ver se a rede aguenta a pressão.") : Strings.Tr("Simulando aquela luta final com a casa inteira online."),
+            "analysis" => HasGame ? Strings.Format("Comparando com o que {0} exige.", _gameTitle) : Strings.Tr("Comparando com o que jogos competitivos exigem."),
+            _ => string.Empty,
+        };
+        if (phase != "connect") _map.PulseSweep();
 
-        if (progress.LatestPingMs is { } ping)
+        if (progress.LatestPingMs is { } ping && phase is "rest" or "load")
         {
-            _liveMetric.Text = $"{ping:0} ms";
-            _livePingText.Text = $"{ping:0} ms";
+            _liveValue.Text = ping.ToString("0", CultureInfo.CurrentCulture);
+            _liveUnit.Text = " ms";
+            _map.Probe(ping);
+            if (phase == "rest") _lastRestPing = ping;
         }
-        if (progress.LiveJitterMs is { } jitter) _liveJitterText.Text = $"{jitter:0.#} ms";
-        if (progress.LiveLoadDeltaMs is { } delta) _liveDeltaText.Text = $"+{delta:0.#} ms";
+        if (!double.IsNaN(_lastRestPing)) SetStrip(0, _lastRestPing.ToString("0", CultureInfo.CurrentCulture), "ms");
+        if (progress.LiveJitterMs is { } jitter) SetStrip(1, jitter.ToString("0.#", CultureInfo.CurrentCulture), "ms");
+        if (progress.LiveLoadDeltaMs is { } delta) SetStrip(2, "+" + delta.ToString("0.#", CultureInfo.CurrentCulture), "ms");
     }
 
-    private void ShowResult(DiagnosticResult result)
+    private void SetStrip(int index, string value, string unit)
+    {
+        _stripValues[index].Text = value;
+        _stripValues[index].Foreground = Brush(Colors.White);
+        _stripUnits[index].Text = unit;
+    }
+
+    // ------------------------------------------------------------------ resultado
+
+    // Cores por métrica (ênfase visual do v2). O veredito em si continua sendo o do motor.
+    private static Color MetricColor(double value, double okLimit, double warnLimit) =>
+        value <= okLimit ? Verdicts.ColorOf(VerdictTone.Ok) : value <= warnLimit ? Verdicts.ColorOf(VerdictTone.Warn) : Verdicts.ColorOf(VerdictTone.Bad);
+
+    private void FillMetricGrid((string Label, string Value, string Unit, Color Color)[] metrics)
+    {
+        _resMetrics.ColumnDefinitions.Clear();
+        _resMetrics.Children.Clear();
+        for (var i = 0; i < metrics.Length; i++)
+        {
+            _resMetrics.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var cell = new StackPanel { Padding = new Thickness(16, 16, 12, 16), BorderBrush = Brush(Line), BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
+            cell.Children.Add(new TextBlock
+            {
+                Text = metrics[i].Label.ToUpper(CultureInfo.CurrentCulture),
+                FontFamily = Res("TechnicalFont"),
+                FontSize = 11,
+                FontWeight = FontWeights.Bold,
+                CharacterSpacing = 60,
+                Foreground = Brush(Tech),
+                MinHeight = 28.6,
+                LineHeight = 14.3,
+                LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            var value = new TextBlock { FontFamily = Res("MetricFont"), FontSize = 32, LineHeight = 32, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Foreground = Brush(metrics[i].Color), Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.NoWrap };
+            value.Inlines.Add(new Run { Text = metrics[i].Value });
+            if (!string.IsNullOrEmpty(metrics[i].Unit)) value.Inlines.Add(new Run { Text = " " + metrics[i].Unit, FontSize = 12, FontFamily = Res("BodyFont"), FontWeight = FontWeights.SemiBold, Foreground = Brush(Secondary) });
+            cell.Children.Add(value);
+            Grid.SetColumn(cell, i);
+            _resMetrics.Children.Add(cell);
+        }
+    }
+
+    private async Task ShowResultAsync(DiagnosticResult result)
     {
         // Sem veredito medido (inconclusivo) não há nota nem métrica inventada.
         if (result.Verdict is null or "inconclusive" || result.PingMs is null)
@@ -498,265 +568,80 @@ public sealed class DiagnosticPage : Page
             return;
         }
 
-        _selectedRegionId = result.RegionId ?? _selectedRegionId ?? "sa-east-1";
-        _idleControls.Visibility = Visibility.Collapsed;
-        _runningControls.Visibility = Visibility.Collapsed;
-        _doneControls.Visibility = Visibility.Visible;
-        _mapHostBorder.Visibility = Visibility.Collapsed;
-
-        double ping = result.PingMs.Value;
-
-        _resultPing.Text = $"{ping:0}";
-        _resultJitter.Text = result.JitterMs is { } jitter ? $"{jitter:0.#}" : "—";
-        _resultLoad.Text = result.LoadDeltaMs is { } delta ? $"+{delta:0.#}" : "—";
-        _resultLoss.Text = result.PacketLossPercentage is { } loss ? $"{loss:0.#}%" : "—";
-
-        var (label, color, headline) = result.Verdict.ToLowerInvariant() switch
+        var tone = Verdicts.ToneOf(result.Verdict);
+        var ping = result.PingMs.Value;
+        var secondary = Brush(Secondary);
+        FillMetricGrid(new[]
         {
-            "ready" => (Strings.Tr("Conexão boa"), ReadyBrush, !string.IsNullOrWhiteSpace(_gameId) ? Strings.Tr("Pronto para ranked") : Strings.Tr("Pronto para jogar")),
-            "caution" => (Strings.Tr("Conexão instável"), CautionBrush, Strings.Tr("Condições instáveis")),
-            "not_ready" => (Strings.Tr("Conexão ruim"), CoralBrush, Strings.Tr("Eu evitaria ranked agora")),
-            _ => (Strings.Tr("Conexão indeterminada"), TextTertiaryBrush, Strings.Tr("Medição inconclusiva"))
-        };
+            (Strings.Tr("RESPOSTA"), ping.ToString("0", CultureInfo.CurrentCulture), "ms", MetricColor(ping, 45, 90)),
+            (Strings.Tr("JITTER"), result.JitterMs is { } j ? j.ToString("0.#", CultureInfo.CurrentCulture) : "—", result.JitterMs is null ? string.Empty : "ms", result.JitterMs is { } jv ? MetricColor(jv, 8, 20) : Secondary),
+            (Strings.Tr("SOB CARGA"), result.LoadDeltaMs is { } d ? "+" + d.ToString("0.#", CultureInfo.CurrentCulture) : "—", result.LoadDeltaMs is null ? string.Empty : "ms", result.LoadDeltaMs is { } dv ? MetricColor(dv, 15, 40) : Secondary),
+            (Strings.Tr("PERDA"), result.PacketLossPercentage is { } l ? l.ToString("0.#", CultureInfo.CurrentCulture) : "—", result.PacketLossPercentage is null ? string.Empty : "%", result.PacketLossPercentage is { } lv ? MetricColor(lv, 0.5, 2) : Secondary),
+        });
 
-        _resultContext.Text = !string.IsNullOrWhiteSpace(_gameTitle) ? $"{_gameTitle.ToUpperInvariant()} · {Strings.Tr("COMPETITIVO")}" : $"{Strings.Tr("CONEXÃO GERAL")} · PC";
-        _verdictStatusWord.Text = $"● {label}";
-        _verdictStatusWord.Foreground = color;
-        _verdictHeadline.Text = headline;
+        _resContext.Visibility = HasGame ? Visibility.Visible : Visibility.Collapsed;
+        _resContext.Text = HasGame ? $"{_gameTitle.ToUpper(CultureInfo.CurrentCulture)} · {Strings.Tr("COMPETITIVO")}" : string.Empty;
+        _resStatusRow.Children.Clear();
+        _resStatusRow.Children.Add(Verdicts.Marker(tone));
+        _resStatusWord.Text = Verdicts.StatusWord(tone);
+        _resStatusRow.Children.Add(_resStatusWord);
+        _resHeadline.Text = Verdicts.Headline(tone, HasGame);
+        _resHeadline.Foreground = Brush(Primary);
 
-        string regionName = GetRegionName(_selectedRegionId);
-        _resultRouteInfo.Text = $"{regionName} ({_selectedRegionId}) · {ping:0} ms";
+        var region = RegionCatalog.Find(result.RegionId);
+        _resRouteName.Text = region is not null ? $"{region.Name} ({region.Id})" : Strings.Tr("Região de referência");
+        _resRouteMs.Text = ping.ToString("0", CultureInfo.CurrentCulture) + " ms";
+        _resRouteName.Foreground = Brush(Primary);
+        _resRouteMs.Foreground = Brush(Primary);
+
+        _flowPanel.Visibility = Visibility.Collapsed;
+        _donePanel.Visibility = Visibility.Visible;
+        _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
+
+        ApplyLocation(_resultMap);
+        _resultMap.Reset();
+        if (region is not null) _resultMap.SelectRegion(region.Id, ping);
+        await ApplyGameBackdropAsync();
     }
 
     private void ShowInconclusive()
     {
-        _idleControls.Visibility = Visibility.Collapsed;
-        _runningControls.Visibility = Visibility.Collapsed;
-        _doneControls.Visibility = Visibility.Visible;
-        _mapHostBorder.Visibility = Visibility.Collapsed;
-
-        _verdictStatusWord.Text = Strings.Tr("— Medição inconclusiva");
-        _verdictStatusWord.Foreground = TextTertiaryBrush;
-        _verdictHeadline.Text = Strings.Tr("Não foi possível concluir");
-        _resultRouteInfo.Text = "";
-
-        _resultPing.Text = "—";
-        _resultJitter.Text = "—";
-        _resultLoad.Text = "—";
-        _resultLoss.Text = "—";
-    }
-
-    private void ResetToIdle()
-    {
-        _running = false;
-        _idleControls.Visibility = Visibility.Visible;
-        _runningControls.Visibility = Visibility.Collapsed;
-        _doneControls.Visibility = Visibility.Collapsed;
-        _mapHostBorder.Visibility = Visibility.Visible;
-
-        _title.Text = string.IsNullOrWhiteSpace(_gameId) ? Strings.Tr("DIAGNÓSTICO DE CONEXÃO") : _gameTitle.ToUpperInvariant();
-        if (!string.IsNullOrWhiteSpace(_gameId))
+        FillMetricGrid(new[]
         {
-            _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
-            _pillBorder.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            _pillBorder.Visibility = Visibility.Collapsed;
-        }
-
-        _progressBar.Value = 0;
-        RenderMap(_mapCanvas, animated: false);
-    }
-
-    private void OnAnimationTick(object? sender, object e)
-    {
-        if (!_running) return;
-        _animationTick = (_animationTick + 0.035) % 1.0;
-        RenderMap(_mapCanvas, animated: true);
-    }
-
-    private void RenderMap(Canvas canvas, bool animated)
-    {
-        canvas.Children.Clear();
-        double w = canvas.ActualWidth > 0 ? canvas.ActualWidth : 900;
-        double h = canvas.Height > 0 ? canvas.Height : 320;
-        if (w <= 0 || h <= 0) return;
-
-        var engine = RouteMapEngine.Instance;
-        double camLat = -16.0;
-        double camLon = -52.0;
-        double zoom = 1.35;
-
-        var userLat = _location?.Latitude ?? -22.90;
-        var userLon = _location?.Longitude ?? -43.17;
-
-        var regId = _selectedRegionId ?? "sa-east-1";
-        (string Name, double Lat, double Lon) dest = ("São Paulo", -23.55, -46.63);
-        foreach (var r in KnownRegions)
-        {
-            if (r.Id == regId) { dest = (r.Name, r.Latitude, r.Longitude); break; }
-        }
-
-        // 1. Grade de continentes
-        for (int i = 0; i < engine.LandLons.Length; i += 2)
-        {
-            var (px, py) = RouteMapEngine.Project(engine.LandLats[i], engine.LandLons[i], camLat, camLon, zoom, w, h);
-            if (px >= 0 && px <= w && py >= 0 && py <= h)
-            {
-                var dot = new Ellipse { Width = 2.4, Height = 2.4, Fill = Brush(0x28, 0x30, 0x40) };
-                Canvas.SetLeft(dot, px - 1.2);
-                Canvas.SetTop(dot, py - 1.2);
-                canvas.Children.Add(dot);
-            }
-        }
-
-        // 2. Pontos das outras regiões mundiais
-        foreach (var r in KnownRegions)
-        {
-            if (r.Id.Equals(regId, StringComparison.OrdinalIgnoreCase)) continue;
-            var (rx, ry) = RouteMapEngine.Project(r.Latitude, r.Longitude, camLat, camLon, zoom, w, h);
-            if (rx >= 0 && rx <= w && ry >= 0 && ry <= h)
-            {
-                var node = new Ellipse { Width = 4, Height = 4, Fill = TextTertiaryBrush };
-                Canvas.SetLeft(node, rx - 2);
-                Canvas.SetTop(node, ry - 2);
-                canvas.Children.Add(node);
-            }
-        }
-
-        // 3. Usuário e Destino
-        var (ux, uy) = RouteMapEngine.Project(userLat, userLon, camLat, camLon, zoom, w, h);
-        var (dx, dy) = RouteMapEngine.Project(dest.Lat, dest.Lon, camLat, camLon, zoom, w, h);
-
-        double distPx = Math.Sqrt((dx - ux) * (dx - ux) + (dy - uy) * (dy - uy));
-        if (distPx < 110)
-        {
-            dx += 85;
-            dy -= 55;
-        }
-
-        // 4. Arco Bézier da Rota
-        var arc = RouteMapEngine.ComputeArc(ux, uy, dx, dy);
-        var figure = new PathFigure { StartPoint = new Windows.Foundation.Point(arc.X0, arc.Y0) };
-        figure.Segments.Add(new QuadraticBezierSegment
-        {
-            Point1 = new Windows.Foundation.Point(arc.Cx, arc.Cy),
-            Point2 = new Windows.Foundation.Point(arc.X1, arc.Y1)
+            (Strings.Tr("RESPOSTA"), "—", string.Empty, Secondary),
+            (Strings.Tr("JITTER"), "—", string.Empty, Secondary),
+            (Strings.Tr("SOB CARGA"), "—", string.Empty, Secondary),
+            (Strings.Tr("PERDA"), "—", string.Empty, Secondary),
         });
-        var geom = new PathGeometry();
-        geom.Figures.Add(figure);
-        var arcPath = new Microsoft.UI.Xaml.Shapes.Path
-        {
-            Data = geom,
-            Stroke = PurpleBrush,
-            StrokeThickness = 2.6,
-            Opacity = 0.95
-        };
-        canvas.Children.Add(arcPath);
-
-        // 5. Ondas de radar
-        if (animated)
-        {
-            for (int r = 0; r < 2; r++)
-            {
-                double waveFrac = (_animationTick + r * 0.5) % 1.0;
-                double waveR = waveFrac * 38;
-                var ring = new Ellipse
-                {
-                    Width = waveR * 2,
-                    Height = waveR * 2,
-                    Stroke = ReadyBrush,
-                    StrokeThickness = 1.4,
-                    Opacity = Math.Max(0, (1.0 - waveFrac) * 0.8)
-                };
-                Canvas.SetLeft(ring, dx - waveR);
-                Canvas.SetTop(ring, dy - waveR);
-                canvas.Children.Add(ring);
-            }
-        }
-
-        // Ponto de Origem
-        var userDot = new Ellipse { Width = 10, Height = 10, Fill = PurpleLightBrush };
-        Canvas.SetLeft(userDot, ux - 5);
-        Canvas.SetTop(userDot, uy - 5);
-        canvas.Children.Add(userDot);
-
-        // Ponto de Destino
-        var destDot = new Ellipse { Width = 12, Height = 12, Fill = ReadyBrush };
-        Canvas.SetLeft(destDot, dx - 6);
-        Canvas.SetTop(destDot, dy - 6);
-        canvas.Children.Add(destDot);
+        _resContext.Visibility = Visibility.Collapsed;
+        _resStatusRow.Children.Clear();
+        _resStatusRow.Children.Add(Verdicts.Marker(VerdictTone.Unknown));
+        _resStatusWord.Text = Strings.Tr("— Medição inconclusiva");
+        _resStatusRow.Children.Add(_resStatusWord);
+        _resHeadline.Text = Strings.Tr("Não foi possível concluir");
+        _resHeadline.Foreground = Brush(Primary);
+        _resRouteName.Text = string.Empty;
+        _resRouteMs.Text = string.Empty;
+        _flowPanel.Visibility = Visibility.Collapsed;
+        _donePanel.Visibility = Visibility.Visible;
+        _resultMap.Reset();
+        ApplyLocation(_resultMap);
     }
 
-    private async void OnUnloaded(object sender, RoutedEventArgs e)
+    /// <summary>Resultado de um jogo ganha a arte oficial atrás da janela (véu escuro), como no v2.</summary>
+    private async Task ApplyGameBackdropAsync()
     {
-        LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
-        _animationTimer.Stop();
-        _measurementCts?.Cancel();
-        if (_running)
+        if (!HasGame) return;
+        try
         {
-            try { await _client.CancelAsync(); }
-            catch { }
+            var snapshot = await LibraryPageServices.Bridge.GetSnapshotAsync();
+            var game = snapshot.Games.FirstOrDefault(item => string.Equals(item.DiagnosticGameId, _gameId, StringComparison.OrdinalIgnoreCase));
+            if (Artwork.FirstExisting(game?.HeroArtworkPath) is { } art && _donePanel.Visibility == Visibility.Visible)
+                ShellChrome.Shell?.SetBackdrop(new[] { art }, BackdropKind.Veil);
         }
-    }
-
-    private static SolidColorBrush Brush(byte r, byte g, byte b) => new(Color.FromArgb(255, r, g, b));
-
-    private static TextBlock Title(string text) => new()
-    {
-        Text = text,
-        FontFamily = new FontFamily("Segoe UI Variable Display, Barlow Semi Condensed"),
-        FontSize = 38,
-        FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold,
-        Foreground = TextPrimaryBrush,
-        HorizontalAlignment = HorizontalAlignment.Center
-    };
-
-    private static TextBlock Body(string text) => new()
-    {
-        Text = text,
-        FontFamily = new FontFamily("Segoe UI Variable Text"),
-        FontSize = 14,
-        Foreground = TextSecondaryBrush,
-        HorizontalAlignment = HorizontalAlignment.Center,
-        TextWrapping = TextWrapping.Wrap
-    };
-
-    private static TextBlock Label(string text, double size, Brush color) => new()
-    {
-        Text = text,
-        FontFamily = new FontFamily("Segoe UI Variable Text"),
-        FontSize = size,
-        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        Foreground = color
-    };
-
-    private static TextBlock Metric(string text) => new()
-    {
-        Text = text,
-        FontFamily = new FontFamily("Chakra Petch, Cascadia Mono, monospace"),
-        FontSize = 24,
-        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        Foreground = TextPrimaryBrush
-    };
-
-    private static TextBlock MetricLarge(string text) => new()
-    {
-        Text = text,
-        FontFamily = new FontFamily("Chakra Petch, Cascadia Mono, monospace"),
-        FontSize = 72,
-        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-        Foreground = TextPrimaryBrush,
-        HorizontalAlignment = HorizontalAlignment.Center
-    };
-
-    private static void ApplyPrimaryButtonStyle(Button button)
-    {
-        button.Background = PurpleBrush;
-        button.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-        button.BorderThickness = new Thickness(0);
-        button.FontWeight = Microsoft.UI.Text.FontWeights.Bold;
-        button.FontSize = 16;
+        catch
+        {
+            // Sem arte local, o resultado permanece sobre o fundo sólido.
+        }
     }
 }

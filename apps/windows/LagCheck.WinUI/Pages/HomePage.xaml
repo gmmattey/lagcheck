@@ -1,171 +1,86 @@
 <Page
     x:Class="LagCheck.WinUI.Pages.HomePage"
-    x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:LagCheck.WinUI.Library"
+    xmlns:ctl="using:LagCheck.WinUI.Controls"
     xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+    NavigationCacheMode="Required"
     Background="Transparent"
-    Loaded="HomePage_Loaded">
+    Loaded="HomePage_Loaded"
+    Unloaded="HomePage_Unloaded"
+    SizeChanged="HomePage_SizeChanged">
 
-    <Page.Resources>
-        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    </Page.Resources>
+    <!-- A arte (slides + gradientes) vive no shell, atrás da janela inteira; aqui só o conteúdo do palco -->
+    <Grid x:Name="Stage" Padding="48,0,48,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-    <Grid>
-        <!-- Background Cinematográfico em Tela Cheia -->
-        <Grid x:Name="BackgroundStage">
-            <Image x:Name="HeroBackgroundImage" Stretch="UniformToFill" Opacity="0.55" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            <!-- Gradiente horizontal escuro da esquerda para a direita -->
-            <Rectangle>
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#F00B0D12" Offset="0.0" />
-                        <GradientStop Color="#C00B0D12" Offset="0.45" />
-                        <GradientStop Color="#200B0D12" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-            <!-- Gradiente vertical suave -->
-            <Rectangle>
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#800B0D12" Offset="0.0" />
-                        <GradientStop Color="Transparent" Offset="0.25" />
-                        <GradientStop Color="Transparent" Offset="0.60" />
-                        <GradientStop Color="#E80B0D12" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-        </Grid>
-
-        <!-- Conteúdo do Palco do Início -->
-        <Grid Padding="48,0,48,24" VerticalAlignment="Stretch">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <!-- Seção do Jogo em Destaque (Hero) -->
-            <StackPanel Grid.Row="0" VerticalAlignment="Bottom" MaxWidth="720" HorizontalAlignment="Left" Spacing="14" Margin="0,0,0,24">
-                
-                <!-- Estado Com Jogo -->
-                <StackPanel x:Name="GameHeroPanel" Spacing="14">
-                    <!-- Badge da Plataforma -->
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Border Background="#D0282E3C" CornerRadius="14" Padding="14,7">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE7FC;" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" />
-                                <TextBlock x:Name="PlatformText" Text="{Binding HeroGame.PlatformLabel}" Style="{StaticResource EyebrowTextStyle}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Título do Jogo em Barlow Semi Condensed 72px maiúsculo -->
-                    <TextBlock x:Name="GameTitleText" Text="{Binding HeroGame.Title}"
-                               FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold"
-                               FontSize="56" LineHeight="58"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               TextWrapping="Wrap" />
-
-                    <!-- Tag de Veredito Pré-Partida / Conexão (exibida apenas quando houver medição real) -->
-                    <StackPanel x:Name="HeroVerdictPanel" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" Margin="0,2,0,0" Visibility="Collapsed">
-                        <Border x:Name="VerdictBorder" Background="#2522C55E" CornerRadius="14" Padding="16,7">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Ellipse x:Name="VerdictDot" Width="7" Height="7" Fill="{StaticResource ReadyBrush}" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="VerdictText" Foreground="{StaticResource ReadyBrush}" FontWeight="Bold" FontSize="13" />
-                            </StackPanel>
-                        </Border>
-                        <TextBlock x:Name="PingEstimateText" FontFamily="{StaticResource MetricFont}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                    </StackPanel>
-
-                    <!-- Ações Principais do Jogo -->
-                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,10,0,0" VerticalAlignment="Center">
-                        <!-- Botão JOGAR AGORA com Glow Roxo -->
-                        <Button x:Name="LaunchBtn" Content="▶ JOGAR AGORA"
-                                Height="56" Padding="42,0" CornerRadius="28"
-                                Background="{StaticResource PurpleBrush}" Foreground="White"
-                                FontSize="16" FontWeight="Bold" BorderThickness="0"
-                                Click="Launch_Click"
-                                ToolTipService.ToolTip="Iniciar jogo instalado" automation:AutomationProperties.Name="Jogar agora" />
-
-                        <!-- Botão Checar Conexão -->
-                        <Button x:Name="CheckConnBtn" Content="Checar conexão"
-                                Height="56" Padding="28,0" CornerRadius="28"
-                                Background="#D0252A36" Foreground="{StaticResource TextPrimaryBrush}"
-                                FontSize="14" FontWeight="SemiBold" BorderThickness="0"
-                                Click="CheckConnection_Click"
-                                ToolTipService.ToolTip="Avaliar rota e estabilidade pré-partida" automation:AutomationProperties.Name="Checar conexão" />
-
-                        <!-- Botão Favoritar -->
-                        <Button x:Name="FavBtn" Width="46" Height="46" CornerRadius="23"
-                                Background="#D0252A36" BorderThickness="0"
-                                Click="ToggleFavorite_Click"
-                                ToolTipService.ToolTip="Favoritar jogo" automation:AutomationProperties.Name="Favoritar jogo">
-                            <FontIcon Glyph="&#xE734;" FontSize="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Button>
-
-                        <!-- Botão Atualizar Imagem -->
-                        <Button x:Name="RefreshArtBtn" Width="46" Height="46" CornerRadius="23"
-                                Background="#D0252A36" BorderThickness="0"
-                                Click="RefreshArtwork_Click"
-                                ToolTipService.ToolTip="Atualizar imagem oficial" automation:AutomationProperties.Name="Atualizar imagem">
-                            <FontIcon Glyph="&#xE72C;" FontSize="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Button>
-                    </StackPanel>
+        <!-- Hero do jogo em destaque -->
+        <StackPanel x:Name="GameHeroPanel" Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" MaxWidth="640" Spacing="18" Margin="0,0,0,30">
+            <!-- Plataforma -->
+            <Border x:Name="PlatformPill" Background="#D9282E3C" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="PlatformText" Text="PC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
+            </Border>
 
-                <!-- Estado Vazio (Sem Jogos Instalados) -->
-                <StackPanel x:Name="EmptyHeroPanel" Spacing="16" Visibility="Collapsed">
-                    <Border Background="#257C3AED" CornerRadius="14" Padding="14,7" HorizontalAlignment="Left">
-                        <TextBlock x:Name="CockpitEyebrow" Text="COCKPIT DE TELEMETRIA" Foreground="{StaticResource PurpleLightBrush}" FontWeight="Bold" FontSize="13" />
-                    </Border>
-                    <TextBlock x:Name="EmptyHeroTitle" Text="NENHUM JOGO LOCAL ENCONTRADO"
-                               FontFamily="{StaticResource HeadingFont}" FontWeight="ExtraBold"
-                               FontSize="48" LineHeight="52"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock x:Name="EmptyHeroDesc" Text="O LagCheck monitora seus jogos instalados (Steam, Epic, Xbox) ou sua rota geral."
-                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" />
-                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
-                        <Button x:Name="ScanGamesBtn" Content="Procurar jogos instalados" Height="50" Padding="32,0" CornerRadius="25"
-                                Background="{StaticResource PurpleBrush}" Foreground="White" FontWeight="Bold"
-                                Click="Rescan_Click" />
-                        <Button x:Name="GeneralCheckBtn" Content="Testar conexão geral" Height="50" Padding="28,0" CornerRadius="25"
-                                Background="#D0252A36" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"
-                                Click="GeneralCheck_Click" />
-                    </StackPanel>
-                </StackPanel>
+            <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="62" LineStackingStrategy="BlockLineHeight"
+                       CharacterSpacing="-10" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
+
+            <!-- Veredito da última medição real deste jogo -->
+            <StackPanel x:Name="HeroVerdictPanel" Orientation="Horizontal" Spacing="14" Visibility="Collapsed">
+                <Border x:Name="VerdictBorder" CornerRadius="14" Padding="16,7" Background="#2922C55E">
+                    <TextBlock x:Name="VerdictText" FontWeight="Bold" FontSize="13" CharacterSpacing="25" Foreground="{StaticResource ReadyBrush}"/>
+                </Border>
+                <TextBlock x:Name="PingEstimateText" Style="{StaticResource MetricTextStyle}" FontSize="22" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <!-- Faixa Horizontal de Jogos Recentes na Base -->
-            <StackPanel Grid.Row="1" Spacing="8">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled">
-                    <ItemsControl x:Name="RecentGamesList" ItemsSource="{Binding VisibleGames}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="14" Padding="4,6,4,6" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="local:LibraryGame">
-                                <Button Click="RecentGame_Click" Padding="0" BorderThickness="0" Background="Transparent"
-                                        CornerRadius="14" Width="110" Height="165"
-                                        ToolTipService.ToolTip="{Binding Title}">
-                                    <Border CornerRadius="14" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
-                                        <Grid>
-                                            <Image Source="{Binding CoverArtworkPath}" Stretch="UniformToFill" />
-                                            <Rectangle Fill="{StaticResource SurfaceBrush}" Opacity="0.4" />
-                                            <Border VerticalAlignment="Bottom" Padding="8,6" Background="#C00D0F14">
-                                                <TextBlock Text="{Binding Title}" FontFamily="{StaticResource HeadingFont}" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+            <!-- Ações -->
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,6,0,0">
+                <Grid>
+                    <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
+                    <Button x:Name="LaunchBtn" Style="{StaticResource PillPrimaryButtonStyle}" Content="▶ JOGAR AGORA" Click="Launch_Click"
+                            automation:AutomationProperties.Name="Jogar agora"/>
+                </Grid>
+                <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Checar conexão" Click="CheckConnection_Click"
+                        automation:AutomationProperties.Name="Checar conexão"/>
+                <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">
+                    <ctl:SvgIcon x:Name="FavIcon" Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Button>
+                <Button x:Name="RefreshArtBtn" Style="{StaticResource CircleIconButtonStyle}" Click="RefreshArtwork_Click" automation:AutomationProperties.Name="Atualizar imagem">
+                    <ctl:SvgIcon Data="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Button>
             </StackPanel>
-        </Grid>
+
+            <!-- Indicadores de slide -->
+            <StackPanel x:Name="DotsPanel" Orientation="Horizontal" Spacing="8" Visibility="Collapsed"/>
+        </StackPanel>
+
+        <!-- Estado vazio: nenhum jogo instalado encontrado -->
+        <StackPanel x:Name="EmptyHeroPanel" Grid.Row="0" Spacing="16" Visibility="Collapsed" VerticalAlignment="Bottom" HorizontalAlignment="Left" MaxWidth="640" Margin="0,0,0,30">
+            <Border Background="#257C3AED" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left">
+                <TextBlock x:Name="CockpitEyebrow" Text="COCKPIT DE TELEMETRIA" Foreground="{StaticResource PurpleLightBrush}" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+            </Border>
+            <TextBlock x:Name="EmptyHeroTitle" Text="NENHUM JOGO LOCAL ENCONTRADO" Style="{StaticResource DisplayTitleStyle}"
+                       FontSize="56" LineHeight="56" LineStackingStrategy="BlockLineHeight" CharacterSpacing="-10" TextWrapping="Wrap"/>
+            <TextBlock x:Name="EmptyHeroDesc" Text="O LagCheck monitora seus jogos instalados (Steam, Epic, Xbox) ou sua rota geral."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" TextWrapping="Wrap"/>
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                <Button x:Name="ScanGamesBtn" Style="{StaticResource PillPrimaryButtonStyle}" Height="50" Padding="32,0" CornerRadius="25" FontSize="14"
+                        Content="Procurar jogos instalados" Click="Rescan_Click"/>
+                <Button x:Name="GeneralCheckBtn" Style="{StaticResource GhostPillButtonStyle}" Height="50" CornerRadius="25"
+                        Content="Testar conexão geral" Click="GeneralCheck_Click"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Faixa de recentes -->
+        <ScrollViewer x:Name="RecentsScroll" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+            <StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom" Padding="0,6,4,6"/>
+        </ScrollViewer>
     </Grid>
 </Page>
