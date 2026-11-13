@@ -4,7 +4,7 @@ import java.io.InputStream
 
 /** Fonte: GitHub Releases do repositório público (Decisão 116). Sem release do Windows publicada, a consulta não encontra nada e o app segue normal. */
 object UpdateSource {
-    const val installedVersion = "0.1"
+    const val installedVersion = "0.2"
     const val manifestUrl: String = ""
     const val githubRepository: String = "gmmattey/lagcheck"
     val allowedHosts: Set<String> = setOf("api.github.com", "github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com")
