@@ -10,7 +10,7 @@ O visual é escuro, calmo e técnico, sem cair numa caricatura gamer. A área de
 
 ## Color / Cor
 
-Os tokens vivem em [colors_and_type.css](colors_and_type.css). A origem declara `--bg: oklch(0.158 0.011 260)`, `--surface: oklch(0.205 0.012 260)`, `--fg: oklch(0.955 0.006 260)`, `--muted: oklch(0.675 0.014 260)`, `--border: oklch(0.302 0.014 260)` e `--accent: oklch(0.585 0.214 299)` no `brand-spec.md`. Roxo Gamer é reservado para ação, seleção, foco e progresso. Coral Solar (`oklch(0.684 0.196 35)`) serve a atenção ou destruição. O Verde (`oklch(0.76 0.15 150)`) comunica resultado favorável; não substitui uma explicação textual.
+Os tokens canônicos em hex valem para iOS, Android, Windows e Web (ver [`tokens/platforms.json`](tokens/platforms.json)): fundo `--bg` (`#0B0D10`), superfície (`#15181E`), painel elevado (`#1E232B`), texto primário (`#F4F5F7`), texto secundário (`#8A93A0`), texto terciário (`#606873`), borda (`white` 8–16%), Roxo Gamer (`#7C3AED`), Coral Solar (`#FF5A36`), Âmbar (`#F59E0B`) e Verde (`#22C55E`). Não converter automaticamente de `oklch` antigos: `oklch(0.585 0.214 299)` resulta em `#9052e6`, não em `#7C3AED`. Roxo Gamer é reservado para ação, seleção, foco e progresso; Coral Solar serve a erro, risco ou ação destrutiva; Verde comunica resultado favorável e nunca substitui uma explicação textual.
 
 ## Typography / Tipografia
 
@@ -23,7 +23,7 @@ As pilhas abaixo valem para o iOS e para os protótipos HTML. Android usa Google
 
 ### Tipografia do site (Web)
 
-Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, implementado em `gmmattey/landings/sites/lagcheck/`. Ela não substitui as escolhas nativas de iOS e Android, nem altera as cores ou o wordmark. Para o Windows, esta combinação foi aprovada como nova referência visual; a migração do app está pendente de empacotamento e testes.
+Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, implementado em `gmmattey/landings/pages/lagcheck/`. Ela não substitui as escolhas nativas de iOS e Android, nem altera as cores ou o wordmark. Para o Windows, esta combinação foi aprovada como nova referência visual; a migração do app está pendente de empacotamento e testes.
 
 | Papel | Família | Peso recomendado | Uso |
 | --- | --- | --- | --- |
@@ -40,7 +40,17 @@ Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, impleme
 - Métricas devem continuar diferenciando valor observado, indisponível e inconclusivo. A fonte não é um sinal de estado; as cores semânticas e mensagens textuais continuam sendo a referência.
 - Paleta oficial preservada: fundo `#0B0D10`, Roxo Gamer `#7C3AED` e variações aprovadas. Sem substituir a paleta por cores inspiradas em concorrentes.
 
-**Fonte de implementação web:** `gmmattey/landings/sites/lagcheck/src/styles/global.css` e estilos compartilhados. Antes de publicar, verificar componentes com `font-family` explícita, conferir a renderização desktop/mobile e executar a suíte existente do site. A alteração desta documentação **não publica o site**.
+**Fonte de implementação web:** `gmmattey/landings/pages/lagcheck/src/styles/global.css` e estilos compartilhados. Antes de publicar, verificar componentes com `font-family` explícita, conferir a renderização desktop/mobile e executar a suíte existente do site. A alteração desta documentação **não publica o site**.
+
+## Mapa de medição
+
+O mapa de medição mostra de onde o check sai e até qual região ele foi medido, espelhando a implementação web (`pages/lagcheck/src/lib/map/`):
+
+- **Base e projeção:** grade de pontos Natural Earth 110m (1,5° por célula) em projeção equiretangular, fundo `--bg` (`#0B0D10`), pontos de terra em `--text-secondary` a 34% de opacidade. Plano, sem gradiente, brilho, halo ou onda expansiva.
+- **Câmera e enquadramento:** `WORLD_CAMERA` (`lon = 0`, `lat = 12`, `zoom = 1`) durante a varredura e `fitCamera` com teto de `zoom <= 3.4` quando a rota é fechada (acima disso a grade de 1,5° perde o contorno dos continentes), garantindo que pinos e rótulos caibam sem corte.
+- **Arcos e sondas reais:** arco quadrático de Bézier (`computeArc` / `bezierPoint`) em `--purple` (`#7C3AED`). Tudo que se move vem de medição real: saída fixa em `420 ms` (`620 ms` na varredura inicial com `45 ms` de escalonamento entre regiões) e volta proporcional ao RTT observado (`clamp(rttMs * 8, 300, 700)` ms) com easing cúbico simétrico.
+- **Rótulos sem sobreposição:** apenas “Você” e a região escolhida (ou mais rápida na varredura) recebem rótulo, com detecção de colisão de caixas para nunca sobrepor nem sair da área útil.
+- **Implementação nativa:** `RouteMeasurementMapView` (`NolaggyDesign/Components/RouteMap/` no iOS) e `RouteMeasurementMap` (`core/designsystem/components/map/` no Android).
 
 ## Espaçamento, forma e elevação
 
@@ -92,7 +102,7 @@ Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `toke
 
 - Não usar roxo como fundo amplo, nem Coral Solar como CTA comum.
 - Não transformar cada bloco em card nem aplicar glassmorphism.
-- Não usar arte oficial de jogos; as capas preservadas são editoriais/neutras.
+- Usar apenas as capas editoriais oficiais do catálogo verificável; não usar arte de jogo como fundo da tela de medição em andamento.
 - Não fazer resultado inconclusivo parecer bom ou preencher métricas ausentes.
 - Não inferir banda/canal Wi-Fi a partir de SSID, BSSID, RSSI ou ausência de dados.
 - Não repetir CTA primário no mesmo viewport, nem esconder ações destrutivas sem confirmação.
