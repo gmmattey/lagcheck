@@ -141,9 +141,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NoopProductAnalyticsTracker
     }
 
-    // Catálogo assinado e local: o mesmo envelope acompanha cada APK e é a única
-    // fonte de jogos, regiões e rotas. Não há atualização HTTP nem cache remoto.
+    // Catálogo embarcado no APK como fallback imediato e sincronizado em segundo plano
+    // via https://lagcheck.signallq.com/api/catalog-v3.json com validação de schema e regiões.
     private val bundledCatalogEnvelope = application.assets.open("catalog-base.json").use { it.readBytes() }
+    private val remoteCatalogSync = com.lagcheck.android.data.RemoteCatalogSyncRepository(application, bundledCatalogEnvelope)
     @Volatile
     private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val _catalogPayload = MutableStateFlow<CatalogPayload?>(null)
@@ -349,14 +350,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         refreshPlatformHealth()
         telemetry.appOpen()
         updateCoordinator.checkForUpdates(manual = false)
-        // Valida a fonte local fora da thread principal. Ela nunca é substituída
-        // por uma resposta remota que poderia remover referências globais.
+        // Valida o cache/bundle local fora da thread principal e sincroniza o catálogo remoto em seguida.
         viewModelScope.launch(Dispatchers.IO) {
-            publishCatalog(currentCatalog())
+            val initial = currentCatalog()
+            publishCatalog(initial)
             val savedRegion = preferencesRepository.manualRegionId.value
             if (savedRegion != null && savedRegion != "automatic" &&
                 _catalogPayload.value?.regions?.none { it.id == savedRegion } == true) {
                 preferencesRepository.setManualRegionId(null)
+            }
+            val synced = remoteCatalogSync.syncIfNeeded()
+            if (synced != null && synced.catalogVersion != initial?.catalogVersion) {
+                catalog = kotlinx.coroutines.CompletableDeferred(synced)
+                publishCatalog(synced)
             }
         }
     }
@@ -382,9 +388,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Catálogo vigente. Se o catálogo local não validar, não mede nem inventa destino. */
     private suspend fun currentCatalog(): CatalogPayload? = catalog.await()
 
-    /** Catálogo local validado, ou nulo se o catálogo embarcado for inválido. Nulo = não mede. */
-    private suspend fun loadCatalog(): CatalogPayload? =
-        runCatching { RemoteCatalogVerifier.decodeBundled(bundledCatalogEnvelope) }.getOrNull()
+    /** Catálogo local/cache validado, ou nulo se o catálogo embarcado for inválido. Nulo = não mede. */
+    private suspend fun loadCatalog(): CatalogPayload? = remoteCatalogSync.loadLocal()
 
     fun navigateTo(screen: Screen) {
         reviewPromptJob?.cancel()

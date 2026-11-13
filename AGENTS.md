@@ -121,7 +121,7 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - Regras de veredito e score não importam frameworks de UI, rede, persistência ou anúncios.
 - Uma única sessão de medição pode estar ativa. Mudança de rede, background, cancelamento ou dados insuficientes descarta o resultado parcial.
 - Repouso e carga no Check são leituras complementares: o veredito avalia repouso e penaliza degradações sob carga.
-- O catálogo local acompanha o build, sem assinatura nem validade (Decisão 106), e só entra após validar tamanho, schema e regras de negócio. Nenhuma UI interpreta o JSON diretamente.
+- O catálogo local acompanha o build como fallback imediato e offline (Decisão 106), e pode ser atualizado em segundo plano via `https://lagcheck.signallq.com/api/catalog-v3.json` (com `ETag`), só entrando em cache após validar tamanho, schema 3, mínimo de regiões UDP e regras de negócio. Nenhuma UI interpreta o JSON diretamente.
 - Toda alteração de score, veredito, thresholds, guardrails, spikes ou catálogo exige versão da regra, vetores de teste e revisão de Iury.
 - Tokens da **Dark Competitive UI** são a fonte de verdade visual (Decisões 51 e 66): fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E`/`#1E232B`), bordas finas de 1px, números monoespaçados e Roxo Gamer (`#7C3AED`) para ações primárias. Coral Solar (`#FF5A36`) fica reservado a atenção, erro e ações destrutivas. Não introduza cores ou espaçamentos soltos.
 - Ativos em `design-system/assets/brand/` e `design-system/assets/app-icon/` são oficiais e aprovados. Não os redesenhe, deforme, recolora ou substitua. O App Icon vigente é o modernizado da Decisão 91.
