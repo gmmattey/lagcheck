@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
+import com.lagcheck.desktop.DesktopStoreCatalog
 import com.lagcheck.desktop.library.launcher.GameLaunchResult
 import com.lagcheck.desktop.library.launcher.GameRunner
 import com.lagcheck.desktop.library.model.GamePlatform
@@ -14,12 +15,16 @@ import com.lagcheck.desktop.library.scanner.EpicScanner
 import com.lagcheck.desktop.library.scanner.LibraryScanner
 import com.lagcheck.desktop.library.scanner.ScanResult
 import com.lagcheck.desktop.library.scanner.SteamScanner
+import com.lagcheck.desktop.library.scanner.XboxScanner
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.withPermit
 
 enum class LibraryFilter(val label: String) {
     ALL("Todos"),
@@ -37,11 +42,14 @@ enum class LibraryFilter(val label: String) {
  * Guarda dois níveis: [known] (tudo que já foi visto, persistido, sem deduplicar) e [games]
  * (o que a interface mostra: sem duplicatas entre plataformas e com as preferências aplicadas).
  */
+private const val CLASSIFY_TIMEOUT_MS = 12_000L
+
 class LibraryRepository(
     private val scope: CoroutineScope,
-    private val scanners: List<LibraryScanner> = listOf(SteamScanner(), EpicScanner()),
+    private val scanners: List<LibraryScanner> = listOf(SteamScanner(), EpicScanner(), XboxScanner(store = DesktopStoreCatalog.catalog)),
     private val store: LibraryStore = LibraryStore.default(),
     private val networkResolver: NetworkSupportResolver = NetworkSupportResolver.NONE,
+    private val kindSource: com.lagcheck.desktop.library.model.GameKindSource = com.lagcheck.desktop.library.model.GameKindSource.NONE,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val launcher: (PcGame) -> GameLaunchResult = { GameRunner.launch(it) },
     private val clock: () -> Long = { System.currentTimeMillis() },
@@ -82,6 +90,7 @@ class LibraryRepository(
                 known = LibraryReconciler.reconcile(known, results)
                 prefs = prefs.copy(knownGames = known)
                 store.save(prefs)
+                classifyUnknown()
                 publish()
             } finally {
                 hasScanned = true
@@ -90,9 +99,24 @@ class LibraryRepository(
         }
     }
 
-    /** Recalcula a lista visível: rede, preferências, depois deduplicação entre plataformas. */
+    /**
+     * Pergunta às lojas o que ainda não se sabe se é jogo (software como OBS não deve entrar na biblioteca).
+     * Limitado em paralelismo e em tempo: se a loja demorar, o item fica e é classificado numa próxima varredura.
+     */
+    private suspend fun classifyUnknown() {
+        val unknown = known.filter { it.platform != GamePlatform.MANUAL && kindSource.cached(it) == null }
+        if (unknown.isEmpty()) return
+        withTimeoutOrNull(CLASSIFY_TIMEOUT_MS) {
+            val gate = kotlinx.coroutines.sync.Semaphore(4)
+            coroutineScope {
+                unknown.forEach { game -> launch(ioDispatcher) { gate.withPermit { runCatching { kindSource.classify(game) } } } }
+            }
+        }
+    }
+
+    /** Recalcula a lista visível: sem software, rede, preferências, depois deduplicação entre plataformas. */
     private fun publish() {
-        val view = LibraryReconciler.dedupe(known.map(::withPrefsAndNetwork))
+        val view = LibraryReconciler.dedupe(known.filter { kindSource.cached(it) != false }.map(::withPrefsAndNetwork))
         Snapshot.withMutableSnapshot {
             games.clear()
             games.addAll(view)

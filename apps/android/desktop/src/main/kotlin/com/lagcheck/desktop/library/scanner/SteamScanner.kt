@@ -146,6 +146,10 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
 
             val fullInstallPath = installDir?.let { File(File(libraryRoot, "steamapps/common"), it).absolutePath }
 
+            // O próprio cliente Steam registra o último uso em segundos; 0 significa "nunca jogado" e não vira data.
+            val lastPlayedMs = Regex(""""LastPlayed"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+                ?.takeIf { it > 0 }?.let { it * 1000 }
+
             PcGame(
                 id = "steam_$appId",
                 title = name,
@@ -153,6 +157,7 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
                 installDirectory = fullInstallPath,
                 launchUri = "steam://rungameid/$appId",
                 isInstalled = isInstalled,
+                lastPlayedEpochMs = lastPlayedMs,
                 tags = listOf("Steam", "PC")
             )
         } catch (_: Exception) {

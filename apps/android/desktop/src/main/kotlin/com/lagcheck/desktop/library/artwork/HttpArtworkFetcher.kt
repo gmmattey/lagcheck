@@ -58,7 +58,7 @@ class HttpArtworkFetcher(
     }
 
     companion object {
-        /** CDNs oficiais da Steam. */
-        val DEFAULT_HOSTS = setOf("cdn.cloudflare.steamstatic.com", "shared.fastly.steamstatic.com")
+        /** CDNs oficiais da Steam e da Epic. */
+        val DEFAULT_HOSTS = setOf("cdn.cloudflare.steamstatic.com", "shared.fastly.steamstatic.com") + EpicCatalogSource.HOSTS + com.lagcheck.desktop.library.scanner.StoreCatalog.IMAGE_HOST
     }
 }

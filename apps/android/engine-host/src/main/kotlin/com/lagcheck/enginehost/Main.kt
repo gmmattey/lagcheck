@@ -157,7 +157,7 @@ internal class EngineHost(
         val terminalEmitted = AtomicBoolean(false)
         val job = scope.launch(start = CoroutineStart.LAZY) {
             try {
-                val result = engine.run(gameId) { emitProgress(validSessionId, it) }
+                val result = engine.run(gameId) { emitProgress(validSessionId, it, telemetry.regionId) }
                 val abortReason = result.abortReason
                 if (terminalKind(abortReason) == TerminalKind.INCONCLUSIVE || result.verdict == "inconclusive") {
                     trackOnce(telemetry) { ProductAnalyticsEvent.LagcheckInconclusive(telemetry.gameId, "pc", "unknown", result.regionId, abortReason ?: "verdict_inconclusive") }
@@ -361,10 +361,12 @@ internal class EngineHost(
         if (session.terminalSent.compareAndSet(false, true)) track(event())
     }
 
-    private fun emitProgress(sessionId: String, progress: CheckProgress) = emit(HostJson.message("progress", sessionId = sessionId) {
+    private fun emitProgress(sessionId: String, progress: CheckProgress, regionId: String? = null) = emit(HostJson.message("progress", sessionId = sessionId) {
         put("phase", progress.phase.name.lowercase())
         put("ratio", progress.ratio)
         progress.latestPingMs?.let { put("latestPingMs", it) }
+        // Região que a medição usa, conhecida antes do primeiro pacote: a interface a mostra no mapa.
+        regionId?.takeIf { it != "unknown" }?.let { put("regionId", it) }
     })
 
     private fun emitError(requestId: String? = null, sessionId: String? = null, code: String, message: String) = emit(
@@ -448,8 +450,9 @@ private class EngineFailure(val code: String, override val message: String) : Ru
 
 private class LibraryBridge {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val repository = LibraryRepository(scope, networkResolver = DesktopNetworkSupport.resolver, autoScan = false)
+    private val repository = LibraryRepository(scope, networkResolver = DesktopNetworkSupport.resolver, kindSource = com.lagcheck.desktop.DesktopGameInfo.service, autoScan = false)
     private val artwork = ConcurrentHashMap<String, ArtworkPaths>()
+    private val info = ConcurrentHashMap<String, com.lagcheck.desktop.library.model.GameInfo>()
 
     fun rescan(): Job = repository.rescan()
     fun close() = scope.cancel()
@@ -493,6 +496,8 @@ private class LibraryBridge {
         val cover = DesktopArtwork.resolver.resolve(game, ArtworkType.COVER).pathOrNull()
         val hero = DesktopArtwork.resolver.resolve(game, ArtworkType.HERO).pathOrNull()
         artwork[game.id] = ArtworkPaths(cover, hero)
+        // Informações de catálogo vão junto: mesma tela, mesma regra de rede, e a falha nunca derruba a arte.
+        runCatching { com.lagcheck.desktop.DesktopGameInfo.service.resolve(game) }.getOrNull()?.let { info[game.id] = it }
         return ArtworkAction.Done(cover, hero)
     }
 
@@ -500,7 +505,7 @@ private class LibraryBridge {
         put("isScanning", repository.isScanning)
         put("hasScanned", repository.hasScanned)
         repository.selectedGame?.id?.let { put("heroGameId", it); put("selectedGameId", it) }
-        put("games", buildJsonArray { repository.games.forEach { add(it.toJson(artwork[it.id])) } })
+        put("games", buildJsonArray { repository.games.forEach { add(it.toJson(artwork[it.id], info[it.id])) } })
     }
 
     private fun find(id: String): PcGame? = repository.games.firstOrNull { it.id == id || id in it.alsoIds }
@@ -566,7 +571,7 @@ private sealed interface ArtworkAction {
 }
 private data class ArtworkPaths(val cover: String?, val hero: String?)
 
-private fun PcGame.toJson(artwork: ArtworkPaths?): JsonObject = buildJsonObject {
+private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.library.model.GameInfo? = null): JsonObject = buildJsonObject {
     put("id", id)
     put("title", title)
     put("platform", platform.name.lowercase())
@@ -583,7 +588,17 @@ private fun PcGame.toJson(artwork: ArtworkPaths?): JsonObject = buildJsonObject 
     put("networkLabel", networkSupport.label())
     diagnosticGameId()?.let { put("diagnosticGameId", it) }
     put("tags", buildJsonArray { tags.forEach { add(JsonPrimitive(it)) } })
-    description?.let { put("description", it) }
+    (info?.description ?: description)?.let { put("description", it) }
+    info?.takeUnless { it.isEmpty }?.let { details ->
+        put("info", buildJsonObject {
+            details.description?.let { put("description", it) }
+            details.developer?.let { put("developer", it) }
+            details.publisher?.let { put("publisher", it) }
+            details.releaseDate?.let { put("releaseDate", it) }
+            put("genres", buildJsonArray { details.genres.forEach { add(JsonPrimitive(it)) } })
+            put("modes", buildJsonArray { details.modes.forEach { add(JsonPrimitive(it)) } })
+        })
+    }
     put("alsoIds", buildJsonArray { alsoIds.forEach { add(JsonPrimitive(it)) } })
 }
 
