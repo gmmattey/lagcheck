@@ -88,26 +88,14 @@ fun UpdateDialog(
         ) {
             when (state) {
                 is AppUpdateUiState.UpdateAvailable -> {
-                    // Badge esportiva
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(LagCheckRadius.xs))
-                            .background(LagCheckColors.AccentPrimary.copy(alpha = 0.15f))
-                            .border(1.dp, LagCheckColors.AccentPrimary.copy(alpha = 0.4f), RoundedCornerShape(LagCheckRadius.xs))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = tr("Nova versão disponível").uppercase(),
-                            style = LagCheckTypography.BodySemibold.copy(
-                                color = LagCheckColors.AccentPrimary,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                fontSize = 12.sp
-                            )
-                        )
-                    }
+                    Text(
+                        text = tr("NOVA VERSÃO DISPONÍVEL"),
+                        style = LagCheckTypography.MonoSmall,
+                        color = LagCheckColors.AccentPrimaryLight,
+                        letterSpacing = 1.2.sp
+                    )
 
-                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
                     Text(
                         text = "LagCheck v${state.newVersion}",
@@ -119,79 +107,33 @@ fun UpdateDialog(
                         textAlign = TextAlign.Center
                     )
 
-                    if (state.downloadSize > 0) {
-                        val sizeMb = state.downloadSize.toDouble() / (1024 * 1024)
-                        Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
-                        Text(
-                            text = String.format(java.util.Locale.ROOT, "%.1f MB", sizeMb),
-                            style = LagCheckTypography.BodyMedium.copy(color = LagCheckColors.TextMuted)
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
-                    if (state.releaseNotes.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(LagCheckRadius.md))
-                                .background(LagCheckColors.Surface)
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(LagCheckRadius.md))
-                                .padding(LagCheckSpacing.cardPadding)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                Text(
-                                    text = state.releaseNotes,
-                                    style = LagCheckTypography.BodyMedium.copy(
-                                        color = LagCheckColors.TextSecondary,
-                                        lineHeight = 20.sp
-                                    )
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = tr("Uma nova versão está pronta para instalar."),
+                        style = LagCheckTypography.BodyMedium.copy(color = LagCheckColors.TextSecondary),
+                        textAlign = TextAlign.Center
+                    )
 
                     Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
                     PrimaryButton(
-                        text = if (state.isFromStore) tr("Ver na loja") else tr("ATUALIZAR AGORA"),
+                        text = if (state.isFromStore) tr("VER NA LOJA") else tr("ATUALIZAR AGORA"),
                         onClick = onStartUpdate
                     )
 
                     Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = tr("Agora não"),
-                            style = LagCheckTypography.BodyMedium.copy(
-                                color = LagCheckColors.TextMuted,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            modifier = Modifier
-                                .clickable(onClick = onDismiss)
-                                .padding(8.dp)
-                        )
-
-                        Text(
-                            text = if (state.isFromStore) tr("Ver na loja") else tr("Baixar pelo navegador"),
-                            style = LagCheckTypography.BodyMedium.copy(
-                                color = LagCheckColors.AccentPrimary,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            modifier = Modifier
-                                .clickable {
-                                    if (state.isFromStore) onOpenInStore() else onOpenInBrowser()
-                                }
-                                .padding(8.dp)
-                        )
-                    }
+                    Text(
+                        text = tr("Deixar para depois"),
+                        style = LagCheckTypography.BodyMedium.copy(
+                            color = LagCheckColors.TextMuted,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        modifier = Modifier
+                            .clickable(onClick = onDismiss)
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
                 }
 
                 is AppUpdateUiState.Downloading -> {

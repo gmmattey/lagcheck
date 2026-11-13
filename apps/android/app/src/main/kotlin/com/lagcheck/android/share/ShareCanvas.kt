@@ -45,22 +45,28 @@ internal object ShareCanvas {
     private var appContext: android.content.Context? = null
     private val faces = HashMap<Int, Typeface>()
 
-    /** Precisa do contexto para ler a Google Sans Flex (única família do app) em qualquer peso. */
+    /** Precisa do contexto para ler as fontes oficiais (Barlow, Barlow Semi Condensed e Chakra Petch). */
     fun init(context: android.content.Context) {
         appContext = context.applicationContext
     }
 
     @Synchronized
-    private fun typeface(weight: Int, @Suppress("UNUSED_PARAMETER") mono: Boolean): Typeface = faces.getOrPut(weight) {
-        val ctx = appContext
-        runCatching {
-            val file = java.io.File(ctx!!.cacheDir, "google-sans-flex.ttf")
-            if (!file.exists() || file.length() == 0L) {
-                ctx.resources.openRawResource(com.lagcheck.core.designsystem.R.font.google_sans_flex_variable)
-                    .use { input -> file.outputStream().use { input.copyTo(it) } }
+    private fun typeface(weight: Int, mono: Boolean): Typeface {
+        val key = if (mono) -1 else weight
+        return faces.getOrPut(key) {
+            val ctx = appContext ?: return@getOrPut Typeface.DEFAULT
+            val resId = when {
+                mono -> com.lagcheck.core.designsystem.R.font.chakra_petch_semibold
+                weight >= 800 -> com.lagcheck.core.designsystem.R.font.barlow_semicondensed_extrabold
+                weight >= 700 -> com.lagcheck.core.designsystem.R.font.barlow_semicondensed_bold
+                weight >= 600 -> com.lagcheck.core.designsystem.R.font.barlow_semibold
+                weight >= 500 -> com.lagcheck.core.designsystem.R.font.barlow_medium
+                else -> com.lagcheck.core.designsystem.R.font.barlow_regular
             }
-            Typeface.Builder(file).setFontVariationSettings("'wght' $weight").build()
-        }.getOrNull() ?: Typeface.DEFAULT
+            runCatching {
+                androidx.core.content.res.ResourcesCompat.getFont(ctx, resId)
+            }.getOrNull() ?: Typeface.DEFAULT
+        }
     }
 
     private fun paint(size: Float, weight: Int, mono: Boolean, kern: Float, color: Int) = Paint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {

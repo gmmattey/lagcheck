@@ -65,6 +65,7 @@ struct QuickCheckFeatureView: View {
     @State var showingDuelInvitation = false
     @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
+    @ObservedObject var favoritesStore = FavoriteGamesStore.shared
     @State private var hasTrackedAppOpen = false
     @State private var artworkLoaderReady = false
 

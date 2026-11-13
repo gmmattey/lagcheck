@@ -1,6 +1,7 @@
+import NolaggyDesign
 import UIKit
 
-/// Imagens dos cards e do vídeo. A arte é a autoral local do jogo; sem ela, o fundo é liso escuro.
+/// Imagens dos cards e do vídeo. Usa a arte autoral local do jogo quando selecionado, ou o mapa oficial quando não houver jogo.
 /// Paridade com ShareMediaImages.kt do Android, com STORE_URL apontando para a App Store.
 public final class ShareMediaImages: @unchecked Sendable {
     public static let STORE_URL = "https://apps.apple.com/app/id6818706960"
@@ -25,13 +26,12 @@ public final class ShareMediaImages: @unchecked Sendable {
         let resolvedArt: UIImage?
         if !scene.artAssetName.isEmpty, let img = findImage(named: scene.artAssetName) {
             resolvedArt = img
-        } else if let assetName = GameArtworkAssetResolver.assetName(for: scene.gameName),
+        } else if !scene.artAssetName.isEmpty,
+                  let assetName = GameArtworkAssetResolver.assetName(for: scene.gameName),
                   let img = findImage(named: assetName) {
             resolvedArt = img
-        } else if let fallback = findImage(named: "AppBackground") {
-            resolvedArt = fallback
         } else {
-            resolvedArt = nil
+            resolvedArt = RouteMapSnapshot.render()
         }
 
         let wordmarkImg = findImage(named: "WordmarkPrimary")

@@ -237,7 +237,7 @@ private fun DrawScope.drawRouteMap(
         val text = buildAnnotatedString {
             append(regionName(labelId))
             if (ms != null) {
-                withStyle(SpanStyle(fontFamily = FontFamily.Monospace, color = LagCheckColors.AccentPrimaryLight)) {
+                withStyle(SpanStyle(fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.ChakraPetch, color = LagCheckColors.AccentPrimaryLight)) {
                     append(" · ${ms.roundToInt()} ms")
                 }
             }

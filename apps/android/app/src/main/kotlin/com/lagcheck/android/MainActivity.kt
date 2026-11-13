@@ -13,34 +13,48 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.toAppLanguage
 import com.lagcheck.android.ui.AppLocale
 import com.lagcheck.android.ui.MainViewModel
@@ -55,6 +69,8 @@ import com.lagcheck.android.ui.home.HomeScreen
 import com.lagcheck.android.ui.settings.SettingsScreen
 import com.lagcheck.android.ui.verdict.VerdictScreen
 import com.lagcheck.core.designsystem.theme.LagCheckColors
+import com.lagcheck.core.designsystem.theme.LagCheckSpacing
+import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.domain.model.OfficialGameCatalog
 
 class MainActivity : ComponentActivity() {
@@ -195,6 +211,9 @@ class MainActivity : ComponentActivity() {
             androidx.compose.runtime.SideEffect {
                 com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(artworkAllowed)
             }
+            androidx.compose.material3.MaterialTheme(
+                typography = com.lagcheck.core.designsystem.theme.LagCheckTypography.MaterialTypography
+            ) {
             androidx.compose.runtime.CompositionLocalProvider(
                 com.lagcheck.android.ui.components.LocalArtworkDownloadsAllowed provides artworkAllowed
             ) {
@@ -224,54 +243,27 @@ class MainActivity : ComponentActivity() {
                 )
             }
             Scaffold(
+                containerColor = LagCheckColors.Background,
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
                     if (isHomeOrGames) {
-                        NavigationBar(
-                            containerColor = LagCheckColors.Surface.copy(alpha = 0.9f)
-                        ) {
-                            val tabColors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = LagCheckColors.AccentPrimary,
-                                selectedTextColor = LagCheckColors.AccentPrimary,
-                                unselectedIconColor = LagCheckColors.TextMuted,
-                                unselectedTextColor = LagCheckColors.TextMuted,
-                                indicatorColor = LagCheckColors.Surface
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen is Screen.Home,
-                                onClick = {
-                                    gamesOpenedFromHome = false
-                                    viewModel.navigateTo(Screen.Home)
-                                },
-                                icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                                label = { Text(tr("Início")) },
-                                colors = tabColors
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen is Screen.GameSelection,
-                                onClick = {
-                                    gamesOpenedFromHome = false
-                                    viewModel.navigateTo(Screen.GameSelection)
-                                },
-                                icon = { GamepadTabIcon(selected = currentScreen is Screen.GameSelection) },
-                                label = { Text(tr("Jogos")) },
-                                colors = tabColors
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen is Screen.History,
-                                onClick = { viewModel.navigateTo(Screen.History) },
-                                icon = { HistoryTabIcon(selected = currentScreen is Screen.History) },
-                                label = { Text(tr("Histórico")) },
-                                colors = tabColors
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen is Screen.Settings,
-                                onClick = { viewModel.navigateTo(Screen.Settings) },
-                                icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                                label = { Text(tr("Configurações")) },
-                                colors = tabColors
-                            )
-                        }
+                        FloatingBottomNavBar(
+                            currentScreen = currentScreen,
+                            onSelectHome = {
+                                gamesOpenedFromHome = false
+                                viewModel.navigateTo(Screen.Home)
+                            },
+                            onSelectGames = {
+                                gamesOpenedFromHome = false
+                                viewModel.navigateTo(Screen.GameSelection)
+                            },
+                            onSelectHistory = {
+                                viewModel.navigateTo(Screen.History)
+                            },
+                            onSelectSettings = {
+                                viewModel.navigateTo(Screen.Settings)
+                            }
+                        )
                     }
                 }
             ) { innerPadding ->
@@ -280,10 +272,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(LagCheckColors.Background)
                         .padding(innerPadding)
-                        // Só a Home compõe a arte sob a status bar. Os demais fluxos
-                        // preservam os insets de segurança existentes.
                         .then(
-                            if (currentScreen is Screen.Home) Modifier else Modifier.safeDrawingPadding()
+                            if (currentScreen is Screen.Home) Modifier.statusBarsPadding() else Modifier.safeDrawingPadding()
                         )
                 ) {
                 AnimatedContent(
@@ -294,15 +284,47 @@ class MainActivity : ComponentActivity() {
                 ) { screen ->
                 when (screen) {
                     is Screen.Home -> {
-                        val favGames = favorites.resolve(catalogGames).ifEmpty { catalogGames.take(4) }
+                        val favGames = favorites.resolve(catalogGames)
+                        val favoriteIds = favGames.map { it.id }.toSet()
+                        val preferredPopularOrder = listOf(
+                            "valorant",
+                            "cs2",
+                            "fortnite",
+                            "league_of_legends",
+                            "ea_fc",
+                            "cod_mobile",
+                            "apex_legends",
+                            "warzone"
+                        )
+                        val catalogById = catalogGames.associateBy { it.id }
+                        val recentGameChecks = kotlin.run {
+                            val seen = mutableSetOf<String>()
+                            historyItems
+                                .sortedByDescending { it.timestamp }
+                                .mapNotNull { item ->
+                                    if (item.gameId == "generic_gaming" || !seen.add(item.gameId)) {
+                                        null
+                                    } else {
+                                        catalogById[item.gameId]?.let { game -> game to item }
+                                    }
+                                }
+                                .take(3)
+                        }
+                        val orderedPopular = preferredPopularOrder.mapNotNull { catalogById[it] } +
+                            catalogGames.filter { it.id !in preferredPopularOrder }
+                        val popularGames = orderedPopular
+                            .filter { it.id != "generic_gaming" && it.id !in favoriteIds }
+                            .take(6)
+
                         HomeScreen(
                             selectedGame = selectedGame,
                             platform = selectedPlatform,
                             connectionType = selectedConnectionType,
-                            radioSnapshot = radioSnapshot,
                             latestCheck = latestCheck,
+                            recentGameChecks = recentGameChecks,
                             platformHealth = platformHealth,
                             favoriteGames = favGames,
+                            popularGames = popularGames,
                             onStartCheck = {
                                 viewModel.startGeneralCheck()
                             },
@@ -316,8 +338,8 @@ class MainActivity : ComponentActivity() {
                             onOpenLatestResult = {
                                 viewModel.openLatestResult()
                             },
-                            onOpenNetworkCockpit = {
-                                viewModel.navigateTo(Screen.NetworkCockpit)
+                            onOpenHistoryItem = { item ->
+                                viewModel.navigateTo(Screen.HistoryDetails(item = item, fromHome = true))
                             },
                             showNativeAd = showNativeAd
                         )
@@ -534,6 +556,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             }
+            }
         }
     }
 
@@ -576,33 +599,138 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-@androidx.compose.runtime.Composable
-private fun GamepadTabIcon(selected: Boolean) {
-    val color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextMuted
-    Canvas(modifier = Modifier.size(24.dp)) {
-        val stroke = 2.dp.toPx()
+@Composable
+private fun FloatingBottomNavBar(
+    currentScreen: Screen,
+    onSelectHome: () -> Unit,
+    onSelectGames: () -> Unit,
+    onSelectHistory: () -> Unit,
+    onSelectSettings: () -> Unit
+) {
+    val pillShape = RoundedCornerShape(percent = 50)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space2_5)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(elevation = 14.dp, shape = pillShape)
+                .clip(pillShape)
+                .background(LagCheckColors.Surface.copy(alpha = 0.96f))
+                .padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FloatingNavItem(
+                label = tr("Início"),
+                selected = currentScreen is Screen.Home,
+                onClick = onSelectHome,
+                modifier = Modifier.weight(1f)
+            ) { tint ->
+                Icon(
+                    imageVector = Icons.Filled.Home,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            FloatingNavItem(
+                label = tr("Jogos"),
+                selected = currentScreen is Screen.GameSelection,
+                onClick = onSelectGames,
+                modifier = Modifier.weight(1f)
+            ) { tint ->
+                GamepadTabIcon(tint = tint)
+            }
+            FloatingNavItem(
+                label = tr("Histórico"),
+                selected = currentScreen is Screen.History,
+                onClick = onSelectHistory,
+                modifier = Modifier.weight(1f)
+            ) { tint ->
+                HistoryTabIcon(tint = tint)
+            }
+            FloatingNavItem(
+                label = tr("Configurações"),
+                selected = currentScreen is Screen.Settings,
+                onClick = onSelectSettings,
+                modifier = Modifier.weight(1f)
+            ) { tint ->
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FloatingNavItem(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable (Color) -> Unit
+) {
+    val itemShape = RoundedCornerShape(percent = 50)
+    val contentColor = if (selected) Color.White else LagCheckColors.TextMuted
+    Column(
+        modifier = modifier
+            .clip(itemShape)
+            .then(
+                if (selected) Modifier.background(LagCheckColors.AccentPrimary) else Modifier
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        icon(contentColor)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = LagCheckTypography.BodyMedium.copy(
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            ),
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun GamepadTabIcon(tint: Color) {
+    Canvas(modifier = Modifier.size(20.dp)) {
+        val stroke = 1.8.dp.toPx()
         drawRoundRect(
-            color = color,
+            color = tint,
             topLeft = Offset(size.width * 0.08f, size.height * 0.25f),
             size = Size(size.width * 0.84f, size.height * 0.55f),
             cornerRadius = CornerRadius(size.height * 0.22f),
             style = Stroke(width = stroke)
         )
-        drawLine(color, Offset(size.width * 0.28f, size.height * 0.44f), Offset(size.width * 0.28f, size.height * 0.65f), stroke)
-        drawLine(color, Offset(size.width * 0.18f, size.height * 0.55f), Offset(size.width * 0.38f, size.height * 0.55f), stroke)
-        drawCircle(color, radius = stroke * 0.75f, center = Offset(size.width * 0.68f, size.height * 0.47f))
-        drawCircle(color, radius = stroke * 0.75f, center = Offset(size.width * 0.78f, size.height * 0.60f))
+        drawLine(tint, Offset(size.width * 0.28f, size.height * 0.44f), Offset(size.width * 0.28f, size.height * 0.65f), stroke)
+        drawLine(tint, Offset(size.width * 0.18f, size.height * 0.55f), Offset(size.width * 0.38f, size.height * 0.55f), stroke)
+        drawCircle(tint, radius = stroke * 0.75f, center = Offset(size.width * 0.68f, size.height * 0.47f))
+        drawCircle(tint, radius = stroke * 0.75f, center = Offset(size.width * 0.78f, size.height * 0.60f))
     }
 }
 
-@androidx.compose.runtime.Composable
-private fun HistoryTabIcon(selected: Boolean) {
-    val color = if (selected) LagCheckColors.AccentPrimary else LagCheckColors.TextMuted
-    Canvas(modifier = Modifier.size(24.dp)) {
-        val stroke = 2.dp.toPx()
-        drawCircle(color, radius = size.width * 0.4f, center = center, style = Stroke(width = stroke))
-        drawLine(color, center, Offset(center.x, size.height * 0.28f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, center, Offset(size.width * 0.66f, size.height * 0.58f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+@Composable
+private fun HistoryTabIcon(tint: Color) {
+    Canvas(modifier = Modifier.size(20.dp)) {
+        val stroke = 1.8.dp.toPx()
+        drawCircle(tint, radius = size.width * 0.4f, center = center, style = Stroke(width = stroke))
+        drawLine(tint, center, Offset(center.x, size.height * 0.28f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        drawLine(tint, center, Offset(size.width * 0.66f, size.height * 0.58f), stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
     }
 }
 

@@ -1,84 +1,183 @@
+import CoreText
 import SwiftUI
 
-/// Tipografia oficial do LagCheck Design System (DESIGN.md / colors_and_type.css).
-/// 3 pilhas fundamentais:
-/// 1. Display: ui-rounded, compacta e arredondada, para vereditos, nomes de jogo e títulos.
-/// 2. Corpo: nativa Apple (-apple-system), para leitura, explicações e controles/CTAs.
-/// 3. Técnica: monoespaçada (ui-monospace), para rotas, métricas, tempo e telemetria de rede.
+private final class BundleToken {}
+
+private enum FontRegistrar {
+    private static let _registered: Void = {
+        let bundle = Bundle(for: BundleToken.self)
+        let fontNames = [
+            "barlow_regular",
+            "barlow_medium",
+            "barlow_semibold",
+            "barlow_semicondensed_bold",
+            "barlow_semicondensed_extrabold",
+            "chakra_petch_semibold"
+        ]
+        for name in fontNames {
+            if let url = bundle.url(forResource: name, withExtension: "ttf", subdirectory: "Fonts")
+                ?? bundle.url(forResource: name, withExtension: "ttf") {
+                CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+            }
+        }
+    }()
+
+    static func ensureRegistered() {
+        _ = _registered
+    }
+}
+
+/// Tipografia oficial do LagCheck Design System (Decisão 125 / DESIGN.md).
+/// 3 famílias oficiais:
+/// 1. Display (`BarlowSemiCondensed`): títulos, vereditos e nomes de jogo em destaque.
+/// 2. Corpo (`Barlow`): leitura, navegação, explicações e controles/CTAs.
+/// 3. Telemetria (`ChakraPetch`): score, métricas, tempo e rótulos técnicos.
 public enum NLTypography {
-    // MARK: - Display (ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif)
+    private static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
+        FontRegistrar.ensureRegistered()
+        return Font.custom(name, size: size, relativeTo: textStyle)
+    }
 
-    /// Headline imersiva da Home ("PRONTO PRA JOGAR?") — Arredondada, peso Heavy/Black, tracking negativo
-    public static let competitiveHero = Font.system(size: 32, weight: .heavy, design: .rounded)
+    // MARK: - Display (Barlow Semi Condensed)
 
-    /// Manchete massiva de veredito ("● PRONTO PARA RANKED") — Arredondada, peso Heavy
-    public static let verdictHeadline = Font.system(size: 28, weight: .heavy, design: .rounded)
+    /// Headline imersiva da Home ("PRONTO PRA JOGAR?")
+    public static var competitiveHero: Font {
+        custom("BarlowSemiCondensed-ExtraBold", size: 32, relativeTo: .title)
+    }
+
+    /// Manchete massiva de veredito ("● PRONTO PARA RANKED")
+    public static var verdictHeadline: Font {
+        custom("BarlowSemiCondensed-ExtraBold", size: 28, relativeTo: .title)
+    }
 
     /// Manchete dominante de veredito no Hero (42pt)
-    public static let verdictHeroHeadline = Font.system(size: 42, weight: .black, design: .rounded)
+    public static var verdictHeroHeadline: Font {
+        custom("BarlowSemiCondensed-ExtraBold", size: 42, relativeTo: .largeTitle)
+    }
 
     /// Nome do jogo protagonista na Home (38pt)
-    public static let heroHomeName = Font.system(size: 38, weight: .heavy, design: .rounded)
+    public static var heroHomeName: Font {
+        custom("BarlowSemiCondensed-ExtraBold", size: 38, relativeTo: .largeTitle)
+    }
 
     /// Título de telas nomeadas abaixo da barra de ações (31pt)
-    public static let screenTitle = Font.system(size: 31, weight: .bold, design: .rounded)
+    public static var screenTitle: Font {
+        custom("BarlowSemiCondensed-Bold", size: 31, relativeTo: .largeTitle)
+    }
 
     /// Cópia principal de status da medição ao vivo (25pt)
-    public static let statusCopy = Font.system(size: 25, weight: .bold, design: .rounded)
+    public static var statusCopy: Font {
+        custom("BarlowSemiCondensed-Bold", size: 25, relativeTo: .title2)
+    }
 
     /// Nome do jogo protagonista em destaque
-    public static let heroGameTitle = Font.system(size: 22, weight: .heavy, design: .rounded)
+    public static var heroGameTitle: Font {
+        custom("BarlowSemiCondensed-ExtraBold", size: 22, relativeTo: .title2)
+    }
 
     /// Título display de grandes telas
-    public static let displayTitle = Font.system(size: 34, weight: .bold, design: .rounded)
+    public static var displayTitle: Font {
+        custom("BarlowSemiCondensed-Bold", size: 34, relativeTo: .largeTitle)
+    }
 
     /// Score numérico principal (0–100)
-    public static let scoreDisplay = Font.system(size: 64, weight: .heavy, design: .rounded).monospacedDigit()
+    public static var scoreDisplay: Font {
+        custom("ChakraPetch-SemiBold", size: 64, relativeTo: .largeTitle).monospacedDigit()
+    }
 
     /// Score numérico de alta precisão nos Detalhes Técnicos (45pt)
-    public static let monospaceDetailScore = Font.system(size: 45, weight: .bold, design: .monospaced)
+    public static var monospaceDetailScore: Font {
+        custom("ChakraPetch-SemiBold", size: 45, relativeTo: .largeTitle).monospacedDigit()
+    }
 
-    // MARK: - Corpo e Controles (-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif)
+    // MARK: - Corpo e Controles (Barlow)
 
-    /// Rótulo de botão de ação primária (CTA) — Peso 800 (Heavy) sobre corpo nativo Apple
-    public static let ctaButton = Font.system(size: 16, weight: .heavy, design: .default)
+    /// Rótulo de botão de ação primária (CTA)
+    public static var ctaButton: Font {
+        custom("Barlow-SemiBold", size: 16, relativeTo: .headline)
+    }
 
-    public static let headline = Font.system(size: 22, weight: .bold, design: .rounded)
-    public static let subheadline = Font.system(size: 20, weight: .semibold, design: .default)
-    public static let bodyEmphasis = Font.system(size: 17, weight: .semibold, design: .default)
-    public static let body = Font.body
-    public static let callout = Font.callout
-    public static let subheadlineSecondary = Font.subheadline
-    public static let footnote = Font.footnote
-    public static let caption = Font.caption
-    public static let captionStrong = Font.system(size: 12, weight: .semibold, design: .default)
+    public static var headline: Font {
+        custom("BarlowSemiCondensed-Bold", size: 22, relativeTo: .headline)
+    }
+
+    public static var subheadline: Font {
+        custom("Barlow-SemiBold", size: 20, relativeTo: .title3)
+    }
+
+    public static var bodyEmphasis: Font {
+        custom("Barlow-SemiBold", size: 17, relativeTo: .body)
+    }
+
+    public static var body: Font {
+        custom("Barlow-Regular", size: 17, relativeTo: .body)
+    }
+
+    public static var callout: Font {
+        custom("Barlow-Regular", size: 16, relativeTo: .callout)
+    }
+
+    public static var subheadlineSecondary: Font {
+        custom("Barlow-Regular", size: 15, relativeTo: .subheadline)
+    }
+
+    public static var footnote: Font {
+        custom("Barlow-Regular", size: 13, relativeTo: .footnote)
+    }
+
+    public static var caption: Font {
+        custom("Barlow-Regular", size: 12, relativeTo: .caption)
+    }
+
+    public static var captionStrong: Font {
+        custom("Barlow-SemiBold", size: 12, relativeTo: .caption)
+    }
 
     /// Rótulo de cabeçalho de seção ("SEUS JOGOS", "O QUE ENCONTRAMOS")
-    public static let sectionHeader = Font.system(size: 13, weight: .heavy, design: .default)
+    public static var sectionHeader: Font {
+        custom("ChakraPetch-SemiBold", size: 13, relativeTo: .caption)
+    }
 
-    // MARK: - Técnica e Telemetria (ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas)
+    // MARK: - Técnica e Telemetria (Chakra Petch)
 
-    /// Números de telemetria principais em destaque (Monoespaçado)
-    public static let metricsNumberLarge = Font.system(size: 32, weight: .heavy, design: .monospaced)
-    public static let metricsNumber = Font.system(size: 22, weight: .bold, design: .monospaced)
+    /// Números de telemetria principais em destaque
+    public static var metricsNumberLarge: Font {
+        custom("ChakraPetch-SemiBold", size: 32, relativeTo: .title).monospacedDigit()
+    }
+
+    public static var metricsNumber: Font {
+        custom("ChakraPetch-SemiBold", size: 22, relativeTo: .title2).monospacedDigit()
+    }
 
     /// Identificador compacto de métrica em caixa-alta ("PING", "JITTER", "PERDA") — Tracking positivo
-    public static let metricsLabel = Font.system(size: 11, weight: .bold, design: .monospaced)
+    public static var metricsLabel: Font {
+        custom("ChakraPetch-SemiBold", size: 11, relativeTo: .caption2)
+    }
 
-    /// Subtítulo em monospace (11pt medium)
-    public static let monospaceSubtitle = Font.system(size: 11, weight: .medium, design: .monospaced)
+    /// Subtítulo técnico (11pt)
+    public static var monospaceSubtitle: Font {
+        custom("ChakraPetch-SemiBold", size: 11, relativeTo: .caption2).monospacedDigit()
+    }
 
-    /// Linha de métricas e status (11pt regular)
-    public static let monospaceMetrics = Font.system(size: 11, weight: .regular, design: .monospaced)
+    /// Linha de métricas e status (11pt)
+    public static var monospaceMetrics: Font {
+        custom("ChakraPetch-SemiBold", size: 11, relativeTo: .caption2).monospacedDigit()
+    }
 
-    /// Rótulo de seção em caixa-alta monoespaçado (11pt regular)
-    public static let captionMonoUppercase = Font.system(size: 11, weight: .regular, design: .monospaced)
+    /// Rótulo de seção em caixa-alta (11pt)
+    public static var captionMonoUppercase: Font {
+        custom("ChakraPetch-SemiBold", size: 11, relativeTo: .caption2)
+    }
 
     /// Linha de status do último check ou telemetria ("Wi-Fi · 18 ms")
-    public static let statusLine = Font.system(size: 12, weight: .medium, design: .monospaced)
+    public static var statusLine: Font {
+        custom("ChakraPetch-SemiBold", size: 12, relativeTo: .caption).monospacedDigit()
+    }
 
     /// Rótulo de evidência técnica
-    public static let technicalEvidence = Font.system(size: 10, weight: .bold, design: .monospaced)
+    public static var technicalEvidence: Font {
+        custom("ChakraPetch-SemiBold", size: 10, relativeTo: .caption2)
+    }
 
     // MARK: - Tracking Tokens (DESIGN.md)
     /// Títulos trabalham com tracking negativo
@@ -92,10 +191,10 @@ public enum NLTypography {
     public static let technicalEvidenceTracking: CGFloat = 1.0
 
     // Aliases para legado
-    public static let contextDisclosure = Font.caption
-    public static let gameCover = Font.system(size: 12, weight: .semibold)
-    public static let wordmark = Font.system(size: 20, weight: .heavy, design: .rounded)
-    public static let navigationIcon = Font.system(size: 16, weight: .semibold)
+    public static var contextDisclosure: Font { caption }
+    public static var gameCover: Font { custom("Barlow-SemiBold", size: 12, relativeTo: .caption) }
+    public static var wordmark: Font { custom("BarlowSemiCondensed-ExtraBold", size: 20, relativeTo: .title3) }
+    public static var navigationIcon: Font { custom("Barlow-SemiBold", size: 16, relativeTo: .body) }
     public static let gameCoverTracking: CGFloat = 0.5
     public static let metricsTracking: CGFloat = 1.0
 }

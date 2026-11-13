@@ -127,6 +127,15 @@
 | [122](#decisão-122) | Windows (WinUI 3): suporte multi-idioma nativo (PT-BR, EN e ES) com detecção de sistema e seletor em Ajustes | **Vigente** | Internacionalização completa da interface WinUI 3 com chave PT-BR, fallback robusto e troca instantânea | Luiz / Squad |
 | [123](#decisão-123) | Mapa de medição nativo igual ao site, localização aproximada por IP e pré-leitura regional em todo Check do iOS | **Vigente (implementado localmente; aparelho físico pendente)** | Refina as Decisões 50 e 90; usa o endpoint do site já usado pelo Windows (Decisão 116), sem Worker novo | Luiz / Camillo |
 | [124](#decisão-124) | Nova logo (símbolo L + check e wordmark "Lagcheck") nos apps, ícones e lojas | **Vigente (implementado localmente; envio às lojas pendente)** | Substitui o símbolo da Decisão 91 e a grafia minúscula da wordmark da Decisão 25 | Luiz / Priscila |
+| [125](#decisão-125) | Tipografia unificada com o site (Barlow, Barlow Semi Condensed e Chakra Petch) no Android e no iOS | **Vigente (implementado localmente)** | Unifica iOS e Android com a trinca do `DESIGN.md` do site; substitui Google Sans Flex no Android (Decisão 80) e SF no iOS | Luiz / Squad |
+| [126](#decisão-126) | Raios de canto de CTAs e cards alinhados ao site (12 px) no Android e no iOS | **Vigente (implementado localmente)** | Passa `md` e `lg` (CTAs e cards) para `12`, tirando a pílula (`50%`) do `PrimaryButton` no Android e o `17pt` do iOS; mantém `sm = 8`, `xl = 26` e `pill = 999` | Luiz / Squad |
+| [127](#decisão-127) | Home unificada 1:1 com Gauge limpo (sem arte de fundo) + Card do último check | **Vigente (implementado localmente)** | Remove o banner `HeroTopGames` atrás do gauge `TESTAR` e transforma o último resultado em um card clicável (`12px`, borda `1px`) com veredito e ping/jitter | Luiz / Squad |
+| [128](#decisão-128) | Profundidade por camadas tonais e sombra em vez de linhas de contorno | **Vigente (implementado localmente)** | Remove bordas/contornos de cards, slots e botões secundários nas 4 telas principais de Android e iOS, usando `Surface`/`Panel` e sombra sutil | Luiz / Squad |
+| [129](#decisão-129) | Gauge da Home como mostrador de telemetria (órbita fina + ticks + núcleo elevado) | **Superada pela 130** | Substituído pelo Hero retangular estilo site na Home | Luiz / Squad |
+| [130](#decisão-130) | Home com Hero retangular estilo site (título + CTA `12 px` em Roxo Gamer), sem gauge circular | **Vigente (refinada pela 131)** | Remove o gauge circular da Home e adota card Hero `#15181E` com sombra, título `PRONTO PRA RANKED?` e botão `TESTAR AGORA` (`12 px`) | Luiz / Squad |
+| [131](#decisão-131) | Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android | **Vigente (refinada pela 132)** | Adiciona busca em pílula no topo, unifica pílula do último check dentro do Hero (`#1E232B`→`#15181E` + glow `#7C3AED`), adota trilhos horizontais 3:4 (`114x152`) para Favoritos e Populares, e tab bar flutuante em pílula no Android | Luiz / Squad |
+| [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
+| [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
 
 
 
@@ -1445,6 +1454,93 @@
 - **Decisão:** a logo oficial passa a ser a publicada no site em 10 de novembro de 2026: símbolo "L + check" com órbita (`shared/design-system/assets/brand/lagcheck-mark.svg`) e wordmark "Lagcheck" (`wordmark-primary.svg`), copiados sem alteração de `gmmattey/landings/pages/lagcheck/src/assets/brand/`. Substitui o símbolo da Decisão 91 e a regra de wordmark em minúsculas da Decisão 25 (o nome do produto continua LagCheck no texto).
 - **Aplicação:** ícone do app iOS (claro, escuro e tingido), App Clip, ícone adaptativo Android (fundo, frente na zona segura de 66 dp, monocromático e legado redondo), wordmark nas telas iOS/Android e nos cards de compartilhamento, ícones de loja (`shared/distribution/store/app-store/icon-1024.png` sem alfa e `shared/distribution/store/google-play/icon-512.png`) e ativos do design system. O ícone só posiciona o símbolo oficial sobre o fundo grafite do ícone anterior; tudo é gerado por `shared/scripts/generate-brand-icons.py`.
 - **Fora do escopo / pendências:** ícones alternativos do Android com mascote (`ic_launcher_cheer/thumbs/wink`), wordmarks monocromáticas, favicon e apple-touch-icon do site (ainda com o símbolo anterior, no repositório `landings`), screenshots e feature graphic das lojas, protótipo Windows. Envio às lojas exige autorização explícita.
+
+#### Decisão 125
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Tipografia unificada com o site (Barlow, Barlow Semi Condensed e Chakra Petch) no Android e no iOS.
+- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** iOS e Android passam a usar a mesma trinca tipográfica definida no `DESIGN.md` do site (`lagcheck.signallq.com`):
+  1. **Títulos e vereditos:** **Barlow Semi Condensed** (Bold 700 / ExtraBold 800).
+  2. **Corpo, botões, listas e navegação:** **Barlow** (Regular 400 / Medium 500 / SemiBold 600), aplicada também como família padrão do tema no Android para evitar fallback em Roboto.
+  3. **Métricas, números de telemetria e rótulos técnicos:** **Chakra Petch** (SemiBold 600, com algarismos tabulares).
+- **Substituições:** substitui a exceção de Google Sans Flex no Android (Decisão 80) e as fontes nativas SF no iOS. As fontes e licenças OFL são empacotadas nos módulos de design system das duas plataformas (`apps/android/core/designsystem` e `apps/ios/Sources/NolaggyDesign`).
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, com conferência visual das telas no emulador Android e no simulador iOS.
+
+#### Decisão 126
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Raios de canto de CTAs e cards alinhados ao site (`12 px`) no Android e no iOS.
+- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** os tokens de raio em `shared/design-system/tokens/radius.json`, `LagCheckRadius` (Android) e `NLRadius` (iOS) passam a seguir a escala do CSS do site (`global.css`):
+  - `sm = 8`: miniaturas, capas e métricas;
+  - `md = 12`: cards e campos (antes `13`);
+  - `lg = 12`: botões de ação primária / CTAs (antes `17`, e no Android `PrimaryButton` usava `percent = 50` em formato de pílula);
+  - `xl = 26`: bottom sheets;
+  - `pill = 999`: pílulas de status e veredito.
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 127
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Home unificada 1:1 com Gauge limpo (sem arte de fundo) + Card do último check.
+- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** remove o banner ilustrado `HeroTopGames` do topo da Home no Android e no iOS, deixando o gauge circular `TESTAR` sobre o fundo puro `#0B0D10`. Logo abaixo do gauge, a linha solta do último resultado passa a ser um **card clicável** (`12 px`, borda `1 px`, fundo `Surface`) com o veredito, tempo relativo e métricas de ping/jitter em Chakra Petch (ou estado vazio discreto quando não há check), seguido pelos Favoritos (teto de 4 + `+ Adicionar`).
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 128
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Profundidade por camadas tonais e sombra em vez de linhas de contorno.
+- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** substitui linhas de contorno (`border`/`stroke`) em cards, slots, filtros e botões secundários das 4 telas principais (Início, Jogos, Histórico e Ajustes/Configurações) por hierarquia de profundidade tonal (`#0B0D10` fundo → `#15181E` Surface → `#1E232B` Panel) e sombra suave no Android e no iOS.
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 129
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Gauge da Home como mostrador de telemetria (órbita fina + ticks + núcleo elevado).
+- **Status Atual:** **Superada pela Decisão 130.**
+
+#### Decisão 130
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Home com Hero retangular estilo site (título + CTA `12 px` em Roxo Gamer), sem gauge circular.
+- **Status Atual:** **Vigente (refinada pela Decisão 131).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** remove o gauge circular da Home no Android e no iOS e adota a mesma linguagem direta do site: card Hero em `#15181E` (`12 px`, profundidade por sombra, sem contorno) com título `PRONTO PRA RANKED?` em Barlow Semi Condensed ExtraBold e botão primário retangular `TESTAR AGORA` (`12 px`) em Roxo Gamer `#7C3AED`, seguido pelo card do último check e pelos Favoritos.
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 131
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android.
+- **Status Atual:** **Vigente (refinada pela Decisão 132).** Aprovada pelo Luiz a partir do plano inspirado na referência visual enviada.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** evolui a Home no Android e no iOS em paridade 1:1 com: (1) barra de busca flutuante em pílula no topo que abre o catálogo de Jogos; (2) card Hero unificado (`12 px`, gradiente `#1E232B`→`#15181E` com glow sutil `#7C3AED` e sombra, zero contorno) contendo a pílula clicável do último check em **Chakra Petch**, título `PRONTO PRA RANKED?` e botão `TESTAR AGORA`; (3) dois trilhos horizontais de pôsteres verticais `3:4` (`114 x 152`, raio `12 px`, sombra) para **Seus Favoritos** (`Ver todos ›`) e **Populares** (`Ver todos ›`, até 6 jogos do catálogo excluindo `generic_gaming` e favoritos); e (4) tab bar flutuante em pílula (`#15181E` com sombra e item ativo em `#7C3AED` branco) no Android, mantendo a `TabView` nativa no iOS.
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 132
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** Hero da Home em carrossel deslizante com arte de fundo e veredito limpo (sem dados técnicos).
+- **Status Atual:** **Vigente (implementado localmente).** Aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** transforma o Hero da Home no Android e no iOS em um carrossel horizontal com arte de fundo e gradiente escuro para legibilidade: (1) sem jogos específicos testados no histórico, exibe slide único com a arte da home do site (`home_hero_default`), título `PRONTO PRA RANKED?` e CTA `TESTAR AGORA`; (2) com 1 a 3+ jogos testados, exibe os últimos até 3 jogos únicos testados como slides deslizantes (com troca automática a cada 5 segundos quando houver 2 ou mais jogos, pausando/reiniciando na interação manual), cada um com sua arte editorial ao fundo, o nome do jogo em destaque, botão `TESTAR AGORA` para retestar aquele jogo e pílula superior clicável mostrando **somente o veredito** do último teste daquele jogo (sem ping, jitter ou métricas técnicas).
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 133
+
+- **Data:** 13 de novembro de 2026.
+- **Título:** CTA do Hero da Home em pílula com anel externo translúcido e seta circular.
+- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
+- **Decisão:** adapta o CTA `TESTAR AGORA` do card Hero da Home no Android e no iOS para o formato em pílula com gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho/sombra luminosa, ícone circular branco com seta `→` em `#7C3AED` à direita e um anel externo fino translúcido (`4 px` de respiro) contornando o botão. Os demais `PrimaryButton` do app seguem em `12 px`.
+- **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
 
 ## Como Registrar Novas Decisões
 

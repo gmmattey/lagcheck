@@ -14,33 +14,25 @@ Os tokens canônicos em hex valem para iOS, Android, Windows e Web (ver [`tokens
 
 ## Typography / Tipografia
 
-- Display: `--lc-font-display`, arredondada e compacta, para vereditos, nomes de jogo e títulos.
-- Corpo: `--lc-font-body`, nativa Apple, para leitura e controles.
-- Técnica: `--lc-font-mono`, para rota, métricas, tempo e contexto de rede.
-
-As pilhas abaixo valem para o iOS e para os protótipos HTML. Android usa Google Sans Flex; Windows empacota Barlow, Barlow Semi Condensed e Chakra Petch, conforme o site (veja Plataformas e `tokens/typography.json`). As fontes Windows e suas licenças OFL ficam em `android/desktop/src/main/resources/fonts/`. As pilhas são observadas diretamente nos protótipos: `ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif`; `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`; e `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Títulos de produto trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar mono para parágrafos.
-
-
-### Tipografia do site (Web)
-
-Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, implementado em `gmmattey/landings/pages/lagcheck/`. Ela não substitui as escolhas nativas de iOS e Android, nem altera as cores ou o wordmark. Para o Windows, esta combinação foi aprovada como nova referência visual; a migração do app está pendente de empacotamento e testes.
+A tipografia é unificada entre iOS, Android, Windows e Web (Decisão 125):
 
 | Papel | Família | Peso recomendado | Uso |
 | --- | --- | --- | --- |
-| Corpo | **Barlow** | 400–500 | Parágrafos, artigos, tutoriais, formulários e textos de orientação |
-| Títulos | **Barlow Semi Condensed** | 700–800 | H1–H3, chamadas, destaques e títulos editoriais |
-| Métricas | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes e diagnósticos, onde houver dados medidos |
-| Fallback | Pilha sans-serif do sistema | conforme componente | Leitura quando a fonte web não carregar |
+| Títulos e vereditos | **Barlow Semi Condensed** | 700–800 | Vereditos, nomes de tela, chamadas e destaques |
+| Corpo e controles | **Barlow** | 400–600 | Parágrafos, listas, formulários, botões e navegação |
+| Métricas e dados | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes, rotas e tags técnicas (algarismos tabulares) |
+| Fallback | Pilha sans-serif/mono do sistema | conforme componente | Leitura quando a fonte web não carregar |
 
-**Regras de implementação web:**
+As fontes empacotadas e suas licenças OFL ficam em `apps/android/core/designsystem/src/main/res/font/`, `apps/ios/Sources/NolaggyDesign/Resources/Fonts/` e `apps/android/desktop/src/main/resources/fonts/`. Títulos trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar fonte de métrica para parágrafos nem Barlow Semi Condensed em leitura contínua.
+
+**Regras de implementação web (`gmmattey/landings/pages/lagcheck/src/styles/global.css`):**
 - Centralizar as famílias em *custom properties* CSS, sem repetir configurações em páginas individuais. Aplicar as regras por papéis semânticos para que toda a home, páginas de jogos, ferramentas e páginas institucionais compartilhem a mesma tipografia.
 - Usar Barlow em leitura longa; evitar Chakra Petch em parágrafos e evitar Barlow Semi Condensed em textos de leitura contínua.
 - Preservar hierarquia, legibilidade e contraste no mobile (inclusive a 320 px); manter altura de linha adequada e controlar quebras de título e largura dos botões.
 - Carregar apenas pesos e subconjuntos necessários em WOFF2, com `font-display: swap`, alternativas compatíveis e verificação de CLS/LCP. Não introduzir dependência de CDN obrigatória se o self-hosting for viável.
 - Métricas devem continuar diferenciando valor observado, indisponível e inconclusivo. A fonte não é um sinal de estado; as cores semânticas e mensagens textuais continuam sendo a referência.
 - Paleta oficial preservada: fundo `#0B0D10`, Roxo Gamer `#7C3AED` e variações aprovadas. Sem substituir a paleta por cores inspiradas em concorrentes.
-
-**Fonte de implementação web:** `gmmattey/landings/pages/lagcheck/src/styles/global.css` e estilos compartilhados. Antes de publicar, verificar componentes com `font-family` explícita, conferir a renderização desktop/mobile e executar a suíte existente do site. A alteração desta documentação **não publica o site**.
+- A alteração desta documentação **não publica o site**.
 
 ## Mapa de medição
 
@@ -90,7 +82,7 @@ O sistema vale para iOS, Android e Windows (prévia). Os valores de referência 
 | --- | --- | --- | --- |
 | Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
 | Cores, espaçamento, raio | Tokens completos (`NLColor`, `NLSpacing`, `NLRadius`) | `LagCheckColors`, `LagCheckSpacing`, `LagCheckRadius` | Tokens próprios |
-| Fonte | SF arredondada, SF e SF mono | Google Sans Flex em tudo, números tabulares (Decisão 80) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas), com fontes empacotadas |
+| Fonte | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) |
 | Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
 | Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
 

@@ -46,10 +46,7 @@ public struct CatalogSearchField: View {
         .padding(.horizontal, NLSpacing.md)
         .frame(minHeight: NLSizing.touchTarget)
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.controlMedium))
-        .overlay {
-            RoundedRectangle(cornerRadius: NLRadius.controlMedium)
-                .stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline)
-        }
+        .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
         .task {
             guard focusesOnAppear else { return }
             await Task.yield()
@@ -249,7 +246,7 @@ public struct CatalogAvailabilityState: View {
         .frame(maxWidth: .infinity, minHeight: NLSizing.emptyStateMinHeight)
         .padding(NLSpacing.cardPadding)
         .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay { RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline) }
+        .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
         .accessibilityElement(children: .contain)
     }
 }

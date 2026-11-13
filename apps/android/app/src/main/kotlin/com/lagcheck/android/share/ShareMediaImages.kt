@@ -2,9 +2,10 @@ package com.lagcheck.android.share
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.lagcheck.core.designsystem.components.map.RouteMapSnapshot
 import com.lagcheck.domain.presentation.ReadinessLanguage
 
-/** Imagens dos cards e do vídeo. A arte é a autoral local do jogo; sem ela, o fundo é liso. */
+/** Imagens dos cards e do vídeo. Usa a arte autoral do jogo quando selecionado, ou o mapa oficial quando não houver jogo. */
 internal class ShareMediaImages(val art: Bitmap?, val wordmark: Bitmap?, val badge: Bitmap?, val tiles: List<Bitmap?>) {
     companion object {
         const val STORE_URL = "https://play.google.com/store/apps/details?id=com.lagcheck.app"
@@ -24,8 +25,10 @@ internal class ShareMediaImages(val art: Bitmap?, val wordmark: Bitmap?, val bad
         fun load(context: Context, scene: ShareMediaScene, language: ReadinessLanguage, withTiles: Boolean): ShareMediaImages {
             ShareCanvas.init(context)
             val tiles = if (withTiles) gridDrawables.filter { it != scene.artDrawableName }.take(8).map { ShareCanvas.decode(context, it) } else emptyList()
+            val resolvedArt = scene.artDrawableName.takeIf { it.isNotEmpty() }?.let { ShareCanvas.decode(context, it) }
+                ?: RouteMapSnapshot.render()
             return ShareMediaImages(
-                art = scene.artDrawableName.takeIf { it.isNotEmpty() }?.let { ShareCanvas.decode(context, it) },
+                art = resolvedArt,
                 wordmark = ShareCanvas.decode(context, "lagcheck_wordmark_official"),
                 badge = ShareCanvas.decode(context, badgeDrawable(language)),
                 tiles = tiles

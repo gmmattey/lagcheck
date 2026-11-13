@@ -184,6 +184,7 @@ object UiStrings {
         t("MEDINDO...", "MEASURING...", "MIDIENDO...")
         t("TESTAR POR JOGO", "TEST BY GAME", "PROBAR POR JUEGO")
         t("Ver todos", "See all", "Ver todos")
+        t("Adicionar", "Add", "Añadir")
         t("1 toque ▸", "1 tap ▸", "1 toque ▸")
         // endregion
 

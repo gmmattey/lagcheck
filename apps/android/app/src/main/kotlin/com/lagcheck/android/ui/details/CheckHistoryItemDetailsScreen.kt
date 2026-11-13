@@ -205,7 +205,7 @@ private fun HistoryDetailRow(
             )
             Text(
                 text = value,
-                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.GoogleSans,
+                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.ChakraPetch,
                 style = androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum"),
                 fontSize = 15.sp,
                 color = LagCheckColors.TextPrimary

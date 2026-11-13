@@ -123,7 +123,7 @@ public struct CheckCompletoResultView: View {
                     Spacer()
 
                     Text(verbatim: regionFriendlyName.isEmpty ? "\(gameName) · \(platform.displayName)" : "\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
-                        .font(.system(size: 11, weight: .regular))
+                        .font(NLTypography.statusLine)
                         .foregroundStyle(NLColor.textTertiary)
                         .accessibilityIdentifier("check-completo-context")
                 }
@@ -131,7 +131,7 @@ public struct CheckCompletoResultView: View {
 
                 if platform != .iphone {
                     Text(LocalizedStringKey("check_completo.context.estimate_footnote"))
-                        .font(.system(size: 11, weight: .regular))
+                        .font(NLTypography.caption)
                         .foregroundStyle(NLColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 4)
@@ -142,21 +142,22 @@ public struct CheckCompletoResultView: View {
                 // o card pronto para compartilhar.
                 VStack(alignment: .leading, spacing: 0) {
                     Text(LocalizedStringKey("result.kicker"))
-                        .font(.system(size: 11, weight: .medium))
+                        .font(NLTypography.captionMonoUppercase)
                         .foregroundStyle(NLColor.textTertiary)
                         .padding(.top, 36)
                         .padding(.bottom, 18)
 
                     VerdictIndicatorBadge(verdict: evaluation.verdict, size: 18)
                     Text(LocalizedStringKey(evaluation.headlineKey))
-                        .font(.system(size: 44, weight: .black))
+                        .font(NLTypography.verdictHeroHeadline)
+                        .tracking(NLTypography.verdictTracking)
                         .foregroundStyle(colorForVerdict(evaluation.verdict))
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("check-completo-verdict")
                         .padding(.top, 6)
 
                     Text(LocalizedStringKey(evaluation.subtitleKey))
-                        .font(.system(size: 17, weight: .medium))
+                        .font(NLTypography.bodyEmphasis)
                         .foregroundStyle(NLColor.textPrimary)
                         .lineSpacing(4)
                         .padding(.top, 19)
@@ -178,23 +179,23 @@ public struct CheckCompletoResultView: View {
                     // Métricas inline em tipografia monoespaçada
                     HStack(spacing: 6) {
                         Text(verbatim: "\(formattedMs(evaluation.pingMs)) ms")
-                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .font(NLTypography.statusLine)
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "·")
-                            .font(.system(size: 12, weight: .regular))
+                            .font(NLTypography.statusLine)
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "\(formattedMs(evaluation.jitterMs)) ms jitter")
-                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .font(NLTypography.statusLine)
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "·")
-                            .font(.system(size: 12, weight: .regular))
+                            .font(NLTypography.statusLine)
                             .foregroundStyle(NLColor.textTertiary)
 
                         Text(verbatim: "\(formattedLoss(evaluation.packetLossPercentage))% \(AppLocalization.string("game_readiness.telemetry.loss", comment: ""))")
-                            .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                            .font(NLTypography.statusLine)
                             .foregroundStyle(NLColor.textTertiary)
                     }
                     .padding(.top, 24)
@@ -229,10 +230,10 @@ public struct CheckCompletoResultView: View {
                     if let grade = evaluation.metrics?.loadImpact?.bufferbloatGrade {
                         HStack(spacing: 6) {
                             Text(LocalizedStringKey("result.bufferbloat.label"))
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(NLTypography.statusLine)
                                 .foregroundStyle(NLColor.textTertiary)
                             Text(verbatim: "\(grade.rawValue)")
-                                .font(.system(size: 11, weight: .heavy).monospacedDigit())
+                                .font(NLTypography.statusLine)
                                 .foregroundStyle(
                                     (grade == .aPlus || grade == .a || grade == .b)
                                         ? colorForVerdict(.ready)
@@ -242,29 +243,26 @@ public struct CheckCompletoResultView: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(NLColor.surface, in: Capsule())
-                        .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
+                        .shadow(color: NLShadow.cardColor, radius: 4, x: 0, y: 2)
                         .padding(.top, 12)
                     }
 
                     // Card: O que mais pesou
                     VStack(alignment: .leading, spacing: 5) {
                         Text(LocalizedStringKey("result.weight_card.title"))
-                            .font(.system(size: 10, weight: .regular))
+                            .font(NLTypography.captionMonoUppercase)
                             .foregroundStyle(NLColor.textTertiary)
                             .textCase(.uppercase)
 
                         Text(weightText(evaluation: evaluation))
-                            .font(.system(size: 14, weight: .bold))
+                            .font(NLTypography.bodyEmphasis)
                             .foregroundStyle(NLColor.textPrimary)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 18)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
-                            .stroke(NLColor.borderHairline, lineWidth: 1)
-                    )
+                    .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
                     .padding(.top, 32)
                 }
 
@@ -388,7 +386,7 @@ public struct CheckCompletoResultView: View {
         .frame(maxWidth: 360)
         .aspectRatio(1200.0 / 630.0, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous).stroke(NLColor.borderSubtle, lineWidth: 1))
+        .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
         .accessibilityLabel(a11yLabel)
         .padding(.top, 24)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -698,17 +696,13 @@ public struct CheckCompletoResultView: View {
     // MARK: - 6. Ações
 
     private func actionsSection(evaluation: GameReadinessEvaluation) -> some View {
-        VStack(spacing: 12) {
+        let secondaryShape = RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+        return VStack(spacing: 12) {
             // A ação que recoloca a pessoa no Check vem antes da exploração.
-            Button(action: retry) {
-                Text(LocalizedStringKey("result.retest_button"))
-                    .font(.system(size: 16, weight: .heavy))
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(NLColor.gamerPurple, in: Capsule())
-            }
-            .buttonStyle(.plain)
+            PrimaryButton(
+                title: LocalizedStringKey("result.retest_button"),
+                action: retry
+            )
             .accessibilityIdentifier("check-completo-primary-action")
 
             if evaluation.verdict != .inconclusive {
@@ -718,12 +712,13 @@ public struct CheckCompletoResultView: View {
                             Image(systemName: "trophy.fill")
                                 .font(.system(size: 14, weight: .bold))
                             Text("Ver Placar do Duelo (Versus)")
-                                .font(.system(size: 15, weight: .bold))
+                                .font(NLTypography.ctaButton)
                         }
                         .foregroundStyle(NLColor.textPrimary)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(NLColor.surface, in: Capsule())
+                        .frame(height: 54)
+                        .background(NLColor.surface, in: secondaryShape)
+                        .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("check-completo-versus-replay")
@@ -733,12 +728,13 @@ public struct CheckCompletoResultView: View {
                             Image(systemName: "gamecontroller.fill")
                                 .font(.system(size: 14, weight: .bold))
                             Text("Desafiar Duo no Lobby")
-                                .font(.system(size: 15, weight: .bold))
+                                .font(NLTypography.ctaButton)
                         }
                         .foregroundStyle(NLColor.textPrimary)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(NLColor.surface, in: Capsule())
+                        .frame(height: 54)
+                        .background(NLColor.surface, in: secondaryShape)
+                        .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("check-completo-host-duel")
@@ -746,11 +742,12 @@ public struct CheckCompletoResultView: View {
 
                 Button(action: showDetails) {
                     Text(LocalizedStringKey("result.details_button"))
-                        .font(.system(size: 15, weight: .bold))
+                        .font(NLTypography.ctaButton)
                         .foregroundStyle(NLColor.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(NLColor.surface, in: Capsule())
+                        .background(NLColor.surface, in: secondaryShape)
+                        .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("check-completo-details")
