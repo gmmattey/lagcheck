@@ -42,10 +42,10 @@ public enum DeepCheckLoadImpactMaterialityRuleV1 {
     }
 }
 
-/// Regra multidimensional calibrada por perfil via motor compartilhado (Decisões 55, 134 e 135).
+/// Regra multidimensional calibrada por perfil via motor compartilhado (Decisões 55, 134, 135 e 136).
 public enum DeepCheckLoadImpactMaterialityRuleV2 {
     public static var version: String {
-        EnginePolicyProvider.policy.ruleVersions["BATTLE_ROYALE_COMPETITIVE"]?["loadImpact"] ?? "deep-load-impact-v3"
+        EnginePolicyProvider.policy.ruleVersions["BATTLE_ROYALE_COMPETITIVE"]?["loadImpact"] ?? "deep-load-impact-v4"
     }
 
     public static func classify(
@@ -64,7 +64,7 @@ public enum DeepCheckLoadImpactMaterialityRuleV2 {
         case .casualRealtime:
             kmpProfile = QualityProfileId.casualRealtime
         }
-        let kmpTier = DeepCheckLoadImpactRuleV3.shared.classify(
+        let kmpTier = DeepCheckLoadImpactRuleV4.shared.classify(
             profile: kmpProfile,
             deltaP50: deltaP50,
             deltaJitter: deltaJitter,

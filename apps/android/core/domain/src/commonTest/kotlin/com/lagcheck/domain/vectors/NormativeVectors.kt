@@ -1,7 +1,7 @@
 package com.lagcheck.domain.vectors
 
 /**
- * Entradas e expectativas normativas da Decisão 135.
+ * Entradas e expectativas normativas das Decisões 135 e 136.
  *
  * Este arquivo não conhece o motor: o runner de cada alvo converte estes tipos
  * para os contratos de domínio e compara o resultado. Todas as séries APP_UDP
@@ -100,7 +100,29 @@ object NormativeVectors {
                 verdict = VVerdict.READY,
                 score = 92,
                 packetLossPercentage = 1.6666666666666667,
+                // Decisão 136: veredito "pronto" não pode vir com "evite ranked".
+                mustNotHaveRecommendations = listOf("AVOID_RANKED"),
             ),
+        ),
+        Vector(
+            id = "REC-01",
+            description = "Mobile: um timeout em 60 fica abaixo do guardrail de 5% e não recomenda evitar ranked.",
+            profile = VProfile.MOBILE_REALTIME,
+            rest = received(59, 30.0) + timeouts(1, 59),
+            expected = VExpected(VVerdict.READY, mustNotHaveRecommendations = listOf("AVOID_RANKED")),
+        ),
+        Vector(
+            id = "REC-02",
+            description = "Casual: um timeout em 60 fica abaixo do guardrail de 3% e não recomenda evitar ranked.",
+            profile = VProfile.CASUAL_REALTIME,
+            rest = received(59, 30.0) + timeouts(1, 59),
+            expected = VExpected(VVerdict.READY, mustNotHaveRecommendations = listOf("AVOID_RANKED")),
+        ),
+        Vector(
+            id = "REC-03",
+            description = "BR: dois timeouts cruzam o guardrail; veredito e recomendação concordam.",
+            rest = received(58, 30.0) + timeouts(2, 58),
+            expected = VExpected(VVerdict.NOT_READY, mustHaveRecommendations = listOf("AVOID_RANKED")),
         ),
         // Perda = 2/60×100 = 3,3333%; perdaC = 50; score bruto = round(84,25) = 84;
         // o guardrail de perda limita a nota unificada de NOT_READY a 59.
@@ -242,12 +264,69 @@ object NormativeVectors {
             loadTransfer = VLoadTransfer.MEASURED,
             expected = VExpected(VVerdict.READY, score = 100, loadTier = VTier.LIGHT),
         ),
-        // Repouso perfeito: score = 100; Δperda = 1/60×100 = 1,6667% (> 0), material → 74.
+        // Decisão 136 (deep-load-impact-v4): 1 pacote a mais sob carga é ruído estatístico e não muda o tier.
         Vector(
             id = "DLI3-07",
-            description = "BR: um timeout adicional só na carga torna Δperda material.",
+            description = "BR: um timeout adicional só na carga não é degradação.",
             rest = received(60, 30.0),
             load = received(59, 30.0) + timeouts(1, 59),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.READY, score = 100, loadTier = VTier.NONE),
+        ),
+        // 2 pacotes a mais (3,33%): material em todos os perfis → CAUTION 74.
+        Vector(
+            id = "DLI4-01",
+            description = "BR: dois timeouts adicionais sob carga são material.",
+            rest = received(60, 30.0),
+            load = received(58, 30.0) + timeouts(2, 58),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.CAUTION, score = 74, loadTier = VTier.MATERIAL),
+        ),
+        // 3 pacotes a mais (5%): severo no BR → NOT_READY 59.
+        Vector(
+            id = "DLI4-02",
+            description = "BR: três timeouts adicionais sob carga são severos.",
+            rest = received(60, 30.0),
+            load = received(57, 30.0) + timeouts(3, 57),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.NOT_READY, score = 59, loadTier = VTier.SEVERE),
+        ),
+        Vector(
+            id = "DLI4-03",
+            description = "Mobile: três timeouts adicionais sob carga ainda são material.",
+            profile = VProfile.MOBILE_REALTIME,
+            rest = received(60, 30.0),
+            load = received(57, 30.0) + timeouts(3, 57),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.CAUTION, score = 74, loadTier = VTier.MATERIAL),
+        ),
+        Vector(
+            id = "DLI4-04",
+            description = "Mobile: quatro timeouts adicionais sob carga são severos.",
+            profile = VProfile.MOBILE_REALTIME,
+            rest = received(60, 30.0),
+            load = received(56, 30.0) + timeouts(4, 56),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.NOT_READY, score = 59, loadTier = VTier.SEVERE),
+        ),
+        // Casual: 6 spikes de 200 ms (offset 60 sobre P50 50) sob carga, não adjacentes.
+        // Δjitter = 12×150/59 = 30,5 ms (material, < 35); Δspikes = 6 → severo.
+        Vector(
+            id = "DLI4-05",
+            description = "Casual: seis spikes a mais sob carga são severos.",
+            profile = VProfile.CASUAL_REALTIME,
+            rest = received(60, 50.0),
+            load = withRtt(listOf(5, 15, 25, 35, 45, 55).associateWith { 200.0 }, defaultRttMs = 50.0),
+            loadTransfer = VLoadTransfer.MEASURED,
+            expected = VExpected(VVerdict.NOT_READY, score = 59, loadTier = VTier.SEVERE),
+        ),
+        // Mesmo cenário com 5 spikes: Δjitter = 25,4 ms (material), Δspikes 5 < 6 → material.
+        Vector(
+            id = "DLI4-06",
+            description = "Casual: cinco spikes a mais sob carga ficam no material.",
+            profile = VProfile.CASUAL_REALTIME,
+            rest = received(60, 50.0),
+            load = withRtt(listOf(5, 15, 25, 35, 45).associateWith { 200.0 }, defaultRttMs = 50.0),
             loadTransfer = VLoadTransfer.MEASURED,
             expected = VExpected(VVerdict.CAUTION, score = 74, loadTier = VTier.MATERIAL),
         ),

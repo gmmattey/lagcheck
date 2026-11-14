@@ -1,5 +1,7 @@
 package com.lagcheck.domain.rules
 
+import com.lagcheck.domain.model.ProbeAcceptancePolicy
+
 import com.lagcheck.domain.model.InconclusiveReason
 import com.lagcheck.domain.model.MeasurementEvaluation
 import com.lagcheck.domain.model.ProbeSample
@@ -60,7 +62,7 @@ data class DeepCheckLoadImpact(
     val deltaJitterMilliseconds: Double? = null,
     val deltaLossPercentage: Double? = null,
     val deltaSpikesCount: Int? = null,
-    val ruleVersion: String = DeepCheckLoadImpactRuleV3.VERSION,
+    val ruleVersion: String = DeepCheckLoadImpactRuleV4.VERSION,
     val bufferbloatGrade: BufferbloatGrade = BufferbloatGrade.fromIncrease(loadP50Milliseconds - restP50Milliseconds)
 ) {
     val increaseMilliseconds: Double get() = loadP50Milliseconds - restP50Milliseconds
@@ -81,9 +83,18 @@ object DeepCheckLoadImpactRuleV1 {
     const val MATERIAL_INCREASE_MILLISECONDS = 20.0
 }
 
-/** Regra multidimensional calibrada por perfil (deep-load-impact-v3). */
-object DeepCheckLoadImpactRuleV3 {
-    const val VERSION = "deep-load-impact-v3"
+/**
+ * Regra multidimensional calibrada por perfil (deep-load-impact-v4, Decisão 136).
+ * A perda sob carga é contada em pacotes do plano de 60: 1 pacote isolado é ruído
+ * estatístico (aparece em 26% dos checks de uma conexão com 0,5% de perda real), então
+ * o material exige 2 pacotes a mais que o repouso e o severo, 3 ou 4.
+ */
+object DeepCheckLoadImpactRuleV4 {
+    const val VERSION = "deep-load-impact-v4"
+
+    /** Pacotes perdidos a mais sob carga, a partir do Δperda em % sobre o plano de 60. */
+    fun extraLostPackets(deltaLossPercentage: Double): Int =
+        kotlin.math.round(deltaLossPercentage * ProbeAcceptancePolicy.PLANNED_PROBE_COUNT / 100.0).toInt()
 
     fun classify(
         profile: QualityProfileId,
@@ -91,34 +102,44 @@ object DeepCheckLoadImpactRuleV3 {
         deltaJitter: Double,
         deltaLoss: Double,
         deltaSpikes: Int
-    ): LoadDegradationTier = when (profile) {
-        QualityProfileId.BATTLE_ROYALE_COMPETITIVE -> when {
-            deltaP50 >= 35 || deltaJitter >= 20 || deltaLoss >= 2.0 || deltaSpikes >= 4 -> LoadDegradationTier.SEVERE
-            deltaP50 >= 15 || deltaJitter >= 10 || deltaLoss > 0.0 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
-            deltaP50 >= 5 -> LoadDegradationTier.LIGHT
-            else -> LoadDegradationTier.NONE
-        }
-        QualityProfileId.MOBILE_REALTIME -> when {
-            deltaP50 >= 50 || deltaJitter >= 25 || deltaLoss >= 3.0 || deltaSpikes >= 5 -> LoadDegradationTier.SEVERE
-            deltaP50 >= 25 || deltaJitter >= 15 || deltaLoss > 0.0 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
-            deltaP50 >= 5 -> LoadDegradationTier.LIGHT
-            else -> LoadDegradationTier.NONE
-        }
-        QualityProfileId.CASUAL_REALTIME -> when {
-            deltaP50 >= 80 || deltaJitter >= 35 || deltaLoss >= 5.0 -> LoadDegradationTier.SEVERE
-            deltaP50 >= 40 || deltaJitter >= 20 || deltaLoss >= 2.0 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
-            deltaP50 >= 5 -> LoadDegradationTier.LIGHT
-            else -> LoadDegradationTier.NONE
+    ): LoadDegradationTier {
+        val lost = extraLostPackets(deltaLoss)
+        return when (profile) {
+            QualityProfileId.BATTLE_ROYALE_COMPETITIVE -> when {
+                deltaP50 >= 35 || deltaJitter >= 20 || lost >= 3 || deltaSpikes >= 4 -> LoadDegradationTier.SEVERE
+                deltaP50 >= 15 || deltaJitter >= 10 || lost >= 2 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
+                deltaP50 >= 5 -> LoadDegradationTier.LIGHT
+                else -> LoadDegradationTier.NONE
+            }
+            QualityProfileId.MOBILE_REALTIME -> when {
+                deltaP50 >= 50 || deltaJitter >= 25 || lost >= 4 || deltaSpikes >= 5 -> LoadDegradationTier.SEVERE
+                deltaP50 >= 25 || deltaJitter >= 15 || lost >= 2 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
+                deltaP50 >= 5 -> LoadDegradationTier.LIGHT
+                else -> LoadDegradationTier.NONE
+            }
+            QualityProfileId.CASUAL_REALTIME -> when {
+                deltaP50 >= 80 || deltaJitter >= 35 || lost >= 4 || deltaSpikes >= 6 -> LoadDegradationTier.SEVERE
+                deltaP50 >= 40 || deltaJitter >= 20 || lost >= 2 || deltaSpikes >= 2 -> LoadDegradationTier.MATERIAL
+                deltaP50 >= 5 -> LoadDegradationTier.LIGHT
+                else -> LoadDegradationTier.NONE
+            }
         }
     }
 }
 
-/** Fonte binária legada; os consumidores devem usar a regra v3. */
-@Deprecated("Use DeepCheckLoadImpactRuleV3")
-object DeepCheckLoadImpactRuleV2 {
-    const val VERSION = DeepCheckLoadImpactRuleV3.VERSION
+/** Aliases legados; os consumidores devem usar a regra v4. */
+@Deprecated("Use DeepCheckLoadImpactRuleV4")
+object DeepCheckLoadImpactRuleV3 {
+    const val VERSION = DeepCheckLoadImpactRuleV4.VERSION
     fun classify(profile: QualityProfileId, deltaP50: Double, deltaJitter: Double, deltaLoss: Double, deltaSpikes: Int) =
-        DeepCheckLoadImpactRuleV3.classify(profile, deltaP50, deltaJitter, deltaLoss, deltaSpikes)
+        DeepCheckLoadImpactRuleV4.classify(profile, deltaP50, deltaJitter, deltaLoss, deltaSpikes)
+}
+
+@Deprecated("Use DeepCheckLoadImpactRuleV4")
+object DeepCheckLoadImpactRuleV2 {
+    const val VERSION = DeepCheckLoadImpactRuleV4.VERSION
+    fun classify(profile: QualityProfileId, deltaP50: Double, deltaJitter: Double, deltaLoss: Double, deltaSpikes: Int) =
+        DeepCheckLoadImpactRuleV4.classify(profile, deltaP50, deltaJitter, deltaLoss, deltaSpikes)
 }
 
 data class DeepCheckMetrics(
@@ -166,7 +187,7 @@ object DeepCheckEvaluator {
         val deltaJitter = maxOf(0.0, (load.metrics.jitterMilliseconds ?: 0.0) - (rest.metrics.jitterMilliseconds ?: 0.0))
         val deltaLoss = maxOf(0.0, load.metrics.packetLossPercentage - rest.metrics.packetLossPercentage)
         val deltaSpikes = maxOf(0, load.metrics.spikeCount - rest.metrics.spikeCount)
-        val tier = DeepCheckLoadImpactRuleV3.classify(profile, deltaP50, deltaJitter, deltaLoss, deltaSpikes)
+        val tier = DeepCheckLoadImpactRuleV4.classify(profile, deltaP50, deltaJitter, deltaLoss, deltaSpikes)
 
         return DeepCheckEvaluation.Completed(
             DeepCheckResult(

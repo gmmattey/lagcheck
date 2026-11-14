@@ -302,19 +302,19 @@ O `SampleQualityEvaluator` monitora os primeiros probes para abortar sessões co
 
 Percentis não recebem um RTT artificial para timeout. A perda é sempre reportada separadamente, inclusive quando torna uma medição inconclusiva.
 
-### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v3` (Decisões 55 e 135)
+### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v4` (Decisões 55, 135 e 136)
 
-A regra avalia P50, jitter, perda e spikes sob carga, calibrada pelo perfil do jogo. Δ = carga − repouso, com mínimo 0. Todas as comparações são `≥`, exceto `Δperda > 0%`. O tier é o mais alto cujo critério for atendido.
+A regra avalia P50, jitter, perda e spikes sob carga, calibrada pelo perfil do jogo. Δ = carga − repouso, com mínimo 0. A perda é contada em pacotes a mais que o repouso no plano de 60 (`round(Δperda × 60 / 100)`), porque 1 pacote isolado é ruído estatístico (Decisão 136). Todas as comparações são `≥`. O tier é o mais alto cujo critério for atendido.
 
 | Perfil | Leve | Material | Severo |
 | --- | --- | --- | --- |
-| `BATTLE_ROYALE_COMPETITIVE` | ΔP50 ≥ 5 ms | ΔP50 ≥ 15 ms, ou Δjitter ≥ 10 ms, ou Δperda > 0%, ou Δspikes ≥ 2 | ΔP50 ≥ 35 ms, ou Δjitter ≥ 20 ms, ou Δperda ≥ 2%, ou Δspikes ≥ 4 |
-| `MOBILE_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 25 ms, ou Δjitter ≥ 15 ms, ou Δperda > 0%, ou Δspikes ≥ 2 | ΔP50 ≥ 50 ms, ou Δjitter ≥ 25 ms, ou Δperda ≥ 3%, ou Δspikes ≥ 5 |
-| `CASUAL_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 40 ms, ou Δjitter ≥ 20 ms, ou Δperda ≥ 2%, ou Δspikes ≥ 2 | ΔP50 ≥ 80 ms, ou Δjitter ≥ 35 ms, ou Δperda ≥ 5% |
+| `BATTLE_ROYALE_COMPETITIVE` | ΔP50 ≥ 5 ms | ΔP50 ≥ 15 ms, ou Δjitter ≥ 10 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 35 ms, ou Δjitter ≥ 20 ms, ou ≥ 3 pacotes, ou Δspikes ≥ 4 |
+| `MOBILE_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 25 ms, ou Δjitter ≥ 15 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 50 ms, ou Δjitter ≥ 25 ms, ou ≥ 4 pacotes, ou Δspikes ≥ 5 |
+| `CASUAL_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 40 ms, ou Δjitter ≥ 20 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 80 ms, ou Δjitter ≥ 35 ms, ou ≥ 4 pacotes, ou Δspikes ≥ 6 |
 
 Sem nenhum critério atendido, o tier é `.none`. O corte fixo de +20 ms (`deep-load-impact-v1`) não decide mais nada; só alimenta a nota descritiva de bufferbloat (`bufferbloat-grade-v1`).
 
-Vetores normativos da regra `deep-load-impact-v3` (os DLI2 da Decisão 55 continuam válidos):
+Vetores normativos da regra `deep-load-impact-v4` (os DLI2 da Decisão 55 continuam válidos):
 
 | ID | Perfil | P50 Repouso | P50 Carga | Delta Jitter | Delta Perda | Classificação | Veredito Impactado |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
@@ -324,8 +324,12 @@ Vetores normativos da regra `deep-load-impact-v3` (os DLI2 da Decisão 55 contin
 | DLI2-04 | Battle Royale | 30 ms | 38 ms | +12 ms | 0% | `.material` (via jitter) | Modula para `.caution` |
 | DLI2-05 | Mobile Realtime | 35 ms | 55 ms | +3 ms | 0% | `.light` (tolerância maior) | Mantém `.ready` |
 | DLI2-06 | Casual Realtime | 50 ms | 85 ms | +5 ms | 0% | `.light` (tolerância casual) | Mantém `.ready` |
-| DLI3-01 | Battle Royale | 30 ms | 40 ms | +2 ms | +1,67% (1 de 60) | `.material` (via perda) | Modula para `.caution` |
-| DLI3-02 | Battle Royale | 30 ms | 40 ms | +2 ms | +2,0% | `.severe` (via perda) | Modula para `.notReady` |
+| DLI4-01 | Battle Royale | 30 ms | 40 ms | +2 ms | +1 pacote (1,67%) | `.light` (1 pacote é ruído) | Mantém `.ready` |
+| DLI4-02 | Battle Royale | 30 ms | 40 ms | +2 ms | +2 pacotes (3,33%) | `.material` (via perda) | Modula para `.caution` |
+| DLI4-03 | Battle Royale | 30 ms | 40 ms | +2 ms | +3 pacotes (5%) | `.severe` (via perda) | Modula para `.notReady` |
+| DLI4-04 | Mobile Realtime | 30 ms | 30 ms | 0 | +3 pacotes (5%) | `.material` | Modula para `.caution` |
+| DLI4-05 | Mobile Realtime | 30 ms | 30 ms | 0 | +4 pacotes (6,67%) | `.severe` | Modula para `.notReady` |
+| DLI4-06 | Casual Realtime | 50 ms | 50 ms | +30,5 ms (6 spikes) | 0 | `.severe` (Δspikes ≥ 6) | Modula para `.notReady` |
 | DLI3-03 | Battle Royale | 30 ms | 34,9 ms | 0 | 0% | `.none` | Mantém `.ready` |
 | DLI3-04 | Battle Royale | 30 ms | 45 ms | 0 | 0% | `.material` (limite exato) | Modula para `.caution` |
 | DLI3-05 | Battle Royale | 30 ms | 65 ms | 0 | 0% | `.severe` (limite exato) | Modula para `.notReady` |
@@ -335,7 +339,7 @@ Critérios de aceitação:
 1. O domínio classifica o delta bruto avaliando P50, jitter, perda e spikes sob carga.
 2. Score, classe e guardrails da fase de repouso são calculados só com o repouso; o tier de carga entra depois, no veredito e no teto da nota unificada (seção 7.5).
 3. Carga sem nenhum byte transferido não gera classificação nem impacto persistível. Carga com bytes e série UDP insuficiente torna o check inconclusivo (seção 5.3).
-4. O snapshot persiste `ruleVersion = deep-load-impact-v3` e o tier calculado.
+4. O snapshot persiste `ruleVersion = deep-load-impact-v4` e o tier calculado.
 5. Os vetores vivem em `apps/android/core/domain/src/commonTest/kotlin/com/lagcheck/domain/vectors/` e passam nos alvos JVM, iOS e JS.
 
 ### 6.2 Classificação Temporal de Spikes — `spike-pattern-v2` (Decisões 55 e 135)
@@ -482,7 +486,8 @@ func generateRecommendations(evidence: DiagnosticEvidence) -> [ActionableRecomme
         ))
     }
     
-    if evidence.packetLossPercentage > 1.0 && evidence.gatewayOutcome != .degraded {
+    // recommendations-v2 (Decisão 136): mesmo guardrail de perda do perfil que derruba o veredito
+    if evidence.packetLossPercentage > profile.lossGuardrailPercentage && evidence.gatewayOutcome != .degraded {
         recommendations.append(ActionableRecommendation(
             priority: 1,
             title: "Evite Partidas Ranqueadas",
@@ -539,7 +544,7 @@ Modelos persistidos:
 | Modelo | Campos essenciais |
 | --- | --- |
 | `GamePreference` | jogo, favorito, última plataforma e data de uso. |
-| `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v3.0`, `deep-load-impact-v3`, `sample-quality-v2`, `spike-pattern-v2`, `root-cause-v2`, `load-transfer-v2` e a versão do perfil, por exemplo `pilot-2026.11.14.1`). Entradas antigas guardam as versões com que foram gravadas. |
+| `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v3.0`, `deep-load-impact-v4`, `recommendations-v2`, `sample-quality-v2`, `spike-pattern-v2`, `root-cause-v2`, `load-transfer-v2` e a versão do perfil, por exemplo `pilot-2026.11.14.1`). Entradas antigas guardam as versões com que foram gravadas. |
 | `AppPreference` | idioma escolhido/sistema, estado de privacidade e configurações de apresentação. |
 
 Uma tarefa de manutenção remove registros com mais de 90 dias e conserva no máximo os 100 mais recentes por jogo. A ação “Apagar histórico” remove `MeasurementRecord` e dados derivados de recentes; não toca no catálogo-base.
@@ -574,7 +579,7 @@ As Decisões 82, 94 e 95 estabelecem consentimento, opções de privacidade, sup
 
 | Camada | Cobertura mínima |
 | --- | --- |
-| Domínio | Percentis, jitter, perda, spikes recorrentes/isolados, cauda P95/P50, carga multidimensional (`deep-load-impact-v3`), veredito `readiness-v3.0` sem margem de confiança e motor de recomendações. Os vetores normativos do motor compartilhado rodam em JVM, iOS e JS (Decisão 134). |
+| Domínio | Percentis, jitter, perda, spikes recorrentes/isolados, cauda P95/P50, carga multidimensional (`deep-load-impact-v4`), veredito `readiness-v3.0` sem margem de confiança e motor de recomendações. Os vetores normativos do motor compartilhado rodam em JVM, iOS e JS (Decisão 134). |
 | Watchdog | Invalidação antecipada por timeouts consecutivos ($\ge 4$ em 6 probes) e perda precoce ($\ge 70\%$). |
 | Gateway Prober | Resolução de rota BSD, probe UDP no gateway, classificação stable/degraded e tolerância a gateways firewall (`.unobservable`). |
 | Catálogo | Assinatura válida/inválida, validade, schema, rollback, cache de 24 h e fallback de 30 dias/base. |

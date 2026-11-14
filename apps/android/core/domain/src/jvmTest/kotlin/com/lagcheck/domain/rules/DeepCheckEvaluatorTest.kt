@@ -19,22 +19,23 @@ class DeepCheckEvaluatorTest {
         assertThat(r.metrics.load?.p50Milliseconds).isEqualTo(93.0)
         val impact = r.metrics.loadImpact!!
         assertThat(impact.increaseMilliseconds).isEqualTo(63.0)
-        assertThat(impact.ruleVersion).isEqualTo("deep-load-impact-v3")
+        assertThat(impact.ruleVersion).isEqualTo("deep-load-impact-v4")
         assertThat(impact.classification).isEqualTo(LoadImpactClassification.MATERIAL)
         assertThat(impact.tier).isEqualTo(LoadDegradationTier.SEVERE)
     }
 
     @Test fun ruleV3Vectors() {
         val br = QualityProfileId.BATTLE_ROYALE_COMPETITIVE
-        fun c(p: Double, j: Double, l: Double, s: Int) = DeepCheckLoadImpactRuleV2.classify(br, p, j, l, s)
+        fun c(p: Double, j: Double, l: Double, s: Int) = DeepCheckLoadImpactRuleV4.classify(br, p, j, l, s)
         assertThat(c(5.0, 2.0, 0.0, 0)).isEqualTo(LoadDegradationTier.LIGHT)
         assertThat(c(12.0, 5.0, 0.0, 0)).isEqualTo(LoadDegradationTier.LIGHT)
         assertThat(c(22.0, 6.0, 0.0, 0)).isEqualTo(LoadDegradationTier.MATERIAL)
         assertThat(c(10.0, 10.0, 0.0, 0)).isEqualTo(LoadDegradationTier.MATERIAL)
-        // Δperda: 1 pacote em 60 (1,67%) já é material; ≥ 2% (2 pacotes) é severo (Decisão 135, tabela v3).
-        assertThat(c(10.0, 2.0, 100.0 / 60.0, 0)).isEqualTo(LoadDegradationTier.MATERIAL)
-        assertThat(c(10.0, 2.0, 2.0, 0)).isEqualTo(LoadDegradationTier.SEVERE)
-        assertThat(c(10.0, 2.0, 2.5, 0)).isEqualTo(LoadDegradationTier.SEVERE)
+        // Δperda em pacotes (Decisão 136, v4): 1 pacote é ruído, 2 é material, 3 é severo no BR.
+        assertThat(c(10.0, 2.0, 100.0 / 60.0, 0)).isEqualTo(LoadDegradationTier.LIGHT)
+        assertThat(c(10.0, 2.0, 200.0 / 60.0, 0)).isEqualTo(LoadDegradationTier.MATERIAL)
+        assertThat(c(10.0, 2.0, 300.0 / 60.0, 0)).isEqualTo(LoadDegradationTier.SEVERE)
+        assertThat(DeepCheckLoadImpactRuleV4.extraLostPackets(200.0 / 60.0)).isEqualTo(2)
         // Limites exatos com ≥.
         assertThat(c(4.9, 0.0, 0.0, 0)).isEqualTo(LoadDegradationTier.NONE)
         assertThat(c(14.9, 0.0, 0.0, 0)).isEqualTo(LoadDegradationTier.LIGHT)

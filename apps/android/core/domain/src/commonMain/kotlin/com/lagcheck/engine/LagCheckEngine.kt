@@ -13,7 +13,8 @@ import com.lagcheck.domain.model.QualityProfileId
 import com.lagcheck.domain.model.WiFiLocalTelemetry
 import com.lagcheck.domain.rules.DeepCheckEvaluation
 import com.lagcheck.domain.rules.DeepCheckEvaluator
-import com.lagcheck.domain.rules.DeepCheckLoadImpactRuleV3
+import com.lagcheck.domain.rules.DeepCheckLoadImpactRuleV4
+import com.lagcheck.domain.rules.EvidenceRecommendationEngine
 import com.lagcheck.domain.rules.GameReadinessEvaluator
 import com.lagcheck.domain.rules.ResultInterpreter
 import com.lagcheck.domain.rules.SampleQualityEvaluator
@@ -105,13 +106,15 @@ object LagCheckEngine {
         timeoutMillis = com.lagcheck.domain.model.ProbeAcceptancePolicy.TIMEOUT_MILLIS,
         closureMillis = com.lagcheck.domain.model.ProbeAcceptancePolicy.CLOSURE_MILLIS,
         minimumValidResponses = com.lagcheck.domain.model.ProbeAcceptancePolicy.MINIMUM_VALID_RESPONSES,
-        ruleVersions = QualityProfileId.entries.associate { it.name to ruleVersions(it) }
+        ruleVersions = QualityProfileId.entries.associate { it.name to ruleVersions(it) },
+        lossGuardrailPercentage = QualityProfileId.entries.associate { it.name to QualityEvaluator.causeGuardrails(it).lossGuardrailPercentage }
     ))
 
     internal fun ruleVersions(profile: QualityProfileId) = mapOf(
         "quality" to QualityEvaluator.ruleVersion(profile),
         "sampleQuality" to SampleQualityEvaluator.RULE_VERSION,
-        "loadImpact" to DeepCheckLoadImpactRuleV3.VERSION,
+        "loadImpact" to DeepCheckLoadImpactRuleV4.VERSION,
+        "recommendations" to EvidenceRecommendationEngine.VERSION,
         "spikePattern" to SpikePatternEvaluator.VERSION,
         "readiness" to GameReadinessEvaluator.VERSION,
         "useCases" to UseCaseEvaluator.VERSION
@@ -166,5 +169,5 @@ private fun UseCaseEvaluator.Evaluation.toDto() = UseCasesDto(overallTone.name, 
         fun inconclusive(reason: String, source: MeasurementSource, profile: QualityProfileId, rest: MetricDto, load: MetricDto?, useCases: UseCasesDto) = EngineResponse("INCONCLUSIVE", "game_readiness.verdict.inconclusive.headline", "game_readiness.verdict.inconclusive.subtitle", null, source == MeasurementSource.WEB_HTTPS, rest, load, null, rest.spikePattern, null, emptyList(), emptyList(), emptyList(), useCases, reason, LagCheckEngine.ruleVersions(profile))
     }
 }
-@Serializable private data class EnginePolicy(val plannedProbeCount: Int, val sendIntervalMillis: Long, val sendWindowMillis: Long, val timeoutMillis: Long, val closureMillis: Long, val minimumValidResponses: Int, val ruleVersions: Map<String, Map<String, String>>)
+@Serializable private data class EnginePolicy(val plannedProbeCount: Int, val sendIntervalMillis: Long, val sendWindowMillis: Long, val timeoutMillis: Long, val closureMillis: Long, val minimumValidResponses: Int, val ruleVersions: Map<String, Map<String, String>>, val lossGuardrailPercentage: Map<String, Double>)
 @Serializable private data class EngineError(val error: String)

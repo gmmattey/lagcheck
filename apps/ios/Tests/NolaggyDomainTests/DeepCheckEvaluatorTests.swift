@@ -17,7 +17,7 @@ final class DeepCheckEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.metrics.loadImpact?.restP50Milliseconds, 30)
         XCTAssertEqual(result.metrics.loadImpact?.loadP50Milliseconds, 93)
         XCTAssertEqual(result.metrics.loadImpact?.increaseMilliseconds, 63)
-        XCTAssertEqual(result.metrics.loadImpact?.ruleVersion, "deep-load-impact-v3")
+        XCTAssertEqual(result.metrics.loadImpact?.ruleVersion, "deep-load-impact-v4")
         XCTAssertEqual(result.metrics.loadImpact?.classification, .material)
         XCTAssertEqual(result.metrics.loadImpact?.tier, .severe)
     }
@@ -30,9 +30,10 @@ final class DeepCheckEvaluatorTests: XCTestCase {
         XCTAssertEqual(c(12.0, 5.0, 0.0, 0), .light)
         XCTAssertEqual(c(22.0, 6.0, 0.0, 0), .material)
         XCTAssertEqual(c(10.0, 10.0, 0.0, 0), .material)
-        XCTAssertEqual(c(10.0, 2.0, 100.0 / 60.0, 0), .material)
-        XCTAssertEqual(c(10.0, 2.0, 2.0, 0), .severe)
-        XCTAssertEqual(c(10.0, 2.0, 2.5, 0), .severe)
+        // Decisão 136 (v4): perda sob carga em pacotes; 1 é ruído, 2 é material, 3 é severo no BR.
+        XCTAssertEqual(c(10.0, 2.0, 100.0 / 60.0, 0), .light)
+        XCTAssertEqual(c(10.0, 2.0, 200.0 / 60.0, 0), .material)
+        XCTAssertEqual(c(10.0, 2.0, 300.0 / 60.0, 0), .severe)
         XCTAssertEqual(c(4.9, 0.0, 0.0, 0), .none)
         XCTAssertEqual(c(14.9, 0.0, 0.0, 0), .light)
         XCTAssertEqual(c(15.0, 0.0, 0.0, 0), .material)

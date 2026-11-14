@@ -137,7 +137,8 @@
 | [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
 | [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
 | [134](#decisão-134) | Motor diagnóstico único em Kotlin Multiplatform (iOS, Android, Windows e site) | **Em implementação** | Substitui o item 1 da Decisão 68 (“Swift é fonte de verdade”): o motor KMP vira a única implementação de regra; a cópia Swift e a cópia TypeScript do site deixam de calcular regra | Luiz / Camillo / Iury |
-| [135](#decisão-135) | Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3 | **Em implementação (revisão do Iury pendente)** | Refina as Decisões 55 e 69: versões `*-2026.11.14.1`, `readiness-v3.0`, `deep-load-impact-v3`, `spike-pattern-v2`, `sample-quality-v2`, `load-transfer-v2` | Luiz / Iury / Camillo |
+| [135](#decisão-135) | Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3 | **Em implementação (carga refinada pela 136)** | Refina as Decisões 55 e 69: versões `*-2026.11.14.1`, `readiness-v3.0`, `deep-load-impact-v3`, `spike-pattern-v2`, `sample-quality-v2`, `load-transfer-v2` | Luiz / Iury / Camillo |
+| [136](#decisão-136) | Perda de pacotes calibrada por estatística: carga v4 e recomendação presa ao guardrail | **Em implementação** | Refina a Decisão 135: `deep-load-impact-v4` (perda sob carga em pacotes) e `recommendations-v2` (“evite ranked” usa o guardrail de perda do perfil) | Luiz / Iury / Camillo |
 
 
 
@@ -1589,6 +1590,23 @@
   9. **iOS sem gateway não deduz o Wi-Fi:** a trilha mostra o Wi-Fi como ativo, nunca como “instável” inferido da rota remota.
 - **Risco conhecido:** o check passa de ~34 s para ~64 s. Um tempo maior pode reduzir a conclusão do check; medir no funil depois do lançamento.
 - **Critérios de aceite:** vetores normativos (incluindo DLI2-01 a DLI2-06, um pacote perdido em 60, carga que desaba, dois picos severos isolados, P50 95 ms) passando nos alvos JVM, iOS e JS; teste de aparelho do Renan em Wi-Fi e rede móvel antes de qualquer distribuição.
+
+#### Decisão 136
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Perda de pacotes calibrada por estatística: carga v4 e recomendação presa ao guardrail.
+- **Status Atual:** **Em implementação.** Definida a pedido do Luiz (“usar as métricas ideais; pesquise e defina”) após a revisão de regra do PR #99.
+- **Frentes envolvidas:** Luiz (pedido e delegação), Iury (regra), Camillo (engenharia).
+- **Contexto:** com 60 probes, a revisão do PR #99 achou dois problemas. (1) A recomendação “evite ranked” disparava com perda > 1%, então 1 pacote perdido (1,67%) saía como `PRONTO PARA RANKED` nota 92 junto de “evite ranked”, nos três perfis. (2) Na carga, `Δperda > 0%` fazia 1 único timeout em 30 s rebaixar uma conexão perfeita para nota 74.
+- **Evidência:**
+  - **Estatística (binomial, n = 60):** uma conexão boa, com 0,5% de perda aleatória, perde ≥ 1 pacote em 26,0% dos checks, ≥ 2 em 3,7% e ≥ 3 em 0,3%. Com 1% de perda real: 45,3%, 12,1% e 2,2%. Uma perda real de 5% gera ≥ 2 pacotes em 81% dos checks e ≥ 3 em 58%; de 8%, ≥ 3 em 87%. Portanto 1 pacote não distingue ruído de problema; 2 pacotes separam bem; 3 só aparecem por acaso em menos de 1 a cada 300 checks bons.
+  - **Referências públicas:** o Cloudflare AIM (score de jogos do speed.cloudflare.com) dá nota cheia com perda < 1%, metade de 1% a 5% e zero acima de 5% (segundo fonte secundária; o código do score não foi lido). O bufferbloat.net trata como sob controle o aumento de latência sob carga abaixo de 15–25 ms e como bufferbloat acima de 50 ms, o que confirma os cortes de ΔP50 já vigentes (material 15 ms e severo 35 ms no BR). O estudo do WPI com Unreal Tournament 2003 achou que perdas nos níveis comuns da internet não afetam o desempenho de forma mensurável, enquanto a latência afeta. Não há norma única de perda para jogos competitivos: os guias variam de < 0,1% a 2%.
+- **Decisão:**
+  1. **`deep-load-impact-v4`:** a perda sob carga passa a ser contada em pacotes a mais que o repouso, no plano de 60 (`round(Δperda × 60 / 100)`). Material = **2 pacotes** (3,33%) em todos os perfis. Severo = **3 pacotes** (5%, a linha de nota zero do AIM) no Battle Royale; **4 pacotes** (6,67%) no mobile e no casual, que toleram mais. ΔP50, Δjitter e Δspikes não mudam.
+  2. **Picos no casual:** o severo ganha `Δspikes ≥ 6`, mantendo a ordem de tolerância entre os perfis (BR 4, mobile 5, casual 6). Antes, o casual não tinha critério de picos no severo.
+  3. **`recommendations-v2`:** `AVOID_RANKED` usa o mesmo guardrail de perda do perfil que derruba o veredito (BR 3%, mobile 5%, casual 3%), vindo do motor via `policy().lossGuardrailPercentage`. Veredito e recomendação nunca se contradizem.
+  4. **Repouso sem mudança:** os guardrails de perda do score continuam. No BR, 2 pacotes perdidos (3,33%) levam a `EU EVITARIA RANKED AGORA`: perda nessa faixa só ocorre por acaso em 3,7% das conexões boas, e o perfil é competitivo.
+- **Critérios de aceite:** vetores `V135-02`, `REC-01` a `REC-03`, `DLI3-07` e `DLI4-01` a `DLI4-06` passando por JVM, iOS e JS, verificando juntos veredito, nota, tier e recomendações. Teste de aparelho do Renan em Wi-Fi e rede móvel antes de distribuir.
 
 ## Como Registrar Novas Decisões
 

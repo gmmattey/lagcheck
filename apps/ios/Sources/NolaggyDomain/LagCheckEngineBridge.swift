@@ -11,6 +11,8 @@ public struct EnginePolicyDTO: Codable, Sendable {
     public let closureMillis: Int64
     public let minimumValidResponses: Int
     public let ruleVersions: [String: [String: String]]
+    /// Guardrail de perda por perfil: o mesmo corte do veredito vale para a recomendação (Decisão 136).
+    public let lossGuardrailPercentage: [String: Double]
 }
 
 public struct EngineSampleDTO: Codable, Sendable {

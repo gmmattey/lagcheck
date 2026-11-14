@@ -35,6 +35,7 @@ public struct DiagnosticEvidence: Equatable, Sendable {
     public let natType: NATType?
     public let serverArchitecture: GameServerArchitecture
     public let outOfOrderCount: Int
+    public let profile: QualityProfileID
 
     public init(
         gatewayOutcome: GatewayProbeOutcome = .unobservable,
@@ -46,7 +47,8 @@ public struct DiagnosticEvidence: Equatable, Sendable {
         tailRatio: Double? = nil,
         natType: NATType? = nil,
         serverArchitecture: GameServerArchitecture = .dedicatedServer,
-        outOfOrderCount: Int = 0
+        outOfOrderCount: Int = 0,
+        profile: QualityProfileID = .battleRoyaleCompetitive
     ) {
         self.gatewayOutcome = gatewayOutcome
         self.wifiBand = wifiBand
@@ -58,6 +60,7 @@ public struct DiagnosticEvidence: Equatable, Sendable {
         self.natType = natType
         self.serverArchitecture = serverArchitecture
         self.outOfOrderCount = outOfOrderCount
+        self.profile = profile
     }
 }
 
@@ -75,7 +78,9 @@ public enum EvidenceRecommendationEngine {
             recKeys.append("SWITCH_TO_5GHZ")
         }
 
-        if evidence.packetLossPercentage > 1.0 && !evidence.gatewayOutcome.isDegraded {
+        // Decisão 136: o corte vem do motor e é o mesmo guardrail de perda que derruba o veredito.
+        let lossGuardrail = EnginePolicyProvider.policy.lossGuardrailPercentage[LagCheckEngineBridge.toProfileKey(evidence.profile)] ?? .infinity
+        if evidence.packetLossPercentage > lossGuardrail && !evidence.gatewayOutcome.isDegraded {
             recKeys.append("AVOID_RANKED")
         }
 

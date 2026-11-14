@@ -4,6 +4,7 @@ import com.lagcheck.domain.model.ActionableRecommendation
 import com.lagcheck.domain.model.GameServerArchitecture
 import com.lagcheck.domain.model.GatewayProbeOutcome
 import com.lagcheck.domain.model.NatType
+import com.lagcheck.domain.model.QualityProfileId
 import com.lagcheck.domain.model.RecommendationKey
 import com.lagcheck.domain.model.SpikePattern
 import com.lagcheck.domain.model.WiFiBandConfidence
@@ -19,18 +20,25 @@ data class DiagnosticEvidence(
     val tailRatio: Double? = null,
     val natType: NatType? = null,
     val serverArchitecture: GameServerArchitecture = GameServerArchitecture.DEDICATED_SERVER,
-    val outOfOrderCount: Int = 0
+    val outOfOrderCount: Int = 0,
+    /** Perfil do jogo: o corte de perda da recomendação é o mesmo guardrail do veredito. */
+    val profile: QualityProfileId = QualityProfileId.BATTLE_ROYALE_COMPETITIVE
 )
 
 /** De 0 a 3 recomendações, cada uma amarrada a uma evidência comprovada (Decisão 55). */
 object EvidenceRecommendationEngine {
+    const val VERSION = "recommendations-v2"
+
     fun generate(e: DiagnosticEvidence): List<ActionableRecommendation> {
         val r = mutableListOf<ActionableRecommendation>()
         if (e.gatewayOutcome.isDegraded) r += ActionableRecommendation(1, RecommendationKey.APPROACH_ROUTER)
         if (e.wifiBand?.isSuspectOrConfirmed24GHz == true &&
             (e.wifiBandConfidence == WiFiBandConfidence.HIGH || e.wifiBandConfidence == WiFiBandConfidence.MEDIUM)
         ) r += ActionableRecommendation(1, RecommendationKey.SWITCH_TO_5GHZ)
-        if (e.packetLossPercentage > 1.0 && !e.gatewayOutcome.isDegraded) r += ActionableRecommendation(1, RecommendationKey.AVOID_RANKED)
+        // Decisão 136: "evite ranked" só quando a perda já derrubou o veredito (guardrail do perfil).
+        // Antes era > 1%, e 1 pacote em 60 (1,67%) recomendava evitar ranked num veredito "pronto".
+        val lossGuardrail = QualityEvaluator.causeGuardrails(e.profile).lossGuardrailPercentage
+        if (e.packetLossPercentage > lossGuardrail && !e.gatewayOutcome.isDegraded) r += ActionableRecommendation(1, RecommendationKey.AVOID_RANKED)
         if (e.loadTier == LoadDegradationTier.MATERIAL || e.loadTier == LoadDegradationTier.SEVERE) {
             r += ActionableRecommendation(2, RecommendationKey.PAUSE_DOWNLOADS)
         }

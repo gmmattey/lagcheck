@@ -204,7 +204,8 @@ Resposta:
   "ruleVersions": {
     "quality": "pilot-2026.11.14.1",
     "sampleQuality": "sample-quality-v2",
-    "loadImpact": "deep-load-impact-v3",
+    "loadImpact": "deep-load-impact-v4",
+    "recommendations": "recommendations-v2",
     "spikePattern": "spike-pattern-v2",
     "readiness": "readiness-v3.0",
     "useCases": "use-cases-v1"
@@ -226,18 +227,24 @@ Resposta:
     "BATTLE_ROYALE_COMPETITIVE": {
       "quality": "pilot-2026.11.14.1",
       "sampleQuality": "sample-quality-v2",
-      "loadImpact": "deep-load-impact-v3",
+      "loadImpact": "deep-load-impact-v4",
+      "recommendations": "recommendations-v2",
       "spikePattern": "spike-pattern-v2",
       "readiness": "readiness-v3.0",
       "useCases": "use-cases-v1"
     },
     "...": "um mapa por perfil"
+  },
+  "lossGuardrailPercentage": {
+    "BATTLE_ROYALE_COMPETITIVE": 3.0,
+    "MOBILE_REALTIME": 5.0,
+    "CASUAL_REALTIME": 3.0
   }
 }
 ```
 
 ## Garantias de paridade
 
-- `EngineNormativeVectorsTest`: os 25 vetores da Decisão 135 passam pela API JSON em JVM, simulador iOS, Node e navegador.
+- `EngineNormativeVectorsTest`: os vetores das Decisões 135 e 136 (verificando também as recomendações) passam pela API JSON em JVM, simulador iOS, Node e navegador.
 - `SiteUseCaseParityTest`: 6.285 combinações (todos os limites exatos e +0,1) idênticas à função do site; validado por teste de mutação.
 - Mudança de qualquer número exige nova versão de regra, vetores atualizados e revisão do Iury (AGENTS.md).

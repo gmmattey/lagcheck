@@ -145,7 +145,8 @@ public enum ResultInterpreter {
             tailRatio: result.metrics.p95ToP50Ratio,
             natType: natType,
             serverArchitecture: serverArchitecture,
-            outOfOrderCount: result.metrics.outOfOrderCount
+            outOfOrderCount: result.metrics.outOfOrderCount,
+            profile: profile
         )
         let recommendations = EvidenceRecommendationEngine.generateRecommendations(evidence: evidence)
 

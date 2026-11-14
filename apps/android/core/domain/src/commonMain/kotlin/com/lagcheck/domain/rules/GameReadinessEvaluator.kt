@@ -150,7 +150,8 @@ object GameReadinessEvaluator {
                 tailRatio = metrics.p95ToP50Ratio,
                 natType = natSnapshot?.natType,
                 serverArchitecture = serverArchitecture,
-                outOfOrderCount = metrics.outOfOrderCount
+                outOfOrderCount = metrics.outOfOrderCount,
+                profile = profile
             )
         )
 
