@@ -33,9 +33,15 @@ on:
         options:
           - completed
           - draft
+      release_notes:
+        description: "Notas da versão (opcional; em branco gera automático pelo delta do último release)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: android-play-release
@@ -50,6 +56,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -130,6 +138,93 @@ jobs:
             ${{ steps.build.outputs.out_dir }}/SHA256SUMS.txt
           retention-days: 30
 
+      - name: Generate release notes from commit delta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          VERSION_CODE: ${{ steps.build.outputs.version_code }}
+        run: |
+          mkdir -p whatsnew
+          python3 - <<'PY'
+          import os, subprocess
+
+          custom = os.environ.get("CUSTOM_NOTES", "").strip()
+          version_name = os.environ["VERSION_NAME"]
+          version_code = os.environ["VERSION_CODE"]
+
+          def git_lines(rev_range):
+              res = subprocess.run(
+                  ["git", "log", "--no-merges", "--pretty=format:- %s", rev_range],
+                  capture_output=True, text=True
+              )
+              return [l.strip() for l in res.stdout.splitlines() if l.strip()]
+
+          if custom:
+              notes = custom
+          else:
+              prev_sha = ""
+              try:
+                  gh = subprocess.run(
+                      ["gh", "run", "list", "--workflow=android-play-alpha.yml",
+                       "--status=success", "--limit=1", "--json", "headSha", "--jq", ".[0].headSha"],
+                      capture_output=True, text=True
+                  )
+                  candidate = gh.stdout.strip()
+                  if candidate and subprocess.run(
+                      ["git", "cat-file", "-e", f"{candidate}^{{commit}}"],
+                      capture_output=True
+                  ).returncode == 0:
+                      prev_sha = candidate
+              except Exception:
+                  pass
+
+              lines = []
+              if prev_sha:
+                  lines = git_lines(f"{prev_sha}..HEAD")
+              else:
+                  tag = subprocess.run(
+                      ["git", "describe", "--tags", "--match", "android-v*", "--abbrev=0"],
+                      capture_output=True, text=True
+                  )
+                  if tag.returncode == 0 and tag.stdout.strip():
+                      lines = git_lines(f"{tag.stdout.strip()}..HEAD")
+                  else:
+                      res = subprocess.run(
+                          ["git", "log", "-n", "10", "--no-merges", "--pretty=format:- %s"],
+                          capture_output=True, text=True
+                      )
+                      lines = [l.strip() for l in res.stdout.splitlines() if l.strip()]
+
+              if not lines:
+                  notes = f"Ajustes e melhorias internas da versão v{version_name} ({version_code})."
+              else:
+                  # Play Console limita whatsnew a 500 caracteres por idioma.
+                  selected = []
+                  total = 0
+                  for line in lines:
+                      add_len = len(line) + (1 if selected else 0)
+                      if total + add_len > 495:
+                          break
+                      selected.append(line)
+                      total += add_len
+                  if not selected:
+                      notes = lines[0][:497] + "..."
+                  elif len(selected) < len(lines):
+                      notes = "\n".join(selected) + "\n..."
+                  else:
+                      notes = "\n".join(selected)
+
+          notes = notes[:500]
+          with open("whatsnew/whatsnew-pt-BR", "w", encoding="utf-8") as f:
+              f.write(notes + "\n")
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as s:
+                  s.write(f"### Notas da versão (pt-BR)\n\n```\n{notes}\n```\n")
+          PY
+
       - name: Publish to Google Play Console (${{ inputs.track }})
         uses: r0adkll/upload-google-play@v1
         with:
@@ -140,6 +235,7 @@ jobs:
           track: ${{ inputs.track }}
           status: ${{ inputs.release_status }}
           releaseName: v${{ inputs.version_name }} (${{ steps.build.outputs.version_code }})
+          whatsNewDirectory: whatsnew
 
       - name: Clean up signing key material
         if: always()
