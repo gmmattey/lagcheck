@@ -34,13 +34,8 @@ public static class ShellChrome
 
 public sealed partial class ShellPage : Page
 {
-    private const double CollapsedWidth = 64;
-    private const double ExpandedWidth = 220;
-
     private bool _navigationLocked;
-    private bool _pinnedExpanded;
     private double _stageTop = 56;
-    private bool _sidebarReady;
     private DispatcherTimer? _toastTimer;
     private NavigationRoute _currentRoute = NavigationRoute.Home;
     private NavigationRoute _returnRoute = NavigationRoute.Home;
@@ -58,7 +53,6 @@ public sealed partial class ShellPage : Page
         InitializeComponent();
         ShellChrome.Register(this);
         ShellNavigation.Configure(NavigateToDiagnostic, Navigate, OpenGameDetails);
-        UpdateSidebarVisualState();
         LocalizeUI();
         ContentFrame.Navigated += ContentFrame_Navigated;
         ContentFrame.NavigationFailed += (_, e) =>
@@ -76,13 +70,30 @@ public sealed partial class ShellPage : Page
             LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
         };
 
+        // Atalhos globais: Ctrl+F busca, Esc e Alt+← voltam (Esc não rouba o foco de campos de texto), botão "voltar" do mouse também.
         var search = new KeyboardAccelerator { Key = VirtualKey.F, Modifiers = VirtualKeyModifiers.Control };
-        search.Invoked += (_, e) =>
-        {
-            if (_navigationLocked) return;
-            if (ContentFrame.Content is LibraryPage page) { page.FocusSearch(); e.Handled = true; }
-        };
+        search.Invoked += (_, e) => { if (!_navigationLocked) { OpenQuickSearch(); e.Handled = true; } };
         KeyboardAccelerators.Add(search);
+        var escape = new KeyboardAccelerator { Key = VirtualKey.Escape };
+        escape.Invoked += (_, e) =>
+        {
+            if (_currentRoute == NavigationRoute.Home || _navigationLocked) return;
+            if (Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) is TextBox) return;
+            NavigateBackFromOverlay();
+            e.Handled = true;
+        };
+        KeyboardAccelerators.Add(escape);
+        var altLeft = new KeyboardAccelerator { Key = VirtualKey.Left, Modifiers = VirtualKeyModifiers.Menu };
+        altLeft.Invoked += (_, e) => { if (_currentRoute != NavigationRoute.Home && !_navigationLocked) { NavigateBackFromOverlay(); e.Handled = true; } };
+        KeyboardAccelerators.Add(altLeft);
+        RootGrid.PointerPressed += (_, e) =>
+        {
+            if (e.GetCurrentPoint(RootGrid).Properties.IsXButton1Pressed && _currentRoute != NavigationRoute.Home && !_navigationLocked)
+            {
+                NavigateBackFromOverlay();
+                e.Handled = true;
+            }
+        };
         _ = LoadMotionPreferenceAsync();
     }
 
@@ -107,28 +118,7 @@ public sealed partial class ShellPage : Page
 
     private void LocalizeUI()
     {
-        SearchLabel.Text = Strings.Tr("Buscar jogo...");
-        HomeLabel.Text = Strings.Tr("Início");
-        LibraryLabel.Text = Strings.Tr("Biblioteca");
-        GeneralCheckLabel.Text = Strings.Tr("Conexão");
-        HistoryLabel.Text = Strings.Tr("Histórico");
-        SettingsLabel.Text = Strings.Tr("Ajustes");
-
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(QuickSearchButton, Strings.Tr("Buscar jogo..."));
         UpdateTopNavigation();
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HomeButton, Strings.Tr("Início"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LibraryButton, Strings.Tr("Biblioteca"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(GeneralCheckButton, Strings.Tr("Conexão"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HistoryButton, Strings.Tr("Histórico"));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(SettingsButton, Strings.Tr("Ajustes"));
-        ToolTipService.SetToolTip(QuickSearchButton, Strings.Tr("Buscar jogo (Ctrl+F)"));
-        ToolTipService.SetToolTip(HomeButton, Strings.Tr("Início"));
-        ToolTipService.SetToolTip(LibraryButton, Strings.Tr("Biblioteca de jogos instalados"));
-        ToolTipService.SetToolTip(GeneralCheckButton, Strings.Tr("Conexão"));
-        ToolTipService.SetToolTip(HistoryButton, Strings.Tr("Histórico de conexões"));
-        ToolTipService.SetToolTip(SettingsButton, Strings.Tr("Ajustes do launcher"));
-        ToolTipService.SetToolTip(SidebarCollapseButton, Strings.Tr("Recolher barra lateral"));
-        ToolTipService.SetToolTip(SidebarExpandButton, Strings.Tr("Expandir barra lateral"));
     }
 
     // ------------------------------------------------------------------ navegação
@@ -160,7 +150,6 @@ public sealed partial class ShellPage : Page
         // Fora do Início e do resultado de um jogo não há arte atrás da janela.
         if (route != NavigationRoute.Home && !keepHomeBackdrop) ClearBackdrop();
         NavigateFrame(pageType, null);
-        SetActive(route);
         UpdateTopNavigation();
     }
 
@@ -171,7 +160,6 @@ public sealed partial class ShellPage : Page
         _currentRoute = NavigationRoute.GameDetails;
         ClearBackdrop();
         NavigateFrame(typeof(GameDetailsPage), game);
-        SetActive(_detailsBackRoute);
         UpdateTopNavigation();
     }
 
@@ -191,7 +179,6 @@ public sealed partial class ShellPage : Page
             return;
         }
         ApplyStageMargins(typeof(DiagnosticPage));
-        SetActive(NavigationRoute.GeneralCheck);
         UpdateTopNavigation();
     }
 
@@ -224,35 +211,15 @@ public sealed partial class ShellPage : Page
         if (route is { } active)
         {
             _currentRoute = active;
-            SetActive(active);
             UpdateTopNavigation();
         }
-    }
-
-    public static readonly DependencyProperty StageLeftProperty = DependencyProperty.Register(
-        nameof(StageLeft), typeof(double), typeof(ShellPage),
-        new PropertyMetadata(CollapsedWidth, (d, e) => ((ShellPage)d).ApplyStage((double)e.NewValue)));
-
-    /// <summary>Largura que a sidebar ocupa à esquerda; o palco começa logo depois dela.</summary>
-    public double StageLeft
-    {
-        get => (double)GetValue(StageLeftProperty);
-        set => SetValue(StageLeftProperty, value);
-    }
-
-    private void ApplyStage(double left)
-    {
-        Sidebar.Width = left;
-        SidebarShadow.Margin = new Thickness(left, 0, 0, 0);
-        ContentFrame.Margin = new Thickness(0, _stageTop, 0, 0);
-        DragRegion.Margin = new Thickness(64, 0, 0, 0);
     }
 
     /// <summary>Faixa de 56px da barra de título; só o banner de Detalhes sobe por baixo dela.</summary>
     private void ApplyStageMargins(Type? pageType)
     {
         _stageTop = pageType == typeof(GameDetailsPage) ? 0 : 56;
-        ApplyStage(StageLeft);
+        ContentFrame.Margin = new Thickness(0, _stageTop, 0, 0);
     }
 
     // ------------------------------------------------------------------ arte de fundo
@@ -311,7 +278,6 @@ public sealed partial class ShellPage : Page
                 sb.Begin();
             }
         }
-        UpdateSidebarVisualState();
         LayoutBackdrop(animate: false);
         if (wasHidden) FadeBackdropIn();
     }
@@ -424,7 +390,6 @@ public sealed partial class ShellPage : Page
         BackdropSlides.Children.Clear();
         BackdropTransition.Children.Clear();
         BackdropTransition.Opacity = 0;
-        UpdateSidebarVisualState();
     }
 
     private void StopBackdropTransition()
@@ -454,11 +419,13 @@ public sealed partial class ShellPage : Page
         sb.Begin();
     }
 
-    private static BitmapImage? TryCreateImage(string path)
+    private BitmapImage? TryCreateImage(string path)
     {
         try
         {
-            return new BitmapImage(new Uri(path));
+            // Decodifica na largura da janela: banners de 4K inteiros travavam a troca de jogo.
+            var width = (int)Math.Clamp(Math.Ceiling(RootGrid.ActualWidth > 0 ? RootGrid.ActualWidth : 1920), 960, 2560);
+            return new BitmapImage { DecodePixelWidth = width, UriSource = new Uri(path) };
         }
         catch
         {
@@ -471,134 +438,31 @@ public sealed partial class ShellPage : Page
     public void ShowToast(string message)
     {
         ToastText.Text = message;
+        ToastBorder.OpacityTransition ??= new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+        ToastBorder.TranslationTransition ??= new Vector3Transition { Duration = TimeSpan.FromMilliseconds(180) };
         ToastBorder.Visibility = Visibility.Visible;
+        ToastBorder.Translation = new System.Numerics.Vector3(0, Motion.Reduced ? 0 : 12, 0);
+        ToastBorder.Opacity = 0;
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            ToastBorder.Translation = System.Numerics.Vector3.Zero;
+            ToastBorder.Opacity = 1;
+        });
         _toastTimer?.Stop();
         _toastTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.6) };
         _toastTimer.Tick += (_, _) =>
         {
             _toastTimer.Stop();
-            ToastBorder.Visibility = Visibility.Collapsed;
+            ToastBorder.Opacity = 0;
+            ToastBorder.Translation = new System.Numerics.Vector3(0, Motion.Reduced ? 0 : 12, 0);
+            var hide = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Motion.Reduced ? 1 : 200) };
+            hide.Tick += (_, _) => { hide.Stop(); if (ToastBorder.Opacity == 0) ToastBorder.Visibility = Visibility.Collapsed; };
+            hide.Start();
         };
         _toastTimer.Start();
     }
 
-    // ------------------------------------------------------------------ sidebar
-
-    private void SetActive(NavigationRoute route)
-    {
-        var active = route switch
-        {
-            NavigationRoute.Home => HomeButton,
-            NavigationRoute.Library => LibraryButton,
-            NavigationRoute.GeneralCheck => GeneralCheckButton,
-            NavigationRoute.History => HistoryButton,
-            _ => SettingsButton,
-        };
-        var inactive = (Brush)Application.Current.Resources["TextSecondaryBrush"];
-        var primary = (Brush)Application.Current.Resources["TextPrimaryBrush"];
-        var accent = (Brush)Application.Current.Resources["PurpleLightBrush"];
-        var clear = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-        foreach (var button in new[] { HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton })
-        {
-            var on = ReferenceEquals(button, active);
-            // Item ativo: brilho roxo que se dissolve para a direita + barra de destaque à esquerda
-            button.Background = on ? CreateActiveGlow() : clear;
-            button.BorderBrush = on ? accent : clear;
-            button.Foreground = on ? primary : inactive;
-        }
-    }
-
-    private static LinearGradientBrush CreateActiveGlow()
-    {
-        var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0.5), EndPoint = new Windows.Foundation.Point(1, 0.5) };
-        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x4D, 0x7C, 0x3A, 0xED), Offset = 0 });
-        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0x1F, 0x7C, 0x3A, 0xED), Offset = 1 });
-        return brush;
-    }
-
-    private static SolidColorBrush CreateSidebarSurface()
-    {
-        return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 0, 0));
-    }
-
-    private void SidebarToggle_Click(object sender, RoutedEventArgs e)
-    {
-        _pinnedExpanded = !_pinnedExpanded;
-        UpdateSidebarVisualState();
-        AnimateSidebar(_pinnedExpanded ? ExpandedWidth : CollapsedWidth);
-    }
-
-    /// <summary>Abre e fecha a sidebar empurrando o palco, sem nunca cobrir título ou cards.</summary>
-    private void AnimateSidebar(double target)
-    {
-        if (Motion.Reduced)
-        {
-            StageLeft = target;
-            FinishSidebar();
-            return;
-        }
-        var animation = new DoubleAnimation
-        {
-            To = target,
-            Duration = new Duration(TimeSpan.FromMilliseconds(260)),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
-            EnableDependentAnimation = true,
-        };
-        Storyboard.SetTarget(animation, this);
-        Storyboard.SetTargetProperty(animation, nameof(StageLeft));
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(animation);
-        storyboard.Completed += (_, _) => { StageLeft = target; FinishSidebar(); };
-        storyboard.Begin();
-    }
-
-    private void FinishSidebar()
-    {
-        if (!_pinnedExpanded) SetLabelsVisible(false);
-    }
-
-    private void SetLabelsVisible(bool visible)
-    {
-        var visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        SearchLabel.Visibility = visibility;
-        HomeLabel.Visibility = visibility;
-        LibraryLabel.Visibility = visibility;
-        GeneralCheckLabel.Visibility = visibility;
-        HistoryLabel.Visibility = visibility;
-        SettingsLabel.Visibility = visibility;
-        SearchSeparator.Visibility = visibility;
-    }
-
-    private Button[] NavButtons => new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton };
-
-    private void UpdateSidebarVisualState()
-    {
-        var expanded = _pinnedExpanded;
-        var buttons = new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton };
-
-        // A navegação preserva o fundo preto sólido, mesmo quando há arte no palco.
-        Sidebar.Background = CreateSidebarSurface();
-
-        ExpandedHeader.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
-        CollapsedHeader.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
-        if (expanded) SetLabelsVisible(true);
-
-        NavItemsPanel.Width = double.NaN;
-        NavItemsPanel.HorizontalAlignment = HorizontalAlignment.Stretch;
-        NavItemsPanel.Padding = expanded ? new Thickness(12, 8, 12, 0) : new Thickness(10, 8, 10, 0);
-        foreach (var button in buttons)
-        {
-            button.Width = expanded ? double.NaN : 44;
-            button.HorizontalAlignment = expanded ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
-        }
-        if (!_sidebarReady)
-        {
-            _sidebarReady = true;
-            Sidebar.SizeChanged += (_, args) => Sidebar.Clip = new RectangleGeometry { Rect = new Windows.Foundation.Rect(0, 0, args.NewSize.Width, args.NewSize.Height) };
-        }
-    }
-
-    private void QuickSearch_Click(object sender, RoutedEventArgs e) => OpenQuickSearch();
+    // ------------------------------------------------------------------ navegação do topo
 
     public void OpenQuickSearch()
     {
@@ -618,7 +482,7 @@ public sealed partial class ShellPage : Page
     /// <summary>Fecha uma tela auxiliar voltando ao contexto que a abriu.</summary>
     public void NavigateBackFromOverlay()
     {
-        if (_navigationLocked || _currentRoute == NavigationRoute.GeneralCheck) return;
+        if (_navigationLocked || _currentRoute == NavigationRoute.Home) return;
         var destination = _currentRoute switch
         {
             NavigationRoute.Settings => _returnRoute,
@@ -636,13 +500,12 @@ public sealed partial class ShellPage : Page
         if (locked == _navigationLocked) return;
         _navigationLocked = locked;
         TopHomeButton.IsEnabled = !locked;
-        foreach (var button in new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton }) button.IsEnabled = !locked;
     }
 
     private void UpdateTopNavigation()
     {
-        // Galeria não tem retorno próprio. Ajustes e Detalhes já exibem sua seta no conteúdo.
-        var showsBack = _currentRoute is NavigationRoute.Gallery;
+        // Ajustes e Detalhes já exibem a própria seta no conteúdo; as demais telas usam a do topo.
+        var showsBack = _currentRoute is NavigationRoute.Gallery or NavigationRoute.Library or NavigationRoute.History or NavigationRoute.GeneralCheck;
         TopHomeButton.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;
         TopBrandIcon.Visibility = Visibility.Collapsed;
         TopBackIcon.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;
@@ -665,10 +528,4 @@ public sealed partial class ShellPage : Page
         }
         Navigate(destination is NavigationRoute.GameDetails ? NavigationRoute.Home : destination);
     }
-
-    private void Home_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.Home);
-    private void Library_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.Library);
-    private void GeneralCheck_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.GeneralCheck);
-    private void History_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.History);
-    private void Settings_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.Settings);
 }

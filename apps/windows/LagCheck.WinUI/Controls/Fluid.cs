@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace LagCheck.WinUI.Controls;
 
@@ -38,6 +39,18 @@ public static class Fluid
         element.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = Duration };
     }
 
+    /// <summary>Feedback padrão de botão (hover sobe de leve, pressionar afunda); o mesmo toque em todas as telas.</summary>
+    public static void Feedback(Button button, float scale = 1.015f, float lift = -1f)
+    {
+        Prepare(button);
+        var hovered = false;
+        button.PointerEntered += (_, _) => { hovered = true; Hover(button, true, scale, lift); };
+        button.PointerExited += (_, _) => { hovered = false; Hover(button, false); };
+        button.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => Press(button, true, scale)), true);
+        button.AddHandler(UIElement.PointerReleasedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => Hover(button, hovered, scale, lift)), true);
+        button.PointerCanceled += (_, _) => { hovered = false; Hover(button, false); };
+    }
+
     /// <summary>Estado de passagem do mouse: o card sobe um pouco e cresce de leve.</summary>
     public static void Hover(UIElement element, bool hovering, float scale = 1.035f, float lift = -6f)
     {
@@ -50,6 +63,14 @@ public static class Fluid
         }
         element.Scale = hovering ? new Vector3(scale, scale, 1) : Vector3.One;
         element.Translation = hovering ? new Vector3(0, lift, 0) : Vector3.Zero;
+    }
+
+    /// <summary>Pose fixa (escala + deslocamento vertical) animada na GPU; sem animação com movimento reduzido.</summary>
+    public static void SetPose(UIElement element, float scale, float translateY)
+    {
+        ApplyMotionPreference(element);
+        element.Scale = new Vector3(scale, scale, 1);
+        element.Translation = new Vector3(0, translateY, 0);
     }
 
     /// <summary>Estado de pressão: o card afunda um pouco e volta ao soltar.</summary>
