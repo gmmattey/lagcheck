@@ -136,6 +136,7 @@
 | [131](#decisão-131) | Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android | **Vigente (refinada pela 132)** | Adiciona busca em pílula no topo, unifica pílula do último check dentro do Hero (`#1E232B`→`#15181E` + glow `#7C3AED`), adota trilhos horizontais 3:4 (`114x152`) para Favoritos e Populares, e tab bar flutuante em pílula no Android | Luiz / Squad |
 | [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
 | [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
+| [134](#decisão-134) | CTA da Home WinUI adota o formato do Hero mobile | **Vigente (implementado localmente; validação visual pendente)** | Refina a apresentação Windows da Decisão 133, sem alterar a ação de abrir o jogo instalado | Luiz / Priscila / Camillo / Renan |
 
 
 
@@ -1541,6 +1542,15 @@
 - **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
 - **Decisão:** adapta o CTA `TESTAR AGORA` do card Hero da Home no Android e no iOS para o formato em pílula com gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho/sombra luminosa, ícone circular branco com seta `→` em `#7C3AED` à direita e um anel externo fino translúcido (`4 px` de respiro) contornando o botão. Os demais `PrimaryButton` do app seguem em `12 px`.
 - **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 134
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** CTA principal da Home WinUI no formato do Hero Android/iOS.
+- **Status Atual:** **Vigente (implementado localmente; validação visual pendente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação WinUI), Renan (validação).
+- **Decisão:** a ação principal do Hero da Home WinUI passa a usar pílula de 48 px, com 4 px de respiro dentro de anel translúcido, gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho e seta roxa em círculo branco à direita, como Android e iOS. Ela mantém o rótulo localizado `JOGAR AGORA` e continua somente abrindo o jogo instalado; `Checar conexão`, demais CTAs, imagens, diagnóstico e navegação não mudam.
+- **Critérios de validação e aceite:** o CTA preserva clique, estado desabilitado, foco de teclado, nome acessível e traduções PT-BR/EN/ES; build e testes WinUI passam; conferência visual em Windows garante o anel, seta e contraste sobre a arte da Home.
 
 ## Como Registrar Novas Decisões
 

@@ -41,11 +41,25 @@
 
             <!-- Ações -->
             <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,6,0,0">
-                <Grid>
-                    <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
-                    <Button x:Name="LaunchBtn" Style="{StaticResource PillPrimaryButtonStyle}" Content="▶ JOGAR AGORA" Click="Launch_Click"
-                            automation:AutomationProperties.Name="Jogar agora"/>
-                </Grid>
+                <Border x:Name="LaunchCtaRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="28" Padding="4" UseLayoutRounding="True">
+                    <Grid>
+                        <Rectangle x:Name="LaunchGlow" RadiusX="24" RadiusY="24" Fill="{StaticResource PurpleBrush}" UseLayoutRounding="True"/>
+                        <Button x:Name="LaunchBtn" Style="{StaticResource HomeHeroCtaButtonStyle}" MinWidth="220" Click="Launch_Click"
+                                automation:AutomationProperties.Name="Jogar agora" UseLayoutRounding="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="28"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="LaunchBtnText" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CharacterSpacing="25" Foreground="White"/>
+                                <Border Grid.Column="2" Width="28" Height="28" CornerRadius="14" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center" UseLayoutRounding="True">
+                                    <FontIcon Glyph="&#xE72A;" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource PurpleBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </Button>
+                    </Grid>
+                </Border>
                 <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Checar conexão" Click="CheckConnection_Click"
                         automation:AutomationProperties.Name="Checar conexão"/>
                 <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">

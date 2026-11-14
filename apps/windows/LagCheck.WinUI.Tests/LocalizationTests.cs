@@ -61,6 +61,21 @@ public sealed class LocalizationTests
     }
 
     [Fact]
+    public void Home_launch_cta_is_localized_in_all_supported_languages()
+    {
+        var service = LocalizationService.Instance;
+
+        service.SelectedLanguage = AppLanguage.PtBr;
+        Assert.Equal("JOGAR AGORA", Strings.Tr("JOGAR AGORA"));
+
+        service.SelectedLanguage = AppLanguage.En;
+        Assert.Equal("PLAY NOW", Strings.Tr("JOGAR AGORA"));
+
+        service.SelectedLanguage = AppLanguage.Es;
+        Assert.Equal("JUGAR AHORA", Strings.Tr("JOGAR AGORA"));
+    }
+
+    [Fact]
     public void Format_string_interpolates_arguments_correctly()
     {
         var service = LocalizationService.Instance;

@@ -44,7 +44,7 @@ public sealed partial class HomePage : Page
         InitializeComponent();
         ViewModel = new LibraryViewModel(LibraryPageServices.Bridge, LibraryPageServices.DiagnosticNavigator);
         DataContext = ViewModel;
-        GlowEffect.Attach(LaunchGlow, Color.FromArgb(0x8C, 0x7C, 0x3A, 0xED), 36);
+        GlowEffect.Attach(LaunchGlow, Color.FromArgb(0xA8, 0x7C, 0x3A, 0xED), 24);
         LocalizeUI();
 
         _historyChangedHandler = (_, _) => QueueRefresh();
@@ -86,7 +86,8 @@ public sealed partial class HomePage : Page
 
     private void LocalizeUI()
     {
-        LaunchBtn.Content = Strings.Tr("▶ JOGAR AGORA");
+        LaunchBtnText.Text = Strings.Tr("JOGAR AGORA");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
         CheckConnBtn.Content = Strings.Tr("Checar conexão");
         ToolTipService.SetToolTip(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
         ToolTipService.SetToolTip(CheckConnBtn, Strings.Tr("Avaliar rota e estabilidade pré-partida"));
@@ -101,6 +102,8 @@ public sealed partial class HomePage : Page
 
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)
     {
+        // A página fica em cache de navegação; reaplica o idioma ao voltar de Ajustes.
+        LocalizeUI();
         Wire();
         Refresh();
         _slideTimer.Start();
@@ -219,7 +222,12 @@ public sealed partial class HomePage : Page
         ApplyVerdict(hero);
 
         CheckConnBtn.Visibility = hero.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
-        LaunchBtn.IsEnabled = hero.IsInstalled && hero.IsLaunchable;
+        var canLaunch = hero.IsInstalled && hero.IsLaunchable;
+        LaunchBtn.IsEnabled = canLaunch;
+        LaunchGlow.Opacity = canLaunch ? 1 : 0;
+        LaunchCtaRing.BorderBrush = canLaunch
+            ? (Brush)Application.Current.Resources["HomeHeroCtaRingBrush"]
+            : new SolidColorBrush(Colors.Transparent);
         FavIcon.IsFilled = hero.IsFavorite;
         FavIcon.Foreground = hero.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, hero.FavoriteActionLabel);

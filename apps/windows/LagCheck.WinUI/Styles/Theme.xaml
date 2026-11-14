@@ -33,6 +33,15 @@
   <SolidColorBrush x:Key="TechLabelBrush" Color="#606873"/>
   <SolidColorBrush x:Key="PillSurfaceBrush" Color="#D9252A36"/>
   <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#1C212B"/>
+  <LinearGradientBrush x:Key="HomeHeroCtaBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#8B5CF6" Offset="0"/>
+    <GradientStop Color="#7C3AED" Offset="0.52"/>
+    <GradientStop Color="#6D28D9" Offset="1"/>
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="HomeHeroCtaRingBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#66FFFFFF" Offset="0"/>
+    <GradientStop Color="#47A78BFA" Offset="1"/>
+  </LinearGradientBrush>
 
   <!-- ToggleSwitch: pílula de 40x20 com contorno (off) e preenchimento roxo (on) -->
   <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PurpleColor}"/>
@@ -160,6 +169,31 @@
     </Grid>
   </ControlTemplate>
 
+  <ControlTemplate x:Key="HomeHeroCtaButtonTemplate" TargetType="Button">
+    <Grid x:Name="RootGrid">
+      <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="PressedVeil" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
+      <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                        Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal"/>
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.12"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.02"/><Setter Target="PressedVeil.Opacity" Value="0.18"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="FocusStates">
+          <VisualState x:Name="Unfocused"/>
+          <VisualState x:Name="PointerFocused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="Focused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+    </Grid>
+  </ControlTemplate>
+
   <ControlTemplate x:Key="SearchNavButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
@@ -242,6 +276,21 @@
     <Setter Property="Background" Value="{StaticResource PurpleBrush}"/>
     <Setter Property="Foreground" Value="White"/>
     <Setter Property="CornerRadius" Value="28"/>
+  </Style>
+
+  <!-- CTA exclusivo do Hero da Home: o anel externo separa a ação principal dos demais botões em pílula. -->
+  <Style x:Key="HomeHeroCtaButtonStyle" TargetType="Button">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="#4DFFFFFF"/>
+    <Setter Property="Template" Value="{StaticResource HomeHeroCtaButtonTemplate}"/>
+    <Setter Property="Height" Value="48"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="CharacterSpacing" Value="25"/>
+    <Setter Property="Background" Value="{StaticResource HomeHeroCtaBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="CornerRadius" Value="24"/>
   </Style>
 
   <Style x:Key="GhostPillButtonStyle" TargetType="Button">

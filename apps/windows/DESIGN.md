@@ -46,7 +46,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
   - Título em **Barlow Semi Condensed ExtraBold** (56–76 px, maiúsculo, line-height 0.98, tracking -0.5px).
   - Tag de veredito da última medição (`● PRONTO PARA RANKED` em verde `#22C55E` com fundo `rgba(34,197,94,.16)` e ping `12 ms`).
 - **Ações Imediatas:**
-  - Botão Primário `▶ JOGAR AGORA`: Roxo `#7C3AED`, altura 56 px, cantos arredondados de 28 px, padding lateral 42 px, glow de 36 px `rgba(124,58,237,.55)`.
+  - Botão Primário `JOGAR AGORA`: pílula de 48 px em gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho roxo, anel externo translúcido com 4 px de respiro e seta roxa em círculo branco à direita. Abre somente o jogo instalado.
   - Botão `Checar conexão`: Fundo `rgba(37,42,54,.85)`, cantos 28 px, padding 28 px.
   - Botões circulares (46 px, cantos 23 px): Favoritar (coração) e Atualizar Imagem oficial.
   - Indicadores de slides (dots de 5 px).
