@@ -320,7 +320,7 @@ public sealed class WidgetHost : Grid
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
             row.Children.Add(new FontIcon { Glyph = "", FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 12 });
-            row.Children.Add(new TextBlock { Text = Strings.Tr(widget.Title), FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = Strings.Tr(widget.Title), FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Normal, VerticalAlignment = VerticalAlignment.Center });
             var chip = new Button
             {
                 Style = (Style)Application.Current.Resources["PillChipButtonStyle"],
@@ -369,7 +369,7 @@ public sealed class WidgetHost : Grid
     {
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         row.Children.Add(new FontIcon { Glyph = glyph, FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
-        row.Children.Add(new TextBlock { Text = text, FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        row.Children.Add(new TextBlock { Text = text, FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Normal, VerticalAlignment = VerticalAlignment.Center });
         var button = new Button
         {
             Height = 34,

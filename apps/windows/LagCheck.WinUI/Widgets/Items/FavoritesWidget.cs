@@ -86,8 +86,9 @@ public sealed class FavoritesWidget : IHomeWidget
             var overflowText = new TextBlock
             {
                 Text = $"+{remaining}",
+                FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"],
                 FontSize = 14,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                FontWeight = Microsoft.UI.Text.FontWeights.Normal,
                 Foreground = secBrush,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(4, 0, 0, 0),

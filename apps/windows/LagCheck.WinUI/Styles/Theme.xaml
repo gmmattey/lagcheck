@@ -98,36 +98,51 @@
   <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#202633"/>
   <SolidColorBrush x:Key="ProgressBarBackground" Color="#14FFFFFF"/>
 
-  <!-- Tipografia oficial v2: Barlow Semi Condensed (títulos), Chakra Petch (métricas), Cascadia Mono (rótulos técnicos), Segoe UI Variable (corpo).
-       As fontes de título/métrica já são cortes pesados: usar sempre FontWeight Normal para não gerar negrito sintético. -->
-  <FontFamily x:Key="BodyFont">Segoe UI Variable Text, Segoe UI, sans-serif</FontFamily>
+  <!-- Tipografia oficial v2 (Tríade Android / Decisão 125):
+       1. Display: Barlow Semi Condensed (títulos e vereditos)
+       2. Corpo: Barlow Regular / Medium / SemiBold (leitura, navegação, botões e campos)
+       3. Telemetria: Chakra Petch SemiBold (métricas, números e kickers técnicos com algarismos tabulares)
+       As fontes de corte específico já possuem seus pesos: usar sempre FontWeight Normal para não gerar negrito sintético. -->
+  <FontFamily x:Key="BodyFont">ms-appx:///Assets/Fonts/barlow_regular.ttf#Barlow</FontFamily>
+  <FontFamily x:Key="BodyMediumFont">ms-appx:///Assets/Fonts/barlow_medium.ttf#Barlow Medium</FontFamily>
+  <FontFamily x:Key="BodySemiBoldFont">ms-appx:///Assets/Fonts/barlow_semibold.ttf#Barlow SemiBold</FontFamily>
   <FontFamily x:Key="HeadingFont">ms-appx:///Assets/Fonts/barlow_semicondensed_extrabold.ttf#Barlow Semi Condensed ExtraBold</FontFamily>
   <FontFamily x:Key="HeadingBoldFont">ms-appx:///Assets/Fonts/barlow_semicondensed_bold.ttf#Barlow Semi Condensed</FontFamily>
   <FontFamily x:Key="MetricFont">ms-appx:///Assets/Fonts/chakra_petch_semibold.ttf#Chakra Petch SemiBold</FontFamily>
-  <FontFamily x:Key="TechnicalFont">Cascadia Mono, Consolas, monospace</FontFamily>
+  <FontFamily x:Key="TechnicalFont">ms-appx:///Assets/Fonts/chakra_petch_semibold.ttf#Chakra Petch SemiBold</FontFamily>
 
   <!-- Estilos de texto -->
   <Style TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource BodyFont}"/>
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
+  <Style x:Key="BodyMediumTextStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource BodyMediumFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+  </Style>
+  <Style x:Key="BodySemiBoldTextStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+  </Style>
   <Style x:Key="EyebrowTextStyle" TargetType="TextBlock">
-    <Setter Property="FontFamily" Value="{StaticResource BodyFont}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
   </Style>
   <Style x:Key="TechLabelStyle" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource TechnicalFont}"/>
     <Setter Property="FontSize" Value="11"/>
-    <Setter Property="FontWeight" Value="Bold"/>
-    <Setter Property="CharacterSpacing" Value="100"/>
+    <Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="CharacterSpacing" Value="70"/>
     <Setter Property="Foreground" Value="{StaticResource TechLabelBrush}"/>
   </Style>
   <Style x:Key="PageTitleStyle" TargetType="TextBlock">
-    <Setter Property="FontFamily" Value="{StaticResource BodyFont}"/>
+    <Setter Property="FontFamily" Value="{StaticResource HeadingBoldFont}"/>
     <Setter Property="FontSize" Value="26"/>
-    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
   <Style x:Key="PageHeaderStyle" TargetType="TextBlock">
@@ -286,10 +301,11 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#33FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Height" Value="56"/>
     <Setter Property="Padding" Value="42,0"/>
     <Setter Property="FontSize" Value="16"/>
-    <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource PurpleBrush}"/>
     <Setter Property="Foreground" Value="White"/>
@@ -301,12 +317,13 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#33FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource HomeHeroCtaButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Height" Value="48"/>
     <Setter Property="Padding" Value="0"/>
     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     <Setter Property="VerticalContentAlignment" Value="Stretch"/>
     <Setter Property="FontSize" Value="14"/>
-    <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource HomeHeroCtaBrush}"/>
     <Setter Property="Foreground" Value="White"/>
@@ -315,11 +332,12 @@
 
   <Style x:Key="HeroPrimaryButtonStyle" TargetType="Button">
     <Setter Property="Template" Value="{StaticResource HeroPrimaryButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="MinWidth" Value="240"/>
     <Setter Property="Height" Value="56"/>
     <Setter Property="Padding" Value="0"/>
     <Setter Property="FontSize" Value="14"/>
-    <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource HomeHeroCtaBrush}"/>
     <Setter Property="Foreground" Value="White"/>
@@ -330,10 +348,11 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Height" Value="56"/>
     <Setter Property="Padding" Value="32,0"/>
     <Setter Property="FontSize" Value="14"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
     <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
     <Setter Property="CornerRadius" Value="28"/>
   </Style>
@@ -353,10 +372,11 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="MinHeight" Value="44"/>
     <Setter Property="Padding" Value="28,0"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
     <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
     <Setter Property="CornerRadius" Value="22"/>
   </Style>
@@ -373,10 +393,11 @@
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#17FFFFFF"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodyMediumFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Height" Value="38"/>
     <Setter Property="Padding" Value="22,0"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="FontWeight" Value="Medium"/>
     <Setter Property="Background" Value="{StaticResource ChipSurfaceBrush}"/>
     <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
     <Setter Property="CornerRadius" Value="19"/>
@@ -385,10 +406,11 @@
   <!-- Link roxo sem fundo (Cancelar, Escolher outro jogo) -->
   <Style x:Key="TextLinkButtonStyle" TargetType="Button">
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
+    <Setter Property="FontFamily" Value="{StaticResource BodyMediumFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="Foreground" Value="{StaticResource PurpleLightBrush}"/>
     <Setter Property="FontSize" Value="15"/>
-    <Setter Property="FontWeight" Value="Medium"/>
     <Setter Property="Padding" Value="16,0"/>
     <Setter Property="MinHeight" Value="44"/>
     <Setter Property="CornerRadius" Value="10"/>

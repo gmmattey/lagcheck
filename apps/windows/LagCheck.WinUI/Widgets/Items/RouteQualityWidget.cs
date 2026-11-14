@@ -117,7 +117,7 @@ public sealed class RouteQualityWidget : IHomeWidget
         // Região é texto (ex.: "São Paulo"): fonte de corpo e até duas linhas, em vez do número grande.
         var c2 = new StackPanel { Spacing = 2 };
         c2.Children.Add(new TextBlock { Text = Strings.Tr("REGIÃO").ToUpper(CultureInfo.CurrentCulture), Style = (Style)Application.Current.Resources["TechLabelStyle"] });
-        c2.Children.Add(new TextBlock { Text = regionName, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, MaxLines = 2, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"] });
+        c2.Children.Add(new TextBlock { Text = regionName, FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Normal, TextWrapping = TextWrapping.Wrap, MaxLines = 2, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"] });
         Grid.SetColumn(c2, 2);
         grid.Children.Add(c2);
 
@@ -154,8 +154,9 @@ public sealed class RouteQualityWidget : IHomeWidget
         var headlineText = new TextBlock
         {
             Text = Verdicts.Headline(tone, hasGame),
+            FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"],
             FontSize = 13,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            FontWeight = Microsoft.UI.Text.FontWeights.Normal,
             TextWrapping = TextWrapping.Wrap,
             LineHeight = 16,
             LineStackingStrategy = LineStackingStrategy.BlockLineHeight,

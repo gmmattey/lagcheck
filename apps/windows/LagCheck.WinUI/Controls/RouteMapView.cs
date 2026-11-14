@@ -535,8 +535,8 @@ public sealed class RouteMapView : Grid
             {
                 Text = text,
                 FontSize = 12,
-                FontWeight = metric ? Microsoft.UI.Text.FontWeights.Normal : Microsoft.UI.Text.FontWeights.SemiBold,
-                FontFamily = (FontFamily)Application.Current.Resources[metric ? "MetricFont" : "BodyFont"],
+                FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+                FontFamily = (FontFamily)Application.Current.Resources[metric ? "MetricFont" : "BodySemiBoldFont"],
                 Foreground = new SolidColorBrush(metric ? PurpleLight : TextColor),
                 VerticalAlignment = VerticalAlignment.Center,
             });

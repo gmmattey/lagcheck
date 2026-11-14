@@ -212,8 +212,9 @@ public sealed class ActivityWidget : IHomeWidget
         panel.Children.Add(new TextBlock
         {
             Text = gameTitle,
+            FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"],
             FontSize = 15,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            FontWeight = Microsoft.UI.Text.FontWeights.Normal,
             TextTrimming = TextTrimming.CharacterEllipsis,
         });
 

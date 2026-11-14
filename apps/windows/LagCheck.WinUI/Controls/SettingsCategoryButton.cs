@@ -119,28 +119,28 @@ public sealed class SettingsCategoryButton : UserControl
             _container.BorderBrush = SelectedBorderBrush;
             _container.Background = SelectedBackgroundBrush;
             _label.Foreground = TextPrimaryBrush;
-            _label.FontWeight = FontWeights.SemiBold;
+            Typography.SemiBold(_label);
         }
         else if (_isFocused)
         {
             _container.BorderBrush = FocusedBorderBrush;
             _container.Background = HoverBackgroundBrush;
             _label.Foreground = TextPrimaryBrush;
-            _label.FontWeight = FontWeights.SemiBold;
+            Typography.SemiBold(_label);
         }
         else if (_isPointerOver)
         {
             _container.BorderBrush = TransparentBrush;
             _container.Background = HoverBackgroundBrush;
             _label.Foreground = TextPrimaryBrush;
-            _label.FontWeight = FontWeights.Normal;
+            Typography.Body(_label);
         }
         else
         {
             _container.BorderBrush = TransparentBrush;
             _container.Background = TransparentBrush;
             _label.Foreground = TextSecondaryBrush;
-            _label.FontWeight = FontWeights.Normal;
+            Typography.Body(_label);
         }
     }
 }

@@ -26,11 +26,11 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom">
                     <TextBlock x:Name="LibraryTitle" Text="BIBLIOTECA" Style="{StaticResource PageHeaderStyle}"/>
-                    <TextBlock x:Name="CountText" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Bottom" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="CountText" Foreground="{StaticResource TextSecondaryBrush}" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="14" VerticalAlignment="Bottom" Margin="0,0,0,6"/>
                 </StackPanel>
                 <Button x:Name="RescanButton" Grid.Column="1" Style="{StaticResource SecondaryCompactButtonStyle}"
                         Click="Rescan_Click" VerticalAlignment="Bottom" automation:AutomationProperties.Name="Procurar jogos">
-                    <TextBlock x:Name="RescanButtonText" Text="Procurar jogos" FontSize="13" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="RescanButtonText" Text="Procurar jogos" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="14"/>
                 </Button>
             </Grid>
 
@@ -79,7 +79,7 @@
                                         <GradientStop Color="#EB0D0F14" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Grid.Background>
-                                <TextBlock Text="{x:Bind Title}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Bold" FontSize="17" LineHeight="19.5" LineStackingStrategy="BlockLineHeight"
+                                <TextBlock Text="{x:Bind Title}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Normal" FontSize="17" LineHeight="19.5" LineStackingStrategy="BlockLineHeight"
                                            TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                             <Border Background="#B80D0F14" CornerRadius="15" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"

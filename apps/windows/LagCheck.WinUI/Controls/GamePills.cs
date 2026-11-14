@@ -123,6 +123,9 @@ public static class GamePills
             : new SolidColorBrush(Color.FromArgb(255, 0xF5, 0xF7, 0xFC));
         var backgroundBrush = new SolidColorBrush(Color.FromArgb(0xB3, 0x0B, 0x0D, 0x12));
         var borderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255));
+        var semiBoldFont = Application.Current?.Resources.TryGetValue("BodySemiBoldFont", out var fontObj) == true && fontObj is FontFamily f
+            ? f
+            : Typography.BodySemiBoldFont;
 
         foreach (var label in labels)
         {
@@ -137,8 +140,9 @@ public static class GamePills
                 Child = new TextBlock
                 {
                     Text = label,
+                    FontFamily = semiBoldFont,
                     FontSize = 13,
-                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    FontWeight = Microsoft.UI.Text.FontWeights.Normal,
                     Foreground = textBrush,
                     VerticalAlignment = VerticalAlignment.Center,
                 },

@@ -349,8 +349,9 @@ public sealed class PlatformsWidget : IHomeWidget
             var nameBlock = new TextBlock
             {
                 Text = PlatformDisplayName(p.Id),
-                FontSize = 12,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"],
+                FontSize = 13,
+                FontWeight = Microsoft.UI.Text.FontWeights.Normal,
                 VerticalAlignment = VerticalAlignment.Center,
             };
             item.Children.Add(nameBlock);
@@ -360,7 +361,7 @@ public sealed class PlatformsWidget : IHomeWidget
             item.Children.Add(new TextBlock
             {
                 Text = label,
-                FontSize = 11,
+                FontSize = 12,
                 Foreground = new SolidColorBrush(color),
                 VerticalAlignment = VerticalAlignment.Center,
             });

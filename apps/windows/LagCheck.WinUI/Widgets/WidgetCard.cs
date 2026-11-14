@@ -25,12 +25,12 @@ public sealed class WidgetCard : Grid
     private readonly Border _frame = new() { CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1), Padding = new Thickness(16, 12, 16, 12) };
     private readonly SolidColorBrush _frameBrush = new(Surface);
     private readonly SvgIcon _icon = new() { Size = 14 };
-    private readonly TextBlock _title = new() { FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, CharacterSpacing = 40, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+    private readonly TextBlock _title = new() { FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 70, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly Button _actionButton = new();
     private readonly StackPanel _editBar = new() { Orientation = Orientation.Horizontal, Spacing = 4, Visibility = Visibility.Collapsed };
     private readonly Button _sizeButton = new();
     private readonly Grid _bodyHost = new();
-    private readonly TextBlock _caption = new() { FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 6, 0, 0) };
+    private readonly TextBlock _caption = new() { FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 6, 0, 0) };
     private readonly Border _staleChip = new();
     private readonly Rectangle _editOutline = new() { RadiusX = 20, RadiusY = 20, StrokeThickness = 1.5, StrokeDashArray = { 4, 3 }, IsHitTestVisible = false, Opacity = 0 };
     private readonly Grid _skeleton = new() { RowSpacing = 8, Visibility = Visibility.Collapsed };
@@ -135,7 +135,7 @@ public sealed class WidgetCard : Grid
         _staleChip.VerticalAlignment = VerticalAlignment.Top;
         _staleChip.IsHitTestVisible = false;
         _staleChip.Visibility = Visibility.Collapsed;
-        _staleChip.Child = new TextBlock { Text = Strings.Tr("DESATUALIZADO"), FontSize = 10, FontWeight = Microsoft.UI.Text.FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromArgb(255, 0xF5, 0x9E, 0x0B)) };
+        _staleChip.Child = new TextBlock { Text = Strings.Tr("DESATUALIZADO"), FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 60, Foreground = new SolidColorBrush(Color.FromArgb(255, 0xF5, 0x9E, 0x0B)) };
         Grid.SetRow(_staleChip, 1);
 
         _frame.Child = root;
@@ -251,7 +251,7 @@ public sealed class WidgetCard : Grid
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         if (!string.IsNullOrEmpty(action.IconGlyph))
             row.Children.Add(new FontIcon { Glyph = action.IconGlyph, FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
-        row.Children.Add(new TextBlock { Text = Strings.Tr(action.Label), FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        row.Children.Add(new TextBlock { Text = Strings.Tr(action.Label), FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Normal, VerticalAlignment = VerticalAlignment.Center });
         return row;
     }
 

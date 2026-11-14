@@ -65,7 +65,7 @@
     <Border x:Name="ToastBorder" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,28"
             Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineStrongBrush}"
             BorderThickness="1" CornerRadius="12" Padding="18,12" Visibility="Collapsed" Opacity="0">
-      <TextBlock x:Name="ToastText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"/>
+      <TextBlock x:Name="ToastText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14"/>
     </Border>
 
   </Grid>

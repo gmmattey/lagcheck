@@ -83,7 +83,7 @@ public sealed class SettingsRow : UserControl
         _titleLabel.FontWeight = FontWeights.Normal;
         _titleLabel.TextWrapping = TextWrapping.Wrap;
 
-        _descriptionLabel.FontSize = 12.5;
+        _descriptionLabel.FontSize = 13;
         _descriptionLabel.Foreground = TextSecondaryBrush;
         _descriptionLabel.TextWrapping = TextWrapping.Wrap;
         _descriptionLabel.Visibility = Visibility.Collapsed;

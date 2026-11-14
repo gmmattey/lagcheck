@@ -67,7 +67,7 @@ public sealed class DiagnosticPage : Page
     // Fluxo (idle + running)
     private readonly TextBlock _idleTitle = new() { FontFamily = Res("HeadingFont"), FontWeight = FontWeights.Normal, FontSize = 36, LineHeight = 36, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, TextWrapping = TextWrapping.Wrap };
     private readonly Border _pill = new() { Background = Brush(Color.FromArgb(255, 0x2C, 0x2C, 0x2E)), CornerRadius = new CornerRadius(999), Padding = new Thickness(14, 6, 14, 6), HorizontalAlignment = HorizontalAlignment.Center, Visibility = Visibility.Collapsed };
-    private readonly TextBlock _pillText = new() { FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Brush(Color.FromArgb(255, 0xEB, 0xEB, 0xF5)) };
+    private readonly TextBlock _pillText = new() { FontFamily = Res("BodyMediumFont"), FontSize = 13, FontWeight = FontWeights.Normal, Foreground = Brush(Color.FromArgb(255, 0xEB, 0xEB, 0xF5)) };
     private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x1F, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(20), Background = Brush(Color.FromArgb(0xB8, 0x14, 0x18, 0x28)), Margin = new Thickness(0, 20, 0, 0) };
     private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(19) };
     private readonly Button _startBtn = new();
@@ -77,7 +77,7 @@ public sealed class DiagnosticPage : Page
     private readonly Grid _progressTrack = new() { Height = 2, Margin = new Thickness(0, 8, 0, 0), Background = Brush(Color.FromArgb(0x14, 255, 255, 255)) };
     private readonly Run _liveValue = new() { Text = "—" };
     private readonly Run _liveUnit = new() { Text = string.Empty };
-    private readonly TextBlock _phaseName = new() { FontSize = 13, FontWeight = FontWeights.SemiBold, CharacterSpacing = 40, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0) };
+    private readonly TextBlock _phaseName = new() { FontFamily = Res("TechnicalFont"), FontSize = 12, FontWeight = FontWeights.Normal, CharacterSpacing = 70, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0) };
     private readonly StackPanel _steps = new() { Orientation = Orientation.Horizontal, Spacing = 18, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 14, 0, 0) };
     private readonly Grid _strip = new() { BorderBrush = Brush(Line), BorderThickness = new Thickness(0, 1, 0, 1), Margin = new Thickness(0, 16, 0, 0) };
     private readonly TextBlock[] _stripValues = new TextBlock[3];
@@ -137,12 +137,12 @@ public sealed class DiagnosticPage : Page
 
     // ------------------------------------------------------------------ construção
 
-    private static TextBlock TechLabel(string text, double size = 11, int spacing = 100) => new()
+    private static TextBlock TechLabel(string text, double size = 11, int spacing = 70) => new()
     {
         Text = text.ToUpper(CultureInfo.CurrentCulture),
         FontFamily = Res("TechnicalFont"),
         FontSize = size,
-        FontWeight = FontWeights.Bold,
+        FontWeight = FontWeights.Normal,
         CharacterSpacing = spacing,
         Foreground = Brush(Tech),
     };
@@ -331,8 +331,8 @@ public sealed class DiagnosticPage : Page
         var left = new StackPanel();
         _resContext.FontFamily = Res("TechnicalFont");
         _resContext.FontSize = 11;
-        _resContext.FontWeight = FontWeights.Bold;
-        _resContext.CharacterSpacing = 100;
+        _resContext.FontWeight = FontWeights.Normal;
+        _resContext.CharacterSpacing = 70;
         _resContext.Foreground = Brush(Secondary);
         _resContext.Margin = new Thickness(0, 0, 0, 12);
         left.Children.Add(_resContext);
@@ -355,8 +355,8 @@ public sealed class DiagnosticPage : Page
         Grid.SetColumn(right, 1);
         _evidenceLabel.FontFamily = Res("TechnicalFont");
         _evidenceLabel.FontSize = 11;
-        _evidenceLabel.FontWeight = FontWeights.Bold;
-        _evidenceLabel.CharacterSpacing = 100;
+        _evidenceLabel.FontWeight = FontWeights.Normal;
+        _evidenceLabel.CharacterSpacing = 70;
         _evidenceLabel.Foreground = Brush(Tech);
         right.Children.Add(_evidenceLabel);
         _resultMapFrame.Child = _resultMap;
@@ -408,8 +408,8 @@ public sealed class DiagnosticPage : Page
             label.Text = labels[i];
             label.FontFamily = Res("TechnicalFont");
             label.FontSize = 11;
-            label.FontWeight = FontWeights.Bold;
-            label.CharacterSpacing = 100;
+            label.FontWeight = FontWeights.Normal;
+            label.CharacterSpacing = 70;
             label.Foreground = Brush(Tech);
         }
 
@@ -671,7 +671,7 @@ public sealed class DiagnosticPage : Page
                 Text = metrics[i].Label.ToUpper(CultureInfo.CurrentCulture),
                 FontFamily = Res("TechnicalFont"),
                 FontSize = 11,
-                FontWeight = FontWeights.Bold,
+                FontWeight = FontWeights.Normal,
                 CharacterSpacing = 60,
                 Foreground = Brush(Tech),
                 MinHeight = 28.6,
@@ -681,7 +681,7 @@ public sealed class DiagnosticPage : Page
             });
             var value = new TextBlock { FontFamily = Res("MetricFont"), FontSize = 32, LineHeight = 32, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Foreground = Brush(metrics[i].Color), Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.NoWrap };
             value.Inlines.Add(new Run { Text = metrics[i].Value });
-            if (!string.IsNullOrEmpty(metrics[i].Unit)) value.Inlines.Add(new Run { Text = " " + metrics[i].Unit, FontSize = 12, FontFamily = Res("BodyFont"), FontWeight = FontWeights.SemiBold, Foreground = Brush(Secondary) });
+            if (!string.IsNullOrEmpty(metrics[i].Unit)) value.Inlines.Add(new Run { Text = " " + metrics[i].Unit, FontSize = 12, FontFamily = Res("BodySemiBoldFont"), FontWeight = FontWeights.Normal, Foreground = Brush(Secondary) });
             cell.Children.Add(value);
             Grid.SetColumn(cell, i);
             _resMetrics.Children.Add(cell);

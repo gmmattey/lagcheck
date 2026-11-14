@@ -88,7 +88,7 @@ public sealed partial class LibraryPage : Page
             chip.Foreground = foreground;
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
             if (logo is not null) row.Children.Add(new SvgIcon { Data = logo, FillOnly = true, Size = 15, Foreground = new SolidColorBrush(Color.FromArgb(255, 0xF5, 0xF7, 0xFC)) });
-            row.Children.Add(new TextBlock { Text = Strings.Tr(label), FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Medium, Foreground = foreground });
+            row.Children.Add(new TextBlock { Text = Strings.Tr(label), FontFamily = (FontFamily)Application.Current.Resources["BodyMediumFont"], FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Normal, Foreground = foreground });
             chip.Content = row;
         }
     }

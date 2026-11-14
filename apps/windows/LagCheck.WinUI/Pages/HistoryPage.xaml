@@ -58,16 +58,16 @@
                       <ColumnDefinition Width="80"/>
                       <ColumnDefinition Width="72"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{x:Bind Game}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="{x:Bind Region}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    <TextBlock Text="{x:Bind Game}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Normal" FontSize="16" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{x:Bind Region}" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
                       <Ellipse Width="9" Height="9" Fill="{x:Bind ToneBrush}" VerticalAlignment="Center"/>
-                      <TextBlock Text="{x:Bind Verdict}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{x:Bind Verdict}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Normal" FontSize="14" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                     <TextBlock Grid.Column="3" Text="{x:Bind Ping}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="4" Text="{x:Bind Jitter}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="5" Text="{x:Bind Loss}" Style="{StaticResource MetricTextStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="6" Text="{x:Bind Time}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="6" Text="{x:Bind Time}" FontFamily="{StaticResource TechnicalFont}" FontWeight="Normal" FontSize="13" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                   </Grid>
                 </DataTemplate>
               </ItemsRepeater.ItemTemplate>

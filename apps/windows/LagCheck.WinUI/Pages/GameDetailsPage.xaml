@@ -42,7 +42,7 @@
                             Height="36" CornerRadius="18" Padding="10,0,16,0" Background="#D9252A36" automation:AutomationProperties.Name="Voltar">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <ctl:SvgIcon Data="M15 6l-6 6 6 6" Size="16" StrokeWidth="2.5" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock x:Name="BackBtnText" Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="BackBtnText" Text="Voltar" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="14" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -51,7 +51,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock x:Name="PlatformText" Text="PC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="PlatformText" Text="PC" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                         <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="64" LineStackingStrategy="BlockLineHeight"
@@ -90,7 +90,7 @@
                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
                                     <StackPanel x:Name="ShotsPanel" Orientation="Horizontal" Spacing="12" Padding="0,0,0,8"/>
                                 </ScrollViewer>
-                                <TextBlock x:Name="ShotsNote" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ShotsNote" FontSize="13" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

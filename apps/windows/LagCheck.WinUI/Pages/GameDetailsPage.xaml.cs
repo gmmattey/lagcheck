@@ -219,8 +219,8 @@ public sealed partial class GameDetailsPage : Page
                 BorderBrush = new SolidColorBrush(Color.FromArgb(0x0D, 255, 255, 255)),
                 BorderThickness = new Thickness(0, i == 0 ? 0 : 1, 0, 0),
             };
-            row.Children.Add(new TextBlock { Text = rows[i].Key, FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.Bold, CharacterSpacing = 65, Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"] });
-            row.Children.Add(new TextBlock { Text = rows[i].Value, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, LineHeight = 19.6, TextWrapping = TextWrapping.Wrap });
+            row.Children.Add(new TextBlock { Text = rows[i].Key, FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 70, Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"] });
+            row.Children.Add(new TextBlock { Text = rows[i].Value, FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Normal, LineHeight = 19.6, TextWrapping = TextWrapping.Wrap });
             FactsPanel.Children.Add(row);
         }
     }
@@ -265,10 +265,11 @@ public sealed partial class GameDetailsPage : Page
             var marker = Verdicts.Marker(tone);
             row.Children.Add(marker);
             var text = new StackPanel();
-            text.Children.Add(new TextBlock { Text = Verdicts.Headline(tone, true), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
+            text.Children.Add(new TextBlock { Text = Verdicts.Headline(tone, true), FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"], FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Normal, TextTrimming = TextTrimming.CharacterEllipsis });
             text.Children.Add(new TextBlock
             {
                 Text = $"{entry.PingLabel} · {Strings.Tr("JITTER").ToLower(CultureInfo.CurrentCulture)} {entry.JitterLabel}",
+                FontFamily = (FontFamily)Application.Current.Resources["MetricFont"],
                 FontSize = 12,
                 Margin = new Thickness(0, 2, 0, 0),
                 Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"],
