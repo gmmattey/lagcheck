@@ -17,7 +17,8 @@ sealed interface ArtworkResult {
 /** Onde uma fonte sugere procurar uma imagem. */
 sealed interface ArtworkCandidate {
     data class LocalFile(val path: Path) : ArtworkCandidate
-    data class Remote(val url: String) : ArtworkCandidate
+    /** [dimensions] só é preenchida quando a loja publica o tamanho do asset de forma estável. */
+    data class Remote(val url: String, val dimensions: ImageBytes.Dimensions? = null) : ArtworkCandidate
 }
 
 interface ArtworkSource {

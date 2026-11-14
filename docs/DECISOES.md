@@ -125,6 +125,8 @@
 | [120](#decisão-120) | Reorganização do repositório em camadas de produtos e pastas canônicas | **Vigente** | Isola `apps/`, `services/`, `shared/`, `distribution/`, `docs/`, `scripts/` | Luiz / Squad |
 | [121](#decisão-121) | Verificação automática de versão e atualização transparente no Android (APK e Loja) | **Vigente** | Detecção de origem (Play Store vs sideload APK), diálogo Dark Competitive UI, download direto e Google Play In-App Updates | Luiz / Marcelo / Camillo / Priscila / Renan |
 | [122](#decisão-122) | Windows (WinUI 3): suporte multi-idioma nativo (PT-BR, EN e ES) com detecção de sistema e seletor em Ajustes | **Vigente** | Internacionalização completa da interface WinUI 3 com chave PT-BR, fallback robusto e troca instantânea | Luiz / Squad |
+| [123](#decisão-123) | Windows: priorizar artes oficiais de maior resolução disponíveis | **Vigente** | Refina a ordem de fontes da Decisão 118 para capas e banners | Luiz / Squad |
+| [124](#decisão-124) | Windows: fundos estruturais em preto total | **Vigente** | Refina os fundos Windows das Decisões 114 a 120 | Luiz / Squad |
 
 
 
@@ -1430,3 +1432,16 @@
    * **Contexto, Problema e Decisão Tomada**
    * **Critérios de validação e aceite**
 3. Nunca crie arquivos separados de decisão.
+#### Decisão 123
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Windows: priorizar artes oficiais de maior resolução disponíveis.
+- **Decisão:** para capas e banners dos jogos instalados, priorizar a imagem oficial compatível de maior resolução disponível entre as fontes suportadas da própria loja e os arquivos locais. A preferência de Luiz refina a ordem fixa de fontes da Decisão 118: com downloads habilitados, uma imagem local válida pode ser comparada às alternativas oficiais remotas antes da seleção.
+- **Limites:** respeitar a opção de downloads desligados, os limites de rede e cache e a miniatura neutra em caso de falha. A arte permanece local ao PC do usuário e não é incluída no repositório ou instalador. Formatos cuja resolução não possa ser identificada só podem ser usados como alternativa; não se presume que todas as lojas forneçam variantes maiores.
+- **Evidência:** implementação e validação dependem dos testes e de verificação em execução; esta decisão não autoriza publicação.
+
+#### Decisão 124
+
+- **Data:** 14 de novembro de 2026.
+- **Decisão:** a pedido de Luiz, os fundos estruturais escuros das telas do Windows passam a preto total (`#000000`), refinando a cor de fundo anterior para essa plataforma.
+- **Limites:** preservar contraste, foco e diferenciação dos painéis e controles. As artes dos jogos na Home continuam sem filtro ou escurecimento, conforme a orientação de Luiz. Esta decisão não altera iOS, Android, score ou publicação.

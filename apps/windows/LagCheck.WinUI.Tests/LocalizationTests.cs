@@ -61,6 +61,18 @@ public sealed class LocalizationTests
     }
 
     [Fact]
+    public void Quick_action_returns_to_portuguese_after_a_language_switch()
+    {
+        var service = LocalizationService.Instance;
+
+        service.SelectedLanguage = AppLanguage.Es;
+        Assert.Equal("▶ JUGAR AHORA", Strings.Tr("▶ JOGAR AGORA"));
+
+        service.SelectedLanguage = AppLanguage.PtBr;
+        Assert.Equal("▶ JOGAR AGORA", Strings.Tr("▶ JOGAR AGORA"));
+    }
+
+    [Fact]
     public void Format_string_interpolates_arguments_correctly()
     {
         var service = LocalizationService.Instance;

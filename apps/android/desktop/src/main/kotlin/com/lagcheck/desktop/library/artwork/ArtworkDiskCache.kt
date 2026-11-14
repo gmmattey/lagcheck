@@ -17,12 +17,13 @@ class ArtworkDiskCache(
     private val failureTtlMs: Long = 15L * 60 * 1000,
 ) {
     /** Devolve o arquivo em cache e marca como usado agora (para a remoção por uso). */
-    fun get(gameId: String, type: ArtworkType): Path? {
-        val f = imageFile(gameId, type)
-        if (!Files.isRegularFile(f)) return null
-        runCatching { Files.setLastModifiedTime(f, FileTime.fromMillis(clock())) }
-        return f
+    fun get(gameId: String, type: ArtworkType, allowLegacy: Boolean = true): Path? {
+        getImage(imageFile(gameId, type))?.let { return it }
+        return if (allowLegacy) getImage(legacyImageFile(gameId, type)) else null
     }
+
+    /** Arte baixada antes da priorização de resolução; usada somente como fallback seguro. */
+    fun getLegacy(gameId: String, type: ArtworkType): Path? = getImage(legacyImageFile(gameId, type))
 
     fun put(gameId: String, type: ArtworkType, bytes: ByteArray): Path {
         Files.createDirectories(dir)
@@ -81,8 +82,17 @@ class ArtworkDiskCache(
         else Files.list(dir).use { s -> s.filter { it.fileName.toString().endsWith(IMG) }.toList() }
     }.getOrDefault(emptyList())
 
-    private fun imageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${type.key}$IMG")
-    private fun missFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${type.key}.miss")
+    private fun getImage(file: Path): Path? {
+        if (!Files.isRegularFile(file)) return null
+        runCatching { Files.setLastModifiedTime(file, FileTime.fromMillis(clock())) }
+        return file
+    }
+
+    private fun imageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${cacheKey(type)}$IMG")
+    private fun legacyImageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${type.key}$IMG")
+    private fun missFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${cacheKey(type)}.miss")
+
+    private fun cacheKey(type: ArtworkType) = "${type.key}-v2"
 
     companion object {
         const val DEFAULT_MAX_BYTES = 200L * 1024 * 1024

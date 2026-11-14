@@ -6,31 +6,12 @@
   <Grid x:Name="RootGrid" Background="{StaticResource DeepBrush}">
 
     <!-- Camada de arte atrás de toda a janela (Início e resultado de um jogo): cobre também a sidebar, como no v2 -->
-    <Grid x:Name="BackdropHost" Visibility="Collapsed" Background="#0B0D10" IsHitTestVisible="False">
+    <Grid x:Name="BackdropHost" Visibility="Collapsed" Background="{StaticResource DeepBrush}" IsHitTestVisible="False">
       <Grid x:Name="BackdropSlides" HorizontalAlignment="Left">
         <Grid.RenderTransform>
           <CompositeTransform x:Name="BackdropShift"/>
         </Grid.RenderTransform>
       </Grid>
-      <Rectangle x:Name="BackdropHeroSide">
-        <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#F00B0D12" Offset="0"/>
-            <GradientStop Color="#9E0B0D12" Offset="0.42"/>
-            <GradientStop Color="#1F0B0D12" Offset="1"/>
-          </LinearGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
-      <Rectangle x:Name="BackdropHeroDepth">
-        <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#800B0D12" Offset="0"/>
-            <GradientStop Color="#000B0D12" Offset="0.22"/>
-            <GradientStop Color="#000B0D12" Offset="0.5"/>
-            <GradientStop Color="#EB0B0D12" Offset="1"/>
-          </LinearGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
       <Rectangle x:Name="BackdropVeil" Visibility="Collapsed">
         <Rectangle.Fill>
           <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -66,7 +47,7 @@
     </Rectangle>
 
     <!-- Sidebar retrátil: ocupa 64px de layout e se expande SOBRE o conteúdo ao passar o mouse -->
-    <Grid x:Name="Sidebar" HorizontalAlignment="Left" Width="64" Background="#0D0F14"
+    <Grid x:Name="Sidebar" HorizontalAlignment="Left" Width="64" Background="{StaticResource StageBrush}"
           BorderBrush="#14FFFFFF" BorderThickness="0,0,1,0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>

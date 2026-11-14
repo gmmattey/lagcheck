@@ -39,8 +39,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 - **Hero em Tela Cheia:** Ocupa toda a altura útil (`calc(100vh - 56px)`).
 - **Slides de Fundo:** Imagens oficiais em alta resolução (`library_hero`, `page_bg_generated_v6b`, `capsule_616x353`) do jogo ativo com transição suave.
 - **Tratamento de Luz:**
-  - Gradiente horizontal escuro: `linear-gradient(90deg, rgba(11,13,18,.94), rgba(11,13,18,.62) 42%, rgba(11,13,18,.12))`
-  - Gradiente vertical: `linear-gradient(180deg, rgba(11,13,18,.5), transparent 22%, transparent 50%, rgba(11,13,18,.92))`
+  - Sem gradiente, filtro ou véu sobre a imagem: a arte local do jogo aparece como foi salva no PC.
 - **Informações do Jogo:**
   - Badge de plataforma com ícone SVG/Glyph (Steam, Epic, Xbox, PC Local).
   - Título em **Barlow Semi Condensed ExtraBold** (56–76 px, maiúsculo, line-height 0.98, tracking -0.5px).
@@ -52,7 +51,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
   - Indicadores de slides (dots de 5 px).
 - **Faixa de Recentes na Base:**
   - Carrossel horizontal com cards 2:3 dos títulos jogados recentemente.
-  - Card ativo ganha anel roxo suave de 2 px (`#A78BFA`) e opacidade 1.0 (inativos em 0.70).
+  - Todas as capas ficam em opacidade 1.0; o card ativo ganha anel roxo suave de 2 px (`#A78BFA`).
   - Clique simples: seleciona e atualiza o Hero imediatamente; clique duplo: abre a tela de detalhes.
 
 ### 2.2. Tela 2 — Biblioteca (Coleção Completa)
@@ -139,8 +138,8 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 
 | Token | Hex | Função |
 | :--- | :--- | :--- |
-| `Stage` | `#0D0F14` | Fundo externo, barra lateral e titlebar |
-| `Deep` | `#11141B` | Fundo principal de leitura das páginas |
+| `Stage` | `#000000` | Fundo externo, barra lateral e titlebar |
+| `Deep` | `#000000` | Fundo principal de leitura das páginas |
 | `Surface` | `#171B24` | Superfícies ativas, cards e seletor |
 | `Panel` | `#202633` | Controles secundários e divisões |
 | `TextPrimary` | `#F5F7FC` | Decisões, títulos e números de destaque |

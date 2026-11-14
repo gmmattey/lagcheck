@@ -101,6 +101,9 @@ public sealed partial class HomePage : Page
 
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)
     {
+        // A Home fica em cache de navegação e deixa de observar o idioma enquanto está fora da árvore visual.
+        // Reaplica os rótulos antes de reaparecer, inclusive quando o idioma mudou em Ajustes.
+        LocalizeUI();
         Wire();
         Refresh();
         _slideTimer.Start();
@@ -404,7 +407,7 @@ public sealed partial class HomePage : Page
             };
             tile.Children.Add(ring);
             Fluid.Prepare(tile);
-            tile.Opacity = selected ? 1 : 0.7;
+            tile.Opacity = 1;
             ToolTipService.SetToolTip(tile, game.Title);
 
             var id = game.Id;
@@ -438,7 +441,7 @@ public sealed partial class HomePage : Page
             var width = selected ? selectedWidth : restWidth;
             var height = selected ? selectedHeight : restHeight;
             item.Ring.Opacity = selected ? 1 : 0;
-            item.Tile.Opacity = selected ? 1 : 0.7;
+            item.Tile.Opacity = 1;
             if (!animate || Motion.Reduced)
             {
                 item.Tile.Width = width;

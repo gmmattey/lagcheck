@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Paleta Dark Competitive UI (LagCheck Windows v2) -->
-  <Color x:Key="StageColor">#0D0F14</Color>
-  <Color x:Key="DeepColor">#11141B</Color>
+  <Color x:Key="StageColor">#000000</Color>
+  <Color x:Key="DeepColor">#000000</Color>
   <Color x:Key="SurfaceColor">#171B24</Color>
   <Color x:Key="PanelColor">#202633</Color>
   <Color x:Key="LineColor">#0DFFFFFF</Color>
