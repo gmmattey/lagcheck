@@ -23,15 +23,11 @@ public sealed partial class HomePage : Page
 {
     /// <summary>Y: tamanho máximo da fila (faixa de recentes e rotação automática do hero).</summary>
     private const int MaxRecents = 8;
-    /// <summary>Máximo de artes mostradas por jogo antes de passar ao próximo da fila.</summary>
-    private const int MaxArtsPerGame = 3;
 
     public LibraryViewModel ViewModel { get; }
 
     private readonly NotifyCollectionChangedEventHandler _historyChangedHandler;
-    private readonly DispatcherTimer _slideTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private string? _selectedId;
-    private int _slide;
     private List<string> _slides = new();
     private bool _refreshQueued;
     private bool _wired;
@@ -42,11 +38,20 @@ public sealed partial class HomePage : Page
     private bool _launchHovered;
     private readonly PlatformStatusClient _platformStatus = new();
     private PlatformStatusSnapshot? _lastPlatformStatus;
-    private bool _pcSelected = true;
-    private Button? _pcTile;
-    private Border? _pcRing;
+    private bool _pcSelected;
+    private bool _dataReady;
+    private string _recentsKey = string.Empty;
+    private bool _historyButtonStartsTest;
+    private RecentTile? _pcTile;
 
-    private sealed record RecentTile(LibraryGame Game, Button Tile, Border Ring);
+    /// <summary>Slot fixo no layout: selecionado/repouso é só escala de composição, então nada reflui ao trocar de jogo.</summary>
+    private sealed class RecentTile
+    {
+        public LibraryGame? Game;
+        public Button Tile = null!;
+        public Border Ring = null!;
+        public bool Hovered;
+    }
 
     public HomePage()
     {
@@ -57,11 +62,10 @@ public sealed partial class HomePage : Page
         LaunchBtn.PointerEntered += (_, _) => { _launchHovered = true; UpdateLaunchChrome(); };
         LaunchBtn.PointerExited += (_, _) => { _launchHovered = false; UpdateLaunchChrome(); };
         LocalizeUI();
-        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, TopSearchBtn, TopGalleryBtn, TopSettingsBtn, PcCheckBtn, GeneralCheckBtn, ScanGamesBtn })
-            PrepareButtonFeedback(button);
+        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, DetailsBtn, TopLibraryBtn, TopHistoryBtn, TopSearchBtn, TopGalleryBtn, TopSettingsBtn, PcCheckBtn, GeneralCheckBtn, ScanGamesBtn, OpenHistoryBtn })
+            Fluid.Feedback(button);
 
         _historyChangedHandler = (_, _) => QueueRefresh();
-        _slideTimer.Tick += (_, _) => AdvanceCarousel();
     }
 
     private void Wire()
@@ -95,12 +99,19 @@ public sealed partial class HomePage : Page
     private void LocalizeUI()
     {
         LaunchBtnText.Text = Strings.Tr("JOGAR AGORA");
-        ActivityTitle.Text = Strings.Tr("ATIVIDADE CONHECIDA");
-        StabilityTitle.Text = Strings.Tr(_pcSelected ? "HISTÓRICO DE MEDIÇÕES" : "HISTÓRICO DE CHECKS");
+        ActivityTitle.Text = Strings.Tr("ÚLTIMA ATIVIDADE");
+        StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
         PlatformsTitle.Text = Strings.Tr("STATUS DAS PLATAFORMAS");
         GalleryTitle.Text = Strings.Tr("Galeria local");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopSearchBtn, Strings.Tr("Buscar jogo..."));
         ToolTipService.SetToolTip(TopSearchBtn, Strings.Tr("Buscar jogo (Ctrl+F)"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopLibraryBtn, Strings.Tr("Biblioteca"));
+        ToolTipService.SetToolTip(TopLibraryBtn, Strings.Tr("Biblioteca"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopHistoryBtn, Strings.Tr("Histórico"));
+        ToolTipService.SetToolTip(TopHistoryBtn, Strings.Tr("Histórico"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(DetailsBtn, Strings.Tr("Detalhes do jogo"));
+        ToolTipService.SetToolTip(DetailsBtn, Strings.Tr("Detalhes do jogo"));
+        StabilityMetricCaption.Text = Strings.Tr("ÚLTIMO PING");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopGalleryBtn, Strings.Tr("Galeria local"));
         ToolTipService.SetToolTip(TopGalleryBtn, Strings.Tr("Galeria local"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopSettingsBtn, Strings.Tr("Ajustes"));
@@ -109,15 +120,15 @@ public sealed partial class HomePage : Page
         PcHeroTitle.Text = Strings.Tr("SEU PC");
         PcHeroDescription.Text = Strings.Tr("Leituras da sua conexão e da atividade conhecida na biblioteca local.");
         PcCheckBtn.Content = Strings.Tr("Testar conexão geral");
-        OpenHistoryBtn.Content = Strings.Tr("Ver histórico");
+        UpdateHistoryButton();
         if (_lastPlatformStatus is null) PlatformStatusText.Text = Strings.Tr("Consultando…");
         else RenderPlatformStatus(_lastPlatformStatus);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
-        CheckConnBtn.Content = Strings.Tr("Checar conexão");
+        CheckConnBtn.Content = Strings.Tr("Testar conexão");
         ToolTipService.SetToolTip(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
         ToolTipService.SetToolTip(CheckConnBtn, Strings.Tr("Avaliar rota e estabilidade pré-partida"));
 
-        CockpitEyebrow.Text = Strings.Tr("COCKPIT DE TELEMETRIA");
+        CockpitEyebrow.Text = Strings.Tr("PRONTO PARA JOGAR?");
         EmptyHeroTitle.Text = Strings.Tr("NENHUM JOGO LOCAL ENCONTRADO");
         EmptyHeroDesc.Text = Strings.Tr("O LagCheck monitora seus jogos instalados (Steam, Epic, Xbox) ou sua rota geral.");
         ScanGamesBtn.Content = Strings.Tr("Procurar jogos instalados");
@@ -131,10 +142,10 @@ public sealed partial class HomePage : Page
         LocalizeUI();
         Wire();
         Refresh();
-        _slideTimer.Start();
         _ = LoadPlatformStatusAsync(generation);
         await ViewModel.LoadAsync();
         if (!IsCurrentLoad(generation)) return;
+        _dataReady = true;
         await LagCheck.WinUI.History.SessionHistoryServices.Store.TryRefreshAsync(Diagnostic.WinUiEngineComposition.Client);
         if (!IsCurrentLoad(generation)) return;
         Refresh();
@@ -148,7 +159,6 @@ public sealed partial class HomePage : Page
     private void HomePage_Unloaded(object sender, RoutedEventArgs e)
     {
         ++_loadGeneration;
-        _slideTimer.Stop();
         _selectionTransition?.Stop();
         GameHeroPanel.Opacity = PcHeroPanel.Opacity = InsightsScroll.Opacity = 1;
         _backdropApplied = false;
@@ -203,6 +213,7 @@ public sealed partial class HomePage : Page
         GameHeroPanel.Margin = new Thickness(0, 0, 0, Math.Clamp(3 * vh, 12, 30));
         EmptyHeroPanel.Margin = GameHeroPanel.Margin;
         PcHeroPanel.Margin = GameHeroPanel.Margin;
+        ApplyResponsiveLayout();
     }
 
     private void UpdateLaunchChrome()
@@ -226,13 +237,15 @@ public sealed partial class HomePage : Page
         // visible height so bottom alignment refers to the window, not just the content.
         Stage.MinHeight = Math.Max(0, ActualHeight);
         ApplyHeroSizing();
-        ApplyResponsiveLayout();
-        BuildRecents();
+        EnsureRecents();
     }
 
     private void ApplyResponsiveLayout()
     {
-        var compact = ActualWidth < 1500;
+        // Largura que o hero (620) + a grade de widgets (4 ou 6 colunas de 112) pedem; abaixo disso os widgets descem.
+        var insightColumns = GallerySection.Visibility == Visibility.Visible ? 6 : 4;
+        var needed = 620 + 14 + 48 + insightColumns * 112 + (insightColumns - 1) * 12;
+        var compact = ActualWidth < needed;
         HeroActions.Orientation = ActualWidth < 680 ? Orientation.Vertical : Orientation.Horizontal;
         HomeContentGrid.ColumnDefinitions[0].Width = compact ? new GridLength(1, GridUnitType.Star) : new GridLength(620);
         HomeContentGrid.ColumnDefinitions[1].Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
@@ -253,9 +266,6 @@ public sealed partial class HomePage : Page
         if (!_pcSelected && _selectedId == id) return;
         _pcSelected = false;
         _selectedId = id;
-        _slide = 0;
-        _slideTimer.Stop();
-        _slideTimer.Start();
         Refresh(rebuildRecents: false);
         FadeHero();
         UpdateRecentSelection(animate: true);
@@ -269,7 +279,7 @@ public sealed partial class HomePage : Page
         var storyboard = new Storyboard();
         foreach (var target in new UIElement[] { _pcSelected ? PcHeroPanel : GameHeroPanel, InsightsScroll })
         {
-            var fade = new DoubleAnimation { From = 0.25, To = 1, Duration = TimeSpan.FromMilliseconds(200), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            var fade = new DoubleAnimation { From = 0, To = 1, Duration = TimeSpan.FromMilliseconds(300), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
             Storyboard.SetTarget(fade, target);
             Storyboard.SetTargetProperty(fade, "Opacity");
             storyboard.Children.Add(fade);
@@ -278,24 +288,11 @@ public sealed partial class HomePage : Page
         storyboard.Begin();
     }
 
-    private static void PrepareButtonFeedback(Button button)
-    {
-        Fluid.Prepare(button);
-        var hovered = false;
-        button.PointerEntered += (_, _) => { hovered = true; Fluid.Hover(button, true, 1.015f, -1f); };
-        button.PointerExited += (_, _) => { hovered = false; Fluid.Hover(button, false); };
-        button.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((_, _) => Fluid.Press(button, true, 1.015f)), true);
-        button.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler((_, _) => Fluid.Hover(button, hovered, 1.015f, -1f)), true);
-        button.PointerCanceled += (_, _) => { hovered = false; Fluid.Hover(button, false); };
-    }
-
     private void SelectPc()
     {
         if (_pcSelected) return;
         _pcSelected = true;
         _selectedId = null;
-        _slide = 0;
-        _slideTimer.Stop();
         Refresh(rebuildRecents: false);
         FadeHero();
         UpdateRecentSelection(animate: true);
@@ -312,7 +309,7 @@ public sealed partial class HomePage : Page
             ActivityCard.Visibility = Visibility.Visible;
             StabilityCard.Visibility = Visibility.Visible;
             GallerySection.Visibility = Visibility.Collapsed;
-            StabilityTitle.Text = Strings.Tr("HISTÓRICO DE MEDIÇÕES");
+            StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
             HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(112);
             GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
             SetSlides(new[] { "ms-appx:///Assets/home-pc-purple.jpg" });
@@ -324,6 +321,13 @@ public sealed partial class HomePage : Page
         }
 
         var hero = CurrentHero();
+        if (hero is null && !_dataReady)
+        {
+            // Biblioteca ainda carregando: sem "nenhum jogo encontrado" piscando antes da hora.
+            GameHeroPanel.Visibility = PcHeroPanel.Visibility = EmptyHeroPanel.Visibility = Visibility.Collapsed;
+            ActivityCard.Visibility = StabilityCard.Visibility = GallerySection.Visibility = Visibility.Collapsed;
+            return;
+        }
         if (hero is null)
         {
             GameHeroPanel.Visibility = Visibility.Collapsed;
@@ -336,7 +340,7 @@ public sealed partial class HomePage : Page
             HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(0);
             GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
             SetSlides(Array.Empty<string>());
-            if (rebuildRecents) BuildRecents();
+            if (rebuildRecents) EnsureRecents();
             return;
         }
 
@@ -347,12 +351,13 @@ public sealed partial class HomePage : Page
         EmptyHeroPanel.Visibility = Visibility.Collapsed;
         ActivityCard.Visibility = Visibility.Visible;
         StabilityCard.Visibility = Visibility.Visible;
-        StabilityTitle.Text = Strings.Tr("HISTÓRICO DE CHECKS");
+        StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
         HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(112);
         if (_lastPlatformStatus is not null) RenderPlatformStatus(_lastPlatformStatus);
 
         GameTitleText.Text = hero.Title.ToUpperInvariant();
         GameMetaText.Text = string.Join(" · ", new[] { hero.PlatformLabel, hero.Info?.Genres.FirstOrDefault(), hero.NetworkLabel }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        GameMetaPill.Visibility = string.IsNullOrWhiteSpace(GameMetaText.Text) ? Visibility.Collapsed : Visibility.Visible;
         ApplyPlatform(hero);
         ApplyVerdict(hero);
 
@@ -363,6 +368,7 @@ public sealed partial class HomePage : Page
         FavIcon.IsFilled = hero.IsFavorite;
         FavIcon.Foreground = hero.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, hero.FavoriteActionLabel);
+        DetailsBtn.Visibility = Visibility.Visible;
 
         SetSlides(ArtsOf(hero));
         BuildInsights(hero);
@@ -433,62 +439,103 @@ public sealed partial class HomePage : Page
 
     // ------------------------------------------------------------------ slides
 
-    /// <summary>Artes horizontais existentes do jogo (até <see cref="MaxArtsPerGame"/>), sem repetir arquivo.</summary>
-    private static List<string> ArtsOf(LibraryGame game) => new[] { game.HeroArtworkPath }
-        .Select(path => Artwork.FirstExisting(path))
-        .Where(path => path is not null)
-        .Cast<string>()
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .Take(MaxArtsPerGame)
-        .ToList();
-
-    /// <summary>Alterna apenas artes disponíveis do jogo selecionado.</summary>
-    private void AdvanceCarousel()
-    {
-        if (Motion.Reduced || _pcSelected || _slides.Count < 2) return;
-        SelectSlide((_slide + 1) % _slides.Count);
-    }
+    /// <summary>Arte horizontal existente do jogo (uma só: o fundo não gira sozinho).</summary>
+    private static List<string> ArtsOf(LibraryGame game) => Artwork.FirstExisting(game.HeroArtworkPath) is { } path ? new List<string> { path } : new List<string>();
 
     private void SetSlides(IReadOnlyList<string> images)
     {
         var changed = !images.SequenceEqual(_slides);
         _slides = images.ToList();
-        if (_slide >= Math.Max(_slides.Count, 1)) _slide = 0;
         if (changed || ShellChrome.Shell is { } && !_backdropApplied)
         {
-            ShellChrome.Shell?.SetBackdrop(_slides, BackdropKind.Hero, _slide);
+            ShellChrome.Shell?.SetBackdrop(_slides, BackdropKind.Hero, 0);
             _backdropApplied = true;
         }
-        BuildDots();
     }
 
     private bool _backdropApplied;
 
-    private void SelectSlide(int index)
-    {
-        _slide = index;
-        ShellChrome.Shell?.SelectBackdropSlide(index);
-        BuildDots();
-    }
-
-    private void BuildDots() { }
-
     // ------------------------------------------------------------------ recentes
 
-    private static (double W, double H, double RestW, double RestH) TileSizes() => (92, 132, 84, 120);
+    // Slot fixo de 96x138; o tile em repouso é desenhado a 0,875 (84x121) por escala de composição.
+    private const double SlotW = 96, SlotH = 138, RestScale = 0.875;
+
+    private string ComputeRecentsKey() => string.Join("|", Recents().Select(game => game.Id + ":" + (Artwork.FirstExisting(game.CoverArtworkPath) ?? "-")));
+
+    /// <summary>Só reconstrói os tiles quando a fila ou as capas mudam; redimensionar a janela ou chegar histórico não os recria.</summary>
+    private void EnsureRecents()
+    {
+        var key = ComputeRecentsKey();
+        if (_tiles.Count == 0 && _pcTile is null || key != _recentsKey)
+        {
+            _recentsKey = key;
+            BuildRecents();
+        }
+        else UpdateRecentSelection(animate: false);
+    }
+
+    private (float Scale, float Y) PoseOf(RecentTile item, bool selected)
+    {
+        var scale = (float)((selected ? 1.0 : RestScale) * (item.Hovered ? 1.03 : 1.0));
+        // Ancora a base do tile: escalar pelo centro moveria a borda inferior.
+        var y = (float)(SlotH * (1 - scale) / 2) + (item.Hovered ? -4f : 0f);
+        return (scale, y);
+    }
+
+    private void ApplyPose(RecentTile item, bool selected)
+    {
+        var (scale, y) = PoseOf(item, selected);
+        Fluid.SetPose(item.Tile, scale, y);
+    }
+
+    private RecentTile MakeTile(UIElement face, string name, bool selected, LibraryGame? game)
+    {
+        var tile = new Grid { Width = SlotW, Height = SlotH };
+        var clip = new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)), Child = face };
+        tile.Children.Add(clip);
+        tile.Children.Add(new Border { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255)), IsHitTestVisible = false });
+        var ring = new Border
+        {
+            CornerRadius = new CornerRadius(10),
+            BorderThickness = new Thickness(2),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
+            Margin = new Thickness(-2),
+            Opacity = selected ? 1 : 0,
+            IsHitTestVisible = false,
+            OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(220) },
+        };
+        tile.Children.Add(ring);
+        var button = new Button
+        {
+            Width = SlotW,
+            Height = SlotH,
+            Padding = new Thickness(0),
+            BorderThickness = new Thickness(0),
+            Background = new SolidColorBrush(Colors.Transparent),
+            Content = tile,
+            VerticalAlignment = VerticalAlignment.Bottom,
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, name);
+        ToolTipService.SetToolTip(button, game is null ? name : name + " · " + Strings.Tr("duplo clique para detalhes"));
+        Fluid.Prepare(button);
+        var item = new RecentTile { Game = game, Tile = button, Ring = ring };
+        button.PointerEntered += (_, _) => { item.Hovered = true; ApplyPose(item, IsSelected(item)); };
+        button.PointerExited += (_, _) => { item.Hovered = false; ApplyPose(item, IsSelected(item)); };
+        ApplyPose(item, selected);
+        return item;
+    }
+
+    private bool IsSelected(RecentTile item) => item.Game is null ? _pcSelected : !_pcSelected && item.Game.Id == _selectedId;
 
     private void BuildRecents()
     {
         RecentsPanel.Children.Clear();
         _tiles.Clear();
-        var (selectedWidth, selectedHeight, restWidth, restHeight) = TileSizes();
         var hero = CurrentHero();
 
-        var pcTile = new Grid();
-        var pcClip = new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)) };
-        var pcContent = new Grid();
-        pcContent.Children.Add(new StripedBackground { Band = 14 });
-        pcContent.Children.Add(new SvgIcon
+        var pcFace = new Grid();
+        pcFace.Children.Add(new StripedBackground { Band = 14 });
+        pcFace.Children.Add(new SvgIcon
         {
             Data = "M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4",
             Size = 30,
@@ -496,131 +543,36 @@ public sealed partial class HomePage : Page
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         });
-        pcClip.Child = pcContent;
-        pcTile.Children.Add(pcClip);
-        _pcRing = new Border
-        {
-            CornerRadius = new CornerRadius(10),
-            BorderThickness = new Thickness(2),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
-            Margin = new Thickness(-2),
-            Opacity = _pcSelected ? 1 : 0,
-            IsHitTestVisible = false,
-            OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(220) },
-        };
-        pcTile.Children.Add(_pcRing);
-        _pcTile = new Button
-        {
-            Width = _pcSelected ? selectedWidth : restWidth,
-            Height = _pcSelected ? selectedHeight : restHeight,
-            Padding = new Thickness(0),
-            BorderThickness = new Thickness(0),
-            Background = new SolidColorBrush(Colors.Transparent),
-            Content = pcTile,
-            VerticalAlignment = VerticalAlignment.Bottom,
-        };
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_pcTile, Strings.Tr("Este PC"));
-        ToolTipService.SetToolTip(_pcTile, Strings.Tr("Este PC"));
-        Fluid.Prepare(_pcTile);
-        _pcTile.PointerEntered += (_, _) => Fluid.Hover(_pcTile, true, 1.04f, -4f);
-        _pcTile.PointerExited += (_, _) => Fluid.Hover(_pcTile, false);
-        _pcTile.Click += (_, _) => SelectPc();
-        RecentsPanel.Children.Add(_pcTile);
+        _pcTile = MakeTile(pcFace, Strings.Tr("Este PC"), _pcSelected, null);
+        _pcTile.Tile.Click += (_, _) => SelectPc();
+        RecentsPanel.Children.Add(_pcTile.Tile);
 
         foreach (var game in Recents())
         {
             var selected = !_pcSelected && hero is not null && game.Id == hero.Id;
-            var tile = new Grid();
-            var clip = new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)) };
-            var content = new Grid();
-            content.Children.Add(new StripedBackground { Band = 14 });
+            var face = new Grid();
+            face.Children.Add(new StripedBackground { Band = 14 });
             if (Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath), 280) is { } cover)
-                content.Children.Add(new Image { Source = cover, Stretch = Stretch.Uniform });
-            clip.Child = content;
-            tile.Children.Add(clip);
-            tile.Children.Add(new Border
-            {
-                CornerRadius = new CornerRadius(8),
-                BorderThickness = new Thickness(1),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255)),
-                IsHitTestVisible = false,
-            });
-            var ring = new Border
-            {
-                CornerRadius = new CornerRadius(10),
-                BorderThickness = new Thickness(2),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
-                Margin = new Thickness(-2),
-                Opacity = selected ? 1 : 0,
-                IsHitTestVisible = false,
-                OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(220) },
-            };
-            tile.Children.Add(ring);
-            var selector = new Button
-            {
-                Width = selected ? selectedWidth : restWidth,
-                Height = selected ? selectedHeight : restHeight,
-                Padding = new Thickness(0),
-                BorderThickness = new Thickness(0),
-                Background = new SolidColorBrush(Colors.Transparent),
-                Content = tile,
-                VerticalAlignment = VerticalAlignment.Bottom,
-            };
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(selector, game.Title);
-            Fluid.Prepare(selector);
-            selector.Opacity = 1;
-            ToolTipService.SetToolTip(selector, game.Title);
-
-            selector.PointerEntered += (_, _) => Fluid.Hover(selector, true, 1.03f, -4f);
-            selector.PointerExited += (_, _) => Fluid.Hover(selector, false);
-            selector.Click += (_, _) => SelectRecent(game.Id);
-            selector.DoubleTapped += (_, _) => OpenDetails(game);
-            _tiles.Add(new RecentTile(game, selector, ring));
-            RecentsPanel.Children.Add(selector);
+                face.Children.Add(new Image { Source = cover, Stretch = Stretch.UniformToFill });
+            var item = MakeTile(face, game.Title, selected, game);
+            var id = game.Id;
+            item.Tile.Click += (_, _) => SelectRecent(id);
+            item.Tile.DoubleTapped += (_, _) => OpenDetails(game);
+            _tiles.Add(item);
+            RecentsPanel.Children.Add(item.Tile);
         }
     }
 
-    /// <summary>Atualiza só o tamanho, o anel e a opacidade dos cards já criados.</summary>
+    /// <summary>Atualiza só o anel e a pose (escala) dos tiles existentes; nenhum layout muda.</summary>
     private void UpdateRecentSelection(bool animate)
     {
-        var (selectedWidth, selectedHeight, restWidth, restHeight) = TileSizes();
-        if (_pcTile is not null)
+        foreach (var item in _tiles.Prepend(_pcTile).OfType<RecentTile>())
         {
-            _pcRing!.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
-            _pcRing.Opacity = _pcSelected ? 1 : 0;
-            _pcTile.Width = _pcSelected ? selectedWidth : restWidth;
-            _pcTile.Height = _pcSelected ? selectedHeight : restHeight;
-        }
-        var storyboard = new Storyboard();
-        foreach (var item in _tiles)
-        {
-            var selected = !_pcSelected && item.Game.Id == _selectedId;
-            var width = selected ? selectedWidth : restWidth;
-            var height = selected ? selectedHeight : restHeight;
-            item.Ring.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+            var selected = IsSelected(item);
+            item.Ring.OpacityTransition = Motion.Reduced || !animate ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
             item.Ring.Opacity = selected ? 1 : 0;
-            item.Tile.Opacity = 1;
-            if (!animate || Motion.Reduced)
-            {
-                item.Tile.Width = width;
-                item.Tile.Height = height;
-                continue;
-            }
-            foreach (var (property, target) in new[] { ("Width", width), ("Height", height) })
-            {
-                var animation = new DoubleAnimation
-                {
-                    To = target,
-                    Duration = new Duration(TimeSpan.FromMilliseconds(260)),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-                    EnableDependentAnimation = true,
-                };
-                Storyboard.SetTarget(animation, item.Tile);
-                Storyboard.SetTargetProperty(animation, property);
-                storyboard.Children.Add(animation);
-            }
+            ApplyPose(item, selected);
         }
-        if (animate && !Motion.Reduced && storyboard.Children.Count > 0) storyboard.Begin();
     }
 
     private void OpenDetails(LibraryGame game)
@@ -636,7 +588,7 @@ public sealed partial class HomePage : Page
         var activity = ValidEpoch(game.RecentActivityEpochMs);
         ActivityMetric.Visibility = activity is null ? Visibility.Collapsed : Visibility.Visible;
         ActivityMetric.Text = activity?.ToLocalTime().ToString("d MMM yyyy", DateCulture()) ?? string.Empty;
-        ActivityText.Text = activity is null ? Strings.Tr("Sem atividade disponível.") : Strings.Tr("Somente última atividade conhecida.");
+        ActivityText.Text = activity is null ? Strings.Tr("Sem atividade disponível.") : Strings.Tr("Último uso registrado pelo launcher.");
         // A single observed date cannot describe activity on the remaining days.
         ActivityCalendar.Visibility = Visibility.Collapsed;
 
@@ -657,25 +609,14 @@ public sealed partial class HomePage : Page
             .Where(entry => IsConclusiveVerdict(entry.Verdict) && entry.HasCapturedAt && entry.PingMs is { } ping && double.IsFinite(ping) && ping >= 0 && ping <= 10_000 && !string.IsNullOrWhiteSpace(game.DiagnosticGameId)
                 && string.Equals(entry.GameId, game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase))
             .OrderBy(entry => entry.CapturedAt).ToList();
-        StabilityPlot.Children.Clear();
-        StabilityMetric.Visibility = checks.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        StabilityMetric.Visibility = StabilityMetricCaption.Visibility = checks.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         StabilityMetric.Text = checks.Count == 0 ? string.Empty : checks[^1].PingLabel;
-        if (checks.Count == 0) { StabilityPlot.Visibility = Visibility.Collapsed; StabilityText.Text = Strings.Tr("Sem Checks válidos deste jogo."); }
-        else if (checks.Count == 1) { StabilityPlot.Visibility = Visibility.Collapsed; StabilityText.Text = string.Empty; }
-        else
-        {
-            StabilityText.Text = Strings.Tr("Pings de Checks distintos; não é monitoramento ao vivo.");
-            StabilityPlot.Visibility = Visibility.Visible;
-            var values = checks.Select(entry => entry.PingMs!.Value).ToArray();
-            var min = values.Min(); var range = Math.Max(values.Max() - min, 1d);
-            for (var i = 0; i < values.Length; i++)
-            {
-                var point = new Ellipse { Width = 6, Height = 6, Fill = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)) };
-                Canvas.SetLeft(point, i * 196d / (values.Length - 1));
-                Canvas.SetTop(point, 41 - (values[i] - min) / range * 34);
-                StabilityPlot.Children.Add(point);
-            }
-        }
+        _historyButtonStartsTest = checks.Count == 0 && game.CanTestConnection;
+        if (checks.Count == 0) StabilityText.Text = Strings.Tr("Nenhum teste válido deste jogo ainda.");
+        else if (checks.Count == 1) StabilityText.Text = string.Empty;
+        else StabilityText.Text = Strings.Tr("Pings de testes distintos; não é monitoramento ao vivo.");
+        DrawPlot(checks.Select(entry => (entry.PingMs!.Value, $"{entry.PingLabel} · {entry.CapturedAt.ToLocalTime():d MMM HH:mm}")).ToList());
+        UpdateHistoryButton();
     }
 
     private static bool IsConclusiveVerdict(string verdict) =>
@@ -703,13 +644,14 @@ public sealed partial class HomePage : Page
             .Where(entry => IsConclusiveVerdict(entry.Verdict) && entry.PingMs is { } ping && double.IsFinite(ping) && ping >= 0 && ping <= 10_000)
             .ToList();
         var timestamped = allValid.Where(entry => entry.HasCapturedAt).OrderBy(entry => entry.CapturedAt).ToList();
-        StabilityPlot.Children.Clear();
-        StabilityMetric.Visibility = allValid.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        StabilityMetric.Visibility = StabilityMetricCaption.Visibility = allValid.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         StabilityMetric.Text = allValid.Count == 0 ? string.Empty : (timestamped.Count > 0 ? timestamped[^1] : allValid[0]).PingLabel;
+        _historyButtonStartsTest = allValid.Count == 0;
+        UpdateHistoryButton();
         if (allValid.Count == 0)
         {
-            StabilityPlot.Visibility = Visibility.Collapsed;
-            StabilityText.Text = Strings.Tr("Sem medições válidas ainda.");
+            DrawPlot(new List<(double, string)>());
+            StabilityText.Text = Strings.Tr("Nenhum teste válido ainda.");
             return;
         }
 
@@ -717,22 +659,50 @@ public sealed partial class HomePage : Page
         var note = withoutTimestamp > 0 ? "\n" + Strings.Format("{0} medições sem data confiável.", withoutTimestamp) : string.Empty;
         if (timestamped.Count < 2)
         {
-            StabilityPlot.Visibility = Visibility.Collapsed;
+            DrawPlot(new List<(double, string)>());
             StabilityText.Text = note.TrimStart('\n');
             return;
         }
 
-        StabilityText.Text = Strings.Tr("Pings de medições distintas; não é monitoramento ao vivo.") + note;
+        StabilityText.Text = Strings.Tr("Pings de testes distintos; não é monitoramento ao vivo.") + note;
+        DrawPlot(timestamped.Select(entry => (entry.PingMs!.Value, $"{entry.PingLabel} · {entry.CapturedAt.ToLocalTime():d MMM HH:mm}")).ToList());
+    }
+
+    /// <summary>Linha + pontos dos pings (largura do card), com a leitura e a data de cada ponto no tooltip.</summary>
+    private void DrawPlot(IReadOnlyList<(double Ping, string Tip)> points)
+    {
+        StabilityPlot.Children.Clear();
+        if (points.Count < 2) { StabilityPlot.Visibility = Visibility.Collapsed; return; }
         StabilityPlot.Visibility = Visibility.Visible;
-        var values = timestamped.Select(entry => entry.PingMs!.Value).ToArray();
-        var min = values.Min(); var range = Math.Max(values.Max() - min, 1d);
-        for (var i = 0; i < values.Length; i++)
+        var width = StabilityPlot.ActualWidth > 40 ? StabilityPlot.ActualWidth : 196;
+        var min = points.Min(point => point.Ping);
+        var range = Math.Max(points.Max(point => point.Ping) - min, 1d);
+        var purple = Color.FromArgb(255, 0xA7, 0x8B, 0xFA);
+        var line = new Polyline { Stroke = new SolidColorBrush(Color.FromArgb(0x99, 0xA7, 0x8B, 0xFA)), StrokeThickness = 1.5, StrokeLineJoin = PenLineJoin.Round };
+        var coordinates = new List<(double X, double Y)>();
+        for (var i = 0; i < points.Count; i++)
         {
-            var point = new Ellipse { Width = 6, Height = 6, Fill = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)) };
-            Canvas.SetLeft(point, i * 196d / (values.Length - 1));
-            Canvas.SetTop(point, 41 - (values[i] - min) / range * 34);
-            StabilityPlot.Children.Add(point);
+            var x = 3 + i * (width - 6) / (points.Count - 1);
+            var y = 41 - (points[i].Ping - min) / range * 34;
+            coordinates.Add((x, y));
+            line.Points.Add(new Windows.Foundation.Point(x, y));
         }
+        StabilityPlot.Children.Add(line);
+        for (var i = 0; i < points.Count; i++)
+        {
+            var last = i == points.Count - 1;
+            var size = last ? 9 : 6;
+            var dot = new Ellipse { Width = size, Height = size, Fill = new SolidColorBrush(last ? Colors.White : purple) };
+            ToolTipService.SetToolTip(dot, points[i].Tip);
+            Canvas.SetLeft(dot, coordinates[i].X - size / 2.0);
+            Canvas.SetTop(dot, coordinates[i].Y - size / 2.0);
+            StabilityPlot.Children.Add(dot);
+        }
+    }
+
+    private void UpdateHistoryButton()
+    {
+        OpenHistoryBtn.Content = Strings.Tr(_historyButtonStartsTest ? "Fazer o primeiro teste" : "Ver histórico");
     }
 
     private async System.Threading.Tasks.Task LoadPlatformStatusAsync(int generation)
@@ -744,25 +714,6 @@ public sealed partial class HomePage : Page
             _lastPlatformStatus = snapshot;
             RenderPlatformStatus(snapshot);
         });
-    }
-
-    private void Widget_PointerEntered(object sender, PointerRoutedEventArgs e) => SetWidgetHover(sender, true);
-    private void Widget_PointerExited(object sender, PointerRoutedEventArgs e) => SetWidgetHover(sender, false);
-
-    private static void SetWidgetHover(object sender, bool hovered)
-    {
-        if (sender is not Border widget) return;
-        var from = (widget.Background as SolidColorBrush)?.Color ?? Color.FromArgb(0xE6, 0x28, 0x2E, 0x3C);
-        var to = hovered ? Color.FromArgb(0xF2, 0x35, 0x3C, 0x4D) : Color.FromArgb(0xE6, 0x28, 0x2E, 0x3C);
-        var brush = new SolidColorBrush(from);
-        widget.Background = brush;
-        if (Motion.Reduced) { brush.Color = to; return; }
-        var fade = new ColorAnimation { To = to, Duration = TimeSpan.FromMilliseconds(180), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-        Storyboard.SetTarget(fade, brush);
-        Storyboard.SetTargetProperty(fade, "Color");
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(fade);
-        storyboard.Begin();
     }
 
     private void RenderPlatformStatus(PlatformStatusSnapshot snapshot)
@@ -832,29 +783,6 @@ public sealed partial class HomePage : Page
         _ => CultureInfo.GetCultureInfo("pt-BR"),
     };
 
-    private void BuildActivityCalendar(DateTimeOffset? activity)
-    {
-        ActivityCalendar.Children.Clear();
-        ActivityCalendar.ColumnDefinitions.Clear();
-        ActivityCalendar.RowDefinitions.Clear();
-        if (activity is not { } observed || observed.ToLocalTime().Year != DateTime.Now.Year || observed.ToLocalTime().Month != DateTime.Now.Month)
-        {
-            ActivityCalendar.Visibility = Visibility.Collapsed;
-            return;
-        }
-        ActivityCalendar.Visibility = Visibility.Visible;
-        for (var column = 0; column < 7; column++) ActivityCalendar.ColumnDefinitions.Add(new ColumnDefinition());
-        for (var row = 0; row < 6; row++) ActivityCalendar.RowDefinitions.Add(new RowDefinition());
-        var first = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-        var offset = ((int)first.DayOfWeek + 6) % 7;
-        for (var day = 1; day <= DateTime.DaysInMonth(first.Year, first.Month); day++)
-        {
-            var cell = new Border { Margin = new Thickness(1), CornerRadius = new CornerRadius(2), Background = new SolidColorBrush(day == observed.LocalDateTime.Day ? Color.FromArgb(255, 0x7C, 0x3A, 0xED) : Color.FromArgb(255, 0x1C, 0x21, 0x2B)) };
-            Grid.SetColumn(cell, (offset + day - 1) % 7); Grid.SetRow(cell, (offset + day - 1) / 7);
-            ActivityCalendar.Children.Add(cell);
-        }
-    }
-
     private static string PlatformStateLabel(PlatformServiceState state) => state switch
     {
         PlatformServiceState.Operational => Strings.Tr("Operacional"),
@@ -865,7 +793,16 @@ public sealed partial class HomePage : Page
 
     private void OpenSearch_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.OpenQuickSearch();
     private void OpenGallery_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.NavigateToGallery();
+    private void OpenLibrary_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.Navigate(NavigationRoute.Library);
     private void OpenHistory_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.Navigate(NavigationRoute.History);
+    private void OpenDetails_Click(object sender, RoutedEventArgs e) { if (CurrentHero() is { } game) OpenDetails(game); }
+
+    private void HistoryWidget_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_historyButtonStartsTest) { OpenHistory_Click(sender, e); return; }
+        if (!_pcSelected && CurrentHero() is { CanTestConnection: true } game) ShellNavigation.NavigateToDiagnostic(game.DiagnosticGameId, game.Title);
+        else ShellNavigation.NavigateToDiagnostic(null, null);
+    }
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.Navigate(NavigationRoute.Settings);
 
     private async void Launch_Click(object sender, RoutedEventArgs e)

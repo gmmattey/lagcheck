@@ -152,6 +152,7 @@ public sealed partial class LibraryPage : Page
         // O jogo do card vem do índice (não depende de DataContext, que o ItemsRepeater nem sempre preenche).
         card.Tag = index >= 0 && index < ViewModel.VisibleGames.Count ? ViewModel.VisibleGames[index] : null;
         Fluid.Prepare(card);
+        DecorateCard(card);
         if (card.Children.LastOrDefault() is Border ring) ring.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(200) };
         card.Tapped -= GameCard_Tapped;
         card.PointerEntered -= Card_PointerEntered;
@@ -195,7 +196,87 @@ public sealed partial class LibraryPage : Page
         }
     }
 
-    private void GameCard_Tapped(object sender, TappedRoutedEventArgs e) => OpenCard(sender);
+    private void GameCard_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        // O botão ▶ do card tem a própria ação; o toque nele não abre os Detalhes.
+        for (var node = e.OriginalSource as DependencyObject; node is not null && !ReferenceEquals(node, sender); node = VisualTreeHelper.GetParent(node))
+            if (node is FrameworkElement { Name: PlayName }) return;
+        OpenCard(sender);
+    }
+
+    private const string DecorName = "dyn";
+    private const string PlayName = "dynPlay";
+
+    /// <summary>Veredito do último teste e ▶ de jogar direto, só para jogos que têm dado real (sem inventar nada).</summary>
+    private void DecorateCard(Grid card)
+    {
+        foreach (var old in card.Children.OfType<FrameworkElement>().Where(child => child.Name is DecorName or PlayName).ToList())
+            card.Children.Remove(old);
+        if (card.Tag is not LibraryGame game) return;
+        var insertAt = Math.Max(card.Children.Count - 1, 0); // o anel de foco fica sempre por último
+
+        var entry = string.IsNullOrWhiteSpace(game.DiagnosticGameId) ? null : LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
+            .FirstOrDefault(item => item.PingMs.HasValue && string.Equals(item.GameId, game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase));
+        if (entry is not null && Verdicts.ToneOf(entry.Verdict) != VerdictTone.Unknown)
+        {
+            var color = Verdicts.ColorOf(Verdicts.ToneOf(entry.Verdict));
+            var chip = new Border
+            {
+                Name = DecorName,
+                Background = new SolidColorBrush(Color.FromArgb(0xD9, 0x0D, 0x0F, 0x14)),
+                CornerRadius = new CornerRadius(15),
+                Height = 30,
+                Padding = new Thickness(10, 0, 12, 0),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(46, 10, 0, 0),
+                IsHitTestVisible = false,
+                Child = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 7,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Children =
+                    {
+                        new Microsoft.UI.Xaml.Shapes.Ellipse { Width = 8, Height = 8, Fill = new SolidColorBrush(color), VerticalAlignment = VerticalAlignment.Center },
+                        new TextBlock { Text = entry.PingLabel, FontFamily = (FontFamily)Application.Current.Resources["MetricFont"], FontSize = 13, VerticalAlignment = VerticalAlignment.Center },
+                    },
+                },
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(chip, $"{Verdicts.Headline(Verdicts.ToneOf(entry.Verdict), true)} · {entry.PingLabel}");
+            card.Children.Insert(insertAt++, chip);
+        }
+
+        if (game.IsInstalled && game.IsLaunchable)
+        {
+            var play = new Button
+            {
+                Name = PlayName,
+                Width = 44,
+                Height = 44,
+                Padding = new Thickness(0),
+                CornerRadius = new CornerRadius(22),
+                Background = (Brush)Application.Current.Resources["PurpleBrush"],
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(0, 0, 10, 10),
+                Opacity = 0,
+                OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(160) },
+                Content = new FontIcon { Glyph = "", FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 16, Foreground = new SolidColorBrush(Microsoft.UI.Colors.White) },
+            };
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(play, Strings.Format("Jogar {0}", game.Title));
+            ToolTipService.SetToolTip(play, Strings.Tr("JOGAR AGORA"));
+            play.Click += async (_, _) =>
+            {
+                ShellChrome.Shell?.ShowToast(Strings.Format("Abrindo {0}…", game.Title));
+                await ViewModel.LaunchAsync(game);
+                if (!ViewModel.LastOperationSucceeded && !string.IsNullOrWhiteSpace(ViewModel.Notice)) ShellChrome.Shell?.ShowToast(ViewModel.Notice!);
+            };
+            play.GotFocus += (_, _) => play.Opacity = 1;
+            play.LostFocus += (_, _) => play.Opacity = 0;
+            card.Children.Insert(insertAt, play);
+        }
+    }
 
     private void Card_KeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -216,5 +297,6 @@ public sealed partial class LibraryPage : Page
         if (sender is not Grid card) return;
         Fluid.Hover(card, hover);
         if (card.Children.LastOrDefault() is Border ring) ring.Opacity = hover ? 1 : 0;
+        if (card.Children.OfType<Button>().FirstOrDefault(child => child.Name == PlayName) is { } play) play.Opacity = hover ? 1 : 0;
     }
 }

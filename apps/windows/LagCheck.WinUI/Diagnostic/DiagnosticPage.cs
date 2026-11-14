@@ -82,7 +82,7 @@ public sealed class DiagnosticPage : Page
     private readonly Grid _strip = new() { BorderBrush = Brush(Line), BorderThickness = new Thickness(0, 1, 0, 1), Margin = new Thickness(0, 16, 0, 0) };
     private readonly TextBlock[] _stripValues = new TextBlock[3];
     private readonly TextBlock[] _stripUnits = new TextBlock[3];
-    private readonly TextBlock _regionLine = new() { FontSize = 12, Foreground = Brush(Dim), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0), MinHeight = 18, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center };
+    private readonly TextBlock _regionLine = new() { FontSize = 13, Foreground = Brush(Dim), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0), MinHeight = 18, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center };
     private readonly Button _cancelBtn = new();
 
     // Resultado
@@ -97,6 +97,10 @@ public sealed class DiagnosticPage : Page
     private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 12, 0, 0) };
     private readonly Button _againBtn = new();
     private readonly Button _chooseBtn = new();
+    private readonly Button _playBtn = new();
+    private readonly Button _copyBtn = new();
+    private LibraryGame? _launchGame;
+    private string _shareText = string.Empty;
     private readonly TextBlock _evidenceLabel = new();
 
     public DiagnosticPage() : this(null, null, WinUiEngineComposition.Client) { }
@@ -155,9 +159,11 @@ public sealed class DiagnosticPage : Page
         _startBtn.Style = (Style)Application.Current.Resources["HeroPrimaryButtonStyle"];
         _startBtn.Height = 56;
         _startBtn.MinWidth = 240;
-        _startBtn.HorizontalAlignment = HorizontalAlignment.Left;
+        _startBtn.HorizontalAlignment = HorizontalAlignment.Center;
         _startBtn.Click += async (_, _) => await StartAsync();
         _idleControls.Children.Add(_startBtn);
+        _idleTitle.HorizontalAlignment = HorizontalAlignment.Center;
+        _idleTitle.TextAlignment = TextAlignment.Center;
 
         BuildRunning();
         BuildDone();
@@ -287,7 +293,7 @@ public sealed class DiagnosticPage : Page
             _strip.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var cell = new StackPanel { Padding = new Thickness(14, 12, 12, 12), BorderBrush = Brush(Line), BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
             cell.Tag = i;
-            _stripValues[i] = new TextBlock { FontFamily = Res("MetricFont"), FontSize = 26, LineHeight = 26, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Margin = new Thickness(0, 6, 0, 0), Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)), Text = "—" };
+            _stripValues[i] = new TextBlock { FontFamily = Res("MetricFont"), FontSize = 26, LineHeight = 26, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, Margin = new Thickness(0, 6, 0, 0), Foreground = Brush(Color.FromArgb(255, 0x8E, 0x8E, 0x93)), Text = "—" };
             _stripUnits[i] = new TextBlock { FontSize = 12, Foreground = Brush(Dim), VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(2, 0, 0, 0) };
             var valueRow = new StackPanel { Orientation = Orientation.Horizontal };
             valueRow.Children.Add(_stripValues[i]);
@@ -301,7 +307,7 @@ public sealed class DiagnosticPage : Page
         _runningPanel.Children.Add(_regionLine);
 
         _cancelBtn.Style = (Style)Application.Current.Resources["TextLinkButtonStyle"];
-        _cancelBtn.Foreground = Brush(Purple);
+        _cancelBtn.Foreground = Brush(PurpleLight);
         _cancelBtn.HorizontalAlignment = HorizontalAlignment.Center;
         _cancelBtn.Margin = new Thickness(0, 8, 0, 0);
         _cancelBtn.Click += (_, _) => CancelMeasurement();
@@ -358,22 +364,30 @@ public sealed class DiagnosticPage : Page
         topGrid.Children.Add(right);
         _donePanel.Children.Add(topGrid);
 
-        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 20, Margin = new Thickness(0, 24, 0, 0) };
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 14, Margin = new Thickness(0, 24, 0, 0) };
+        _playBtn.Style = (Style)Application.Current.Resources["HeroPrimaryButtonStyle"];
+        _playBtn.Visibility = Visibility.Collapsed;
+        _playBtn.Click += async (_, _) => await LaunchAsync();
         _againBtn.Style = (Style)Application.Current.Resources["HeroPrimaryButtonStyle"];
-        _againBtn.MinHeight = 50;
-        _againBtn.Height = 50;
         _againBtn.Click += async (_, _) => await StartAsync();
+        _copyBtn.Style = (Style)Application.Current.Resources["GhostPillButtonStyle"];
+        _copyBtn.Click += (_, _) => CopyResult();
+        foreach (var button in new[] { _startBtn, _playBtn, _againBtn, _copyBtn, _cancelBtn }) Fluid.Feedback(button);
         _chooseBtn.Style = (Style)Application.Current.Resources["TextLinkButtonStyle"];
         _chooseBtn.Padding = new Thickness(0);
         _chooseBtn.Click += (_, _) => ShellNavigation.Navigate(NavigationRoute.Library);
+        actions.Children.Add(_playBtn);
         actions.Children.Add(_againBtn);
+        actions.Children.Add(_copyBtn);
         actions.Children.Add(_chooseBtn);
         _donePanel.Children.Add(actions);
     }
 
     private void ApplyStaticText()
     {
-        _startBtn.Content = Strings.Tr("Teste agora");
+        _startBtn.Content = Strings.Tr("Testar agora");
+        _playBtn.Content = Strings.Tr("JOGAR AGORA");
+        _copyBtn.Content = Strings.Tr("Copiar resultado");
         _cancelBtn.Content = Strings.Tr("Cancelar");
         _againBtn.Content = Strings.Tr("Testar novamente");
         _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
@@ -399,7 +413,7 @@ public sealed class DiagnosticPage : Page
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
             row.Children.Add(new Ellipse { Width = 8, Height = 8, Fill = Brush(Color.FromArgb(255, 0x48, 0x48, 0x4A)), VerticalAlignment = VerticalAlignment.Center });
-            row.Children.Add(new TextBlock { Text = Capitalize(stepLabels[i]), FontSize = 13, Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)) });
+            row.Children.Add(new TextBlock { Text = Capitalize(stepLabels[i]), FontSize = 13, Foreground = Brush(Color.FromArgb(255, 0x8E, 0x8E, 0x93)) });
             _steps.Children.Add(row);
         }
     }
@@ -481,7 +495,7 @@ public sealed class DiagnosticPage : Page
             var current = i == stage;
             var done = i < stage;
             dot.Fill = Brush(current ? Color.FromArgb(255, 0x8B, 0x5C, 0xF6) : done ? Color.FromArgb(255, 0x22, 0xC5, 0x5E) : Color.FromArgb(255, 0x48, 0x48, 0x4A));
-            text.Foreground = Brush(current ? Colors.White : done ? Color.FromArgb(255, 0xEB, 0xEB, 0xF5) : Color.FromArgb(255, 0x63, 0x63, 0x66));
+            text.Foreground = Brush(current ? Colors.White : done ? Color.FromArgb(255, 0xEB, 0xEB, 0xF5) : Color.FromArgb(255, 0x8E, 0x8E, 0x93));
         }
     }
 
@@ -510,7 +524,7 @@ public sealed class DiagnosticPage : Page
         UpdateProgress(0.02);
         _liveValue.Text = "—";
         _liveUnit.Text = string.Empty;
-        for (var i = 0; i < 3; i++) { _stripValues[i].Text = "—"; _stripValues[i].Foreground = Brush(Color.FromArgb(255, 0x63, 0x63, 0x66)); _stripUnits[i].Text = string.Empty; }
+        for (var i = 0; i < 3; i++) { _stripValues[i].Text = "—"; _stripValues[i].Foreground = Brush(Color.FromArgb(255, 0x8E, 0x8E, 0x93)); _stripUnits[i].Text = string.Empty; }
         SetStage(0);
         ApplyPhase("connect");
         _regionLine.Text = Strings.Tr("Enviando sondas a todos os servidores…");
@@ -702,9 +716,13 @@ public sealed class DiagnosticPage : Page
         _resRouteName.Foreground = Brush(Primary);
         _resRouteMs.Foreground = Brush(Primary);
 
-        _flowPanel.Visibility = Visibility.Collapsed;
-        _donePanel.Visibility = Visibility.Visible;
+        _shareText = BuildShareText(result, tone, ping, region);
+        _playBtn.Visibility = Visibility.Collapsed;
+        _launchGame = null;
+        RevealResult();
         _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
+        _copyBtn.Visibility = Visibility.Visible;
+        StyleResultActions();
 
         ApplyLocation(_resultMap);
         _resultMap.Reset();
@@ -730,10 +748,82 @@ public sealed class DiagnosticPage : Page
         _resHeadline.Foreground = Brush(Primary);
         _resRouteName.Text = string.Empty;
         _resRouteMs.Text = string.Empty;
-        _flowPanel.Visibility = Visibility.Collapsed;
-        _donePanel.Visibility = Visibility.Visible;
+        _shareText = string.Empty;
+        _launchGame = null;
+        _playBtn.Visibility = Visibility.Collapsed;
+        _copyBtn.Visibility = Visibility.Collapsed;
+        StyleResultActions();
+        RevealResult();
         _resultMap.Reset();
         ApplyLocation(_resultMap);
+    }
+
+    /// <summary>O resultado entra subindo e aparecendo, em vez de trocar seco: é o momento da partida.</summary>
+    private void RevealResult()
+    {
+        _flowPanel.Visibility = Visibility.Collapsed;
+        _donePanel.Visibility = Visibility.Visible;
+        if (Motion.Reduced) { _donePanel.Opacity = 1; _donePanel.Translation = System.Numerics.Vector3.Zero; return; }
+        _donePanel.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(380) };
+        _donePanel.TranslationTransition = new Vector3Transition { Duration = TimeSpan.FromMilliseconds(380) };
+        _donePanel.Opacity = 0;
+        _donePanel.Translation = new System.Numerics.Vector3(0, 18, 0);
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            _donePanel.Opacity = 1;
+            _donePanel.Translation = System.Numerics.Vector3.Zero;
+        });
+    }
+
+    /// <summary>Com ▶ disponível, jogar é o CTA principal e "Testar novamente" desce a secundário.</summary>
+    private void StyleResultActions()
+    {
+        var playable = _playBtn.Visibility == Visibility.Visible;
+        _againBtn.Style = (Style)Application.Current.Resources[playable ? "GhostPillButtonStyle" : "HeroPrimaryButtonStyle"];
+        _againBtn.Height = 56;
+        _againBtn.MinHeight = 56;
+    }
+
+    private string BuildShareText(DiagnosticResult result, VerdictTone tone, double ping, RegionCatalog.Region? region)
+    {
+        var parts = new List<string> { $"{ping.ToString("0", CultureInfo.CurrentCulture)} ms" };
+        if (result.JitterMs is { } jitter) parts.Add($"{Strings.Tr("JITTER").ToLower(CultureInfo.CurrentCulture)} {jitter.ToString("0.#", CultureInfo.CurrentCulture)} ms");
+        if (result.LoadDeltaMs is { } delta) parts.Add($"{Strings.Tr("SOB CARGA").ToLower(CultureInfo.CurrentCulture)} +{delta.ToString("0.#", CultureInfo.CurrentCulture)} ms");
+        if (result.PacketLossPercentage is { } loss) parts.Add($"{Strings.Tr("PERDA").ToLower(CultureInfo.CurrentCulture)} {loss.ToString("0.#", CultureInfo.CurrentCulture)}%");
+        var title = HasGame ? _gameTitle : Strings.Tr("Conexão geral");
+        var where = region is not null ? $" · {region.Name}" : string.Empty;
+        return $"{title}: {Verdicts.Headline(tone, HasGame)} — {string.Join(" · ", parts)}{where} (LagCheck)";
+    }
+
+    private void CopyResult()
+    {
+        if (string.IsNullOrEmpty(_shareText)) return;
+        try
+        {
+            var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            package.SetText(_shareText);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+            ShellChrome.Shell?.ShowToast(Strings.Tr("Resultado copiado."));
+        }
+        catch
+        {
+            ShellChrome.Shell?.ShowToast(Strings.Tr("Não foi possível copiar agora."));
+        }
+    }
+
+    private async Task LaunchAsync()
+    {
+        if (_launchGame is not { } game) return;
+        ShellChrome.Shell?.ShowToast(Strings.Format("Abrindo {0}…", game.Title));
+        try
+        {
+            var result = await LibraryPageServices.Bridge.LaunchAsync(game.Id);
+            if (!result.Succeeded && !string.IsNullOrWhiteSpace(result.Message)) ShellChrome.Shell?.ShowToast(result.Message!);
+        }
+        catch
+        {
+            ShellChrome.Shell?.ShowToast(Strings.Tr("Não foi possível pedir a abertura do jogo."));
+        }
     }
 
     /// <summary>Resultado de um jogo ganha a arte oficial atrás da janela (véu escuro), como no v2.</summary>
@@ -744,6 +834,12 @@ public sealed class DiagnosticPage : Page
         {
             var snapshot = await LibraryPageServices.Bridge.GetSnapshotAsync();
             var game = snapshot.Games.FirstOrDefault(item => string.Equals(item.DiagnosticGameId, _gameId, StringComparison.OrdinalIgnoreCase));
+            if (game is { IsInstalled: true, IsLaunchable: true } && _donePanel.Visibility == Visibility.Visible && _shareText.Length > 0)
+            {
+                _launchGame = game;
+                _playBtn.Visibility = Visibility.Visible;
+                StyleResultActions();
+            }
             if (Artwork.FirstExisting(game?.HeroArtworkPath) is { } art && _donePanel.Visibility == Visibility.Visible)
                 ShellChrome.Shell?.SetBackdrop(new[] { art }, BackdropKind.Veil);
         }

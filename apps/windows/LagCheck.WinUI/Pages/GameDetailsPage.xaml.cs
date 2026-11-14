@@ -16,8 +16,6 @@ namespace LagCheck.WinUI.Pages;
 
 public sealed partial class GameDetailsPage : Page
 {
-    private const int HeatWeeks = 26;
-
     private LibraryGame? _game;
     private readonly ILibraryBridge _bridge;
 
@@ -27,7 +25,7 @@ public sealed partial class GameDetailsPage : Page
         _bridge = LibraryPageServices.Bridge;
         GlowEffect.Attach(LaunchGlow, Color.FromArgb(0x8C, 0x7C, 0x3A, 0xED), 36);
         LocalizeUI();
-        BuildHeatLabels();
+        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, MeasureNowBtn, BackBtn }) Fluid.Feedback(button);
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
         SessionHistoryServices.Store.Entries.CollectionChanged += OnHistoryChanged;
         Unloaded += (_, _) =>
@@ -45,15 +43,11 @@ public sealed partial class GameDetailsPage : Page
         BackBtnText.Text = Strings.Tr("Voltar");
         ToolTipService.SetToolTip(BackBtn, Strings.Tr("Voltar à tela anterior"));
         LaunchBtn.Content = Strings.Tr("JOGAR AGORA");
-        CheckConnBtn.Content = Strings.Tr("Checar conexão");
-        DaysPlayedEyebrow.Text = Strings.Tr("DIAS JOGADOS");
-        LessLabel.Text = Strings.Tr("Menos");
-        MoreLabel.Text = Strings.Tr("Mais");
+        CheckConnBtn.Content = Strings.Tr("Testar conexão");
         HistEyebrow.Text = Strings.Tr("HISTÓRICO DE MEDIÇÕES");
         HistStatusText.Text = Strings.Tr("Sem medições");
-        MeasureNowBtn.Content = Strings.Tr("Medir agora");
+        MeasureNowBtn.Content = Strings.Tr("Testar agora");
         ShotsEyebrow.Text = Strings.Tr("CAPTURAS");
-        HeatmapNote.Text = Strings.Tr("Mostra a última atividade registrada pelo launcher neste PC.");
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -136,7 +130,6 @@ public sealed partial class GameDetailsPage : Page
             });
         }
         BindFacts(game);
-        BuildHeatmap(game);
         BindScreenshots(game);
         BindHistory();
     }
@@ -274,7 +267,7 @@ public sealed partial class GameDetailsPage : Page
             text.Children.Add(new TextBlock { Text = Verdicts.Headline(tone, true), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
             text.Children.Add(new TextBlock
             {
-                Text = $"{entry.PingLabel} · jitter {entry.JitterLabel}",
+                Text = $"{entry.PingLabel} · {Strings.Tr("JITTER").ToLower(CultureInfo.CurrentCulture)} {entry.JitterLabel}",
                 FontSize = 12,
                 Margin = new Thickness(0, 2, 0, 0),
                 Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"],
@@ -286,81 +279,6 @@ public sealed partial class GameDetailsPage : Page
             row.Children.Add(time);
             HistoryPanel.Children.Add(row);
         }
-    }
-
-    // ------------------------------------------------------------------ heatmap
-
-    private void BuildHeatLabels()
-    {
-        HeatDayLabels.RowDefinitions.Clear();
-        HeatDayLabels.Children.Clear();
-        for (var row = 0; row < 8; row++) HeatDayLabels.RowDefinitions.Add(new RowDefinition { Height = new GridLength(14) });
-        var names = new Dictionary<int, string> { [1] = "Seg", [3] = "Qua", [5] = "Sex" };
-        foreach (var (row, text) in names)
-        {
-            var label = new TextBlock { Text = Strings.Tr(text), FontSize = 11, Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"], LineHeight = 14, LineStackingStrategy = LineStackingStrategy.BlockLineHeight };
-            Grid.SetRow(label, row);
-            HeatDayLabels.Children.Add(label);
-        }
-    }
-
-    private void BuildHeatmap(LibraryGame game)
-    {
-        HeatCells.Children.Clear();
-        HeatCells.RowDefinitions.Clear();
-        HeatCells.ColumnDefinitions.Clear();
-        HeatMonths.Children.Clear();
-        HeatMonths.ColumnDefinitions.Clear();
-        HeatMonths.Width = HeatWeeks * 18 - 4;
-        HeatCells.RowSpacing = 4;
-        HeatCells.ColumnSpacing = 4;
-        for (var r = 0; r < 7; r++) HeatCells.RowDefinitions.Add(new RowDefinition { Height = new GridLength(14) });
-        for (var c = 0; c < HeatWeeks; c++) HeatCells.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(14) });
-
-        var played = new HashSet<DateTime>();
-        foreach (var epoch in new[] { game.LastPlayedEpochMs, game.LastLaunchedEpochMs })
-        {
-            if (epoch is { } value) played.Add(DateTimeOffset.FromUnixTimeMilliseconds(value).ToLocalTime().Date);
-        }
-
-        var today = DateTime.Today;
-        var dow = ((int)today.DayOfWeek + 6) % 7;
-        var start = today.AddDays(-dow - (HeatWeeks - 1) * 7);
-        var culture = CultureInfo.CurrentUICulture;
-        var empty = new SolidColorBrush(Color.FromArgb(255, 0x1C, 0x21, 0x2B));
-        var on = new SolidColorBrush(Color.FromArgb(255, 0x7C, 0x3A, 0xED));
-        var monthCanvas = new Canvas { Width = HeatMonths.Width, Height = 14 };
-        var lastMonth = -1;
-
-        for (var w = 0; w < HeatWeeks; w++)
-        {
-            var weekStart = start.AddDays(w * 7);
-            if (weekStart.Month != lastMonth)
-            {
-                lastMonth = weekStart.Month;
-                var label = new TextBlock { Text = culture.DateTimeFormat.GetAbbreviatedMonthName(weekStart.Month).TrimEnd('.').ToLower(culture), FontSize = 11, Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"], TextWrapping = TextWrapping.NoWrap };
-                Canvas.SetLeft(label, w * 18);
-                monthCanvas.Children.Add(label);
-            }
-            for (var d = 0; d < 7; d++)
-            {
-                var day = weekStart.AddDays(d);
-                var future = day > today;
-                var isPlayed = !future && played.Contains(day);
-                var cell = new Border
-                {
-                    Width = 14,
-                    Height = 14,
-                    CornerRadius = new CornerRadius(3),
-                    Background = future ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : isPlayed ? on : empty,
-                };
-                ToolTipService.SetToolTip(cell, day.ToString("d MMM", culture) + (future ? string.Empty : isPlayed ? " · " + Strings.Tr("jogado") : " · " + Strings.Tr("sem partidas")));
-                Grid.SetRow(cell, d);
-                Grid.SetColumn(cell, w);
-                HeatCells.Children.Add(cell);
-            }
-        }
-        HeatMonths.Children.Add(monthCanvas);
     }
 
     // ------------------------------------------------------------------ ações

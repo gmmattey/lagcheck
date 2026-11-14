@@ -9,8 +9,14 @@
     Background="Transparent"
     Loaded="LibraryPage_Loaded">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="22" Padding="40,32,40,56">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Cabeçalho fixo: busca, ordenação e filtros ficam à mão enquanto a grade rola -->
+        <StackPanel Spacing="14" Padding="40,24,40,12">
 
             <!-- Cabeçalho -->
             <Grid>
@@ -19,7 +25,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom">
-                    <TextBlock x:Name="LibraryTitle" Text="BIBLIOTECA" Style="{StaticResource DisplayTitleStyle}" FontSize="36" LineHeight="36" LineStackingStrategy="BlockLineHeight"/>
+                    <TextBlock x:Name="LibraryTitle" Text="BIBLIOTECA" Style="{StaticResource DisplayTitleStyle}" FontSize="34" LineHeight="34" LineStackingStrategy="BlockLineHeight"/>
                     <TextBlock x:Name="CountText" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Bottom" Margin="0,0,0,6"/>
                 </StackPanel>
                 <Button x:Name="RescanButton" Grid.Column="1" Style="{StaticResource SecondaryCompactButtonStyle}"
@@ -47,7 +53,10 @@
 
             <!-- Filtros -->
             <ctl:WrapPanel x:Name="FilterChips" Spacing="8"/>
+        </StackPanel>
 
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="22" Padding="40,12,40,56">
             <Border x:Name="EmptyResultsBorder" Background="{StaticResource SurfaceBrush}" CornerRadius="20" Padding="28" BorderBrush="#12FFFFFF" BorderThickness="1" Visibility="Collapsed">
                 <TextBlock x:Name="EmptyResultsText" Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
             </Border>
@@ -94,5 +103,6 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>
