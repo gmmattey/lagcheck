@@ -59,6 +59,7 @@ public sealed class DiagnosticPage : Page
     private string? _pendingRegion;
     private readonly bool _autoStart;
     private const int DiscoveryMs = 2100;
+    private int _diagnosticTransitionTicket;
 
     // Containers
     private readonly StackPanel _flowPanel = new() { MaxWidth = 820, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -472,16 +473,48 @@ public sealed class DiagnosticPage : Page
     {
         _running = false;
         ShellChrome.Shell?.ClearBackdrop();
-        _flowPanel.Visibility = Visibility.Visible;
-        _donePanel.Visibility = Visibility.Collapsed;
-        _idleControls.Visibility = Visibility.Visible;
-        _runningPanel.Visibility = Visibility.Collapsed;
-        _idleTitle.Visibility = Visibility.Visible;
         _idleTitle.Text = (HasGame ? _gameTitle : Strings.Tr("Diagnóstico de Conexão")).ToUpper(CultureInfo.CurrentCulture);
-        _pill.Visibility = Visibility.Collapsed;
         _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
         _map.Reset();
         UpdateProgress(0);
+
+        var ticket = ++_diagnosticTransitionTicket;
+        if (_donePanel.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeOut(_donePanel, Choreo.Exit, done: () =>
+            {
+                if (ticket != _diagnosticTransitionTicket) return;
+                _donePanel.Visibility = Visibility.Collapsed;
+                _flowPanel.Visibility = Visibility.Visible;
+                _idleControls.Visibility = Visibility.Visible;
+                _idleTitle.Visibility = Visibility.Visible;
+                _runningPanel.Visibility = Visibility.Collapsed;
+                _pill.Visibility = Visibility.Collapsed;
+                Choreo.FadeSlideIn(_flowPanel, dy: 14);
+            });
+        }
+        else if (_runningPanel.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeOut(_runningPanel, Choreo.Exit, done: () =>
+            {
+                if (ticket != _diagnosticTransitionTicket) return;
+                _runningPanel.Visibility = Visibility.Collapsed;
+                _pill.Visibility = Visibility.Collapsed;
+                _idleControls.Visibility = Visibility.Visible;
+                _idleTitle.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(_idleControls, dy: 14);
+                Choreo.FadeSlideIn(_idleTitle, dy: 10);
+            });
+        }
+        else
+        {
+            _flowPanel.Visibility = Visibility.Visible;
+            _donePanel.Visibility = Visibility.Collapsed;
+            _idleControls.Visibility = Visibility.Visible;
+            _runningPanel.Visibility = Visibility.Collapsed;
+            _idleTitle.Visibility = Visibility.Visible;
+            _pill.Visibility = Visibility.Collapsed;
+        }
     }
 
     private double _progressRatio;
@@ -513,19 +546,59 @@ public sealed class DiagnosticPage : Page
         _lastRestPing = double.NaN;
         ShellChrome.Shell?.ClearBackdrop();
 
-        _flowPanel.Visibility = Visibility.Visible;
-        _donePanel.Visibility = Visibility.Collapsed;
-        _idleControls.Visibility = Visibility.Collapsed;
-        _idleTitle.Visibility = Visibility.Collapsed;
-        _runningPanel.Visibility = Visibility.Visible;
-        if (HasGame)
+        var ticket = ++_diagnosticTransitionTicket;
+        if (_donePanel.Visibility == Visibility.Visible)
         {
-            _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
-            _pill.Visibility = Visibility.Visible;
+            Choreo.FadeOut(_donePanel, Choreo.Exit, done: () =>
+            {
+                if (ticket != _diagnosticTransitionTicket) return;
+                _donePanel.Visibility = Visibility.Collapsed;
+                _flowPanel.Visibility = Visibility.Visible;
+                _idleControls.Visibility = Visibility.Collapsed;
+                _idleTitle.Visibility = Visibility.Collapsed;
+                _runningPanel.Visibility = Visibility.Visible;
+                if (HasGame)
+                {
+                    _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
+                    _pill.Visibility = Visibility.Visible;
+                    Choreo.FadeSlideIn(_pill, dy: 10);
+                }
+                else _pill.Visibility = Visibility.Collapsed;
+                Choreo.FadeSlideIn(_runningPanel, dy: 14);
+            });
+        }
+        else if (_idleControls.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeOut(_idleControls, Choreo.Exit, done: () =>
+            {
+                if (ticket != _diagnosticTransitionTicket) return;
+                _idleControls.Visibility = Visibility.Collapsed;
+                _idleTitle.Visibility = Visibility.Collapsed;
+                _runningPanel.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(_runningPanel, dy: 14);
+                if (HasGame)
+                {
+                    _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
+                    _pill.Visibility = Visibility.Visible;
+                    Choreo.FadeSlideIn(_pill, dy: 10);
+                }
+                else _pill.Visibility = Visibility.Collapsed;
+            });
         }
         else
         {
-            _pill.Visibility = Visibility.Collapsed;
+            _flowPanel.Visibility = Visibility.Visible;
+            _donePanel.Visibility = Visibility.Collapsed;
+            _idleControls.Visibility = Visibility.Collapsed;
+            _idleTitle.Visibility = Visibility.Collapsed;
+            _runningPanel.Visibility = Visibility.Visible;
+            if (HasGame)
+            {
+                _pillText.Text = Strings.Format("{0} · Competitivo", _gameTitle);
+                _pill.Visibility = Visibility.Visible;
+            }
+            else _pill.Visibility = Visibility.Collapsed;
+            Choreo.FadeSlideIn(_runningPanel, dy: 14);
         }
 
         UpdateProgress(0.02);
@@ -768,18 +841,22 @@ public sealed class DiagnosticPage : Page
     /// <summary>O resultado entra subindo e aparecendo, em vez de trocar seco: é o momento da partida.</summary>
     private void RevealResult()
     {
-        _flowPanel.Visibility = Visibility.Collapsed;
-        _donePanel.Visibility = Visibility.Visible;
-        if (Motion.Reduced) { _donePanel.Opacity = 1; _donePanel.Translation = System.Numerics.Vector3.Zero; return; }
-        _donePanel.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(380) };
-        _donePanel.TranslationTransition = new Vector3Transition { Duration = TimeSpan.FromMilliseconds(380) };
-        _donePanel.Opacity = 0;
-        _donePanel.Translation = new System.Numerics.Vector3(0, 18, 0);
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        var ticket = ++_diagnosticTransitionTicket;
+        if (_flowPanel.Visibility == Visibility.Visible)
         {
-            _donePanel.Opacity = 1;
-            _donePanel.Translation = System.Numerics.Vector3.Zero;
-        });
+            Choreo.FadeOut(_flowPanel, Choreo.Exit, done: () =>
+            {
+                if (ticket != _diagnosticTransitionTicket) return;
+                _flowPanel.Visibility = Visibility.Collapsed;
+                _donePanel.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(_donePanel, ms: Choreo.Base, dy: 18);
+            });
+        }
+        else
+        {
+            _donePanel.Visibility = Visibility.Visible;
+            Choreo.FadeSlideIn(_donePanel, ms: Choreo.Base, dy: 18);
+        }
     }
 
     /// <summary>Com ▶ disponível, jogar é o CTA principal e "Testar novamente" desce a secundário.</summary>

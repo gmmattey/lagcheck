@@ -23,6 +23,7 @@ public sealed partial class SettingsPage : Page
     private bool _loadingFullScreen;
 
     private static int _lastSelectedCategoryIndex;
+    private int _categoryTicket;
 
     private SettingsCategoryButton[] _categoryButtons = [];
     private StackPanel[] _categoryPanels = [];
@@ -164,6 +165,16 @@ public sealed partial class SettingsPage : Page
         UpdateFullScreenToggle();
         StartFullScreenSwitch.IsOn = WindowMode.StartFullScreen;
 
+        // Animação de entrada escalonada da página de Ajustes
+        Choreo.FadeSlideIn(HeaderTitle, dy: 14, delayMs: 0);
+        for (int i = 0; i < _categoryButtons.Length; i++)
+        {
+            var btnDelay = Math.Min(i, 6) * 30;
+            Choreo.FadeSlideIn(_categoryButtons[i], dy: 10, delayMs: 30 + btnDelay);
+        }
+
+        AnimateActivePanelRows();
+
         try
         {
             Apply(await _bridge.GetAsync());
@@ -174,6 +185,21 @@ public sealed partial class SettingsPage : Page
         }
 
         await RefreshUpdateStatusAsync(checkNow: false);
+    }
+
+    private void AnimateActivePanelRows()
+    {
+        if (_lastSelectedCategoryIndex < 0 || _lastSelectedCategoryIndex >= _categoryPanels.Length) return;
+        var panel = _categoryPanels[_lastSelectedCategoryIndex];
+        int rowIndex = 0;
+        foreach (var child in panel.Children)
+        {
+            if (child is SettingsRow row)
+            {
+                var delay = Math.Min(rowIndex++, 6) * 35;
+                Choreo.FadeSlideIn(row, dy: 10, delayMs: 70 + delay);
+            }
+        }
     }
 
     private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
@@ -217,51 +243,43 @@ public sealed partial class SettingsPage : Page
     {
         if (index < 0 || index >= _categoryButtons.Length) return;
 
+        var prevIndex = _lastSelectedCategoryIndex;
         _lastSelectedCategoryIndex = index;
 
         for (int i = 0; i < _categoryButtons.Length; i++)
         {
             _categoryButtons[i].IsSelected = (i == index);
-            _categoryPanels[i].Visibility = (i == index) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        if (animate && !Motion.Reduced)
+        var oldPanel = (prevIndex >= 0 && prevIndex < _categoryPanels.Length && prevIndex != index) ? _categoryPanels[prevIndex] : null;
+        var newPanel = _categoryPanels[index];
+
+        if (animate && oldPanel is not null && oldPanel.Visibility == Visibility.Visible)
         {
-            AnimatePanel(_categoryPanels[index]);
+            var ticket = ++_categoryTicket;
+            Choreo.FadeOut(oldPanel, ms: Choreo.Exit, done: () =>
+            {
+                if (ticket != _categoryTicket) return;
+                oldPanel.Visibility = Visibility.Collapsed;
+                for (int i = 0; i < _categoryPanels.Length; i++)
+                {
+                    if (i != index) _categoryPanels[i].Visibility = Visibility.Collapsed;
+                }
+                newPanel.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(newPanel, ms: Choreo.Base, dy: 10);
+            });
         }
-    }
-
-    private void AnimatePanel(UIElement panel)
-    {
-        var storyboard = new Storyboard();
-
-        var fadeAnim = new DoubleAnimation
+        else
         {
-            From = 0.0,
-            To = 1.0,
-            Duration = TimeSpan.FromMilliseconds(160)
-        };
-        Storyboard.SetTarget(fadeAnim, panel);
-        Storyboard.SetTargetProperty(fadeAnim, "Opacity");
-        storyboard.Children.Add(fadeAnim);
-
-        if (panel.RenderTransform is not TranslateTransform translate)
-        {
-            translate = new TranslateTransform();
-            panel.RenderTransform = translate;
+            for (int i = 0; i < _categoryPanels.Length; i++)
+            {
+                _categoryPanels[i].Visibility = (i == index) ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (animate)
+            {
+                Choreo.FadeSlideIn(newPanel, ms: Choreo.Base, dy: 10);
+            }
         }
-
-        var slideAnim = new DoubleAnimation
-        {
-            From = 8.0,
-            To = 0.0,
-            Duration = TimeSpan.FromMilliseconds(160)
-        };
-        Storyboard.SetTarget(slideAnim, translate);
-        Storyboard.SetTargetProperty(slideAnim, "Y");
-        storyboard.Children.Add(slideAnim);
-
-        storyboard.Begin();
     }
 
     private void FocusFirstRowInCurrentCategory()

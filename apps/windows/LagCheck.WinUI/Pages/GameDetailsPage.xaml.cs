@@ -18,6 +18,7 @@ public sealed partial class GameDetailsPage : Page
 {
     private LibraryGame? _game;
     private readonly ILibraryBridge _bridge;
+    private bool _isPageLoaded;
 
     public GameDetailsPage()
     {
@@ -28,6 +29,7 @@ public sealed partial class GameDetailsPage : Page
         foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, MeasureNowBtn, BackBtn }) Fluid.Feedback(button);
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
         SessionHistoryServices.Store.Entries.CollectionChanged += OnHistoryChanged;
+        Loaded += (_, _) => { _isPageLoaded = true; AnimateEntrance(); };
         Unloaded += (_, _) =>
         {
             LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
@@ -59,7 +61,29 @@ public sealed partial class GameDetailsPage : Page
             ApplyHeroSizing();
             BindGame();
             _ = ResolveArtworkAsync(game);
+            if (_isPageLoaded) AnimateEntrance();
         }
+    }
+
+    private void AnimateEntrance()
+    {
+        if (BackgroundLayer.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeSlideIn(BackgroundLayer, ms: Choreo.Slow, dy: 0);
+        }
+        Choreo.FadeSlideIn(PlatformPill, dy: 16, delayMs: 0);
+        Choreo.FadeSlideIn(GameTitleText, dy: 16, delayMs: 60);
+        Choreo.FadeSlideIn(GamePillsHost, dy: 16, delayMs: 120);
+        Choreo.FadeSlideIn(CtaRow, dy: 16, delayMs: 180);
+        if (DescriptionCard.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeSlideIn(DescriptionCard, dy: 16, delayMs: 240);
+        }
+        if (ShotsCard.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeSlideIn(ShotsCard, dy: 16, delayMs: 300);
+        }
+        Choreo.FadeSlideIn(SideColumn, dy: 16, delayMs: 300);
     }
 
     private void GameDetailsPage_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHeroSizing();
@@ -81,7 +105,7 @@ public sealed partial class GameDetailsPage : Page
             if (result.Snapshot?.Games.FirstOrDefault(item => item.Id == game.Id) is { } updated)
             {
                 _game = updated;
-                BindGame();
+                BindGame(isArtworkRefresh: true);
             }
         }
         catch
@@ -92,7 +116,7 @@ public sealed partial class GameDetailsPage : Page
 
     // ------------------------------------------------------------------ apresentação
 
-    private void BindGame()
+    private void BindGame(bool isArtworkRefresh = false)
     {
         if (_game is not { } game) return;
 
@@ -107,8 +131,12 @@ public sealed partial class GameDetailsPage : Page
         var heroArt = Artwork.FirstExisting(game.HeroArtworkPath);
         if (heroArt is not null)
         {
-            BackgroundImage.Source = Artwork.Load(heroArt);
+            BackgroundImage.Source = Artwork.Load(heroArt, 2560);
             BackgroundLayer.Visibility = Visibility.Visible;
+            if (isArtworkRefresh)
+            {
+                Choreo.Refresh(BackgroundLayer);
+            }
         }
         else
         {

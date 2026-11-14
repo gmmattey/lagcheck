@@ -17,7 +17,10 @@ namespace LagCheck.WinUI.Controls;
 /// </summary>
 public sealed class SettingsCategoryButton : UserControl
 {
-    private readonly Border _container = new();
+    private readonly Grid _container = new();
+    private readonly Border _hoverBorder = new();
+    private readonly Border _focusBorder = new();
+    private readonly Border _selectedBorder = new();
     private readonly TextBlock _label = new();
     private bool _isPointerOver;
     private bool _isFocused;
@@ -41,15 +44,37 @@ public sealed class SettingsCategoryButton : UserControl
         MinHeight = 44;
         HorizontalAlignment = HorizontalAlignment.Stretch;
 
-        _container.CornerRadius = new CornerRadius(6);
-        _container.BorderThickness = new Thickness(1.5);
-        _container.Padding = new Thickness(16, 10, 16, 10);
+        _hoverBorder.CornerRadius = new CornerRadius(6);
+        _hoverBorder.Background = HoverBackgroundBrush;
+        _hoverBorder.Opacity = 0;
+        _hoverBorder.IsHitTestVisible = false;
+        _hoverBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+
+        _focusBorder.CornerRadius = new CornerRadius(6);
+        _focusBorder.Background = HoverBackgroundBrush;
+        _focusBorder.BorderBrush = FocusedBorderBrush;
+        _focusBorder.BorderThickness = new Thickness(1.5);
+        _focusBorder.Opacity = 0;
+        _focusBorder.IsHitTestVisible = false;
+        _focusBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+
+        _selectedBorder.CornerRadius = new CornerRadius(6);
+        _selectedBorder.Background = SelectedBackgroundBrush;
+        _selectedBorder.BorderBrush = SelectedBorderBrush;
+        _selectedBorder.BorderThickness = new Thickness(1.5);
+        _selectedBorder.Opacity = 0;
+        _selectedBorder.IsHitTestVisible = false;
+        _selectedBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _label.FontSize = 15;
         _label.TextTrimming = TextTrimming.CharacterEllipsis;
         _label.VerticalAlignment = VerticalAlignment.Center;
+        _label.Margin = new Thickness(16, 10, 16, 10);
 
-        _container.Child = _label;
+        _container.Children.Add(_hoverBorder);
+        _container.Children.Add(_focusBorder);
+        _container.Children.Add(_selectedBorder);
+        _container.Children.Add(_label);
         Content = _container;
 
         PointerEntered += (_, _) => { _isPointerOver = true; UpdateVisualState(); };
@@ -116,29 +141,33 @@ public sealed class SettingsCategoryButton : UserControl
     {
         if (IsSelected)
         {
-            _container.BorderBrush = SelectedBorderBrush;
-            _container.Background = SelectedBackgroundBrush;
+            _selectedBorder.Opacity = 1;
+            _focusBorder.Opacity = 0;
+            _hoverBorder.Opacity = 0;
             _label.Foreground = TextPrimaryBrush;
             Typography.SemiBold(_label);
         }
         else if (_isFocused)
         {
-            _container.BorderBrush = FocusedBorderBrush;
-            _container.Background = HoverBackgroundBrush;
+            _selectedBorder.Opacity = 0;
+            _focusBorder.Opacity = 1;
+            _hoverBorder.Opacity = 0;
             _label.Foreground = TextPrimaryBrush;
             Typography.SemiBold(_label);
         }
         else if (_isPointerOver)
         {
-            _container.BorderBrush = TransparentBrush;
-            _container.Background = HoverBackgroundBrush;
+            _selectedBorder.Opacity = 0;
+            _focusBorder.Opacity = 0;
+            _hoverBorder.Opacity = 1;
             _label.Foreground = TextPrimaryBrush;
             Typography.Body(_label);
         }
         else
         {
-            _container.BorderBrush = TransparentBrush;
-            _container.Background = TransparentBrush;
+            _selectedBorder.Opacity = 0;
+            _focusBorder.Opacity = 0;
+            _hoverBorder.Opacity = 0;
             _label.Foreground = TextSecondaryBrush;
             Typography.Body(_label);
         }

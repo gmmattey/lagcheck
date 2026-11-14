@@ -187,33 +187,57 @@ public sealed partial class ShellPage : Page
         _currentRoute = NavigationRoute.GeneralCheck;
         _currentGameTitle = gameTitle;
         ClearBackdrop();
-        try
+        SwapContent(() =>
         {
-            ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle, autoStart: !string.IsNullOrWhiteSpace(gameId));
-        }
-        catch (Exception)
-        {
-            ShowToast(Strings.Tr("Não foi possível abrir esta tela agora."));
-            return;
-        }
-        ApplyStageMargins(typeof(DiagnosticPage));
+            try
+            {
+                ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle, autoStart: !string.IsNullOrWhiteSpace(gameId));
+            }
+            catch (Exception)
+            {
+                ShowToast(Strings.Tr("Não foi possível abrir esta tela agora."));
+                return;
+            }
+            ApplyStageMargins(typeof(DiagnosticPage));
+        });
         UpdateTopNavigation();
+    }
+
+    private int _swapTicket;
+
+    /// <summary>
+    /// Troca o conteúdo do Frame com coreografia: a tela atual some rápido (Exit) e a nova sobe suave (Base),
+    /// sobre o papel de parede que não se mexe. Cliques rápidos: só a última troca vale.
+    /// </summary>
+    private void SwapContent(Action swap)
+    {
+        var ticket = ++_swapTicket;
+        void Go()
+        {
+            if (ticket != _swapTicket) return;
+            swap();
+            Choreo.FadeSlideIn(ContentFrame, Choreo.Base, 14);
+        }
+        if (Motion.Reduced || ContentFrame.Content is null) { Go(); return; }
+        Choreo.FadeOut(ContentFrame, Choreo.Exit, 0, Go);
     }
 
     private void NavigateFrame(Type pageType, object? parameter)
     {
         // Nova página nunca herda a arte da anterior; cada tela pede a sua.
-        NavigationTransitionInfo transition = Motion.Reduced ? new SuppressNavigationTransitionInfo() : new EntranceNavigationTransitionInfo();
-        try
+        SwapContent(() =>
         {
-            ContentFrame.Navigate(pageType, parameter, transition);
-        }
-        catch (Exception)
-        {
-            ShowToast(Strings.Tr("Não foi possível abrir esta tela agora."));
-            return;
-        }
-        ApplyStageMargins(pageType);
+            try
+            {
+                ContentFrame.Navigate(pageType, parameter, new SuppressNavigationTransitionInfo());
+            }
+            catch (Exception)
+            {
+                ShowToast(Strings.Tr("Não foi possível abrir esta tela agora."));
+                return;
+            }
+            ApplyStageMargins(pageType);
+        });
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
@@ -423,8 +447,14 @@ public sealed partial class ShellPage : Page
         BeginBackdropTransition(image, revision, () =>
         {
             ApplyBackdrop(imagePaths, kind, selectedIndex);
-            BackdropTransition.Children.Clear();
-            BackdropTransition.Opacity = 0;
+            // A faixa definitiva usa o MESMO BitmapImage já decodificado (cache); mesmo assim só descobrimos a
+            // camada de transição depois de ela ter sido pintada, para não haver nenhum quadro sem arte (piscada).
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                if (revision != _backdropTransitionRevision) return;
+                BackdropTransition.Children.Clear();
+                BackdropTransition.Opacity = 0;
+            });
         });
     }
 
@@ -481,6 +511,7 @@ public sealed partial class ShellPage : Page
             storyboard.Begin();
         }
         if (image is null) { Start(); return; }
+        if (image.Source is BitmapImage { PixelWidth: > 0 }) { Start(); return; }
         image.ImageOpened += (_, _) => Start();
         image.ImageFailed += (_, _) =>
         {
@@ -527,13 +558,19 @@ public sealed partial class ShellPage : Page
         sb.Begin();
     }
 
+    private readonly Dictionary<string, BitmapImage> _imageCache = new(StringComparer.OrdinalIgnoreCase);
+
     private BitmapImage? TryCreateImage(string path)
     {
         try
         {
+            if (_imageCache.TryGetValue(path, out var cached)) return cached;
             // Decodifica na largura da janela: banners de 4K inteiros travavam a troca de jogo.
             var width = (int)Math.Clamp(Math.Ceiling(RootGrid.ActualWidth > 0 ? RootGrid.ActualWidth : 1920), 960, 2560);
-            return new BitmapImage { DecodePixelWidth = width, UriSource = new Uri(path) };
+            var image = new BitmapImage { DecodePixelWidth = width, UriSource = new Uri(path) };
+            if (_imageCache.Count >= 10) _imageCache.Clear(); // poucos fundos recentes bastam; evita crescer sem limite
+            _imageCache[path] = image;
+            return image;
         }
         catch
         {
@@ -546,26 +583,15 @@ public sealed partial class ShellPage : Page
     public void ShowToast(string message)
     {
         ToastText.Text = message;
-        ToastBorder.OpacityTransition ??= new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
-        ToastBorder.TranslationTransition ??= new Vector3Transition { Duration = TimeSpan.FromMilliseconds(180) };
         ToastBorder.Visibility = Visibility.Visible;
-        ToastBorder.Translation = new System.Numerics.Vector3(0, Motion.Reduced ? 0 : 12, 0);
-        ToastBorder.Opacity = 0;
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            ToastBorder.Translation = System.Numerics.Vector3.Zero;
-            ToastBorder.Opacity = 1;
-        });
+        ToastBorder.Opacity = 1;
+        Choreo.FadeSlideIn(ToastBorder, Choreo.Base, 14);
         _toastTimer?.Stop();
         _toastTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.6) };
         _toastTimer.Tick += (_, _) =>
         {
             _toastTimer.Stop();
-            ToastBorder.Opacity = 0;
-            ToastBorder.Translation = new System.Numerics.Vector3(0, Motion.Reduced ? 0 : 12, 0);
-            var hide = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Motion.Reduced ? 1 : 200) };
-            hide.Tick += (_, _) => { hide.Stop(); if (ToastBorder.Opacity == 0) ToastBorder.Visibility = Visibility.Collapsed; };
-            hide.Start();
+            Choreo.FadeOut(ToastBorder, Choreo.Exit, 8, () => ToastBorder.Visibility = Visibility.Collapsed);
         };
         _toastTimer.Start();
     }

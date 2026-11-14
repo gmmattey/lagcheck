@@ -55,8 +55,8 @@
             <ctl:WrapPanel x:Name="FilterChips" Spacing="8"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" Margin="-10,-14,-10,0" Padding="10,14,10,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="22" Padding="48,12,48,40">
+        <ScrollViewer Grid.Row="1" Margin="-10,-14,-10,0" Padding="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="22" Padding="58,26,58,40">
             <Border x:Name="EmptyResultsBorder" Style="{StaticResource GlassCardStyle}" Visibility="Collapsed">
                 <TextBlock x:Name="EmptyResultsText" Text="Nenhum jogo corresponde à busca ou ao filtro atual." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14"/>
             </Border>

@@ -36,6 +36,8 @@ public sealed partial class GalleryPage : Page
     {
         _isLoaded = true;
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
+        Choreo.FadeSlideIn(TitleText, dy: 14, delayMs: 0);
+        Choreo.FadeSlideIn(SubtitleText, dy: 14, delayMs: 40);
         await LoadGalleryAsync();
     }
 
@@ -97,6 +99,7 @@ public sealed partial class GalleryPage : Page
             return;
         }
 
+        int sectionIndex = 0;
         foreach (var entry in gamesWithShots)
         {
             var section = new StackPanel { Spacing = 10 };
@@ -111,8 +114,13 @@ public sealed partial class GalleryPage : Page
             });
 
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
-            foreach (var shot in entry.Shots)
-                row.Children.Add(CreateScreenshotButton(entry.Game, shot));
+            for (int i = 0; i < entry.Shots.Count; i++)
+            {
+                var button = CreateScreenshotButton(entry.Game, entry.Shots[i]);
+                var delay = Math.Min(i, 8) * 35;
+                Choreo.FadeSlideIn(button, dy: 10, delayMs: delay);
+                row.Children.Add(button);
+            }
 
             section.Children.Add(new ScrollViewer
             {
@@ -120,11 +128,15 @@ public sealed partial class GalleryPage : Page
                 VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Content = row,
             });
+
+            var secDelay = Math.Min(sectionIndex++, 6) * 40;
+            Choreo.FadeSlideIn(section, dy: 12, delayMs: secDelay);
             GameSectionsPanel.Children.Add(section);
         }
 
         EmptyState.Visibility = Visibility.Collapsed;
         GalleryScroll.Visibility = Visibility.Visible;
+        Choreo.FadeSlideIn(GalleryScroll, dy: 10);
     }
 
     private Button CreateScreenshotButton(LibraryGame game, GameScreenshot shot)
@@ -200,6 +212,7 @@ public sealed partial class GalleryPage : Page
         EmptyDescription.Text = Strings.Tr("As capturas locais disponíveis nos jogos conhecidos aparecem aqui.");
         GalleryScroll.Visibility = Visibility.Collapsed;
         EmptyState.Visibility = Visibility.Visible;
+        if (_isLoaded) Choreo.FadeSlideIn(EmptyState, dy: 10);
     }
 
     private void ShowLoadError()
@@ -209,6 +222,7 @@ public sealed partial class GalleryPage : Page
         EmptyDescription.Text = string.Empty;
         GalleryScroll.Visibility = Visibility.Collapsed;
         EmptyState.Visibility = Visibility.Visible;
+        if (_isLoaded) Choreo.FadeSlideIn(EmptyState, dy: 10);
     }
 
     private void OnLanguageChanged()

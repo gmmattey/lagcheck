@@ -18,6 +18,7 @@ public sealed partial class LibraryPage : Page
     public LibraryViewModel ViewModel { get; }
 
     private readonly List<(LibraryFilter Filter, string Label, string? Logo, Button Chip)> _chips = new();
+    private readonly HashSet<string> _animatedCardIds = new(StringComparer.Ordinal);
 
     public LibraryPage()
     {
@@ -101,7 +102,12 @@ public sealed partial class LibraryPage : Page
                 DispatcherQueue.TryEnqueue(UpdateRescanLabel);
                 break;
             case nameof(LibraryViewModel.SelectedFilter):
+                _animatedCardIds.Clear();
                 DispatcherQueue.TryEnqueue(UpdateChips);
+                break;
+            case nameof(LibraryViewModel.SearchText):
+            case nameof(LibraryViewModel.SelectedSort):
+                _animatedCardIds.Clear();
                 break;
             case nameof(LibraryViewModel.HasVisibleGames):
             case nameof(LibraryViewModel.GameCountLabel):
@@ -113,11 +119,27 @@ public sealed partial class LibraryPage : Page
     private void OnVisibleChanged()
     {
         UpdateCount();
-        EmptyResultsBorder.Visibility = ViewModel.HasVisibleGames ? Visibility.Collapsed : Visibility.Visible;
+        if (!ViewModel.HasVisibleGames)
+        {
+            if (EmptyResultsBorder.Visibility != Visibility.Visible)
+            {
+                EmptyResultsBorder.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(EmptyResultsBorder, dy: 10);
+            }
+        }
+        else
+        {
+            EmptyResultsBorder.Visibility = Visibility.Collapsed;
+        }
     }
 
     private async void LibraryPage_Loaded(object sender, RoutedEventArgs e)
     {
+        _animatedCardIds.Clear();
+        Choreo.FadeSlideIn(LibraryTitle, dy: 12, delayMs: 0);
+        Choreo.FadeSlideIn(SearchBox, dy: 12, delayMs: 40);
+        Choreo.FadeSlideIn(SortBox, dy: 12, delayMs: 40);
+        Choreo.FadeSlideIn(FilterChips, dy: 12, delayMs: 80);
         UpdateChips();
         await ViewModel.LoadAsync();
         OnVisibleChanged();
@@ -128,6 +150,7 @@ public sealed partial class LibraryPage : Page
 
     private async void Rescan_Click(object sender, RoutedEventArgs e)
     {
+        _animatedCardIds.Clear();
         if (ViewModel.RefreshCommand.CanExecute(null)) ViewModel.RefreshCommand.Execute(null);
         await ViewModel.LoadAsync();
         await Artwork.ResolveMissingAsync(ViewModel, ViewModel.VisibleGames.Take(48).ToList());
@@ -137,23 +160,44 @@ public sealed partial class LibraryPage : Page
     {
         if (ViewModel is null) return;
         if (sender is ComboBox { SelectedItem: ComboBoxItem { Tag: string tag } } && Enum.TryParse<LibrarySort>(tag, true, out var sort))
+        {
+            _animatedCardIds.Clear();
             ViewModel.SelectedSort = sort;
+        }
     }
 
     private void Filter_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: string tag } && Enum.TryParse<LibraryFilter>(tag, true, out _))
+        {
+            _animatedCardIds.Clear();
             ViewModel.SelectFilterCommand.Execute(tag);
+        }
     }
 
     private void WireCard(UIElement element, int index)
     {
         if (element is not Grid card) return;
         // O jogo do card vem do índice (não depende de DataContext, que o ItemsRepeater nem sempre preenche).
-        card.Tag = index >= 0 && index < ViewModel.VisibleGames.Count ? ViewModel.VisibleGames[index] : null;
+        var game = index >= 0 && index < ViewModel.VisibleGames.Count ? ViewModel.VisibleGames[index] : null;
+        card.Tag = game;
         Fluid.Prepare(card);
         DecorateCard(card);
         if (card.Children.LastOrDefault() is Border ring) ring.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(200) };
+
+        if (game is not null)
+        {
+            if (_animatedCardIds.Add(game.Id))
+            {
+                var delay = Math.Min(index, 8) * 35;
+                Choreo.FadeSlideIn(card, dy: 14, delayMs: delay);
+            }
+            else
+            {
+                Choreo.Reset(card);
+            }
+        }
+
         card.Tapped -= GameCard_Tapped;
         card.PointerEntered -= Card_PointerEntered;
         card.PointerExited -= Card_PointerExited;
@@ -184,6 +228,7 @@ public sealed partial class LibraryPage : Page
         card.GotFocus -= Card_PointerEntered;
         card.LostFocus -= Card_PointerExited;
         card.Tag = null;
+        Choreo.Reset(card);
         SetHover(card, false);
     }
 

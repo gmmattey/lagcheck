@@ -1,42 +1,29 @@
 using System;
-using System.Numerics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace LagCheck.WinUI.Controls;
 
 /// <summary>
-/// Movimento de composição para cards e botões: o Windows interpola escala, deslocamento e opacidade
-/// na GPU, então a passada do mouse acompanha o ponteiro sem engasgar.
+/// Feedback de cards e botões (hover, foco, pressionar, pose). Tudo passa pelo <see cref="Choreo"/>:
+/// mesma curva e duração em todo o app, na GPU, sem salto se o ponteiro entra e sai rápido.
 /// </summary>
 public static class Fluid
 {
-    private static readonly TimeSpan Duration = TimeSpan.FromMilliseconds(180);
-
-    /// <summary>Liga as transições implícitas. Depois disso, mudar Scale/Translation/Opacity anima sozinho.</summary>
+    /// <summary>Prepara o elemento: centro de escala acompanha o tamanho.</summary>
     public static void Prepare(UIElement element)
     {
-        element.ScaleTransition = new Vector3Transition { Duration = Duration };
-        element.TranslationTransition = new Vector3Transition { Duration = Duration };
-        element.OpacityTransition = new ScalarTransition { Duration = Duration };
         if (element is FrameworkElement frame)
         {
             frame.SizeChanged -= OnSizeChanged;
             frame.SizeChanged += OnSizeChanged;
-            element.CenterPoint = new Vector3((float)frame.ActualWidth / 2, (float)frame.ActualHeight / 2, 0);
+            Choreo.Center(element, frame.ActualWidth, frame.ActualHeight);
         }
     }
 
     private static void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (sender is UIElement element) element.CenterPoint = new Vector3((float)e.NewSize.Width / 2, (float)e.NewSize.Height / 2, 0);
-    }
-
-    private static void ApplyMotionPreference(UIElement element)
-    {
-        element.ScaleTransition = Motion.Reduced ? null : new Vector3Transition { Duration = Duration };
-        element.TranslationTransition = Motion.Reduced ? null : new Vector3Transition { Duration = Duration };
-        element.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = Duration };
+        if (sender is UIElement element) Choreo.Center(element, e.NewSize.Width, e.NewSize.Height);
     }
 
     /// <summary>Feedback padrão de botão (hover sobe de leve, pressionar afunda); o mesmo toque em todas as telas.</summary>
@@ -52,33 +39,16 @@ public static class Fluid
     }
 
     /// <summary>Estado de passagem do mouse: o card sobe um pouco e cresce de leve.</summary>
-    public static void Hover(UIElement element, bool hovering, float scale = 1.035f, float lift = -6f)
-    {
-        ApplyMotionPreference(element);
-        if (Motion.Reduced)
-        {
-            element.Scale = Vector3.One;
-            element.Translation = Vector3.Zero;
-            return;
-        }
-        element.Scale = hovering ? new Vector3(scale, scale, 1) : Vector3.One;
-        element.Translation = hovering ? new Vector3(0, lift, 0) : Vector3.Zero;
-    }
+    public static void Hover(UIElement element, bool hovering, float scale = 1.035f, float lift = -6f) =>
+        Choreo.Pose(element, hovering ? scale : 1f, hovering ? lift : 0f);
 
-    /// <summary>Pose fixa (escala + deslocamento vertical) animada na GPU; sem animação com movimento reduzido.</summary>
-    public static void SetPose(UIElement element, float scale, float translateY)
-    {
-        ApplyMotionPreference(element);
-        element.Scale = new Vector3(scale, scale, 1);
-        element.Translation = new Vector3(0, translateY, 0);
-    }
+    /// <summary>Pose fixa (escala + deslocamento vertical), ex.: tile selecionado x em repouso.</summary>
+    public static void SetPose(UIElement element, float scale, float translateY) => Choreo.Pose(element, scale, translateY, 0, Choreo.Base);
 
     /// <summary>Estado de pressão: o card afunda um pouco e volta ao soltar.</summary>
     public static void Press(UIElement element, bool pressed, float hoverScale = 1.035f)
     {
-        ApplyMotionPreference(element);
         if (Motion.Reduced) return;
-        var scale = pressed ? 0.985f : hoverScale;
-        element.Scale = new Vector3(scale, scale, 1);
+        Choreo.Pose(element, pressed ? 0.985f : hoverScale, 0f, 0, 90);
     }
 }

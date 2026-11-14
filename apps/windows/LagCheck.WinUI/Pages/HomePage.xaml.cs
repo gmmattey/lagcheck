@@ -267,18 +267,9 @@ public sealed partial class HomePage : Page
     private void FadeHero()
     {
         _selectionTransition?.Stop();
-        GameHeroPanel.Opacity = PcHeroPanel.Opacity = InsightsScroll.Opacity = 1;
-        if (Motion.Reduced) return;
-        var storyboard = new Storyboard();
-        foreach (var target in new UIElement[] { _pcSelected ? PcHeroPanel : GameHeroPanel, InsightsScroll })
-        {
-            var fade = new DoubleAnimation { From = 0, To = 1, Duration = TimeSpan.FromMilliseconds(300), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-            Storyboard.SetTarget(fade, target);
-            Storyboard.SetTargetProperty(fade, "Opacity");
-            storyboard.Children.Add(fade);
-        }
-        _selectionTransition = storyboard;
-        storyboard.Begin();
+        // Texto do herói sobe com suavidade; os widgets só "respiram" (a arte do fundo já faz o próprio crossfade).
+        Choreo.FadeSlideIn(_pcSelected ? PcHeroPanel : GameHeroPanel, Choreo.Base, 12);
+        Choreo.Refresh(InsightsScroll, 0.55f, Choreo.Base);
     }
 
     private void SelectPc()

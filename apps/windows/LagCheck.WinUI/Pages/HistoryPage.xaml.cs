@@ -21,6 +21,9 @@ public sealed partial class HistoryPage : Page
 {
     private readonly SessionHistoryStore _history = SessionHistoryServices.Store;
     private Dictionary<string, string> _gameNames = new(StringComparer.OrdinalIgnoreCase);
+    private int _historyStateTicket;
+    private UIElement? _activeStateView;
+    private bool _isPageLoaded;
 
     public HistoryPage()
     {
@@ -29,7 +32,17 @@ public sealed partial class HistoryPage : Page
         _history.Entries.CollectionChanged += Entries_CollectionChanged;
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
         UpdateVisibleEntries();
-        Loaded += async (_, _) => await LoadGameNamesAsync();
+        Loaded += async (_, _) =>
+        {
+            _isPageLoaded = true;
+            Choreo.FadeSlideIn(TitleText, dy: 14, delayMs: 0);
+            Choreo.FadeSlideIn(SearchBox, dy: 14, delayMs: 40);
+            if (_activeStateView is not null)
+            {
+                Choreo.FadeSlideIn(_activeStateView, dy: 14, delayMs: 80);
+            }
+            await LoadGameNamesAsync();
+        };
         Unloaded += (_, _) =>
         {
             _history.Entries.CollectionChanged -= Entries_CollectionChanged;
@@ -73,6 +86,9 @@ public sealed partial class HistoryPage : Page
             rowGrid.PointerEntered += Row_PointerEntered;
             rowGrid.PointerExited -= Row_PointerExited;
             rowGrid.PointerExited += Row_PointerExited;
+
+            var delay = Math.Min(args.Index, 8) * 35;
+            Choreo.FadeSlideIn(rowGrid, dy: 8, delayMs: delay);
         }
     }
 
@@ -83,6 +99,7 @@ public sealed partial class HistoryPage : Page
             rowGrid.PointerEntered -= Row_PointerEntered;
             rowGrid.PointerExited -= Row_PointerExited;
             rowGrid.Background = RowNormalBrush;
+            Choreo.Reset(rowGrid);
         }
     }
 
@@ -145,11 +162,43 @@ public sealed partial class HistoryPage : Page
             .Where(row => string.IsNullOrEmpty(query) || row.Region.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Game.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Verdict.Contains(query, StringComparison.OrdinalIgnoreCase))
             .ToList();
         HistoryList.ItemsSource = rows;
+
         var hasRows = rows.Count > 0;
-        TableCard.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
-        HistoryScroll.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
-        HeaderRow.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
-        EmptyState.Visibility = _history.Entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        NoResults.Visibility = _history.Entries.Count > 0 && !hasRows ? Visibility.Visible : Visibility.Collapsed;
+        UIElement targetView = hasRows ? TableCard
+            : (_history.Entries.Count == 0 ? EmptyState : NoResults);
+
+        HeaderRow.Visibility = Visibility.Visible;
+        HistoryScroll.Visibility = Visibility.Visible;
+
+        if (_activeStateView == targetView)
+        {
+            targetView.Visibility = Visibility.Visible;
+            return;
+        }
+
+        var prevView = _activeStateView;
+        _activeStateView = targetView;
+
+        if (prevView is not null && _isPageLoaded)
+        {
+            var ticket = ++_historyStateTicket;
+            Choreo.FadeOut(prevView, ms: Choreo.Exit, done: () =>
+            {
+                if (ticket != _historyStateTicket) return;
+                prevView.Visibility = Visibility.Collapsed;
+                targetView.Visibility = Visibility.Visible;
+                Choreo.FadeSlideIn(targetView, dy: 10);
+            });
+        }
+        else
+        {
+            TableCard.Visibility = (targetView == TableCard) ? Visibility.Visible : Visibility.Collapsed;
+            EmptyState.Visibility = (targetView == EmptyState) ? Visibility.Visible : Visibility.Collapsed;
+            NoResults.Visibility = (targetView == NoResults) ? Visibility.Visible : Visibility.Collapsed;
+            if (_isPageLoaded)
+            {
+                Choreo.FadeSlideIn(targetView, dy: 10);
+            }
+        }
     }
 }

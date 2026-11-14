@@ -188,6 +188,9 @@ public sealed class WidgetCard : Grid
     /// <summary>Aplica o conteúdo mais recente; só troca o que mudou de fato.</summary>
     public void Apply(IHomeWidget widget, WidgetContent content, WidgetSpan span)
     {
+        var changedLayout = _applied && (span != Span || content.State != _lastState);
+        _applied = true;
+        _lastState = content.State;
         Span = span;
         _title.Text = Strings.Tr(widget.Title);
         _icon.Data = widget.IconPath;
@@ -244,7 +247,12 @@ public sealed class WidgetCard : Grid
         var summary = content.Summary ?? content.Message ?? string.Empty;
         AutomationProperties.SetName(this, string.IsNullOrWhiteSpace(summary) ? _title.Text : $"{_title.Text}: {summary}");
         UpdateInteractivity();
+        // Mudou de tamanho ou de estado (carregando -> pronto): o conteúdo reaparece com suavidade, não troca seco.
+        if (changedLayout) Choreo.FadeSlideIn(_bodyHost, Choreo.Base, 8);
     }
+
+    private bool _applied;
+    private WidgetState _lastState;
 
     private static UIElement BuildActionContent(WidgetAction action)
     {

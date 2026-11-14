@@ -68,13 +68,7 @@ public sealed class WidgetGridPanel : Panel
         var dx = (float)(old.X - rect.X);
         var dy = (float)(old.Y - rect.Y);
         if (Math.Abs(dx) < 1 && Math.Abs(dy) < 1) return;
-        card.TranslationTransition = null;
-        card.Translation = new System.Numerics.Vector3(dx, dy, 0);
-        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            card.TranslationTransition = new Vector3Transition { Duration = TimeSpan.FromMilliseconds(260) };
-            card.Translation = System.Numerics.Vector3.Zero;
-        });
+        Choreo.SlideFrom(card, dx, dy, Choreo.Base);
     }
 
     /// <summary>Card sob o ponto (coordenadas do painel), para soltar um arrasto.</summary>
@@ -205,6 +199,7 @@ public sealed class WidgetHost : Grid
         }
 
         var order = new List<WidgetCard>();
+        var newCards = new List<WidgetCard>();
         foreach (var widget in visible)
         {
             var sizes = widget.Sizes(_context);
@@ -213,6 +208,7 @@ public sealed class WidgetHost : Grid
             {
                 card = CreateCard(widget);
                 _cards[widget.Id] = card;
+                newCards.Add(card);
             }
             card.IsEditing = _editing;
             card.Apply(widget, SafeRender(widget, span), span);
@@ -227,6 +223,8 @@ public sealed class WidgetHost : Grid
             foreach (var card in order) _panel.Children.Add(card);
         }
         _panel.InvalidateMeasure();
+        // Cards novos entram escalonados (um depois do outro), sem atrasar os que já estavam na tela.
+        for (var i = 0; i < newCards.Count; i++) Choreo.FadeSlideIn(newCards[i], Choreo.Base, 14, 0, Math.Min(i, 6) * 55);
 
         RebuildHiddenChips(available.Where(widget => _prefs.IsHidden(widget.Id)).ToList());
         RebuildToolbar(visible.Count, available.Count);
@@ -253,17 +251,6 @@ public sealed class WidgetHost : Grid
             Save();
         };
         card.MoveRequested += (c, delta) => MoveBy(c.WidgetId, delta);
-
-        if (!Motion.Reduced)
-        {
-            card.Opacity = 0;
-            card.Translation = new System.Numerics.Vector3(0, 14, 0);
-            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-            {
-                card.Opacity = 1;
-                card.Translation = System.Numerics.Vector3.Zero;
-            });
-        }
         return card;
     }
 

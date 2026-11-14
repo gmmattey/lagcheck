@@ -58,7 +58,7 @@
                                    TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                         <!-- Pílulas de gênero/modo (Tarefa 3) -->
                         <Border x:Name="GamePillsHost" HorizontalAlignment="Left"/>
-                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                        <StackPanel x:Name="CtaRow" Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
                             <Grid>
                                 <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
                                 <Button x:Name="LaunchBtn" Style="{StaticResource HeroPrimaryButtonStyle}" Content="JOGAR AGORA" Click="Launch_Click"/>
@@ -95,7 +95,7 @@
                         </Border>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Spacing="20">
+                    <StackPanel x:Name="SideColumn" Grid.Column="1" Spacing="20">
                         <Border Style="{StaticResource PremiumCardStyle}" Padding="22,8">
                             <StackPanel x:Name="FactsPanel"/>
                         </Border>

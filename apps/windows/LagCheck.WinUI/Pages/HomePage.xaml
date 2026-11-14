@@ -28,7 +28,7 @@
           <Button x:Name="TopSettingsBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenSettings_Click" automation:AutomationProperties.Name="Ajustes"><FontIcon Glyph="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}"/></Button>
         </StackPanel>
       </Grid>
-      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled" Margin="-14,-12,-14,0" Padding="14,12,14,8"><StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="6" Padding="0"/></ScrollViewer>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled" Margin="-14,-12,-14,0" Padding="0"><StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="6" Padding="14,12,14,8"/></ScrollViewer>
     </Grid>
     <Grid x:Name="HomeContentGrid" Grid.Row="1" ColumnSpacing="14"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="260"/></Grid.ColumnDefinitions>
       <!-- Hero sem camada visual: texto e ações voltam ao canto inferior esquerdo da arte original. -->

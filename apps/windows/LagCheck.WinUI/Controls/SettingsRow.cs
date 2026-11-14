@@ -24,7 +24,8 @@ namespace LagCheck.WinUI.Controls;
 public sealed class SettingsRow : UserControl
 {
     private readonly Grid _rootGrid = new();
-    private readonly Border _highlightBorder = new();
+    private readonly Border _hoverBorder = new();
+    private readonly Border _focusBorder = new();
     private readonly Border _separator = new();
     private readonly TextBlock _titleLabel = new();
     private readonly TextBlock _descriptionLabel = new();
@@ -53,10 +54,19 @@ public sealed class SettingsRow : UserControl
         MinHeight = 64;
         HorizontalAlignment = HorizontalAlignment.Stretch;
 
-        _highlightBorder.CornerRadius = new CornerRadius(6);
-        _highlightBorder.BorderThickness = new Thickness(1);
-        _highlightBorder.BorderBrush = TransparentBrush;
-        _highlightBorder.Background = TransparentBrush;
+        _hoverBorder.CornerRadius = new CornerRadius(6);
+        _hoverBorder.Background = HoverBackgroundBrush;
+        _hoverBorder.Opacity = 0;
+        _hoverBorder.IsHitTestVisible = false;
+        _hoverBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+
+        _focusBorder.CornerRadius = new CornerRadius(6);
+        _focusBorder.Background = FocusedBackgroundBrush;
+        _focusBorder.BorderBrush = FocusedBorderBrush;
+        _focusBorder.BorderThickness = new Thickness(1);
+        _focusBorder.Opacity = 0;
+        _focusBorder.IsHitTestVisible = false;
+        _focusBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _separator.Height = 1;
         _separator.Background = SeparatorBrush;
@@ -118,7 +128,8 @@ public sealed class SettingsRow : UserControl
         Grid.SetColumn(rightStack, 1);
         contentGrid.Children.Add(rightStack);
 
-        _rootGrid.Children.Add(_highlightBorder);
+        _rootGrid.Children.Add(_hoverBorder);
+        _rootGrid.Children.Add(_focusBorder);
         _rootGrid.Children.Add(contentGrid);
         _rootGrid.Children.Add(_separator);
 
@@ -347,18 +358,18 @@ public sealed class SettingsRow : UserControl
     {
         if (_isFocused)
         {
-            _highlightBorder.Background = FocusedBackgroundBrush;
-            _highlightBorder.BorderBrush = FocusedBorderBrush;
+            _focusBorder.Opacity = 1;
+            _hoverBorder.Opacity = 0;
         }
         else if (_isPointerOver)
         {
-            _highlightBorder.Background = HoverBackgroundBrush;
-            _highlightBorder.BorderBrush = TransparentBrush;
+            _focusBorder.Opacity = 0;
+            _hoverBorder.Opacity = 1;
         }
         else
         {
-            _highlightBorder.Background = TransparentBrush;
-            _highlightBorder.BorderBrush = TransparentBrush;
+            _focusBorder.Opacity = 0;
+            _hoverBorder.Opacity = 0;
         }
     }
 
