@@ -6,11 +6,14 @@ public struct DeepCheckMetrics: Codable, Equatable, Sendable {
     public let rest: QualityMetrics
     public let load: QualityMetrics?
     public let loadImpact: DeepCheckLoadImpact?
+    /// Pacotes reais da fase de carga, na ordem de envio (`nil` em entradas antigas do histórico).
+    public let loadSamples: [ProbeSample]?
 
-    public init(rest: QualityMetrics, load: QualityMetrics?, loadImpact: DeepCheckLoadImpact?) {
+    public init(rest: QualityMetrics, load: QualityMetrics?, loadImpact: DeepCheckLoadImpact?, loadSamples: [ProbeSample]? = nil) {
         self.rest = rest
         self.load = load
         self.loadImpact = loadImpact
+        self.loadSamples = loadSamples
     }
 }
 
@@ -268,7 +271,8 @@ public enum DeepCheckEvaluator {
             rawScore: restScore,
             finalScore: restScore,
             resultClass: restClass,
-            appliedGuardrails: []
+            appliedGuardrails: [],
+            samples: restSamples
         )
 
         guard let loadSamples, !loadSamples.isEmpty else {
@@ -329,7 +333,7 @@ public enum DeepCheckEvaluator {
             return .completed(
                 DeepCheckResult(
                     restResult: restResult,
-                    metrics: DeepCheckMetrics(rest: restMetrics, load: loadMetrics, loadImpact: impact)
+                    metrics: DeepCheckMetrics(rest: restMetrics, load: loadMetrics, loadImpact: impact, loadSamples: loadSamples)
                 )
             )
         } else {

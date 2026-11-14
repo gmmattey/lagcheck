@@ -114,7 +114,8 @@ public enum ResultInterpreter {
         wifiBand: WiFiBandDiagnostic? = nil,
         wifiBandConfidence: WiFiBandAssessmentConfidence? = nil,
         natType: NATType? = nil,
-        serverArchitecture: GameServerArchitecture = .dedicatedServer
+        serverArchitecture: GameServerArchitecture = .dedicatedServer,
+        loadSamples: [ProbeSample]? = nil
     ) -> ResultInterpretation {
         let loadImpact: DeepCheckLoadImpact? = loadTier.map { tier in
             let p50 = result.metrics.p50Milliseconds ?? 30.0
@@ -128,7 +129,8 @@ public enum ResultInterpreter {
             gatewayOutcome: gatewayOutcome,
             spikePattern: spikePattern ?? result.metrics.spikePattern,
             serverArchitecture: serverArchitecture,
-            natSnapshot: nil
+            natSnapshot: nil,
+            loadProbeSamples: loadSamples
         )
         let response = LagCheckEngineBridge.evaluate(request: req)
 

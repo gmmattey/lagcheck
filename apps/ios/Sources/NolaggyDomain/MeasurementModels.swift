@@ -214,13 +214,18 @@ public struct QualityResult: Codable, Equatable, Sendable {
     public let finalScore: Int
     public let resultClass: ResultClass
     public let appliedGuardrails: Set<ScoreGuardrail>
+    /// Pacotes reais da fase, na ordem de envio. Toda reavaliação (tela, histórico, Home, widget)
+    /// passa estes pacotes ao motor. `nil` só em entradas antigas do histórico, gravadas antes
+    /// desta versão; nelas a ponte reconstrói uma série aproximada a partir das métricas.
+    public let samples: [ProbeSample]?
 
-    public init(metrics: QualityMetrics, rawScore: Int, finalScore: Int, resultClass: ResultClass, appliedGuardrails: Set<ScoreGuardrail>) {
+    public init(metrics: QualityMetrics, rawScore: Int, finalScore: Int, resultClass: ResultClass, appliedGuardrails: Set<ScoreGuardrail>, samples: [ProbeSample]? = nil) {
         self.metrics = metrics
         self.rawScore = rawScore
         self.finalScore = finalScore
         self.resultClass = resultClass
         self.appliedGuardrails = appliedGuardrails
+        self.samples = samples
     }
 }
 

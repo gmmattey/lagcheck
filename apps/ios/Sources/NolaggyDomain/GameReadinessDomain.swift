@@ -205,7 +205,8 @@ public enum GameReadinessEvaluator {
             gatewayOutcome: gatewayOutcome,
             spikePattern: spikePattern ?? qualityResult.metrics.spikePattern,
             serverArchitecture: serverArchitecture,
-            natSnapshot: natSnapshot
+            natSnapshot: natSnapshot,
+            loadProbeSamples: deepCheckMetrics?.loadSamples
         )
 
         let response = LagCheckEngineBridge.evaluate(request: req)

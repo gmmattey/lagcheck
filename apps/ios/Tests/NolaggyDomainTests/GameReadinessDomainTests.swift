@@ -204,16 +204,20 @@ final class GameReadinessDomainTests: XCTestCase {
     }
 
     func testRecurringSevereSpikesTriggersNotReady() {
-        let testSamples = samples(count: 30, rtt: 25.0)
+        // Pacotes reais: dois picos severos (≥ 150 ms e > P50 + 80 ms no BR) na mesma janela de 5.
+        // O motor avalia a série medida; um padrão injetado sem picos na série não vale mais.
+        var testSamples = samples(count: 60, rtt: 25.0)
+        for sequence in [10, 12] {
+            testSamples[sequence] = ProbeSample(sequence: sequence, roundTripMilliseconds: 200, outcome: .received)
+        }
         let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
         guard case let .completed(qualityResult) = eval else { return XCTFail() }
+        XCTAssertEqual(qualityResult.metrics.spikePattern, .recurring(count: 2, severeCount: 2))
 
-        let pattern = SpikePattern.recurring(count: 2, severeCount: 2)
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: nil,
-            profile: .battleRoyaleCompetitive,
-            spikePattern: pattern
+            profile: .battleRoyaleCompetitive
         )
         XCTAssertEqual(readiness.verdict, .notReady)
     }

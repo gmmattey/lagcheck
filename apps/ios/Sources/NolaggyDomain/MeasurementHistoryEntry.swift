@@ -104,7 +104,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
             loadImpact: result.metrics.loadImpact,
             profile: resolvedContext.profileID,
             confidence: resolvedContext.confidence,
-            serverArchitecture: arch
+            serverArchitecture: arch,
+            deepCheckMetrics: result.metrics
         )
         return MeasurementHistoryEntry(
             completedAt: completedAt,
@@ -117,7 +118,8 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
                 result.restResult,
                 profile: resolvedContext.profileID,
                 loadTier: result.metrics.loadImpact?.tier,
-                serverArchitecture: arch
+                serverArchitecture: arch,
+                loadSamples: result.metrics.loadSamples
             ).primaryCauseKey,
             readinessVerdict: readiness.verdict,
             readinessRuleVersion: GameReadinessEvaluator.version

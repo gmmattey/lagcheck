@@ -427,13 +427,20 @@ public enum LagCheckEngineBridge {
         gatewayOutcome: GatewayProbeOutcome = .unobservable,
         spikePattern: SpikePattern? = nil,
         serverArchitecture: GameServerArchitecture = .dedicatedServer,
-        natSnapshot: NATTopologySnapshot? = nil
+        natSnapshot: NATTopologySnapshot? = nil,
+        loadProbeSamples: [ProbeSample]? = nil
     ) -> EngineRequestDTO {
-        let restSamples = buildSamplesFromMetrics(qualityResult.metrics, overrideSpikePattern: spikePattern)
+        // Pacotes reais quando existem: o motor recalcula exatamente o que foi medido.
+        // A série reconstruída a partir das métricas só serve para entradas antigas do histórico.
+        let restSamples = qualityResult.samples.map { $0.map(toSampleDTO) }
+            ?? buildSamplesFromMetrics(qualityResult.metrics, overrideSpikePattern: spikePattern)
         var loadSamples: [EngineSampleDTO]? = nil
         var loadTransfer = "NOT_RUN"
 
-        if let loadImpact {
+        if loadImpact != nil, let loadProbeSamples, !loadProbeSamples.isEmpty {
+            loadTransfer = "MEASURED"
+            loadSamples = loadProbeSamples.map(toSampleDTO)
+        } else if let loadImpact {
             loadTransfer = "MEASURED"
             let delta = loadImpact.increaseMilliseconds
             let baseP50 = qualityResult.metrics.p50Milliseconds ?? 30.0
