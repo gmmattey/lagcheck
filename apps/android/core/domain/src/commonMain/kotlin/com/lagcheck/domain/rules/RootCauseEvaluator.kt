@@ -15,6 +15,20 @@ object RootCauseEvaluator {
         platformDegraded: Boolean,
         platformServiceName: String? = null,
         now: Long = currentTimeMillis()
+    ): RootCauseIsolationReport = evaluate(
+        gatewayOutcome, wanMetrics.p50Milliseconds, wanMetrics.jitterMilliseconds, wanMetrics.packetLossPercentage,
+        platformDegraded, platformServiceName, now
+    )
+
+    /** Mesma regra, recebendo só o que ela usa da rota externa (fachada JSON do motor). */
+    fun evaluate(
+        gatewayOutcome: GatewayProbeOutcome,
+        wanP50Milliseconds: Double?,
+        wanJitterMilliseconds: Double?,
+        wanPacketLossPercentage: Double,
+        platformDegraded: Boolean,
+        platformServiceName: String? = null,
+        now: Long = currentTimeMillis()
     ): RootCauseIsolationReport {
         val gwObservable = gatewayOutcome !is GatewayProbeOutcome.Unobservable
         val gwRTT = when (gatewayOutcome) {
@@ -27,9 +41,9 @@ object RootCauseEvaluator {
             else -> 0.0
         }
 
-        val wanRTT = wanMetrics.p50Milliseconds
-        val wanJitter = wanMetrics.jitterMilliseconds
-        val wanLoss = wanMetrics.packetLossPercentage
+        val wanRTT = wanP50Milliseconds
+        val wanJitter = wanJitterMilliseconds
+        val wanLoss = wanPacketLossPercentage
 
         // 1. Regra Gateway / Wi-Fi Local (Architecture Plan §3.2 regra 1):
         val isLocalCulprit = gwObservable && ((gwRTT ?: 0.0) > 15.0 || gwLoss > 2.0)

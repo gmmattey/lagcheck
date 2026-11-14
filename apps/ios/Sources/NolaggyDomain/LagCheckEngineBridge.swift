@@ -55,6 +55,35 @@ public struct EngineNatDTO: Codable, Sendable {
     }
 }
 
+/// Estado do roteador já classificado pelo motor (`LagCheckEngine.gatewayOutcome`).
+public struct EngineGatewayOutcomeDTO: Codable, Sendable, Equatable {
+    public let kind: String
+    public let rttMs: Double?
+    public let lossPercentage: Double?
+
+    public init(kind: String, rttMs: Double? = nil, lossPercentage: Double? = nil) {
+        self.kind = kind
+        self.rttMs = rttMs
+        self.lossPercentage = lossPercentage
+    }
+
+    public init(_ outcome: GatewayProbeOutcome) {
+        switch outcome {
+        case .stable(let rtt): self.init(kind: "STABLE", rttMs: rtt, lossPercentage: 0)
+        case .degraded(let rtt, let loss): self.init(kind: "DEGRADED", rttMs: rtt, lossPercentage: loss)
+        case .unobservable: self.init(kind: "UNOBSERVABLE")
+        }
+    }
+
+    public var outcome: GatewayProbeOutcome {
+        switch (kind, rttMs) {
+        case ("STABLE", let rtt?): return .stable(rttMilliseconds: rtt)
+        case ("DEGRADED", let rtt?): return .degraded(rttMilliseconds: rtt, lossPercentage: lossPercentage ?? 0)
+        default: return .unobservable
+        }
+    }
+}
+
 public struct EngineRequestDTO: Codable, Sendable {
     public let source: String
     public let profile: String
@@ -62,6 +91,7 @@ public struct EngineRequestDTO: Codable, Sendable {
     public let load: [EngineSampleDTO]?
     public let loadTransfer: String
     public let gateway: EngineGatewayDTO?
+    public let gatewayOutcome: EngineGatewayOutcomeDTO?
     public let wifiBand: String?
     public let nat: EngineNatDTO?
     public let serverArchitecture: String
@@ -75,6 +105,7 @@ public struct EngineRequestDTO: Codable, Sendable {
         load: [EngineSampleDTO]? = nil,
         loadTransfer: String = "NOT_RUN",
         gateway: EngineGatewayDTO? = nil,
+        gatewayOutcome: EngineGatewayOutcomeDTO? = nil,
         wifiBand: String? = nil,
         nat: EngineNatDTO? = nil,
         serverArchitecture: String = "DEDICATED_SERVER",
@@ -87,6 +118,7 @@ public struct EngineRequestDTO: Codable, Sendable {
         self.load = load
         self.loadTransfer = loadTransfer
         self.gateway = gateway
+        self.gatewayOutcome = gatewayOutcome
         self.wifiBand = wifiBand
         self.nat = nat
         self.serverArchitecture = serverArchitecture
@@ -420,6 +452,57 @@ public enum LagCheckEngineBridge {
         return samples
     }
 
+    /// Classifica o roteador pela regra do motor (≥ 3 respostas em 5, RTT ≤ 15 ms, sem perda, jitter ≤ 10 ms).
+    public static func gatewayOutcome(for telemetry: WiFiLocalTelemetry) -> GatewayProbeOutcome {
+        let dto = EngineGatewayDTO(
+            rttMs: telemetry.gatewayRTTMedianMs,
+            jitterMs: telemetry.gatewayJitterMs,
+            validResponses: telemetry.validSampleCount,
+            plannedResponses: telemetry.plannedSampleCount,
+            isWifi: telemetry.isWiFi
+        )
+        guard let data = try? JSONEncoder().encode(dto), let json = String(data: data, encoding: .utf8),
+              let out = LagCheckEngine.shared.gatewayOutcome(gatewayJson: json).data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(EngineGatewayOutcomeDTO.self, from: out) else {
+            return .unobservable
+        }
+        return decoded.outcome
+    }
+
+    /// Culpado pela regra do motor (`root-cause-v2`). Sem roteador impecável, nunca culpa a operadora.
+    public static func rootCauseCulprit(
+        gatewayOutcome: GatewayProbeOutcome,
+        wanMetrics: QualityMetrics,
+        platformDegraded: Bool,
+        platformServiceName: String?
+    ) -> (culprit: CulpritEntity, ruleVersion: String) {
+        struct Request: Encodable {
+            let gateway: EngineGatewayOutcomeDTO
+            let wanP50Ms: Double?
+            let wanJitterMs: Double?
+            let wanLossPercentage: Double
+            let platformDegraded: Bool
+            let platformServiceName: String?
+        }
+        struct Response: Decodable { let culprit: String; let ruleVersion: String }
+        let request = Request(
+            gateway: EngineGatewayOutcomeDTO(gatewayOutcome),
+            wanP50Ms: wanMetrics.p50Milliseconds,
+            wanJitterMs: wanMetrics.jitterMilliseconds,
+            wanLossPercentage: wanMetrics.packetLossPercentage,
+            platformDegraded: platformDegraded,
+            platformServiceName: platformServiceName
+        )
+        guard let data = try? JSONEncoder().encode(request), let json = String(data: data, encoding: .utf8),
+              let out = LagCheckEngine.shared.rootCause(requestJson: json).data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(Response.self, from: out),
+              let culprit = CulpritEntity(rawValue: decoded.culprit) else {
+            // Sem resposta do motor não há evidência: não culpa ninguém (Decisão 50).
+            return (.unobservable, EnginePolicyProvider.policy.ruleVersions["BATTLE_ROYALE_COMPETITIVE"]?["rootCause"] ?? "root-cause-v2")
+        }
+        return (culprit, decoded.ruleVersion)
+    }
+
     public static func buildRequest(
         qualityResult: QualityResult,
         loadImpact: DeepCheckLoadImpact?,
@@ -452,15 +535,9 @@ public enum LagCheckEngineBridge {
             loadSamples = lSamples
         }
 
-        let gatewayDTO: EngineGatewayDTO?
-        switch gatewayOutcome {
-        case .stable(let rtt):
-            gatewayDTO = EngineGatewayDTO(rttMs: rtt, jitterMs: 1.0, validResponses: 5, plannedResponses: 5, isWifi: true)
-        case .degraded(let rtt, _):
-            gatewayDTO = EngineGatewayDTO(rttMs: rtt, jitterMs: 15.0, validResponses: 4, plannedResponses: 5, isWifi: true)
-        case .unobservable:
-            gatewayDTO = nil
-        }
+        // O estado do roteador vai como foi classificado pelo motor a partir da medição real;
+        // nada de RTT, jitter ou contagem de respostas inventados.
+        let gatewayOutcomeDTO: EngineGatewayOutcomeDTO? = gatewayOutcome == .unobservable ? nil : EngineGatewayOutcomeDTO(gatewayOutcome)
 
         let natDTO: EngineNatDTO?
         if let nat = natSnapshot {
@@ -482,69 +559,11 @@ public enum LagCheckEngineBridge {
             rest: restSamples,
             load: loadSamples,
             loadTransfer: loadTransfer,
-            gateway: gatewayDTO,
+            gateway: nil,
+            gatewayOutcome: gatewayOutcomeDTO,
             wifiBand: nil,
             nat: natDTO,
             serverArchitecture: toArchitectureKey(serverArchitecture),
-            gameId: nil,
-            uploadMbps: nil
-        )
-    }
-
-    public static func buildRequestFromEvidence(_ evidence: DiagnosticEvidence) -> EngineRequestDTO {
-        var samples: [EngineSampleDTO] = []
-        let total = 60
-        let lossProbes = Int(round((evidence.packetLossPercentage / 100.0) * Double(total)))
-        let validProbes = max(0, total - lossProbes)
-
-        for seq in 0..<validProbes {
-            samples.append(EngineSampleDTO(sequence: seq, outcome: "RECEIVED", rttMs: 30.0))
-        }
-        for seq in validProbes..<total {
-            samples.append(EngineSampleDTO(sequence: seq, outcome: "TIMEOUT", rttMs: nil))
-        }
-
-        let gatewayDTO: EngineGatewayDTO?
-        switch evidence.gatewayOutcome {
-        case .stable(let rtt):
-            gatewayDTO = EngineGatewayDTO(rttMs: rtt, jitterMs: 1.0, validResponses: 5, plannedResponses: 5, isWifi: true)
-        case .degraded(let rtt, _):
-            gatewayDTO = EngineGatewayDTO(rttMs: rtt, jitterMs: 15.0, validResponses: 4, plannedResponses: 5, isWifi: true)
-        case .unobservable:
-            gatewayDTO = nil
-        }
-
-        let natDTO: EngineNatDTO?
-        if let nat = evidence.natType {
-            let typeStr: String
-            switch nat {
-            case .type1Open: typeStr = "TYPE_1_OPEN"
-            case .type2Moderate: typeStr = "TYPE_2_MODERATE"
-            case .type3Strict: typeStr = "TYPE_3_STRICT"
-            case .inconclusive: typeStr = "INCONCLUSIVE"
-            }
-            natDTO = EngineNatDTO(type: typeStr)
-        } else {
-            natDTO = nil
-        }
-
-        let loadTransfer = (evidence.loadTier != nil && evidence.loadTier != LoadDegradationTier.none) ? "MEASURED" : "NOT_RUN"
-        var loadSamples: [EngineSampleDTO]? = nil
-        if loadTransfer == "MEASURED" {
-            let delta: Double = (evidence.loadTier == .severe) ? 40.0 : 18.0
-            loadSamples = (0..<60).map { EngineSampleDTO(sequence: $0, outcome: "RECEIVED", rttMs: 30.0 + delta) }
-        }
-
-        return EngineRequestDTO(
-            source: "APP_UDP",
-            profile: "BATTLE_ROYALE_COMPETITIVE",
-            rest: samples,
-            load: loadSamples,
-            loadTransfer: loadTransfer,
-            gateway: gatewayDTO,
-            wifiBand: nil,
-            nat: natDTO,
-            serverArchitecture: toArchitectureKey(evidence.serverArchitecture),
             gameId: nil,
             uploadMbps: nil
         )

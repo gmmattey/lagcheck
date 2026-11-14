@@ -9,7 +9,10 @@ O transporte (UDP, HTTP de carga, gateway, rádio, upload do site) é nativo de 
 | Chamada | Entrada | Saída |
 | --- | --- | --- |
 | `LagCheckEngine.evaluate(requestJson)` | JSON da requisição | JSON da avaliação, ou `{"error": "..."}` se a requisição for inválida |
-| `LagCheckEngine.policy()` | — | plano de amostragem e versões de regra |
+| `LagCheckEngine.policy()` | — | plano de amostragem, versões de regra e guardrail de perda por perfil |
+| `LagCheckEngine.gatewayOutcome(gatewayJson)` | telemetria do roteador `{rttMs, jitterMs, validResponses, plannedResponses, isWifi}` | `{kind: STABLE \| DEGRADED \| UNOBSERVABLE, rttMs, lossPercentage}` |
+| `LagCheckEngine.rootCause(requestJson)` | `{gateway: {kind, rttMs, lossPercentage}, wanP50Ms, wanJitterMs, wanLossPercentage, platformDegraded, platformServiceName}` | `{culprit: localWiFi \| internetProvider \| gamePlatform \| allClear \| unobservable, ruleVersion}` (`root-cause-v2`: operadora só com roteador impecável) |
+| `LagCheckEngine.bufferbloatGrade(increaseMilliseconds)` | aumento de P50 sob carga, em ms | `A+` a `F` (`bufferbloat-grade-v1`, descritiva) |
 
 - Swift: `LagCheckEngine.shared.evaluate(requestJson:)`. JS: `import { LagCheckEngine } from 'lagcheck-engine'`. JVM: `com.lagcheck.engine.LagCheckEngine`.
 - Campos desconhecidos são ignorados; enums são as strings em MAIÚSCULAS abaixo.
@@ -24,7 +27,8 @@ O transporte (UDP, HTTP de carga, gateway, rádio, upload do site) é nativo de 
 | `rest` | lista de amostras | Fase de repouso, uma amostra por probe planejado (`sequence` 0..59). |
 | `load` | lista de amostras, opcional | Fase sob carga. Só é usada com `loadTransfer = MEASURED`. |
 | `loadTransfer` | `MEASURED` \| `FAILED_NO_BYTES` \| `NOT_RUN` | `MEASURED` com menos de 20 respostas válidas na carga → `INCONCLUSIVE` (Decisão 135 item 3). `FAILED_NO_BYTES` → vale o repouso. |
-| `gateway` | `{rttMs, jitterMs, validResponses, plannedResponses, isWifi}`, opcional | Menos de 3 respostas válidas → não observável. |
+| `gateway` | `{rttMs, jitterMs, validResponses, plannedResponses, isWifi}`, opcional | Telemetria medida. Menos de 3 respostas válidas → não observável. |
+| `gatewayOutcome` | `{kind, rttMs, lossPercentage}`, opcional | Estado já classificado por `gatewayOutcome()`; usado quando `gateway` não vem. O iOS guarda só o estado e manda este campo. |
 | `nat` | `{type, origin: STUN_APP \| BROWSER_ESTIMATE}`, opcional | Só entra nos casos de uso. |
 | `serverArchitecture` | `DEDICATED_SERVER` \| `PEER_TO_PEER` \| `HYBRID` | Controla a relevância de NAT. |
 | `uploadMbps` | número, opcional | Medido nativamente (hoje só no site). Sem ele, streaming não considera upload. |
@@ -206,6 +210,7 @@ Resposta:
     "sampleQuality": "sample-quality-v2",
     "loadImpact": "deep-load-impact-v4",
     "recommendations": "recommendations-v2",
+    "rootCause": "root-cause-v2",
     "spikePattern": "spike-pattern-v2",
     "readiness": "readiness-v3.0",
     "useCases": "use-cases-v1"
@@ -229,6 +234,7 @@ Resposta:
       "sampleQuality": "sample-quality-v2",
       "loadImpact": "deep-load-impact-v4",
       "recommendations": "recommendations-v2",
+      "rootCause": "root-cause-v2",
       "spikePattern": "spike-pattern-v2",
       "readiness": "readiness-v3.0",
       "useCases": "use-cases-v1"
@@ -246,5 +252,6 @@ Resposta:
 ## Garantias de paridade
 
 - `EngineNormativeVectorsTest`: os vetores das Decisões 135 e 136 (verificando também as recomendações) passam pela API JSON em JVM, simulador iOS, Node e navegador.
+- `EngineDiagnosticsFacadeTest`: roteador (3 de 5), causa raiz sem culpar sem evidência e nota de bufferbloat, nos três alvos.
 - `SiteUseCaseParityTest`: 6.285 combinações (todos os limites exatos e +0,1) idênticas à função do site; validado por teste de mutação.
 - Mudança de qualquer número exige nova versão de regra, vetores atualizados e revisão do Iury (AGENTS.md).

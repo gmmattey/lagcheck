@@ -84,19 +84,7 @@ public enum BufferbloatRuleV1 {
     }
 
     public static func evaluate(increaseMilliseconds: Double) -> BufferbloatGrade {
-        let baseP50 = 30.0
-        let restSamples = (0..<60).map { EngineSampleDTO(sequence: $0, outcome: "RECEIVED", rttMs: baseP50) }
-        let loadSamples = (0..<60).map { EngineSampleDTO(sequence: $0, outcome: "RECEIVED", rttMs: baseP50 + max(0.0, increaseMilliseconds)) }
-        let req = EngineRequestDTO(
-            source: "APP_UDP",
-            profile: "BATTLE_ROYALE_COMPETITIVE",
-            rest: restSamples,
-            load: loadSamples,
-            loadTransfer: "MEASURED"
-        )
-        let res = LagCheckEngineBridge.evaluate(request: req)
-        let gradeStr = res.loadImpact?.bufferbloatGrade ?? "F"
-        return BufferbloatGrade(rawValue: gradeStr) ?? .f
+        BufferbloatGrade(rawValue: LagCheckEngine.shared.bufferbloatGrade(increaseMilliseconds: increaseMilliseconds)) ?? .f
     }
 }
 

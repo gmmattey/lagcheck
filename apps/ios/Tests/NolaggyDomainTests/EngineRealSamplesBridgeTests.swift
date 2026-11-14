@@ -83,3 +83,39 @@ final class EngineRealSamplesBridgeTests: XCTestCase {
         XCTAssertEqual(verdict, .ready)
     }
 }
+
+/// Roteador, causa raiz e bufferbloat vêm do motor; o Swift não repete regra.
+final class EngineGatewayBridgeTests: XCTestCase {
+    func testGatewayNeedsThreeValidResponsesOutOfFive() {
+        // Antes, o Swift aceitava 1 resposta em 5 e classificava o roteador como estável.
+        XCTAssertEqual(WiFiLocalTelemetry(gatewayRTTMedianMs: 3, gatewayJitterMs: 0.5, validSampleCount: 1, plannedSampleCount: 5).gatewayOutcome, .unobservable)
+        XCTAssertEqual(WiFiLocalTelemetry(gatewayRTTMedianMs: 3, gatewayJitterMs: 0.5, validSampleCount: 5, plannedSampleCount: 5).gatewayOutcome, .stable(rttMilliseconds: 3))
+        XCTAssertEqual(WiFiLocalTelemetry(gatewayRTTMedianMs: 3, gatewayJitterMs: 0.5, validSampleCount: 4, plannedSampleCount: 5).gatewayOutcome, .degraded(rttMilliseconds: 3, lossPercentage: 20))
+    }
+
+    func testRequestCarriesTheMeasuredGatewayStateWithoutInventedNumbers() throws {
+        guard case let .completed(quality) = QualityEvaluator.evaluate(
+            samples: (0..<60).map { ProbeSample(sequence: $0, roundTripMilliseconds: 30, outcome: .received) },
+            profile: .battleRoyaleCompetitive
+        ) else { return XCTFail("Expected a completed Quick Check") }
+
+        let degraded = GatewayProbeOutcome.degraded(rttMilliseconds: 25, lossPercentage: 20)
+        let request = LagCheckEngineBridge.buildRequest(
+            qualityResult: quality, loadImpact: nil, profile: .battleRoyaleCompetitive, gatewayOutcome: degraded
+        )
+        XCTAssertNil(request.gateway)
+        XCTAssertEqual(request.gatewayOutcome, EngineGatewayOutcomeDTO(kind: "DEGRADED", rttMs: 25, lossPercentage: 20))
+
+        let readiness = GameReadinessEvaluator.evaluate(
+            qualityResult: quality, loadImpact: nil, profile: .battleRoyaleCompetitive, gatewayOutcome: degraded
+        )
+        XCTAssertEqual(readiness.verdict, .caution)
+    }
+
+    func testBufferbloatGradeComesStraightFromTheEngine() {
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 2.0), .aPlus)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 5.0), .a)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 15.0), .b)
+        XCTAssertEqual(BufferbloatGrade(increaseMilliseconds: 60.001), .f)
+    }
+}

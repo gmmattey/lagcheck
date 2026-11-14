@@ -21,6 +21,8 @@ import com.lagcheck.domain.rules.SampleQualityEvaluator
 import com.lagcheck.domain.rules.SpikePatternEvaluator
 import com.lagcheck.domain.rules.UseCaseEvaluator
 import com.lagcheck.domain.rules.QualityEvaluator
+import com.lagcheck.domain.rules.RootCauseEvaluator
+import com.lagcheck.domain.rules.BufferbloatGrade
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -41,7 +43,8 @@ object LagCheckEngine {
         val profile = request.profile.toDomain()
         val rest = request.rest.map { it.toDomain() }
         val load = if (request.loadTransfer == LoadTransfer.MEASURED) request.load?.map { it.toDomain() } else null
-        val gateway = if (source == MeasurementSource.APP_UDP) request.gateway?.toOutcome() ?: GatewayProbeOutcome.Unobservable else GatewayProbeOutcome.Unobservable
+        // Telemetria medida (`gateway`) ou estado já classificado pelo próprio motor (`gatewayOutcome`).
+        val gateway = if (source == MeasurementSource.APP_UDP) request.gateway?.toOutcome() ?: request.gatewayOutcome?.toDomain() ?: GatewayProbeOutcome.Unobservable else GatewayProbeOutcome.Unobservable
         val nat = request.nat?.toUseCaseNat()
 
         json.encodeToString(when (val deep = DeepCheckEvaluator.evaluate(rest, load, profile, source)) {
@@ -99,6 +102,29 @@ object LagCheckEngine {
         })
     }.getOrElse { error -> json.encodeToString(EngineError(error.message ?: "invalid_request")) }
 
+    /** Classifica o roteador (primeiro salto) a partir da telemetria medida: entrada e saída em JSON. */
+    fun gatewayOutcome(gatewayJson: String): String = runCatching {
+        json.encodeToString(GatewayOutcomeDto.from(json.decodeFromString<Gateway>(gatewayJson).toOutcome()))
+    }.getOrElse { error -> json.encodeToString(EngineError(error.message ?: "invalid_request")) }
+
+    /** Isolamento de causa raiz (root-cause-v2): de quem é a culpa, sem acusar ninguém sem evidência (Decisão 50). */
+    fun rootCause(requestJson: String): String = runCatching {
+        val request = json.decodeFromString<RootCauseRequest>(requestJson)
+        val report = RootCauseEvaluator.evaluate(
+            gatewayOutcome = request.gateway.toDomain(),
+            wanP50Milliseconds = request.wanP50Ms,
+            wanJitterMilliseconds = request.wanJitterMs,
+            wanPacketLossPercentage = request.wanLossPercentage,
+            platformDegraded = request.platformDegraded,
+            platformServiceName = request.platformServiceName,
+            now = 0L
+        )
+        json.encodeToString(RootCauseResponse(report.primaryCulprit.rawValue, RootCauseEvaluator.VERSION))
+    }.getOrElse { error -> json.encodeToString(EngineError(error.message ?: "invalid_request")) }
+
+    /** Nota descritiva de bufferbloat (`bufferbloat-grade-v1`) para um aumento de P50 sob carga, em ms. */
+    fun bufferbloatGrade(increaseMilliseconds: Double): String = BufferbloatGrade.fromIncrease(increaseMilliseconds).value
+
     fun policy(): String = json.encodeToString(EnginePolicy(
         plannedProbeCount = com.lagcheck.domain.model.ProbeAcceptancePolicy.PLANNED_PROBE_COUNT,
         sendIntervalMillis = com.lagcheck.domain.model.ProbeAcceptancePolicy.SEND_INTERVAL_MILLIS,
@@ -115,6 +141,7 @@ object LagCheckEngine {
         "sampleQuality" to SampleQualityEvaluator.RULE_VERSION,
         "loadImpact" to DeepCheckLoadImpactRuleV4.VERSION,
         "recommendations" to EvidenceRecommendationEngine.VERSION,
+        "rootCause" to RootCauseEvaluator.VERSION,
         "spikePattern" to SpikePatternEvaluator.VERSION,
         "readiness" to GameReadinessEvaluator.VERSION,
         "useCases" to UseCaseEvaluator.VERSION
@@ -129,6 +156,7 @@ private data class EngineRequest(
     val load: List<Sample>? = null,
     val loadTransfer: LoadTransfer = LoadTransfer.NOT_RUN,
     val gateway: Gateway? = null,
+    val gatewayOutcome: GatewayOutcomeDto? = null,
     val wifiBand: String? = null,
     val nat: Nat? = null,
     val serverArchitecture: ServerArchitecture = ServerArchitecture.DEDICATED_SERVER,
@@ -171,3 +199,19 @@ private fun UseCaseEvaluator.Evaluation.toDto() = UseCasesDto(overallTone.name, 
 }
 @Serializable private data class EnginePolicy(val plannedProbeCount: Int, val sendIntervalMillis: Long, val sendWindowMillis: Long, val timeoutMillis: Long, val closureMillis: Long, val minimumValidResponses: Int, val ruleVersions: Map<String, Map<String, String>>, val lossGuardrailPercentage: Map<String, Double>)
 @Serializable private data class EngineError(val error: String)
+@Serializable private data class GatewayOutcomeDto(val kind: String, val rttMs: Double? = null, val lossPercentage: Double? = null) {
+    fun toDomain(): GatewayProbeOutcome = when (kind) {
+        "STABLE" -> GatewayProbeOutcome.Stable(requireNotNull(rttMs) { "gateway_rtt_required" })
+        "DEGRADED" -> GatewayProbeOutcome.Degraded(requireNotNull(rttMs) { "gateway_rtt_required" }, lossPercentage ?: 0.0)
+        else -> GatewayProbeOutcome.Unobservable
+    }
+    companion object {
+        fun from(outcome: GatewayProbeOutcome) = when (outcome) {
+            is GatewayProbeOutcome.Stable -> GatewayOutcomeDto("STABLE", outcome.rttMilliseconds, 0.0)
+            is GatewayProbeOutcome.Degraded -> GatewayOutcomeDto("DEGRADED", outcome.rttMilliseconds, outcome.lossPercentage)
+            is GatewayProbeOutcome.Unobservable -> GatewayOutcomeDto("UNOBSERVABLE")
+        }
+    }
+}
+@Serializable private data class RootCauseRequest(val gateway: GatewayOutcomeDto, val wanP50Ms: Double? = null, val wanJitterMs: Double? = null, val wanLossPercentage: Double, val platformDegraded: Boolean = false, val platformServiceName: String? = null)
+@Serializable private data class RootCauseResponse(val culprit: String, val ruleVersion: String)
