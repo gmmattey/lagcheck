@@ -55,6 +55,50 @@ class WorkerClientTest {
         assertThat((System.nanoTime() - t0) / 1_000_000).isLessThan(1_500)
     }
 
+    @Test fun loadDeadlineWithBytesReturnsCompleted() = runBlocking {
+        server.createContext("/v1/load") { ex ->
+            ex.sendResponseHeaders(200, 0)
+            ex.responseBody.write(ByteArray(512))
+            ex.responseBody.flush()
+            Thread.sleep(2_000)
+            ex.close()
+        }
+        server.start()
+        val out = HttpLoadTransport("$base/v1/load", maximumDurationMillis = 300).transfer(isWiFi = false)
+        assertThat(out).isInstanceOf(LoadOutcome.Completed::class.java)
+        assertThat((out as LoadOutcome.Completed).bytesTransferred).isEqualTo(512L)
+    }
+
+    @Test fun loadWiFiCapsAtSixRequests() = runBlocking {
+        val count = java.util.concurrent.atomic.AtomicInteger(0)
+        server.createContext("/v1/load") { ex ->
+            count.incrementAndGet()
+            val body = ByteArray(100)
+            ex.sendResponseHeaders(200, body.size.toLong())
+            ex.responseBody.write(body)
+            ex.close()
+        }
+        server.start()
+        val out = HttpLoadTransport("$base/v1/load", maximumBytes = 10_000, maximumDurationMillis = 3_000).transfer(isWiFi = true)
+        assertThat(count.get()).isEqualTo(6)
+        assertThat(out).isEqualTo(LoadOutcome.Completed(600L))
+    }
+
+    @Test fun loadCellularCapsAtOneRequest() = runBlocking {
+        val count = java.util.concurrent.atomic.AtomicInteger(0)
+        server.createContext("/v1/load") { ex ->
+            count.incrementAndGet()
+            val body = ByteArray(100)
+            ex.sendResponseHeaders(200, body.size.toLong())
+            ex.responseBody.write(body)
+            ex.close()
+        }
+        server.start()
+        val out = HttpLoadTransport("$base/v1/load", maximumBytes = 10_000, maximumDurationMillis = 3_000).transfer(isWiFi = false)
+        assertThat(count.get()).isEqualTo(1)
+        assertThat(out).isEqualTo(LoadOutcome.Completed(100L))
+    }
+
     @Test fun telemetryPayloadMatchesTheWorkerContract() = runBlocking {
         val captured = AtomicReference<String>()
         route("/v1/telemetry", status = 200, body = """{"ok":true}""".toByteArray(), contentType = "application/json", capture = captured)

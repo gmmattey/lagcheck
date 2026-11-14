@@ -83,7 +83,7 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         return MeasurementHistoryEntry(
             completedAt: completedAt,
             resolvedContext: resolvedContext,
-            profileRuleVersion: resolvedContext.profileRuleVersion,
+            profileRuleVersion: QualityEvaluator.ruleVersion(for: resolvedContext.profileID),
             result: result,
             primaryCause: ResultInterpreter.interpret(result, profile: resolvedContext.profileID, serverArchitecture: arch).primaryCauseKey,
             readinessVerdict: readiness.verdict,
@@ -110,7 +110,7 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
             completedAt: completedAt,
             kind: .deep,
             resolvedContext: resolvedContext,
-            profileRuleVersion: resolvedContext.profileRuleVersion,
+            profileRuleVersion: QualityEvaluator.ruleVersion(for: resolvedContext.profileID),
             result: result.restResult,
             deepCheck: result,
             primaryCause: ResultInterpreter.interpret(
@@ -125,7 +125,7 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
     }
 
     public var isInconclusive: Bool {
-        result == nil || (result?.metrics.validResponseCount ?? 0) < 10 || readinessVerdict == .inconclusive
+        result == nil || (result?.metrics.validResponseCount ?? 0) < ProbeAcceptancePolicy.minimumValidResponses || readinessVerdict == .inconclusive
     }
 
     public var metrics: QualityMetrics? {

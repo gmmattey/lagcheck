@@ -703,7 +703,7 @@ struct DeepCheckFeatureView: View {
 
     private func updateDisplayProgress() {
         let count = Double(samples.count)
-        let maxPerPhase = 30.0
+        let maxPerPhase = Double(ProbeAcceptancePolicy.plannedProbeCount)
         let target: Double
         let cap: Double
 
@@ -808,17 +808,31 @@ struct DeepCheckFeatureView: View {
                     reason: "insufficient_samples"
                 ))
             }
-        case .cancelled:
-            presentation = .cancelled
-            if !hasTrackedTerminalEvent {
-                hasTrackedTerminalEvent = true
-                analyticsTracker.track(.lagcheckCancelled(
-                    gameID: activeContext.context.gameID,
-                    platform: activeContext.context.platform.rawValue,
-                    networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
-                    regionID: activeContext.regionID,
-                    reason: "cancelled"
-                ))
+        case let .cancelled(_, reason):
+            if reason == .poorSampleQuality {
+                presentation = .inconclusive
+                if !hasTrackedTerminalEvent {
+                    hasTrackedTerminalEvent = true
+                    analyticsTracker.track(.lagcheckInconclusive(
+                        gameID: activeContext.context.gameID,
+                        platform: activeContext.context.platform.rawValue,
+                        networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                        regionID: activeContext.regionID,
+                        reason: "poor_sample_quality"
+                    ))
+                }
+            } else {
+                presentation = .cancelled
+                if !hasTrackedTerminalEvent {
+                    hasTrackedTerminalEvent = true
+                    analyticsTracker.track(.lagcheckCancelled(
+                        gameID: activeContext.context.gameID,
+                        platform: activeContext.context.platform.rawValue,
+                        networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
+                        regionID: activeContext.regionID,
+                        reason: "cancelled"
+                    ))
+                }
             }
         }
     }

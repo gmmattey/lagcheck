@@ -1,8 +1,7 @@
 import Foundation
+import LagCheckEngine
 
 /// Métricas finais das duas fases independentes de um Deep Check.
-/// A fase sob carga é opcional: uma falha da transferência HTTP, ou dados UDP
-/// insuficientes nessa fase, não altera o resultado válido em repouso.
 public struct DeepCheckMetrics: Codable, Equatable, Sendable {
     public let rest: QualityMetrics
     public let load: QualityMetrics?
@@ -15,20 +14,13 @@ public struct DeepCheckMetrics: Codable, Equatable, Sendable {
     }
 }
 
-/// Como o delta de P50 deve ser apresentado no Deep Check. Esta classificação
-/// descreve exclusivamente o impacto observado; não é score, nem classe de
-/// qualidade da conexão.
+/// Como o delta de P50 deve ser apresentado no Deep Check.
 public enum DeepCheckLoadImpactClassification: String, Codable, Equatable, Sendable {
-    /// O delta continua visível, mas ficou abaixo do limiar de materialidade.
     case descriptive
-    /// O delta atingiu o limiar de materialidade da regra registrada.
     case material
 }
 
-/// Regra determinística e versionada para classificar somente o impacto do
-/// Deep Check. O corte usa o delta bruto de P50, antes de qualquer arredondamento
-/// de apresentação, para que a decisão não varie por locale ou UI.
-/// Nível de degradação sob carga multidimensional (Decisão 55).
+/// Nível de degradação sob carga multidimensional (Decisões 55 e 135).
 public enum LoadDegradationTier: String, Codable, CaseIterable, Hashable, Sendable {
     case none
     case light
@@ -36,21 +28,25 @@ public enum LoadDegradationTier: String, Codable, CaseIterable, Hashable, Sendab
     case severe
 }
 
-/// Regra determinística e versionada para classificar somente o impacto do
-/// Deep Check. O corte usa o delta bruto de P50, antes de qualquer arredondamento
-/// de apresentação, para que a decisão não varie por locale ou UI.
+/// Regra legada de impacto material (deep-load-impact-v1).
 public enum DeepCheckLoadImpactMaterialityRuleV1 {
-    public static let version = "deep-load-impact-v1"
-    public static let materialIncreaseMilliseconds = 20.0
+    public static var version: String {
+        "deep-load-impact-v1"
+    }
+    public static var materialIncreaseMilliseconds: Double {
+        20.0
+    }
 
     public static func classify(increaseMilliseconds: Double) -> DeepCheckLoadImpactClassification {
         increaseMilliseconds >= materialIncreaseMilliseconds ? .material : .descriptive
     }
 }
 
-/// Regra multidimensional e calibrada por perfil para bufferbloat sob carga (Decisão 55).
+/// Regra multidimensional calibrada por perfil via motor compartilhado (Decisões 55, 134 e 135).
 public enum DeepCheckLoadImpactMaterialityRuleV2 {
-    public static let version = "deep-load-impact-v2"
+    public static var version: String {
+        EnginePolicyProvider.policy.ruleVersions["BATTLE_ROYALE_COMPETITIVE"]?["loadImpact"] ?? "deep-load-impact-v3"
+    }
 
     public static func classify(
         profile: QualityProfileID,
@@ -59,68 +55,45 @@ public enum DeepCheckLoadImpactMaterialityRuleV2 {
         deltaLoss: Double,
         deltaSpikes: Int
     ) -> LoadDegradationTier {
+        let kmpProfile: QualityProfileId
         switch profile {
         case .battleRoyaleCompetitive:
-            if deltaP50 > 40 || deltaJitter > 20 || deltaLoss > 5.0 || deltaSpikes >= 4 {
-                return .severe
-            }
-            if deltaP50 > 18 || deltaJitter > 8 || deltaLoss > 2.0 || deltaSpikes >= 2 {
-                return .material
-            }
-            if deltaP50 > 8 || deltaJitter > 4 || deltaLoss > 1.0 || deltaSpikes >= 1 {
-                return .light
-            }
-            return .none
-
+            kmpProfile = QualityProfileId.battleRoyaleCompetitive
         case .mobileRealtime:
-            if deltaP50 > 55 || deltaJitter > 25 || deltaLoss > 7.0 || deltaSpikes >= 5 {
-                return .severe
-            }
-            if deltaP50 > 25 || deltaJitter > 12 || deltaLoss > 3.0 || deltaSpikes >= 2 {
-                return .material
-            }
-            if deltaP50 > 12 || deltaJitter > 6 || deltaLoss > 1.5 || deltaSpikes >= 1 {
-                return .light
-            }
-            return .none
-
+            kmpProfile = QualityProfileId.mobileRealtime
         case .casualRealtime:
-            if deltaP50 > 80 || deltaJitter > 35 || deltaLoss > 10.0 {
-                return .severe
-            }
-            if deltaP50 > 40 || deltaJitter > 18 || deltaLoss > 5.0 {
-                return .material
-            }
-            if deltaP50 > 20 || deltaJitter > 10 || deltaLoss > 2.0 {
-                return .light
-            }
-            return .none
+            kmpProfile = QualityProfileId.casualRealtime
         }
+        let kmpTier = DeepCheckLoadImpactRuleV3.shared.classify(
+            profile: kmpProfile,
+            deltaP50: deltaP50,
+            deltaJitter: deltaJitter,
+            deltaLoss: deltaLoss,
+            deltaSpikes: Int32(deltaSpikes)
+        )
+        return LagCheckEngineBridge.toLoadTier(kmpTier.name)
     }
 }
 
 public enum BufferbloatRuleV1 {
-    public static let version = "bufferbloat-grade-v1"
-    public static let aPlusThreshold: Double = 2.0
-    public static let aThreshold: Double = 5.0
-    public static let bThreshold: Double = 15.0
-    public static let cThreshold: Double = 35.0
-    public static let dThreshold: Double = 60.0
+    public static var version: String {
+        "bufferbloat-grade-v1"
+    }
 
     public static func evaluate(increaseMilliseconds: Double) -> BufferbloatGrade {
-        if increaseMilliseconds <= aPlusThreshold {
-            return .aPlus
-        } else if increaseMilliseconds <= aThreshold {
-            return .a
-        } else if increaseMilliseconds <= bThreshold {
-            return .b
-        } else if increaseMilliseconds <= cThreshold {
-            return .c
-        } else if increaseMilliseconds <= dThreshold {
-            return .d
-        } else {
-            return .f
-        }
+        let baseP50 = 30.0
+        let restSamples = (0..<60).map { EngineSampleDTO(sequence: $0, outcome: "RECEIVED", rttMs: baseP50) }
+        let loadSamples = (0..<60).map { EngineSampleDTO(sequence: $0, outcome: "RECEIVED", rttMs: baseP50 + max(0.0, increaseMilliseconds)) }
+        let req = EngineRequestDTO(
+            source: "APP_UDP",
+            profile: "BATTLE_ROYALE_COMPETITIVE",
+            rest: restSamples,
+            load: loadSamples,
+            loadTransfer: "MEASURED"
+        )
+        let res = LagCheckEngineBridge.evaluate(request: req)
+        let gradeStr = res.loadImpact?.bufferbloatGrade ?? "F"
+        return BufferbloatGrade(rawValue: gradeStr) ?? .f
     }
 }
 
@@ -175,7 +148,8 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
 
     public init(restP50Milliseconds: Double, loadP50Milliseconds: Double) {
         let increase = loadP50Milliseconds - restP50Milliseconds
-        let tier: LoadDegradationTier = (increase >= DeepCheckLoadImpactMaterialityRuleV1.materialIncreaseMilliseconds) ? .material : .none
+        let classification = DeepCheckLoadImpactMaterialityRuleV1.classify(increaseMilliseconds: increase)
+        let tier: LoadDegradationTier = (classification == .material) ? .material : .none
         self.init(
             restP50Milliseconds: restP50Milliseconds,
             loadP50Milliseconds: loadP50Milliseconds,
@@ -233,8 +207,7 @@ public struct DeepCheckLoadImpact: Codable, Equatable, Sendable {
     }
 }
 
-/// Resultado concluído do Deep Check. A classificação e o score pertencem
-/// exclusivamente à fase de repouso.
+/// Resultado concluído do Deep Check.
 public struct DeepCheckResult: Codable, Equatable, Sendable {
     public let restResult: QualityResult
     public let metrics: DeepCheckMetrics
@@ -250,74 +223,123 @@ public enum DeepCheckEvaluation: Equatable, Sendable {
     case inconclusive(reason: InconclusiveReason, diagnostics: QualityMetrics)
 }
 
-/// Avalia o Deep Check sem combinar as séries UDP nem recalcular o score de
-/// repouso. Esta fronteira não conhece Wi-Fi, HTTP, ciclo de vida ou UI.
+/// Avalia o Deep Check sem combinar as séries UDP nem recalcular o score de repouso via motor compartilhado.
 public enum DeepCheckEvaluator {
-    /// Ponto de entrada único para todos os perfis publicados. A Application
-    /// fornece apenas o perfil já resolvido pelo catálogo; limites, guardrails
-    /// e score continuam exclusivamente no domínio.
     public static func evaluate(
         restSamples: [ProbeSample],
         loadSamples: [ProbeSample]?,
         profile: QualityProfileID
     ) -> DeepCheckEvaluation {
-        let restEvaluation = QualityEvaluator.evaluate(samples: restSamples, profile: profile)
+        let restSampleDtos = restSamples.map { LagCheckEngineBridge.toSampleDTO($0) }
 
-        guard case let .completed(restResult) = restEvaluation else {
-            guard case let .inconclusive(reason, diagnostics) = restEvaluation else {
-                preconditionFailure("Quality evaluation must be completed or inconclusive.")
-            }
-            return .inconclusive(reason: reason, diagnostics: diagnostics)
+        // 1. Avalia fase de repouso isoladamente (score puro de repouso)
+        let restRequest = EngineRequestDTO(
+            source: "APP_UDP",
+            profile: LagCheckEngineBridge.toProfileKey(profile),
+            rest: restSampleDtos,
+            load: nil,
+            loadTransfer: "NOT_RUN",
+            gateway: nil,
+            wifiBand: nil,
+            nat: nil,
+            serverArchitecture: "DEDICATED_SERVER",
+            gameId: nil,
+            uploadMbps: nil
+        )
+
+        let restResponse = LagCheckEngineBridge.evaluate(request: restRequest)
+
+        if restResponse.verdict == "INCONCLUSIVE" {
+            let reason: InconclusiveReason = restResponse.inconclusiveReason == "POOR_SAMPLE_QUALITY"
+                ? .poorSampleQuality
+                : .insufficientUDPResponses
+            return .inconclusive(
+                reason: reason,
+                diagnostics: LagCheckEngineBridge.mapMetrics(restResponse.rest)
+            )
         }
 
-        guard let loadSamples,
-              case let .completed(loadResult) = QualityEvaluator.evaluate(samples: loadSamples, profile: profile),
-              let restP50 = restResult.metrics.p50Milliseconds,
-              let loadP50 = loadResult.metrics.p50Milliseconds else {
+        let restMetrics = LagCheckEngineBridge.mapMetrics(restResponse.rest)
+        let restScore = restResponse.score ?? 0
+        let restClass = LagCheckEngineBridge.toResultClass(restScore)
+
+        let restResult = QualityResult(
+            metrics: restMetrics,
+            rawScore: restScore,
+            finalScore: restScore,
+            resultClass: restClass,
+            appliedGuardrails: []
+        )
+
+        guard let loadSamples, !loadSamples.isEmpty else {
             return .completed(
                 DeepCheckResult(
                     restResult: restResult,
-                    metrics: DeepCheckMetrics(rest: restResult.metrics, load: nil, loadImpact: nil)
+                    metrics: DeepCheckMetrics(rest: restMetrics, load: nil, loadImpact: nil)
                 )
             )
         }
 
-        let deltaP50 = max(0, loadP50 - restP50)
-        let restJitter = restResult.metrics.jitterMilliseconds ?? 0
-        let loadJitter = loadResult.metrics.jitterMilliseconds ?? 0
-        let deltaJitter = max(0, loadJitter - restJitter)
-        let restLoss = restResult.metrics.packetLossPercentage
-        let loadLoss = loadResult.metrics.packetLossPercentage
-        let deltaLoss = max(0, loadLoss - restLoss)
-        let restSpikes = restResult.metrics.spikeCount
-        let loadSpikes = loadResult.metrics.spikeCount
-        let deltaSpikes = max(0, loadSpikes - restSpikes)
-
-        let tier = DeepCheckLoadImpactMaterialityRuleV2.classify(
-            profile: profile,
-            deltaP50: deltaP50,
-            deltaJitter: deltaJitter,
-            deltaLoss: deltaLoss,
-            deltaSpikes: deltaSpikes
+        // 2. Avalia fase de carga
+        let loadSampleDtos = loadSamples.map { LagCheckEngineBridge.toSampleDTO($0) }
+        let fullRequest = EngineRequestDTO(
+            source: "APP_UDP",
+            profile: LagCheckEngineBridge.toProfileKey(profile),
+            rest: restSampleDtos,
+            load: loadSampleDtos,
+            loadTransfer: "MEASURED",
+            gateway: nil,
+            wifiBand: nil,
+            nat: nil,
+            serverArchitecture: "DEDICATED_SERVER",
+            gameId: nil,
+            uploadMbps: nil
         )
 
-        return .completed(
-            DeepCheckResult(
-                restResult: restResult,
-                metrics: DeepCheckMetrics(
-                    rest: restResult.metrics,
-                    load: loadResult.metrics,
-                    loadImpact: DeepCheckLoadImpact(
-                        restP50Milliseconds: restP50,
-                        loadP50Milliseconds: loadP50,
-                        tier: tier,
-                        deltaJitterMilliseconds: deltaJitter,
-                        deltaLossPercentage: deltaLoss,
-                        deltaSpikesCount: deltaSpikes
-                    )
+        let fullResponse = LagCheckEngineBridge.evaluate(request: fullRequest)
+
+        if fullResponse.verdict == "INCONCLUSIVE" {
+            let reason: InconclusiveReason = fullResponse.inconclusiveReason == "POOR_SAMPLE_QUALITY"
+                ? .poorSampleQuality
+                : .insufficientUDPResponses
+            return .inconclusive(
+                reason: reason,
+                diagnostics: fullResponse.load != nil
+                    ? LagCheckEngineBridge.mapMetrics(fullResponse.load!)
+                    : restMetrics
+            )
+        }
+
+        if let loadDto = fullResponse.load, let impactDto = fullResponse.loadImpact {
+            let loadMetrics = LagCheckEngineBridge.mapMetrics(loadDto)
+            let tier = LagCheckEngineBridge.toLoadTier(impactDto.tier)
+            let grade = BufferbloatGrade(rawValue: impactDto.bufferbloatGrade) ?? .f
+            let ruleVer = fullResponse.ruleVersions["loadImpact"] ?? DeepCheckLoadImpactMaterialityRuleV2.version
+
+            let impact = DeepCheckLoadImpact(
+                restP50Milliseconds: restMetrics.p50Milliseconds ?? 0,
+                loadP50Milliseconds: loadMetrics.p50Milliseconds ?? 0,
+                tier: tier,
+                deltaJitterMilliseconds: impactDto.deltaJitterMilliseconds,
+                deltaLossPercentage: impactDto.deltaLossPercentage,
+                deltaSpikesCount: impactDto.deltaSpikesCount,
+                bufferbloatGrade: grade,
+                ruleVersion: ruleVer
+            )
+            return .completed(
+                DeepCheckResult(
+                    restResult: restResult,
+                    metrics: DeepCheckMetrics(rest: restMetrics, load: loadMetrics, loadImpact: impact)
                 )
             )
-        )
+        } else {
+            return .completed(
+                DeepCheckResult(
+                    restResult: restResult,
+                    metrics: DeepCheckMetrics(rest: restMetrics, load: nil, loadImpact: nil)
+                )
+            )
+        }
     }
 
     public static func evaluateBattleRoyaleCompetitive(

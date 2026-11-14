@@ -98,4 +98,23 @@ final class SampleQualityEvaluatorTests: XCTestCase {
         XCTAssertTrue(degradedTelemetry.gatewayOutcome.isDegraded)
         XCTAssertFalse(degradedTelemetry.gatewayOutcome.isStable)
     }
+
+    /// Mede e reporta o custo médio por chamada do watchdog de qualidade em tempo real (SampleQualityEvaluator).
+    func testSampleQualityEvaluatorBenchmarkExecutionTime() {
+        let samples = (0..<60).map {
+            ProbeSample(sequence: $0, roundTripMilliseconds: 25.0, outcome: .received)
+        }
+        // Warmup
+        _ = SampleQualityEvaluator.assess(samples: samples)
+
+        let iterations = 1000
+        let start = CFAbsoluteTimeGetCurrent()
+        for _ in 0..<iterations {
+            _ = SampleQualityEvaluator.assess(samples: samples)
+        }
+        let elapsed = CFAbsoluteTimeGetCurrent() - start
+        let averageMicroseconds = (elapsed / Double(iterations)) * 1_000_000.0
+        print("[BENCHMARK] SampleQualityEvaluator.assess average call time: \(averageMicroseconds) µs (\(averageMicroseconds / 1000.0) ms)")
+        XCTAssertLessThan(averageMicroseconds, 5000.0, "O watchdog em tempo real deve ter custo inferior a 5 ms por chamada")
+    }
 }

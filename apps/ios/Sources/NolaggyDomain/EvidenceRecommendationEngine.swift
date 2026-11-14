@@ -1,4 +1,5 @@
 import Foundation
+@preconcurrency import LagCheckEngine
 
 /// Arquitetura de rede do jogo para contextualização de topologia NAT (Decisão 55).
 public enum GameServerArchitecture: String, Codable, CaseIterable, Hashable, Sendable {
@@ -12,9 +13,9 @@ public struct ActionableRecommendation: Codable, Equatable, Hashable, Sendable {
     public let priority: Int
     public let title: String
     public let instruction: String
-    public let evidenceBadge: String
+    public let evidenceBadge: String?
 
-    public init(priority: Int, title: String, instruction: String, evidenceBadge: String) {
+    public init(priority: Int, title: String, instruction: String, evidenceBadge: String? = nil) {
         self.priority = priority
         self.title = title
         self.instruction = instruction
@@ -60,83 +61,41 @@ public struct DiagnosticEvidence: Equatable, Sendable {
     }
 }
 
-/// Motor determinístico que gera de 1 a 3 recomendações diretamente ligadas às evidências comprovadas.
+/// Motor determinístico que gera de 1 a 3 recomendações diretamente ligadas às evidências comprovadas via motor KMP.
 public enum EvidenceRecommendationEngine {
     public static func generateRecommendations(evidence: DiagnosticEvidence) -> [ActionableRecommendation] {
-        var recommendations: [ActionableRecommendation] = []
+        var recKeys: [String] = []
 
-        // 1. Enlace local degradado
         if evidence.gatewayOutcome.isDegraded {
-            recommendations.append(ActionableRecommendation(
-                priority: 1,
-                title: "Aproxime-se do Roteador",
-                instruction: "Reduza a distância física ou obstáculos para eliminar a oscilação do sinal local.",
-                evidenceBadge: "Wi-Fi Local"
-            ))
+            recKeys.append("APPROACH_ROUTER")
         }
 
-        // 2. Frequência 2.4 GHz confirmada ou fortemente suspeita
         if let band = evidence.wifiBand, band.isSuspectOrConfirmed24GHz,
            (evidence.wifiBandConfidence == .high || evidence.wifiBandConfidence == .medium) {
-            recommendations.append(ActionableRecommendation(
-                priority: 1,
-                title: "Troque para Wi-Fi 5 GHz",
-                instruction: "Conecte-se na frequência 5 GHz para escapar da interferência de canais vizinhos.",
-                evidenceBadge: "2.4 GHz Detectado"
-            ))
+            recKeys.append("SWITCH_TO_5GHZ")
         }
 
-        // 3. Perda de pacotes na rota externa (WAN)
         if evidence.packetLossPercentage > 1.0 && !evidence.gatewayOutcome.isDegraded {
-            recommendations.append(ActionableRecommendation(
-                priority: 1,
-                title: "Evite Partidas Ranqueadas",
-                instruction: "A rota externa da operadora apresenta perda de pacotes e causará travamentos.",
-                evidenceBadge: "Rota Externa"
-            ))
+            recKeys.append("AVOID_RANKED")
         }
 
-        // 4. Degradação sob carga (Bufferbloat)
         if evidence.loadTier == .material || evidence.loadTier == .severe {
-            recommendations.append(ActionableRecommendation(
-                priority: 2,
-                title: "Pause Downloads e Streaming",
-                instruction: "Limite o uso simultâneo da internet para impedir picos de latência na partida.",
-                evidenceBadge: "Saturação sob Carga"
-            ))
+            recKeys.append("PAUSE_DOWNLOADS")
         }
 
-        // 5. Spikes recorrentes com enlace local limpo
         if let pattern = evidence.spikePattern, pattern.isRecurring, evidence.gatewayOutcome.isStable {
-            recommendations.append(ActionableRecommendation(
-                priority: 2,
-                title: "Verifique Interferências Locais",
-                instruction: "Afaste dispositivos sem fio e fontes de interferência eletromagnética do roteador.",
-                evidenceBadge: "Picos Recorrentes"
-            ))
+            recKeys.append("CHECK_LOCAL_INTERFERENCE")
         }
 
-        // 6. NAT Restrito em jogos P2P / híbridos
         if evidence.natType == .type3Strict && (evidence.serverArchitecture == .peerToPeer || evidence.serverArchitecture == .hybrid) {
-            recommendations.append(ActionableRecommendation(
-                priority: 2,
-                title: "Habilite UPnP no Roteador",
-                instruction: "Libere as portas automáticas no roteador para normalizar a conexão em partidas multiplayer.",
-                evidenceBadge: "NAT Restrito"
-            ))
+            recKeys.append("ENABLE_UPNP")
         }
 
-        // 7. Pacotes fora de ordem na rota externa
-        if evidence.outOfOrderCount >= 2 && !evidence.gatewayOutcome.isDegraded {
-            recommendations.append(ActionableRecommendation(
-                priority: 2,
-                title: "Instabilidade de Rota na Operadora",
-                instruction: "Contate seu provedor para verificar o roteamento caso os micro-travamentos persistam.",
-                evidenceBadge: "Rota Desordenada"
-            ))
+        if evidence.outOfOrderCount >= 2 && evidence.gatewayOutcome.isStable {
+            recKeys.append("ROUTE_INSTABILITY")
         }
 
-        // Ordena por prioridade (menor número = maior prioridade) e limita a no máximo 3 cards
-        return Array(recommendations.sorted(by: { $0.priority < $1.priority }).prefix(3))
+        let localized = recKeys.map { LagCheckEngineBridge.localizeRecommendation(key: $0) }
+        return Array(localized.sorted(by: { $0.priority < $1.priority }).prefix(3))
     }
 }

@@ -136,6 +136,8 @@
 | [131](#decisão-131) | Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android | **Vigente (refinada pela 132)** | Adiciona busca em pílula no topo, unifica pílula do último check dentro do Hero (`#1E232B`→`#15181E` + glow `#7C3AED`), adota trilhos horizontais 3:4 (`114x152`) para Favoritos e Populares, e tab bar flutuante em pílula no Android | Luiz / Squad |
 | [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
 | [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
+| [134](#decisão-134) | Motor diagnóstico único em Kotlin Multiplatform (iOS, Android, Windows e site) | **Em implementação** | Substitui o item 1 da Decisão 68 (“Swift é fonte de verdade”): o motor KMP vira a única implementação de regra; a cópia Swift e a cópia TypeScript do site deixam de calcular regra | Luiz / Camillo / Iury |
+| [135](#decisão-135) | Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3 | **Em implementação (revisão do Iury pendente)** | Refina as Decisões 55 e 69: versões `*-2026.11.14.1`, `readiness-v3.0`, `deep-load-impact-v3`, `spike-pattern-v2`, `sample-quality-v2`, `load-transfer-v2` | Luiz / Iury / Camillo |
 
 
 
@@ -1541,6 +1543,52 @@
 - **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
 - **Decisão:** adapta o CTA `TESTAR AGORA` do card Hero da Home no Android e no iOS para o formato em pílula com gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho/sombra luminosa, ícone circular branco com seta `→` em `#7C3AED` à direita e um anel externo fino translúcido (`4 px` de respiro) contornando o botão. Os demais `PrimaryButton` do app seguem em `12 px`.
 - **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
+
+#### Decisão 134
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Motor diagnóstico único em Kotlin Multiplatform para iOS, Android, Windows e site.
+- **Status Atual:** **Em implementação.** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Camillo (engenharia), Iury (regra), Renan (validação).
+- **Contexto:** a auditoria de 14/11/2026 encontrou três implementações da mesma regra (Swift no iOS, Kotlin no Android/desktop/Windows e TypeScript em `@sites/speedtest` no site), já divergentes entre si (vereditos diferentes para a mesma amostra, versão `readiness-v2.1` existente só no site).
+- **Decisão:**
+  1. O módulo `apps/android/core/domain` vira Kotlin Multiplatform (`commonMain`) com alvos `jvm` (Android, desktop e `engine-host` do Windows), `iosArm64` + `iosSimulatorArm64` (XCFramework `LagCheckEngine`) e `js` (pacote ES module com tipos TypeScript para o site). É a **única** implementação de score, veredito, causas, recomendações, padrões de pico, carga, watchdog de amostra, seleção regional e Wi-Fi/gateway.
+  2. iOS: `NolaggyDomain` mantém os tipos Swift públicos (persistência SwiftData/Codable e UI não mudam), mas cada avaliador passa a ser fachada fina que chama o XCFramework. Nenhuma regra numérica fica em Swift.
+  3. Windows: o WinUI continua consumindo o motor pelo `engine-host` (JVM). Nada muda no C#.
+  4. Site: consome o pacote JS gerado (copiado para o monorepo do site por script, sem registro npm público). `@sites/speedtest` deixa de conter regra. Medição vinda do site (HTTPS no navegador) entra no motor como fonte `WEB_HTTPS`, e o motor **não calcula nada que dependa de UDP** para essa fonte: sem LagCheck Score, sem perda de pacotes, sem pacotes fora de ordem e sem gateway. Latência, jitter, picos e carga usam os mesmos limites do perfil e o resultado é sempre estimativa. O NAT medido pelo navegador entra como `NatSource.BROWSER_ESTIMATE` e só é exibido como estimativa, como o site já faz. O site continua dizendo que o teste UDP existe só nos apps.
+  5. Transporte (sockets UDP, HTTP de carga, gateway, rádio) continua nativo em cada plataforma. O motor só recebe amostras.
+  6. Paridade é garantida por vetores normativos em `commonTest` (`apps/android/core/domain/src/commonTest/kotlin/com/lagcheck/domain/vectors/`), executados no `jvmTest`, no `iosSimulatorArm64Test` e no `jsTest`.
+  7. **Casos de uso (`use-cases-v1`):** voz e chamadas, streaming ao vivo, cloud gaming e as categorias de jogo (FPS, BR, MOBA, luta, casual) que hoje vivem em `pages/lagcheck/src/lib/lagcheck/categories.ts` e `media.ts` do site passam para o motor, **com os números atuais do site sem alteração**. Entradas: P50, jitter, Δ sob carga, `uploadMbps` opcional, NAT opcional com origem e fonte da medição. Upload continua medido nativamente (hoje só no site, por HTTP); sem upload, streaming sai como "upload não medido". Medir upload nos apps exige nova rota no Worker e nova decisão. A leitura de voz pelo gateway (`VoiceChatSuitabilityEvaluator`) fica como complemento local quando houver gateway observável. **Pendente com o Iury:** harmonizar os limites das categorias com os perfis do score (hoje "BR" tem duas réguas).
+- **Não escopo:** mudar o protocolo UDP, o catálogo, o Worker, as rotas, as políticas de anúncio ou publicar qualquer build.
+- **Critérios de aceite:** `:core:domain:allTests` verde nos três alvos; Android, desktop e `engine-host` compilando; iOS compilando e com `NolaggyDomainTests` verde contra o XCFramework; site com `vitest` verde usando o pacote gerado; nenhuma regra numérica restante em Swift ou TypeScript.
+
+#### Decisão 135
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3.
+- **Status Atual:** **Em implementação. Revisão do Iury pendente** (números de carga e de picos).
+- **Frentes envolvidas:** Luiz (decisão), Iury (regra), Camillo (engenharia), Renan (validação).
+- **Contexto:** auditoria de 14/11/2026. Com 30 probes, 1 pacote perdido virava 3,33% e derrubava para `EU EVITARIA RANKED AGORA`; conexão que desabava sob carga saía `PRONTO PARA RANKED` com nota 100; a carga era um único download de 10 MB; picos isolados derrubavam o veredito contra a spec 6.2; limites de carga do código e da spec divergiam; o watchdog do iOS nunca recebia timeouts.
+- **Decisão (escolhas do Luiz):**
+  1. **Plano de amostragem v2 (`sample-quality-v2`):** 60 probes por fase, 1 a cada 500 ms (último envio aos 29,5 s), timeout individual de 2 s, drenagem até 32 s. Mínimo de **20** respostas válidas por fase (mesma proporção de 1/3). Perda = `timeouts / 60 × 100` (1 pacote = 1,67%). Watchdog: 4 timeouts seguidos nos 6 primeiros probes; ≥ 70% de perda nos 10 primeiros; 6 timeouts seguidos em qualquer ponto depois. Os timeouts vencidos alimentam o watchdog em tempo real nas duas plataformas.
+  2. **Perfis:** pesos, faixas e guardrails do score não mudam; a nova semântica de amostra gera as versões `pilot-2026.11.14.1`, `mobile-realtime-2026.11.14.1` e `casual-realtime-2026.11.14.1`. O motor aceita a versão anterior (`*-2026.09.08.1`) vinda do catálogo empacotado ou remoto só como compatibilidade, sempre avalia com a regra atual e grava a versão atual no histórico. Catálogo e Worker não mudam.
+  3. **Conexão que desaba sob carga = inconclusivo:** se a carga HTTP transferiu bytes e a série UDP sob carga tem menos de 20 respostas válidas, ou o watchdog aborta na carga, o check inteiro é `INCONCLUSIVO` (`poorSampleQuality`), sem nota. Se o HTTP falhou sem transferir nada, vale o repouso, sem conclusão sobre carga (spec 5.3).
+  4. **Carga contínua (`load-transfer-v2`):** a carga dura a janela de envio da fase (30 s). Em Wi-Fi, 2 downloads paralelos de `/v1/load` (10 MB cada), reiniciados até a janela fechar, com teto de 6 requisições e 60 MB por check. Em rede móvel, 1 download com teto de 10 MB (o mesmo texto do consentimento). Chegar ao prazo com bytes recebidos conta como carga medida; “indisponível” só quando nenhum byte chegou.
+  5. **Carga v3 (`deep-load-impact-v3`), código e spec convergidos** (os números normativos da Decisão 55 valem; lacunas preenchidas com os valores que estavam no código). Comparações sempre `≥`. Δ = carga − repouso, mínimo 0.
+
+     | Perfil | Leve | Material | Severo |
+     | --- | --- | --- | --- |
+     | Battle Royale | ΔP50 ≥ 5 ms | ΔP50 ≥ 15 ms, ou Δjitter ≥ 10 ms, ou Δperda > 0%, ou Δspikes ≥ 2 | ΔP50 ≥ 35 ms, ou Δjitter ≥ 20 ms, ou Δperda ≥ 2%, ou Δspikes ≥ 4 |
+     | Mobile realtime | ΔP50 ≥ 5 ms | ΔP50 ≥ 25 ms, ou Δjitter ≥ 15 ms, ou Δperda > 0%, ou Δspikes ≥ 2 | ΔP50 ≥ 50 ms, ou Δjitter ≥ 25 ms, ou Δperda ≥ 3%, ou Δspikes ≥ 5 |
+     | Casual realtime | ΔP50 ≥ 5 ms | ΔP50 ≥ 40 ms, ou Δjitter ≥ 20 ms, ou Δperda ≥ 2%, ou Δspikes ≥ 2 | ΔP50 ≥ 80 ms, ou Δjitter ≥ 35 ms, ou Δperda ≥ 5% |
+
+     Toda a UI (trilha, achados, recomendações) usa só o tier v3; o corte fixo de +20 ms (`deep-load-impact-v1`) deixa de decidir qualquer coisa e só alimenta a nota de bufferbloat descritiva.
+  6. **Picos v2 (`spike-pattern-v2`):** calculado pelo motor em toda avaliação, na ordem de envio, com os limites de spike do próprio perfil. Recorrente = ≥ 3 spikes ou 2 spikes numa janela de 5 probes consecutivos. Spike severo isolado nunca leva a `EU EVITARIA RANKED AGORA`: no máximo `CONDIÇÕES INSTÁVEIS` (coerente com o guardrail de nota 74). `EU EVITARIA` por picos só com padrão recorrente e ≥ 2 severos.
+  7. **Veredito v3 (`readiness-v3.0`):** um único caminho de avaliação para tela, histórico, Home e widget em todas as plataformas, com as mesmas entradas. Margem de confiança: não aplicada no veredito (é o comportamento que já estava na tela do iOS e no Android); a confiança média continua só como rótulo de estimativa. Cauda elevada exige razão ≥ 1,8, P95 − P50 ≥ 20 ms e P95 > 45 ms em todo lugar (veredito e causas). Recomendação que atribui o problema à rota/operadora exige gateway comprovadamente estável; com gateway não observável, o texto fala de “rota até o destino”, sem culpar operadora (Decisão 50).
+  8. **Gateway:** precisa de ≥ 3 respostas válidas em 5 para virar `Stable` ou `Degraded` (spec 5.2.2); abaixo disso é `Unobservable`.
+  9. **iOS sem gateway não deduz o Wi-Fi:** a trilha mostra o Wi-Fi como ativo, nunca como “instável” inferido da rota remota.
+- **Risco conhecido:** o check passa de ~34 s para ~64 s. Um tempo maior pode reduzir a conclusão do check; medir no funil depois do lançamento.
+- **Critérios de aceite:** vetores normativos (incluindo DLI2-01 a DLI2-06, um pacote perdido em 60, carga que desaba, dois picos severos isolados, P50 95 ms) passando nos alvos JVM, iOS e JS; teste de aparelho do Renan em Wi-Fi e rede móvel antes de qualquer distribuição.
 
 ## Como Registrar Novas Decisões
 

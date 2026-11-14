@@ -32,7 +32,7 @@ extension QuickCheckFeatureView {
                 isWiFi: selectedRegionalContext?.observedPhoneNetwork == .wifi,
                 destinationName: selectedRegionFriendlyName,
                 currentRTT: partialSamples.last?.roundTripMilliseconds,
-                progress: min(1.0, max(0.04, Double(partialSamples.count) / 30.0)),
+                progress: min(1.0, max(0.04, Double(partialSamples.count) / Double(ProbeAcceptancePolicy.plannedProbeCount))),
                 sampleCount: partialSamples.count,
                 isUnderStress: false,
                 isPhaseRest: true,

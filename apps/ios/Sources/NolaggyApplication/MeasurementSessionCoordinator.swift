@@ -55,7 +55,7 @@ public struct QuickCheckPlan: Equatable, Sendable {
 }
 
 public protocol MeasurementTransport: Sendable {
-    /// Entrega somente amostras já correlacionadas. Não calcula score nem faz persistência.
+    /// Entrega amostras correlacionadas e timeouts vencidos. Não calcula score nem faz persistência.
     func collect(
         session: MeasurementSession,
         plan: QuickCheckPlan,

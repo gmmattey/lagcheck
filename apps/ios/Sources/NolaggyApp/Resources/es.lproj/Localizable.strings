@@ -409,7 +409,7 @@
 /* Deep Check en Wi-Fi y red móvil (Decisión 36) */
 "deep_check.cellular_consent.title" = "Uso de datos móviles";
 "deep_check.cellular_consent.message" = "La prueba usa datos móviles para evaluar tu conexión bajo carga.";
-"deep_check.cellular_consent.limit" = "Límite máximo de transferencia: hasta 10 MB (unos 15 segundos).";
+"deep_check.cellular_consent.limit" = "Límite máximo de transferencia: hasta 10 MB (unos 30 segundos).";
 "deep_check.cellular_consent.confirm" = "Continuar con datos móviles";
 "deep_check.cellular_consent.cancel" = "Cancelar";
 "live_trail.node.wifi" = "Wi-Fi";
@@ -423,6 +423,7 @@
 "live_trail.state.active" = "Activo";
 "live_trail.state.responding" = "Respondiendo";
 "live_trail.state.connecting" = "Conectando";
+"result.route_trail.wifi_active" = "Wi-Fi conectado";
 "result.route_trail.wifi_healthy" = "Conexión Wi-Fi observada";
 "result.route_trail.wifi_unstable" = "Oscilación en el Wi-Fi";
 "result.route_trail.cellular_active" = "Red móvil activa";

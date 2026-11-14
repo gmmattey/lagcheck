@@ -39,10 +39,11 @@ public struct ProbeSample: Codable, Hashable, Sendable {
 }
 
 public enum ProbeAcceptancePolicy {
-    public static let plannedProbeCount = 30
-    public static let sendWindowSeconds: TimeInterval = 15
-    public static let timeoutSeconds: TimeInterval = 2
-    public static let closureSeconds: TimeInterval = 17
+    public static let plannedProbeCount: Int = EnginePolicyProvider.policy.plannedProbeCount
+    public static let sendWindowSeconds: TimeInterval = Double(EnginePolicyProvider.policy.sendWindowMillis) / 1000.0
+    public static let timeoutSeconds: TimeInterval = Double(EnginePolicyProvider.policy.timeoutMillis) / 1000.0
+    public static let closureSeconds: TimeInterval = Double(EnginePolicyProvider.policy.closureMillis) / 1000.0
+    public static let minimumValidResponses: Int = EnginePolicyProvider.policy.minimumValidResponses
 
     /// Classifica somente tempo: a correlação integral de payload pertence ao adaptador de transporte.
     public static func outcome(
@@ -114,6 +115,7 @@ public struct QualityMetrics: Codable, Equatable, Sendable {
     public let outOfOrderCount: Int
     public let outOfOrderRatePercentage: Double
     public let components: QualityComponents?
+    public let spikePattern: SpikePattern?
 
     public init(
         validResponseCount: Int, timeoutCount: Int, invalidResponseCount: Int,
@@ -121,7 +123,8 @@ public struct QualityMetrics: Codable, Equatable, Sendable {
         packetLossPercentage: Double, spikeCount: Int, severeSpikeCount: Int, spikeRatePercentage: Double,
         p95ToP50Ratio: Double?, worstSpikeMilliseconds: Double? = nil,
         outOfOrderCount: Int = 0, outOfOrderRatePercentage: Double = 0.0,
-        components: QualityComponents?
+        components: QualityComponents?,
+        spikePattern: SpikePattern? = nil
     ) {
         self.validResponseCount = validResponseCount
         self.timeoutCount = timeoutCount
@@ -139,6 +142,69 @@ public struct QualityMetrics: Codable, Equatable, Sendable {
         self.outOfOrderCount = outOfOrderCount
         self.outOfOrderRatePercentage = outOfOrderRatePercentage
         self.components = components
+        self.spikePattern = spikePattern
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case validResponseCount
+        case timeoutCount
+        case invalidResponseCount
+        case p50Milliseconds
+        case p95Milliseconds
+        case p99Milliseconds
+        case jitterMilliseconds
+        case packetLossPercentage
+        case spikeCount
+        case severeSpikeCount
+        case spikeRatePercentage
+        case p95ToP50Ratio
+        case worstSpikeMilliseconds
+        case outOfOrderCount
+        case outOfOrderRatePercentage
+        case components
+        case spikePattern
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        validResponseCount = try container.decode(Int.self, forKey: .validResponseCount)
+        timeoutCount = try container.decode(Int.self, forKey: .timeoutCount)
+        invalidResponseCount = try container.decode(Int.self, forKey: .invalidResponseCount)
+        p50Milliseconds = try container.decodeIfPresent(Double.self, forKey: .p50Milliseconds)
+        p95Milliseconds = try container.decodeIfPresent(Double.self, forKey: .p95Milliseconds)
+        p99Milliseconds = try container.decodeIfPresent(Double.self, forKey: .p99Milliseconds)
+        jitterMilliseconds = try container.decodeIfPresent(Double.self, forKey: .jitterMilliseconds)
+        packetLossPercentage = try container.decode(Double.self, forKey: .packetLossPercentage)
+        spikeCount = try container.decode(Int.self, forKey: .spikeCount)
+        severeSpikeCount = try container.decode(Int.self, forKey: .severeSpikeCount)
+        spikeRatePercentage = try container.decode(Double.self, forKey: .spikeRatePercentage)
+        p95ToP50Ratio = try container.decodeIfPresent(Double.self, forKey: .p95ToP50Ratio)
+        worstSpikeMilliseconds = try container.decodeIfPresent(Double.self, forKey: .worstSpikeMilliseconds)
+        outOfOrderCount = try container.decodeIfPresent(Int.self, forKey: .outOfOrderCount) ?? 0
+        outOfOrderRatePercentage = try container.decodeIfPresent(Double.self, forKey: .outOfOrderRatePercentage) ?? 0.0
+        components = try container.decodeIfPresent(QualityComponents.self, forKey: .components)
+        spikePattern = try container.decodeIfPresent(SpikePattern.self, forKey: .spikePattern)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(validResponseCount, forKey: .validResponseCount)
+        try container.encode(timeoutCount, forKey: .timeoutCount)
+        try container.encode(invalidResponseCount, forKey: .invalidResponseCount)
+        try container.encodeIfPresent(p50Milliseconds, forKey: .p50Milliseconds)
+        try container.encodeIfPresent(p95Milliseconds, forKey: .p95Milliseconds)
+        try container.encodeIfPresent(p99Milliseconds, forKey: .p99Milliseconds)
+        try container.encodeIfPresent(jitterMilliseconds, forKey: .jitterMilliseconds)
+        try container.encode(packetLossPercentage, forKey: .packetLossPercentage)
+        try container.encode(spikeCount, forKey: .spikeCount)
+        try container.encode(severeSpikeCount, forKey: .severeSpikeCount)
+        try container.encode(spikeRatePercentage, forKey: .spikeRatePercentage)
+        try container.encodeIfPresent(p95ToP50Ratio, forKey: .p95ToP50Ratio)
+        try container.encodeIfPresent(worstSpikeMilliseconds, forKey: .worstSpikeMilliseconds)
+        try container.encode(outOfOrderCount, forKey: .outOfOrderCount)
+        try container.encode(outOfOrderRatePercentage, forKey: .outOfOrderRatePercentage)
+        try container.encodeIfPresent(components, forKey: .components)
+        try container.encodeIfPresent(spikePattern, forKey: .spikePattern)
     }
 }
 

@@ -22,12 +22,9 @@ struct DeepCheckResultView: View {
 
     var body: some View {
         let interpretation = ResultInterpreter.interpret(result.restResult, profile: profileID)
-        let isLocalHealthy = (result.metrics.loadImpact?.increaseMilliseconds ?? 0) < 35.0 && interpretation.primaryCauseKey != .highJitter
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi
-            ? (isLocalHealthy
-                ? AppLocalization.string("result.route_trail.wifi_healthy", comment: "")
-                : AppLocalization.string("result.route_trail.wifi_unstable", comment: ""))
+            ? AppLocalization.string("result.route_trail.wifi_active", comment: "")
             : AppLocalization.string("result.route_trail.cellular_active", comment: "")
         let pingMs = milliseconds(result.metrics.rest.p50Milliseconds)
         let destinationStatus = String(
@@ -82,7 +79,7 @@ struct DeepCheckResultView: View {
                 RouteTrailSummaryCard(
                     isWiFi: isWiFi,
                     wifiStatusText: wifiStatusText,
-                    isLocalHealthy: isLocalHealthy,
+                    isLocalHealthy: true,
                     destinationName: regionFriendlyName,
                     destinationKind: destinationKind,
                     destinationStatusText: destinationStatus,

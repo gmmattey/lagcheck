@@ -416,7 +416,7 @@
 /* Deep Check on Wi-Fi and cellular (Decision 36) */
 "deep_check.cellular_consent.title" = "Cellular Data Usage";
 "deep_check.cellular_consent.message" = "The test uses cellular data to evaluate your connection under load.";
-"deep_check.cellular_consent.limit" = "Maximum transfer limit: up to 10 MB (about 15 seconds).";
+"deep_check.cellular_consent.limit" = "Maximum transfer limit: up to 10 MB (about 30 seconds).";
 "deep_check.cellular_consent.confirm" = "Continue with cellular data";
 "deep_check.cellular_consent.cancel" = "Cancel";
 "live_trail.node.wifi" = "Wi-Fi";
@@ -430,6 +430,7 @@
 "live_trail.state.active" = "Active";
 "live_trail.state.responding" = "Responding";
 "live_trail.state.connecting" = "Connecting";
+"result.route_trail.wifi_active" = "Wi-Fi connected";
 "result.route_trail.wifi_healthy" = "Wi-Fi connection observed";
 "result.route_trail.wifi_unstable" = "Wi-Fi jitter detected";
 "result.route_trail.cellular_active" = "Cellular network active";

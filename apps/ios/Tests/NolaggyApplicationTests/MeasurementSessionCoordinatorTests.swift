@@ -80,7 +80,7 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
 
     func testCompletionWithInsufficientResponsesIsInconclusiveAndNotActive() async throws {
         let coordinator = MeasurementSessionCoordinator(
-            transport: ImmediateTransport(samples: Array(repeating: ProbeSample(sequence: 0, outcome: .timeout), count: 30)),
+            transport: ImmediateTransport(samples: Array(repeating: ProbeSample(sequence: 0, outcome: .timeout), count: 60)),
             pathObserver: NoChangesObserver()
         )
         let session = try await coordinator.startQuickCheck(context: pilotContext, plan: pilotPlan)
@@ -220,7 +220,7 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
     private var emptyDiagnostics: QualityMetrics {
         QualityMetrics(
             validResponseCount: 0,
-            timeoutCount: 30,
+            timeoutCount: 60,
             invalidResponseCount: 0,
             p50Milliseconds: nil,
             p95Milliseconds: nil,
@@ -231,7 +231,8 @@ final class MeasurementSessionCoordinatorTests: XCTestCase {
             severeSpikeCount: 0,
             spikeRatePercentage: 0,
             p95ToP50Ratio: nil,
-            components: nil
+            components: nil,
+            spikePattern: SpikePattern.none
         )
     }
 

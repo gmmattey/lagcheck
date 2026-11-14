@@ -50,7 +50,7 @@ final class ResultInterpreterTests: XCTestCase {
             profile: .battleRoyaleCompetitive
         )
 
-        XCTAssertEqual(interpretation.conclusionKey, .lagMayOccur)
+        XCTAssertEqual(interpretation.conclusionKey, .investigateBeforePlaying)
         XCTAssertEqual(interpretation.primaryCauseKey, .severeSpikes)
     }
 
