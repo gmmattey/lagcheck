@@ -510,7 +510,11 @@ struct QuickCheckFeatureView: View {
         case .inconclusive:
             statusView(kind: .inconclusive)
         case let .cancelled(reason):
-            statusView(kind: .cancelled(reason))
+            if reason == .poorSampleQuality {
+                statusView(kind: .inconclusive)
+            } else {
+                statusView(kind: .cancelled(reason))
+            }
         }
     }
 

@@ -33,7 +33,7 @@ final class HistoryRitualSummaryTests: XCTestCase {
         _ verdict: GameReadinessVerdict,
         _ date: Date,
         regionID: String = "sa-east-1",
-        ruleVersion: String = "rule-1"
+        ruleVersion: String = QualityEvaluator.ruleVersion(for: .battleRoyaleCompetitive)
     ) -> MeasurementHistoryEntry {
         let context = ResolvedMeasurementContext(
             context: GameContext(gameID: "fortnite", market: "BR", platform: .pc, declaredExternalLink: .ethernet),

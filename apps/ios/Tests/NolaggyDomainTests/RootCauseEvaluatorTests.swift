@@ -142,8 +142,9 @@ final class RootCauseEvaluatorTests: XCTestCase {
             platformDegraded: false
         )
 
-        // Deve culpar a operadora/rota WAN, NUNCA o Wi-Fi
-        XCTAssertEqual(report.primaryCulprit, CulpritEntity.internetProvider)
+        // Roteador não observável não culpa ninguém: nem o Wi-Fi, nem a operadora (Decisões 50 e 135, item 7).
+        // Culpar a operadora exige roteador comprovadamente impecável (root-cause-v2).
+        XCTAssertEqual(report.primaryCulprit, CulpritEntity.unobservable)
         XCTAssertFalse(report.localGatewayObservable)
         XCTAssertNil(report.localGatewayRTTMs)
     }

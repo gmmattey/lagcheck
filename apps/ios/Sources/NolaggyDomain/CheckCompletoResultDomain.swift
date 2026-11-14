@@ -121,8 +121,8 @@ public enum CheckCompletoResultEvaluator {
             return .deliveryFailed
         }
 
-        // 2. Impacto material sob carga (delta P50 >= 20ms)
-        if let impact = result.metrics.loadImpact, impact.classification == .material {
+        // 2. Impacto material ou severo sob carga avaliado pelo tier do motor (Decisão 135)
+        if let impact = result.metrics.loadImpact, impact.tier == .material || impact.tier == .severe {
             return .loadHeavy
         }
 
@@ -158,10 +158,10 @@ public enum CheckCompletoResultEvaluator {
         // Nó 3: Entrega (verificação de perda de pacotes ou timeouts)
         let deliveryState: ConsolidatedTrailNodeState = (interpretation.primaryCauseKey == .packetLoss) ? .attention : .check
 
-        // Nó 4: Carga (comportamento durante a fase sob carga)
+        // Nó 4: Carga (comportamento durante a fase sob carga avaliado pelo tier do motor)
         let loadState: ConsolidatedTrailNodeState
         if let impact = result.metrics.loadImpact {
-            loadState = (impact.classification == .material) ? .attention : .check
+            loadState = (impact.tier == .material || impact.tier == .severe) ? .attention : .check
         } else {
             loadState = .neutral
         }
@@ -190,7 +190,7 @@ public enum CheckCompletoResultEvaluator {
 
         let interpretation = ResultInterpreter.interpret(result.restResult, profile: profile)
         let hasRouteInstability = interpretation.primaryCauseKey != .stableConnection
-        let isLoadMaterial = result.metrics.loadImpact?.classification == .material
+        let isLoadMaterial = (result.metrics.loadImpact?.tier == .material || result.metrics.loadImpact?.tier == .severe)
         let hasAnyRouteIssue = hasRouteInstability || isLoadMaterial
 
         // Avaliação de NAT

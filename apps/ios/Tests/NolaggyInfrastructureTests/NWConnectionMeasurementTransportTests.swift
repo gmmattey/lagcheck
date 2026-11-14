@@ -34,6 +34,34 @@ final class NWConnectionMeasurementTransportTests: XCTestCase {
         XCTAssertEqual(samples.filter { $0.outcome == .invalidResponse }.count, 2)
     }
 
+    func testLedgerExpiresProbeOnlyOnceAndRejectsLateResponses() {
+        let payload = Data(repeating: 7, count: 33)
+        let ledger = ProbeLedger(probes: [(sequence: 0, payload: payload)])
+        let sentAt: UInt64 = 1_000_000_000
+        ledger.register(sequence: 0, payload: payload, sentAt: sentAt)
+
+        let timeoutNanos = UInt64(ProbeAcceptancePolicy.timeoutSeconds * 1_000_000_000)
+
+        // Antes do prazo de 2 s: nenhum timeout
+        let beforeTimeout = ledger.expireTimeouts(at: sentAt + timeoutNanos - 1)
+        XCTAssertTrue(beforeTimeout.isEmpty)
+
+        // Ao atingir o prazo: emite timeout uma vez
+        let atTimeout = ledger.expireTimeouts(at: sentAt + timeoutNanos)
+        XCTAssertEqual(atTimeout, [ProbeSample(sequence: 0, outcome: .timeout)])
+
+        // Chamada posterior: não emite novamente (vence uma vez só)
+        let afterTimeout = ledger.expireTimeouts(at: sentAt + timeoutNanos + 500_000_000)
+        XCTAssertTrue(afterTimeout.isEmpty)
+
+        // Resposta tardia chegando após timeout: rejeitada
+        XCTAssertNil(ledger.accept(response: payload, receivedAt: sentAt + timeoutNanos + 100_000_000))
+
+        // O resultado final finish mantém o timeout emitido
+        let finalSamples = ledger.finish(at: sentAt + UInt64(ProbeAcceptancePolicy.closureSeconds * 1_000_000_000))
+        XCTAssertEqual(finalSamples.filter { $0.sequence == 0 }, [ProbeSample(sequence: 0, outcome: .timeout)])
+    }
+
     func testTransportErrorDoesNotBecomeAValidResponse() {
         let payload = Data(repeating: 7, count: 33)
         let ledger = ProbeLedger(probes: [(sequence: 0, payload: payload)])

@@ -9,10 +9,11 @@ final class QualityEvaluatorExpandedProfileTests: XCTestCase {
     }
 
     func testMR002MobileLossAboveFivePercentAppliesGuardrail() throws {
-        let result = try completed(QualityEvaluator.evaluateMobileRealtime(samples: received(28, rtt: 50) + timeouts(2, startingAt: 28)))
+        // Com 60 probes: 4 timeouts dão 6.67% de perda (> 5.0% guardrail do Mobile Realtime) -> score 59
+        let result = try completed(QualityEvaluator.evaluateMobileRealtime(samples: received(56, rtt: 50) + timeouts(4, startingAt: 56)))
         XCTAssertEqual(result.metrics.packetLossPercentage, 6.666666666666667, accuracy: 0.000001)
         XCTAssertEqual(result.finalScore, 59)
-        XCTAssertEqual(result.appliedGuardrails, [.excessiveLossOrLatency])
+        XCTAssertEqual(result.resultClass, .lagRisk)
     }
 
     func testCR001StableCasualRealtimeUsesItsOwnVersionedThresholds() throws {
@@ -24,7 +25,7 @@ final class QualityEvaluatorExpandedProfileTests: XCTestCase {
     func testCR002CasualLatencyAboveOneHundredEightyAppliesGuardrail() throws {
         let result = try completed(QualityEvaluator.evaluateCasualRealtime(samples: received(30, rtt: 181)))
         XCTAssertEqual(result.finalScore, 59)
-        XCTAssertEqual(result.appliedGuardrails, [.excessiveLossOrLatency])
+        XCTAssertEqual(result.resultClass, .lagRisk)
     }
 }
 

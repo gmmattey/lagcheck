@@ -68,20 +68,9 @@ public struct WiFiLocalTelemetry: Codable, Hashable, Sendable {
         self.isWiFi = isWiFi
     }
 
-    /// Avaliação objetiva do estado do gateway local segundo a Decisão 55.
+    /// Estado do roteador pela regra do motor compartilhado (Decisões 55 e 135, item 8).
     public var gatewayOutcome: GatewayProbeOutcome {
-        guard isWiFi, plannedSampleCount > 0 else {
-            return .unobservable
-        }
-        guard validSampleCount > 0, let median = gatewayRTTMedianMs else {
-            return .unobservable
-        }
-        let loss = Double(plannedSampleCount - validSampleCount) / Double(plannedSampleCount) * 100.0
-        let jitter = gatewayJitterMs ?? 0
-        if median > 15.0 || loss > 0.0 || jitter > 10.0 {
-            return .degraded(rttMilliseconds: median, lossPercentage: loss)
-        }
-        return .stable(rttMilliseconds: median)
+        LagCheckEngineBridge.gatewayOutcome(for: self)
     }
 }
 

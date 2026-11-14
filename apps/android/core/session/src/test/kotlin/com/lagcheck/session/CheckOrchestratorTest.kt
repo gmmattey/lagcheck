@@ -10,6 +10,7 @@ import com.lagcheck.catalog.ResolvedMeasurementContext
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.InconclusiveReason
 import com.lagcheck.domain.model.MeasurementConfidence
+import com.lagcheck.domain.model.ProbeAcceptancePolicy
 import com.lagcheck.domain.model.ProbeOutcome
 import com.lagcheck.domain.model.ProbeSample
 import com.lagcheck.domain.model.QualityProfileId
@@ -32,8 +33,8 @@ class CheckOrchestratorTest {
         strategy = MeasurementStrategy.GENERIC_REGION, confidence = MeasurementConfidence.MEDIUM, precisionKey = "regionalReference"
     )
 
-    private fun good(rtt: Double) = ProbeCollection(List(30) { ProbeSample(it, rtt, ProbeOutcome.RECEIVED) }, null)
-    private fun dead() = ProbeCollection(List(30) { ProbeSample(it, outcome = ProbeOutcome.TIMEOUT) }, null)
+    private fun good(rtt: Double) = ProbeCollection(List(ProbeAcceptancePolicy.PLANNED_PROBE_COUNT) { ProbeSample(it, rtt, ProbeOutcome.RECEIVED) }, null)
+    private fun dead() = ProbeCollection(List(ProbeAcceptancePolicy.PLANNED_PROBE_COUNT) { ProbeSample(it, outcome = ProbeOutcome.TIMEOUT) }, null)
     private fun aborted() = ProbeCollection(List(6) { ProbeSample(it, outcome = ProbeOutcome.TIMEOUT) }, InconclusiveReason.POOR_SAMPLE_QUALITY)
 
     /** Entrega uma coleção por chamada, na ordem: repouso, depois carga. */
@@ -42,7 +43,7 @@ class CheckOrchestratorTest {
         return ProbeCollector { _, _, onProgress ->
             val c = phases[i.getAndIncrement()]
             c.samples.forEach { s ->
-                onProgress(ProbeProgress.Sent(s.sequence, 30))
+                onProgress(ProbeProgress.Sent(s.sequence, ProbeAcceptancePolicy.PLANNED_PROBE_COUNT))
                 if (s.isValidResponse) onProgress(ProbeProgress.Received(s))
             }
             c
@@ -54,7 +55,7 @@ class CheckOrchestratorTest {
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
         assertThat(r.loadMeasured).isTrue()
         assertThat(r.abortReason).isNull()
-        assertThat(r.latencySeries).hasSize(60)
+        assertThat(r.latencySeries).hasSize(2 * ProbeAcceptancePolicy.PLANNED_PROBE_COUNT)
         assertThat(r.assessment.score).isEqualTo(100)
     }
 
@@ -90,6 +91,28 @@ class CheckOrchestratorTest {
         val r = CheckOrchestrator(script(good(30.0), aborted()), { LoadOutcome.Completed(1) }).run(ctx)
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.INCONCLUSIVE)
         assertThat(r.abortReason).isEqualTo(InconclusiveReason.POOR_SAMPLE_QUALITY)
+    }
+
+    @Test fun loadPhaseWithFewerThanMinimumValidResponsesAndMeasuredTransferAbortsWithPoorSampleQuality() = runBlocking {
+        val fewValid = ProbeCollection(
+            List(5) { ProbeSample(it, 30.0, ProbeOutcome.RECEIVED) } +
+            List(25) { ProbeSample(it + 5, null, ProbeOutcome.TIMEOUT) },
+            null
+        )
+        val r = CheckOrchestrator(script(good(30.0), fewValid), { LoadOutcome.Completed(100) }).run(ctx)
+        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.INCONCLUSIVE)
+        assertThat(r.abortReason).isEqualTo(InconclusiveReason.POOR_SAMPLE_QUALITY)
+    }
+
+    @Test fun loadPhaseUnavailableHttpKeepsRestEvaluation() = runBlocking {
+        val fewValid = ProbeCollection(
+            List(5) { ProbeSample(it, 30.0, ProbeOutcome.RECEIVED) } +
+            List(25) { ProbeSample(it + 5, null, ProbeOutcome.TIMEOUT) },
+            null
+        )
+        val r = CheckOrchestrator(script(good(30.0), fewValid), { LoadOutcome.Unavailable }).run(ctx)
+        assertThat(r.loadSamples).isNull()
+        assertThat(r.assessment.verdict).isNotEqualTo(GameReadinessVerdict.INCONCLUSIVE)
     }
 
     @Test fun progressIsMonotonicAcrossBothPhasesAndReportsPing() = runBlocking {

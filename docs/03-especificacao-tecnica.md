@@ -10,7 +10,7 @@
 | --- | --- |
 | App | Nativo para iPhone, iOS 17+, Swift e SwiftUI. |
 | Medição | UDP direto do iPhone para AWS GameLift Ping Beacons. |
-| Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 15 s em repouso + 15 s sob carga; máximo de 10 MB na carga. Chamado simplesmente de **Check** na interface. |
+| Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 30 s em repouso + 30 s sob carga (cerca de 64 s no total); carga de até 60 MB no Wi-Fi e 10 MB na rede móvel (Decisão 135). Chamado simplesmente de **Check** na interface. |
 | Veredito Principal | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). Protagonista visual imediato. |
 | Score | Local, determinístico, de 0 a 100 (mantido para detalhes, histórico e telemetria). |
 | Catálogo & Telemetria | Catálogo Ed25519 local no build; Worker gratuito somente para carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
@@ -52,7 +52,7 @@ enum GameReadinessVerdict: String, Codable {
     case ready          // Pronto para jogar (condições compatíveis com gameplay competitivo)
     case caution        // Condições instáveis / Atenção (jitter, spikes ou impacto sob carga)
     case notReady       // Evitaria Ranked agora (perda de pacotes, latência alta ou instabilidade severa)
-    case inconclusive   // Inconclusivo (menos de 10 respostas UDP válidas)
+    case inconclusive   // Inconclusivo (menos de 20 respostas UDP válidas por fase, Decisão 135)
 }
 
 enum ResultClass: String, Codable { case excellent, great, unstable, lagRisk, inconclusive, cancelled }
@@ -240,20 +240,20 @@ Este é o contrato exclusivo do piloto, versão `NLPG/1`. Ele existe para provar
 | Payload | Exatos 33 bytes: `4E 4C 50 47` (`NLPG`), versão `01`, UUID aleatório de sessão em 16 bytes, sequência `UInt32` big-endian e nonce aleatório `UInt64` big-endian. |
 | Resposta válida | Eco byte a byte dos 33 bytes enviados. Uma resposta com tamanho, magic, versão, UUID, sequência ou nonce diferente é inválida. |
 | Correlação | Cada payload é único na sessão por UUID, sequência e nonce. Só a resposta igual ao payload de um probe enviado, ainda sem resultado, pode gerar RTT. |
-| Prazo | O RTT é `receivedAt - sentAt`; a resposta precisa chegar em menos de 2 s do envio daquele probe. O último envio pode ocorrer aos 14,5 s e a drenagem termina aos 17 s. |
+| Prazo | O RTT é `receivedAt - sentAt`; a resposta precisa chegar em menos de 2 s do envio daquele probe. O último envio pode ocorrer aos 29,5 s e a drenagem termina aos 32 s (Decisão 135). |
 | Rejeições | Duplicata, resposta sem payload pendente, eco tardio, dado diferente e erro de transporte nunca contam como RTT válido nem como sucesso. Não há fallback HTTP ou ICMP. |
 
 O transporte normaliza as amostras válidas pela sequência de envio antes da avaliação. Assim, uma resposta correlacionada que chegue fora de ordem continua válida para o seu probe, mas não reordena a série de RTT usada para jitter. Essa escolha mede a variação entre probes consecutivos da mesma janela e evita que a inversão de chegada por UDP altere a métrica. Respostas inválidas não entram nessa série.
 
-Plano de amostragem:
+Plano de amostragem (`sample-quality-v2`, Decisão 135). Os números vivem em `ProbeAcceptancePolicy` no motor compartilhado (Decisão 134); nenhuma plataforma os redefine:
 
-| Sessão | Região | Cadência | Duração | Máximo planejado |
+| Sessão | Região | Cadência | Janela de envio | Máximo planejado |
 | --- | --- | ---: | ---: | ---: |
-| Quick | Primária | 2 probes/s | 15 s | 30 |
-| Deep, repouso | Primária e alternativa, se existir | 2 probes/s por região | 15 s | 30 por região |
-| Deep, carga | Primária | 2 probes/s | 15 s | 30 |
+| Quick | Primária | 1 probe a cada 500 ms | 30 s | 60 |
+| Deep, repouso | Primária e alternativa, se existir | 1 probe a cada 500 ms por região | 30 s | 60 por região |
+| Deep, carga | Primária | 1 probe a cada 500 ms | 30 s | 60 |
 
-O timeout de cada probe é 2 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de 10 respostas válidas na região primária, a sessão é `inconclusive` e não recebe LagCheck Score.
+O timeout de cada probe é 2 s e a drenagem termina aos 32 s. Não há fallback para HTTP ou ICMP se UDP falhar. Com menos de **20** respostas válidas na fase (1/3 do plano), a sessão é `inconclusive` e não recebe LagCheck Score. Com 60 probes, 1 pacote perdido vale 1,67%.
 
 #### 5.2.2 Contrato do Probe Isolado de Gateway Local (`en0`) — Decisão 55
 
@@ -264,21 +264,24 @@ Para separar sem falsas acusações o enlace doméstico da rota da operadora, o 
 | Descoberta do Gateway | Resolução dinâmica do endereço IPv4/IPv6 do roteador padrão na interface `en0` via tabelas de roteamento BSD (`sysctl` com `NET_RT_DUMP` / `getifaddrs`). É proibido assumir IP fixo `.1`. |
 | Protocolo e Porta | Datagramas UDP curtos para a porta de controle/eco local ou porta de serviço RFC 5389/STUN local do gateway com payload mínimo correlacionado. |
 | Plano de Amostragem | 5 probes consecutivos no início da sessão (intervalo de 50 ms entre disparos; timeout de 200 ms por probe). Total máximo da janela: 1,0 s. |
-| Critério de Sucesso | Pelo menos 3 respostas correlacionadas válidas calculam `rttLocal` e `lossLocal`. RTT $\le 15$ ms e loss $0\%$ $\rightarrow$ `.stable`. RTT $> 15$ ms ou loss $> 0\%$ $\rightarrow$ `.degraded`. |
+| Critério de Sucesso | Pelo menos 3 respostas correlacionadas válidas em 5 calculam `rttLocal` e `lossLocal`; com menos de 3, o resultado é `.unobservable` (Decisão 135). RTT $\le 15$ ms e loss $0\%$ $\rightarrow$ `.stable`. RTT $> 15$ ms ou loss $> 0\%$ $\rightarrow$ `.degraded`. |
+| Uso para atribuir culpa | `.stable` só libera texto que atribui o problema à rota/operadora quando o gateway está impecável: RTT $\le 5$ ms e loss $0\%$ (`root-cause-v2`). Fora disso, o texto fala de "rota até o destino" sem culpar ninguém (Decisões 50 e 135). |
 | Gateway Não-Responsivo | Se o gateway possuir firewall que descarte UDP local: o resultado é estritamente `.unobservable`. **Não gera erro, não assume falha no Wi-Fi e não acusa o equipamento**. |
 
 ### 5.3 Deep Check e carga controlada (Wi-Fi e Rede Móvel)
 
-Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não usa cache. A transferência é interrompida ao atingir 10 MB ou 15 segundos, o que ocorrer primeiro.
-- Em Wi-Fi: executado diretamente.
+Durante a fase de carga, `URLSession` solicita `/v1/load` com política que não usa cache. A carga segue `load-transfer-v2` (Decisão 135) e dura a janela de envio da fase de carga (30 s):
+- Em Wi-Fi: executada diretamente, com 2 downloads paralelos de `/v1/load` (10 MB cada), reiniciados até a janela fechar, com teto de 6 requisições e 60 MB por check.
+- Em rede móvel: 1 download com teto de 10 MB, o mesmo valor informado no consentimento.
+- Chegar ao fim da janela com bytes recebidos conta como carga medida; a carga só é indisponível quando nenhum byte chegou.
 - Em rede celular: exige consentimento explícito e transparente prévio (*"O Check Completo usa dados móveis para avaliar sua conexão sob carga."* com teto informado de 10 MB).
 - Cancelamento imediato: ao cancelar por ação do usuário, background ou troca de caminho de rede, tanto a transferência HTTP quanto os sockets UDP são cancelados imediatamente.
 
-O app mantém a série UDP de repouso e a série UDP sob carga estritamente separadas. Falha na transferência HTTP não invalida o resultado em repouso, mas remove a conclusão sobre impacto sob carga e mostra a limitação ao usuário. O tipo de conexão (`.wifi` ou `.cellular`) é persistido no snapshot histórico.
+O app mantém a série UDP de repouso e a série UDP sob carga estritamente separadas. Falha na transferência HTTP sem nenhum byte recebido não invalida o resultado em repouso, mas remove a conclusão sobre impacto sob carga e mostra a limitação ao usuário. Se a carga transferiu bytes e a série UDP sob carga ficou com menos de 20 respostas válidas, ou o watchdog abortou durante a carga, a conexão desabou sob carga: o check inteiro é `inconclusive(poorSampleQuality)`, sem nota (Decisão 135). O tipo de conexão (`.wifi` ou `.cellular`) é persistido no snapshot histórico.
 
-### 5.4 Watchdog de Qualidade da Amostra — `sample-quality-v1` (Decisão 55)
+### 5.4 Watchdog de Qualidade da Amostra — `sample-quality-v2` (Decisões 55 e 135)
 
-O `SampleQualityEvaluator` monitora os primeiros probes para abortar sessões condenadas sem forçar o usuário a esperar 15 segundos por um resultado nulo:
+O `SampleQualityEvaluator` monitora os primeiros probes para abortar sessões condenadas sem forçar o usuário a esperar 30 segundos por um resultado nulo. Os timeouts vencidos alimentam o watchdog em tempo real, no iOS e no Android:
 
 1. **Aborto Precoce por Conexão Morta:** Se houver 4 timeouts consecutivos dentro dos primeiros 6 probes enviados, a sessão é interrompida imediatamente com estado `inconclusive(poorSampleQuality)`.
 2. **Taxa de Perda Inicial Excessiva:** Se a perda for $\ge 70\%$ nos primeiros 10 probes enviados, a sessão é invalidada de imediato.
@@ -292,30 +295,26 @@ O `SampleQualityEvaluator` monitora os primeiros probes para abortar sessões co
 | RTT | `receivedAt - sentAt` para resposta UDP correlacionada. |
 | P50/P95/P99 | Percentil por interpolação linear sobre RTTs válidos ordenados. |
 | Jitter | Média de `abs(RTT[n] - RTT[n-1])` entre RTTs válidos consecutivos na ordem de sequência de envio. |
-| Perda | `timeouts / probes enviados × 100`; respostas inválidas não são RTT e também não contam como sucesso. |
+| Perda | `timeouts / 60 × 100` (probes planejados da fase); respostas inválidas não são RTT e também não contam como sucesso. Medição do site (HTTPS) não reporta perda (Decisão 134). |
 | Spike | Regra dependente do perfil sobre RTT válido e P50 final. |
 | Consistência | Indicador 0–100 derivado de jitter, relação P95/P50, taxa de spikes e perda. |
-| Impacto sob carga | `P50 carga - P50 repouso`; é apresentado separado do score principal. A classificação de materialidade usa a regra versionada da seção 6.1. |
+| Impacto sob carga | `P50 carga - P50 repouso`; a classificação usa a regra versionada da seção 6.1 e o tier entra no veredito (seção 7.5). |
 
 Percentis não recebem um RTT artificial para timeout. A perda é sempre reportada separadamente, inclusive quando torna uma medição inconclusiva.
 
-### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v2` (Decisão 55)
+### 6.1 Materialidade do impacto sob carga — `deep-load-impact-v4` (Decisões 55, 135 e 136)
 
-Esta regra substitui o corte fixo de +20 ms por uma avaliação multidimensional calibrada de acordo com o perfil de tolerância do jogo (`GameProfile`):
+A regra avalia P50, jitter, perda e spikes sob carga, calibrada pelo perfil do jogo. Δ = carga − repouso, com mínimo 0. A perda é contada em pacotes a mais que o repouso no plano de 60 (`round(Δperda × 60 / 100)`), porque 1 pacote isolado é ruído estatístico (Decisão 136). Todas as comparações são `≥`. O tier é o mais alto cujo critério for atendido.
 
-| Perfil | Limiar Material (Delta P50) | Limiar Severo (Delta P50) | Limiar Material (Delta Jitter) | Limiar Severo (Delta Perda) |
-| --- | ---: | ---: | ---: | ---: |
-| `BATTLE_ROYALE_COMPETITIVE` | $\ge +15,0$ ms | $\ge +35,0$ ms | $\ge +10,0$ ms | $\ge +2,0\%$ |
-| `MOBILE_REALTIME` | $\ge +25,0$ ms | $\ge +50,0$ ms | $\ge +15,0$ ms | $\ge +3,0\%$ |
-| `CASUAL_REALTIME` | $\ge +40,0$ ms | $\ge +80,0$ ms | $\ge +20,0$ ms | $\ge +5,0\%$ |
+| Perfil | Leve | Material | Severo |
+| --- | --- | --- | --- |
+| `BATTLE_ROYALE_COMPETITIVE` | ΔP50 ≥ 5 ms | ΔP50 ≥ 15 ms, ou Δjitter ≥ 10 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 35 ms, ou Δjitter ≥ 20 ms, ou ≥ 3 pacotes, ou Δspikes ≥ 4 |
+| `MOBILE_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 25 ms, ou Δjitter ≥ 15 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 50 ms, ou Δjitter ≥ 25 ms, ou ≥ 4 pacotes, ou Δspikes ≥ 5 |
+| `CASUAL_REALTIME` | ΔP50 ≥ 5 ms | ΔP50 ≥ 40 ms, ou Δjitter ≥ 20 ms, ou ≥ 2 pacotes, ou Δspikes ≥ 2 | ΔP50 ≥ 80 ms, ou Δjitter ≥ 35 ms, ou ≥ 4 pacotes, ou Δspikes ≥ 6 |
 
-#### Classificação de Gradação (`LoadDegradationTier`)
-1. **`.none`:** Delta P50 negativo, zero ou inferior a +5 ms sem degradação de jitter/loss.
-2. **`.light` (Descritivo):** Aumento perceptível de latência mas abaixo do limiar material do perfil.
-3. **`.material`:** Delta P50 $\ge$ limiar material, OU delta de jitter $\ge$ limiar material, OU aumento de $\ge 2$ spikes sob carga.
-4. **`.severe`:** Delta P50 $\ge$ limiar severo, OU perda induzida por carga $\ge$ limiar severo de perda.
+Sem nenhum critério atendido, o tier é `.none`. O corte fixo de +20 ms (`deep-load-impact-v1`) não decide mais nada; só alimenta a nota descritiva de bufferbloat (`bufferbloat-grade-v1`).
 
-Vetores normativos da regra `deep-load-impact-v2`:
+Vetores normativos da regra `deep-load-impact-v4` (os DLI2 da Decisão 55 continuam válidos):
 
 | ID | Perfil | P50 Repouso | P50 Carga | Delta Jitter | Delta Perda | Classificação | Veredito Impactado |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
@@ -325,25 +324,35 @@ Vetores normativos da regra `deep-load-impact-v2`:
 | DLI2-04 | Battle Royale | 30 ms | 38 ms | +12 ms | 0% | `.material` (via jitter) | Modula para `.caution` |
 | DLI2-05 | Mobile Realtime | 35 ms | 55 ms | +3 ms | 0% | `.light` (tolerância maior) | Mantém `.ready` |
 | DLI2-06 | Casual Realtime | 50 ms | 85 ms | +5 ms | 0% | `.light` (tolerância casual) | Mantém `.ready` |
+| DLI4-01 | Battle Royale | 30 ms | 40 ms | +2 ms | +1 pacote (1,67%) | `.light` (1 pacote é ruído) | Mantém `.ready` |
+| DLI4-02 | Battle Royale | 30 ms | 40 ms | +2 ms | +2 pacotes (3,33%) | `.material` (via perda) | Modula para `.caution` |
+| DLI4-03 | Battle Royale | 30 ms | 40 ms | +2 ms | +3 pacotes (5%) | `.severe` (via perda) | Modula para `.notReady` |
+| DLI4-04 | Mobile Realtime | 30 ms | 30 ms | 0 | +3 pacotes (5%) | `.material` | Modula para `.caution` |
+| DLI4-05 | Mobile Realtime | 30 ms | 30 ms | 0 | +4 pacotes (6,67%) | `.severe` | Modula para `.notReady` |
+| DLI4-06 | Casual Realtime | 50 ms | 50 ms | +30,5 ms (6 spikes) | 0 | `.severe` (Δspikes ≥ 6) | Modula para `.notReady` |
+| DLI3-03 | Battle Royale | 30 ms | 34,9 ms | 0 | 0% | `.none` | Mantém `.ready` |
+| DLI3-04 | Battle Royale | 30 ms | 45 ms | 0 | 0% | `.material` (limite exato) | Modula para `.caution` |
+| DLI3-05 | Battle Royale | 30 ms | 65 ms | 0 | 0% | `.severe` (limite exato) | Modula para `.notReady` |
 
 Critérios de aceitação:
 
 1. O domínio classifica o delta bruto avaliando P50, jitter, perda e spikes sob carga.
-2. Resultado, score, classe e guardrails da fase de repouso permanecem idênticos com ou sem materialidade sob carga.
-3. Falha da carga ou série UDP insuficiente não gera classificação parcial nem impacto persistível.
-4. O snapshot persiste `ruleVersion = deep-load-impact-v2` e o tier calculado.
+2. Score, classe e guardrails da fase de repouso são calculados só com o repouso; o tier de carga entra depois, no veredito e no teto da nota unificada (seção 7.5).
+3. Carga sem nenhum byte transferido não gera classificação nem impacto persistível. Carga com bytes e série UDP insuficiente torna o check inconclusivo (seção 5.3).
+4. O snapshot persiste `ruleVersion = deep-load-impact-v4` e o tier calculado.
+5. Os vetores vivem em `apps/android/core/domain/src/commonTest/kotlin/com/lagcheck/domain/vectors/` e passam nos alvos JVM, iOS e JS.
 
-### 6.2 Classificação Temporal de Spikes — `spike-pattern-v1` (Decisão 55)
+### 6.2 Classificação Temporal de Spikes — `spike-pattern-v2` (Decisões 55 e 135)
 
-Os picos de latência deixam de ser uma contagem indiferenciada e passam a ser categorizados por padrão temporal:
-- **Spike Isolado (`.isolated`):** 1 ou 2 spikes em toda a sessão, sem recorrência em janelas de 5 probes. Não rebaixa o veredito para `.notReady`, sendo tratado como ruído comum de interface de rádio.
-- **Spikes Recorrentes (`.recurring`):** $\ge 3$ spikes totais ou 2 spikes em uma mesma janela deslizante de 5 probes consecutivos. Se houver $\ge 2$ spikes severos recorrentes, o veredito é forçado para `.notReady`.
+O motor calcula o padrão em toda avaliação, na ordem de envio, com os limites de spike do próprio perfil:
+- **Spike Isolado (`.isolated`):** 1 ou 2 spikes em toda a sessão, sem 2 spikes numa mesma janela de 5 probes consecutivos. Spike severo isolado nunca leva a `.notReady`: no máximo `.caution`, coerente com o guardrail de nota 74.
+- **Spikes Recorrentes (`.recurring`):** $\ge 3$ spikes totais ou 2 spikes numa mesma janela deslizante de 5 probes consecutivos. Com $\ge 2$ spikes severos e padrão recorrente, o veredito é `.notReady`.
 
 ### 6.3 Métrica de Latência de Cauda ($P95/P50$) e Consistência (Decisão 55)
 
 A dispersão de cauda mede a severidade dos micro-congelamentos:
 $$\text{TailRatio} = \frac{P95}{P50}$$
-- Se $\text{TailRatio} \ge 1.8$ em conexão com P50 aparentemente aceitável ($\le 40$ ms), o sistema registra o sintoma de *"Latência de cauda elevada"* e gera recomendação contra partidas ranqueadas.
+- A cauda é elevada quando, ao mesmo tempo, $\text{TailRatio} \ge 1.8$, $P95 - P50 \ge 20$ ms e $P95 > 45$ ms. A mesma regra vale no veredito e nas causas (Decisão 135); a exigência absoluta evita falso positivo em conexões muito rápidas, onde 4 ms contra 8 ms já dá razão 2.
 
 ## 7. NGQE: avaliação determinística
 
@@ -440,7 +449,7 @@ Quando múltiplos problemas ocorrem em simultâneo, o avaliador resolve uma caus
 6. **Latência de Cauda Elevada** ($P95/P50 \ge 1.8$) $\rightarrow$ *Instabilidade de cauda (oscilações)*.
 
 - **Regra de Coocorrência:** Se Jitter for alto e Carga for material/severa, o avaliador unifica a causa primária como *"Instabilidade sob uso da internet"*.
-- **Enlace Local:** Se o gateway probe apontar `.degraded`, a causa ganha o qualificador *"Origem: Enlace Wi-Fi local"*. Caso contrário, ganha o qualificador *"Origem: Rota externa / Operadora"*.
+- **Enlace Local:** Se o gateway probe apontar `.degraded`, a causa ganha o qualificador *"Origem: Enlace Wi-Fi local"*. Só com gateway impecável (`.stable`, RTT $\le 5$ ms, loss 0%) e rota instável a causa ganha *"Origem: Rota externa / Operadora"*. Com gateway `.unobservable` ou estável mas não impecável, o qualificador é neutro (*"rota até o destino"*) e nada é atribuído à operadora (Decisões 50 e 135, `root-cause-v2`).
 
 #### 7.4.2 Motor de Recomendações Baseadas em Evidência — `EvidenceRecommendationEngine` (Decisão 55)
 
@@ -477,7 +486,8 @@ func generateRecommendations(evidence: DiagnosticEvidence) -> [ActionableRecomme
         ))
     }
     
-    if evidence.packetLossPercentage > 1.0 && evidence.gatewayOutcome != .degraded {
+    // recommendations-v2 (Decisão 136): mesmo guardrail de perda do perfil que derruba o veredito
+    if evidence.packetLossPercentage > profile.lossGuardrailPercentage && evidence.gatewayOutcome != .degraded {
         recommendations.append(ActionableRecommendation(
             priority: 1,
             title: "Evite Partidas Ranqueadas",
@@ -490,54 +500,30 @@ func generateRecommendations(evidence: DiagnosticEvidence) -> [ActionableRecomme
 }
 ```
 
-### 7.5 Camada Semântica: `GameReadinessEvaluator` — `readiness-v2.0` (Decisão 55)
+### 7.5 Camada Semântica: `GameReadinessEvaluator` — `readiness-v3.0` (Decisão 135)
 
-O avaliador de prontidão competitiva opera com regras estritas, incorporando a margem de segurança de destinos com confiança média (consoles/rotas genéricas) e padrões temporais de spikes:
+Um único caminho de avaliação, no motor compartilhado, serve tela, histórico, Home e widget em iOS, Android, Windows e site, com as mesmas entradas. A confiança média continua só como rótulo de estimativa (console/PC ou rota genérica) e **não aplica margem** no veredito. Os limites de perda, P50 e jitter vêm dos guardrails do perfil (seção 7.3).
 
-```swift
-func evaluateReadiness(
-    quality: QualityResult,
-    profile: GameProfile,
-    confidence: MeasurementConfidence,
-    spikePattern: SpikePattern,
-    loadTier: LoadDegradationTier
-) -> GameReadinessVerdict {
-    guard quality.validResponsesCount >= 10 else {
-        return .inconclusive
-    }
-    
-    // Margem de segurança de 10% para console/PC ou rota genérica (confiança medium)
-    let marginFactor: Double = (confidence == .medium) ? 0.90 : 1.0
-    let effectiveMaxLoss = profile.maxAcceptableLoss * marginFactor
-    let effectiveMaxP50 = profile.notReadyLatencyThreshold * marginFactor
-    let effectiveCautionJitter = profile.cautionJitterThreshold * marginFactor
-    
-    // Condições que impedem Ranked (.notReady)
-    if quality.packetLossPercentage > effectiveMaxLoss ||
-       quality.p50Milliseconds > effectiveMaxP50 ||
-       loadTier == .severe {
-        return .notReady
-    }
-    
-    if case .recurring(_, let severeCount) = spikePattern, severeCount >= 2 {
-        return .notReady
-    }
-    
-    // Condições de cautela (.caution)
-    if quality.jitterMilliseconds > effectiveCautionJitter ||
-       loadTier == .material ||
-       quality.severeSpikesCount > 0 ||
-       quality.tailRatio >= 1.8 {
-        return .caution
-    }
-    
-    if case .recurring = spikePattern {
-        return .caution
-    }
-    
-    return .ready
-}
-```
+A primeira condição atendida, na ordem abaixo, define o veredito:
+
+| Ordem | Condição | Veredito |
+| ---: | --- | --- |
+| 0 | Menos de 20 respostas válidas, ou carga que desabou (seção 5.3) | `.inconclusive` |
+| 1 | Perda acima do guardrail do perfil (só UDP do app) | `.notReady` |
+| 2 | P50 acima do guardrail do perfil | `.notReady` |
+| 3 | Spikes recorrentes com $\ge 2$ severos | `.notReady` |
+| 4 | Tier de carga `.severe` | `.notReady` |
+| 5 | Classe de repouso `Risco de lag` | `.notReady` |
+| 6 | Jitter $\ge$ limite de risco do perfil | `.caution` |
+| 7 | Fora de ordem: $\ge 2$ pacotes ou $\ge 5\%$ (só UDP do app) | `.caution` |
+| 8 | Tier de carga `.material` | `.caution` |
+| 9 | Spikes recorrentes | `.caution` |
+| 10 | Cauda elevada (seção 6.3) | `.caution` |
+| 11 | Gateway `.degraded` | `.caution` |
+| 12 | Classe de repouso `Instável` | `.caution` |
+| — | Nenhuma das anteriores | `.ready` |
+
+A nota unificada respeita o veredito: carga `.severe` limita a 59 e `.material` a 74; `.ready` fica em 75 ou mais, `.caution` entre 60 e 74, `.notReady` em 59 ou menos, e `.inconclusive` não tem nota. Medição do site (`WEB_HTTPS`) não tem nota, perda nem fora de ordem e é sempre estimativa (Decisão 134).
 
 ### 7.6 Integridade de Diagnóstico de Rede Local e Frequência Wi-Fi
 
@@ -558,7 +544,7 @@ Modelos persistidos:
 | Modelo | Campos essenciais |
 | --- | --- |
 | `GamePreference` | jogo, favorito, última plataforma e data de uso. |
-| `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v2.0`, `deep-load-impact-v2`, `sample-quality-v1`). |
+| `MeasurementRecord` | jogo/contexto, data, veredito de prontidão (`GameReadinessVerdict`), score/classe, métricas agregadas, causa primária, causas secundárias, recomendações geradas, resultado do probe do gateway local, tipo de conexão (`.wifi` ou `.cellular`), confiança, estratégia, região, versão de catálogo, perfil e versões de regras (`readiness-v3.0`, `deep-load-impact-v4`, `recommendations-v2`, `sample-quality-v2`, `spike-pattern-v2`, `root-cause-v2`, `load-transfer-v2` e a versão do perfil, por exemplo `pilot-2026.11.14.1`). Entradas antigas guardam as versões com que foram gravadas. |
 | `AppPreference` | idioma escolhido/sistema, estado de privacidade e configurações de apresentação. |
 
 Uma tarefa de manutenção remove registros com mais de 90 dias e conserva no máximo os 100 mais recentes por jogo. A ação “Apagar histórico” remove `MeasurementRecord` e dados derivados de recentes; não toca no catálogo-base.
@@ -593,7 +579,7 @@ As Decisões 82, 94 e 95 estabelecem consentimento, opções de privacidade, sup
 
 | Camada | Cobertura mínima |
 | --- | --- |
-| Domínio | Percentis, jitter, perda, spikes recorrentes/isolados, cauda P95/P50, carga multidimensional (`deep-load-impact-v2`), veredito `readiness-v2.0` com margens de confiança e motor de recomendações. |
+| Domínio | Percentis, jitter, perda, spikes recorrentes/isolados, cauda P95/P50, carga multidimensional (`deep-load-impact-v4`), veredito `readiness-v3.0` sem margem de confiança e motor de recomendações. Os vetores normativos do motor compartilhado rodam em JVM, iOS e JS (Decisão 134). |
 | Watchdog | Invalidação antecipada por timeouts consecutivos ($\ge 4$ em 6 probes) e perda precoce ($\ge 70\%$). |
 | Gateway Prober | Resolução de rota BSD, probe UDP no gateway, classificação stable/degraded e tolerância a gateways firewall (`.unobservable`). |
 | Catálogo | Assinatura válida/inválida, validade, schema, rollback, cache de 24 h e fallback de 30 dias/base. |

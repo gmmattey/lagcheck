@@ -71,7 +71,9 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         }
     }
 
-    func testInsufficientLoadUDPKeepsRestResultWithoutDeclaringTheDeepCheckInconclusive() async throws {
+    func testInsufficientLoadUDPMakesTheDeepCheckInconclusive() async throws {
+        // Decisão 135: a carga rodou, mas o UDP sob carga não teve respostas suficientes.
+        // Não dá para afirmar o impacto, então o check inteiro é inconclusivo.
         let coordinator = makeCoordinator(
             transport: ScriptedTransport(samples: [received(30, rtt: 30), received(9, rtt: 80)]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
@@ -79,12 +81,10 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         _ = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
         try await waitForCompletion(coordinator)
 
-        guard case let .completed(_, .completed(result), availability) = await coordinator.sessionState() else {
-            return XCTFail("A valid rest phase must remain a completed Deep Check.")
+        guard case let .completed(_, .inconclusive(reason, _), _) = await coordinator.sessionState() else {
+            return XCTFail("Load collapse must make the Deep Check inconclusive.")
         }
-        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 30)
-        XCTAssertNil(result.metrics.loadImpact)
-        XCTAssertEqual(availability, .measured)
+        XCTAssertEqual(reason, .poorSampleQuality)
     }
 
     func testCompletedDeepCheckPersistsOnlyItsFinalSnapshot() async throws {
@@ -185,8 +185,8 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
     }
 
     func testFinalTraceRetainsOriginalEligiblePhaseSamplesIncludingGaps() async throws {
-        let rest = received(10, rtt: 30) + [ProbeSample(sequence: 10, outcome: .timeout)]
-        let load = received(10, rtt: 80) + [ProbeSample(sequence: 10, outcome: .invalidResponse)]
+        let rest = received(20, rtt: 30) + [ProbeSample(sequence: 20, outcome: .timeout)]
+        let load = received(20, rtt: 80) + [ProbeSample(sequence: 20, outcome: .invalidResponse)]
         let coordinator = makeCoordinator(
             transport: ScriptedTransport(samples: [rest, load]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
@@ -203,7 +203,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
     func testFinalTraceIsUnavailableWithoutEligibleLoadEvidence() async throws {
         let coordinator = makeCoordinator(
-            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            transport: ScriptedTransport(samples: [received(20, rtt: 30), received(20, rtt: 80)]),
             load: FixedLoadTransport(outcome: .unavailable)
         )
         let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
@@ -215,7 +215,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
     func testDiscardFinalTraceRequiresTheCompletedSessionID() async throws {
         let coordinator = makeCoordinator(
-            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            transport: ScriptedTransport(samples: [received(20, rtt: 30), received(20, rtt: 80)]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 1))
         )
         let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
@@ -232,7 +232,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
     func testFinalTraceRequiresPositiveLoadTransferBytes() async throws {
         let coordinator = makeCoordinator(
-            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            transport: ScriptedTransport(samples: [received(20, rtt: 30), received(20, rtt: 80)]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 0))
         )
         let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
@@ -244,7 +244,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
 
     func testBackgroundDiscardsCompletedFinalTrace() async throws {
         let coordinator = makeCoordinator(
-            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(10, rtt: 80)]),
+            transport: ScriptedTransport(samples: [received(20, rtt: 30), received(20, rtt: 80)]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 1))
         )
         let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
@@ -258,9 +258,9 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         XCTAssertNil(trace)
     }
 
-    func testFinalTraceRequiresAtLeastTenValidResponsesInEachPhase() async throws {
+    func testFinalTraceRequiresAtLeastTwentyValidResponsesInEachPhase() async throws {
         let coordinator = makeCoordinator(
-            transport: ScriptedTransport(samples: [received(10, rtt: 30), received(9, rtt: 80)]),
+            transport: ScriptedTransport(samples: [received(20, rtt: 30), received(19, rtt: 80)]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))
         )
         let session = try await coordinator.start(resolvedContext: resolvedContext, plan: plan)
@@ -271,8 +271,8 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
     }
 
     func testFinalTraceIsClearedWhenANewSessionStarts() async throws {
-        let rest = received(10, rtt: 30)
-        let load = received(10, rtt: 80)
+        let rest = received(20, rtt: 30)
+        let load = received(20, rtt: 80)
         let coordinator = makeCoordinator(
             transport: ScriptedTransport(samples: [rest, load, rest, load]),
             load: FixedLoadTransport(outcome: .completed(bytesTransferred: 10_000_000))

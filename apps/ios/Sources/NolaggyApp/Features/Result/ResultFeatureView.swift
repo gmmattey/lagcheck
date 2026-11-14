@@ -15,12 +15,9 @@ extension QuickCheckFeatureView {
             headline
         )
         let isWiFi = selectedRegionalContext?.observedPhoneNetwork == .wifi
-        let isLocalHealthy = interpretation.primaryCauseKey != .highJitter
         let isDestinationHealthy = interpretation.scoreBand == .excellent || interpretation.scoreBand == .great
         let wifiStatusText = isWiFi
-            ? (isLocalHealthy
-                ? AppLocalization.string("result.route_trail.wifi_healthy", comment: "")
-                : AppLocalization.string("result.route_trail.wifi_unstable", comment: ""))
+            ? AppLocalization.string("result.route_trail.wifi_active", comment: "")
             : AppLocalization.string("result.route_trail.cellular_active", comment: "")
         let destinationStatus = String(
             format: AppLocalization.string("result.route_trail.destination_responding %@", comment: ""),
@@ -76,7 +73,7 @@ extension QuickCheckFeatureView {
                 RouteTrailSummaryCard(
                     isWiFi: isWiFi,
                     wifiStatusText: wifiStatusText,
-                    isLocalHealthy: isLocalHealthy,
+                    isLocalHealthy: true,
                     destinationName: selectedRegionFriendlyName,
                     destinationKind: selectedRegionalContext?.strategy == .dedicatedServer ? .dedicatedServer : .regionalReference,
                     destinationStatusText: destinationStatus,

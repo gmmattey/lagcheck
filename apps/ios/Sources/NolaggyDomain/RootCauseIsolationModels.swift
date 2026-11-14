@@ -61,9 +61,11 @@ public struct RootCauseIsolationReport: Codable, Equatable, Sendable {
     }
 }
 
-/// Avaliador determinístico de Causa Raiz (Puro Domínio, RFC e Decisão 75 / Architecture Plan §3.2).
+/// Fachada fina do isolamento de causa raiz no motor compartilhado (Decisões 50, 75, 134 e 135).
 public enum RootCauseEvaluator {
-    public static let version = "root-cause-v1"
+    public static var version: String {
+        EnginePolicyProvider.policy.ruleVersions["BATTLE_ROYALE_COMPETITIVE"]?["rootCause"] ?? "root-cause-v2"
+    }
 
     /// Avalia os 3 probes isoladamente e retorna a entidade responsável com evidência matemática.
     public static func evaluate(
@@ -86,31 +88,14 @@ public enum RootCauseEvaluator {
         let wanJitter = wanMetrics.jitterMilliseconds
         let wanLoss = wanMetrics.packetLossPercentage
 
-        // 1. Regra Gateway / Wi-Fi Local (Architecture Plan §3.2 regra 1):
-        // Se observável e (RTT > 15ms OU perda local > 2%)
-        let isLocalCulprit = gwObservable && ((gwRTT ?? 0.0) > 15.0 || gwLoss > 2.0)
-
-        // 2. Regra Operadora / Rota Externa (Architecture Plan §3.2 regra 2):
-        // Gateway limpo (<= 5ms e 0% perda) OU não observável, mas WAN tem perda > 1% ou jitter > 15ms
-        let isWanUnstable = wanLoss > 1.0 || (wanJitter ?? 0.0) > 15.0
-        let isGatewayPristine = gwObservable && ((gwRTT ?? 0.0) <= 5.0 && gwLoss == 0.0)
-
-        let culprit: CulpritEntity
-        if isLocalCulprit {
-            culprit = .localWiFi
-        } else if (isGatewayPristine || !gwObservable) && isWanUnstable {
-            culprit = .internetProvider
-        } else if platformDegraded && !isWanUnstable {
-            // Regra 3: Plataforma degradada com rede limpa
-            culprit = .gamePlatform
-        } else if isGatewayPristine && !isWanUnstable && !platformDegraded {
-            // Regra 4: Tudo Limpo (gateway pristino <= 5ms/0% perda, WAN estável e plataforma operacional)
-            culprit = .allClear
-        } else {
-            // Regra 5: Ambiguidade / Limite Intermediário (ex: gateway 5-15ms com WAN instável, ou gateway unobservable)
-            // Integridade diagnóstica (Decisão 50/75): sem evidência conclusiva, não emite nota/conclusão falsa
-            culprit = .unobservable
-        }
+        // Regra no motor compartilhado (root-cause-v2): culpar a operadora exige roteador impecável;
+        // roteador não observável nunca culpa ninguém (Decisões 50 e 135, item 7).
+        let culprit = LagCheckEngineBridge.rootCauseCulprit(
+            gatewayOutcome: gatewayOutcome,
+            wanMetrics: wanMetrics,
+            platformDegraded: platformDegraded,
+            platformServiceName: platformServiceName
+        ).culprit
 
         return RootCauseIsolationReport(
             primaryCulprit: culprit,

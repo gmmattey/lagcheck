@@ -105,8 +105,8 @@ final class GameReadinessDomainTests: XCTestCase {
 
     func testMaterialLoadImpactProducesCautionVerdict() throws {
         let testSamples = samples(count: 30, rtt: 25.0)
-        // Delta de 35ms (> 20ms material threshold)
-        let eval = try evaluateSamples(testSamples, profile: .battleRoyaleCompetitive, loadDeltaMs: 35.0)
+        // Delta de 20ms (faixa 15..34ms -> material em Battle Royale v3)
+        let eval = try evaluateSamples(testSamples, profile: .battleRoyaleCompetitive, loadDeltaMs: 20.0)
 
         XCTAssertEqual(eval.verdict, .caution)
         XCTAssertTrue(eval.isUnderLoadAffected)
@@ -179,13 +179,13 @@ final class GameReadinessDomainTests: XCTestCase {
 
     // MARK: - Decisão 55 (readiness-v2.0) Tests
 
-    func testMediumConfidenceSafetyMarginAppliesTenPercentTighterThresholds() {
+    func testConfidenceDoesNotChangeTheV3Verdict() {
         // P50 = 95ms para battleRoyaleCompetitive (guardrail padrão é 100ms)
         let testSamples = samples(count: 30, rtt: 95.0)
         let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
         guard case let .completed(qualityResult) = eval else { return XCTFail() }
 
-        // Com alta confiança: 95ms <= 100ms -> .ready
+        // Na v3 compartilhada, confidence não altera thresholds de veredito
         let readyEval = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: nil,
@@ -194,27 +194,30 @@ final class GameReadinessDomainTests: XCTestCase {
         )
         XCTAssertEqual(readyEval.verdict, .ready)
 
-        // Com média confiança (Console/PC / rota genérica): threshold = 100 * 0.9 = 90ms. 95ms > 90ms -> .notReady
         let mediumEval = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: nil,
             profile: .battleRoyaleCompetitive,
             confidence: .medium
         )
-        XCTAssertEqual(mediumEval.verdict, .notReady)
+        XCTAssertEqual(mediumEval.verdict, .ready)
     }
 
     func testRecurringSevereSpikesTriggersNotReady() {
-        let testSamples = samples(count: 30, rtt: 25.0)
+        // Pacotes reais: dois picos severos (≥ 150 ms e > P50 + 80 ms no BR) na mesma janela de 5.
+        // O motor avalia a série medida; um padrão injetado sem picos na série não vale mais.
+        var testSamples = samples(count: 60, rtt: 25.0)
+        for sequence in [10, 12] {
+            testSamples[sequence] = ProbeSample(sequence: sequence, roundTripMilliseconds: 200, outcome: .received)
+        }
         let eval = QualityEvaluator.evaluate(samples: testSamples, profile: .battleRoyaleCompetitive)
         guard case let .completed(qualityResult) = eval else { return XCTFail() }
+        XCTAssertEqual(qualityResult.metrics.spikePattern, .recurring(count: 2, severeCount: 2))
 
-        let pattern = SpikePattern.recurring(count: 2, severeCount: 2)
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: nil,
-            profile: .battleRoyaleCompetitive,
-            spikePattern: pattern
+            profile: .battleRoyaleCompetitive
         )
         XCTAssertEqual(readiness.verdict, .notReady)
     }
@@ -372,8 +375,8 @@ final class GameReadinessDomainTests: XCTestCase {
         guard case let .completed(qualityResult) = eval else { return XCTFail() }
         XCTAssertGreaterThanOrEqual(qualityResult.finalScore, 85, "Score de repouso isolado deve ser alto")
 
-        // Carga material (+35ms delta)
-        let loadImpact = DeepCheckLoadImpact(restP50Milliseconds: 25.0, loadP50Milliseconds: 60.0, tier: .material)
+        // Carga material (+20ms delta)
+        let loadImpact = DeepCheckLoadImpact(restP50Milliseconds: 25.0, loadP50Milliseconds: 45.0, tier: .material)
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: loadImpact,

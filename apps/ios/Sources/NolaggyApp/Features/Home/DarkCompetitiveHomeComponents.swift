@@ -203,21 +203,15 @@ public struct DarkCompetitiveHeroCard: View {
         .accessibilityIdentifier("home-decision-card")
     }
 
-    private var lastReadinessEvaluation: GameReadinessEvaluation? {
-        guard let entry = latestEntry else { return nil }
-        let profile = game?.profileID ?? .battleRoyaleCompetitive
-        return GameReadinessEvaluator.evaluate(
-            qualityResult: entry.result,
-            loadImpact: nil,
-            profile: profile
-        )
+    private var lastVerdict: GameReadinessVerdict? {
+        latestEntry?.readinessVerdict
     }
 
     private var lastStatusDotColor: Color {
-        guard let eval = lastReadinessEvaluation else {
+        guard let verdict = lastVerdict else {
             return NLColor.textTertiary
         }
-        switch eval.verdict {
+        switch verdict {
         case .ready: return NLColor.semanticReady
         case .caution: return NLColor.semanticCaution
         case .notReady: return NLColor.semanticNotReady
@@ -226,14 +220,14 @@ public struct DarkCompetitiveHeroCard: View {
     }
 
     private var lastCheckStatusText: String {
-        guard let entry = latestEntry, let eval = lastReadinessEvaluation else {
+        guard let entry = latestEntry, let verdict = lastVerdict else {
             return AppLocalization.string("home.last_check.empty", comment: "")
         }
-        if eval.verdict == .inconclusive {
+        if verdict == .inconclusive {
             return AppLocalization.string("check_completo.verdict.inconclusive", comment: "")
         }
         let condition: String
-        switch eval.verdict {
+        switch verdict {
         case .ready:
             condition = AppLocalization.string("home.condition.excellent", comment: "")
         case .caution:
@@ -245,7 +239,7 @@ public struct DarkCompetitiveHeroCard: View {
         }
 
         let p50Text: String
-        if let p50 = eval.pingMs {
+        if let p50 = entry.result?.metrics.p50Milliseconds {
             p50Text = " · \(Int(p50.rounded())) ms"
         } else {
             p50Text = ""

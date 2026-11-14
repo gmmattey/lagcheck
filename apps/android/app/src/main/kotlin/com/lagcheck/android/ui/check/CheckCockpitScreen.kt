@@ -241,7 +241,7 @@ fun CheckCockpitScreen(
                     )
                     Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
                     Text(
-                        text = tr("Limite máximo de transferência: até 10 MB (cerca de 15 segundos)."),
+                        text = tr("Limite máximo de transferência: até 10 MB (cerca de 30 segundos)."),
                         style = LagCheckTypography.Subtext,
                         color = LagCheckColors.TextTertiary,
                         textAlign = TextAlign.Center
