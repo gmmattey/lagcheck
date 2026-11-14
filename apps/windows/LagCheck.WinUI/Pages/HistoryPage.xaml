@@ -10,7 +10,7 @@
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <TextBlock x:Name="TitleText" Text="Histórico de Sessões" Style="{StaticResource PageTitleStyle}"/>
+    <TextBlock x:Name="TitleText" Text="HISTÓRICO" Style="{StaticResource PageHeaderStyle}"/>
 
     <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar por região ou veredito" TextChanged="SearchBox_TextChanged" Height="44" CornerRadius="12"/>
 
@@ -40,13 +40,13 @@
       </Grid>
 
       <ScrollViewer x:Name="HistoryScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
-        <ItemsRepeater x:Name="HistoryList">
+        <ItemsRepeater x:Name="HistoryList" ElementPrepared="HistoryList_ElementPrepared" ElementClearing="HistoryList_ElementClearing">
           <ItemsRepeater.Layout>
             <StackLayout Orientation="Vertical" Spacing="0"/>
           </ItemsRepeater.Layout>
           <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="local:HistoryRow">
-              <Grid BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="0,14" ColumnSpacing="16">
+              <Grid Background="Transparent" BorderBrush="#0DFFFFFF" BorderThickness="0,0,0,1" Padding="0,14" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="1.4*"/>
                   <ColumnDefinition Width="1*"/>
@@ -72,11 +72,13 @@
         </ItemsRepeater>
       </ScrollViewer>
 
-      <StackPanel x:Name="EmptyState" Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="12">
-        <TextBlock x:Name="EmptyTitle" Text="Sem testes nesta sessão" Style="{StaticResource PageTitleStyle}" TextAlignment="Center"/>
+      <StackPanel x:Name="EmptyState" Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520" Spacing="14">
+        <TextBlock x:Name="EmptyTitle" Text="Sem testes ainda" Style="{StaticResource PageTitleStyle}" TextAlignment="Center"/>
+        <TextBlock x:Name="EmptyDescription" Text="Teste sua conexão para ver aqui o histórico das medições." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"/>
+        <Button x:Name="StartCheckButton" Style="{StaticResource PillPrimaryButtonStyle}" Content="Testar conexão" HorizontalAlignment="Center" Margin="0,8,0,0" Click="StartCheck_Click"/>
       </StackPanel>
 
-      <TextBlock x:Name="NoResults" Grid.RowSpan="2" Text="Nenhuma medição corresponde à busca." Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+      <TextBlock x:Name="NoResults" Grid.RowSpan="2" Text="Nenhuma medição corresponde à busca." Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
     </Grid>
   </Grid>
 </Page>

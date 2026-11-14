@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using LagCheck.WinUI.Controls;
 using LagCheck.WinUI.Diagnostic;
@@ -8,6 +9,8 @@ using LagCheck.WinUI.History;
 using LagCheck.WinUI.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 
 namespace LagCheck.WinUI.Pages;
 
@@ -40,17 +43,65 @@ public sealed partial class HistoryPage : Page
         UpdateVisibleEntries();
     });
 
+    private static readonly Brush RowHoverBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x0D, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush RowNormalBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
     private void LocalizeUI()
     {
-        TitleText.Text = Strings.Tr("Histórico de Sessões");
+        TitleText.Text = Strings.Tr("HISTÓRICO").ToUpper(CultureInfo.CurrentCulture);
         SearchBox.PlaceholderText = Strings.Tr("Buscar por jogo, região ou resultado");
         HGame.Text = Strings.Tr("JOGO");
         HRegion.Text = Strings.Tr("REGIÃO");
         HResult.Text = Strings.Tr("RESULTADO");
         HLoss.Text = Strings.Tr("PERDA");
         HTime.Text = Strings.Tr("HORA");
-        EmptyTitle.Text = Strings.Tr("Sem testes nesta sessão");
+        EmptyTitle.Text = Strings.Tr("Sem testes ainda");
+        EmptyDescription.Text = Strings.Tr("Teste sua conexão para ver aqui o histórico das medições.");
+        StartCheckButton.Content = Strings.Tr("Testar conexão");
         NoResults.Text = Strings.Tr("Nenhuma medição corresponde à busca.");
+    }
+
+    private void StartCheck_Click(object sender, RoutedEventArgs e) => ShellNavigation.Navigate(NavigationRoute.GeneralCheck);
+
+    private void HistoryList_ElementPrepared(ItemsRepeater sender, ItemsRepeaterElementPreparedEventArgs args)
+    {
+        if (args.Element is Grid rowGrid)
+        {
+            rowGrid.Background = RowNormalBrush;
+            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
+            rowGrid.PointerEntered -= Row_PointerEntered;
+            rowGrid.PointerEntered += Row_PointerEntered;
+            rowGrid.PointerExited -= Row_PointerExited;
+            rowGrid.PointerExited += Row_PointerExited;
+        }
+    }
+
+    private void HistoryList_ElementClearing(ItemsRepeater sender, ItemsRepeaterElementClearingEventArgs args)
+    {
+        if (args.Element is Grid rowGrid)
+        {
+            rowGrid.PointerEntered -= Row_PointerEntered;
+            rowGrid.PointerExited -= Row_PointerExited;
+            rowGrid.Background = RowNormalBrush;
+        }
+    }
+
+    private void Row_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Grid rowGrid)
+        {
+            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
+            rowGrid.Background = RowHoverBrush;
+        }
+    }
+
+    private void Row_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Grid rowGrid)
+        {
+            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
+            rowGrid.Background = RowNormalBrush;
+        }
     }
 
     /// <summary>Nomes dos jogos do catálogo do motor, para dar contexto às medições (sem inventar nada).</summary>

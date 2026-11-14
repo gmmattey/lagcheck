@@ -220,7 +220,7 @@ public sealed partial class GalleryPage : Page
     private void Localize()
     {
         Eyebrow.Text = Strings.Tr("CAPTURAS LOCAIS");
-        TitleText.Text = Strings.Tr("GALERIA");
+        TitleText.Text = Strings.Tr("GALERIA").ToUpper(CultureInfo.CurrentCulture);
         SubtitleText.Text = Strings.Tr("Capturas reais salvas no seu PC.");
         AutomationProperties.SetName(LoadingRing, Strings.Tr("Carregando capturas"));
     }

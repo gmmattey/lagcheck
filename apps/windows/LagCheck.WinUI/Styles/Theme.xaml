@@ -9,7 +9,7 @@
   <Color x:Key="LineStrongColor">#1AFFFFFF</Color>
   <Color x:Key="TextPrimaryColor">#F5F7FC</Color>
   <Color x:Key="TextSecondaryColor">#9AA3B5</Color>
-  <Color x:Key="TextTertiaryColor">#687285</Color>
+  <Color x:Key="TextTertiaryColor">#8F99AB</Color>
   <Color x:Key="PurpleColor">#7C3AED</Color>
   <Color x:Key="PurpleLightColor">#A78BFA</Color>
   <Color x:Key="ReadyColor">#22C55E</Color>
@@ -31,7 +31,7 @@
   <SolidColorBrush x:Key="ReadyBrush" Color="{StaticResource ReadyColor}"/>
   <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource CautionColor}"/>
   <SolidColorBrush x:Key="CoralBrush" Color="{StaticResource CoralColor}"/>
-  <SolidColorBrush x:Key="TechLabelBrush" Color="#606873"/>
+  <SolidColorBrush x:Key="TechLabelBrush" Color="#8791A3"/>
   <SolidColorBrush x:Key="PillSurfaceBrush" Color="#D9252A36"/>
   <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#1C212B"/>
   <LinearGradientBrush x:Key="HomeHeroCtaBrush" StartPoint="0,0" EndPoint="0,1">
@@ -123,6 +123,14 @@
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
+  <Style x:Key="PageHeaderStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
+    <Setter Property="FontWeight" Value="Normal"/>
+    <Setter Property="FontSize" Value="36"/>
+    <Setter Property="LineHeight" Value="36"/>
+    <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+  </Style>
   <Style x:Key="DisplayTitleStyle" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource HeadingFont}"/>
     <Setter Property="FontWeight" Value="Normal"/>
@@ -173,9 +181,15 @@
   <ControlTemplate x:Key="HomeHeroCtaButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="PressedVeil" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="HoverRing" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
+      <Border x:Name="PressedVeil" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
+      <Border x:Name="HoverRing" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
       <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
                         Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
@@ -198,10 +212,16 @@
 
   <ControlTemplate x:Key="HeroPrimaryButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid" UseLayoutRounding="True">
-      <Border x:Name="OuterRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="OuterRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
       <Border x:Name="Fill" Margin="4" Background="{TemplateBinding Background}" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="24"/>
-      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
-      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
+      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="24">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
+      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="24">
+        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
+      </Border>
       <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <Grid Margin="4">
         <Grid.ColumnDefinitions>

@@ -16,7 +16,7 @@
 
     <StackPanel Spacing="5">
       <TextBlock x:Name="Eyebrow" Style="{StaticResource TechLabelStyle}" Text="CAPTURAS LOCAIS"/>
-      <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleStyle}" Text="GALERIA"/>
+      <TextBlock x:Name="TitleText" Style="{StaticResource PageHeaderStyle}" Text="GALERIA"/>
       <TextBlock x:Name="SubtitleText" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" TextWrapping="Wrap"/>
     </StackPanel>
 

@@ -66,20 +66,25 @@ public sealed partial class SettingsPage : Page
 
         VisualCardTitle.Text = Strings.Tr("Interface e Visual");
         ReduceMotionTitle.Text = Strings.Tr("Reduzir movimento");
+        ReduceMotionDesc.Text = Strings.Tr("Remove transições e a rotação automática de arte.");
         ArtworkTitle.Text = Strings.Tr("Baixar imagens dos jogos");
-        // O v2 mostra só o título; a explicação completa fica no tooltip.
+        ArtworkDesc.Text = Strings.Tr("Baixa capas e banners das lojas. Desligado, só usa o que já existe no PC.");
+        // O v2 mostra o título e descrição; a explicação completa fica no tooltip.
         ToolTipService.SetToolTip(ReduceMotionTitle, Strings.Tr("Desativa animações e transições visuais para resposta imediata."));
         ToolTipService.SetToolTip(ArtworkTitle, Strings.Tr("Carrega capas e banners oficiais do cache local dos seus launchers. Desligado, usa miniaturas neutras."));
 
         NetworkCardTitle.Text = Strings.Tr("Privacidade e Rede");
         LocationTitle.Text = Strings.Tr("Localização aproximada");
+        LocationDesc.Text = Strings.Tr("Usada só para centralizar o mapa da rota. Fica neste PC.");
         ToolTipService.SetToolTip(LocationTitle, Strings.Tr("Usa a cidade estimada pelo IP para traçar a rota geográfica. Nunca utiliza GPS."));
         AnalyticsTitle.Text = Strings.Tr("Enviar estatísticas anônimas");
+        AnalyticsDesc.Text = Strings.Tr("Dados anônimos de uso. Você pode desligar quando quiser.");
         ToolTipService.SetToolTip(AnalyticsTitle, Strings.Tr("Apenas veredito e rota da partida. Sem endereço IP, nome de rede ou identificador pessoal."));
         RenewAnalyticsIdButton.Content = Strings.Tr("Gerar novo ID local");
 
         UpdatesCardTitle.Text = Strings.Tr("Atualizações");
         AutoUpdatesTitle.Text = Strings.Tr("Verificar automaticamente");
+        AutoUpdatesDesc.Text = Strings.Tr("Procura novas versões ao abrir o app.");
         ToolTipService.SetToolTip(AutoUpdatesTitle, Strings.Tr("Consulta periodicamente por novas versões no canal oficial do GitHub."));
         CheckUpdatesButton.Content = Strings.Tr("Verificar agora");
 
