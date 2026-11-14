@@ -121,4 +121,31 @@ public sealed class LocalizationTests
             CultureInfo.CurrentUICulture = prev;
         }
     }
+
+    [Fact]
+    public void Settings_ps5_categories_and_fullscreen_strings_are_localized_correctly()
+    {
+        var service = LocalizationService.Instance;
+
+        service.SelectedLanguage = AppLanguage.PtBr;
+        Assert.Equal("Tela e janela", Strings.Tr("Tela e janela"));
+        Assert.Equal("Modo tela cheia", Strings.Tr("Modo tela cheia"));
+        Assert.Equal("Abrir em tela cheia", Strings.Tr("Abrir em tela cheia"));
+        Assert.Equal("Ligado", Strings.Tr("Ligado"));
+        Assert.Equal("Desligado", Strings.Tr("Desligado"));
+
+        service.SelectedLanguage = AppLanguage.En;
+        Assert.Equal("Screen and window", Strings.Tr("Tela e janela"));
+        Assert.Equal("Full screen mode", Strings.Tr("Modo tela cheia"));
+        Assert.Equal("Open in full screen", Strings.Tr("Abrir em tela cheia"));
+        Assert.Equal("On", Strings.Tr("Ligado"));
+        Assert.Equal("Off", Strings.Tr("Desligado"));
+
+        service.SelectedLanguage = AppLanguage.Es;
+        Assert.Equal("Pantalla y ventana", Strings.Tr("Tela e janela"));
+        Assert.Equal("Modo pantalla completa", Strings.Tr("Modo tela cheia"));
+        Assert.Equal("Abrir en pantalla completa", Strings.Tr("Abrir em tela cheia"));
+        Assert.Equal("Activado", Strings.Tr("Ligado"));
+        Assert.Equal("Desactivado", Strings.Tr("Desligado"));
+    }
 }

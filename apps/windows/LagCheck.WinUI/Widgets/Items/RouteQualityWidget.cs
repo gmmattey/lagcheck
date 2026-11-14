@@ -52,7 +52,6 @@ public sealed class RouteQualityWidget : IHomeWidget
             return new WidgetContent(
                 State: WidgetState.Empty,
                 Message: Strings.Tr("Sem teste ainda."),
-                Activate: () => context.Actions.OpenHistory(),
                 Summary: Strings.Tr("Sem teste ainda."));
         }
 
@@ -85,7 +84,6 @@ public sealed class RouteQualityWidget : IHomeWidget
             Body: body,
             Caption: caption,
             Action: action,
-            Activate: () => context.Actions.OpenHistory(),
             Accent: accentBrush,
             Summary: summary);
     }

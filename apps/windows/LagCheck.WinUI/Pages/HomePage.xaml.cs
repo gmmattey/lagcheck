@@ -336,8 +336,7 @@ public sealed partial class HomePage : Page
         EmptyHeroPanel.Visibility = Visibility.Collapsed;
 
         GameTitleText.Text = hero.Title.ToUpperInvariant();
-        GameMetaText.Text = string.Join(" · ", new[] { hero.PlatformLabel, hero.Info?.Genres.FirstOrDefault(), hero.NetworkLabel }.Where(value => !string.IsNullOrWhiteSpace(value)));
-        GameMetaPill.Visibility = string.IsNullOrWhiteSpace(GameMetaText.Text) ? Visibility.Collapsed : Visibility.Visible;
+        GamePillsHost.Child = GamePills.Create(hero);
         ApplyPlatform(hero);
         ApplyVerdict(hero);
 

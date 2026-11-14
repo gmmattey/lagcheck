@@ -29,5 +29,7 @@
     <Compile Include="..\LagCheck.WinUI\Library\LibraryViewModel.cs" Link="Library\LibraryViewModel.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\LibraryWireParser.cs" Link="Library\LibraryWireParser.cs" />
     <Compile Include="..\LagCheck.WinUI\Widgets\WidgetLayout.cs" Link="Widgets\WidgetLayout.cs" />
+    <Compile Include="..\LagCheck.WinUI\Controls\GamePills.cs" Link="Controls\GamePills.cs" />
+    <Compile Include="..\LagCheck.WinUI\Window\WindowPrefsStore.cs" Link="Window\WindowPrefsStore.cs" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Windows.Graphics;
+using LagCheck.WinUI.Windowing;
 
 namespace LagCheck.WinUI;
 
@@ -40,6 +41,27 @@ public sealed partial class MainWindow : Window
             titleBar.ButtonForegroundColor = ColorHelper.FromArgb(255, 245, 247, 252); // #F5F7FC
             titleBar.ButtonHoverForegroundColor = Colors.White;
             titleBar.ButtonInactiveForegroundColor = ColorHelper.FromArgb(255, 104, 114, 133); // #687285
+        }
+
+        WindowMode.Attach(this);
+        if (WindowMode.StartFullScreen)
+        {
+            try
+            {
+                WindowMode.SetFullScreen(true);
+            }
+            catch
+            {
+                // Se o presenter não puder ser trocado antes do Activate, o DispatcherQueue garante logo depois.
+            }
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (WindowMode.StartFullScreen && !WindowMode.IsFullScreen)
+                {
+                    WindowMode.SetFullScreen(true);
+                }
+            });
         }
     }
 }

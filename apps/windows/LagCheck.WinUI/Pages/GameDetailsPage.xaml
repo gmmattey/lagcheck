@@ -4,102 +4,114 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ctl="using:LagCheck.WinUI.Controls"
     xmlns:automation="using:Microsoft.UI.Xaml.Automation"
-    Background="Transparent">
+    Background="Transparent"
+    SizeChanged="GameDetailsPage_SizeChanged">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="0">
-            <!-- Banner imersivo (456px) que sobe por baixo da barra de título -->
-            <Grid Height="456">
-                <Image x:Name="BannerImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#EB0B0D12" Offset="0"/>
-                            <GradientStop Color="#800B0D12" Offset="0.5"/>
-                            <GradientStop Color="#1A0B0D12" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-                <Rectangle>
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#660B0D12" Offset="0"/>
-                            <GradientStop Color="#000B0D12" Offset="0.3"/>
-                            <GradientStop Color="#000B0D12" Offset="0.55"/>
-                            <GradientStop Color="#FF11141B" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+    <Grid Background="Transparent">
+        <!-- Camada de arte e escurecimento FIXA (não rola com o ScrollViewer) -->
+        <Grid x:Name="BackgroundLayer" Visibility="Collapsed">
+            <Image x:Name="BackgroundImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <!-- (a) Camada de escurecimento vertical fixa: #8C070914 (topo) -> #B8070914 (45%) -> #F2070914 (100%) -->
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#33070914" Offset="0"/>
+                        <GradientStop Color="#59070914" Offset="0.45"/>
+                        <GradientStop Color="#E6070914" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <!-- (b) Camada de escurecimento horizontal fixa: #CC070914 (0%) -> #66070914 (55%) -> #00070914 (100%) -->
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#D9070914" Offset="0"/>
+                        <GradientStop Color="#80070914" Offset="0.55"/>
+                        <GradientStop Color="#00070914" Offset="1"/>
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Grid>
 
-                <Button x:Name="BackBtn" Click="GoBack_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,72,0,0"
-                        Height="36" CornerRadius="18" Padding="10,0,16,0" Background="#D9252A36" automation:AutomationProperties.Name="Voltar">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <ctl:SvgIcon Data="M15 6l-6 6 6 6" Size="16" StrokeWidth="2.5" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <TextBlock x:Name="BackBtnText" Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <!-- ScrollViewer rola por cima da arte fixa -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="0">
+                <!-- Primeira seção com altura ~ 58% da janela (MinHeight 420) -->
+                <Grid x:Name="HeroSection" MinHeight="420">
+                    <Button x:Name="BackBtn" Click="GoBack_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,72,0,0"
+                            Height="36" CornerRadius="18" Padding="10,0,16,0" Background="#D9252A36" automation:AutomationProperties.Name="Voltar">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ctl:SvgIcon Data="M15 6l-6 6 6 6" Size="16" StrokeWidth="2.5" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock x:Name="BackBtnText" Text="Voltar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel VerticalAlignment="Bottom" Margin="48,0,48,32" Spacing="14" MaxWidth="820" HorizontalAlignment="Left">
+                        <Border x:Name="PlatformPill" Background="#D9282E3C" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock x:Name="PlatformText" Text="PC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="64" LineStackingStrategy="BlockLineHeight"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
+                        <!-- Pílulas de gênero/modo (Tarefa 3) -->
+                        <Border x:Name="GamePillsHost" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                            <Grid>
+                                <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
+                                <Button x:Name="LaunchBtn" Style="{StaticResource HeroPrimaryButtonStyle}" Content="JOGAR AGORA" Click="Launch_Click"/>
+                            </Grid>
+                            <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Testar conexão" Click="CheckConnection_Click"/>
+                            <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">
+                                <ctl:SvgIcon x:Name="FavIcon" Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
-                </Button>
+                </Grid>
 
-                <StackPanel VerticalAlignment="Bottom" Margin="48,0,48,30" Spacing="16">
-                    <Border x:Name="PlatformPill" Background="#D9282E3C" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <TextBlock x:Name="PlatformText" Text="PC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="64" LineStackingStrategy="BlockLineHeight"
-                               TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Grid>
-                            <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
-                            <Button x:Name="LaunchBtn" Style="{StaticResource HeroPrimaryButtonStyle}" Content="JOGAR AGORA" Click="Launch_Click"/>
-                        </Grid>
-                        <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Testar conexão" Click="CheckConnection_Click"/>
-                        <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">
-                            <ctl:SvgIcon x:Name="FavIcon" Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Button>
+                <!-- Conteúdo em duas colunas -->
+                <Grid Padding="48,16,48,56" ColumnSpacing="40">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="340"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="22">
+                        <!-- Card de vidro para o texto corrido da descrição (Padding 20,16) -->
+                        <Border x:Name="DescriptionCard" Style="{StaticResource PremiumCardStyle}" Padding="20,16" Visibility="Collapsed">
+                            <TextBlock x:Name="DescriptionText" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" LineHeight="23" TextWrapping="Wrap" MaxWidth="760" HorizontalAlignment="Left"/>
+                        </Border>
+
+                        <Border x:Name="ShotsCard" Style="{StaticResource PremiumCardStyle}" Padding="22,18" Visibility="Collapsed">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Name="ShotsEyebrow" Text="CAPTURAS" Style="{StaticResource TechLabelStyle}"/>
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
+                                    <StackPanel x:Name="ShotsPanel" Orientation="Horizontal" Spacing="12" Padding="0,0,0,8"/>
+                                </ScrollViewer>
+                                <TextBlock x:Name="ShotsNote" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </StackPanel>
-            </Grid>
 
-            <!-- Conteúdo em duas colunas -->
-            <Grid Padding="48,8,48,56" ColumnSpacing="40">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="340"/>
-                </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Spacing="20">
+                        <Border Style="{StaticResource PremiumCardStyle}" Padding="22,8">
+                            <StackPanel x:Name="FactsPanel"/>
+                        </Border>
 
-                <StackPanel Grid.Column="0" Spacing="22">
-                    <TextBlock x:Name="DescriptionText" Visibility="Collapsed" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" LineHeight="23" TextWrapping="Wrap" MaxWidth="760" HorizontalAlignment="Left"/>
-                    <ctl:WrapPanel x:Name="TagsPanel" Spacing="8"/>
-
-                    <Border x:Name="ShotsCard" Style="{StaticResource PremiumCardStyle}" Padding="22,18" Visibility="Collapsed">
-                        <StackPanel Spacing="12">
-                            <TextBlock x:Name="ShotsEyebrow" Text="CAPTURAS" Style="{StaticResource TechLabelStyle}"/>
-                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
-                                <StackPanel x:Name="ShotsPanel" Orientation="Horizontal" Spacing="12" Padding="0,0,0,8"/>
-                            </ScrollViewer>
-                            <TextBlock x:Name="ShotsNote" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Spacing="20">
-                    <Border Style="{StaticResource PremiumCardStyle}" Padding="22,8">
-                        <StackPanel x:Name="FactsPanel"/>
-                    </Border>
-
-                    <Border Style="{StaticResource PremiumCardStyle}" Padding="22,18">
-                        <StackPanel Spacing="6">
-                            <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource TechLabelStyle}"/>
-                            <StackPanel x:Name="HistoryPanel"/>
-                            <TextBlock x:Name="HistStatusText" Text="Sem medições" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="19.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <Button x:Name="MeasureNowBtn" Content="Testar agora" Style="{StaticResource SecondaryCompactButtonStyle}"
-                                    Margin="0,8,0,0" Click="CheckConnection_Click" HorizontalAlignment="Left"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+                        <Border Style="{StaticResource PremiumCardStyle}" Padding="22,18">
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource TechLabelStyle}"/>
+                                <StackPanel x:Name="HistoryPanel"/>
+                                <TextBlock x:Name="HistStatusText" Text="Sem medições" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="19.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                <Button x:Name="MeasureNowBtn" Content="Testar agora" Style="{StaticResource SecondaryCompactButtonStyle}"
+                                        Margin="0,8,0,0" Click="CheckConnection_Click" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </Page>

@@ -17,7 +17,7 @@
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Grid x:Name="Stage" Padding="24,12,24,20" RowSpacing="14">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <Grid Grid.Row="0" RowSpacing="8">
-      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="150"/></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="170"/></Grid.RowDefinitions>
       <Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
           <Button x:Name="TopLibraryBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenLibrary_Click" automation:AutomationProperties.Name="Biblioteca"><ctl:SvgIcon Data="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" Size="16"/></Button>
@@ -27,7 +27,7 @@
           <Button x:Name="TopSettingsBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenSettings_Click" automation:AutomationProperties.Name="Ajustes"><FontIcon Glyph="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}"/></Button>
         </StackPanel>
       </Grid>
-      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled"><StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,4,4"/></ScrollViewer>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled" Margin="-14,-12,-14,0" Padding="14,12,14,8"><StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="6" Padding="0"/></ScrollViewer>
     </Grid>
     <Grid x:Name="HomeContentGrid" Grid.Row="1" ColumnSpacing="14"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="260"/></Grid.ColumnDefinitions>
       <!-- Hero sem camada visual: texto e ações voltam ao canto inferior esquerdo da arte original. -->
@@ -36,7 +36,7 @@
           <StackPanel x:Name="GameHeroPanel" Spacing="12" VerticalAlignment="Center">
             <Border x:Name="PlatformPill" Background="#D9282E3C" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left"><StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/><ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/><TextBlock x:Name="PlatformText" Text="PC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Border>
             <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="54" LineHeight="53" LineStackingStrategy="BlockLineHeight" CharacterSpacing="-10" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-            <Border x:Name="GameMetaPill" Background="#B30B0D12" CornerRadius="14" Padding="14,6" HorizontalAlignment="Left"><TextBlock x:Name="GameMetaText" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" TextWrapping="Wrap"/></Border>
+            <Border x:Name="GamePillsHost" HorizontalAlignment="Left"/>
             <StackPanel x:Name="HeroVerdictPanel" Orientation="Horizontal" Spacing="14" Visibility="Collapsed"><Border x:Name="VerdictBorder" CornerRadius="14" Padding="16,7" Background="#2922C55E"><TextBlock x:Name="VerdictText" FontWeight="Bold" FontSize="13" CharacterSpacing="25" Foreground="{StaticResource ReadyBrush}"/></Border><TextBlock x:Name="PingEstimateText" Style="{StaticResource MetricTextStyle}" FontSize="22" VerticalAlignment="Center"/></StackPanel>
             <StackPanel x:Name="HeroActions" Spacing="8" Margin="0,4,0,0">
               <Border x:Name="LaunchCtaRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="28" Padding="4" UseLayoutRounding="True" HorizontalAlignment="Left"><Grid><Rectangle x:Name="LaunchGlow" RadiusX="24" RadiusY="24" Fill="{StaticResource PurpleBrush}"/><Button x:Name="LaunchBtn" Style="{StaticResource HomeHeroCtaButtonStyle}" MinWidth="232" Click="Launch_Click" automation:AutomationProperties.Name="Jogar agora"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="44"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions><TextBlock x:Name="LaunchBtnText" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CharacterSpacing="25" Foreground="White"/><Grid Grid.Column="2" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center"><Ellipse Fill="White"/><FontIcon Glyph="&#xE72A;" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource PurpleBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid></Grid></Button></Grid></Border>

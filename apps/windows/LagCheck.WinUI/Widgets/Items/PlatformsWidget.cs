@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 using LagCheck.WinUI.Controls;
+using LagCheck.WinUI.Library;
 using LagCheck.WinUI.Localization;
 using LagCheck.WinUI.PlatformStatus;
 
@@ -14,21 +15,64 @@ namespace LagCheck.WinUI.Widgets.Items;
 
 public sealed class PlatformsWidget : IHomeWidget
 {
+    private bool _isSinglePlatform;
+
     public string Id => "platforms";
-    public string Title => Strings.Tr("PLATAFORMAS");
+    public string Title => Strings.Tr(_isSinglePlatform ? "PLATAFORMA" : "PLATAFORMAS");
     public string IconPath => "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z";
 
-    public bool IsAvailable(WidgetContext context) => true;
+    private static string? KnownPlatformId(GamePlatform platform) => platform switch
+    {
+        GamePlatform.Steam => "steam",
+        GamePlatform.EpicGames => "epicgames",
+        GamePlatform.Xbox => "xbox",
+        _ => null,
+    };
 
-    public IReadOnlyList<WidgetSpan> Sizes(WidgetContext context) =>
-    [
-        new WidgetSpan(2, 2),
-        new WidgetSpan(2, 1),
-        new WidgetSpan(4, 1),
-    ];
+    public bool IsAvailable(WidgetContext context)
+    {
+        if (context.IsPc)
+        {
+            _isSinglePlatform = false;
+            return true;
+        }
+
+        if (context.Game is { } game)
+        {
+            var isOnline = game.Info?.IsOnline == true || game.NetworkKind == GameNetworkKind.Supported;
+            if (isOnline && KnownPlatformId(game.Platform) is not null)
+            {
+                _isSinglePlatform = true;
+                return true;
+            }
+        }
+
+        _isSinglePlatform = false;
+        return false;
+    }
+
+    public IReadOnlyList<WidgetSpan> Sizes(WidgetContext context)
+    {
+        if (!context.IsPc && context.Game is not null)
+        {
+            return
+            [
+                new WidgetSpan(2, 1),
+                new WidgetSpan(2, 2),
+            ];
+        }
+
+        return
+        [
+            new WidgetSpan(2, 2),
+            new WidgetSpan(2, 1),
+            new WidgetSpan(4, 1),
+        ];
+    }
 
     public WidgetContent Render(WidgetContext context, WidgetSpan span)
     {
+        _isSinglePlatform = !context.IsPc && context.Game is not null;
         var effectiveSpan = Sizes(context).Contains(span) ? span : Sizes(context)[0];
 
         if (context.PlatformsLoading && context.Platforms is null)
@@ -50,9 +94,12 @@ public sealed class PlatformsWidget : IHomeWidget
         var isStale = snapshot.Availability is PlatformStatusAvailability.Stale or PlatformStatusAvailability.Unavailable
             || (DateTimeOffset.UtcNow - snapshot.RetrievedAt) > TimeSpan.FromMinutes(5);
 
+        var targetPlatformId = !context.IsPc && context.Game is { } g ? KnownPlatformId(g.Platform) : null;
         var list = (context.IsPc
             ? snapshot.Platforms.Where(p => p.Id is "steam" or "epicgames" or "xbox")
-            : snapshot.Platforms).ToList();
+            : targetPlatformId is not null
+                ? snapshot.Platforms.Where(p => string.Equals(p.Id, targetPlatformId, StringComparison.OrdinalIgnoreCase))
+                : snapshot.Platforms).ToList();
 
         var (worstColor, worstState) = DetermineWorstState(list, isStale);
         var accentBrush = new SolidColorBrush(worstColor);
@@ -61,19 +108,27 @@ public sealed class PlatformsWidget : IHomeWidget
         var action = new WidgetAction(Strings.Tr("Atualizar"), () => context.Actions.RefreshPlatforms(), string.Empty);
 
         var summary = isStale
-            ? Strings.Tr("Status das plataformas desatualizado.")
-            : Strings.Format(
-                "Status das plataformas: {0}.",
-                worstState == PlatformServiceState.Operational
-                    ? Strings.Tr("todos os serviços operacionais")
-                    : Strings.Tr("instabilidade detectada"));
+            ? Strings.Tr(_isSinglePlatform ? "Status da plataforma desatualizado." : "Status das plataformas desatualizado.")
+            : _isSinglePlatform
+                ? Strings.Format(
+                    "Status da plataforma: {0}.",
+                    worstState == PlatformServiceState.Operational
+                        ? Strings.Tr("operacional")
+                        : Strings.Tr("instabilidade detectada"))
+                : Strings.Format(
+                    "Status das plataformas: {0}.",
+                    worstState == PlatformServiceState.Operational
+                        ? Strings.Tr("todos os serviços operacionais")
+                        : Strings.Tr("instabilidade detectada"));
 
-        var body = effectiveSpan switch
-        {
-            { Cols: 2, Rows: 1 } => BuildCompactIconsBody(list, isStale),
-            { Cols: 4, Rows: 1 } => BuildWideLineBody(list, isStale),
-            _ => BuildFullRowsBody(list, isStale),
-        };
+        var body = _isSinglePlatform
+            ? BuildFullRowsBody(list, isStale)
+            : effectiveSpan switch
+            {
+                { Cols: 2, Rows: 1 } => BuildCompactIconsBody(list, isStale),
+                { Cols: 4, Rows: 1 } => BuildWideLineBody(list, isStale),
+                _ => BuildFullRowsBody(list, isStale),
+            };
 
         return new WidgetContent(
             State: isStale ? WidgetState.Stale : WidgetState.Ready,

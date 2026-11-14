@@ -24,13 +24,18 @@ public enum WidgetState
 /// <summary>Ação do cabeçalho do card (link à direita), ex.: "Ver histórico", "Atualizar".</summary>
 public sealed record WidgetAction(string Label, Action Invoke, string? IconGlyph = null);
 
-/// <summary>O que um widget quer exibir agora. Records imutáveis: o host compara e só redesenha o que mudou.</summary>
+/// <summary>
+/// O que um widget quer exibir agora. Records imutáveis: o host compara e só redesenha o que mudou.
+/// Use <paramref name="Activate"/> somente quando clicar no card leva ao destino óbvio (ex.: Atividade -> detalhes do jogo);
+/// caso contrário, prefira uma ação explícita no cabeçalho (<paramref name="Action"/>).
+/// </summary>
 public sealed record WidgetContent(
     WidgetState State,
     UIElement? Body = null,
     string? Message = null,
     string? Caption = null,
     WidgetAction? Action = null,
+    /// <summary>Ação ao clicar no card inteiro. Usar Activate só quando clicar no card leva ao destino óbvio (ex.: Atividade -> detalhes do jogo); caso contrário, ação explícita no cabeçalho.</summary>
     Action? Activate = null,
     Brush? Accent = null,
     string? Summary = null);

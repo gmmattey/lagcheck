@@ -2,63 +2,171 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ctl="using:LagCheck.WinUI.Controls"
-      xmlns:automation="using:Microsoft.UI.Xaml.Automation"
-      Background="#B9000000" KeyDown="SettingsPage_KeyDown">
-  <Page.Resources>
-    <Style x:Key="SettingsSectionTitle" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-    </Style>
-    <Style x:Key="SettingsRowTitle" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="14"/>
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="TextWrapping" Value="Wrap"/>
-    </Style>
-  </Page.Resources>
-  <Grid Padding="24,20,24,24">
-    <Border MaxWidth="680" MaxHeight="760" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-            Background="{StaticResource GlassStrongBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1" CornerRadius="20">
-      <Grid>
-        <Grid.RowDefinitions><RowDefinition Height="52"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Background="#29323B49" CornerRadius="19,19,0,0" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1" Padding="20,0">
-          <Grid ColumnSpacing="10">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <ctl:SvgIcon Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l2 2" Size="16" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-            <TextBlock x:Name="HeaderTitle" Grid.Column="1" Text="Ajustes" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            <Button x:Name="CloseButton" Grid.Column="2" MinWidth="44" MinHeight="44" Padding="0" Background="Transparent" BorderThickness="0" Click="Close_Click" automation:AutomationProperties.Name="Voltar ao início">
-              <FontIcon Glyph="&#xE8BB;" FontFamily="Segoe Fluent Icons" FontSize="13"/>
-            </Button>
-          </Grid>
-        </Border>
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,12,24,20">
-          <StackPanel>
-            <TextBlock x:Name="VisualCardTitle" Text="Interface e Visual" Style="{StaticResource SettingsSectionTitle}" Margin="0,10,0,8"/>
-            <Grid MinHeight="56" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="ReduceMotionTitle" Text="Reduzir movimento" Style="{StaticResource SettingsRowTitle}"/><TextBlock x:Name="ReduceMotionDesc" Text="Remove transições e a rotação automática de arte." Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><ToggleSwitch x:Name="ReduceMotionSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="reduceMotion" OffContent="" OnContent="" MinWidth="0" VerticalAlignment="Center"/></Grid>
-            <Border Height="1" Background="#1AFFFFFF"/>
-            <Grid MinHeight="56" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="ArtworkTitle" Text="Baixar imagens dos jogos" Style="{StaticResource SettingsRowTitle}"/><TextBlock x:Name="ArtworkDesc" Text="Baixa capas e banners das lojas. Desligado, só usa o que já existe no PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><ToggleSwitch x:Name="ArtworkSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="artworkDownload" OffContent="" OnContent="" MinWidth="0" VerticalAlignment="Center"/></Grid>
-            <Border Height="1" Background="#1AFFFFFF"/>
-            <Grid MinHeight="58" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="LanguageTitle" Text="Idioma do aplicativo" Style="{StaticResource SettingsRowTitle}"/><ComboBox x:Name="LanguageComboBox" Grid.Column="1" MinWidth="160" MaxWidth="210" SelectionChanged="LanguageComboBox_SelectionChanged" MinHeight="40" CornerRadius="6"><ComboBoxItem x:Name="LangItemSystem" Content="Sistema (Padrão)" Tag="system"/><ComboBoxItem Content="Português (Brasil)" Tag="pt-BR"/><ComboBoxItem Content="English" Tag="en"/><ComboBoxItem Content="Español" Tag="es"/></ComboBox></Grid>
-            <Border Height="1" Background="#29FFFFFF" Margin="0,8,0,0"/>
+      Background="Transparent"
+      KeyDown="SettingsPage_KeyDown"
+      SizeChanged="SettingsPage_SizeChanged">
+  <Grid>
+    <Grid Margin="{StaticResource PagePadding}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
 
-            <TextBlock x:Name="NetworkCardTitle" Text="Privacidade e Rede" Style="{StaticResource SettingsSectionTitle}" Margin="0,20,0,8"/>
-            <Grid MinHeight="56" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="LocationTitle" Text="Localização aproximada" Style="{StaticResource SettingsRowTitle}"/><TextBlock x:Name="LocationDesc" Text="Usada só para centralizar o mapa da rota. Fica neste PC." Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><ToggleSwitch x:Name="ApproximateLocationSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="approximateLocation" OffContent="" OnContent="" MinWidth="0" VerticalAlignment="Center"/></Grid>
-            <Border Height="1" Background="#1AFFFFFF"/>
-            <Grid MinHeight="56" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="AnalyticsTitle" Text="Enviar estatísticas anônimas" Style="{StaticResource SettingsRowTitle}"/><TextBlock x:Name="AnalyticsDesc" Text="Dados anônimos de uso. Você pode desligar quando quiser." Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><ToggleSwitch x:Name="AnalyticsSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="analytics" OffContent="" OnContent="" MinWidth="0" VerticalAlignment="Center"/></Grid>
-            <Grid MinHeight="52" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="AnalyticsStatus" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/><Button x:Name="RenewAnalyticsIdButton" Grid.Column="1" Content="Gerar novo ID local" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinHeight="40" Click="RenewAnalyticsId_Click"/></Grid>
-            <Border Height="1" Background="#29FFFFFF" Margin="0,8,0,0"/>
+      <!-- Título grande no topo à esquerda sem moldura -->
+      <TextBlock x:Name="HeaderTitle"
+                 Text="AJUSTES"
+                 Style="{StaticResource PageHeaderStyle}"
+                 Margin="0,0,0,24"/>
 
-            <TextBlock x:Name="UpdatesCardTitle" Text="Atualizações" Style="{StaticResource SettingsSectionTitle}" Margin="0,20,0,8"/>
-            <Grid MinHeight="56" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center" Spacing="2"><TextBlock x:Name="AutoUpdatesTitle" Text="Verificar automaticamente" Style="{StaticResource SettingsRowTitle}"/><TextBlock x:Name="AutoUpdatesDesc" Text="Procura novas versões ao abrir o app." Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap"/></StackPanel><ToggleSwitch x:Name="AutomaticUpdatesSwitch" Grid.Column="1" IsEnabled="False" Toggled="Preference_Toggled" Tag="automaticUpdates" OffContent="" OnContent="" MinWidth="0" VerticalAlignment="Center"/></Grid>
-            <Border Height="1" Background="#1AFFFFFF"/>
-            <Grid MinHeight="58" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="UpdateStatus" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/><Button x:Name="CheckUpdatesButton" Grid.Column="1" Content="Verificar agora" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinHeight="40" Click="CheckUpdates_Click"/></Grid>
-            <Border Height="1" Background="#29FFFFFF" Margin="0,8,0,0"/>
+      <!-- Grade principal: categorias à esquerda e linhas à direita -->
+      <Grid x:Name="LayoutGrid" Grid.Row="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition x:Name="CategoriesColDef" Width="300"/>
+          <ColumnDefinition x:Name="SpacingColDef" Width="40"/>
+          <ColumnDefinition x:Name="ContentColDef" Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition x:Name="TopCategoriesRowDef" Height="Auto"/>
+          <RowDefinition x:Name="MainContentRowDef" Height="*"/>
+        </Grid.RowDefinitions>
 
-            <TextBlock x:Name="AboutCardTitle" Text="Sobre o LagCheck" Style="{StaticResource SettingsSectionTitle}" Margin="0,20,0,10"/>
-            <TextBlock x:Name="AboutVersion" Text="Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial" FontFamily="{StaticResource TechnicalFont}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <!-- Coluna de Categorias -->
+        <ScrollViewer x:Name="CategoriesScrollViewer"
+                      Grid.Column="0" Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel x:Name="CategoriesPanel" Spacing="6">
+            <ctl:SettingsCategoryButton x:Name="CatScreen" Title="Tela e janela" Selected="Category_Selected"/>
+            <ctl:SettingsCategoryButton x:Name="CatAppearance" Title="Aparência e idioma" Selected="Category_Selected"/>
+            <ctl:SettingsCategoryButton x:Name="CatGames" Title="Jogos e imagens" Selected="Category_Selected"/>
+            <ctl:SettingsCategoryButton x:Name="CatPrivacy" Title="Privacidade e rede" Selected="Category_Selected"/>
+            <ctl:SettingsCategoryButton x:Name="CatUpdates" Title="Atualizações" Selected="Category_Selected"/>
+            <ctl:SettingsCategoryButton x:Name="CatAbout" Title="Sobre o LagCheck" Selected="Category_Selected"/>
           </StackPanel>
         </ScrollViewer>
+
+        <!-- Coluna de Linhas (Conteúdo da Categoria Ativa) -->
+        <ScrollViewer x:Name="ContentScrollViewer"
+                      Grid.Column="2" Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="0,0,16,0">
+          <Grid x:Name="PanelsContainer" HorizontalAlignment="Stretch" Background="#8C070914" CornerRadius="20" Padding="12,4,12,4">
+
+            <!-- Painel: Tela e janela -->
+            <StackPanel x:Name="PanelScreen" Spacing="0">
+              <ctl:SettingsRow x:Name="RowFullScreenMode"
+                               Title="Modo tela cheia"
+                               Description="Alterna entre janela e tela cheia. Atalho: F11.">
+                <ToggleSwitch x:Name="FullScreenModeSwitch" Toggled="FullScreenModeSwitch_Toggled"/>
+              </ctl:SettingsRow>
+              <ctl:SettingsRow x:Name="RowStartFullScreen"
+                               Title="Abrir em tela cheia"
+                               Description="Inicia o LagCheck já em tela cheia.">
+                <ToggleSwitch x:Name="StartFullScreenSwitch" Toggled="StartFullScreenSwitch_Toggled"/>
+              </ctl:SettingsRow>
+            </StackPanel>
+
+            <!-- Painel: Aparência e idioma -->
+            <StackPanel x:Name="PanelAppearance" Spacing="0" Visibility="Collapsed">
+              <ctl:SettingsRow x:Name="RowReduceMotion"
+                               Title="Reduzir movimento"
+                               Description="Remove transições e a rotação automática de arte.">
+                <ToggleSwitch x:Name="ReduceMotionSwitch"
+                              IsEnabled="False"
+                              Toggled="Preference_Toggled"
+                              Tag="reduceMotion"/>
+              </ctl:SettingsRow>
+              <ctl:SettingsRow x:Name="RowLanguage"
+                               Title="Idioma do aplicativo"
+                               Description="Escolha o idioma da interface. Por padrão, segue as configurações do Windows.">
+                <ComboBox x:Name="LanguageComboBox"
+                          MinWidth="160" MaxWidth="220"
+                          SelectionChanged="LanguageComboBox_SelectionChanged"
+                          MinHeight="38" CornerRadius="6">
+                  <ComboBoxItem x:Name="LangItemSystem" Content="Sistema (Padrão)" Tag="system"/>
+                  <ComboBoxItem Content="Português (Brasil)" Tag="pt-BR"/>
+                  <ComboBoxItem Content="English" Tag="en"/>
+                  <ComboBoxItem Content="Español" Tag="es"/>
+                </ComboBox>
+              </ctl:SettingsRow>
+            </StackPanel>
+
+            <!-- Painel: Jogos e imagens -->
+            <StackPanel x:Name="PanelGames" Spacing="0" Visibility="Collapsed">
+              <ctl:SettingsRow x:Name="RowArtwork"
+                               Title="Baixar imagens dos jogos"
+                               Description="Baixa capas e banners das lojas. Desligado, só usa o que já existe no PC.">
+                <ToggleSwitch x:Name="ArtworkSwitch"
+                              IsEnabled="False"
+                              Toggled="Preference_Toggled"
+                              Tag="artworkDownload"/>
+              </ctl:SettingsRow>
+            </StackPanel>
+
+            <!-- Painel: Privacidade e rede -->
+            <StackPanel x:Name="PanelPrivacy" Spacing="0" Visibility="Collapsed">
+              <ctl:SettingsRow x:Name="RowApproximateLocation"
+                               Title="Localização aproximada"
+                               Description="Usada só para centralizar o mapa da rota. Fica neste PC.">
+                <ToggleSwitch x:Name="ApproximateLocationSwitch"
+                              IsEnabled="False"
+                              Toggled="Preference_Toggled"
+                              Tag="approximateLocation"/>
+              </ctl:SettingsRow>
+              <ctl:SettingsRow x:Name="RowAnalytics"
+                               Title="Enviar estatísticas anônimas"
+                               Description="Dados anônimos de uso. Você pode desligar quando quiser.">
+                <ToggleSwitch x:Name="AnalyticsSwitch"
+                              IsEnabled="False"
+                              Toggled="Preference_Toggled"
+                              Tag="analytics"/>
+              </ctl:SettingsRow>
+              <ctl:SettingsRow x:Name="RowRenewAnalyticsId"
+                               Title="Gerar novo ID local"
+                               Description="">
+                <Button x:Name="RenewAnalyticsIdButton"
+                        Content="Gerar novo ID local"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        IsEnabled="False"
+                        MinHeight="36"
+                        Click="RenewAnalyticsId_Click"/>
+              </ctl:SettingsRow>
+            </StackPanel>
+
+            <!-- Painel: Atualizações -->
+            <StackPanel x:Name="PanelUpdates" Spacing="0" Visibility="Collapsed">
+              <ctl:SettingsRow x:Name="RowAutoUpdates"
+                               Title="Verificar automaticamente"
+                               Description="Procura novas versões ao abrir o app.">
+                <ToggleSwitch x:Name="AutomaticUpdatesSwitch"
+                              IsEnabled="False"
+                              Toggled="Preference_Toggled"
+                              Tag="automaticUpdates"/>
+              </ctl:SettingsRow>
+              <ctl:SettingsRow x:Name="RowCheckUpdates"
+                               Title="Verificar agora"
+                               Description="">
+                <Button x:Name="CheckUpdatesButton"
+                        Content="Verificar agora"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        IsEnabled="False"
+                        MinHeight="36"
+                        Click="CheckUpdates_Click"/>
+              </ctl:SettingsRow>
+            </StackPanel>
+
+            <!-- Painel: Sobre o LagCheck -->
+            <StackPanel x:Name="PanelAbout" Spacing="0" Visibility="Collapsed">
+              <ctl:SettingsRow x:Name="RowAbout"
+                               Title="Sobre o LagCheck"
+                               Description="LagCheck para Windows — Launcher gamer com pre-flight check de rede integrado. Sem conta obrigatória e sem anúncios."
+                               ValueText="v0.1.0 · WinUI 3 (x64) · Repositório Oficial"/>
+            </StackPanel>
+
+          </Grid>
+        </ScrollViewer>
       </Grid>
-    </Border>
+    </Grid>
   </Grid>
 </Page>

@@ -56,9 +56,18 @@ public sealed partial class GameDetailsPage : Page
         if (e.Parameter is LibraryGame game)
         {
             _game = game;
+            ApplyHeroSizing();
             BindGame();
             _ = ResolveArtworkAsync(game);
         }
+    }
+
+    private void GameDetailsPage_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyHeroSizing();
+
+    private void ApplyHeroSizing()
+    {
+        var height = Math.Max((ShellChrome.Shell?.ActualHeight ?? 0) is > 0 ? ShellChrome.Shell!.ActualHeight : ActualHeight, 420);
+        HeroSection.Height = Math.Max(420, height * 0.58);
     }
 
     private async System.Threading.Tasks.Task ResolveArtworkAsync(LibraryGame game)
@@ -95,7 +104,18 @@ public sealed partial class GameDetailsPage : Page
         if (logo is not null) PlatformLogo.Data = logo;
         ToolTipService.SetToolTip(PlatformPill, game.PlatformLabel);
 
-        BannerImage.Source = Artwork.Load(Artwork.FirstExisting(game.HeroArtworkPath, game.CoverArtworkPath));
+        var heroArt = Artwork.FirstExisting(game.HeroArtworkPath);
+        if (heroArt is not null)
+        {
+            BackgroundImage.Source = Artwork.Load(heroArt);
+            BackgroundLayer.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            BackgroundImage.Source = null;
+            BackgroundLayer.Visibility = Visibility.Collapsed;
+        }
+
         CheckConnBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
         MeasureNowBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
         var canLaunch = game.IsInstalled && game.IsLaunchable;
@@ -105,30 +125,11 @@ public sealed partial class GameDetailsPage : Page
         FavIcon.Foreground = game.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, game.FavoriteActionLabel);
 
+        GamePillsHost.Child = GamePills.Create(game);
+
         var description = !string.IsNullOrWhiteSpace(game.Info?.Description) ? game.Info!.Description : game.Description;
         DescriptionText.Text = description ?? string.Empty;
-        DescriptionText.Visibility = string.IsNullOrWhiteSpace(description) ? Visibility.Collapsed : Visibility.Visible;
-
-        TagsPanel.Children.Clear();
-        var chips = new List<string>(game.Tags.Count > 0 ? game.Tags : new List<string> { "PC", game.PlatformLabel });
-        if (game.Info is { } info)
-        {
-            // Selo de rede primeiro: é o dado que mais importa para um diagnóstico de conexão.
-            var modes = info.Modes.Select(GameInfo.ModeLabel).Where(label => label is not null).Cast<string>().ToList();
-            var genres = info.Genres.Take(3);
-            chips = modes.Concat(genres).Concat(chips.Where(tag => !modes.Contains(tag))).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
-        }
-        foreach (var tag in chips)
-        {
-            TagsPanel.Children.Add(new Border
-            {
-                Height = 32,
-                CornerRadius = new CornerRadius(16),
-                Background = new SolidColorBrush(Color.FromArgb(0xB8, 0x1C, 0x21, 0x2B)),
-                Padding = new Thickness(16, 0, 16, 0),
-                Child = new TextBlock { Text = tag, FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Medium, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"], VerticalAlignment = VerticalAlignment.Center },
-            });
-        }
+        DescriptionCard.Visibility = string.IsNullOrWhiteSpace(description) ? Visibility.Collapsed : Visibility.Visible;
         BindFacts(game);
         BindScreenshots(game);
         BindHistory();

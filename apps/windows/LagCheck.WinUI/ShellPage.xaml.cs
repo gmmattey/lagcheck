@@ -14,6 +14,7 @@ using LagCheck.WinUI.Diagnostic;
 using LagCheck.WinUI.Library;
 using LagCheck.WinUI.Localization;
 using LagCheck.WinUI.Pages;
+using LagCheck.WinUI.Windowing;
 
 namespace LagCheck.WinUI;
 
@@ -92,6 +93,18 @@ public sealed partial class ShellPage : Page
         var altLeft = new KeyboardAccelerator { Key = VirtualKey.Left, Modifiers = VirtualKeyModifiers.Menu };
         altLeft.Invoked += (_, e) => { if (_currentRoute != NavigationRoute.Home && !_navigationLocked) { NavigateBackFromOverlay(); e.Handled = true; } };
         KeyboardAccelerators.Add(altLeft);
+
+        // Atalho F11 global: alterna tela cheia / janela com toast
+        var f11 = new KeyboardAccelerator { Key = VirtualKey.F11, Modifiers = VirtualKeyModifiers.None };
+        f11.Invoked += (_, e) =>
+        {
+            var targetFullScreen = !WindowMode.IsFullScreen;
+            WindowMode.SetFullScreen(targetFullScreen);
+            ShowToast(Strings.Tr(targetFullScreen ? "Tela cheia" : "Modo janela"));
+            e.Handled = true;
+        };
+        KeyboardAccelerators.Add(f11);
+
         RootGrid.PointerPressed += (_, e) =>
         {
             if (e.GetCurrentPoint(RootGrid).Properties.IsXButton1Pressed && _currentRoute != NavigationRoute.Home && !_navigationLocked)
@@ -133,7 +146,6 @@ public sealed partial class ShellPage : Page
     {
         if (route == NavigationRoute.Settings && _currentRoute != NavigationRoute.Settings)
             _returnRoute = _currentRoute;
-        var keepHomeBackdrop = route == NavigationRoute.Settings && _currentRoute == NavigationRoute.Home;
         _currentRoute = route;
         _currentGameTitle = null;
 
@@ -154,7 +166,7 @@ public sealed partial class ShellPage : Page
         };
 
         // Fora do Início e do resultado de um jogo não há arte atrás da janela.
-        if (route != NavigationRoute.Home && !keepHomeBackdrop) ClearBackdrop();
+        if (route != NavigationRoute.Home) ClearBackdrop();
         NavigateFrame(pageType, null);
         UpdateTopNavigation();
     }
@@ -224,7 +236,7 @@ public sealed partial class ShellPage : Page
     /// <summary>Faixa de 56px da barra de título; só o banner de Detalhes sobe por baixo dela.</summary>
     private void ApplyStageMargins(Type? pageType)
     {
-        _stageTop = pageType == typeof(GameDetailsPage) || pageType == typeof(SettingsPage) ? 0 : 56;
+        _stageTop = pageType == typeof(GameDetailsPage) ? 0 : 56;
         ContentFrame.Margin = new Thickness(0, _stageTop, 0, 0);
     }
 
@@ -600,8 +612,7 @@ public sealed partial class ShellPage : Page
 
     private void UpdateTopNavigation()
     {
-        // Ajustes e Detalhes já exibem a própria seta no conteúdo; as demais telas usam a do topo.
-        var showsBack = _currentRoute is NavigationRoute.Gallery or NavigationRoute.Library or NavigationRoute.History or NavigationRoute.GeneralCheck;
+        var showsBack = _currentRoute is NavigationRoute.Gallery or NavigationRoute.Library or NavigationRoute.History or NavigationRoute.GeneralCheck or NavigationRoute.Settings;
         TopHomeButton.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;
         TopBrandIcon.Visibility = Visibility.Collapsed;
         TopBackIcon.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;

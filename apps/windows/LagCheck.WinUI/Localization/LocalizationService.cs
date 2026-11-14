@@ -169,6 +169,21 @@ public sealed class LocalizationService
         Add("DESATUALIZADO", "OUTDATED", "DESACTUALIZADO");
         Add("Arraste os cards para mover; use os botões para tamanho e visibilidade.", "Drag cards to move them; use the buttons for size and visibility.", "Arrastra las tarjetas para moverlas; usa los botones para tamaño y visibilidad.");
         Add("Não foi possível carregar este widget.", "Could not load this widget.", "No se pudo cargar este widget.");
+        Add("Escolher um jogo", "Choose a game", "Elegir un juego");
+        Add("Região de referência", "Reference region", "Región de referencia");
+        Add("Não foi possível pedir a abertura do jogo.", "Could not ask to open the game.", "No se pudo pedir la apertura del juego.");
+        Add("Não foi possível atualizar os favoritos.", "Could not update favorites.", "No se pudieron actualizar los favoritos.");
+        Add("HISTÓRICO", "HISTORY", "HISTORIAL");
+        Add("Sem testes ainda", "No tests yet", "Aún no hay pruebas");
+        Add("Teste sua conexão para ver aqui o histórico das medições.", "Test your connection to see your measurement history here.", "Prueba tu conexión para ver aquí el historial de mediciones.");
+        Add("Este PC", "This PC", "Este PC");
+        Add("Remove transições e a rotação automática de arte.", "Removes transitions and automatic artwork rotation.", "Quita transiciones y la rotación automática de arte.");
+        Add("Baixa capas e banners das lojas. Desligado, só usa o que já existe no PC.", "Downloads covers and banners from the stores. When off, it only uses what is already on this PC.", "Descarga portadas y banners de las tiendas. Apagado, solo usa lo que ya está en el PC.");
+        Add("Usada só para centralizar o mapa da rota. Fica neste PC.", "Only used to center the route map. Stays on this PC.", "Solo se usa para centrar el mapa de la ruta. Se queda en este PC.");
+        Add("Dados anônimos de uso. Você pode desligar quando quiser.", "Anonymous usage data. You can turn it off anytime.", "Datos anónimos de uso. Puedes apagarlo cuando quieras.");
+        Add("Procura novas versões ao abrir o app.", "Looks for new versions when the app opens.", "Busca nuevas versiones al abrir la app.");
+        Add("Status da plataforma: {0}.", "Platform status: {0}.", "Estado de la plataforma: {0}.");
+        Add("operacional", "operational", "operativo");
         Add("Testar conexão", "Test connection", "Probar conexión");
         Add("Testar agora", "Test now", "Probar ahora");
         Add("Detalhes do jogo", "Game details", "Detalles del juego");
@@ -439,6 +454,24 @@ public sealed class LocalizationService
         Add("Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial",
             "Version v0.1.0 · WinUI 3 (x64) · Official Repository",
             "Versión v0.1.0 · WinUI 3 (x64) · Repositorio Oficial");
+
+        // Categorias e Ajustes PlayStation 5 (SettingsPage)
+        Add("Tela e janela", "Screen and window", "Pantalla y ventana");
+        Add("Modo tela cheia", "Full screen mode", "Modo pantalla completa");
+        Add("Alterna entre janela e tela cheia. Atalho: F11.",
+            "Toggles between windowed and full screen. Shortcut: F11.",
+            "Alterna entre ventana y pantalla completa. Atajo: F11.");
+        Add("Abrir em tela cheia", "Open in full screen", "Abrir en pantalla completa");
+        Add("Inicia o LagCheck já em tela cheia.",
+            "Starts LagCheck in full screen.",
+            "Inicia LagCheck en pantalla completa.");
+        Add("Aparência e idioma", "Appearance and language", "Apariencia e idioma");
+        Add("Jogos e imagens", "Games and artwork", "Juegos e imágenes");
+        Add("Privacidade e rede", "Privacy and network", "Privacidad y red");
+        Add("Ligado", "On", "Activado");
+        Add("Desligado", "Off", "Desactivado");
+        Add("Versão do aplicativo", "App version", "Versión de la aplicación");
+        Add("Configurações relacionadas", "Related settings", "Configuraciones relacionadas");
 
         // -------------------------------------------------------------
         // 8. Ficha do Jogo e Telas Auxiliares

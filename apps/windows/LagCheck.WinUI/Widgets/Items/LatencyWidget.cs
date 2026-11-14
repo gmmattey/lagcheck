@@ -66,7 +66,6 @@ public sealed class LatencyWidget : IHomeWidget
                 State: WidgetState.Empty,
                 Message: Strings.Tr("Nenhum teste ainda."),
                 Action: testAction,
-                Activate: () => context.Actions.OpenHistory(),
                 Summary: Strings.Tr("Nenhum teste ainda."));
         }
 
@@ -97,7 +96,6 @@ public sealed class LatencyWidget : IHomeWidget
             Body: body,
             Caption: caption,
             Action: action,
-            Activate: () => context.Actions.OpenHistory(),
             Accent: accentBrush,
             Summary: summary);
     }
