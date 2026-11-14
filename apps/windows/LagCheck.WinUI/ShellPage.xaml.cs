@@ -43,11 +43,15 @@ public sealed partial class ShellPage : Page
     private bool _sidebarReady;
     private DispatcherTimer? _toastTimer;
     private NavigationRoute _currentRoute = NavigationRoute.Home;
+    private NavigationRoute _returnRoute = NavigationRoute.Home;
     private NavigationRoute _detailsBackRoute = NavigationRoute.Home;
+    private LibraryGame? _detailsGame;
     private string? _currentGameTitle;
     private bool _hasBackdrop;
     private int _backdropCount;
     private int _backdropIndex;
+    private int _backdropTransitionRevision;
+    private Storyboard? _backdropTransitionStoryboard;
 
     public ShellPage()
     {
@@ -111,8 +115,7 @@ public sealed partial class ShellPage : Page
         SettingsLabel.Text = Strings.Tr("Ajustes");
 
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(QuickSearchButton, Strings.Tr("Buscar jogo..."));
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopHomeButton, Strings.Tr("Início"));
-        ToolTipService.SetToolTip(TopHomeButton, Strings.Tr("Início"));
+        UpdateTopNavigation();
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HomeButton, Strings.Tr("Início"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LibraryButton, Strings.Tr("Biblioteca"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(GeneralCheckButton, Strings.Tr("Conexão"));
@@ -132,6 +135,8 @@ public sealed partial class ShellPage : Page
 
     public void Navigate(NavigationRoute route)
     {
+        if (route == NavigationRoute.Settings && _currentRoute != NavigationRoute.Settings)
+            _returnRoute = _currentRoute;
         var keepHomeBackdrop = route == NavigationRoute.Settings && _currentRoute == NavigationRoute.Home;
         _currentRoute = route;
         _currentGameTitle = null;
@@ -156,15 +161,18 @@ public sealed partial class ShellPage : Page
         if (route != NavigationRoute.Home && !keepHomeBackdrop) ClearBackdrop();
         NavigateFrame(pageType, null);
         SetActive(route);
+        UpdateTopNavigation();
     }
 
     public void OpenGameDetails(LibraryGame game, NavigationRoute backRoute)
     {
         _detailsBackRoute = backRoute == NavigationRoute.Library ? NavigationRoute.Library : NavigationRoute.Home;
+        _detailsGame = game;
         _currentRoute = NavigationRoute.GameDetails;
         ClearBackdrop();
         NavigateFrame(typeof(GameDetailsPage), game);
         SetActive(_detailsBackRoute);
+        UpdateTopNavigation();
     }
 
     /// <summary>Medição de rede contextual (com gameId) ou genérica de referência (sem gameId).</summary>
@@ -184,6 +192,7 @@ public sealed partial class ShellPage : Page
         }
         ApplyStageMargins(typeof(DiagnosticPage));
         SetActive(NavigationRoute.GeneralCheck);
+        UpdateTopNavigation();
     }
 
     private void NavigateFrame(Type pageType, object? parameter)
@@ -216,6 +225,7 @@ public sealed partial class ShellPage : Page
         {
             _currentRoute = active;
             SetActive(active);
+            UpdateTopNavigation();
         }
     }
 
@@ -250,6 +260,22 @@ public sealed partial class ShellPage : Page
     /// <summary>Define a arte atrás da janela inteira (inclusive sob a sidebar). Lista vazia mostra as miniaturas neutras.</summary>
     public void SetBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex = 0)
     {
+        var revision = ++_backdropTransitionRevision;
+        StopBackdropTransition();
+        if (_hasBackdrop && !Motion.Reduced)
+        {
+            CrossFadeBackdrop(imagePaths, kind, selectedIndex, revision);
+            return;
+        }
+        BackdropTransition.Children.Clear();
+        BackdropTransition.Opacity = 0;
+        ApplyBackdrop(imagePaths, kind, selectedIndex);
+    }
+
+    /// <summary>SetBackdrop troca o conjunto de artes; a arte anterior fica visível até a nova dissolver.</summary>
+    private void ApplyBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex)
+    {
+        var wasHidden = !_hasBackdrop;
         BackdropSlides.Children.Clear();
         BackdropSlides.ColumnDefinitions.Clear();
         var count = Math.Max(1, imagePaths.Count);
@@ -271,7 +297,7 @@ public sealed partial class ShellPage : Page
         _backdropIndex = Math.Clamp(selectedIndex, 0, count - 1);
         BackdropVeil.Visibility = kind == BackdropKind.Veil ? Visibility.Visible : Visibility.Collapsed;
 
-        if (!_hasBackdrop)
+        if (wasHidden)
         {
             _hasBackdrop = true;
             BackdropHost.Visibility = Visibility.Visible;
@@ -287,7 +313,30 @@ public sealed partial class ShellPage : Page
         }
         UpdateSidebarVisualState();
         LayoutBackdrop(animate: false);
-        FadeBackdropIn();
+        if (wasHidden) FadeBackdropIn();
+    }
+
+    private void CrossFadeBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex, int revision)
+    {
+        var targetIndex = imagePaths.Count == 0 ? 0 : Math.Clamp(selectedIndex, 0, imagePaths.Count - 1);
+        BackdropTransition.Children.Clear();
+        var target = new Grid();
+        target.Children.Add(new StripedBackground { Band = 18 });
+        Image? image = null;
+        if (imagePaths.Count > 0 && TryCreateImage(imagePaths[targetIndex]) is { } source)
+        {
+            image = new Image { Source = source, Stretch = Stretch.UniformToFill, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = kind == BackdropKind.Veil ? VerticalAlignment.Top : VerticalAlignment.Center };
+            target.Children.Add(image);
+        }
+        BackdropTransition.Children.Add(target);
+        BackdropTransition.Opacity = 0;
+        Canvas.SetZIndex(BackdropTransition, 2);
+        BeginBackdropTransition(image, revision, () =>
+        {
+            ApplyBackdrop(imagePaths, kind, selectedIndex);
+            BackdropTransition.Children.Clear();
+            BackdropTransition.Opacity = 0;
+        });
     }
 
     /// <summary>A arte nova entra por dissolução em vez de trocar de uma vez.</summary>
@@ -305,17 +354,84 @@ public sealed partial class ShellPage : Page
     public void SelectBackdropSlide(int index)
     {
         if (!_hasBackdrop || _backdropCount == 0) return;
+        var revision = ++_backdropTransitionRevision;
+        StopBackdropTransition();
         _backdropIndex = Math.Clamp(index, 0, _backdropCount - 1);
-        LayoutBackdrop(animate: true);
+        if (Motion.Reduced)
+        {
+            BackdropTransition.Children.Clear();
+            BackdropTransition.Opacity = 0;
+            LayoutBackdrop(animate: false);
+            return;
+        }
+        // A faixa continua a fonte de verdade; a transição sobreposta impede que a arte saia de uma vez.
+        var source = BackdropSlides.Children.ElementAtOrDefault(_backdropIndex) as Grid;
+        if (source is null) { LayoutBackdrop(animate: true); return; }
+        BackdropTransition.Children.Clear();
+        var preview = new Grid();
+        preview.Children.Add(new StripedBackground { Band = 18 });
+        Image? image = null;
+        if (source.Children.OfType<Image>().FirstOrDefault() is { Source: { } imageSource })
+        {
+            image = new Image { Source = imageSource, Stretch = Stretch.UniformToFill, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            preview.Children.Add(image);
+        }
+        BackdropTransition.Children.Add(preview);
+        BackdropTransition.Opacity = 0;
+        BeginBackdropTransition(image, revision, () => { LayoutBackdrop(animate: false); BackdropTransition.Children.Clear(); BackdropTransition.Opacity = 0; });
+    }
+
+    /// <summary>Só cobre a arte atual depois de ImageOpened; falha mostra o fallback listrado, sem dado inventado.</summary>
+    private void BeginBackdropTransition(Image? image, int revision, Action completed)
+    {
+        var started = false;
+        void Start()
+        {
+            if (started || revision != _backdropTransitionRevision) return;
+            if (Motion.Reduced)
+            {
+                started = true;
+                completed();
+                return;
+            }
+            started = true;
+            var fade = new DoubleAnimation { To = 1, Duration = TimeSpan.FromMilliseconds(500), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            Storyboard.SetTarget(fade, BackdropTransition);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fade);
+            _backdropTransitionStoryboard = storyboard;
+            storyboard.Completed += (_, _) => { if (revision == _backdropTransitionRevision) completed(); };
+            storyboard.Begin();
+        }
+        if (image is null) { Start(); return; }
+        image.ImageOpened += (_, _) => Start();
+        image.ImageFailed += (_, _) =>
+        {
+            if (revision != _backdropTransitionRevision) return;
+            image.Visibility = Visibility.Collapsed;
+            Start();
+        };
     }
 
     public void ClearBackdrop()
     {
         if (!_hasBackdrop) return;
+        _backdropTransitionRevision++;
+        StopBackdropTransition();
         _hasBackdrop = false;
         BackdropHost.Visibility = Visibility.Collapsed;
         BackdropSlides.Children.Clear();
+        BackdropTransition.Children.Clear();
+        BackdropTransition.Opacity = 0;
         UpdateSidebarVisualState();
+    }
+
+    private void StopBackdropTransition()
+    {
+        _backdropTransitionStoryboard?.Stop();
+        _backdropTransitionStoryboard = null;
+        BackdropTransition.Opacity = 0;
     }
 
     private void LayoutBackdrop(bool animate = false)
@@ -499,6 +615,20 @@ public sealed partial class ShellPage : Page
         if (!_navigationLocked) Navigate(NavigationRoute.Gallery);
     }
 
+    /// <summary>Fecha uma tela auxiliar voltando ao contexto que a abriu.</summary>
+    public void NavigateBackFromOverlay()
+    {
+        if (_navigationLocked || _currentRoute == NavigationRoute.GeneralCheck) return;
+        var destination = _currentRoute switch
+        {
+            NavigationRoute.Settings => _returnRoute,
+            NavigationRoute.Gallery => NavigationRoute.Home,
+            NavigationRoute.GameDetails => _detailsBackRoute,
+            _ => NavigationRoute.Home,
+        };
+        ReturnToRoute(destination);
+    }
+
     private void OnSessionActivityChanged(object? sender, bool active) => DispatcherQueue.TryEnqueue(() => UpdateNavigationLock(active));
 
     private void UpdateNavigationLock(bool locked)
@@ -507,6 +637,33 @@ public sealed partial class ShellPage : Page
         _navigationLocked = locked;
         TopHomeButton.IsEnabled = !locked;
         foreach (var button in new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton }) button.IsEnabled = !locked;
+    }
+
+    private void UpdateTopNavigation()
+    {
+        // Galeria não tem retorno próprio. Ajustes e Detalhes já exibem sua seta no conteúdo.
+        var showsBack = _currentRoute is NavigationRoute.Gallery;
+        TopHomeButton.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;
+        TopBrandIcon.Visibility = Visibility.Collapsed;
+        TopBackIcon.Visibility = showsBack ? Visibility.Visible : Visibility.Collapsed;
+        var label = Strings.Tr("Voltar");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopHomeButton, label);
+        ToolTipService.SetToolTip(TopHomeButton, label);
+    }
+
+    private void TopNavigation_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateBackFromOverlay();
+    }
+
+    private void ReturnToRoute(NavigationRoute destination)
+    {
+        if (destination == NavigationRoute.GameDetails && _detailsGame is not null)
+        {
+            OpenGameDetails(_detailsGame, _detailsBackRoute);
+            return;
+        }
+        Navigate(destination is NavigationRoute.GameDetails ? NavigationRoute.Home : destination);
     }
 
     private void Home_Click(object sender, RoutedEventArgs e) => Navigate(NavigationRoute.Home);

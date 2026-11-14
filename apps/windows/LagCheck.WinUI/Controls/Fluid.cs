@@ -10,7 +10,7 @@ namespace LagCheck.WinUI.Controls;
 /// </summary>
 public static class Fluid
 {
-    private static readonly TimeSpan Duration = TimeSpan.FromMilliseconds(240);
+    private static readonly TimeSpan Duration = TimeSpan.FromMilliseconds(180);
 
     /// <summary>Liga as transições implícitas. Depois disso, mudar Scale/Translation/Opacity anima sozinho.</summary>
     public static void Prepare(UIElement element)
@@ -31,9 +31,17 @@ public static class Fluid
         if (sender is UIElement element) element.CenterPoint = new Vector3((float)e.NewSize.Width / 2, (float)e.NewSize.Height / 2, 0);
     }
 
+    private static void ApplyMotionPreference(UIElement element)
+    {
+        element.ScaleTransition = Motion.Reduced ? null : new Vector3Transition { Duration = Duration };
+        element.TranslationTransition = Motion.Reduced ? null : new Vector3Transition { Duration = Duration };
+        element.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = Duration };
+    }
+
     /// <summary>Estado de passagem do mouse: o card sobe um pouco e cresce de leve.</summary>
     public static void Hover(UIElement element, bool hovering, float scale = 1.035f, float lift = -6f)
     {
+        ApplyMotionPreference(element);
         if (Motion.Reduced)
         {
             element.Scale = Vector3.One;
@@ -47,6 +55,7 @@ public static class Fluid
     /// <summary>Estado de pressão: o card afunda um pouco e volta ao soltar.</summary>
     public static void Press(UIElement element, bool pressed, float hoverScale = 1.035f)
     {
+        ApplyMotionPreference(element);
         if (Motion.Reduced) return;
         var scale = pressed ? 0.985f : hoverScale;
         element.Scale = new Vector3(scale, scale, 1);

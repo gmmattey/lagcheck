@@ -12,6 +12,7 @@
           <CompositeTransform x:Name="BackdropShift"/>
         </Grid.RenderTransform>
       </Grid>
+      <Grid x:Name="BackdropTransition" Opacity="0" IsHitTestVisible="False"/>
       <Rectangle x:Name="BackdropVeil" Visibility="Collapsed">
         <Rectangle.Fill>
           <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -30,8 +31,11 @@
 
     <Button x:Name="TopHomeButton" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,4,0,0"
             Width="44" Height="44" Padding="0" Background="Transparent" BorderThickness="0"
-            Style="{StaticResource CircleIconButtonStyle}" Click="Home_Click" automation:AutomationProperties.Name="Início">
-      <Image Source="ms-appx:///Assets/lagcheck-mark.svg" Width="24" Height="24"/>
+            Style="{StaticResource CircleIconButtonStyle}" Click="TopNavigation_Click" automation:AutomationProperties.Name="Voltar">
+      <Grid>
+        <Image x:Name="TopBrandIcon" Source="ms-appx:///Assets/lagcheck-mark.svg" Width="24" Height="24"/>
+        <ctl:SvgIcon x:Name="TopBackIcon" Data="M15 6l-6 6 6 6" Size="18" StrokeWidth="2.5" Foreground="{StaticResource TextPrimaryBrush}" Visibility="Collapsed"/>
+      </Grid>
     </Button>
 
     <!-- Toast flutuante -->

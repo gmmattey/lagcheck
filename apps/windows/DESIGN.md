@@ -39,7 +39,8 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 - **Widgets da Home:** em telas largas, ficam no canto inferior direito, em uma área compacta separada do nome e das ações do jogo. A grade horizontal tem até duas linhas: status e atividade podem ficar empilhados; histórico e galeria podem ocupar as duas linhas. Cada widget ocupa no máximo duas colunas. Em janelas menores, a grade passa para baixo do jogo e pode ser rolada.
 - **Dados complementares honestos:** galeria mostra somente capturas locais disponíveis; atividade só mostra datas conhecidas; a tendência mostra somente Checks do mesmo `DiagnosticGameId` com timestamp real (menos de dois pontos mostra apenas a última leitura); status de plataformas é uma observação do site e pode ficar como não verificado.
 - **Hero em Tela Cheia:** Ocupa toda a altura útil (`calc(100vh - 56px)`).
-- **Slides de Fundo:** Imagens oficiais em alta resolução (`library_hero`, `page_bg_generated_v6b`, `capsule_616x353`) do jogo ativo com transição suave.
+- **Slides de Fundo:** Imagens oficiais em alta resolução (`library_hero`, `page_bg_generated_v6b`, `capsule_616x353`) do jogo ativo com transição suave. A troca entre artes mantém a anterior até a próxima carregar e usa dissolução; a rotação nunca troca o jogo selecionado. Passar o mouse só destaca a capa; clique ou teclado confirma o jogo.
+- **Movimento e resposta:** a troca de contexto, os widgets e os controles têm respostas curtas e consistentes, sem bloquear ações. A preferência de movimento reduzido do app ou do Windows remove transições e rotação automática. A seta de voltar aparece apenas onde há um destino de retorno.
 - **Tratamento de Luz:**
   - Sem gradiente, filtro ou véu sobre a imagem: a arte local do jogo aparece como foi salva no PC.
 - **Informações do Jogo:**

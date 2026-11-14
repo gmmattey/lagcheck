@@ -93,13 +93,13 @@ public sealed partial class SettingsPage : Page
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(AutomaticUpdatesSwitch, AutoUpdatesTitle.Text);
     }
 
-    private void Close_Click(object sender, RoutedEventArgs e) => ShellNavigation.Navigate(NavigationRoute.Home);
+    private void Close_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.NavigateBackFromOverlay();
 
     private void SettingsPage_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key != VirtualKey.Escape) return;
         e.Handled = true;
-        ShellNavigation.Navigate(NavigationRoute.Home);
+        ShellChrome.Shell?.NavigateBackFromOverlay();
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)

@@ -22,7 +22,7 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
           <Button x:Name="TopSearchBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenSearch_Click" automation:AutomationProperties.Name="Buscar jogo"><ctl:SvgIcon Data="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5" Size="16"/></Button>
           <Button x:Name="TopGalleryBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenGallery_Click" automation:AutomationProperties.Name="Galeria"><ctl:SvgIcon Data="M4 5h16v14H4zM7 15l3-3 2 2 3-4 3 5M8 9h.01" Size="16"/></Button>
-          <Button x:Name="TopSettingsBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenSettings_Click" automation:AutomationProperties.Name="Ajustes"><ctl:SvgIcon Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l2 2" Size="16"/></Button>
+          <Button x:Name="TopSettingsBtn" Style="{StaticResource CircleIconButtonStyle}" Width="44" Height="44" CornerRadius="22" Click="OpenSettings_Click" automation:AutomationProperties.Name="Ajustes"><FontIcon Glyph="&#xE713;" FontFamily="Segoe Fluent Icons" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}"/></Button>
         </StackPanel>
       </Grid>
       <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled"><StackPanel x:Name="RecentsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,4,4"/></ScrollViewer>

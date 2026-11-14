@@ -35,9 +35,9 @@ public sealed partial class HomePage : Page
     private List<string> _slides = new();
     private bool _refreshQueued;
     private bool _wired;
+    private int _loadGeneration;
     private readonly List<RecentTile> _tiles = new();
-    private readonly DispatcherTimer _hoverTimer = new() { Interval = TimeSpan.FromMilliseconds(110) };
-    private string? _hoverId;
+    private Storyboard? _selectionTransition;
     private bool _canLaunch;
     private bool _launchHovered;
     private readonly PlatformStatusClient _platformStatus = new();
@@ -57,13 +57,10 @@ public sealed partial class HomePage : Page
         LaunchBtn.PointerEntered += (_, _) => { _launchHovered = true; UpdateLaunchChrome(); };
         LaunchBtn.PointerExited += (_, _) => { _launchHovered = false; UpdateLaunchChrome(); };
         LocalizeUI();
+        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, TopSearchBtn, TopGalleryBtn, TopSettingsBtn, PcCheckBtn, GeneralCheckBtn, ScanGamesBtn })
+            PrepareButtonFeedback(button);
 
         _historyChangedHandler = (_, _) => QueueRefresh();
-        _hoverTimer.Tick += (_, _) =>
-        {
-            _hoverTimer.Stop();
-            if (_hoverId is { } id && id != _selectedId) SelectRecent(id);
-        };
         _slideTimer.Tick += (_, _) => AdvanceCarousel();
     }
 
@@ -93,7 +90,7 @@ public sealed partial class HomePage : Page
         if (e.PropertyName is nameof(LibraryViewModel.HeroGame) or nameof(LibraryViewModel.HasGames)) QueueRefresh();
     }
 
-    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() => { LocalizeUI(); Refresh(); });
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() => { if (IsLoaded) { LocalizeUI(); Refresh(); } });
 
     private void LocalizeUI()
     {
@@ -130,26 +127,35 @@ public sealed partial class HomePage : Page
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)
     {
         // A página fica em cache de navegação; reaplica o idioma ao voltar de Ajustes.
+        var generation = ++_loadGeneration;
         LocalizeUI();
         Wire();
         Refresh();
         _slideTimer.Start();
-        _ = LoadPlatformStatusAsync();
+        _ = LoadPlatformStatusAsync(generation);
         await ViewModel.LoadAsync();
+        if (!IsCurrentLoad(generation)) return;
         await LagCheck.WinUI.History.SessionHistoryServices.Store.TryRefreshAsync(Diagnostic.WinUiEngineComposition.Client);
+        if (!IsCurrentLoad(generation)) return;
         Refresh();
         var visible = Recents().ToList();
         if (CurrentHero() is { } current && visible.All(game => game.Id != current.Id)) visible.Add(current);
         await Artwork.ResolveMissingAsync(ViewModel, visible);
+        if (!IsCurrentLoad(generation)) return;
         Refresh();
     }
 
     private void HomePage_Unloaded(object sender, RoutedEventArgs e)
     {
+        ++_loadGeneration;
         _slideTimer.Stop();
+        _selectionTransition?.Stop();
+        GameHeroPanel.Opacity = PcHeroPanel.Opacity = InsightsScroll.Opacity = 1;
         _backdropApplied = false;
         Unwire();
     }
+
+    private bool IsCurrentLoad(int generation) => IsLoaded && generation == _loadGeneration;
 
     private void HomePage_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyViewportSizing();
 
@@ -160,7 +166,7 @@ public sealed partial class HomePage : Page
         DispatcherQueue.TryEnqueue(() =>
         {
             _refreshQueued = false;
-            Refresh();
+            if (IsLoaded) Refresh();
         });
     }
 
@@ -244,6 +250,7 @@ public sealed partial class HomePage : Page
     /// <summary>Troca o jogo em destaque sem refazer a faixa: o hero some e volta rápido, os cards animam o tamanho.</summary>
     private void SelectRecent(string id)
     {
+        if (!_pcSelected && _selectedId == id) return;
         _pcSelected = false;
         _selectedId = id;
         _slide = 0;
@@ -256,31 +263,41 @@ public sealed partial class HomePage : Page
 
     private void FadeHero()
     {
+        _selectionTransition?.Stop();
+        GameHeroPanel.Opacity = PcHeroPanel.Opacity = InsightsScroll.Opacity = 1;
         if (Motion.Reduced) return;
-        var fade = new DoubleAnimation { From = 0.15, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(260)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-        Storyboard.SetTarget(fade, GameHeroPanel);
-        Storyboard.SetTargetProperty(fade, "Opacity");
         var storyboard = new Storyboard();
-        storyboard.Children.Add(fade);
+        foreach (var target in new UIElement[] { _pcSelected ? PcHeroPanel : GameHeroPanel, InsightsScroll })
+        {
+            var fade = new DoubleAnimation { From = 0.25, To = 1, Duration = TimeSpan.FromMilliseconds(200), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            Storyboard.SetTarget(fade, target);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+            storyboard.Children.Add(fade);
+        }
+        _selectionTransition = storyboard;
         storyboard.Begin();
+    }
+
+    private static void PrepareButtonFeedback(Button button)
+    {
+        Fluid.Prepare(button);
+        var hovered = false;
+        button.PointerEntered += (_, _) => { hovered = true; Fluid.Hover(button, true, 1.015f, -1f); };
+        button.PointerExited += (_, _) => { hovered = false; Fluid.Hover(button, false); };
+        button.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((_, _) => Fluid.Press(button, true, 1.015f)), true);
+        button.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler((_, _) => Fluid.Hover(button, hovered, 1.015f, -1f)), true);
+        button.PointerCanceled += (_, _) => { hovered = false; Fluid.Hover(button, false); };
     }
 
     private void SelectPc()
     {
+        if (_pcSelected) return;
         _pcSelected = true;
         _selectedId = null;
         _slide = 0;
         _slideTimer.Stop();
         Refresh(rebuildRecents: false);
-        if (!Motion.Reduced)
-        {
-            var fade = new DoubleAnimation { From = 0.15, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(260)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-            Storyboard.SetTarget(fade, PcHeroPanel);
-            Storyboard.SetTargetProperty(fade, "Opacity");
-            var storyboard = new Storyboard();
-            storyboard.Children.Add(fade);
-            storyboard.Begin();
-        }
+        FadeHero();
         UpdateRecentSelection(animate: true);
     }
 
@@ -425,21 +442,11 @@ public sealed partial class HomePage : Page
         .Take(MaxArtsPerGame)
         .ToList();
 
-    /// <summary>Passa à próxima arte do jogo; depois da última, vai ao próximo jogo da fila (e volta ao primeiro no fim).</summary>
+    /// <summary>Alterna apenas artes disponíveis do jogo selecionado.</summary>
     private void AdvanceCarousel()
     {
-        if (Motion.Reduced) return;
-        if (_pcSelected) return;
-        if (_slide < _slides.Count - 1)
-        {
-            SelectSlide(_slide + 1);
-            return;
-        }
-        var queue = Recents();
-        if (queue.Count < 2) return;
-        var current = queue.ToList().FindIndex(game => game.Id == _selectedId);
-        var next = queue[(current + 1) % queue.Count];
-        SelectRecent(next.Id);
+        if (Motion.Reduced || _pcSelected || _slides.Count < 2) return;
+        SelectSlide((_slide + 1) % _slides.Count);
     }
 
     private void SetSlides(IReadOnlyList<string> images)
@@ -564,20 +571,8 @@ public sealed partial class HomePage : Page
             selector.Opacity = 1;
             ToolTipService.SetToolTip(selector, game.Title);
 
-            var id = game.Id;
-            selector.PointerEntered += (_, _) =>
-            {
-                Fluid.Hover(selector, true, 1.04f, -4f);
-                _hoverId = id;
-                if (id == _selectedId) { _hoverTimer.Stop(); return; }
-                _hoverTimer.Stop();
-                _hoverTimer.Start();
-            };
-            selector.PointerExited += (_, _) =>
-            {
-                Fluid.Hover(selector, false);
-                if (_hoverId == id) { _hoverId = null; _hoverTimer.Stop(); }
-            };
+            selector.PointerEntered += (_, _) => Fluid.Hover(selector, true, 1.03f, -4f);
+            selector.PointerExited += (_, _) => Fluid.Hover(selector, false);
             selector.Click += (_, _) => SelectRecent(game.Id);
             selector.DoubleTapped += (_, _) => OpenDetails(game);
             _tiles.Add(new RecentTile(game, selector, ring));
@@ -591,7 +586,8 @@ public sealed partial class HomePage : Page
         var (selectedWidth, selectedHeight, restWidth, restHeight) = TileSizes();
         if (_pcTile is not null)
         {
-            _pcRing!.Opacity = _pcSelected ? 1 : 0;
+            _pcRing!.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
+            _pcRing.Opacity = _pcSelected ? 1 : 0;
             _pcTile.Width = _pcSelected ? selectedWidth : restWidth;
             _pcTile.Height = _pcSelected ? selectedHeight : restHeight;
         }
@@ -601,6 +597,7 @@ public sealed partial class HomePage : Page
             var selected = !_pcSelected && item.Game.Id == _selectedId;
             var width = selected ? selectedWidth : restWidth;
             var height = selected ? selectedHeight : restHeight;
+            item.Ring.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
             item.Ring.Opacity = selected ? 1 : 0;
             item.Tile.Opacity = 1;
             if (!animate || Motion.Reduced)
@@ -738,24 +735,34 @@ public sealed partial class HomePage : Page
         }
     }
 
-    private async System.Threading.Tasks.Task LoadPlatformStatusAsync()
+    private async System.Threading.Tasks.Task LoadPlatformStatusAsync(int generation)
     {
         var snapshot = await _platformStatus.GetSnapshotAsync();
         DispatcherQueue.TryEnqueue(() =>
         {
+            if (!IsCurrentLoad(generation)) return;
             _lastPlatformStatus = snapshot;
             RenderPlatformStatus(snapshot);
         });
     }
 
-    private void Widget_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        if (sender is Border widget) widget.Background = new SolidColorBrush(Color.FromArgb(0xF2, 0x35, 0x3C, 0x4D));
-    }
+    private void Widget_PointerEntered(object sender, PointerRoutedEventArgs e) => SetWidgetHover(sender, true);
+    private void Widget_PointerExited(object sender, PointerRoutedEventArgs e) => SetWidgetHover(sender, false);
 
-    private void Widget_PointerExited(object sender, PointerRoutedEventArgs e)
+    private static void SetWidgetHover(object sender, bool hovered)
     {
-        if (sender is Border widget) widget.ClearValue(Border.BackgroundProperty);
+        if (sender is not Border widget) return;
+        var from = (widget.Background as SolidColorBrush)?.Color ?? Color.FromArgb(0xE6, 0x28, 0x2E, 0x3C);
+        var to = hovered ? Color.FromArgb(0xF2, 0x35, 0x3C, 0x4D) : Color.FromArgb(0xE6, 0x28, 0x2E, 0x3C);
+        var brush = new SolidColorBrush(from);
+        widget.Background = brush;
+        if (Motion.Reduced) { brush.Color = to; return; }
+        var fade = new ColorAnimation { To = to, Duration = TimeSpan.FromMilliseconds(180), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+        Storyboard.SetTarget(fade, brush);
+        Storyboard.SetTargetProperty(fade, "Color");
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(fade);
+        storyboard.Begin();
     }
 
     private void RenderPlatformStatus(PlatformStatusSnapshot snapshot)
