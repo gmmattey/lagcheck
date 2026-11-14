@@ -1567,7 +1567,7 @@
 
 - **Data:** 14 de novembro de 2026.
 - **Título:** Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3.
-- **Status Atual:** **Em implementação. Revisão do Iury pendente** (números de carga e de picos).
+- **Status Atual:** **Em implementação.** Revisão de regra feita no PR #99 (aprovada com ressalvas; números de carga refinados pela Decisão 136). Teste em aparelho real pendente: os apps não são distribuídos antes dele. O site (medição do navegador, sem UDP) pode ir ao ar antes.
 - **Frentes envolvidas:** Luiz (decisão), Iury (regra), Camillo (engenharia), Renan (validação).
 - **Contexto:** auditoria de 14/11/2026. Com 30 probes, 1 pacote perdido virava 3,33% e derrubava para `EU EVITARIA RANKED AGORA`; conexão que desabava sob carga saía `PRONTO PARA RANKED` com nota 100; a carga era um único download de 10 MB; picos isolados derrubavam o veredito contra a spec 6.2; limites de carga do código e da spec divergiam; o watchdog do iOS nunca recebia timeouts.
 - **Decisão (escolhas do Luiz):**
