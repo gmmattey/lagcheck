@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lagcheck.android.ui.MainViewModel
+import com.lagcheck.android.ui.components.LagCheckRouteMap
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -70,6 +72,13 @@ fun RegionalSelectionScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // Varredura: uma sonda real para cada servidor candidato, como no site.
+                    LagCheckRouteMap(
+                        controller = viewModel.routeMap,
+                        regionName = viewModel::routeRegionName,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)
+                    )
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
                     CircularProgressIndicator(
                         color = LagCheckColors.AccentPrimary,
                         modifier = Modifier.size(24.dp),

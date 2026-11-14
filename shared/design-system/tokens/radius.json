@@ -1,6 +1,6 @@
 {
   "$schema": "lagcheck/tokens/radius",
-  "description": "Raios de canto do LagCheck Design System definidos no DESIGN.md: 8px para mídia e métricas, 13px para campos/cartões compactos, 17px para CTA, 26px para bottom sheet/hero e pill (999px) para estado conciso.",
+  "description": "Raios de canto do LagCheck Design System alinhados ao site (global.css / Decisão 126): 8px para mídia e métricas, 12px para campos/cartões e CTAs, 26px para bottom sheet/hero e pill (999px) para estado conciso.",
   "scale": {
     "xs": {
       "value": 4,
@@ -14,11 +14,11 @@
       "usage": "Mídia, capas de jogos e métricas."
     },
     "md": {
-      "value": 13,
+      "value": 12,
       "usage": "Campos, cartões compactos e containers de evidência."
     },
     "lg": {
-      "value": 17,
+      "value": 12,
       "usage": "Botões de ação primária (CTA)."
     },
     "xl": {

@@ -9,6 +9,7 @@ import NolaggyDomain
 struct HistoryView: View {
     let entries: [MeasurementHistoryEntry]
     let gameName: (MeasurementHistoryEntry) -> String
+    var catalogGame: (MeasurementHistoryEntry) -> CatalogMeasurementJourney.Game? = { _ in nil }
     let retry: (MeasurementHistoryEntry) -> Void
     let returnToHome: () -> Void
     var showsBackHeader: Bool = true
@@ -103,11 +104,7 @@ struct HistoryView: View {
             HStack(spacing: 10) {
                 catalogCoverView(for: group.latest)
                     .frame(width: 42, height: 42)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(NLColor.borderHairline, lineWidth: 1)
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(group.name)
@@ -156,7 +153,8 @@ struct HistoryView: View {
         .padding(.horizontal, 18)
         .padding(.top, 6)
         .padding(.bottom, 4)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+        .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
     }
 
     /// Dá contexto ao histórico sem converter observações em previsão.
@@ -167,7 +165,8 @@ struct HistoryView: View {
             historyOverviewMetric(value: "\(groupedGames.count)", label: LocalizedStringKey("history.overview.games"))
         }
         .padding(.vertical, 18)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+        .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
     }
 
     private func historyOverviewMetric(value: String, label: LocalizedStringKey) -> some View {
@@ -199,7 +198,7 @@ struct HistoryView: View {
                             Capsule()
                                 .fill(selectedRitualWindow == window ? NLColor.backgroundRaised : NLColor.surface)
                         )
-                        .overlay(Capsule().stroke(NLColor.borderStrong, lineWidth: 1))
+                        .shadow(color: NLShadow.cardColor, radius: 4, x: 0, y: 2)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(ritualWindowTitle(window))
@@ -277,8 +276,9 @@ struct HistoryView: View {
         VStack(spacing: 0) {
             ZStack {
                 Circle()
-                    .stroke(NLColor.borderStrong, lineWidth: 1)
+                    .fill(NLColor.surface)
                     .frame(width: 55, height: 55)
+                    .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
 
                 Text(verbatim: "—")
                     .font(.system(size: 22, weight: .regular))
@@ -304,9 +304,10 @@ struct HistoryView: View {
                     .padding(.horizontal, 20)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: NLRadius.lg, style: .continuous)
+                            .fill(NLColor.surface)
                     )
+                    .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("history-empty-home")
@@ -337,8 +338,8 @@ struct HistoryView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                         .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: NLRadius.lg, style: .continuous)
+                                .fill(NLColor.panel)
                         )
                 }
                 .buttonStyle(.plain)
@@ -435,12 +436,12 @@ struct HistoryView: View {
     }
 
     private func catalogCoverView(for entry: MeasurementHistoryEntry) -> some View {
-        let dummyGame = CatalogMeasurementJourney.Game(
+        let game = catalogGame(entry) ?? CatalogMeasurementJourney.Game(
             id: entry.resolvedContext.context.gameID,
             name: gameName(entry),
             context: entry.resolvedContext.context,
             profileID: .battleRoyaleCompetitive
         )
-        return VerifiedGameArtwork(game: dummyGame, aspectRatio: 38 / 46)
+        return VerifiedGameArtwork(game: game, aspectRatio: 38 / 46)
     }
 }

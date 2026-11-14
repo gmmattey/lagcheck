@@ -12,9 +12,9 @@ object LagCheckRadius {
     /** Mídia, capas de jogos e métricas. */
     val sm = 8.dp
     /** Campos, cartões compactos e containers de evidência. */
-    val md = 13.dp
+    val md = 12.dp
     /** Botões de ação primária. */
-    val lg = 17.dp
+    val lg = 12.dp
     /** Bottom sheet modal e hero cards. */
     val xl = 26.dp
     /** Chips de telemetria ao vivo e pílulas de status. */

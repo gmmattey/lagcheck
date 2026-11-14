@@ -29,6 +29,20 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "07B1DAD78AA4A273B2C7A8DD"
+               BuildableName = "NolaggyDesignTests.xctest"
+               BlueprintName = "NolaggyDesignTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "370BE12F4364441FC0A9B873"
                BuildableName = "NolaggyDomainTests.xctest"
                BlueprintName = "NolaggyDomainTests"
@@ -75,6 +89,17 @@
                BlueprintIdentifier = "370BE12F4364441FC0A9B873"
                BuildableName = "NolaggyDomainTests.xctest"
                BlueprintName = "NolaggyDomainTests"
+               ReferencedContainer = "container:Nolaggy.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "07B1DAD78AA4A273B2C7A8DD"
+               BuildableName = "NolaggyDesignTests.xctest"
+               BlueprintName = "NolaggyDesignTests"
                ReferencedContainer = "container:Nolaggy.xcodeproj">
             </BuildableReference>
          </TestableReference>

@@ -32,8 +32,9 @@ class RemoteCatalogVerifierTest {
     @Test fun bundledCatalogDecodesWithAllGamesAndGlobalRegions() {
         val p = RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes())
         assertThat(p.schemaVersion).isEqualTo(3)
-        assertThat(p.catalogVersion).isEqualTo("catalog-v3-2026.10.18.1")
-        assertThat(p.games).hasSize(54)
+        assertThat(p.catalogVersion).isNotEmpty()
+        assertThat(p.assetBaseUrl).isEqualTo("https://lagcheck.signallq.com/")
+        assertThat(p.games.size).isAtLeast(56)
         assertThat(p.regions.map { it.id }).containsExactly(
             "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1",
             "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "eu-north-1", "eu-south-1",

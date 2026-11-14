@@ -459,7 +459,20 @@ final class DeepCheckJourneyUITests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchWithSystemLanguage()
 
-        // Decisão 113: tocar num favorito mede aquele jogo em 1 toque.
+        // Decisão 113: sem favoritos salvos, a Home mostra o slot de adicionar;
+        // após favoritar Fortnite em Jogos, tocar nele na Home mede direto.
+        let addSlot = app.buttons["home-favorite-game-add-slot"]
+        XCTAssertTrue(addSlot.waitForExistence(timeout: 4))
+        addSlot.tap()
+
+        let favoriteToggle = app.buttons["catalog-favorite-toggle-fortnite"]
+        XCTAssertTrue(favoriteToggle.waitForExistence(timeout: 4))
+        favoriteToggle.tap()
+
+        let backHome = app.buttons["games-return-home"]
+        XCTAssertTrue(backHome.waitForExistence(timeout: 3))
+        backHome.tap()
+
         let favorite = app.buttons["home-favorite-game-fortnite"]
         XCTAssertTrue(favorite.waitForExistence(timeout: 4))
         favorite.tap()

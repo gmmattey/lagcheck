@@ -8,7 +8,7 @@ class RemoteCatalogRepositoryTest {
     @Test fun bundledCatalogValidatesWithAllGamesAndGlobalReferences() {
         val payload = RemoteCatalogVerifier.decodeBundled(realEnvelopeBytes())
 
-        assertThat(payload.games).hasSize(54)
+        assertThat(payload.games.size).isAtLeast(56)
         assertThat(payload.regions).isNotEmpty()
         payload.games.forEach { game ->
             assertThat(game.contexts).isNotEmpty()

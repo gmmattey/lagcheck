@@ -10,37 +10,40 @@ O visual é escuro, calmo e técnico, sem cair numa caricatura gamer. A área de
 
 ## Color / Cor
 
-Os tokens vivem em [colors_and_type.css](colors_and_type.css). A origem declara `--bg: oklch(0.158 0.011 260)`, `--surface: oklch(0.205 0.012 260)`, `--fg: oklch(0.955 0.006 260)`, `--muted: oklch(0.675 0.014 260)`, `--border: oklch(0.302 0.014 260)` e `--accent: oklch(0.585 0.214 299)` no `brand-spec.md`. Roxo Gamer é reservado para ação, seleção, foco e progresso. Coral Solar (`oklch(0.684 0.196 35)`) serve a atenção ou destruição. O Verde (`oklch(0.76 0.15 150)`) comunica resultado favorável; não substitui uma explicação textual.
+Os tokens canônicos em hex valem para iOS, Android, Windows e Web (ver [`tokens/platforms.json`](tokens/platforms.json)): fundo `--bg` (`#0B0D10`), superfície (`#15181E`), painel elevado (`#1E232B`), texto primário (`#F4F5F7`), texto secundário (`#8A93A0`), texto terciário (`#606873`), borda (`white` 8–16%), Roxo Gamer (`#7C3AED`), Coral Solar (`#FF5A36`), Âmbar (`#F59E0B`) e Verde (`#22C55E`). Não converter automaticamente de `oklch` antigos: `oklch(0.585 0.214 299)` resulta em `#9052e6`, não em `#7C3AED`. Roxo Gamer é reservado para ação, seleção, foco e progresso; Coral Solar serve a erro, risco ou ação destrutiva; Verde comunica resultado favorável e nunca substitui uma explicação textual.
 
 ## Typography / Tipografia
 
-- Display: `--lc-font-display`, arredondada e compacta, para vereditos, nomes de jogo e títulos.
-- Corpo: `--lc-font-body`, nativa Apple, para leitura e controles.
-- Técnica: `--lc-font-mono`, para rota, métricas, tempo e contexto de rede.
-
-As pilhas abaixo valem para o iOS e para os protótipos HTML. Android usa Google Sans Flex; Windows empacota Barlow, Barlow Semi Condensed e Chakra Petch, conforme o site (veja Plataformas e `tokens/typography.json`). As fontes Windows e suas licenças OFL ficam em `android/desktop/src/main/resources/fonts/`. As pilhas são observadas diretamente nos protótipos: `ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif`; `-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`; e `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Títulos de produto trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar mono para parágrafos.
-
-
-### Tipografia do site (Web)
-
-Esta diretriz é **exclusiva do site público** `lagcheck.signallq.com`, implementado em `gmmattey/landings/sites/lagcheck/`. Ela não substitui as escolhas nativas de iOS e Android, nem altera as cores ou o wordmark. Para o Windows, esta combinação foi aprovada como nova referência visual; a migração do app está pendente de empacotamento e testes.
+A tipografia é unificada entre iOS, Android, Windows e Web (Decisão 125):
 
 | Papel | Família | Peso recomendado | Uso |
 | --- | --- | --- | --- |
-| Corpo | **Barlow** | 400–500 | Parágrafos, artigos, tutoriais, formulários e textos de orientação |
-| Títulos | **Barlow Semi Condensed** | 700–800 | H1–H3, chamadas, destaques e títulos editoriais |
-| Métricas | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes e diagnósticos, onde houver dados medidos |
-| Fallback | Pilha sans-serif do sistema | conforme componente | Leitura quando a fonte web não carregar |
+| Títulos e vereditos | **Barlow Semi Condensed** | 700–800 | Vereditos, nomes de tela, chamadas e destaques |
+| Corpo e controles | **Barlow** | 400–600 | Parágrafos, listas, formulários, botões e navegação |
+| Métricas e dados | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes, rotas e tags técnicas (algarismos tabulares) |
+| Fallback | Pilha sans-serif/mono do sistema | conforme componente | Leitura quando a fonte web não carregar |
 
-**Regras de implementação web:**
+As fontes empacotadas e suas licenças OFL ficam em `apps/android/core/designsystem/src/main/res/font/`, `apps/ios/Sources/NolaggyDesign/Resources/Fonts/` e `apps/android/desktop/src/main/resources/fonts/`. Títulos trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar fonte de métrica para parágrafos nem Barlow Semi Condensed em leitura contínua.
+
+**Regras de implementação web (`gmmattey/landings/pages/lagcheck/src/styles/global.css`):**
 - Centralizar as famílias em *custom properties* CSS, sem repetir configurações em páginas individuais. Aplicar as regras por papéis semânticos para que toda a home, páginas de jogos, ferramentas e páginas institucionais compartilhem a mesma tipografia.
 - Usar Barlow em leitura longa; evitar Chakra Petch em parágrafos e evitar Barlow Semi Condensed em textos de leitura contínua.
 - Preservar hierarquia, legibilidade e contraste no mobile (inclusive a 320 px); manter altura de linha adequada e controlar quebras de título e largura dos botões.
 - Carregar apenas pesos e subconjuntos necessários em WOFF2, com `font-display: swap`, alternativas compatíveis e verificação de CLS/LCP. Não introduzir dependência de CDN obrigatória se o self-hosting for viável.
 - Métricas devem continuar diferenciando valor observado, indisponível e inconclusivo. A fonte não é um sinal de estado; as cores semânticas e mensagens textuais continuam sendo a referência.
 - Paleta oficial preservada: fundo `#0B0D10`, Roxo Gamer `#7C3AED` e variações aprovadas. Sem substituir a paleta por cores inspiradas em concorrentes.
+- A alteração desta documentação **não publica o site**.
 
-**Fonte de implementação web:** `gmmattey/landings/sites/lagcheck/src/styles/global.css` e estilos compartilhados. Antes de publicar, verificar componentes com `font-family` explícita, conferir a renderização desktop/mobile e executar a suíte existente do site. A alteração desta documentação **não publica o site**.
+## Mapa de medição
+
+O mapa de medição mostra de onde o check sai e até qual região ele foi medido, espelhando a implementação web (`pages/lagcheck/src/lib/map/`):
+
+- **Base e projeção:** grade de pontos Natural Earth 110m (1,5° por célula) em projeção equiretangular, fundo `--bg` (`#0B0D10`), pontos de terra em `--text-secondary` a 34% de opacidade. Plano, sem gradiente, brilho, halo ou onda expansiva.
+- **Câmera e enquadramento:** `WORLD_CAMERA` (`lon = 0`, `lat = 12`, `zoom = 1`) durante a varredura e `fitCamera` com teto de `zoom <= 3.4` quando a rota é fechada (acima disso a grade de 1,5° perde o contorno dos continentes), garantindo que pinos e rótulos caibam sem corte.
+- **Arcos e sondas reais:** arco quadrático de Bézier (`computeArc` / `bezierPoint`) em `--purple` (`#7C3AED`). Tudo que se move vem de medição real: saída fixa em `420 ms` (`620 ms` na varredura inicial com `45 ms` de escalonamento entre regiões) e volta proporcional ao RTT observado (`clamp(rttMs * 8, 300, 700)` ms) com easing cúbico simétrico.
+- **Rótulos sem sobreposição:** apenas “Você” e a região escolhida (ou mais rápida na varredura) recebem rótulo, com detecção de colisão de caixas para nunca sobrepor nem sair da área útil.
+- **"Você":** localização aproximada pelo IP no endpoint do site (`/v1/approx-location`, 0,5°), com rótulo "Você · Cidade"; a varredura espera por ela, como o `trySweep()` do site. Se falhar, os apps usam o país do aparelho; sem país, a nota "Localização aproximada indisponível".
+- **Implementação nativa:** `RouteMapController` + `RouteMeasurementMapView` (`NolaggyDesign/Components/RouteMap/` no iOS) e `RouteMapController` + `RouteMeasurementMap` (`core/designsystem/components/map/` no Android), porta direta de `route-map.ts` (Decisão 123). Contêiner com raio 13, borda de 1 px, proporção 4:3 na medição e 16:10 no resultado.
 
 ## Espaçamento, forma e elevação
 
@@ -52,8 +55,9 @@ O shell é mobile-first: status, barra superior, conteúdo de decisão e indicad
 
 ## Componentes
 
-- **Wordmark:** `wordmark-primary.svg`, a peça oficial preservada com símbolo e “Check” em Roxo Gamer, enquanto “Lag” segue branco; usar em superfícies escuras. `assets/lagcheck-wordmark-light.svg` é o adaptador compatível para as telas preservadas.
-- **Ícone do app:** `app-icon-source.svg`, o símbolo oficial refinado para a família roxa.
+- **Wordmark:** `wordmark-primary.svg` (Decisão 124), "Lagcheck" com o símbolo L + check: "Lag" branco e "check" em degradê roxo; usar em superfícies escuras. As variantes `wordmark-mono-*` e `lagcheck-wordmark-light.svg` ainda são da marca anterior.
+- **Símbolo:** `lagcheck-mark.svg`, "L" roxo com faixas de velocidade, check branco e órbita com dois nós.
+- **Ícone do app:** `app-icon-source.svg`, o símbolo oficial sobre o fundo grafite com brilho roxo embaixo, gerado por `shared/scripts/generate-brand-icons.py`.
 - **Botão primário:** largura cheia na tela, roxo, alto contraste e sombra de ação. Um por viewport para a mesma ação.
 - **Botão secundário/atalho:** transparente ou bordado; nunca compete com o primário.
 - **Pill de telemetria:** estado curto com ponto de status e texto mono.
@@ -78,7 +82,7 @@ O sistema vale para iOS, Android e Windows (prévia). Os valores de referência 
 | --- | --- | --- | --- |
 | Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
 | Cores, espaçamento, raio | Tokens completos (`NLColor`, `NLSpacing`, `NLRadius`) | `LagCheckColors`, `LagCheckSpacing`, `LagCheckRadius` | Tokens próprios |
-| Fonte | SF arredondada, SF e SF mono | Google Sans Flex em tudo, números tabulares (Decisão 80) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas), com fontes empacotadas |
+| Fonte | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) |
 | Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
 | Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
 
@@ -92,7 +96,7 @@ Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `toke
 
 - Não usar roxo como fundo amplo, nem Coral Solar como CTA comum.
 - Não transformar cada bloco em card nem aplicar glassmorphism.
-- Não usar arte oficial de jogos; as capas preservadas são editoriais/neutras.
+- Usar apenas as capas editoriais oficiais do catálogo verificável; não usar arte de jogo como fundo da tela de medição em andamento.
 - Não fazer resultado inconclusivo parecer bom ou preencher métricas ausentes.
 - Não inferir banda/canal Wi-Fi a partir de SSID, BSSID, RSSI ou ausência de dados.
 - Não repetir CTA primário no mesmo viewport, nem esconder ações destrutivas sem confirmação.

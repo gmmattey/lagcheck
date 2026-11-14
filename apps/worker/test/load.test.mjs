@@ -76,15 +76,26 @@ test("canonical v3 references the approved editorial artwork manifest exactly", 
 
 test("Decisão 106: o catálogo embutido é o payload canônico puro, sem assinatura nem validade", async () => {
   const canonical = `${JSON.stringify(buildCanonicalCatalog())}\n`;
-  for (const path of [
-    "../catalog/catalog-v3.candidate.json",
+  const workerCandidate = await readFile(new URL("../catalog/catalog-v3.candidate.json", import.meta.url), "utf8");
+  assert.equal(workerCandidate, canonical, "../catalog/catalog-v3.candidate.json difere do payload canônico");
+
+  const bundledPaths = [
     "../../../apps/ios/Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json",
     "../../../apps/android/app/src/main/assets/catalog-base.json"
-  ]) {
-    const text = await readFile(new URL(path, import.meta.url), "utf8");
-    assert.equal(text, canonical, `${path} difere do payload canônico`);
-    assert.equal(text.includes("signatureBase64"), false);
-    assert.equal(text.includes("expiresAt"), false);
+  ];
+  const bundledTexts = await Promise.all(
+    bundledPaths.map(path => readFile(new URL(path, import.meta.url), "utf8"))
+  );
+  assert.equal(bundledTexts[0], bundledTexts[1], "Catálogo embutido do iOS difere do Android");
+  for (const [index, text] of bundledTexts.entries()) {
+    const path = bundledPaths[index];
+    assert.equal(text.includes("signatureBase64"), false, `${path} não deve conter assinatura`);
+    assert.equal(text.includes("expiresAt"), false, `${path} não deve conter validade`);
+    const parsed = JSON.parse(text);
+    assert.equal(parsed.schemaVersion, 3);
+    assert.equal(parsed.assetBaseURL, "https://lagcheck.signallq.com/");
+    assert.ok(parsed.regions.length >= 20, `${path} precisa de cobertura regional completa`);
+    assert.ok(parsed.games.length >= 56, `${path} deve espelhar o catálogo do site`);
   }
 });
 

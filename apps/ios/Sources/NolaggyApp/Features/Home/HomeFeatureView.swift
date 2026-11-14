@@ -11,8 +11,7 @@ extension QuickCheckFeatureView {
     var contextView: some View { discoveryView }
 
     var favoriteGamesList: [CatalogMeasurementJourney.Game] {
-        let store = FavoriteGamesStore.shared
-        let favIDs = store.favoriteGameIDs
+        let favIDs = favoritesStore.favoriteGameIDs
         let nonGenericGames = availableGames.filter { $0.id != GameContext.genericGamingID }
         var result: [CatalogMeasurementJourney.Game] = []
         for id in favIDs {
@@ -20,10 +19,7 @@ extension QuickCheckFeatureView {
                 result.append(g)
             }
         }
-        if result.isEmpty {
-            return Array(nonGenericGames.prefix(4))
-        }
-        return Array(result.prefix(4))
+        return Array(result.prefix(FavoriteGamesStore.maxFavorites))
     }
 
     var currentHomeGame: CatalogMeasurementJourney.Game {
@@ -121,100 +117,75 @@ extension QuickCheckFeatureView {
                         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         .padding(.top, 96)
                 } else {
-                    // Dobra Superior Hero: Atmosfera épica de jogos no topo que dissolve totalmente em preto antes do gauge
-                    ZStack(alignment: .top) {
-                        Image("HeroTopGames")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 180)
-                            .clipped()
-                            .overlay(
-                                LinearGradient(
-                                    stops: [
-                                        .init(color: NLColor.deep.opacity(0.35), location: 0.0),
-                                        .init(color: NLColor.deep.opacity(0.40), location: 0.35),
-                                        .init(color: NLColor.deep.opacity(0.85), location: 0.70),
-                                        .init(color: NLColor.deep, location: 0.95),
-                                        .init(color: NLColor.deep, location: 1.0)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-
-                        VStack(spacing: 0) {
-                            // Pílula de sinal de rede e cockpit
-                            LiveNetworkSignalCapsule(signal: liveNetworkSignal) {
-                                showingCockpit = true
+                    // 1. Barra de busca flutuante em pílula + 2. Hero unificado (Decisão 131)
+                    VStack(spacing: NLSpacing.md) {
+                        Button(action: openGamesFromHome) {
+                            HStack(spacing: NLSpacing.sm) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(NLColor.textTertiary)
+                                Text(LocalizedStringKey("catalog.search.placeholder"))
+                                    .font(NLTypography.body)
+                                    .foregroundStyle(NLColor.textTertiary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
                             }
-                            .padding(.top, 56)
-                            .padding(.bottom, 16)
-
-                            // Gauge Circular Oficial de Pulso (Decisão 113) com "TESTAR" minimalista no centro
-                            HomeCircularPulseGaugeHero(
-                                selectedGameName: nil,
-                                regionName: effectivePlatform?.displayName ?? "SP",
-                                isMeasuring: false,
-                                onStartCheck: {
-                                    handlePrimaryCTA()
-                                }
-                            )
-                            .accessibilityIdentifier("home-circular-gauge-hero")
-                            .padding(.bottom, 14)
-
-                            // Linha com último resultado verificado (clicável para abrir detalhes)
-                            Group {
-                                if let latest = latestHistoryEntry {
-                                    Button {
-                                        completedEntry = latest
-                                        showingDetails = true
-                                    } label: {
-                                        HStack(spacing: 4) {
-                                            Text(verbatim: latestResultSymbol(latest))
-                                                .foregroundStyle(latestResultColor(latest))
-                                                .fontWeight(.heavy)
-                                            Text(latestResultSummaryText(latest))
-                                                .fontWeight(.semibold)
-                                            Text(verbatim: "·")
-                                            Text(relativeTimeString(for: latest.completedAt))
-                                        }
-                                        .font(NLTypography.monospaceSubtitle)
-                                        .foregroundStyle(NLColor.textSecondary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityIdentifier("home-last-result")
-                                } else {
-                                    Text(LocalizedStringKey("home.last_check.empty"))
-                                        .font(NLTypography.monospaceSubtitle)
-                                        .foregroundStyle(NLColor.textTertiary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                }
-                            }
-                            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                            .padding(.bottom, NLSpacing.md)
+                            .padding(.horizontal, NLSpacing.md)
+                            .padding(.vertical, 12)
+                            .background(NLColor.surface, in: Capsule())
+                            .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                         }
-                    }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("home-search-bar")
 
-                    // Seção Inferior: Jogos Favoritos com Disparo em 1 Toque (Decisão 113)
-                    if !favoriteGamesList.isEmpty {
-                        HomeFavoriteGamesRail(
-                            favoriteGames: favoriteGamesList,
+                        HomeHeroCarousel(
+                            recentGameChecks: recentGameHeroSlides,
+                            fallbackLatestEntry: latestHistoryEntry,
+                            verdictSymbol: { latestResultSymbol($0) },
+                            verdictColor: { latestResultColor($0) },
+                            verdictTitle: { latestResultSummaryText($0) },
+                            onStartGeneralCheck: { handlePrimaryCTA() },
+                            onStartGameCheck: { game in
+                                selectedGameID = game.id
+                                startCatalogCheckDirectly(for: game)
+                            },
+                            onOpenEntry: { entry in
+                                completedEntry = entry
+                                showingDetails = true
+                            }
+                        )
+                    }
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    .padding(.top, NLSpacing.md)
+                    .padding(.bottom, NLSpacing.lg)
+
+                    // 3. Trilho 1: Jogos Favoritos (pôsteres 3:4)
+                    HomeFavoriteGamesRail(
+                        favoriteGames: favoriteGamesList,
+                        selectedGameID: selectedGameID,
+                        onSelectGame: { game in
+                            selectedGameID = game.id
+                            startCatalogCheckDirectly(for: game)
+                        },
+                        onManageFavorites: {
+                            openGamesFromHome()
+                        }
+                    )
+                    .padding(.bottom, NLSpacing.lg)
+
+                    // 4. Trilho 2: Jogos Populares (pôsteres 3:4)
+                    if !popularGamesList.isEmpty {
+                        HomePopularGamesRail(
+                            popularGames: popularGamesList,
                             selectedGameID: selectedGameID,
                             onSelectGame: { game in
                                 selectedGameID = game.id
                                 startCatalogCheckDirectly(for: game)
                             },
-                            onManageFavorites: {
+                            onSeeAll: {
                                 openGamesFromHome()
                             }
                         )
-                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                        .padding(.top, 12)
                         .padding(.bottom, NLSpacing.lg)
                     }
 
@@ -224,7 +195,6 @@ extension QuickCheckFeatureView {
             }
         }
         .scrollContentBackground(.hidden)
-        .ignoresSafeArea(edges: .top)
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
@@ -242,6 +212,45 @@ extension QuickCheckFeatureView {
         return Platform.allCases
             .flatMap { CatalogMeasurementJourney.availableGames(in: remoteCatalog, market: market, platform: $0) }
             .filter { seen.insert($0.id).inserted }
+    }
+
+    var popularGamesList: [CatalogMeasurementJourney.Game] {
+        let favoriteIDs = Set(favoriteGamesList.map(\.id))
+        let preferredOrder = [
+            "valorant",
+            "cs2",
+            "fortnite",
+            "league_of_legends",
+            "ea_fc",
+            "cod_mobile",
+            "apex_legends",
+            "warzone"
+        ]
+        let byID = Dictionary(uniqueKeysWithValues: availableGames.map { ($0.id, $0) })
+        let prioritized = preferredOrder.compactMap { byID[$0] } +
+            availableGames.filter { !preferredOrder.contains($0.id) }
+        return Array(
+            prioritized
+                .filter { $0.id != GameContext.genericGamingID && !favoriteIDs.contains($0.id) }
+                .prefix(6)
+        )
+    }
+
+    var recentGameHeroSlides: [(game: CatalogMeasurementJourney.Game, entry: MeasurementHistoryEntry)] {
+        let byID = Dictionary(uniqueKeysWithValues: availableGames.map { ($0.id, $0) })
+        var seen = Set<String>()
+        var slides: [(game: CatalogMeasurementJourney.Game, entry: MeasurementHistoryEntry)] = []
+        for entry in history.sorted(by: { $0.completedAt > $1.completedAt }) {
+            let gameID = entry.resolvedContext.context.gameID
+            guard gameID != GameContext.genericGamingID,
+                  seen.insert(gameID).inserted,
+                  let game = byID[gameID] else {
+                continue
+            }
+            slides.append((game: game, entry: entry))
+            if slides.count >= 3 { break }
+        }
+        return slides
     }
 
     var selectedGameName: String {
@@ -684,4 +693,280 @@ extension QuickCheckFeatureView {
         .navigationTitle("Início")
     }
     .preferredColorScheme(.dark)
+}
+
+private struct HomeHeroCarousel: View {
+    let recentGameChecks: [(game: CatalogMeasurementJourney.Game, entry: MeasurementHistoryEntry)]
+    let fallbackLatestEntry: MeasurementHistoryEntry?
+    let verdictSymbol: (MeasurementHistoryEntry) -> String
+    let verdictColor: (MeasurementHistoryEntry) -> Color
+    let verdictTitle: (MeasurementHistoryEntry) -> String
+    let onStartGeneralCheck: () -> Void
+    let onStartGameCheck: (CatalogMeasurementJourney.Game) -> Void
+    let onOpenEntry: (MeasurementHistoryEntry) -> Void
+
+    @State private var currentPage: Int = 0
+
+    var body: some View {
+        let heroShape = RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+
+        if recentGameChecks.isEmpty {
+            HomeHeroSlideCard(
+                gameTitle: nil,
+                latestEntry: fallbackLatestEntry,
+                verdictSymbol: fallbackLatestEntry.map(verdictSymbol) ?? "—",
+                verdictColor: fallbackLatestEntry.map(verdictColor) ?? NLColor.textTertiary,
+                verdictTitle: fallbackLatestEntry.map(verdictTitle),
+                onStart: onStartGeneralCheck,
+                onOpenCheck: {
+                    if let fallbackLatestEntry {
+                        onOpenEntry(fallbackLatestEntry)
+                    }
+                }
+            ) {
+                Image("home_hero_default")
+                    .resizable()
+                    .scaledToFill()
+            }
+            .frame(height: 216)
+            .clipShape(heroShape)
+            .shadow(color: NLShadow.cardColor, radius: 10, x: 0, y: 5)
+        } else {
+            VStack(spacing: NLSpacing.sm) {
+                TabView(selection: $currentPage) {
+                    ForEach(Array(recentGameChecks.enumerated()), id: \.element.game.id) { index, item in
+                        HomeHeroSlideCard(
+                            gameTitle: item.game.name.uppercased(),
+                            latestEntry: item.entry,
+                            verdictSymbol: verdictSymbol(item.entry),
+                            verdictColor: verdictColor(item.entry),
+                            verdictTitle: verdictTitle(item.entry),
+                            onStart: { onStartGameCheck(item.game) },
+                            onOpenCheck: { onOpenEntry(item.entry) }
+                        ) {
+                            VerifiedGameArtwork(game: item.game, aspectRatio: 16.0 / 9.0)
+                        }
+                        .clipShape(heroShape)
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 216)
+                .clipShape(heroShape)
+                .shadow(color: NLShadow.cardColor, radius: 10, x: 0, y: 5)
+                .task(id: "\(recentGameChecks.count)-\(currentPage)") {
+                    guard recentGameChecks.count > 1 else { return }
+                    try? await Task.sleep(for: .seconds(5))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        currentPage = (currentPage + 1) % recentGameChecks.count
+                    }
+                }
+
+                if recentGameChecks.count > 1 {
+                    HStack(spacing: 6) {
+                        ForEach(0..<recentGameChecks.count, id: \.self) { index in
+                            let isActive = (index == currentPage)
+                            Capsule()
+                                .fill(isActive ? NLColor.accentPrimary : NLColor.textTertiary)
+                                .frame(width: isActive ? 18 : 6, height: 6)
+                                .animation(.easeInOut(duration: 0.2), value: currentPage)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct HomeHeroSlideCard<Background: View>: View {
+    let gameTitle: String?
+    let latestEntry: MeasurementHistoryEntry?
+    let verdictSymbol: String
+    let verdictColor: Color
+    let verdictTitle: String?
+    let onStart: () -> Void
+    let onOpenCheck: () -> Void
+    @ViewBuilder let background: () -> Background
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            background()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+
+            LinearGradient(
+                stops: [
+                    .init(color: NLColor.backgroundBase.opacity(0.25), location: 0.0),
+                    .init(color: NLColor.backgroundBase.opacity(0.62), location: 0.45),
+                    .init(color: NLColor.backgroundBase.opacity(0.94), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            LinearGradient(
+                stops: [
+                    .init(color: NLColor.backgroundBase.opacity(0.42), location: 0.0),
+                    .init(color: .clear, location: 0.75)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+
+            VStack(alignment: .leading, spacing: 0) {
+                HeroLastCheckPill(
+                    latestHistoryEntry: latestEntry,
+                    verdictSymbol: verdictSymbol,
+                    verdictColor: verdictColor,
+                    verdictTitle: verdictTitle,
+                    onTap: onOpenCheck
+                )
+
+                Spacer(minLength: 0)
+
+                VStack(alignment: .leading, spacing: NLSpacing.sm) {
+                    if let gameTitle {
+                        Text(verbatim: gameTitle)
+                            .font(NLTypography.competitiveHero)
+                            .tracking(NLTypography.heroTracking)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    } else {
+                        Text(LocalizedStringKey("home.hero.ready_for_ranked"))
+                            .font(NLTypography.competitiveHero)
+                            .tracking(NLTypography.heroTracking)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+
+                    HeroHaloButton(
+                        title: LocalizedStringKey("home.gauge.test_now"),
+                        action: onStart
+                    )
+                    .accessibilityIdentifier("home-cta-start-lagcheck")
+                }
+            }
+            .padding(NLSpacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+        .background(NLColor.surface)
+    }
+}
+
+private struct HeroHaloButton: View {
+    let title: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 139 / 255, green: 92 / 255, blue: 246 / 255),
+                        NLColor.gamerPurple,
+                        Color(red: 109 / 255, green: 40 / 255, blue: 217 / 255)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                HStack {
+                    Spacer(minLength: 28)
+                    Text(title)
+                        .font(NLTypography.ctaButton)
+                        .foregroundStyle(Color.white)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(NLColor.gamerPurple)
+                    }
+                }
+                .padding(.leading, NLSpacing.md)
+                .padding(.trailing, 10)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.30), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: NLColor.gamerPurple.opacity(0.45), radius: 10, x: 0, y: 4)
+            .padding(4)
+            .overlay(
+                Capsule()
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.40), NLColor.gamerPurpleLight.opacity(0.28)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct HeroLastCheckPill: View {
+    let latestHistoryEntry: MeasurementHistoryEntry?
+    let verdictSymbol: String
+    let verdictColor: Color
+    let verdictTitle: String?
+    let onTap: () -> Void
+
+    var body: some View {
+        if latestHistoryEntry != nil, let verdictTitle {
+            Button(action: onTap) {
+                HStack(spacing: 6) {
+                    Text(verbatim: verdictSymbol)
+                        .font(NLTypography.statusLine)
+                        .foregroundStyle(verdictColor)
+
+                    Text(verbatim: verdictTitle.uppercased())
+                        .font(NLTypography.statusLine)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(1)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(NLColor.textTertiary)
+                }
+                .padding(.horizontal, NLSpacing.sm)
+                .padding(.vertical, 6)
+                .background(NLColor.backgroundBase.opacity(0.72), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("home-last-result")
+        } else {
+            HStack(spacing: 6) {
+                Text(verbatim: "—")
+                    .font(NLTypography.statusLine)
+                    .foregroundStyle(NLColor.textTertiary)
+                Text(LocalizedStringKey("home.last_check.empty"))
+                    .font(NLTypography.statusLine)
+                    .foregroundStyle(NLColor.textTertiary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, NLSpacing.sm)
+            .padding(.vertical, 6)
+            .background(NLColor.backgroundBase.opacity(0.72), in: Capsule())
+        }
+    }
 }

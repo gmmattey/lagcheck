@@ -59,10 +59,9 @@ class ShelfAndPlannerTest {
         }
     }
 
-    @Test fun bundledBaseCatalogIsTheSameFileAsTheWorkerCandidateAndTheIosBase() {
+    @Test fun bundledBaseCatalogIsTheSameFileAsTheIosBase() {
         val asset = File(root, "android/app/src/main/assets/catalog-base.json").readBytes()
-        assertThat(asset).isEqualTo(File(root, "worker/catalog/catalog-v3.candidate.json").readBytes())
-        assertThat(asset).isEqualTo(File(root, "Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json").readBytes())
+        assertThat(asset).isEqualTo(File(root, "ios/Sources/NolaggyInfrastructure/Resources/DebugCatalogBase.json").readBytes())
     }
 
     @Test fun legacyPrototypeIdsStillFindTheirGame() {

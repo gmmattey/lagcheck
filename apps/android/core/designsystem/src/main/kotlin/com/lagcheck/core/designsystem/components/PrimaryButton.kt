@@ -12,11 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lagcheck.core.designsystem.theme.LagCheckColors
+import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 
 /**
- * Botão de Ação Primária Oficial do Lagcheck (Open Design / Brand Spec / Decisões 51 e 66).
- * Altura de 62dp (ou custom), cantos arredondados de 17dp, fundo Roxo Gamer (#7C3AED), texto em negrito 17sp.
+ * Botão de Ação Primária Oficial do Lagcheck (Design System / Decisão 126).
+ * Altura de 62dp (ou custom), cantos de 12dp (`LagCheckRadius.lg`), fundo Roxo Gamer (#7C3AED), texto Barlow SemiBold 17sp.
  */
 @Composable
 fun PrimaryButton(
@@ -34,7 +35,7 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(height),
-        shape = RoundedCornerShape(percent = 50),
+        shape = RoundedCornerShape(LagCheckRadius.lg),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,

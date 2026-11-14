@@ -25,104 +25,174 @@ public struct HomeFavoriteGamesRail: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            // Cabeçalho da Seção com Ação de Gerenciar/Editar
+            // Cabeçalho da Seção com Ação "Ver todos ›"
             HStack {
                 Text(LocalizedStringKey("home.favorite_games.title"))
                     .font(NLTypography.sectionHeader)
-                    .foregroundStyle(NLColor.textTertiary)
+                    .foregroundStyle(NLColor.textSecondary)
                     .textCase(.uppercase)
 
                 Spacer()
 
                 Button(action: onManageFavorites) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "pencil.line")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text(LocalizedStringKey("home.favorite_games.edit"))
+                    HStack(spacing: 2) {
+                        Text(LocalizedStringKey("home.quick_rail.see_all"))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(verbatim: "›")
+                            .font(.system(size: 15, weight: .bold))
                     }
-                    .font(NLTypography.caption)
-                    .foregroundStyle(NLColor.accentPrimary)
-                    .padding(.horizontal, 8)
+                    .foregroundStyle(NLColor.gamerPurpleLight)
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 4)
-                    .background(NLColor.accentPrimarySubtle, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("home-favorite-games-manage")
             }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
-            // Grid ou Linha com até 4 jogos favoritos
-            HStack(spacing: NLSpacing.sm) {
-                ForEach(favoriteGames) { game in
-                    let isSelected = (game.id == selectedGameID)
-                    Button {
-                        onSelectGame(game)
-                    } label: {
-                        VStack(spacing: NLSpacing.xxs) {
-                            ZStack(alignment: .topTrailing) {
-                                VerifiedGameArtwork(game: game, aspectRatio: 1)
-                                    .frame(maxWidth: .infinity)
-                                    .aspectRatio(1, contentMode: .fit)
-                                    .clipShape(RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
-                                            .stroke(
-                                                isSelected ? NLColor.accentPrimary : NLColor.borderHairline,
-                                                lineWidth: isSelected ? 2 : 1
-                                            )
-                                    )
-
-                                if isSelected {
-                                    Circle()
-                                        .fill(NLColor.accentPrimary)
-                                        .frame(width: 8, height: 8)
-                                        .padding(4)
-                                }
-                            }
-
-                            Text(game.name)
-                                .font(NLTypography.captionStrong)
-                                .foregroundStyle(isSelected ? NLColor.textPrimary : NLColor.textSecondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
+            // Trilho horizontal de pôsteres 3:4
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NLSpacing.sm) {
+                    ForEach(favoriteGames) { game in
+                        HomePosterGameCard(
+                            game: game,
+                            isSelected: game.id == selectedGameID,
+                            onTap: { onSelectGame(game) }
+                        )
+                        .accessibilityIdentifier("home-favorite-game-\(game.id)")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("home-favorite-game-\(game.id)")
-                }
 
-                // Slot de Adicionar Jogo caso tenha menos de 4
-                if favoriteGames.count < FavoriteGamesStore.maxFavorites {
-                    Button(action: onManageFavorites) {
-                        VStack(spacing: NLSpacing.xxs) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
-                                    .fill(NLColor.panel)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: NLRadius.controlMedium, style: .continuous)
-                                            .strokeBorder(
-                                                NLColor.borderHairline,
-                                                style: StrokeStyle(lineWidth: 1, dash: [4, 4])
-                                            )
-                                    )
+                    if favoriteGames.count < FavoriteGamesStore.maxFavorites {
+                        Button(action: onManageFavorites) {
+                            VStack(spacing: NLSpacing.xs) {
                                 Image(systemName: "plus")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundStyle(NLColor.accentPrimary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .aspectRatio(1, contentMode: .fit)
+                                    .foregroundStyle(NLColor.gamerPurpleLight)
 
-                            Text(LocalizedStringKey("home.favorite_games.add"))
-                                .font(NLTypography.caption)
-                                .foregroundStyle(NLColor.textTertiary)
-                                .lineLimit(1)
+                                Text(LocalizedStringKey("home.favorite_games.add"))
+                                    .font(NLTypography.captionStrong)
+                                    .foregroundStyle(NLColor.textSecondary)
+                                    .lineLimit(1)
+                            }
+                            .frame(width: 114, height: 152)
+                            .background(
+                                NLColor.surface,
+                                in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+                            )
+                            .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("home-favorite-game-add-slot")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("home-favorite-game-add-slot")
                 }
+                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                .padding(.vertical, 4)
             }
         }
-        .padding(.horizontal, NLSpacing.md)
+    }
+}
+
+/// Trilho de jogos populares na Home (pôsteres 3:4, toque direto para testar).
+public struct HomePopularGamesRail: View {
+    let popularGames: [CatalogMeasurementJourney.Game]
+    let selectedGameID: String?
+    let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
+    let onSeeAll: () -> Void
+
+    public init(
+        popularGames: [CatalogMeasurementJourney.Game],
+        selectedGameID: String?,
+        onSelectGame: @escaping (CatalogMeasurementJourney.Game) -> Void,
+        onSeeAll: @escaping () -> Void
+    ) {
+        self.popularGames = popularGames
+        self.selectedGameID = selectedGameID
+        self.onSelectGame = onSelectGame
+        self.onSeeAll = onSeeAll
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: NLSpacing.sm) {
+            HStack {
+                Text(LocalizedStringKey("home.popular"))
+                    .font(NLTypography.sectionHeader)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                Button(action: onSeeAll) {
+                    HStack(spacing: 2) {
+                        Text(LocalizedStringKey("home.quick_rail.see_all"))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(verbatim: "›")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundStyle(NLColor.gamerPurpleLight)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home-popular-games-see-all")
+            }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: NLSpacing.sm) {
+                    ForEach(popularGames) { game in
+                        HomePosterGameCard(
+                            game: game,
+                            isSelected: game.id == selectedGameID,
+                            onTap: { onSelectGame(game) }
+                        )
+                        .accessibilityIdentifier("home-popular-game-\(game.id)")
+                    }
+                }
+                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                .padding(.vertical, 4)
+            }
+        }
+    }
+}
+
+private struct HomePosterGameCard: View {
+    let game: CatalogMeasurementJourney.Game
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack(alignment: .bottomLeading) {
+                VerifiedGameArtwork(game: game, aspectRatio: 0.75)
+                    .frame(width: 114, height: 152)
+
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.0),
+                        .init(color: .clear, location: 0.4),
+                        .init(color: NLColor.backgroundBase.opacity(0.85), location: 0.75),
+                        .init(color: NLColor.backgroundBase, location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                Text(game.name)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .lineLimit(1)
+                    .padding(NLSpacing.sm)
+            }
+            .frame(width: 114, height: 152)
+            .clipShape(RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+            .shadow(
+                color: isSelected ? NLColor.accentPrimary.opacity(0.35) : NLShadow.cardColor,
+                radius: isSelected ? 10 : 6,
+                x: 0,
+                y: isSelected ? 4 : 3
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -169,10 +239,7 @@ public struct FavoriteGamesSelectionSheet: View {
                 }
                 .padding(NLSpacing.sm)
                 .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md))
-                .overlay(
-                    RoundedRectangle(cornerRadius: NLRadius.md)
-                        .stroke(NLColor.borderHairline, lineWidth: 1)
-                )
+                .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                 .padding(.horizontal, NLSpacing.md)
 
                 // Lista de Jogos

@@ -1,6 +1,17 @@
 import Foundation
 import NolaggyDomain
 
+/// Evento de uma sonda da pré-leitura, emitido no instante em que acontece.
+/// Serve só para apresentação (mapa de medição); a decisão continua vindo das
+/// amostras devolvidas por `collect`.
+public enum RegionalPreReadEvent: Equatable, Sendable {
+    case sent
+    case answered(rttMilliseconds: Double)
+    case unanswered
+}
+
+public typealias RegionalPreReadEventHandler = @Sendable (_ regionID: String, _ event: RegionalPreReadEvent) -> Void
+
 /// Adaptador de infraestrutura: coleta exatamente a janela curta autorizada
 /// para um destino já presente no snapshot. Não recebe URL nem hostname livre.
 public protocol RegionalPreReadCollecting: Sendable {

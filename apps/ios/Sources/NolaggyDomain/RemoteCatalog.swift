@@ -40,6 +40,17 @@ public struct RemoteCatalogPayload: Codable, Equatable, Sendable {
         self.games = games
         self.assetBaseURL = assetBaseURL
     }
+
+    /// Jogos que ficaram sem contexto jogável no iOS (só plataformas desconhecidas) saem do catálogo.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try values.decode(Int.self, forKey: .schemaVersion)
+        catalogVersion = try values.decode(String.self, forKey: .catalogVersion)
+        profiles = try values.decode([RemoteCatalogProfile].self, forKey: .profiles)
+        regions = try values.decode([RemoteCatalogRegion].self, forKey: .regions)
+        games = try values.decode([RemoteCatalogGame].self, forKey: .games).filter { !$0.contexts.isEmpty }
+        assetBaseURL = try values.decodeIfPresent(String.self, forKey: .assetBaseURL)
+    }
 }
 
 public struct RemoteCatalogProfile: Codable, Equatable, Sendable {
@@ -103,6 +114,16 @@ public struct RemoteCatalogGame: Codable, Equatable, Sendable {
         self.contexts = contexts
         self.artwork = artwork
         self.rating = rating
+    }
+
+    /// Contextos que ficaram sem nenhuma plataforma conhecida no iOS saem do jogo.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        contexts = try values.decode([RemoteCatalogGameContext].self, forKey: .contexts).filter { !$0.platforms.isEmpty }
+        artwork = try values.decodeIfPresent(RemoteCatalogArtwork.self, forKey: .artwork)
+        rating = try values.decodeIfPresent(RemoteCatalogRating.self, forKey: .rating)
     }
 }
 
@@ -205,6 +226,20 @@ public struct RemoteCatalogGameContext: Codable, Equatable, Sendable {
         self.availability = availability
         self.measurement = measurement
         self.routes = routes
+    }
+
+    /// Plataformas que o iOS não conhece (ex.: `android`, publicada pelo
+    /// catálogo do site) são ignoradas, como no Android. Antes, uma única
+    /// plataforma desconhecida fazia o catálogo inteiro ser recusado.
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        market = try values.decode(String.self, forKey: .market)
+        let rawPlatforms = try values.decode([String].self, forKey: .platforms)
+        platforms = Set(rawPlatforms.compactMap(Platform.init(rawValue:)))
+        profileID = try values.decode(String.self, forKey: .profileID)
+        availability = try values.decode(RemoteCatalogAvailability.self, forKey: .availability)
+        measurement = try values.decodeIfPresent(RemoteCatalogMeasurement.self, forKey: .measurement)
+        routes = try values.decodeIfPresent([RemoteCatalogRoute].self, forKey: .routes)
     }
 }
 

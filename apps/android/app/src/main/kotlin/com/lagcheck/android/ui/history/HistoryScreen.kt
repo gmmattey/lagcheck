@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -125,7 +126,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .size(55.dp)
                                 .clip(CircleShape)
-                                .border(1.dp, LagCheckColors.Border, CircleShape),
+                                .background(LagCheckColors.Surface),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -156,8 +157,8 @@ fun HistoryScreen(
 
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
+                                .clip(RoundedCornerShape(LagCheckRadius.lg))
+                                .background(LagCheckColors.Surface)
                                 .clickable { onGoToHome() }
                                 .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3)
                         ) {
@@ -186,10 +187,12 @@ fun HistoryScreen(
                 // 3. Resumo: checks · prontos · jogos
                 item(key = "summary") {
                     Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
+                    val summaryShape = RoundedCornerShape(LagCheckRadius.md)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(LagCheckRadius.xl))
+                            .shadow(elevation = 6.dp, shape = summaryShape)
+                            .clip(summaryShape)
                             .background(LagCheckColors.Surface)
                             .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
                     ) {
@@ -223,11 +226,13 @@ fun HistoryScreen(
                         ?: com.lagcheck.domain.model.CatalogGame(gameId, checks.first().gameName, "Online", drawableResName = "")
 
                     item(key = "group_$gameId") {
+                        val groupShape = RoundedCornerShape(LagCheckRadius.md)
                         Column(
                             modifier = Modifier
                                 .padding(top = LagCheckSpacing.space2_5)
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(LagCheckRadius.xl))
+                                .shadow(elevation = 6.dp, shape = groupShape)
+                                .clip(groupShape)
                                 .background(LagCheckColors.Surface)
                                 .padding(start = LagCheckSpacing.space4_5, end = LagCheckSpacing.space4_5, top = LagCheckSpacing.space1_5, bottom = LagCheckSpacing.space1)
                         ) {
@@ -363,8 +368,8 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(percent = 50))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
+                                .clip(RoundedCornerShape(LagCheckRadius.lg))
+                                .background(LagCheckColors.Panel)
                                 .clickable { showConfirmDeleteSheet = false },
                             contentAlignment = Alignment.Center
                         ) {
@@ -381,7 +386,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(percent = 50))
+                                .clip(RoundedCornerShape(LagCheckRadius.lg))
                                 .background(LagCheckColors.CoralWarning)
                                 .clickable {
                                     showConfirmDeleteSheet = false
@@ -417,7 +422,6 @@ private fun RitualWindowPicker(selectedWindow: Int, onSelected: (Int) -> Unit) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(percent = 50))
                     .background(if (selected) LagCheckColors.Panel else LagCheckColors.Surface)
-                    .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
                     .clickable { onSelected(days) }
                     .height(44.dp)
                     .padding(horizontal = LagCheckSpacing.space3),

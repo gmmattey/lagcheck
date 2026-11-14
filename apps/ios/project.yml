@@ -216,6 +216,17 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+  NolaggyDesignTests:
+    type: bundle.unit-test
+    platform: iOS
+    dependencies:
+      - target: NolaggyDesign
+      - target: NolaggyDomain
+    sources:
+      - path: Tests/NolaggyDesignTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
   NolaggyApplicationTests:
     type: bundle.unit-test
     platform: iOS
@@ -253,11 +264,13 @@ schemes:
     build:
       targets:
         NolaggyDomainTests: [test]
+        NolaggyDesignTests: [test]
         NolaggyApplicationTests: [test]
         NolaggyInfrastructureTests: [test]
     test:
       targets:
         - NolaggyDomainTests
+        - NolaggyDesignTests
         - NolaggyApplicationTests
         - NolaggyInfrastructureTests
   NolaggyCoreTests:
@@ -278,12 +291,14 @@ schemes:
       targets:
         Nolaggy: all
         NolaggyDomainTests: [test]
+        NolaggyDesignTests: [test]
         NolaggyApplicationTests: [test]
         NolaggyInfrastructureTests: [test]
         NolaggyUITests: [test]
     test:
       targets:
         - NolaggyDomainTests
+        - NolaggyDesignTests
         - NolaggyApplicationTests
         - NolaggyInfrastructureTests
         - NolaggyUITests

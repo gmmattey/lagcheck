@@ -1093,15 +1093,6 @@ struct HomeCatalogView: View {
 
             Spacer()
 
-            Image("WordmarkPrimary")
-                .resizable()
-                .renderingMode(.original)
-                .scaledToFit()
-                .frame(maxWidth: 110, maxHeight: 30)
-                .accessibilityLabel("LagCheck")
-
-            Spacer()
-
             Color.clear.frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
         }
         .frame(height: 52)

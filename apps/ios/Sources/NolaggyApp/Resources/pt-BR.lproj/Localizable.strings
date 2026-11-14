@@ -914,3 +914,7 @@
 "share.video.cancel" = "Cancelar";
 "share.video.failed" = "Não foi possível gerar o vídeo.";
 "share.caption.copied" = "Legenda e hashtags copiadas. Cole no post.";
+
+"route_map.you" = "Você";
+"route_map.a11y" = "Mapa da rota medida";
+"route_map.unavailable" = "Localização aproximada indisponível";

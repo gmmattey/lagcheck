@@ -1,6 +1,5 @@
 package com.lagcheck.android.ui.games
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,12 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.lagcheck.android.R
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
@@ -133,10 +130,6 @@ private fun TopBar(showBackButton: Boolean, onBack: () -> Unit) {
                 )
             }
         }
-        Image(
-            painter = painterResource(R.drawable.wordmark_primary), contentDescription = "lagcheck",
-            modifier = Modifier.width(110.dp).height(30.dp).align(Alignment.Center)
-        )
     }
 }
 
@@ -216,10 +209,11 @@ private fun GameCard(
 ) {
     Box(modifier) {
         Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(LagCheckRadius.md)).clickable { onClick(game) }
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(LagCheckRadius.sm)).clickable { onClick(game) }
                 .semantics { contentDescription = trf("Fazer Check de %s", game.name) }
         ) {
-            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(LagCheckRadius.md)).background(LagCheckColors.Panel)) {
+            // Capa é mídia: raio sm (8), igual à linha de busca e ao GameArtwork do iOS.
+            Box(Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(LagCheckRadius.sm)).background(LagCheckColors.Panel)) {
                 com.lagcheck.android.ui.components.RemoteGameArtwork(game, Modifier.fillMaxSize())
             }
             Text(

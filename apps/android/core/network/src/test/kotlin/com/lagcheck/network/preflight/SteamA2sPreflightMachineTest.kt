@@ -14,15 +14,15 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Test
 
-/** Mesmos vetores de `Tests/Vectors/steam-a2s-preflight-vectors.json` usados pelo iOS (`SteamA2SPreflightMachine`). */
+/** Mesmos vetores de `apps/ios/Tests/Vectors/steam-a2s-preflight-vectors.json` usados pelo iOS (`SteamA2SPreflightMachine`). */
 class SteamA2sPreflightMachineTest {
     private fun hex(b: ByteArray) = b.joinToString("") { "%02x".format(it) }
     private fun bytes(h: String) = ByteArray(h.length / 2) { h.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
 
     private val vectors: JsonObject = run {
         val root = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-            .first { File(it, "Tests/Vectors/steam-a2s-preflight-vectors.json").exists() }
-        Json.parseToJsonElement(File(root, "Tests/Vectors/steam-a2s-preflight-vectors.json").readText()).jsonObject
+            .first { File(it, "ios/Tests/Vectors/steam-a2s-preflight-vectors.json").exists() }
+        Json.parseToJsonElement(File(root, "ios/Tests/Vectors/steam-a2s-preflight-vectors.json").readText()).jsonObject
     }
 
     @Test fun machineMatchesSharedVectors() {

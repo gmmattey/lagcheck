@@ -914,3 +914,7 @@
 "share.video.cancel" = "Cancel";
 "share.video.failed" = "Couldn't create the video.";
 "share.caption.copied" = "Caption and hashtags copied. Paste into your post.";
+
+"route_map.you" = "You";
+"route_map.a11y" = "Map of the measured route";
+"route_map.unavailable" = "Approximate location unavailable";

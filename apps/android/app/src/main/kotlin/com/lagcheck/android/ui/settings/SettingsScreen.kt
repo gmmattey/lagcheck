@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -526,8 +527,8 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(percent = 50))
-                                .border(1.dp, LagCheckColors.Border, RoundedCornerShape(percent = 50))
+                                .clip(RoundedCornerShape(LagCheckRadius.lg))
+                                .background(LagCheckColors.Panel)
                                 .clickable { showDeleteConfirmSheet = false },
                             contentAlignment = Alignment.Center
                         ) {
@@ -544,7 +545,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(52.dp)
-                                .clip(RoundedCornerShape(percent = 50))
+                                .clip(RoundedCornerShape(LagCheckRadius.lg))
                                 .background(LagCheckColors.CoralWarning)
                                 .clickable {
                                     showDeleteConfirmSheet = false
@@ -577,13 +578,15 @@ private fun SettingsSectionHeader(title: String) {
     )
 }
 
-/** Grupo de linhas dentro de um cartão Surface com raio 26 (protótipo Android). */
+/** Grupo de linhas dentro de um cartão Surface com raio 12 e profundidade tonal. */
 @Composable
 private fun SettingsGroup(content: @Composable () -> Unit) {
+    val shape = RoundedCornerShape(LagCheckRadius.md)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(LagCheckRadius.xl))
+            .shadow(elevation = 6.dp, shape = shape)
+            .clip(shape)
             .background(LagCheckColors.Surface)
             .padding(horizontal = LagCheckSpacing.space5)
     ) { content() }

@@ -38,6 +38,8 @@ struct QuickCheckFeatureView: View {
     @State var showingFavoritesSheet = false
     @State var deepCheckDestination: DeepCheckDestination?
     @State var showingRegionalSelection = false
+    /// Mapa de medição compartilhado entre a escolha do servidor e o Check, como no site.
+    @State var routeMap = RouteMapController()
     @State var manualRegionID: String?
     /// `nil` até o usuário escolher explicitamente um jogo (toque na vitrine
     /// ou reteste). Sem escolha explícita e com histórico, a Home não define
@@ -63,6 +65,7 @@ struct QuickCheckFeatureView: View {
     @State var showingDuelInvitation = false
     @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
+    @ObservedObject var favoritesStore = FavoriteGamesStore.shared
     @State private var hasTrackedAppOpen = false
     @State private var artworkLoaderReady = false
 
@@ -174,6 +177,7 @@ struct QuickCheckFeatureView: View {
                     .navigationDestination(isPresented: $showingRegionalSelection) {
                         RegionalSelectionFeatureView(
                             gameTitle: selectedGameName,
+                            routeMap: routeMap,
                             presentation: $regionalPresentation,
                             onRetry: retryRegionalPreRead,
                             onBackOrCancel: cancelRegionalSelection
@@ -244,6 +248,9 @@ struct QuickCheckFeatureView: View {
                 HistoryView(
                     entries: history,
                     gameName: gameName(for:),
+                    catalogGame: { entry in
+                        availableGames.first(where: { $0.id == entry.resolvedContext.context.gameID })
+                    },
                     retry: retryFromHistory,
                     returnToHome: { selectedTab = .home },
                     showsBackHeader: false,
@@ -373,6 +380,8 @@ struct QuickCheckFeatureView: View {
                 historyRepository: historyRepository,
                 analyticsTracker: analyticsTracker,
                 incomingDuel: destination.incomingDuel,
+                routeMap: destination.routeMap,
+                regionalSnapshotProvider: destination.regionalSnapshotProvider,
                 onMeasurementCompleted: { samples, entry in
                     partialSamples = samples
                     if let entry {
@@ -739,12 +748,20 @@ struct DeepCheckDestination: Identifiable {
     let resolvedContext: ResolvedMeasurementContext
     let gameName: String
     let incomingDuel: HostDuelPayload?
+    /// Mapa que já fez a varredura da escolha do servidor; nil quando o check abre direto.
+    let routeMap: RouteMapController?
+    /// Candidatos para a pré-leitura regional feita dentro do Check.
+    let regionalSnapshotProvider: RegionalSnapshotProvider?
 
     init(
         resolvedContext: ResolvedMeasurementContext,
         gameName: String,
-        incomingDuel: HostDuelPayload? = nil
+        incomingDuel: HostDuelPayload? = nil,
+        routeMap: RouteMapController? = nil,
+        regionalSnapshotProvider: RegionalSnapshotProvider? = nil
     ) {
+        self.routeMap = routeMap
+        self.regionalSnapshotProvider = regionalSnapshotProvider
         self.resolvedContext = resolvedContext
         self.gameName = gameName
         self.incomingDuel = incomingDuel

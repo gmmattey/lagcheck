@@ -314,11 +314,8 @@ struct SettingsView: View {
                     .foregroundStyle(NLColor.textPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
-                    .background(NLColor.backgroundRaised.opacity(0.97), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 13, style: .continuous)
-                            .stroke(NLColor.borderStrong, lineWidth: 1)
-                    )
+                    .background(NLColor.backgroundRaised.opacity(0.97), in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+                    .shadow(color: NLShadow.floatColor, radius: NLShadow.floatRadius, x: 0, y: 8)
                     .padding(.horizontal, NLSpacing.md)
                     .padding(.bottom, 24)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -382,7 +379,8 @@ struct SettingsView: View {
     private func settingsGroup<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(.horizontal, 18)
-            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
+            .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
     }
 
     // MARK: - Language Sheet
@@ -462,8 +460,8 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                         .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(NLColor.borderStrong, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: NLRadius.lg, style: .continuous)
+                                .fill(NLColor.panel)
                         )
                 }
                 .buttonStyle(.plain)

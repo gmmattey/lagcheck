@@ -5,6 +5,15 @@ import NolaggyDesign
 import NolaggyDomain
 import NolaggyInfrastructure
 
+/// Snapshot assinado dos servidores candidatos para a pré-leitura regional
+/// (Decisão 90), com a preferência manual salva em Ajustes.
+struct RegionalSnapshotRequest {
+    let snapshot: RegionalSelectionSnapshot
+    let manualRegionID: String?
+}
+
+typealias RegionalSnapshotProvider = @MainActor () async -> RegionalSnapshotRequest?
+
 struct DeepCheckFeatureView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
@@ -23,6 +32,14 @@ struct DeepCheckFeatureView: View {
     @State private var hasTrackedTerminalEvent = false
     @State private var reviewPromptTask: Task<Void, Never>?
     @State private var displayProgress: Double = 0.04
+    /// Mapa de medição (comportamento do site): recebe a região escolhida e uma
+    /// sonda por resposta UDP real lida do coordenador.
+    @State private var routeMap: RouteMapController
+    /// Pré-leitura regional antes do Check (Decisão 90, paridade com o Android).
+    private let regionalSnapshotProvider: RegionalSnapshotProvider?
+    @State private var hasSelectedRegion = false
+    @State private var preReadTask: Task<Void, Never>?
+    @State private var preReadCoordinator: RegionalPreReadCoordinator?
 
     @State private var activeContext: ResolvedMeasurementContext
     /// Nome localizado do jogo, resolvido pelo catálogo em quem inicia esta
@@ -44,9 +61,13 @@ struct DeepCheckFeatureView: View {
         reviewPromptCoordinator: ReviewPromptCoordinator = ReviewPromptCoordinator(),
         autoStart: Bool = true,
         incomingDuel: HostDuelPayload? = nil,
+        routeMap: RouteMapController? = nil,
+        regionalSnapshotProvider: RegionalSnapshotProvider? = nil,
         onMeasurementCompleted: (([ProbeSample], MeasurementHistoryEntry?) -> Void)? = nil
     ) {
+        self.regionalSnapshotProvider = regionalSnapshotProvider
         _activeContext = State(initialValue: resolvedContext)
+        _routeMap = State(initialValue: routeMap ?? RouteMapController())
         self.gameName = gameName
         self.historyRepository = historyRepository
         self.analyticsTracker = analyticsTracker
@@ -62,6 +83,8 @@ struct DeepCheckFeatureView: View {
             initialPresentation = .inconclusive
         } else if usesFixture {
             initialPresentation = .result(UITestFixtures.validDeepResult, .measured)
+        } else if autoStart && regionalSnapshotProvider != nil {
+            initialPresentation = .selectingRegion
         } else if autoStart {
             initialPresentation = .measuring(.rest)
         } else {
@@ -119,6 +142,11 @@ struct DeepCheckFeatureView: View {
                 reviewPromptTask = nil
             }
             guard phase == .background else { return }
+            if case .selectingRegion = presentation {
+                cancelRegionalSelection()
+                presentation = .cancelled
+                return
+            }
             Task { @MainActor in
                 await coordinator.appDidEnterBackground()
                 await refreshState()
@@ -186,7 +214,7 @@ struct DeepCheckFeatureView: View {
                 requiresWiFi
             case .cellularConsent:
                 cellularConsentView
-            case .measuring, .result, .inconclusive, .cancelled:
+            case .measuring, .selectingRegion, .result, .inconclusive, .noViableRegion, .cancelled:
                 Color.clear
             }
         }
@@ -203,6 +231,10 @@ struct DeepCheckFeatureView: View {
             case let .measuring(phase):
                 measuring(phase)
                     .id("deep-check-measuring-view")
+            case .selectingRegion:
+                selectingRegionView
+            case .noViableRegion:
+                noViableRegionView
             case let .result(result, availability):
                 resultView(result, availability: availability)
             case .inconclusive:
@@ -301,6 +333,17 @@ struct DeepCheckFeatureView: View {
 
         return VStack(spacing: NLSpacing.lg) {
             titleHeader
+
+            if RouteMapPresentation.canDraw(regionID: activeContext.regionID) {
+                // Mesmo mapa do site: câmera se aproxima da região escolhida e
+                // cada resposta real sai de "Você", chega e volta.
+                RouteMapPresentation.mapView(routeMap)
+                    .aspectRatio(4 / 3, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .layoutPriority(-1)
+                    .accessibilityIdentifier("measurement-route-map")
+            }
+
             Spacer(minLength: NLSpacing.xs)
 
             MeasurementLiveTrail(
@@ -321,6 +364,46 @@ struct DeepCheckFeatureView: View {
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
     }
 
+    /// Escolha do servidor: a varredura do mapa recebe cada sonda real da pré-leitura.
+    private var selectingRegionView: some View {
+        VStack(spacing: NLSpacing.lg) {
+            titleHeader
+            RouteMapPresentation.mapView(routeMap)
+                .aspectRatio(4 / 3, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .layoutPriority(-1)
+                .accessibilityIdentifier("measurement-route-map")
+            Spacer(minLength: NLSpacing.xs)
+            RegionalReferenceConfirming()
+                .accessibilityIdentifier("regional-selection-confirming")
+            Spacer()
+        }
+        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+    }
+
+    private var noViableRegionView: some View {
+        VStack(spacing: 0) {
+            titleHeader
+            Spacer()
+            VStack(spacing: NLSpacing.md) {
+                Text("regional_selection.no_viable.title")
+                    .font(NLTypography.headline)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .multilineTextAlignment(.center)
+                Text("regional_selection.no_viable.message")
+                    .font(NLTypography.body)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                PrimaryButton(title: "quick_check.retry", action: restart)
+                    .accessibilityIdentifier("regional-selection-retry")
+                    .padding(.top, NLSpacing.sm)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+    }
+
     private func resultView(_ result: DeepCheckResult, availability: DeepCheckLoadAvailability) -> some View {
         CheckCompletoResultView(
             result: result,
@@ -329,6 +412,7 @@ struct DeepCheckFeatureView: View {
             gameName: gameName,
             platform: activeContext.context.platform,
             regionFriendlyName: friendlyRegion,
+            regionID: activeContext.regionID,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
             showDetails: { showingDetails = true },
@@ -448,9 +532,9 @@ struct DeepCheckFeatureView: View {
 
     private var navigationScreen: NavigationScreen? {
         switch presentation {
-        case .measuring:
+        case .measuring, .selectingRegion:
             .measurement
-        case .result, .inconclusive, .cancelled:
+        case .result, .inconclusive, .noViableRegion, .cancelled:
             .terminal
         case .intro, .requiresWiFi, .cellularConsent:
             nil
@@ -459,9 +543,9 @@ struct DeepCheckFeatureView: View {
 
     private static func navigationPath(for presentation: Presentation) -> [NavigationScreen] {
         switch presentation {
-        case .measuring:
+        case .measuring, .selectingRegion:
             [.measurement]
-        case .result, .inconclusive, .cancelled:
+        case .result, .inconclusive, .noViableRegion, .cancelled:
             [.terminal]
         case .intro, .requiresWiFi, .cellularConsent:
             []
@@ -469,7 +553,13 @@ struct DeepCheckFeatureView: View {
     }
 
     private func start(withConsent: Bool = false) {
+        if let regionalSnapshotProvider, !hasSelectedRegion {
+            beginRegionalSelection(regionalSnapshotProvider, withConsent: withConsent)
+            return
+        }
         Task { @MainActor in
+            RouteMapPresentation.ensureUser(routeMap)
+            routeMap.selectRegion(activeContext.regionID)
             let probePlan = QuickCheckPlan(endpoint: MeasurementEndpoint(
                 host: activeContext.destination.host,
                 port: activeContext.destination.port,
@@ -483,6 +573,8 @@ struct DeepCheckFeatureView: View {
                     hasCellularConsent: withConsent || hasCellularConsent
                 )
                 activeContext = session.resolvedContext
+                RouteMapPresentation.ensureUser(routeMap)
+                routeMap.selectRegion(activeContext.regionID)
                 measurementStartTime = Date()
                 hasTrackedTerminalEvent = false
                 let networkType = activeContext.observedPhoneNetwork?.rawValue ?? "unknown"
@@ -514,11 +606,90 @@ struct DeepCheckFeatureView: View {
         }
     }
 
+    /// Pré-leitura regional (Decisão 90): mede os servidores candidatos e escolhe
+    /// pela menor latência UDP. Cada sonda real aparece na varredura do mapa.
+    private func beginRegionalSelection(_ provider: @escaping RegionalSnapshotProvider, withConsent: Bool) {
+        presentation = .selectingRegion
+        RouteMapPresentation.beginSession(routeMap)
+        preReadTask?.cancel()
+        preReadTask = Task { @MainActor in
+            guard let request = await provider() else {
+                // Sem snapshot de candidatos: mede a rota já resolvida pelo catálogo.
+                guard !Task.isCancelled else { return }
+                hasSelectedRegion = true
+                start(withConsent: withConsent)
+                return
+            }
+            let outcome = await runRegionalPreRead(request)
+            guard !Task.isCancelled, case .selectingRegion = presentation else { return }
+            switch outcome {
+            case let .selected(resolved):
+                activeContext = resolved
+                hasSelectedRegion = true
+                routeMap.selectRegion(resolved.regionID)
+                presentation = .measuring(.rest)
+                start(withConsent: withConsent)
+            case .noViable:
+                presentation = .noViableRegion
+            case .interrupted:
+                presentation = .cancelled
+            }
+        }
+    }
+
+    private enum PreReadOutcome {
+        case selected(ResolvedMeasurementContext)
+        case noViable
+        case interrupted
+    }
+
+    private func runRegionalPreRead(_ request: RegionalSnapshotRequest) async -> PreReadOutcome {
+        let coordinator = RegionalPreReadCoordinator(collector: MeasurementTransportFactory.regionalPreReadCollector(
+            onEvent: RouteMapPresentation.preReadEventHandler(for: routeMap)
+        ))
+        preReadCoordinator = coordinator
+        defer { preReadCoordinator = nil }
+        // Troca de rede descarta a pré-leitura, como no restante do Check.
+        let interruption = PreReadInterruption()
+        let pathChanges = MeasurementTransportFactory.pathObserver().pathChanges()
+        let pathTask = Task {
+            for await _ in pathChanges {
+                interruption.mark()
+                await coordinator.cancel()
+                return
+            }
+        }
+        defer { pathTask.cancel() }
+        do {
+            let decision = try await coordinator.select(snapshot: request.snapshot, manualRegionID: request.manualRegionID)
+            if case let .selected(selection) = decision { return .selected(selection.selected.resolvedContext) }
+            return .noViable
+        } catch RegionalSelectionError.manualCandidateNotAllowed where request.manualRegionID != nil {
+            return await runRegionalPreRead(RegionalSnapshotRequest(snapshot: request.snapshot, manualRegionID: nil))
+        } catch {
+            return interruption.isMarked || Task.isCancelled ? .interrupted : .noViable
+        }
+    }
+
+    private func cancelRegionalSelection() {
+        preReadTask?.cancel()
+        preReadTask = nil
+        let coordinator = preReadCoordinator
+        Task { await coordinator?.cancel() }
+    }
+
     private func waitForTerminalState() async {
         while true {
             if let progress = await coordinator.measurementProgress() {
                 samples = progress.receivedSamples
                 restSamples = progress.restSamples
+                routeMap.ingestProbeResponses(
+                    progress.receivedSamples.map(\.roundTripMilliseconds),
+                    phase: String(describing: progress.phase)
+                )
+                // Rótulo "Região · N ms": mediana do repouso, como o restMs do site.
+                let rest = progress.phase == .rest ? progress.receivedSamples : progress.restSamples
+                routeMap.setSelectedMs(RouteMapPresentation.median(rest.compactMap(\.roundTripMilliseconds)))
             }
             await refreshState()
             updateDisplayProgress()
@@ -660,6 +831,9 @@ struct DeepCheckFeatureView: View {
         samples = []
         restSamples = []
         hasTrackedTerminalEvent = false
+        // Como no Android: tentar de novo refaz a escolha do servidor.
+        hasSelectedRegion = false
+        cancelRegionalSelection()
         if autoStart {
             presentation = .measuring(.rest)
             start(withConsent: hasCellularConsent)
@@ -669,6 +843,7 @@ struct DeepCheckFeatureView: View {
     }
 
     private func cancelOrDismiss() {
+        cancelRegionalSelection()
         Task { @MainActor in
             if let session = await coordinator.currentSession() { await coordinator.cancel(id: session.id) }
             dismiss()
@@ -679,9 +854,11 @@ struct DeepCheckFeatureView: View {
         case intro
         case requiresWiFi
         case cellularConsent
+        case selectingRegion
         case measuring(DeepCheckPhase)
         case result(DeepCheckResult, DeepCheckLoadAvailability)
         case inconclusive
+        case noViableRegion
         case cancelled
     }
 
@@ -689,4 +866,12 @@ struct DeepCheckFeatureView: View {
         case measurement
         case terminal
     }
+}
+
+/// Marca, de forma segura entre tarefas, que a rede mudou durante a pré-leitura.
+private final class PreReadInterruption: @unchecked Sendable {
+    private let lock = NSLock()
+    private var marked = false
+    func mark() { lock.withLock { marked = true } }
+    var isMarked: Bool { lock.withLock { marked } }
 }

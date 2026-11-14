@@ -8,7 +8,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -42,6 +41,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +59,9 @@ import com.lagcheck.core.designsystem.components.PdfDocumentIcon
 import com.lagcheck.core.designsystem.components.PrimaryButton
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.components.WhatsAppLogo
+import com.lagcheck.core.designsystem.components.map.RouteMapController
+import com.lagcheck.android.ui.components.LagCheckRouteMap
+import com.lagcheck.android.ui.components.RouteMapSupport
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
@@ -90,6 +93,8 @@ import kotlinx.coroutines.withContext
 fun VerdictScreen(
     game: CatalogGame,
     evaluation: GameReadinessEvaluation,
+    /** Região medida (id do catálogo). Sem ela, o resultado não desenha mapa. */
+    routeRegionId: String? = null,
     onRetry: () -> Unit,
     onDetails: () -> Unit,
     onClose: () -> Unit,
@@ -343,15 +348,16 @@ fun VerdictScreen(
                 previewBitmap != null -> "${tr("Compartilhar resultado")}: ${evaluation.headline}, ${game.name}, $regionLabel. $shareStateLabel"
                 else -> shareStateLabel
             }
+            val previewShape = RoundedCornerShape(LagCheckRadius.sm)
             Box(
                 modifier = Modifier
                     .widthIn(max = 360.dp)
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
                     .aspectRatio(1200f / 630f)
-                    .clip(RoundedCornerShape(LagCheckRadius.sm))
+                    .shadow(elevation = 8.dp, shape = previewShape)
+                    .clip(previewShape)
                     .background(LagCheckColors.Surface)
-                    .border(1.dp, LagCheckColors.BorderHairline, RoundedCornerShape(LagCheckRadius.sm))
                     .semantics { contentDescription = previewLabel }
                     .then(
                         when {
@@ -402,13 +408,66 @@ fun VerdictScreen(
             color = LagCheckColors.TextMuted
         )
 
+        // 5b. Rota medida, como no site: a câmera sai da visão dos servidores e se aproxima da região escolhida, com a
+        // mediana no rótulo. Não há sondas aqui porque a medição terminou. Inconclusivo não ganha mapa nem número.
+        if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE && RouteMapSupport.canDraw(routeRegionId)) {
+            val regionId = routeRegionId!!
+            val resultMap = remember(regionId) { RouteMapController() }
+            LaunchedEffect(resultMap, evaluation.pingMs) {
+                RouteMapSupport.ensureUser(resultMap)
+                resultMap.selectRegion(regionId, evaluation.pingMs)
+            }
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
+            LagCheckRouteMap(
+                controller = resultMap,
+                regionName = { id -> if (id == regionId) regionLabel.ifBlank { id } else id },
+                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 10f)
+            )
+        }
+
+        val bufferbloatGrade = evaluation.metrics?.loadImpact?.bufferbloatGrade
+        if (bufferbloatGrade != null) {
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
+            val gradeColor = when (bufferbloatGrade) {
+                com.lagcheck.domain.rules.BufferbloatGrade.A_PLUS,
+                com.lagcheck.domain.rules.BufferbloatGrade.A,
+                com.lagcheck.domain.rules.BufferbloatGrade.B -> LagCheckColors.Good
+                com.lagcheck.domain.rules.BufferbloatGrade.C -> LagCheckColors.SemanticCaution
+                com.lagcheck.domain.rules.BufferbloatGrade.D,
+                com.lagcheck.domain.rules.BufferbloatGrade.F -> LagCheckColors.CoralWarning
+            }
+            val pillShape = RoundedCornerShape(percent = 50)
+            Row(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp, shape = pillShape)
+                    .clip(pillShape)
+                    .background(LagCheckColors.Surface)
+                    .padding(horizontal = LagCheckSpacing.space2_5, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = tr("Bufferbloat"),
+                    style = LagCheckTypography.MonoSmall,
+                    color = LagCheckColors.TextMuted
+                )
+                Text(
+                    text = bufferbloatGrade.value,
+                    style = LagCheckTypography.MonoSmall.copy(fontWeight = FontWeight.Bold),
+                    color = gradeColor
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
 
-        // 6. Card "O que mais pesou"
+        // 6. Painel "O que mais pesou": container de evidência (raio md, profundidade por sombra, sem contorno).
+        val weightShape = RoundedCornerShape(LagCheckRadius.md)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LagCheckRadius.xl))
+                .shadow(elevation = 8.dp, shape = weightShape)
+                .clip(weightShape)
                 .background(LagCheckColors.Surface)
                 .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
         ) {
@@ -441,21 +500,22 @@ fun VerdictScreen(
                 height = 56.dp
             )
 
+            val secondaryShape = RoundedCornerShape(LagCheckRadius.md)
             if (evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
                 if (lastDuelResolution != null && onViewDuelVersus != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
-                            .clip(RoundedCornerShape(percent = 50))
+                            .shadow(elevation = 6.dp, shape = secondaryShape)
+                            .clip(secondaryShape)
                             .background(LagCheckColors.Surface)
                             .clickable { onViewDuelVersus() },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = tr("Ver Confronto do Duelo"),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = LagCheckTypography.CtaPrimary,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -464,15 +524,15 @@ fun VerdictScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
-                            .clip(RoundedCornerShape(percent = 50))
+                            .shadow(elevation = 6.dp, shape = secondaryShape)
+                            .clip(secondaryShape)
                             .background(LagCheckColors.Surface)
                             .clickable { showNickSheet = true },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = tr("Desafiar Duo no Lobby"),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = LagCheckTypography.CtaPrimary,
                             color = LagCheckColors.TextPrimary
                         )
                     }
@@ -483,15 +543,15 @@ fun VerdictScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .clip(RoundedCornerShape(percent = 50))
+                    .shadow(elevation = 6.dp, shape = secondaryShape)
+                    .clip(secondaryShape)
                     .background(LagCheckColors.Surface)
                     .clickable { onDetails() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = tr("Ver detalhes"),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = LagCheckTypography.CtaPrimary,
                     color = LagCheckColors.TextPrimary
                 )
             }

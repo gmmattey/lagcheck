@@ -441,7 +441,7 @@ private fun MetricBox(
             Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
             Text(
                 text = value,
-                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.GoogleSans,
+                fontFamily = com.lagcheck.core.designsystem.theme.LagCheckTypography.ChakraPetch,
                 style = androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum"),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
