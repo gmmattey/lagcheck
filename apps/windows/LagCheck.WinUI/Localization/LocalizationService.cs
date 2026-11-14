@@ -449,6 +449,51 @@ public sealed class LocalizationService
         Add("O catálogo local não retornou jogos compatíveis.", "Local catalog did not return compatible games.", "El catálogo local no devolvió juegos compatibles.");
         Add("TESTAR", "CHECK", "PROBAR");
         Add("Testar contexto do jogo", "Check game context", "Probar contexto del juego");
+
+        // Home Windows: jogos e informações disponíveis neste PC.
+        Add("INSTALADOS", "INSTALLED", "INSTALADOS");
+        Add("ATIVIDADE CONHECIDA", "KNOWN ACTIVITY", "ACTIVIDAD CONOCIDA");
+        Add("Nenhuma atividade conhecida para este jogo.", "No known activity for this game.", "No hay actividad conocida de este juego.");
+        Add("Última atividade: {0}", "Last activity: {0}", "Última actividad: {0}");
+        Add("HISTÓRICO DE CHECKS", "CHECK HISTORY", "HISTORIAL DE MEDICIONES");
+        Add("Sem Checks válidos deste jogo.", "No valid checks for this game.", "No hay mediciones válidas de este juego.");
+        Add("Última leitura: {0}", "Latest reading: {0}", "Última medición: {0}");
+        Add("Dados insuficientes para mostrar tendência.", "Not enough data to show a trend.", "No hay datos suficientes para mostrar una tendencia.");
+        Add("STATUS DAS PLATAFORMAS", "PLATFORM STATUS", "ESTADO DE LAS PLATAFORMAS");
+        Add("Não verificado", "Not checked", "Sin verificar");
+        Add("Galeria local", "Local gallery", "Galería local");
+        Add("Abrir Biblioteca", "Open library", "Abrir biblioteca");
+        Add("Abrir Check geral", "Open general check", "Abrir medición general");
+        Add("Abrir Histórico", "Open history", "Abrir historial");
+        Add("Abrir Ajustes", "Open settings", "Abrir ajustes");
+        Add("Operacional", "Operational", "Operativo");
+        Add("Degradado", "Degraded", "Degradado");
+        Add("Indisponível", "Unavailable", "No disponible");
+        Add("Consulta do site; não cobre todos os serviços da plataforma.", "Site check; does not cover every platform service.", "Consulta del sitio; no cubre todos los servicios de la plataforma.");
+        Add("Histórico de Checks deste jogo.", "Check history for this game.", "Historial de mediciones de este juego.");
+        Add("Somente última atividade conhecida.", "Only the last known activity.", "Solo la última actividad conocida.");
+        Add("Sem atividade disponível.", "No activity available.", "No hay actividad disponible.");
+        Add("Pings de Checks distintos; não é monitoramento ao vivo.", "Ping from separate checks; not live monitoring.", "Ping de mediciones separadas; no es monitoreo en vivo.");
+        Add("Abrir detalhes do jogo", "Open game details", "Abrir detalles del juego");
+        Add("Consultando…", "Checking…", "Consultando…");
+        Add("Status desatualizado", "Status out of date", "Estado desactualizado");
+        Add("Status indisponível", "Status unavailable", "Estado no disponible");
+        Add("Demais dias: sem dados.", "Other days: no data.", "Otros días: sin datos.");
+        Add("ESTE PC", "THIS PC", "ESTA PC");
+        Add("SEU PC", "YOUR PC", "TU PC");
+        Add("Leituras da sua conexão e da atividade conhecida na biblioteca local.", "Your connection readings and known activity in your local library.", "Las mediciones de tu conexión y la actividad conocida de tu biblioteca local.");
+        Add("Ver histórico", "View history", "Ver historial");
+        Add("Sem medições válidas ainda.", "No valid checks yet.", "Aún no hay mediciones válidas.");
+        Add("Leitura disponível: {0}", "Available reading: {0}", "Medición disponible: {0}");
+        Add("{0} medições sem data confiável.", "{0} checks without a reliable date.", "{0} mediciones sin fecha confiable.");
+        Add("Pings de medições distintas; não é monitoramento ao vivo.", "Ping from separate checks; not live monitoring.", "Ping de mediciones separadas; no es monitoreo en vivo.");
+        Add("CAPTURAS LOCAIS", "LOCAL SCREENSHOTS", "CAPTURAS LOCALES");
+        Add("GALERIA", "GALLERY", "GALERÍA");
+        Add("Capturas reais salvas no seu PC.", "Real screenshots saved on your PC.", "Capturas reales guardadas en tu PC.");
+        Add("Nenhuma captura local ainda.", "No local screenshots yet.", "Aún no hay capturas locales.");
+        Add("As capturas locais disponíveis nos jogos conhecidos aparecem aqui.", "Available local screenshots from known games appear here.", "Las capturas locales disponibles de los juegos conocidos aparecen aquí.");
+        Add("Carregando capturas", "Loading screenshots", "Cargando capturas");
+        Add("Não foi possível carregar as capturas agora.", "Couldn't load screenshots right now.", "No se pudieron cargar las capturas ahora.");
     }
 
     private static string GetConfigFilePath()

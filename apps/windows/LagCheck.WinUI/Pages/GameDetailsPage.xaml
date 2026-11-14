@@ -53,7 +53,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Grid>
                             <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
-                            <Button x:Name="LaunchBtn" Style="{StaticResource PillPrimaryButtonStyle}" Content="▶ JOGAR AGORA" Click="Launch_Click"/>
+                            <Button x:Name="LaunchBtn" Style="{StaticResource HeroPrimaryButtonStyle}" Content="JOGAR AGORA" Click="Launch_Click"/>
                         </Grid>
                         <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Checar conexão" Click="CheckConnection_Click"/>
                         <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">

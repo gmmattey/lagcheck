@@ -47,6 +47,8 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<LibraryGame> VisibleGames { get; }
+    /// <summary>Jogos conhecidos pela biblioteca, inclusive os que não estão instalados no momento.</summary>
+    public IReadOnlyList<LibraryGame> AllGames => _games;
     public ICommand RefreshCommand { get; }
     public ICommand SelectFilterCommand { get; }
     public ICommand SelectGameCommand { get; }

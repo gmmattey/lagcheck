@@ -152,14 +152,9 @@ public sealed class DiagnosticPage : Page
         _mapFrame.Child = _map;
 
         // Botão Teste agora
-        _startBtn.Style = (Style)Application.Current.Resources["PillPrimaryButtonStyle"];
+        _startBtn.Style = (Style)Application.Current.Resources["HeroPrimaryButtonStyle"];
         _startBtn.Height = 56;
         _startBtn.MinWidth = 240;
-        _startBtn.Padding = new Thickness(44, 0, 44, 0);
-        _startBtn.CornerRadius = new CornerRadius(14);
-        _startBtn.FontSize = 17;
-        _startBtn.FontWeight = FontWeights.SemiBold;
-        _startBtn.CharacterSpacing = 0;
         _startBtn.HorizontalAlignment = HorizontalAlignment.Left;
         _startBtn.Click += async (_, _) => await StartAsync();
         _idleControls.Children.Add(_startBtn);
@@ -364,14 +359,9 @@ public sealed class DiagnosticPage : Page
         _donePanel.Children.Add(topGrid);
 
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 20, Margin = new Thickness(0, 24, 0, 0) };
-        _againBtn.Style = (Style)Application.Current.Resources["PillPrimaryButtonStyle"];
+        _againBtn.Style = (Style)Application.Current.Resources["HeroPrimaryButtonStyle"];
         _againBtn.MinHeight = 50;
         _againBtn.Height = 50;
-        _againBtn.Padding = new Thickness(28, 0, 28, 0);
-        _againBtn.CornerRadius = new CornerRadius(14);
-        _againBtn.FontSize = 17;
-        _againBtn.FontWeight = FontWeights.SemiBold;
-        _againBtn.CharacterSpacing = 0;
         _againBtn.Click += async (_, _) => await StartAsync();
         _chooseBtn.Style = (Style)Application.Current.Resources["TextLinkButtonStyle"];
         _chooseBtn.Padding = new Thickness(0);

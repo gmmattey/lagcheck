@@ -22,11 +22,17 @@
       </Rectangle>
     </Grid>
 
-    <!-- Palco: o Frame ocupa a janela à direita da faixa reservada da sidebar -->
-    <Frame x:Name="ContentFrame" Margin="64,56,0,0"/>
+    <!-- O conteúdo ocupa toda a largura; a navegação não usa mais barra lateral. -->
+    <Frame x:Name="ContentFrame" Margin="0,56,0,0"/>
 
     <!-- Região arrastável da barra de título (os botões nativos ficam por cima, à direita) -->
     <Border x:Name="DragRegion" VerticalAlignment="Top" Height="32" Background="Transparent" Margin="64,0,0,0"/>
+
+    <Button x:Name="TopHomeButton" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,4,0,0"
+            Width="44" Height="44" Padding="0" Background="Transparent" BorderThickness="0"
+            Style="{StaticResource CircleIconButtonStyle}" Click="Home_Click" automation:AutomationProperties.Name="Início">
+      <Image Source="ms-appx:///Assets/lagcheck-mark.svg" Width="24" Height="24"/>
+    </Button>
 
     <!-- Toast flutuante -->
     <Border x:Name="ToastBorder" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,24"
@@ -36,7 +42,7 @@
     </Border>
 
     <!-- Sombra projetada pela sidebar quando expande sobre o conteúdo -->
-    <Rectangle x:Name="SidebarShadow" HorizontalAlignment="Left" Width="22" Margin="64,0,0,0" IsHitTestVisible="False">
+    <Rectangle x:Name="SidebarShadow" Visibility="Collapsed" HorizontalAlignment="Left" Width="22" Margin="64,0,0,0" IsHitTestVisible="False">
       <Rectangle.Fill>
         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
           <GradientStop Color="#66000000" Offset="0"/>
@@ -47,7 +53,7 @@
     </Rectangle>
 
     <!-- Sidebar retrátil: ocupa 64px de layout e se expande SOBRE o conteúdo ao passar o mouse -->
-    <Grid x:Name="Sidebar" HorizontalAlignment="Left" Width="64" Background="{StaticResource StageBrush}"
+    <Grid x:Name="Sidebar" Visibility="Collapsed" HorizontalAlignment="Left" Width="64" Background="{StaticResource StageBrush}"
           BorderBrush="#14FFFFFF" BorderThickness="0,0,1,0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>

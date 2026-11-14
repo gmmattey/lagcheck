@@ -111,6 +111,8 @@ public sealed partial class ShellPage : Page
         SettingsLabel.Text = Strings.Tr("Ajustes");
 
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(QuickSearchButton, Strings.Tr("Buscar jogo..."));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopHomeButton, Strings.Tr("Início"));
+        ToolTipService.SetToolTip(TopHomeButton, Strings.Tr("Início"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(HomeButton, Strings.Tr("Início"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LibraryButton, Strings.Tr("Biblioteca"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(GeneralCheckButton, Strings.Tr("Conexão"));
@@ -130,6 +132,7 @@ public sealed partial class ShellPage : Page
 
     public void Navigate(NavigationRoute route)
     {
+        var keepHomeBackdrop = route == NavigationRoute.Settings && _currentRoute == NavigationRoute.Home;
         _currentRoute = route;
         _currentGameTitle = null;
 
@@ -145,11 +148,12 @@ public sealed partial class ShellPage : Page
             NavigationRoute.Library => typeof(LibraryPage),
             NavigationRoute.History => typeof(HistoryPage),
             NavigationRoute.Settings => typeof(SettingsPage),
+            NavigationRoute.Gallery => typeof(GalleryPage),
             _ => typeof(HomePage),
         };
 
         // Fora do Início e do resultado de um jogo não há arte atrás da janela.
-        if (route != NavigationRoute.Home) ClearBackdrop();
+        if (route != NavigationRoute.Home && !keepHomeBackdrop) ClearBackdrop();
         NavigateFrame(pageType, null);
         SetActive(route);
     }
@@ -206,6 +210,7 @@ public sealed partial class ShellPage : Page
             : e.SourcePageType == typeof(LibraryPage) ? NavigationRoute.Library
             : e.SourcePageType == typeof(HistoryPage) ? NavigationRoute.History
             : e.SourcePageType == typeof(SettingsPage) ? NavigationRoute.Settings
+            : e.SourcePageType == typeof(GalleryPage) ? NavigationRoute.Gallery
             : null;
         if (route is { } active)
         {
@@ -229,8 +234,8 @@ public sealed partial class ShellPage : Page
     {
         Sidebar.Width = left;
         SidebarShadow.Margin = new Thickness(left, 0, 0, 0);
-        ContentFrame.Margin = new Thickness(left, _stageTop, 0, 0);
-        DragRegion.Margin = new Thickness(left, 0, 0, 0);
+        ContentFrame.Margin = new Thickness(0, _stageTop, 0, 0);
+        DragRegion.Margin = new Thickness(64, 0, 0, 0);
     }
 
     /// <summary>Faixa de 56px da barra de título; só o banner de Detalhes sobe por baixo dela.</summary>
@@ -477,7 +482,9 @@ public sealed partial class ShellPage : Page
         }
     }
 
-    private void QuickSearch_Click(object sender, RoutedEventArgs e)
+    private void QuickSearch_Click(object sender, RoutedEventArgs e) => OpenQuickSearch();
+
+    public void OpenQuickSearch()
     {
         if (_navigationLocked) return;
         if (ContentFrame.Content is not LibraryPage) Navigate(NavigationRoute.Library);
@@ -487,12 +494,18 @@ public sealed partial class ShellPage : Page
         });
     }
 
+    public void NavigateToGallery()
+    {
+        if (!_navigationLocked) Navigate(NavigationRoute.Gallery);
+    }
+
     private void OnSessionActivityChanged(object? sender, bool active) => DispatcherQueue.TryEnqueue(() => UpdateNavigationLock(active));
 
     private void UpdateNavigationLock(bool locked)
     {
         if (locked == _navigationLocked) return;
         _navigationLocked = locked;
+        TopHomeButton.IsEnabled = !locked;
         foreach (var button in new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton }) button.IsEnabled = !locked;
     }
 

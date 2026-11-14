@@ -139,6 +139,9 @@
 | [134](#decisão-134) | Windows: priorizar artes oficiais de maior resolução disponíveis | **Vigente** | Refina a ordem de fontes da Decisão 118 para capas e banners | Luiz / Squad |
 | [135](#decisão-135) | Windows: fundos estruturais em preto total | **Vigente** | Refina os fundos Windows das Decisões 114 a 120 | Luiz / Squad |
 | [136](#decisão-136) | CTA da Home WinUI adota o formato do Hero mobile | **Em revisão visual** | Refina a apresentação Windows da Decisão 133, sem alterar a ação de abrir o jogo instalado | Luiz / Priscila / Camillo / Renan |
+| [137](#decisão-137) | CTAs principais WinUI compartilham o componente do Hero | **Vigente (implementado localmente; validação visual pendente)** | Estende o acabamento aprovado aos CTAs principais sem alterar comportamento ou ações secundárias | Luiz / Priscila / Camillo / Renan |
+| [138](#decisão-138) | Home WinUI: status de plataformas primeiro e contexto do jogo depois | **Vigente (em implementação; validação em Windows pendente)** | Reordena a Home da Decisão 118 com widgets de dados locais reais e status pontual de `/api/status` | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [139](#decisão-139) | WinUI: `Este PC` como visão geral e navegação sem sidebar | **Vigente (em implementação; validação em Windows pendente)** | Refina a Decisão 138: visão geral do PC reúne status, histórico e atividade conhecida; contexto do jogo permanece disponível | Luiz / Marcelo / Priscila / Camillo / Renan |
 
 
 
@@ -1567,6 +1570,39 @@
 - **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação WinUI), Renan (validação).
 - **Decisão:** a ação principal do Hero da Home WinUI passa a usar pílula de 48 px, com 4 px de respiro dentro de anel translúcido, gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho e seta roxa em círculo branco à direita, como Android e iOS. Ela mantém o rótulo localizado `JOGAR AGORA` e continua somente abrindo o jogo instalado; `Checar conexão`, demais CTAs, imagens, diagnóstico e navegação não mudam.
 - **Critérios de validação e aceite:** o CTA preserva clique, estado desabilitado, foco de teclado, nome acessível e traduções PT-BR/EN/ES; build e testes WinUI passam; conferência visual em Windows garante o anel, seta e contraste sobre a arte da Home.
+
+#### Decisão 137
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Componente único para CTAs principais do WinUI.
+- **Status Atual:** **Vigente (implementado localmente; validação visual pendente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação WinUI), Renan (validação).
+- **Decisão:** o componente visual aprovado no Hero da Home é reutilizado somente em `JOGAR AGORA` de Detalhes, `TESTE AGORA` do diagnóstico e `TESTAR NOVAMENTE` do resultado: gradiente Roxo Gamer, anel de 1 px com 4 px de respiro, seta em círculo branco, foco visível e estados habilitado/desabilitado. O clique, os rótulos localizados e a lógica de cada ação permanecem os existentes. Catálogo, estado vazio, ações secundárias e destrutivas não recebem o componente.
+- **Critérios de validação e aceite:** os quatro CTAs mantêm navegação e ação original, texto PT-BR/EN/ES, foco de teclado, estado desabilitado e contraste; refresh da Home não remove hover enquanto o ponteiro continua sobre o botão; build e testes WinUI passam e a revisão em Windows cobre 100%, 125%, 150% e 200% de escala.
+
+#### Decisão 138
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** Home WinUI: status de plataformas primeiro e contexto do jogo depois.
+- **Status Atual:** **Vigente (em implementação; validação em Windows pendente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Priscila (design system), Camillo (implementação WinUI) e Renan (validação).
+- **Contexto e decisão:** a Home WinUI deixa de concentrar a tela no Hero de um único jogo. Inspirada no ritmo de navegação de consoles, sem copiar interface, ícones, linguagem ou composição proprietária, ela passa a mostrar no topo os jogos instalados e as ações imediatas. A leitura seguinte é o status geral dos serviços das plataformas, vindo da mesma fonte do site (`/api/status`), antes do contexto do jogo selecionado.
+- **Dados e ordem da tela:** o status de plataformas é uma consulta pontual ao abrir ou atualizar a Home; não há monitoramento contínuo, polling ou estado presumido. Até resposta válida, o widget informa que está consultando ou indisponível, sem chamar serviço de estável, online ou normal. Depois do status geral, a Home pode mostrar apenas widgets sustentados por dados locais reais: galeria de capturas do próprio usuário expostas pelo launcher, calendário da atividade que o launcher de fato informar e o gráfico `HISTÓRICO DE CHECKS` do jogo selecionado. O calendário não coleta atividade adicional e ausência de dado nunca significa dia sem jogo. Para o gráfico sobreviver ao uso do app, cada Check válido passa a gerar uma entrada local mínima vinculada ao id estável do jogo, com o horário e os valores já medidos necessários para a leitura. Não são coletados dados sensíveis extras, não há envio novo nem recuperação retroativa de sessões anteriores. O gráfico usa somente essas entradas válidas do jogo selecionado; com poucas entradas, mostra apenas a última medição, sem unir pontos ou criar tendência. Não há datas, médias, previsão ou leitura de estabilidade inventadas. Ausência de dado remove ou torna o widget indisponível; não cria capturas, atividade ou tendência fictícias.
+- **Limites:** a arte do Hero continua sem gradiente, véu ou escurecimento, como definido para a Home Windows. `JOGAR AGORA` segue abrindo o jogo instalado e nunca espera uma consulta ou um Check. O diagnóstico continua manual e contextual, conforme a Decisão 118. O gráfico não cria score, veredito, coleta sensível, envio, monitoramento contínuo ou histórico retroativo. A Home não altera score, veredito, motor UDP, catálogo, Worker, telemetria, permissões, arte no repositório nem o status de protótipo não publicável do Windows.
+- **Organização dos widgets:** a pedido de Luiz, ficam à direita das informações do jogo em uma grade horizontal com até duas linhas; um widget pode ocupar duas linhas ou até duas colunas. Em largura reduzida, a grade passa abaixo do jogo, sem sobrepor o nome nem as ações.
+- **Critérios de validação e aceite:** a ordem visual prioriza jogos, ações e status geral, com contexto por jogo abaixo; a ausência, demora ou falha de `/api/status` não trava a Home nem inventa estado; `HISTÓRICO DE CHECKS` rejeita entradas inválidas ou de outro jogo, mantém os Checks válidos após fechar e abrir o app e mostra só a última medição quando não houver pontos suficientes para o gráfico; não há dado retroativo; cada widget só apresenta o dado disponível e textos PT-BR/EN/ES; build e testes WinUI passam; conferência em Windows cobre estado com e sem jogos, resposta disponível, indisponível e atrasada, além de 100%, 125%, 150% e 200% de escala.
+
+#### Decisão 139
+
+- **Data:** 14 de novembro de 2026.
+- **Título:** WinUI: `Este PC` como visão geral e navegação sem sidebar.
+- **Status Atual:** **Vigente (em implementação; validação em Windows pendente).** Pedida e aprovada pelo Luiz.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Priscila (design system), Camillo (implementação WinUI) e Renan (validação).
+- **Decisão:** a barra lateral deixa de fazer parte da janela WinUI. O primeiro destino da navegação passa a ser `Este PC`, uma visão geral do computador com arte própria autorizada por Luiz, mantida em Downloads até a integração. A tela reúne o status de Steam, Epic Games e Xbox vindo de `/api/status`, o histórico de todas as medições válidas locais e a atividade conhecida de todos os jogos encontrados pelos launchers. A ausência, a demora ou a falha de uma fonte aparece como tal e nunca bloqueia a tela.
+- **Contexto por jogo:** selecionar um jogo continua levando ao contexto daquele título, com suas ações, arte, atividade conhecida e histórico de Checks próprio. A visão geral do PC não substitui nem mistura dados de um jogo em outro.
+- **Integridade dos dados:** o status de cada plataforma continua consulta pontual, sem polling ou monitoramento contínuo. O histórico geral usa somente Checks válidos persistidos localmente; atividade só aparece quando o launcher a informou. A tela não cria atividade, datas, screenshots, disponibilidade de serviço, score, veredito, média, tendência ou diagnóstico. Sem dado, apresenta estado vazio ou indisponível.
+- **Limites:** esta mudança não altera o motor UDP, score, veredito, catálogo, Worker, telemetria, permissões, fontes de arte dos jogos ou o status de protótipo não publicável do Windows. A arte própria de `Este PC` não autoriza reutilizar arte de terceiros nem incluir dados pessoais.
+- **Critérios de validação e aceite:** a navegação sem sidebar mantém todos os destinos acessíveis por teclado e leitor de tela; `Este PC` abre primeiro e exibe separadamente Steam, Epic Games e Xbox, histórico de Checks válidos e atividade conhecida; estado com dados ausentes, resposta atrasada e falha é honesto e não impede abrir ou jogar; a seleção de jogo preserva seu contexto próprio; textos PT-BR/EN/ES, build e testes WinUI passam; a revisão em Windows cobre 100%, 125%, 150% e 200% de escala.
 
 ## Como Registrar Novas Decisões
 

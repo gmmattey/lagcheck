@@ -80,7 +80,9 @@ public sealed partial class HistoryPage : Page
         var verdict = Verdicts.Headline(tone, game is not null);
         var region = RegionCatalog.Label(entry.RegionId);
         if (string.IsNullOrEmpty(region)) region = Strings.Tr("REGIÃO NÃO INFORMADA");
-        var time = entry.CapturedAt.ToLocalTime().Date == DateTime.Today ? entry.TimeLabel : entry.CapturedAt.ToLocalTime().ToString("d MMM");
+        var time = !entry.HasCapturedAt
+            ? string.Empty
+            : entry.CapturedAt.ToLocalTime().Date == DateTime.Today ? entry.TimeLabel : entry.CapturedAt.ToLocalTime().ToString("d MMM");
         var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Verdicts.ColorOf(tone));
         return new HistoryRow(game ?? Strings.Tr("Conexão geral"), verdict, brush, region, entry.PingLabel, entry.JitterLabel, entry.LossLabel, time);
     }

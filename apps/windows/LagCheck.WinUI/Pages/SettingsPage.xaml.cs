@@ -3,6 +3,8 @@ using LagCheck.WinUI.Diagnostic;
 using LagCheck.WinUI.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Windows.System;
 
 namespace LagCheck.WinUI.Pages;
 
@@ -57,6 +59,8 @@ public sealed partial class SettingsPage : Page
     private void LocalizeUI()
     {
         HeaderTitle.Text = Strings.Tr("Ajustes");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CloseButton, Strings.Tr("Fechar"));
+        ToolTipService.SetToolTip(CloseButton, Strings.Tr("Fechar"));
         LanguageTitle.Text = Strings.Tr("Idioma do aplicativo");
         LangItemSystem.Content = Strings.Tr("Sistema (Padrão)");
 
@@ -81,6 +85,21 @@ public sealed partial class SettingsPage : Page
 
         AboutCardTitle.Text = Strings.Tr("Sobre o LagCheck");
         AboutVersion.Text = Strings.Tr("Versão v0.1.0 · WinUI 3 (x64) · Repositório Oficial");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(ReduceMotionSwitch, ReduceMotionTitle.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(ArtworkSwitch, ArtworkTitle.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LanguageComboBox, LanguageTitle.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(ApproximateLocationSwitch, LocationTitle.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(AnalyticsSwitch, AnalyticsTitle.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(AutomaticUpdatesSwitch, AutoUpdatesTitle.Text);
+    }
+
+    private void Close_Click(object sender, RoutedEventArgs e) => ShellNavigation.Navigate(NavigationRoute.Home);
+
+    private void SettingsPage_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Escape) return;
+        e.Handled = true;
+        ShellNavigation.Navigate(NavigationRoute.Home);
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)

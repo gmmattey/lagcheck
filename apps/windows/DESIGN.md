@@ -19,23 +19,25 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 
 ---
 
-## 2. Anatomia das 5 Telas Principais (1:1 com v2)
+## 2. Anatomia das Telas Principais
 
 ```text
 +------------------------------------------------------------------------------------------+
-|  [Wordmark] [<<]   |  LAGCHECK · Início                              | [PC GAMER] [-][#][X] |
-+--------------------+---------------------------------------------------------------------+
-| (Q) Buscar jogo... |                                                                     |
-|                    |  [STEAM]                                                            |
-| [*] Início         |  COUNTER-STRIKE 2                                                   |
-| [=] Biblioteca     |  [● PRONTO PARA RANKED]  12 ms                                      |
-| [~] Conexão        |  [▶ JOGAR AGORA]  [Checar conexão]  [(Coração)]  [(Refresh)]            |
-| [H] Histórico      |                                                                     |
-| [x] Ajustes        |  [Recentes: CS2, Dota 2, Apex, Rocket League...]                     |
-+--------------------+---------------------------------------------------------------------+
+| [Início]                                                    [Buscar] [Galeria] [Ajustes] |
+| [Este PC] [Jogo] [Jogo] ...                                                             |
+|                                                                                         |
+| Informações e ações do contexto                              Widgets                    |
++-----------------------------------------------------------------------------------------+
 ```
 
 ### 2.1. Tela 1 — Início (Home Cinematográfica)
+
+- **Navegação:** sem barra lateral; a marca retorna ao Início e as ações de busca, galeria e ajustes ficam no topo da Home.
+- **Trilho de instalados:** fica no topo e seleciona o contexto da Home sem iniciar jogo. O primeiro item é Este PC, seguido pelos jogos instalados.
+- **Este PC:** usa a arte neutra do LagCheck e mostra status de Steam, Epic e Xbox, histórico geral das medições e atividade conhecida de todos os jogos. Datas ou medições indisponíveis não são inventadas.
+- **Composição do Hero:** título, metadados e ações ficam diretamente no canto inferior esquerdo da arte; não há card, fundo, borda, véu, filtro, degradê ou blur sobre o banner local. Os widgets permanecem separados.
+- **Widgets da Home:** em telas largas, ficam no canto inferior direito, em uma área compacta separada do nome e das ações do jogo. A grade horizontal tem até duas linhas: status e atividade podem ficar empilhados; histórico e galeria podem ocupar as duas linhas. Cada widget ocupa no máximo duas colunas. Em janelas menores, a grade passa para baixo do jogo e pode ser rolada.
+- **Dados complementares honestos:** galeria mostra somente capturas locais disponíveis; atividade só mostra datas conhecidas; a tendência mostra somente Checks do mesmo `DiagnosticGameId` com timestamp real (menos de dois pontos mostra apenas a última leitura); status de plataformas é uma observação do site e pode ficar como não verificado.
 - **Hero em Tela Cheia:** Ocupa toda a altura útil (`calc(100vh - 56px)`).
 - **Slides de Fundo:** Imagens oficiais em alta resolução (`library_hero`, `page_bg_generated_v6b`, `capsule_616x353`) do jogo ativo com transição suave.
 - **Tratamento de Luz:**
@@ -46,6 +48,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
   - Tag de veredito da última medição (`● PRONTO PARA RANKED` em verde `#22C55E` com fundo `rgba(34,197,94,.16)` e ping `12 ms`).
 - **Ações Imediatas:**
   - Botão Primário `JOGAR AGORA`: pílula de 48 px em gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho roxo, anel externo translúcido com 4 px de respiro e seta roxa em círculo branco à direita. Abre somente o jogo instalado.
+  - O mesmo componente é reservado para os CTAs principais `JOGAR AGORA` em Detalhes, `TESTE AGORA` no diagnóstico e `TESTAR NOVAMENTE` no resultado. Ações secundárias, catálogo, vazio e destrutivas não usam esse tratamento.
   - Botão `Checar conexão`: Fundo `rgba(37,42,54,.85)`, cantos 28 px, padding 28 px.
   - Botões circulares (46 px, cantos 23 px): Favoritar (coração) e Atualizar Imagem oficial.
   - Indicadores de slides (dots de 5 px).
@@ -138,7 +141,7 @@ O jogador de PC abre o LagCheck no lobby para duas coisas: **escolher o que vai 
 
 | Token | Hex | Função |
 | :--- | :--- | :--- |
-| `Stage` | `#000000` | Fundo externo, barra lateral e titlebar |
+| `Stage` | `#000000` | Fundo externo e titlebar |
 | `Deep` | `#000000` | Fundo principal de leitura das páginas |
 | `Surface` | `#171B24` | Superfícies ativas, cards e seletor |
 | `Panel` | `#202633` | Controles secundários e divisões |

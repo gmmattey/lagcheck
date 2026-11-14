@@ -21,6 +21,8 @@
     <!-- Wordmark e marca do protótipo v2: o par que a barra lateral usa expandida e recolhida -->
     <Content Include="..\..\..\shared\design-system\prototypes\windows-premium\assets\wordmark-primary.svg" Link="Assets\wordmark-primary.svg" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Assets\lagcheck.ico" Link="Assets\lagcheck.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\home-pc-neutral.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\home-pc-purple.jpg" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\shared\design-system\prototypes\windows-premium\assets\lagcheck-mark.svg" Link="Assets\lagcheck-mark.svg" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\apps\android\desktop\src\main\resources\map\map-grid.json" Link="Assets\map-grid.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\apps\android\desktop\src\main\resources\fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

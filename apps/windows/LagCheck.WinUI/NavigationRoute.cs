@@ -8,4 +8,5 @@ public enum NavigationRoute
     GeneralCheck,
     History,
     Settings,
+    Gallery,
 }

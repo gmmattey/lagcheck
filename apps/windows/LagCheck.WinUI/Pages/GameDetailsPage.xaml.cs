@@ -44,7 +44,7 @@ public sealed partial class GameDetailsPage : Page
     {
         BackBtnText.Text = Strings.Tr("Voltar");
         ToolTipService.SetToolTip(BackBtn, Strings.Tr("Voltar à tela anterior"));
-        LaunchBtn.Content = Strings.Tr("▶ JOGAR AGORA");
+        LaunchBtn.Content = Strings.Tr("JOGAR AGORA");
         CheckConnBtn.Content = Strings.Tr("Checar conexão");
         DaysPlayedEyebrow.Text = Strings.Tr("DIAS JOGADOS");
         LessLabel.Text = Strings.Tr("Menos");
@@ -104,7 +104,9 @@ public sealed partial class GameDetailsPage : Page
         BannerImage.Source = Artwork.Load(Artwork.FirstExisting(game.HeroArtworkPath, game.CoverArtworkPath));
         CheckConnBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
         MeasureNowBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
-        LaunchBtn.IsEnabled = game.IsInstalled && game.IsLaunchable;
+        var canLaunch = game.IsInstalled && game.IsLaunchable;
+        LaunchBtn.IsEnabled = canLaunch;
+        LaunchGlow.Visibility = canLaunch ? Visibility.Visible : Visibility.Collapsed;
         FavIcon.IsFilled = game.IsFavorite;
         FavIcon.Foreground = game.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, game.FavoriteActionLabel);

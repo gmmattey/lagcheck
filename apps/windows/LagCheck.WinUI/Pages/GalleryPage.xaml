@@ -1,0 +1,38 @@
+<Page
+    x:Class="LagCheck.WinUI.Pages.GalleryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Microsoft.UI.Xaml.Automation"
+    Background="{StaticResource DeepBrush}"
+    Loaded="GalleryPage_Loaded"
+    Unloaded="GalleryPage_Unloaded"
+    NavigationCacheMode="Required">
+  <Grid Padding="48,32,48,40" RowSpacing="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Spacing="5">
+      <TextBlock x:Name="Eyebrow" Style="{StaticResource TechLabelStyle}" Text="CAPTURAS LOCAIS"/>
+      <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleStyle}" Text="GALERIA"/>
+      <TextBlock x:Name="SubtitleText" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" TextWrapping="Wrap"/>
+    </StackPanel>
+
+    <ProgressRing x:Name="LoadingRing" Grid.Row="1" Width="28" Height="28" HorizontalAlignment="Left" IsActive="True" Visibility="Collapsed"
+                  automation:AutomationProperties.Name="Carregando capturas"/>
+
+    <Grid Grid.Row="2">
+      <ScrollViewer x:Name="GalleryScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
+        <StackPanel x:Name="GameSectionsPanel" Spacing="28" Padding="0,4,0,16"/>
+      </ScrollViewer>
+
+      <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Spacing="10">
+        <FontIcon Glyph="&#xE2C8;" FontFamily="Segoe Fluent Icons" FontSize="38" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Center"/>
+        <TextBlock x:Name="EmptyTitle" Style="{StaticResource PageTitleStyle}" FontSize="20" TextAlignment="Center"/>
+        <TextBlock x:Name="EmptyDescription" Foreground="{StaticResource TextSecondaryBrush}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap"/>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Page>
