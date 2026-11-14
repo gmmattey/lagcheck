@@ -136,7 +136,9 @@
 | [131](#decisão-131) | Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android | **Vigente (refinada pela 132)** | Adiciona busca em pílula no topo, unifica pílula do último check dentro do Hero (`#1E232B`→`#15181E` + glow `#7C3AED`), adota trilhos horizontais 3:4 (`114x152`) para Favoritos e Populares, e tab bar flutuante em pílula no Android | Luiz / Squad |
 | [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
 | [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
-| [134](#decisão-134) | CTA da Home WinUI adota o formato do Hero mobile | **Vigente (implementado localmente; validação visual pendente)** | Refina a apresentação Windows da Decisão 133, sem alterar a ação de abrir o jogo instalado | Luiz / Priscila / Camillo / Renan |
+| [134](#decisão-134) | Windows: priorizar artes oficiais de maior resolução disponíveis | **Vigente** | Refina a ordem de fontes da Decisão 118 para capas e banners | Luiz / Squad |
+| [135](#decisão-135) | Windows: fundos estruturais em preto total | **Vigente** | Refina os fundos Windows das Decisões 114 a 120 | Luiz / Squad |
+| [136](#decisão-136) | CTA da Home WinUI adota o formato do Hero mobile | **Em revisão visual** | Refina a apresentação Windows da Decisão 133, sem alterar a ação de abrir o jogo instalado | Luiz / Priscila / Camillo / Renan |
 
 
 
@@ -1546,8 +1548,22 @@
 #### Decisão 134
 
 - **Data:** 14 de novembro de 2026.
+- **Título:** Windows: priorizar artes oficiais de maior resolução disponíveis.
+- **Decisão:** para capas e banners dos jogos instalados, priorizar a imagem oficial compatível de maior resolução disponível entre as fontes suportadas da própria loja e os arquivos locais. A preferência de Luiz refina a ordem fixa de fontes da Decisão 118: com downloads habilitados, uma imagem local válida pode ser comparada às alternativas oficiais remotas antes da seleção.
+- **Limites:** respeitar a opção de downloads desligados, os limites de rede e cache e a miniatura neutra em caso de falha. A arte permanece local ao PC do usuário e não é incluída no repositório ou instalador. Formatos cuja resolução não possa ser identificada só podem ser usados como alternativa; não se presume que todas as lojas forneçam variantes maiores.
+- **Evidência:** implementação e validação dependem dos testes e de verificação em execução; esta decisão não autoriza publicação.
+
+#### Decisão 135
+
+- **Data:** 14 de novembro de 2026.
+- **Decisão:** a pedido de Luiz, os fundos estruturais escuros das telas do Windows passam a preto total (`#000000`), refinando a cor de fundo anterior para essa plataforma.
+- **Limites:** preservar contraste, foco e diferenciação dos painéis e controles. As artes dos jogos na Home continuam sem filtro ou escurecimento, conforme a orientação de Luiz. Esta decisão não altera iOS, Android, score ou publicação.
+
+#### Decisão 136
+
+- **Data:** 14 de novembro de 2026.
 - **Título:** CTA principal da Home WinUI no formato do Hero Android/iOS.
-- **Status Atual:** **Vigente (implementado localmente; validação visual pendente).** Pedida e aprovada pelo Luiz.
+- **Status Atual:** **Em revisão visual.** O formato foi pedido por Luiz; o acabamento apresentado foi reprovado e precisa de nova revisão.
 - **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação WinUI), Renan (validação).
 - **Decisão:** a ação principal do Hero da Home WinUI passa a usar pílula de 48 px, com 4 px de respiro dentro de anel translúcido, gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho e seta roxa em círculo branco à direita, como Android e iOS. Ela mantém o rótulo localizado `JOGAR AGORA` e continua somente abrindo o jogo instalado; `Checar conexão`, demais CTAs, imagens, diagnóstico e navegação não mudam.
 - **Critérios de validação e aceite:** o CTA preserva clique, estado desabilitado, foco de teclado, nome acessível e traduções PT-BR/EN/ES; build e testes WinUI passam; conferência visual em Windows garante o anel, seta e contraste sobre a arte da Home.

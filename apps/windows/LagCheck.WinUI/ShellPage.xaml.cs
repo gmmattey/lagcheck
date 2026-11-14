@@ -264,8 +264,6 @@ public sealed partial class ShellPage : Page
 
         _backdropCount = count;
         _backdropIndex = Math.Clamp(selectedIndex, 0, count - 1);
-        BackdropHeroSide.Visibility = kind == BackdropKind.Hero ? Visibility.Visible : Visibility.Collapsed;
-        BackdropHeroDepth.Visibility = kind == BackdropKind.Hero ? Visibility.Visible : Visibility.Collapsed;
         BackdropVeil.Visibility = kind == BackdropKind.Veil ? Visibility.Visible : Visibility.Collapsed;
 
         if (!_hasBackdrop)
@@ -397,13 +395,9 @@ public sealed partial class ShellPage : Page
         return brush;
     }
 
-    private static LinearGradientBrush CreateSidebarSurface(byte alpha)
+    private static SolidColorBrush CreateSidebarSurface()
     {
-        var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0), EndPoint = new Windows.Foundation.Point(0, 1) };
-        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x14, 0x17, 0x1F), Offset = 0 });
-        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x0D, 0x0F, 0x14), Offset = 0.55 });
-        brush.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(alpha, 0x0A, 0x0B, 0x10), Offset = 1 });
-        return brush;
+        return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 0, 0));
     }
 
     private void SidebarToggle_Click(object sender, RoutedEventArgs e)
@@ -461,8 +455,8 @@ public sealed partial class ShellPage : Page
         var expanded = _pinnedExpanded;
         var buttons = new[] { QuickSearchButton, HomeButton, LibraryButton, GeneralCheckButton, HistoryButton, SettingsButton };
 
-        // Com arte atrás (Início / resultado de um jogo) a sidebar fica translúcida; nas demais telas é sólida.
-        Sidebar.Background = CreateSidebarSurface(_hasBackdrop ? (byte)0xB3 : (byte)0xFF);
+        // A navegação preserva o fundo preto sólido, mesmo quando há arte no palco.
+        Sidebar.Background = CreateSidebarSurface();
 
         ExpandedHeader.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         CollapsedHeader.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;

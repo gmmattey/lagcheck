@@ -24,16 +24,26 @@ class GameArtworkResolverTest {
         assertTrue(first is ArtworkResult.Available)
         val second = runBlocking { r.resolve(steamGame, ArtworkType.COVER) }
         assertEquals(first, second)
-        assertEquals(1, f.calls.size)
+        assertEquals(2, f.calls.size)
     }
 
     @Test
-    fun cacheDoLauncherVenceAInternetENadaEBaixado() = withTempDir { dir ->
+    fun arteLocalEntraNoCacheSemRedeQuandoNaoHaFonteRemota() = withTempDir { dir ->
         val img = dir.resolve("launcher.jpg").also { Files.write(it, jpegBytes()) }
         val f = FakeFetcher({ FetchResult.Bytes(jpegBytes()) })
-        val r = resolver(dir, f, local = listOf(FixedSource(listOf(ArtworkCandidate.LocalFile(img)))))
-        assertEquals(ArtworkResult.Available(img), runBlocking { r.resolve(steamGame, ArtworkType.COVER) })
+        val r = resolver(dir, f, local = listOf(FixedSource(listOf(ArtworkCandidate.LocalFile(img)))), remoteSources = emptyList())
+        assertTrue(runBlocking { r.resolve(steamGame, ArtworkType.COVER) } is ArtworkResult.Available)
         assertTrue(f.calls.isEmpty())
+    }
+
+    @Test
+    fun maiorImagemLocalCompativelVenceAFonteQuandoHaDimensoesConfiaveis() = withTempDir { dir ->
+        val small = dir.resolve("small.png").also { Files.write(it, pngBytes(1920, 620)) }
+        val large = dir.resolve("large.png").also { Files.write(it, pngBytes(3840, 1240)) }
+        val wrongShape = dir.resolve("poster.png").also { Files.write(it, pngBytes(3000, 4500)) }
+        val source = FixedSource(listOf(ArtworkCandidate.LocalFile(small), ArtworkCandidate.LocalFile(wrongShape), ArtworkCandidate.LocalFile(large)))
+        val result = runBlocking { resolver(dir, FakeFetcher(), local = listOf(source), remoteSources = emptyList()).resolve(steamGame, ArtworkType.HERO) }
+        assertTrue(result is ArtworkResult.Available && Files.readAllBytes(result.path).toList() == pngBytes(3840, 1240).toList())
     }
 
     @Test
@@ -43,7 +53,7 @@ class GameArtworkResolverTest {
         val r = resolver(dir, f, local = listOf(FixedSource(listOf(ArtworkCandidate.LocalFile(fake), ArtworkCandidate.LocalFile(dir.resolve("naoexiste.jpg"))))))
         val res = runBlocking { r.resolve(steamGame, ArtworkType.COVER) }
         assertTrue(res is ArtworkResult.Available && res.path != fake)
-        assertEquals(1, f.calls.size)
+        assertEquals(2, f.calls.size)
     }
 
     @Test
@@ -52,6 +62,53 @@ class GameArtworkResolverTest {
         val res = runBlocking { resolver(dir, f).resolve(steamGame, ArtworkType.COVER) }
         assertTrue(res is ArtworkResult.Available)
         assertEquals(2, f.calls.size)
+    }
+
+    @Test
+    fun maiorImagemRemotaCompativelVenceQuandoLojaNaoInformaDimensoes() = withTempDir { dir ->
+        val source = FixedSource(listOf(
+            ArtworkCandidate.Remote("https://cdn.example/small.png"),
+            ArtworkCandidate.Remote("https://cdn.example/poster.png"),
+            ArtworkCandidate.Remote("https://cdn.example/large.png"),
+        ))
+        val fetcher = FakeFetcher(respond = { url -> when {
+            url.endsWith("small.png") -> FetchResult.Bytes(pngBytes(1920, 620))
+            url.endsWith("poster.png") -> FetchResult.Bytes(pngBytes(3000, 4500))
+            else -> FetchResult.Bytes(pngBytes(3840, 1240))
+        } })
+        val result = runBlocking { resolver(dir, fetcher, remoteSources = listOf(source)).resolve(epicGame, ArtworkType.HERO) } as ArtworkResult.Available
+        assertEquals(3, fetcher.calls.size)
+        assertEquals(pngBytes(3840, 1240).toList(), Files.readAllBytes(result.path).toList())
+    }
+
+    @Test
+    fun imagemRemotaSemDimensoesSoEUsadaSeNenhumaCandidataMedidaForCompativel() = withTempDir { dir ->
+        val source = FixedSource(listOf(
+            ArtworkCandidate.Remote("https://cdn.example/unknown.jpg"),
+            ArtworkCandidate.Remote("https://cdn.example/large.png"),
+        ))
+        val fetcher = FakeFetcher(respond = { url ->
+            if (url.endsWith("unknown.jpg")) FetchResult.Bytes(jpegBytes())
+            else FetchResult.Bytes(pngBytes(3840, 1240))
+        })
+
+        val result = runBlocking { resolver(dir, fetcher, remoteSources = listOf(source)).resolve(epicGame, ArtworkType.HERO) } as ArtworkResult.Available
+
+        assertEquals(2, fetcher.calls.size)
+        assertEquals(pngBytes(3840, 1240).toList(), Files.readAllBytes(result.path).toList())
+    }
+
+    @Test
+    fun maiorImagemEntreCacheLocalERemotoCompativelESelecionada() = withTempDir { dir ->
+        val local = dir.resolve("local.png").also { Files.write(it, pngBytes(3840, 1240)) }
+        val source = FixedSource(listOf(ArtworkCandidate.Remote("https://cdn.example/remote.png")))
+        val fetcher = FakeFetcher(respond = { FetchResult.Bytes(pngBytes(1920, 620)) })
+        val result = runBlocking {
+            resolver(dir, fetcher, local = listOf(FixedSource(listOf(ArtworkCandidate.LocalFile(local)))), remoteSources = listOf(source))
+                .resolve(epicGame, ArtworkType.HERO)
+        } as ArtworkResult.Available
+        assertEquals(1, fetcher.calls.size)
+        assertEquals(pngBytes(3840, 1240).toList(), Files.readAllBytes(result.path).toList())
     }
 
     @Test
@@ -97,7 +154,7 @@ class GameArtworkResolverTest {
         on = false
         assertTrue(runBlocking { r.resolve(steamGame, ArtworkType.COVER) } is ArtworkResult.Available) // já estava no disco
         assertEquals(ArtworkResult.Fallback, runBlocking { r.resolve(steamGame, ArtworkType.HERO) })
-        assertEquals(1, f.calls.size)
+        assertEquals(2, f.calls.size)
     }
 
     @Test
@@ -115,7 +172,7 @@ class GameArtworkResolverTest {
         val r = resolver(dir, f)
         val results = runBlocking { (1..8).map { async(Dispatchers.Default) { r.resolve(steamGame, ArtworkType.COVER) } }.awaitAll() }
         assertTrue(results.all { it is ArtworkResult.Available })
-        assertEquals(1, f.calls.size)
+        assertEquals(2, f.calls.size)
     }
 
     @Test
@@ -128,8 +185,53 @@ class GameArtworkResolverTest {
         r.refresh(steamGame)
         assertNull(ArtworkDiskCache(dir.resolve("cache")).get(steamGame.id, ArtworkType.COVER)) // apagou
         val b = runBlocking { r.resolve(steamGame, ArtworkType.COVER) } as ArtworkResult.Available
-        assertEquals(2, f.calls.size)
+        assertEquals(4, f.calls.size)
         assertNotEquals(sizeBefore, Files.size(b.path)) // baixou a versão nova
+    }
+
+    @Test
+    fun heroAntigoEAtualizadoUmaVezQuandoDownloadEstaLigado() = withTempDir { dir ->
+        val cacheDir = dir.resolve("cache")
+        Files.createDirectories(cacheDir)
+        val oldHero = cacheDir.resolve("${ArtworkDiskCache.key(steamGame.id)}.hero.img")
+        Files.write(oldHero, jpegBytes(80))
+        val fetcher = FakeFetcher({ FetchResult.Bytes(jpegBytes(300)) })
+        val cache = ArtworkDiskCache(cacheDir)
+        val resolver = resolver(dir, fetcher, cache = cache)
+
+        val result = runBlocking { resolver.resolve(steamGame, ArtworkType.HERO) } as ArtworkResult.Available
+        assertEquals(2, fetcher.calls.size)
+        assertNotEquals(oldHero, result.path)
+        assertTrue(Files.size(result.path) > Files.size(oldHero))
+        runBlocking { resolver.resolve(steamGame, ArtworkType.HERO) }
+        assertEquals(2, fetcher.calls.size)
+    }
+
+    @Test
+    fun heroAntigoPermaneceQuandoUpgradeFalhaOuDownloadEstaDesligado() = withTempDir { dir ->
+        val cacheDir = dir.resolve("cache")
+        Files.createDirectories(cacheDir)
+        val oldHero = cacheDir.resolve("${ArtworkDiskCache.key(steamGame.id)}.hero.img")
+        Files.write(oldHero, jpegBytes(80))
+        val fetcher = FakeFetcher({ FetchResult.NotFound })
+        val cache = ArtworkDiskCache(cacheDir)
+        val online = resolver(dir, fetcher, cache = cache)
+        assertEquals(ArtworkResult.Available(oldHero), runBlocking { online.resolve(steamGame, ArtworkType.HERO) })
+        assertEquals(2, fetcher.calls.size)
+
+        val offline = resolver(dir, FakeFetcher(), enabled = { false }, cache = cache)
+        assertEquals(ArtworkResult.Available(oldHero), runBlocking { offline.resolve(steamGame, ArtworkType.HERO) })
+    }
+
+    @Test
+    fun missLegadoNaoBloqueiaUpgradeDeResolucao() = withTempDir { dir ->
+        val cacheDir = dir.resolve("cache")
+        Files.createDirectories(cacheDir)
+        Files.write(cacheDir.resolve("${ArtworkDiskCache.key(steamGame.id)}.hero.miss"), "9999999999999".toByteArray())
+        val fetcher = FakeFetcher({ FetchResult.Bytes(jpegBytes(300)) })
+        val result = runBlocking { resolver(dir, fetcher, cache = ArtworkDiskCache(cacheDir)).resolve(steamGame, ArtworkType.HERO) }
+        assertTrue(result is ArtworkResult.Available)
+        assertEquals(2, fetcher.calls.size)
     }
 
     @Test

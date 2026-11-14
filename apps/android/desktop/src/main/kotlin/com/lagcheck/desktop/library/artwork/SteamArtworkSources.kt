@@ -12,15 +12,19 @@ private fun steamAppId(game: PcGame): String? =
 class SteamCdnSource : ArtworkSource {
     override fun candidates(game: PcGame, type: ArtworkType): List<ArtworkCandidate> {
         val id = steamAppId(game) ?: return emptyList()
-        val file = when (type) {
-            ArtworkType.COVER -> "library_600x900.jpg"
-            ArtworkType.HERO -> "library_hero.jpg"
+        val files = when (type) {
+            ArtworkType.COVER -> listOf("library_600x900.jpg" to ImageBytes.Dimensions(600, 900))
+            // A Steam publica o _2x em 3840x1240; o arquivo normal (1920x620) continua como fallback.
+            ArtworkType.HERO -> listOf(
+                "library_hero_2x.jpg" to ImageBytes.Dimensions(3840, 1240),
+                "library_hero.jpg" to ImageBytes.Dimensions(1920, 620),
+            )
             ArtworkType.ICON -> return emptyList()
         }
         return listOf(
-            "https://cdn.cloudflare.steamstatic.com/steam/apps/$id/$file",
-            "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/$id/$file",
-        ).map(ArtworkCandidate::Remote)
+            "https://cdn.cloudflare.steamstatic.com/steam/apps/$id/",
+            "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/$id/",
+        ).flatMap { base -> files.map { (file, dimensions) -> ArtworkCandidate.Remote(base + file, dimensions) } }
     }
 }
 
@@ -32,21 +36,27 @@ class SteamLibraryCacheSource(private val steamRoot: () -> File?) : ArtworkSourc
     override fun candidates(game: PcGame, type: ArtworkType): List<ArtworkCandidate> {
         val id = steamAppId(game) ?: return emptyList()
         val cacheDir = steamRoot()?.toPath()?.resolve("appcache")?.resolve("librarycache") ?: return emptyList()
-        val name = when (type) {
-            ArtworkType.COVER -> "library_600x900.jpg"
-            ArtworkType.HERO -> "library_hero.jpg"
+        val names = when (type) {
+            ArtworkType.COVER -> listOf("library_600x900.jpg")
+            ArtworkType.HERO -> listOf("library_hero_2x.jpg", "library_hero.jpg")
             ArtworkType.ICON -> null
         }
         val result = mutableListOf<Path>()
         // Formato antigo: <appid>_library_600x900.jpg, <appid>_icon.jpg
-        val legacy = cacheDir.resolve(if (name != null) "${id}_$name" else "${id}_icon.jpg")
-        if (Files.isRegularFile(legacy)) result.add(legacy)
+        if (names != null) names.forEach { name ->
+            val legacy = cacheDir.resolve("${id}_$name")
+            if (Files.isRegularFile(legacy)) result.add(legacy)
+        } else {
+            val legacy = cacheDir.resolve("${id}_icon.jpg")
+            if (Files.isRegularFile(legacy)) result.add(legacy)
+        }
         // Formato novo: <appid>/<hash opcional>/library_600x900.jpg
         val appDir = cacheDir.resolve(id)
-        if (name != null && Files.isDirectory(appDir)) {
+        if (names != null && Files.isDirectory(appDir)) {
             runCatching {
                 Files.walk(appDir, 2).use { s ->
-                    s.filter { Files.isRegularFile(it) && it.fileName.toString() == name }.sorted().forEach(result::add)
+                    val files = s.filter(Files::isRegularFile).toList()
+                    names.forEach { name -> files.filter { it.fileName.toString() == name }.sorted().forEach(result::add) }
                 }
             }
         }

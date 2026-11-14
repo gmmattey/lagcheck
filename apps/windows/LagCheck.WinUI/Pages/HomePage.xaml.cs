@@ -412,7 +412,7 @@ public sealed partial class HomePage : Page
             };
             tile.Children.Add(ring);
             Fluid.Prepare(tile);
-            tile.Opacity = selected ? 1 : 0.7;
+            tile.Opacity = 1;
             ToolTipService.SetToolTip(tile, game.Title);
 
             var id = game.Id;
@@ -446,7 +446,7 @@ public sealed partial class HomePage : Page
             var width = selected ? selectedWidth : restWidth;
             var height = selected ? selectedHeight : restHeight;
             item.Ring.Opacity = selected ? 1 : 0;
-            item.Tile.Opacity = selected ? 1 : 0.7;
+            item.Tile.Opacity = 1;
             if (!animate || Motion.Reduced)
             {
                 item.Tile.Width = width;
