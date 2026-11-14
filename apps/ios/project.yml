@@ -18,6 +18,7 @@ settings:
     DEVELOPMENT_TEAM: 2Z4T8228GR
     MARKETING_VERSION: "1.1"
     CURRENT_PROJECT_VERSION: "12"
+    EXCLUDED_ARCHS[sdk=iphonesimulator*]: "x86_64"
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
@@ -43,12 +44,41 @@ targets:
   NolaggyDomain:
     type: framework
     platform: iOS
+    dependencies:
+      - framework: ../android/core/domain/build/XCFrameworks/active/LagCheckEngine.xcframework
+        embed: false
     sources:
       - path: Sources/NolaggyDomain
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nolaggy.domain
         GENERATE_INFOPLIST_FILE: YES
+    preBuildScripts:
+      - name: Build LagCheckEngine XCFramework
+        script: |
+          set -eu
+          REPO_ROOT="$SRCROOT/../.."
+          GRADLE_CONFIG=$(echo "$CONFIGURATION" | tr '[:upper:]' '[:lower:]')
+          TASK_CONFIG="Debug"
+          if [ "$CONFIGURATION" = "Release" ]; then
+            TASK_CONFIG="Release"
+          fi
+          GRADLE_TASK=":core:domain:assembleLagCheckEngine${TASK_CONFIG}XCFramework"
+          XCFRAMEWORK_DIR="$REPO_ROOT/apps/android/core/domain/build/XCFrameworks/$GRADLE_CONFIG/LagCheckEngine.xcframework"
+
+          OFFLINE_FLAG=""
+          if [ -d "$XCFRAMEWORK_DIR" ]; then
+            OFFLINE_FLAG="--offline"
+          fi
+
+          echo "Building LagCheckEngine XCFramework ($CONFIGURATION)..."
+          (cd "$REPO_ROOT/apps/android" && ./gradlew "$GRADLE_TASK" $OFFLINE_FLAG) || {
+            echo "ERROR: Failed to build LagCheckEngine XCFramework with Gradle ($GRADLE_TASK)" >&2
+            exit 1
+          }
+
+          mkdir -p "$REPO_ROOT/apps/android/core/domain/build/XCFrameworks"
+          ln -sfn "$GRADLE_CONFIG" "$REPO_ROOT/apps/android/core/domain/build/XCFrameworks/active"
   NolaggyApplication:
     type: framework
     platform: iOS
@@ -260,6 +290,13 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
 schemes:
+  NolaggyDomainTests:
+    build:
+      targets:
+        NolaggyDomainTests: [test]
+    test:
+      targets:
+        - NolaggyDomainTests
   NolaggyUnitTests:
     build:
       targets:

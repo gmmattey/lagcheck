@@ -25,7 +25,11 @@ public enum QuickCheckPresentationMapper {
                 .result(result)
             }
         case let .cancelled(_, reason):
-            .cancelled(reason)
+            if reason == .poorSampleQuality {
+                .inconclusive
+            } else {
+                .cancelled(reason)
+            }
         }
     }
 }

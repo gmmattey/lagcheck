@@ -1,67 +1,66 @@
 import Foundation
+import LagCheckEngine
 
-/// Chaves que a camada de apresentação localiza no idioma atual. O domínio não produz copy.
 public enum ResultConclusionKey: String, Codable, CaseIterable, Hashable, Sendable {
-    case readyToPlay = "quick_check.result.conclusion.ready_to_play"
-    case lagMayOccur = "quick_check.result.conclusion.lag_may_occur"
-    case investigateBeforePlaying = "quick_check.result.conclusion.investigate_before_playing"
+    case readyToPlay
+    case lagMayOccur
+    case investigateBeforePlaying
 }
 
-/// Rótulo da faixa do score. A apresentação escolhe a string no idioma atual.
 public enum ResultHeadlineKey: String, Codable, CaseIterable, Hashable, Sendable {
-    case excellent = "quick_check.result.headline.excellent"
-    case great = "quick_check.result.headline.great"
-    case unstable = "quick_check.result.headline.unstable"
-    case lagRisk = "quick_check.result.headline.lag_risk"
+    case excellent
+    case great
+    case unstable
+    case lagRisk
 }
 
-/// A causa única que recebe destaque na superfície principal do resultado.
 public enum ResultPrimaryCauseKey: String, Codable, CaseIterable, Hashable, Sendable {
-    case stableConnection = "quick_check.result.cause.stable_connection"
-    case packetLoss = "quick_check.result.cause.packet_loss"
-    case highLatency = "quick_check.result.cause.high_latency"
-    case severeSpikes = "quick_check.result.cause.severe_spikes"
-    case highJitter = "quick_check.result.cause.high_jitter"
-    case loadDegradation = "quick_check.result.cause.load_degradation"
-    case loadInstability = "quick_check.result.cause.load_instability"
-    case tailLatency = "quick_check.result.cause.tail_latency"
-    case outOfOrder = "quick_check.result.cause.out_of_order"
+    case stableConnection
+    case packetLoss
+    case highLatency
+    case severeSpikes
+    case highJitter
+    case loadDegradation
+    case loadInstability
+    case tailLatency
+    case outOfOrder
+
+    public var isRouteInstability: Bool {
+        self != .stableConnection
+    }
 }
 
-/// Qualificador de origem da causa identificada (Decisão 55).
+public enum ResultExplanationKey: String, Codable, CaseIterable, Hashable, Sendable {
+    case stableConnection
+    case packetLoss
+    case highLatency
+    case severeSpikes
+    case highJitter
+    case loadDegradation
+    case loadInstability
+    case tailLatency
+    case outOfOrder
+}
+
+public enum ResultInsightKey: String, Codable, CaseIterable, Hashable, Sendable {
+    case stableConnection
+    case packetLoss
+    case highLatency
+    case severeSpikes
+    case highJitter
+    case loadDegradation
+    case loadInstability
+    case tailLatency
+    case outOfOrder
+}
+
 public enum GatewayOriginQualifier: String, Codable, CaseIterable, Hashable, Sendable {
     case localWiFi
     case remoteWAN
     case unobservable
 }
 
-/// Explicação curta da condição observada; não contém texto de produto no domínio.
-public enum ResultExplanationKey: String, Codable, CaseIterable, Hashable, Sendable {
-    case stableConnection = "quick_check.result.explanation.stable_connection"
-    case packetLoss = "quick_check.result.explanation.packet_loss"
-    case highLatency = "quick_check.result.explanation.high_latency"
-    case severeSpikes = "quick_check.result.explanation.severe_spikes"
-    case highJitter = "quick_check.result.explanation.high_jitter"
-    case loadDegradation = "quick_check.result.explanation.load_degradation"
-    case loadInstability = "quick_check.result.explanation.load_instability"
-    case tailLatency = "quick_check.result.explanation.tail_latency"
-    case outOfOrder = "quick_check.result.explanation.out_of_order"
-}
-
-/// Insight complementar do resultado, exibido depois das métricas quando a UI o suportar.
-public enum ResultInsightKey: String, Codable, CaseIterable, Hashable, Sendable {
-    case stableConnection = "quick_check.result.insight.stable_connection"
-    case packetLoss = "quick_check.result.insight.packet_loss"
-    case highLatency = "quick_check.result.insight.high_latency"
-    case severeSpikes = "quick_check.result.insight.severe_spikes"
-    case highJitter = "quick_check.result.insight.high_jitter"
-    case loadDegradation = "quick_check.result.insight.load_degradation"
-    case loadInstability = "quick_check.result.insight.load_instability"
-    case tailLatency = "quick_check.result.insight.tail_latency"
-    case outOfOrder = "quick_check.result.insight.out_of_order"
-}
-
-public struct ResultInterpretation: Equatable, Sendable {
+public struct ResultInterpretation: Codable, Equatable, Sendable {
     public let score: Int
     public let scoreBand: ResultClass
     public let headlineKey: ResultHeadlineKey
@@ -104,10 +103,7 @@ public struct ResultInterpretation: Equatable, Sendable {
     }
 }
 
-/// Interpreta exclusivamente um resultado concluído do perfil piloto.
-///
-/// O score e as métricas já foram avaliados antes desta etapa. A prioridade de causa
-/// segue a especificação: perda, P50, spikes severos, jitter e conexão estável.
+/// Interpreta o resultado executando a árvore de causas no motor KMP compartilhado.
 public enum ResultInterpreter {
     public static func interpret(
         _ result: QualityResult,
@@ -118,14 +114,28 @@ public enum ResultInterpreter {
         wifiBand: WiFiBandDiagnostic? = nil,
         wifiBandConfidence: WiFiBandAssessmentConfidence? = nil,
         natType: NATType? = nil,
-        serverArchitecture: GameServerArchitecture = .dedicatedServer
+        serverArchitecture: GameServerArchitecture = .dedicatedServer,
+        loadSamples: [ProbeSample]? = nil
     ) -> ResultInterpretation {
-        let (cause, secondaries) = evaluateCauses(
-            for: result.metrics,
-            guardrails: QualityEvaluator.causeGuardrails(for: profile),
-            loadTier: loadTier,
-            spikePattern: spikePattern
+        let loadImpact: DeepCheckLoadImpact? = loadTier.map { tier in
+            let p50 = result.metrics.p50Milliseconds ?? 30.0
+            let delta = (tier == .severe) ? 40.0 : (tier == .material ? 18.0 : 0.0)
+            return DeepCheckLoadImpact(restP50Milliseconds: p50, loadP50Milliseconds: p50 + delta, tier: tier)
+        }
+        let req = LagCheckEngineBridge.buildRequest(
+            qualityResult: result,
+            loadImpact: loadImpact,
+            profile: profile,
+            gatewayOutcome: gatewayOutcome,
+            spikePattern: spikePattern ?? result.metrics.spikePattern,
+            serverArchitecture: serverArchitecture,
+            natSnapshot: nil,
+            loadProbeSamples: loadSamples
         )
+        let response = LagCheckEngineBridge.evaluate(request: req)
+
+        let primaryKey = LagCheckEngineBridge.toPrimaryCauseKey(response.primaryCause)
+        let secondaryKeys = response.secondaryCauses.map { LagCheckEngineBridge.toPrimaryCauseKey($0) }
 
         let evidence = DiagnosticEvidence(
             gatewayOutcome: gatewayOutcome,
@@ -133,11 +143,12 @@ public enum ResultInterpreter {
             wifiBandConfidence: wifiBandConfidence,
             loadTier: loadTier,
             packetLossPercentage: result.metrics.packetLossPercentage,
-            spikePattern: spikePattern,
+            spikePattern: spikePattern ?? result.metrics.spikePattern,
             tailRatio: result.metrics.p95ToP50Ratio,
             natType: natType,
             serverArchitecture: serverArchitecture,
-            outOfOrderCount: result.metrics.outOfOrderCount
+            outOfOrderCount: result.metrics.outOfOrderCount,
+            profile: profile
         )
         let recommendations = EvidenceRecommendationEngine.generateRecommendations(evidence: evidence)
 
@@ -146,13 +157,13 @@ public enum ResultInterpreter {
             scoreBand: result.resultClass,
             headlineKey: headline(for: result.resultClass),
             conclusionKey: conclusion(for: result.resultClass),
-            primaryCauseKey: cause,
-            secondaryCauseKeys: secondaries,
+            primaryCauseKey: primaryKey,
+            secondaryCauseKeys: secondaryKeys,
             originQualifier: originQualifier(gatewayOutcome: gatewayOutcome),
-            spikePattern: spikePattern,
+            spikePattern: spikePattern ?? result.metrics.spikePattern,
             recommendations: recommendations,
-            explanationKey: explanation(for: cause),
-            insightKey: insight(for: cause),
+            explanationKey: explanation(for: primaryKey),
+            insightKey: insight(for: primaryKey),
             metrics: result.metrics
         )
     }
@@ -160,111 +171,60 @@ public enum ResultInterpreter {
     public static func interpret(_ result: QualityResult, profile: QualityProfileID) -> ResultInterpretation {
         interpret(result, profile: profile, loadTier: nil)
     }
-}
 
-private extension ResultInterpreter {
-    static func conclusion(for resultClass: ResultClass) -> ResultConclusionKey {
+    private static func conclusion(for resultClass: ResultClass) -> ResultConclusionKey {
         switch resultClass {
         case .excellent, .great:
-            .readyToPlay
+            return .readyToPlay
         case .unstable:
-            .lagMayOccur
+            return .lagMayOccur
         case .lagRisk:
-            .investigateBeforePlaying
+            return .investigateBeforePlaying
         }
     }
 
-    static func headline(for resultClass: ResultClass) -> ResultHeadlineKey {
+    private static func headline(for resultClass: ResultClass) -> ResultHeadlineKey {
         switch resultClass {
-        case .excellent: .excellent
-        case .great: .great
-        case .unstable: .unstable
-        case .lagRisk: .lagRisk
+        case .excellent: return .excellent
+        case .great: return .great
+        case .unstable: return .unstable
+        case .lagRisk: return .lagRisk
         }
     }
 
-    static func evaluateCauses(
-        for metrics: QualityMetrics,
-        guardrails: QualityEvaluator.CauseGuardrails,
-        loadTier: LoadDegradationTier?,
-        spikePattern: SpikePattern?
-    ) -> (primary: ResultPrimaryCauseKey, secondaries: [ResultPrimaryCauseKey]) {
-        var causes: [ResultPrimaryCauseKey] = []
-
-        let isLoss = metrics.packetLossPercentage > guardrails.lossGuardrailPercentage
-        let isLatency = (metrics.p50Milliseconds ?? 0) > guardrails.latencyGuardrailMilliseconds
-        let isSevereSpikes: Bool
-        if let pattern = spikePattern {
-            isSevereSpikes = pattern.severeCount >= guardrails.severeSpikeGuardrailCount
-        } else {
-            isSevereSpikes = metrics.severeSpikeCount >= guardrails.severeSpikeGuardrailCount
-        }
-        let isJitter = (metrics.jitterMilliseconds ?? 0) > guardrails.jitterRiskMilliseconds
-        let isLoad = (loadTier == .material || loadTier == .severe)
-        let isTail = (metrics.p95ToP50Ratio ?? 0) >= 1.8
-        let isOutOfOrder = metrics.outOfOrderCount >= 2 || metrics.outOfOrderRatePercentage >= 5.0
-
-        // Regra de coocorrência (Decisão 55): Jitter alto + Carga material/severa = Instabilidade sob uso da internet
-        if isJitter && isLoad {
-            causes.append(.loadInstability)
-            if isLoss { causes.append(.packetLoss) }
-            if isLatency { causes.append(.highLatency) }
-            if isSevereSpikes { causes.append(.severeSpikes) }
-            if isOutOfOrder { causes.append(.outOfOrder) }
-        } else {
-            if isLoss { causes.append(.packetLoss) }
-            if isLatency { causes.append(.highLatency) }
-            if isSevereSpikes { causes.append(.severeSpikes) }
-            if isJitter { causes.append(.highJitter) }
-            if isOutOfOrder { causes.append(.outOfOrder) }
-            if isLoad { causes.append(.loadDegradation) }
-        }
-
-        let primary = causes.first ?? .stableConnection
-        var secondaries = Array(causes.dropFirst().prefix(2))
-
-        if isTail && !causes.contains(.tailLatency) && secondaries.count < 2 {
-            secondaries.append(.tailLatency)
-        }
-
-        return (primary, secondaries)
-    }
-
-    static func originQualifier(gatewayOutcome: GatewayProbeOutcome) -> GatewayOriginQualifier {
-        if gatewayOutcome.isDegraded {
-            return .localWiFi
-        } else if gatewayOutcome.isStable {
-            return .remoteWAN
-        } else {
-            return .unobservable
+    private static func originQualifier(gatewayOutcome: GatewayProbeOutcome) -> GatewayOriginQualifier {
+        switch gatewayOutcome {
+        case .stable: return .remoteWAN
+        case .degraded: return .localWiFi
+        case .unobservable: return .unobservable
         }
     }
 
-    static func explanation(for cause: ResultPrimaryCauseKey) -> ResultExplanationKey {
+    private static func explanation(for cause: ResultPrimaryCauseKey) -> ResultExplanationKey {
         switch cause {
-        case .stableConnection: .stableConnection
-        case .packetLoss: .packetLoss
-        case .highLatency: .highLatency
-        case .severeSpikes: .severeSpikes
-        case .highJitter: .highJitter
-        case .loadDegradation: .loadDegradation
-        case .loadInstability: .loadInstability
-        case .tailLatency: .tailLatency
-        case .outOfOrder: .outOfOrder
+        case .stableConnection: return .stableConnection
+        case .packetLoss: return .packetLoss
+        case .highLatency: return .highLatency
+        case .severeSpikes: return .severeSpikes
+        case .highJitter: return .highJitter
+        case .loadDegradation: return .loadDegradation
+        case .loadInstability: return .loadInstability
+        case .tailLatency: return .tailLatency
+        case .outOfOrder: return .outOfOrder
         }
     }
 
-    static func insight(for cause: ResultPrimaryCauseKey) -> ResultInsightKey {
+    private static func insight(for cause: ResultPrimaryCauseKey) -> ResultInsightKey {
         switch cause {
-        case .stableConnection: .stableConnection
-        case .packetLoss: .packetLoss
-        case .highLatency: .highLatency
-        case .severeSpikes: .severeSpikes
-        case .highJitter: .highJitter
-        case .loadDegradation: .loadDegradation
-        case .loadInstability: .loadInstability
-        case .tailLatency: .tailLatency
-        case .outOfOrder: .outOfOrder
+        case .stableConnection: return .stableConnection
+        case .packetLoss: return .packetLoss
+        case .highLatency: return .highLatency
+        case .severeSpikes: return .severeSpikes
+        case .highJitter: return .highJitter
+        case .loadDegradation: return .loadDegradation
+        case .loadInstability: return .loadInstability
+        case .tailLatency: return .tailLatency
+        case .outOfOrder: return .outOfOrder
         }
     }
 }

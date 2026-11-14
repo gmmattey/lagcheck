@@ -46,7 +46,12 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
         }
 
         return await withTaskCancellationHandler(operation: {
-            connection.start()
+            guard await connection.start() else {
+                connection.cancel()
+                return (0..<ProbeAcceptancePolicy.plannedProbeCount).map {
+                    ProbeSample(sequence: $0, outcome: .transportError)
+                }
+            }
 
             // Para Steam A2S, realiza sondagem preliminar para obter o challengeToken antes dos probes.
             if protocolKind == .steamA2S {
@@ -57,6 +62,10 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
                 }
             }
 
+            let intervalSeconds = ProbeAcceptancePolicy.sendWindowSeconds / Double(ProbeAcceptancePolicy.plannedProbeCount)
+            let intervalNanoseconds = UInt64(intervalSeconds * 1_000_000_000)
+            let closureNanoseconds = UInt64(ProbeAcceptancePolicy.closureSeconds * 1_000_000_000)
+
             // `t0` é obtido imediatamente antes do primeiro envio; os payloads já estão prontos.
             let start = DispatchTime.now().uptimeNanoseconds
             for probe in generated.probes {
@@ -65,11 +74,17 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
                     return []
                 }
 
-                let scheduledAt = start + UInt64(probe.sequence) * 500_000_000
+                let scheduledAt = start + UInt64(probe.sequence) * intervalNanoseconds
                 await sleep(until: scheduledAt)
                 guard !Task.isCancelled else {
                     connection.cancel()
                     return []
+                }
+
+                let now = DispatchTime.now().uptimeNanoseconds
+                let timedOut = ledger.expireTimeouts(at: now)
+                for sample in timedOut {
+                    await onSample(sample)
                 }
 
                 let payloadToSend: Data
@@ -86,8 +101,21 @@ public struct NWConnectionMeasurementTransport: MeasurementTransport {
                 }
             }
 
-            // A drenagem termina exatamente no limite técnico de 17 segundos.
-            await sleep(until: start + 17_000_000_000)
+            // A drenagem termina exatamente no limite técnico de closureSeconds.
+            let closureDeadline = start + closureNanoseconds
+            while DispatchTime.now().uptimeNanoseconds < closureDeadline {
+                guard !Task.isCancelled else {
+                    connection.cancel()
+                    return []
+                }
+                let nextTick = min(DispatchTime.now().uptimeNanoseconds + intervalNanoseconds, closureDeadline)
+                await sleep(until: nextTick)
+                let timedOut = ledger.expireTimeouts(at: DispatchTime.now().uptimeNanoseconds)
+                for sample in timedOut {
+                    await onSample(sample)
+                }
+            }
+
             connection.cancel()
             guard !Task.isCancelled else { return [] }
             return ledger.finish(at: DispatchTime.now().uptimeNanoseconds)
@@ -178,7 +206,10 @@ public struct NWRegionalPreReadCollector: RegionalPreReadCollecting {
                 onEvent?(regionID, .answered(rttMilliseconds: rtt))
             }
         }
-        connection.start()
+        guard await connection.start() else {
+            connection.cancel()
+            return Array(repeating: RegionalPreReadSample(outcome: .transportError), count: 3)
+        }
         let start = DispatchTime.now().uptimeNanoseconds
         for (sequence, payload) in generated.probes {
             guard !Task.isCancelled else { connection.cancel(); return [] }
@@ -283,12 +314,13 @@ final class ProbeLedger: @unchecked Sendable {
 
     func accept(response: Data, receivedAt: UInt64) -> ProbeSample? {
         lock.withLock {
+            let timeoutNanoseconds = UInt64(ProbeAcceptancePolicy.timeoutSeconds * 1_000_000_000)
             guard let match = probes
                 .filter({ entry in
                     guard let sentAt = entry.value.sentAt,
                           entry.value.result == nil,
                           receivedAt >= sentAt,
-                          receivedAt - sentAt < 2_000_000_000 else {
+                          receivedAt - sentAt < timeoutNanoseconds else {
                         return false
                     }
                     return true
@@ -318,6 +350,24 @@ final class ProbeLedger: @unchecked Sendable {
         }
     }
 
+    func expireTimeouts(at currentTime: UInt64, timeoutNanoseconds: UInt64 = UInt64(ProbeAcceptancePolicy.timeoutSeconds * 1_000_000_000)) -> [ProbeSample] {
+        lock.withLock {
+            var timedOut: [ProbeSample] = []
+            for sequence in probes.keys.sorted() {
+                guard var probe = probes[sequence],
+                      let sentAt = probe.sentAt,
+                      probe.result == nil else { continue }
+                if currentTime >= sentAt + timeoutNanoseconds {
+                    let sample = ProbeSample(sequence: sequence, outcome: .timeout)
+                    probe.result = sample
+                    probes[sequence] = probe
+                    timedOut.append(sample)
+                }
+            }
+            return timedOut
+        }
+    }
+
     func markTransportError(sequence: Int) {
         lock.withLock {
             guard var probe = probes[sequence], probe.sentAt != nil, probe.result == nil else { return }
@@ -342,6 +392,23 @@ final class ProbeLedger: @unchecked Sendable {
     }
 }
 
+private final class ConnectionReadyWaiter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+
+    init(continuation: CheckedContinuation<Bool, Never>) {
+        self.continuation = continuation
+    }
+
+    func resume(_ value: Bool) {
+        lock.lock()
+        let cont = continuation
+        continuation = nil
+        lock.unlock()
+        cont?.resume(returning: value)
+    }
+}
+
 private final class UDPConnection: @unchecked Sendable {
     private let connection: NWConnection
     private let queue = DispatchQueue(label: "com.nolaggy.pilot.udp")
@@ -352,9 +419,26 @@ private final class UDPConnection: @unchecked Sendable {
         self.onResponse = onResponse
     }
 
-    func start() {
-        connection.start(queue: queue)
-        receiveNext()
+    func start() async -> Bool {
+        await withCheckedContinuation { continuation in
+            let waiter = ConnectionReadyWaiter(continuation: continuation)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    waiter.resume(true)
+                case .failed, .cancelled:
+                    waiter.resume(false)
+                default:
+                    break
+                }
+            }
+            connection.start(queue: queue)
+            receiveNext()
+            Task {
+                try? await Task.sleep(for: .seconds(3))
+                waiter.resume(false)
+            }
+        }
     }
 
     func send(_ payload: Data, onError: @escaping @Sendable () -> Void) {

@@ -43,11 +43,27 @@ public struct LoadRequest: Equatable, Sendable {
     public let url: URL
     public let maximumBytes: Int
     public let maximumDuration: Duration
+    public let isWiFi: Bool
 
-    public init(url: URL, maximumBytes: Int = 10 * 1024 * 1024, maximumDuration: Duration = .seconds(15)) {
+    public init(
+        url: URL,
+        maximumBytes: Int = 10 * 1024 * 1024,
+        maximumDuration: Duration = .seconds(ProbeAcceptancePolicy.sendWindowSeconds),
+        isWiFi: Bool = true
+    ) {
         self.url = url
         self.maximumBytes = maximumBytes
         self.maximumDuration = maximumDuration
+        self.isWiFi = isWiFi
+    }
+
+    public func configuring(isWiFi: Bool) -> LoadRequest {
+        LoadRequest(
+            url: url,
+            maximumBytes: maximumBytes,
+            maximumDuration: maximumDuration,
+            isWiFi: isWiFi
+        )
     }
 }
 
@@ -281,10 +297,12 @@ public actor DeepCheckSessionCoordinator {
         state = .measuring(session, .load)
 
         let coordinator = self
+        let isWiFi = currentInterface == .wifi
+        let loadRequest = plan.loadRequest.configuring(isWiFi: isWiFi)
         async let loadSamples = transport.collect(session: session, plan: plan.loadProbePlan) { sample in
             await coordinator.record(sample: sample, for: sessionID, phase: .load)
         }
-        async let loadOutcome = loadTransport.transfer(plan.loadRequest)
+        async let loadOutcome = loadTransport.transfer(loadRequest)
         let (samples, outcome) = await (loadSamples, loadOutcome)
         await finish(sessionID: sessionID, session: session, restSamples: restSamples, loadSamples: samples, loadOutcome: outcome)
     }

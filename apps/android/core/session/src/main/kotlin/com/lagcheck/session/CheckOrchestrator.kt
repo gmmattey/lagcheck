@@ -15,6 +15,7 @@ import com.lagcheck.network.local.GatewayProber
 import com.lagcheck.network.local.StunTopologyProbe
 import com.lagcheck.domain.model.InconclusiveReason
 import com.lagcheck.domain.model.MeasurementConfidence
+import com.lagcheck.domain.model.ProbeAcceptancePolicy
 import com.lagcheck.domain.model.ProbeSample
 import com.lagcheck.domain.rules.GameReadinessEvaluator
 import com.lagcheck.network.transport.ProbeCollection
@@ -31,8 +32,10 @@ fun interface ProbeCollector {
 }
 
 fun interface LoadTransfer {
-    suspend fun transfer(): LoadOutcome
+    suspend fun transfer(isWiFi: Boolean): LoadOutcome
 }
+
+fun LoadTransfer(block: suspend () -> LoadOutcome) = LoadTransfer { _ -> block() }
 
 enum class CheckPhase { REST, LOAD }
 
@@ -100,9 +103,17 @@ class CheckOrchestrator(
     private val loadPlan: ProbePlan = ProbePlan(),
     private val local: LocalDiagnostics? = null
 ) {
+    constructor(
+        probes: ProbeCollector,
+        load: suspend () -> LoadOutcome,
+        restPlan: ProbePlan = ProbePlan(),
+        loadPlan: ProbePlan = ProbePlan(),
+        local: LocalDiagnostics? = null
+    ) : this(probes, LoadTransfer { _ -> load() }, restPlan, loadPlan, local)
+
     constructor(transport: UdpProbeTransport, loadTransport: HttpLoadTransport, local: LocalDiagnostics? = null) : this(
         { d, p, cb -> transport.collect(d, p, cb) },
-        { loadTransport.transfer() },
+        { isWiFi -> loadTransport.transfer(isWiFi) },
         local = local
     )
 
@@ -121,13 +132,17 @@ class CheckOrchestrator(
         if (rest.aborted) return inconclusive(context, rest.samples, null, rest.abortReason, gatewayTelemetry, wifiBand)
 
         val (loadCollection, loadOutcome) = coroutineScope {
-            val transfer = async { load.transfer() }
+            val transfer = async { load.transfer(env.isWiFi) }
             val collected = probes.collect(context.destination, loadPlan) { event -> onProgress(progress(CheckPhase.LOAD, event, loadPlan.count)) }
             if (collected.aborted) transfer.cancel()
             collected to (if (collected.aborted) LoadOutcome.Unavailable else transfer.await())
         }
         // Conexão que morre sob carga cancela a sessão inteira, como no iOS: nada de "pronto" sobre uma rota que caiu.
-        if (loadCollection.aborted) return inconclusive(context, rest.samples, loadCollection.samples, loadCollection.abortReason, gatewayTelemetry, wifiBand)
+        if (loadCollection.aborted) return inconclusive(context, rest.samples, loadCollection.samples, InconclusiveReason.POOR_SAMPLE_QUALITY, gatewayTelemetry, wifiBand)
+
+        if (loadOutcome is LoadOutcome.Completed && loadCollection.samples.count { it.isValidResponse } < ProbeAcceptancePolicy.MINIMUM_VALID_RESPONSES) {
+            return inconclusive(context, rest.samples, loadCollection.samples, InconclusiveReason.POOR_SAMPLE_QUALITY, gatewayTelemetry, wifiBand)
+        }
 
         val usableLoad = if (loadOutcome == LoadOutcome.Unavailable) null else loadCollection.samples
 

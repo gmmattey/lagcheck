@@ -125,4 +125,20 @@ final class EvidenceRecommendationEngineTests: XCTestCase {
         XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "fortnite"), .dedicatedServer)
         XCTAssertEqual(GameEditorialRegistry.serverArchitecture(for: "valorant"), .dedicatedServer)
     }
+
+    /// Decisão 136: 1 pacote perdido em 60 (1,67%) não pode recomendar evitar ranked num veredito "pronto".
+    func testAvoidRankedUsesTheProfileLossGuardrail() {
+        func keys(_ loss: Double, _ profile: QualityProfileID) -> [String] {
+            EvidenceRecommendationEngine.generateRecommendations(
+                evidence: DiagnosticEvidence(packetLossPercentage: loss, profile: profile)
+            ).map(\.title)
+        }
+        let avoid = LagCheckEngineBridge.localizeRecommendation(key: "AVOID_RANKED").title
+        XCTAssertFalse(keys(100.0 / 60.0, .battleRoyaleCompetitive).contains(avoid))
+        XCTAssertFalse(keys(100.0 / 60.0, .mobileRealtime).contains(avoid))
+        XCTAssertFalse(keys(100.0 / 60.0, .casualRealtime).contains(avoid))
+        XCTAssertTrue(keys(200.0 / 60.0, .battleRoyaleCompetitive).contains(avoid))
+        XCTAssertFalse(keys(200.0 / 60.0, .mobileRealtime).contains(avoid))
+        XCTAssertTrue(keys(400.0 / 60.0, .mobileRealtime).contains(avoid))
+    }
 }
