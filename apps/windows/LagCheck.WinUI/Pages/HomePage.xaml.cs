@@ -15,6 +15,7 @@ using LagCheck.WinUI.Controls;
 using LagCheck.WinUI.Library;
 using LagCheck.WinUI.Localization;
 using LagCheck.WinUI.PlatformStatus;
+using LagCheck.WinUI.Widgets;
 
 namespace LagCheck.WinUI.Pages;
 
@@ -41,7 +42,7 @@ public sealed partial class HomePage : Page
     private bool _pcSelected;
     private bool _dataReady;
     private string _recentsKey = string.Empty;
-    private bool _historyButtonStartsTest;
+    private bool _platformsLoading;
     private RecentTile? _pcTile;
 
     /// <summary>Slot fixo no layout: selecionado/repouso é só escala de composição, então nada reflui ao trocar de jogo.</summary>
@@ -62,7 +63,7 @@ public sealed partial class HomePage : Page
         LaunchBtn.PointerEntered += (_, _) => { _launchHovered = true; UpdateLaunchChrome(); };
         LaunchBtn.PointerExited += (_, _) => { _launchHovered = false; UpdateLaunchChrome(); };
         LocalizeUI();
-        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, DetailsBtn, TopLibraryBtn, TopHistoryBtn, TopSearchBtn, TopGalleryBtn, TopSettingsBtn, PcCheckBtn, GeneralCheckBtn, ScanGamesBtn, OpenHistoryBtn })
+        foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, DetailsBtn, TopLibraryBtn, TopHistoryBtn, TopSearchBtn, TopGalleryBtn, TopSettingsBtn, PcCheckBtn, GeneralCheckBtn, ScanGamesBtn })
             Fluid.Feedback(button);
 
         _historyChangedHandler = (_, _) => QueueRefresh();
@@ -99,10 +100,6 @@ public sealed partial class HomePage : Page
     private void LocalizeUI()
     {
         LaunchBtnText.Text = Strings.Tr("JOGAR AGORA");
-        ActivityTitle.Text = Strings.Tr("ÚLTIMA ATIVIDADE");
-        StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
-        PlatformsTitle.Text = Strings.Tr("STATUS DAS PLATAFORMAS");
-        GalleryTitle.Text = Strings.Tr("Galeria local");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopSearchBtn, Strings.Tr("Buscar jogo..."));
         ToolTipService.SetToolTip(TopSearchBtn, Strings.Tr("Buscar jogo (Ctrl+F)"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopLibraryBtn, Strings.Tr("Biblioteca"));
@@ -111,7 +108,6 @@ public sealed partial class HomePage : Page
         ToolTipService.SetToolTip(TopHistoryBtn, Strings.Tr("Histórico"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(DetailsBtn, Strings.Tr("Detalhes do jogo"));
         ToolTipService.SetToolTip(DetailsBtn, Strings.Tr("Detalhes do jogo"));
-        StabilityMetricCaption.Text = Strings.Tr("ÚLTIMO PING");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopGalleryBtn, Strings.Tr("Galeria local"));
         ToolTipService.SetToolTip(TopGalleryBtn, Strings.Tr("Galeria local"));
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(TopSettingsBtn, Strings.Tr("Ajustes"));
@@ -120,9 +116,6 @@ public sealed partial class HomePage : Page
         PcHeroTitle.Text = Strings.Tr("SEU PC");
         PcHeroDescription.Text = Strings.Tr("Leituras da sua conexão e da atividade conhecida na biblioteca local.");
         PcCheckBtn.Content = Strings.Tr("Testar conexão geral");
-        UpdateHistoryButton();
-        if (_lastPlatformStatus is null) PlatformStatusText.Text = Strings.Tr("Consultando…");
-        else RenderPlatformStatus(_lastPlatformStatus);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
         CheckConnBtn.Content = Strings.Tr("Testar conexão");
         ToolTipService.SetToolTip(LaunchBtn, Strings.Tr("Iniciar jogo instalado"));
@@ -242,9 +235,8 @@ public sealed partial class HomePage : Page
 
     private void ApplyResponsiveLayout()
     {
-        // Largura que o hero (620) + a grade de widgets (4 ou 6 colunas de 112) pedem; abaixo disso os widgets descem.
-        var insightColumns = GallerySection.Visibility == Visibility.Visible ? 6 : 4;
-        var needed = 620 + 14 + 48 + insightColumns * 112 + (insightColumns - 1) * 12;
+        // O hero (620) pede ao menos 4 colunas de widgets ao lado; abaixo disso a grade desce para baixo do hero.
+        var needed = 620 + 14 + 48 + 4 * 112 + 3 * 12;
         var compact = ActualWidth < needed;
         HeroActions.Orientation = ActualWidth < 680 ? Orientation.Vertical : Orientation.Horizontal;
         HomeContentGrid.ColumnDefinitions[0].Width = compact ? new GridLength(1, GridUnitType.Star) : new GridLength(620);
@@ -256,6 +248,7 @@ public sealed partial class HomePage : Page
         InsightsScroll.HorizontalAlignment = compact ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
         InsightsScroll.VerticalAlignment = compact ? VerticalAlignment.Top : VerticalAlignment.Bottom;
         InsightsScroll.MaxWidth = compact ? double.PositiveInfinity : 760;
+        Widgets.SetGridAlignment(compact ? HorizontalAlignment.Left : HorizontalAlignment.Right);
         HeroSurface.HorizontalAlignment = compact ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
         HeroSurface.MaxWidth = compact ? double.PositiveInfinity : 620;
     }
@@ -306,17 +299,10 @@ public sealed partial class HomePage : Page
             PcHeroPanel.Visibility = Visibility.Visible;
             EmptyHeroPanel.Visibility = Visibility.Collapsed;
             HeroVerdictPanel.Visibility = Visibility.Collapsed;
-            ActivityCard.Visibility = Visibility.Visible;
-            StabilityCard.Visibility = Visibility.Visible;
-            GallerySection.Visibility = Visibility.Collapsed;
-            StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
-            HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(112);
-            GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
             _slides.Clear();
             _backdropApplied = false;
             ShellChrome.Shell?.ClearBackdrop();
-            if (_lastPlatformStatus is not null) RenderPlatformStatus(_lastPlatformStatus);
-            BuildPcInsights();
+            UpdateWidgets();
             if (rebuildRecents) ApplyViewportSizing();
             else ApplyHeroSizing();
             return;
@@ -327,7 +313,6 @@ public sealed partial class HomePage : Page
         {
             // Biblioteca ainda carregando: sem "nenhum jogo encontrado" piscando antes da hora.
             GameHeroPanel.Visibility = PcHeroPanel.Visibility = EmptyHeroPanel.Visibility = Visibility.Collapsed;
-            ActivityCard.Visibility = StabilityCard.Visibility = GallerySection.Visibility = Visibility.Collapsed;
             return;
         }
         if (hero is null)
@@ -336,14 +321,10 @@ public sealed partial class HomePage : Page
             PcHeroPanel.Visibility = Visibility.Collapsed;
             EmptyHeroPanel.Visibility = Visibility.Visible;
             HeroVerdictPanel.Visibility = Visibility.Collapsed;
-            ActivityCard.Visibility = Visibility.Collapsed;
-            StabilityCard.Visibility = Visibility.Collapsed;
-            GallerySection.Visibility = Visibility.Collapsed;
-            HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(0);
-            GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
             _slides.Clear();
             _backdropApplied = false;
             ShellChrome.Shell?.ClearBackdrop();
+            UpdateWidgets();
             if (rebuildRecents) EnsureRecents();
             return;
         }
@@ -353,11 +334,6 @@ public sealed partial class HomePage : Page
         GameHeroPanel.Visibility = Visibility.Visible;
         PcHeroPanel.Visibility = Visibility.Collapsed;
         EmptyHeroPanel.Visibility = Visibility.Collapsed;
-        ActivityCard.Visibility = Visibility.Visible;
-        StabilityCard.Visibility = Visibility.Visible;
-        StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
-        HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(112);
-        if (_lastPlatformStatus is not null) RenderPlatformStatus(_lastPlatformStatus);
 
         GameTitleText.Text = hero.Title.ToUpperInvariant();
         GameMetaText.Text = string.Join(" · ", new[] { hero.PlatformLabel, hero.Info?.Genres.FirstOrDefault(), hero.NetworkLabel }.Where(value => !string.IsNullOrWhiteSpace(value)));
@@ -375,7 +351,7 @@ public sealed partial class HomePage : Page
         DetailsBtn.Visibility = Visibility.Visible;
 
         SetSlides(ArtsOf(hero));
-        BuildInsights(hero);
+        UpdateWidgets();
         if (rebuildRecents) ApplyViewportSizing();
         else ApplyHeroSizing();
     }
@@ -595,213 +571,45 @@ public sealed partial class HomePage : Page
 
     // ------------------------------------------------------------------ ações
 
-    private void BuildInsights(LibraryGame game)
+    private async System.Threading.Tasks.Task LoadPlatformStatusAsync(int generation, bool force = false)
     {
-        var activity = ValidEpoch(game.RecentActivityEpochMs);
-        ActivityMetric.Visibility = activity is null ? Visibility.Collapsed : Visibility.Visible;
-        ActivityMetric.Text = activity?.ToLocalTime().ToString("d MMM yyyy", DateCulture()) ?? string.Empty;
-        ActivityText.Text = activity is null ? Strings.Tr("Sem atividade disponível.") : Strings.Tr("Último uso registrado pelo launcher.");
-        // A single observed date cannot describe activity on the remaining days.
-        ActivityCalendar.Visibility = Visibility.Collapsed;
-
-        GalleryPanel.Children.Clear();
-        var shots = game.UserScreenshots.Where(shot => Artwork.FirstExisting(shot.ThumbnailPath, shot.Path) is { }).Take(4).ToList();
-        GallerySection.Visibility = shots.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(shots.Count == 0 ? 0 : 112);
-        foreach (var shot in shots)
-        {
-            var image = new Image { Width = 96, Height = 58, Stretch = Stretch.UniformToFill, Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 160) };
-            var button = new Button { Width = 96, Height = 58, Margin = new Thickness(0, 0, 6, 6), Padding = new Thickness(0), BorderThickness = new Thickness(0), Background = new SolidColorBrush(Colors.Transparent), Content = image };
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, Strings.Tr("Abrir detalhes do jogo"));
-            button.Click += (_, _) => OpenDetails(game);
-            GalleryPanel.Children.Add(button);
-        }
-
-        var checks = LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
-            .Where(entry => IsConclusiveVerdict(entry.Verdict) && entry.HasCapturedAt && entry.PingMs is { } ping && double.IsFinite(ping) && ping >= 0 && ping <= 10_000 && !string.IsNullOrWhiteSpace(game.DiagnosticGameId)
-                && string.Equals(entry.GameId, game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(entry => entry.CapturedAt).ToList();
-        StabilityMetric.Visibility = StabilityMetricCaption.Visibility = checks.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        StabilityMetric.Text = checks.Count == 0 ? string.Empty : checks[^1].PingLabel;
-        _historyButtonStartsTest = checks.Count == 0 && game.CanTestConnection;
-        if (checks.Count == 0) StabilityText.Text = Strings.Tr("Nenhum teste válido deste jogo ainda.");
-        else if (checks.Count == 1) StabilityText.Text = string.Empty;
-        else StabilityText.Text = Strings.Tr("Pings de testes distintos; não é monitoramento ao vivo.");
-        DrawPlot(checks.Select(entry => (entry.PingMs!.Value, $"{entry.PingLabel} · {entry.CapturedAt.ToLocalTime():d MMM HH:mm}")).ToList());
-        UpdateHistoryButton();
-    }
-
-    private static bool IsConclusiveVerdict(string verdict) =>
-        verdict.Equals("ready", StringComparison.OrdinalIgnoreCase) ||
-        verdict.Equals("caution", StringComparison.OrdinalIgnoreCase) ||
-        verdict.Equals("notReady", StringComparison.OrdinalIgnoreCase);
-
-    private void BuildPcInsights()
-    {
-        ActivityCalendar.Visibility = Visibility.Collapsed;
-        var knownActivity = ViewModel.AllGames
-            .Select(game => new { game.Title, Activity = ValidEpoch(game.RecentActivityEpochMs) })
-            .Where(item => item.Activity is not null)
-            .OrderByDescending(item => item.Activity)
-            .ToList();
-        ActivityMetric.Visibility = knownActivity.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        ActivityMetric.Text = knownActivity.Count == 0 ? string.Empty : knownActivity[0].Activity!.Value.ToLocalTime().ToString("d MMM yyyy", DateCulture());
-        ActivityText.Text = knownActivity.Count == 0 ? Strings.Tr("Sem atividade disponível.") : knownActivity[0].Title;
-
-        GalleryPanel.Children.Clear();
-        GallerySection.Visibility = Visibility.Collapsed;
-        GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
-
-        var allValid = LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
-            .Where(entry => IsConclusiveVerdict(entry.Verdict) && entry.PingMs is { } ping && double.IsFinite(ping) && ping >= 0 && ping <= 10_000)
-            .ToList();
-        var timestamped = allValid.Where(entry => entry.HasCapturedAt).OrderBy(entry => entry.CapturedAt).ToList();
-        StabilityMetric.Visibility = StabilityMetricCaption.Visibility = allValid.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        StabilityMetric.Text = allValid.Count == 0 ? string.Empty : (timestamped.Count > 0 ? timestamped[^1] : allValid[0]).PingLabel;
-        _historyButtonStartsTest = allValid.Count == 0;
-        UpdateHistoryButton();
-        if (allValid.Count == 0)
-        {
-            DrawPlot(new List<(double, string)>());
-            StabilityText.Text = Strings.Tr("Nenhum teste válido ainda.");
-            return;
-        }
-
-        var withoutTimestamp = allValid.Count - timestamped.Count;
-        var note = withoutTimestamp > 0 ? "\n" + Strings.Format("{0} medições sem data confiável.", withoutTimestamp) : string.Empty;
-        if (timestamped.Count < 2)
-        {
-            DrawPlot(new List<(double, string)>());
-            StabilityText.Text = note.TrimStart('\n');
-            return;
-        }
-
-        StabilityText.Text = Strings.Tr("Pings de testes distintos; não é monitoramento ao vivo.") + note;
-        DrawPlot(timestamped.Select(entry => (entry.PingMs!.Value, $"{entry.PingLabel} · {entry.CapturedAt.ToLocalTime():d MMM HH:mm}")).ToList());
-    }
-
-    /// <summary>Linha + pontos dos pings (largura do card), com a leitura e a data de cada ponto no tooltip.</summary>
-    private void DrawPlot(IReadOnlyList<(double Ping, string Tip)> points)
-    {
-        StabilityPlot.Children.Clear();
-        if (points.Count < 2) { StabilityPlot.Visibility = Visibility.Collapsed; return; }
-        StabilityPlot.Visibility = Visibility.Visible;
-        var width = StabilityPlot.ActualWidth > 40 ? StabilityPlot.ActualWidth : 196;
-        var min = points.Min(point => point.Ping);
-        var range = Math.Max(points.Max(point => point.Ping) - min, 1d);
-        var purple = Color.FromArgb(255, 0xA7, 0x8B, 0xFA);
-        var line = new Polyline { Stroke = new SolidColorBrush(Color.FromArgb(0x99, 0xA7, 0x8B, 0xFA)), StrokeThickness = 1.5, StrokeLineJoin = PenLineJoin.Round };
-        var coordinates = new List<(double X, double Y)>();
-        for (var i = 0; i < points.Count; i++)
-        {
-            var x = 3 + i * (width - 6) / (points.Count - 1);
-            var y = 41 - (points[i].Ping - min) / range * 34;
-            coordinates.Add((x, y));
-            line.Points.Add(new Windows.Foundation.Point(x, y));
-        }
-        StabilityPlot.Children.Add(line);
-        for (var i = 0; i < points.Count; i++)
-        {
-            var last = i == points.Count - 1;
-            var size = last ? 9 : 6;
-            var dot = new Ellipse { Width = size, Height = size, Fill = new SolidColorBrush(last ? Colors.White : purple) };
-            ToolTipService.SetToolTip(dot, points[i].Tip);
-            Canvas.SetLeft(dot, coordinates[i].X - size / 2.0);
-            Canvas.SetTop(dot, coordinates[i].Y - size / 2.0);
-            StabilityPlot.Children.Add(dot);
-        }
-    }
-
-    private void UpdateHistoryButton()
-    {
-        OpenHistoryBtn.Content = Strings.Tr(_historyButtonStartsTest ? "Fazer o primeiro teste" : "Ver histórico");
-    }
-
-    private async System.Threading.Tasks.Task LoadPlatformStatusAsync(int generation)
-    {
-        var snapshot = await _platformStatus.GetSnapshotAsync();
+        _platformsLoading = true;
+        UpdateWidgets();
+        PlatformStatusSnapshot snapshot;
+        try { snapshot = await _platformStatus.GetSnapshotAsync(force); }
+        catch { return; }
         DispatcherQueue.TryEnqueue(() =>
         {
+            _platformsLoading = false;
             if (!IsCurrentLoad(generation)) return;
             _lastPlatformStatus = snapshot;
-            RenderPlatformStatus(snapshot);
+            UpdateWidgets();
         });
     }
 
-    private void RenderPlatformStatus(PlatformStatusSnapshot snapshot)
+    // ------------------------------------------------------------------ widgets
+
+    /// <summary>Entrega ao módulo de widgets o contexto atual (jogo ou Este PC, biblioteca, histórico, plataformas).</summary>
+    private void UpdateWidgets()
     {
-        var stale = DateTimeOffset.UtcNow - snapshot.RetrievedAt > TimeSpan.FromMinutes(5);
-        var unavailable = snapshot.Availability is PlatformStatusAvailability.Stale or PlatformStatusAvailability.Unavailable || stale;
-        var platforms = _pcSelected
-            ? snapshot.Platforms.Where(platform => platform.Id is "steam" or "epicgames" or "xbox")
-            : snapshot.Platforms;
-        PlatformRows.Children.Clear();
-        foreach (var platform in platforms)
-        {
-            var state = unavailable ? PlatformServiceState.Unknown : platform.State;
-            var tile = new Grid { Width = 34, Height = 38 };
-            var logoPath = platform.Id switch { "steam" => Glyphs.Steam, "epicgames" => Glyphs.Epic, "xbox" => Glyphs.Xbox, _ => null };
-            if (logoPath is not null)
-                tile.Children.Add(new SvgIcon { Data = logoPath, Size = 23, FillOnly = true, Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"], VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center });
-            else
-                tile.Children.Add(new TextBlock { Text = platform.Id == "playstation" ? "PSN" : "N", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center });
-            var marker = new TextBlock { Text = state switch
-            {
-                PlatformServiceState.Operational => "●",
-                PlatformServiceState.Degraded => "▲",
-                PlatformServiceState.Outage => "×",
-                _ => "?",
-            }, FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Foreground = new SolidColorBrush(state switch
-            {
-                PlatformServiceState.Operational => Color.FromArgb(255, 0x22, 0xC5, 0x5E),
-                PlatformServiceState.Degraded => Color.FromArgb(255, 0xFF, 0xC0, 0x4D),
-                PlatformServiceState.Outage => Color.FromArgb(255, 0xFF, 0x79, 0x5D),
-                _ => Color.FromArgb(255, 0xCF, 0xD4, 0xDF),
-            }) };
-            tile.Children.Add(marker);
-            var description = $"{PlatformDisplayName(platform.Id)}: {PlatformStateLabel(state)}" + (!unavailable && platform.CheckedAt is { } checkedAt ? $" · {checkedAt.ToLocalTime():HH:mm}" : string.Empty);
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(tile, description);
-            ToolTipService.SetToolTip(tile, description);
-            PlatformRows.Children.Add(tile);
-        }
-        PlatformStatusText.Text = unavailable
-            ? Strings.Tr(snapshot.Availability == PlatformStatusAvailability.Stale || stale ? "Status desatualizado" : "Status indisponível")
-            : Strings.Tr("Consulta do site; não cobre todos os serviços da plataforma.");
-        ToolTipService.SetToolTip(PlatformStatusText, PlatformStatusText.Text);
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(PlatformRows, string.Join("; ", platforms.Select(platform => $"{PlatformDisplayName(platform.Id)}: {PlatformStateLabel(unavailable ? PlatformServiceState.Unknown : platform.State)}")));
+        if (!IsLoaded && !_dataReady) return;
+        var game = _pcSelected ? null : CurrentHero();
+        var actions = new WidgetActions(
+            OpenDetails: OpenDetails,
+            SelectGame: selected => SelectRecent(selected.Id),
+            OpenHistory: () => ShellChrome.Shell?.Navigate(NavigationRoute.History),
+            OpenGallery: () => ShellChrome.Shell?.NavigateToGallery(),
+            TestConnection: (id, title) => ShellNavigation.NavigateToDiagnostic(id, title),
+            RefreshPlatforms: () => _ = LoadPlatformStatusAsync(_loadGeneration, force: true));
+        Widgets.Update(new WidgetContext(
+            game,
+            game is null,
+            ViewModel.AllGames.ToList(),
+            LagCheck.WinUI.History.SessionHistoryServices.Store.Entries.ToList(),
+            _lastPlatformStatus,
+            _platformsLoading,
+            actions));
     }
-
-    private static string PlatformDisplayName(string id) => id switch
-    {
-        "playstation" => "PSN",
-        "xbox" => "Xbox",
-        "steam" => "Steam API",
-        "epicgames" => "Epic Games",
-        "nintendo" => "Nintendo",
-        _ => id,
-    };
-
-    private static DateTimeOffset? ValidEpoch(long? epoch)
-    {
-        if (epoch is not { } value || value <= 0) return null;
-        try { return DateTimeOffset.FromUnixTimeMilliseconds(value); }
-        catch (ArgumentOutOfRangeException) { return null; }
-    }
-
-    private static CultureInfo DateCulture() => LocalizationService.Instance.EffectiveLanguage switch
-    {
-        AppLanguage.En => CultureInfo.GetCultureInfo("en-US"),
-        AppLanguage.Es => CultureInfo.GetCultureInfo("es-ES"),
-        _ => CultureInfo.GetCultureInfo("pt-BR"),
-    };
-
-    private static string PlatformStateLabel(PlatformServiceState state) => state switch
-    {
-        PlatformServiceState.Operational => Strings.Tr("Operacional"),
-        PlatformServiceState.Degraded => Strings.Tr("Degradado"),
-        PlatformServiceState.Outage => Strings.Tr("Indisponível"),
-        _ => Strings.Tr("Não verificado"),
-    };
 
     private void OpenSearch_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.OpenQuickSearch();
     private void OpenGallery_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.NavigateToGallery();
@@ -809,12 +617,6 @@ public sealed partial class HomePage : Page
     private void OpenHistory_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.Navigate(NavigationRoute.History);
     private void OpenDetails_Click(object sender, RoutedEventArgs e) { if (CurrentHero() is { } game) OpenDetails(game); }
 
-    private void HistoryWidget_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_historyButtonStartsTest) { OpenHistory_Click(sender, e); return; }
-        if (!_pcSelected && CurrentHero() is { CanTestConnection: true } game) ShellNavigation.NavigateToDiagnostic(game.DiagnosticGameId, game.Title);
-        else ShellNavigation.NavigateToDiagnostic(null, null);
-    }
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => ShellChrome.Shell?.Navigate(NavigationRoute.Settings);
 
     private async void Launch_Click(object sender, RoutedEventArgs e)

@@ -28,5 +28,6 @@
     <Compile Include="..\LagCheck.WinUI\Library\LibraryContracts.cs" Link="Library\LibraryContracts.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\LibraryViewModel.cs" Link="Library\LibraryViewModel.cs" />
     <Compile Include="..\LagCheck.WinUI\Library\LibraryWireParser.cs" Link="Library\LibraryWireParser.cs" />
+    <Compile Include="..\LagCheck.WinUI\Widgets\WidgetLayout.cs" Link="Widgets\WidgetLayout.cs" />
   </ItemGroup>
 </Project>
