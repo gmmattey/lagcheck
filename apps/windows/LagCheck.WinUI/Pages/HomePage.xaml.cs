@@ -312,7 +312,9 @@ public sealed partial class HomePage : Page
             StabilityTitle.Text = Strings.Tr("HISTÓRICO DE TESTES");
             HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(112);
             GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
-            SetSlides(new[] { "ms-appx:///Assets/home-pc-purple.jpg" });
+            _slides.Clear();
+            _backdropApplied = false;
+            ShellChrome.Shell?.ClearBackdrop();
             if (_lastPlatformStatus is not null) RenderPlatformStatus(_lastPlatformStatus);
             BuildPcInsights();
             if (rebuildRecents) ApplyViewportSizing();
@@ -339,7 +341,9 @@ public sealed partial class HomePage : Page
             GallerySection.Visibility = Visibility.Collapsed;
             HistoryColumnA.Width = HistoryColumnB.Width = new GridLength(0);
             GalleryColumnA.Width = GalleryColumnB.Width = new GridLength(0);
-            SetSlides(Array.Empty<string>());
+            _slides.Clear();
+            _backdropApplied = false;
+            ShellChrome.Shell?.ClearBackdrop();
             if (rebuildRecents) EnsureRecents();
             return;
         }
@@ -444,6 +448,14 @@ public sealed partial class HomePage : Page
 
     private void SetSlides(IReadOnlyList<string> images)
     {
+        if (images.Count == 0)
+        {
+            _slides.Clear();
+            _backdropApplied = false;
+            ShellChrome.Shell?.ClearBackdrop();
+            return;
+        }
+
         var changed = !images.SequenceEqual(_slides);
         _slides = images.ToList();
         if (changed || ShellChrome.Shell is { } && !_backdropApplied)

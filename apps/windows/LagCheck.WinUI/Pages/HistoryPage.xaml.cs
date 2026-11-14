@@ -145,9 +145,11 @@ public sealed partial class HistoryPage : Page
             .Where(row => string.IsNullOrEmpty(query) || row.Region.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Game.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Verdict.Contains(query, StringComparison.OrdinalIgnoreCase))
             .ToList();
         HistoryList.ItemsSource = rows;
-        HistoryScroll.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        HeaderRow.Visibility = HistoryScroll.Visibility;
+        var hasRows = rows.Count > 0;
+        TableCard.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
+        HistoryScroll.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
+        HeaderRow.Visibility = hasRows ? Visibility.Visible : Visibility.Collapsed;
         EmptyState.Visibility = _history.Entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        NoResults.Visibility = _history.Entries.Count > 0 && rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        NoResults.Visibility = _history.Entries.Count > 0 && !hasRows ? Visibility.Visible : Visibility.Collapsed;
     }
 }

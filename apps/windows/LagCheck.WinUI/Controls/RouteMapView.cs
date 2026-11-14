@@ -68,7 +68,7 @@ public sealed class RouteMapView : Grid
     public RouteMapView(bool animate)
     {
         _animate = animate;
-        Background = new SolidColorBrush(Deep);
+        Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
         Children.Add(_canvas);
         _canvas.IsHitTestVisible = false;
 

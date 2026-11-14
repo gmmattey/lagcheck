@@ -124,7 +124,7 @@ public sealed partial class GameDetailsPage : Page
             {
                 Height = 32,
                 CornerRadius = new CornerRadius(16),
-                Background = new SolidColorBrush(Color.FromArgb(255, 0x1C, 0x21, 0x2B)),
+                Background = new SolidColorBrush(Color.FromArgb(0xB8, 0x1C, 0x21, 0x2B)),
                 Padding = new Thickness(16, 0, 16, 0),
                 Child = new TextBlock { Text = tag, FontSize = 13, FontWeight = Microsoft.UI.Text.FontWeights.Medium, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"], VerticalAlignment = VerticalAlignment.Center },
             });

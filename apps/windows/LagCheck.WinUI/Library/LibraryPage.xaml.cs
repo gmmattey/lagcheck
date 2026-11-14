@@ -83,7 +83,7 @@ public sealed partial class LibraryPage : Page
         foreach (var (filter, label, logo, chip) in _chips)
         {
             var active = ViewModel.SelectedFilter == filter;
-            chip.Background = new SolidColorBrush(active ? Color.FromArgb(255, 0x20, 0x26, 0x33) : Color.FromArgb(255, 0x1C, 0x21, 0x2B));
+            chip.Background = new SolidColorBrush(active ? Color.FromArgb(0xB8, 0x20, 0x26, 0x33) : Color.FromArgb(0xB8, 0x1C, 0x21, 0x2B));
             var foreground = new SolidColorBrush(active ? Color.FromArgb(255, 0xF5, 0xF7, 0xFC) : Color.FromArgb(255, 0x9A, 0xA3, 0xB5));
             chip.Foreground = foreground;
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };

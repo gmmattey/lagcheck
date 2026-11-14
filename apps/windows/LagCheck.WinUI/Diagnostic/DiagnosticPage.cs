@@ -65,10 +65,10 @@ public sealed class DiagnosticPage : Page
     private readonly StackPanel _donePanel = new() { MaxWidth = 1100, HorizontalAlignment = HorizontalAlignment.Stretch, Visibility = Visibility.Collapsed };
 
     // Fluxo (idle + running)
-    private readonly TextBlock _idleTitle = new() { FontFamily = Res("HeadingFont"), FontSize = 40, LineHeight = 42, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _idleTitle = new() { FontFamily = Res("HeadingFont"), FontWeight = FontWeights.Normal, FontSize = 36, LineHeight = 36, LineStackingStrategy = LineStackingStrategy.BlockLineHeight, TextWrapping = TextWrapping.Wrap };
     private readonly Border _pill = new() { Background = Brush(Color.FromArgb(255, 0x2C, 0x2C, 0x2E)), CornerRadius = new CornerRadius(999), Padding = new Thickness(14, 6, 14, 6), HorizontalAlignment = HorizontalAlignment.Center, Visibility = Visibility.Collapsed };
     private readonly TextBlock _pillText = new() { FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Brush(Color.FromArgb(255, 0xEB, 0xEB, 0xF5)) };
-    private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(20), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 16, 0, 0) };
+    private readonly Border _mapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x1F, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(20), Background = Brush(Color.FromArgb(0xB8, 0x14, 0x18, 0x28)), Margin = new Thickness(0, 20, 0, 0) };
     private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(19) };
     private readonly Button _startBtn = new();
     private readonly StackPanel _idleControls = new() { Margin = new Thickness(0, 26, 0, 0) };
@@ -94,7 +94,7 @@ public sealed class DiagnosticPage : Page
     private readonly TextBlock _resRouteName = new() { FontSize = 14, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _resRouteMs = new() { FontFamily = Res("MetricFont"), FontSize = 14 };
     private readonly RouteMapView _resultMap = new(animate: false) { CornerRadius = new CornerRadius(17) };
-    private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x14, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18), Background = Brush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), Margin = new Thickness(0, 12, 0, 0) };
+    private readonly Border _resultMapFrame = new() { BorderBrush = Brush(Color.FromArgb(0x1F, 255, 255, 255)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(18), Background = Brush(Color.FromArgb(0xB8, 0x14, 0x18, 0x28)), Margin = new Thickness(0, 12, 0, 0) };
     private readonly Button _againBtn = new();
     private readonly Button _chooseBtn = new();
     private readonly Button _playBtn = new();
@@ -152,6 +152,13 @@ public sealed class DiagnosticPage : Page
         _idleTitle.Foreground = Brush(Primary);
         _pill.Child = _pillText;
 
+        var glassBrush = Application.Current.Resources.TryGetValue("GlassBrush", out var gb) && gb is Brush b ? b : Brush(Color.FromArgb(0xB8, 0x14, 0x18, 0x28));
+        var glassBorder = Application.Current.Resources.TryGetValue("GlassBorderBrush", out var gbb) && gbb is Brush bb ? bb : Brush(Color.FromArgb(0x1F, 255, 255, 255));
+        _mapFrame.Background = glassBrush;
+        _mapFrame.BorderBrush = glassBorder;
+        _resultMapFrame.Background = glassBrush;
+        _resultMapFrame.BorderBrush = glassBorder;
+
         // Moldura 2:1 do mapa
         _mapFrame.Child = _map;
 
@@ -177,7 +184,7 @@ public sealed class DiagnosticPage : Page
         var root = new StackPanel();
         root.Children.Add(_flowPanel);
         root.Children.Add(_donePanel);
-        _outerPad.Padding = new Thickness(40, 28, 40, 56);
+        _outerPad.Padding = new Thickness(48, 24, 48, 40);
         _outerPad.Child = root;
         var scroller = new ScrollViewer
         {
@@ -205,8 +212,8 @@ public sealed class DiagnosticPage : Page
         _viewH = height;
         var compactW = width < 760;
         var compactH = height < 640;
-        var side = compactW ? 20 : width < 1000 ? 28 : 40;
-        _outerPad.Padding = new Thickness(side, compactH ? 16 : 28, side, compactH ? 32 : 56);
+        var side = compactW ? 20 : width < 1000 ? 28 : 48;
+        _outerPad.Padding = new Thickness(side, compactH ? 16 : 24, side, compactH ? 32 : 40);
 
         var content = Math.Max(width - side * 2, 320);
         _flowPanel.MaxWidth = Math.Clamp(content, 320, 1000);
@@ -214,7 +221,7 @@ public sealed class DiagnosticPage : Page
 
         // Tipografia acompanha a altura útil
         _idleTitle.FontSize = Math.Clamp(height * 0.055, 26, 44);
-        _idleTitle.LineHeight = _idleTitle.FontSize + 2;
+        _idleTitle.LineHeight = _idleTitle.FontSize;
         _liveText.FontSize = Math.Clamp(height * 0.095, 44, 84);
         _liveText.LineHeight = _liveText.FontSize;
         _resHeadline.FontSize = Math.Clamp(height * 0.06, 28, 48);

@@ -47,10 +47,16 @@ public sealed partial class ShellPage : Page
     private int _backdropIndex;
     private int _backdropTransitionRevision;
     private Storyboard? _backdropTransitionStoryboard;
+    private Storyboard? _wallpaperTransitionStoryboard;
 
     public ShellPage()
     {
         InitializeComponent();
+        WallpaperImage.Source = new BitmapImage
+        {
+            UriSource = new Uri("ms-appx:///Assets/wallpaper-network.jpg"),
+            DecodePixelWidth = 1920
+        };
         ShellChrome.Register(this);
         ShellNavigation.Configure(NavigateToDiagnostic, Navigate, OpenGameDetails);
         LocalizeUI();
@@ -218,15 +224,117 @@ public sealed partial class ShellPage : Page
     /// <summary>Faixa de 56px da barra de título; só o banner de Detalhes sobe por baixo dela.</summary>
     private void ApplyStageMargins(Type? pageType)
     {
-        _stageTop = pageType == typeof(GameDetailsPage) ? 0 : 56;
+        _stageTop = pageType == typeof(GameDetailsPage) || pageType == typeof(SettingsPage) ? 0 : 56;
         ContentFrame.Margin = new Thickness(0, _stageTop, 0, 0);
     }
 
     // ------------------------------------------------------------------ arte de fundo
 
-    /// <summary>Define a arte atrás da janela inteira (inclusive sob a sidebar). Lista vazia mostra as miniaturas neutras.</summary>
+    private void AnimateToGameBackdrop()
+    {
+        _wallpaperTransitionStoryboard?.Stop();
+        _wallpaperTransitionStoryboard = null;
+
+        BackdropHost.Visibility = Visibility.Visible;
+        WallpaperHost.Visibility = Visibility.Visible;
+
+        if (Motion.Reduced)
+        {
+            BackdropHost.Opacity = 1;
+            WallpaperHost.Opacity = 0;
+            WallpaperHost.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var sb = new Storyboard();
+        var fadeIn = new DoubleAnimation
+        {
+            To = 1,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(fadeIn, BackdropHost);
+        Storyboard.SetTargetProperty(fadeIn, "Opacity");
+        sb.Children.Add(fadeIn);
+
+        var fadeOut = new DoubleAnimation
+        {
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(fadeOut, WallpaperHost);
+        Storyboard.SetTargetProperty(fadeOut, "Opacity");
+        sb.Children.Add(fadeOut);
+
+        sb.Completed += (_, _) =>
+        {
+            if (_hasBackdrop) WallpaperHost.Visibility = Visibility.Collapsed;
+        };
+
+        _wallpaperTransitionStoryboard = sb;
+        sb.Begin();
+    }
+
+    private void AnimateToWallpaper()
+    {
+        _wallpaperTransitionStoryboard?.Stop();
+        _wallpaperTransitionStoryboard = null;
+
+        WallpaperHost.Visibility = Visibility.Visible;
+
+        if (Motion.Reduced)
+        {
+            WallpaperHost.Opacity = 1;
+            BackdropHost.Opacity = 0;
+            BackdropHost.Visibility = Visibility.Collapsed;
+            BackdropSlides.Children.Clear();
+            return;
+        }
+
+        var sb = new Storyboard();
+        var fadeIn = new DoubleAnimation
+        {
+            To = 1,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(fadeIn, WallpaperHost);
+        Storyboard.SetTargetProperty(fadeIn, "Opacity");
+        sb.Children.Add(fadeIn);
+
+        var fadeOut = new DoubleAnimation
+        {
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(fadeOut, BackdropHost);
+        Storyboard.SetTargetProperty(fadeOut, "Opacity");
+        sb.Children.Add(fadeOut);
+
+        sb.Completed += (_, _) =>
+        {
+            if (!_hasBackdrop)
+            {
+                BackdropHost.Visibility = Visibility.Collapsed;
+                BackdropSlides.Children.Clear();
+            }
+        };
+
+        _wallpaperTransitionStoryboard = sb;
+        sb.Begin();
+    }
+
+    /// <summary>Define a arte atrás da janela inteira (inclusive sob a sidebar). Lista vazia ou falha volta ao papel de parede.</summary>
     public void SetBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex = 0)
     {
+        if (imagePaths == null || imagePaths.Count == 0 || imagePaths.All(string.IsNullOrWhiteSpace))
+        {
+            ClearBackdrop();
+            return;
+        }
+
         var revision = ++_backdropTransitionRevision;
         StopBackdropTransition();
         if (_hasBackdrop && !Motion.Reduced)
@@ -242,22 +350,34 @@ public sealed partial class ShellPage : Page
     /// <summary>SetBackdrop troca o conjunto de artes; a arte anterior fica visível até a nova dissolver.</summary>
     private void ApplyBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex)
     {
+        if (imagePaths == null || imagePaths.Count == 0)
+        {
+            ClearBackdrop();
+            return;
+        }
+
         var wasHidden = !_hasBackdrop;
         BackdropSlides.Children.Clear();
         BackdropSlides.ColumnDefinitions.Clear();
-        var count = Math.Max(1, imagePaths.Count);
+        var count = imagePaths.Count;
+        var validImages = 0;
         for (var i = 0; i < count; i++)
         {
             BackdropSlides.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var slide = new Grid();
-            var stripes = new StripedBackground { Band = 18 };
-            slide.Children.Add(stripes);
             if (i < imagePaths.Count && TryCreateImage(imagePaths[i]) is { } source)
             {
                 slide.Children.Add(new Image { Source = source, Stretch = Stretch.UniformToFill, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = kind == BackdropKind.Veil ? VerticalAlignment.Top : VerticalAlignment.Center });
+                validImages++;
             }
             Grid.SetColumn(slide, i);
             BackdropSlides.Children.Add(slide);
+        }
+
+        if (validImages == 0)
+        {
+            ClearBackdrop();
+            return;
         }
 
         _backdropCount = count;
@@ -267,33 +387,24 @@ public sealed partial class ShellPage : Page
         if (wasHidden)
         {
             _hasBackdrop = true;
-            BackdropHost.Visibility = Visibility.Visible;
-            if (!Motion.Reduced)
-            {
-                var fade = new DoubleAnimation { From = 0, To = 1, Duration = TimeSpan.FromMilliseconds(600), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-                Storyboard.SetTarget(fade, BackdropHost);
-                Storyboard.SetTargetProperty(fade, "Opacity");
-                var sb = new Storyboard();
-                sb.Children.Add(fade);
-                sb.Begin();
-            }
+            AnimateToGameBackdrop();
         }
         LayoutBackdrop(animate: false);
-        if (wasHidden) FadeBackdropIn();
     }
 
     private void CrossFadeBackdrop(IReadOnlyList<string> imagePaths, BackdropKind kind, int selectedIndex, int revision)
     {
         var targetIndex = imagePaths.Count == 0 ? 0 : Math.Clamp(selectedIndex, 0, imagePaths.Count - 1);
+        if (targetIndex >= imagePaths.Count || TryCreateImage(imagePaths[targetIndex]) is not { } source)
+        {
+            ClearBackdrop();
+            return;
+        }
+
         BackdropTransition.Children.Clear();
         var target = new Grid();
-        target.Children.Add(new StripedBackground { Band = 18 });
-        Image? image = null;
-        if (imagePaths.Count > 0 && TryCreateImage(imagePaths[targetIndex]) is { } source)
-        {
-            image = new Image { Source = source, Stretch = Stretch.UniformToFill, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = kind == BackdropKind.Veil ? VerticalAlignment.Top : VerticalAlignment.Center };
-            target.Children.Add(image);
-        }
+        var image = new Image { Source = source, Stretch = Stretch.UniformToFill, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = kind == BackdropKind.Veil ? VerticalAlignment.Top : VerticalAlignment.Center };
+        target.Children.Add(image);
         BackdropTransition.Children.Add(target);
         BackdropTransition.Opacity = 0;
         Canvas.SetZIndex(BackdropTransition, 2);
@@ -303,18 +414,6 @@ public sealed partial class ShellPage : Page
             BackdropTransition.Children.Clear();
             BackdropTransition.Opacity = 0;
         });
-    }
-
-    /// <summary>A arte nova entra por dissolução em vez de trocar de uma vez.</summary>
-    private void FadeBackdropIn()
-    {
-        if (Motion.Reduced) return;
-        var fade = new DoubleAnimation { From = 0.25, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(380)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-        Storyboard.SetTarget(fade, BackdropSlides);
-        Storyboard.SetTargetProperty(fade, "Opacity");
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(fade);
-        storyboard.Begin();
     }
 
     public void SelectBackdropSlide(int index)
@@ -335,7 +434,6 @@ public sealed partial class ShellPage : Page
         if (source is null) { LayoutBackdrop(animate: true); return; }
         BackdropTransition.Children.Clear();
         var preview = new Grid();
-        preview.Children.Add(new StripedBackground { Band = 18 });
         Image? image = null;
         if (source.Children.OfType<Image>().FirstOrDefault() is { Source: { } imageSource })
         {
@@ -347,7 +445,7 @@ public sealed partial class ShellPage : Page
         BeginBackdropTransition(image, revision, () => { LayoutBackdrop(animate: false); BackdropTransition.Children.Clear(); BackdropTransition.Opacity = 0; });
     }
 
-    /// <summary>Só cobre a arte atual depois de ImageOpened; falha mostra o fallback listrado, sem dado inventado.</summary>
+    /// <summary>Só cobre a arte atual depois de ImageOpened; falha volta ao papel de parede.</summary>
     private void BeginBackdropTransition(Image? image, int revision, Action completed)
     {
         var started = false;
@@ -361,7 +459,7 @@ public sealed partial class ShellPage : Page
                 return;
             }
             started = true;
-            var fade = new DoubleAnimation { To = 1, Duration = TimeSpan.FromMilliseconds(500), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+            var fade = new DoubleAnimation { To = 1, Duration = TimeSpan.FromMilliseconds(300), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
             Storyboard.SetTarget(fade, BackdropTransition);
             Storyboard.SetTargetProperty(fade, "Opacity");
             var storyboard = new Storyboard();
@@ -375,8 +473,7 @@ public sealed partial class ShellPage : Page
         image.ImageFailed += (_, _) =>
         {
             if (revision != _backdropTransitionRevision) return;
-            image.Visibility = Visibility.Collapsed;
-            Start();
+            ClearBackdrop();
         };
     }
 
@@ -386,8 +483,7 @@ public sealed partial class ShellPage : Page
         _backdropTransitionRevision++;
         StopBackdropTransition();
         _hasBackdrop = false;
-        BackdropHost.Visibility = Visibility.Collapsed;
-        BackdropSlides.Children.Clear();
+        AnimateToWallpaper();
         BackdropTransition.Children.Clear();
         BackdropTransition.Opacity = 0;
     }

@@ -18,10 +18,10 @@
   </Page.Resources>
   <Grid Padding="24,20,24,24">
     <Border MaxWidth="680" MaxHeight="760" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-            Background="#F5272C36" BorderBrush="#35FFFFFF" BorderThickness="1" CornerRadius="12">
+            Background="{StaticResource GlassStrongBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1" CornerRadius="20">
       <Grid>
         <Grid.RowDefinitions><RowDefinition Height="52"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Background="#29323B49" CornerRadius="11,11,0,0" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1" Padding="20,0">
+        <Border Background="#29323B49" CornerRadius="19,19,0,0" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1" Padding="20,0">
           <Grid ColumnSpacing="10">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <ctl:SvgIcon Data="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l2 2" Size="16" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>

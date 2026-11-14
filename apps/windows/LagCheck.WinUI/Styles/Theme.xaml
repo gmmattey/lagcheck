@@ -15,6 +15,8 @@
   <Color x:Key="ReadyColor">#22C55E</Color>
   <Color x:Key="CautionColor">#F59E0B</Color>
   <Color x:Key="CoralColor">#FF5A36</Color>
+  <Color x:Key="GlassColor">#B8141828</Color>
+  <Color x:Key="GlassStrongColor">#E0141828</Color>
 
   <!-- Pincéis -->
   <SolidColorBrush x:Key="StageBrush" Color="{StaticResource StageColor}"/>
@@ -32,8 +34,11 @@
   <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource CautionColor}"/>
   <SolidColorBrush x:Key="CoralBrush" Color="{StaticResource CoralColor}"/>
   <SolidColorBrush x:Key="TechLabelBrush" Color="#8791A3"/>
-  <SolidColorBrush x:Key="PillSurfaceBrush" Color="#D9252A36"/>
-  <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#1C212B"/>
+  <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="GlassStrongBrush" Color="{StaticResource GlassStrongColor}"/>
+  <SolidColorBrush x:Key="GlassBorderBrush" Color="#1FFFFFFF"/>
+  <SolidColorBrush x:Key="PillSurfaceBrush" Color="#B8252A36"/>
+  <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#B81C212B"/>
   <LinearGradientBrush x:Key="HomeHeroCtaBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="#8B5CF6" Offset="0"/>
     <GradientStop Color="#7C3AED" Offset="0.52"/>
@@ -65,9 +70,10 @@
   <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="{StaticResource TextSecondaryColor}"/>
 
   <!-- Campos de texto: contorno fino, sem o sublinhado azul de foco do sistema -->
-  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SurfaceColor}"/>
-  <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SurfaceColor}"/>
-  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SurfaceColor}"/>
+  <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#80141828"/>
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="#1AFFFFFF"/>
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#26FFFFFF"/>
   <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#40A78BFA"/>
@@ -82,13 +88,14 @@
   <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
 
   <!-- ComboBox / ProgressBar -->
-  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SurfaceColor}"/>
-  <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource SurfaceColor}"/>
-  <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource SurfaceColor}"/>
+  <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource GlassColor}"/>
+  <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="#80141828"/>
   <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#1AFFFFFF"/>
   <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#26FFFFFF"/>
   <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#26FFFFFF"/>
-  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource PanelColor}"/>
+  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#202633"/>
   <SolidColorBrush x:Key="ProgressBarBackground" Color="#14FFFFFF"/>
 
   <!-- Tipografia oficial v2: Barlow Semi Condensed (títulos), Chakra Petch (métricas), Cascadia Mono (rótulos técnicos), Segoe UI Variable (corpo).
@@ -145,16 +152,26 @@
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
 
-  <!-- Card premium: degradê discreto, filete de luz e cantos de 20 -->
+  <!-- Padding padrão de páginas sobre o papel de parede -->
+  <Thickness x:Key="PagePadding">48,24,48,40</Thickness>
+
+  <!-- Card premium: degradê translúcido, filete de luz e cantos de 20 -->
   <LinearGradientBrush x:Key="PremiumCardBrush" StartPoint="0,0" EndPoint="0,1">
-    <GradientStop Color="#1B202B" Offset="0"/>
-    <GradientStop Color="#151922" Offset="1"/>
+    <GradientStop Color="#B81B2030" Offset="0"/>
+    <GradientStop Color="#B8151A28" Offset="1"/>
   </LinearGradientBrush>
   <Style x:Key="PremiumCardStyle" TargetType="Border">
     <Setter Property="Background" Value="{StaticResource PremiumCardBrush}"/>
-    <Setter Property="BorderBrush" Value="#14FFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="CornerRadius" Value="20"/>
+  </Style>
+  <Style x:Key="GlassCardStyle" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource GlassBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="Padding" Value="20"/>
   </Style>
 
   <!-- Template plano de botão: cor sólida + véu claro no hover/pressed, sem bordas nem animações do sistema -->
@@ -253,74 +270,16 @@
     </Grid>
   </ControlTemplate>
 
-  <ControlTemplate x:Key="SearchNavButtonTemplate" TargetType="Button">
-    <Grid x:Name="RootGrid">
-      <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
-      <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
-                        Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
-                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
-      <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="CommonStates">
-          <VisualState x:Name="Normal"/>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
-        </VisualStateGroup>
-      </VisualStateManager.VisualStateGroups>
-    </Grid>
-  </ControlTemplate>
-
-  <!-- Navegação lateral: o v2 só marca o item ativo (sem véu no hover) -->
-  <ControlTemplate x:Key="NavButtonTemplate" TargetType="Button">
-    <Grid x:Name="RootGrid">
-      <Border x:Name="Fill" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
-      <!-- Barra de destaque do item ativo (BorderBrush transparente quando inativo) -->
-      <Border x:Name="Accent" Width="3" Height="20" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-1,0,0,0"
-              CornerRadius="2" Background="{TemplateBinding BorderBrush}"/>
-      <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
-                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
-      <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="CommonStates">
-          <VisualState x:Name="Normal"/>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
-        </VisualStateGroup>
-      </VisualStateManager.VisualStateGroups>
-    </Grid>
-  </ControlTemplate>
-
   <Style TargetType="Button">
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="FontFamily" Value="{StaticResource BodyFont}"/>
     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-    <Setter Property="Background" Value="#252A36"/>
+    <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Padding" Value="24,0"/>
     <Setter Property="MinHeight" Value="40"/>
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
     <Setter Property="VerticalContentAlignment" Value="Center"/>
-  </Style>
-
-  <Style x:Key="NavButtonStyle" TargetType="Button">
-    <Setter Property="Template" Value="{StaticResource NavButtonTemplate}"/>
-    <Setter Property="HorizontalAlignment" Value="Stretch"/>
-    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-    <Setter Property="VerticalContentAlignment" Value="Center"/>
-    <Setter Property="Height" Value="44"/>
-    <Setter Property="Padding" Value="0"/>
-    <Setter Property="Margin" Value="0,3"/>
-    <Setter Property="FontFamily" Value="{StaticResource BodyFont}"/>
-    <Setter Property="FontSize" Value="14"/>
-    <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-    <Setter Property="Background" Value="Transparent"/>
-    <Setter Property="CornerRadius" Value="12"/>
-  </Style>
-  <Style x:Key="SearchNavButtonStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
-    <Setter Property="Template" Value="{StaticResource SearchNavButtonTemplate}"/>
   </Style>
 
   <Style x:Key="PillPrimaryButtonStyle" TargetType="Button">
@@ -398,7 +357,7 @@
     <Setter Property="Padding" Value="28,0"/>
     <Setter Property="FontSize" Value="13"/>
     <Setter Property="FontWeight" Value="SemiBold"/>
-    <Setter Property="Background" Value="#252A36"/>
+    <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
     <Setter Property="CornerRadius" Value="22"/>
   </Style>
 

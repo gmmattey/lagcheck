@@ -10,7 +10,6 @@
         <StackPanel Spacing="0">
             <!-- Banner imersivo (456px) que sobe por baixo da barra de título -->
             <Grid Height="456">
-                <ctl:StripedBackground Band="18"/>
                 <Image x:Name="BannerImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Rectangle>
                     <Rectangle.Fill>

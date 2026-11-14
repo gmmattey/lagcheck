@@ -100,17 +100,14 @@ public sealed partial class GalleryPage : Page
         foreach (var entry in gamesWithShots)
         {
             var section = new StackPanel { Spacing = 10 };
+            var headerText = string.IsNullOrWhiteSpace(entry.Game.PlatformLabel)
+                ? entry.Game.Title.ToUpperInvariant()
+                : $"{entry.Game.Title.ToUpperInvariant()} · {entry.Game.PlatformLabel.ToUpperInvariant()}";
             section.Children.Add(new TextBlock
             {
-                Text = entry.Game.Title,
-                FontSize = 18,
-                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-            });
-            section.Children.Add(new TextBlock
-            {
-                Text = entry.Game.PlatformLabel,
+                Text = headerText,
                 Style = (Style)Application.Current.Resources["TechLabelStyle"],
+                FontSize = 12,
             });
 
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
@@ -139,16 +136,21 @@ public sealed partial class GalleryPage : Page
             Stretch = Stretch.UniformToFill,
             Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 640),
         };
+        var imageBorder = new Border
+        {
+            CornerRadius = new CornerRadius(12),
+            Child = image,
+        };
         var button = new Button
         {
             Width = 260,
             Height = 148,
             Padding = new Thickness(0),
-            CornerRadius = new CornerRadius(8),
-            Background = new SolidColorBrush(Color.FromArgb(0xFF, 0x17, 0x1B, 0x24)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF)),
+            CornerRadius = new CornerRadius(12),
+            Background = new SolidColorBrush(Color.FromArgb(0xB8, 0x17, 0x1B, 0x24)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)),
             BorderThickness = new Thickness(1),
-            Content = image,
+            Content = imageBorder,
             Tag = shot,
         };
         var captureDate = shot.CreatedEpochMs is { } created ? FormatDate(created) : null;
