@@ -56,17 +56,15 @@ public sealed class SettingsRow : UserControl
 
         _hoverBorder.CornerRadius = new CornerRadius(6);
         _hoverBorder.Background = HoverBackgroundBrush;
-        _hoverBorder.Opacity = 0;
+        Choreo.FadeTo(_hoverBorder, 0);
         _hoverBorder.IsHitTestVisible = false;
-        _hoverBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _focusBorder.CornerRadius = new CornerRadius(6);
         _focusBorder.Background = FocusedBackgroundBrush;
         _focusBorder.BorderBrush = FocusedBorderBrush;
         _focusBorder.BorderThickness = new Thickness(1);
-        _focusBorder.Opacity = 0;
+        Choreo.FadeTo(_focusBorder, 0);
         _focusBorder.IsHitTestVisible = false;
-        _focusBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _separator.Height = 1;
         _separator.Background = SeparatorBrush;
@@ -358,18 +356,18 @@ public sealed class SettingsRow : UserControl
     {
         if (_isFocused)
         {
-            _focusBorder.Opacity = 1;
-            _hoverBorder.Opacity = 0;
+            Choreo.FadeTo(_focusBorder, 1);
+            Choreo.FadeTo(_hoverBorder, 0);
         }
         else if (_isPointerOver)
         {
-            _focusBorder.Opacity = 0;
-            _hoverBorder.Opacity = 1;
+            Choreo.FadeTo(_focusBorder, 0);
+            Choreo.FadeTo(_hoverBorder, 1);
         }
         else
         {
-            _focusBorder.Opacity = 0;
-            _hoverBorder.Opacity = 0;
+            Choreo.FadeTo(_focusBorder, 0);
+            Choreo.FadeTo(_hoverBorder, 0);
         }
     }
 

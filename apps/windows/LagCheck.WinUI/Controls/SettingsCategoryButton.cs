@@ -46,25 +46,22 @@ public sealed class SettingsCategoryButton : UserControl
 
         _hoverBorder.CornerRadius = new CornerRadius(6);
         _hoverBorder.Background = HoverBackgroundBrush;
-        _hoverBorder.Opacity = 0;
+        Choreo.FadeTo(_hoverBorder, 0);
         _hoverBorder.IsHitTestVisible = false;
-        _hoverBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _focusBorder.CornerRadius = new CornerRadius(6);
         _focusBorder.Background = HoverBackgroundBrush;
         _focusBorder.BorderBrush = FocusedBorderBrush;
         _focusBorder.BorderThickness = new Thickness(1.5);
-        _focusBorder.Opacity = 0;
+        Choreo.FadeTo(_focusBorder, 0);
         _focusBorder.IsHitTestVisible = false;
-        _focusBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _selectedBorder.CornerRadius = new CornerRadius(6);
         _selectedBorder.Background = SelectedBackgroundBrush;
         _selectedBorder.BorderBrush = SelectedBorderBrush;
         _selectedBorder.BorderThickness = new Thickness(1.5);
-        _selectedBorder.Opacity = 0;
+        Choreo.FadeTo(_selectedBorder, 0);
         _selectedBorder.IsHitTestVisible = false;
-        _selectedBorder.OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
 
         _label.FontSize = 15;
         _label.TextTrimming = TextTrimming.CharacterEllipsis;
@@ -141,33 +138,33 @@ public sealed class SettingsCategoryButton : UserControl
     {
         if (IsSelected)
         {
-            _selectedBorder.Opacity = 1;
-            _focusBorder.Opacity = 0;
-            _hoverBorder.Opacity = 0;
+            Choreo.FadeTo(_selectedBorder, 1);
+            Choreo.FadeTo(_focusBorder, 0);
+            Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextPrimaryBrush;
             Typography.SemiBold(_label);
         }
         else if (_isFocused)
         {
-            _selectedBorder.Opacity = 0;
-            _focusBorder.Opacity = 1;
-            _hoverBorder.Opacity = 0;
+            Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_focusBorder, 1);
+            Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextPrimaryBrush;
             Typography.SemiBold(_label);
         }
         else if (_isPointerOver)
         {
-            _selectedBorder.Opacity = 0;
-            _focusBorder.Opacity = 0;
-            _hoverBorder.Opacity = 1;
+            Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_focusBorder, 0);
+            Choreo.FadeTo(_hoverBorder, 1);
             _label.Foreground = TextPrimaryBrush;
             Typography.Body(_label);
         }
         else
         {
-            _selectedBorder.Opacity = 0;
-            _focusBorder.Opacity = 0;
-            _hoverBorder.Opacity = 0;
+            Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_focusBorder, 0);
+            Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextSecondaryBrush;
             Typography.Body(_label);
         }

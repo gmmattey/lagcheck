@@ -81,7 +81,6 @@ public sealed partial class HistoryPage : Page
         if (args.Element is Grid rowGrid)
         {
             rowGrid.Background = RowNormalBrush;
-            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
             rowGrid.PointerEntered -= Row_PointerEntered;
             rowGrid.PointerEntered += Row_PointerEntered;
             rowGrid.PointerExited -= Row_PointerExited;
@@ -107,7 +106,6 @@ public sealed partial class HistoryPage : Page
     {
         if (sender is Grid rowGrid)
         {
-            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
             rowGrid.Background = RowHoverBrush;
         }
     }
@@ -116,7 +114,6 @@ public sealed partial class HistoryPage : Page
     {
         if (sender is Grid rowGrid)
         {
-            rowGrid.BackgroundTransition = Motion.Reduced ? null : new BrushTransition { Duration = TimeSpan.FromMilliseconds(150) };
             rowGrid.Background = RowNormalBrush;
         }
     }

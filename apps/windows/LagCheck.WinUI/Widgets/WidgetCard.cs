@@ -141,7 +141,6 @@ public sealed class WidgetCard : Grid
         _frame.Child = root;
         Children.Add(_frame);
         _editOutline.Stroke = (Brush)Application.Current.Resources["PurpleLightBrush"];
-        _editOutline.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
         Children.Add(_editOutline);
         // Controles de edição: pílula flutuante sobre a borda superior (acima do contorno), sem tirar espaço do título.
         _editBar.HorizontalAlignment = HorizontalAlignment.Right;
@@ -350,7 +349,7 @@ public sealed class WidgetCard : Grid
             _editing = value;
             _editBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
             _actionButton.Visibility = value || _actionButton.Tag is null ? Visibility.Collapsed : Visibility.Visible;
-            _editOutline.Opacity = value ? 1 : 0;
+            Choreo.FadeTo(_editOutline, value ? 1 : 0);
             if (value) { Fluid.Hover(this, false); _frameBrush.Color = Surface; }
             UpdateInteractivity();
         }

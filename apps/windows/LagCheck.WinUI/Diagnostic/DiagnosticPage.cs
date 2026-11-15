@@ -490,6 +490,9 @@ public sealed class DiagnosticPage : Page
                 _idleTitle.Visibility = Visibility.Visible;
                 _runningPanel.Visibility = Visibility.Collapsed;
                 _pill.Visibility = Visibility.Collapsed;
+                // Saíram com FadeOut no início do teste: o storyboard segura opacidade 0 até ser trocado.
+                Choreo.Reset(_idleControls);
+                Choreo.Reset(_idleTitle);
                 Choreo.FadeSlideIn(_flowPanel, dy: 14);
             });
         }

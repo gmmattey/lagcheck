@@ -480,7 +480,6 @@ public sealed partial class HomePage : Page
             Margin = new Thickness(-2),
             Opacity = selected ? 1 : 0,
             IsHitTestVisible = false,
-            OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(220) },
         };
         tile.Children.Add(ring);
         var button = new Button
@@ -547,8 +546,7 @@ public sealed partial class HomePage : Page
         foreach (var item in _tiles.Prepend(_pcTile).OfType<RecentTile>())
         {
             var selected = IsSelected(item);
-            item.Ring.OpacityTransition = Motion.Reduced || !animate ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(180) };
-            item.Ring.Opacity = selected ? 1 : 0;
+            Choreo.FadeTo(item.Ring, selected ? 1 : 0, animate ? Choreo.Fast : 0);
             ApplyPose(item, selected);
         }
     }

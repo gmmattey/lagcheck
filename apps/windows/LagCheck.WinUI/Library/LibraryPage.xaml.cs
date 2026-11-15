@@ -183,7 +183,6 @@ public sealed partial class LibraryPage : Page
         card.Tag = game;
         Fluid.Prepare(card);
         DecorateCard(card);
-        if (card.Children.LastOrDefault() is Border ring) ring.OpacityTransition = new ScalarTransition { Duration = TimeSpan.FromMilliseconds(200) };
 
         if (game is not null)
         {
@@ -306,7 +305,6 @@ public sealed partial class LibraryPage : Page
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, 10, 10),
                 Opacity = 0,
-                OpacityTransition = Motion.Reduced ? null : new ScalarTransition { Duration = TimeSpan.FromMilliseconds(160) },
                 Content = new FontIcon { Glyph = "", FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 16, Foreground = new SolidColorBrush(Microsoft.UI.Colors.White) },
             };
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(play, Strings.Format("Jogar {0}", game.Title));
@@ -317,8 +315,8 @@ public sealed partial class LibraryPage : Page
                 await ViewModel.LaunchAsync(game);
                 if (!ViewModel.LastOperationSucceeded && !string.IsNullOrWhiteSpace(ViewModel.Notice)) ShellChrome.Shell?.ShowToast(ViewModel.Notice!);
             };
-            play.GotFocus += (_, _) => play.Opacity = 1;
-            play.LostFocus += (_, _) => play.Opacity = 0;
+            play.GotFocus += (_, _) => Choreo.FadeTo(play, 1);
+            play.LostFocus += (_, _) => Choreo.FadeTo(play, 0);
             card.Children.Insert(insertAt, play);
         }
     }
@@ -341,7 +339,7 @@ public sealed partial class LibraryPage : Page
     {
         if (sender is not Grid card) return;
         Fluid.Hover(card, hover);
-        if (card.Children.LastOrDefault() is Border ring) ring.Opacity = hover ? 1 : 0;
-        if (card.Children.OfType<Button>().FirstOrDefault(child => child.Name == PlayName) is { } play) play.Opacity = hover ? 1 : 0;
+        if (card.Children.LastOrDefault() is Border ring) Choreo.FadeTo(ring, hover ? 1 : 0, 200);
+        if (card.Children.OfType<Button>().FirstOrDefault(child => child.Name == PlayName) is { } play) Choreo.FadeTo(play, hover ? 1 : 0, 160);
     }
 }

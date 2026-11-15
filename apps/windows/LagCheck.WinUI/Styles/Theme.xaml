@@ -1,5 +1,4 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <ScalarTransition x:Key="InteractionOpacityTransition" Duration="0:0:0.18"/>
   <!-- Paleta Dark Competitive UI (LagCheck Windows v2) -->
   <Color x:Key="StageColor">#000000</Color>
   <Color x:Key="DeepColor">#000000</Color>
@@ -193,18 +192,17 @@
   <ControlTemplate x:Key="FlatButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
                         Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions><VisualTransition GeneratedDuration="0:0:0.18"/></VisualStateGroup.Transitions>
           <VisualState x:Name="Normal"/>
-          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.08"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.14"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerOver"><Storyboard><DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.08" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Pressed"><Storyboard><DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.14" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Disabled"><Storyboard><DoubleAnimation Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0"/></Storyboard></VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
     </Grid>
@@ -213,30 +211,26 @@
   <ControlTemplate x:Key="HomeHeroCtaButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid">
       <Border x:Name="Fill" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
-      <Border x:Name="PressedVeil" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
-      <Border x:Name="HoverRing" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
+      <Border x:Name="Veil" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="PressedVeil" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="{TemplateBinding CornerRadius}"/>
+      <Border x:Name="HoverRing" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
                         Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions><VisualTransition GeneratedDuration="0:0:0.18"/></VisualStateGroup.Transitions>
           <VisualState x:Name="Normal"/>
-          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.10"/><Setter Target="HoverRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.02"/><Setter Target="PressedVeil.Opacity" Value="0.18"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerOver"><Storyboard><DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.10" Duration="0"/><DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Pressed"><Storyboard><DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.02" Duration="0"/><DoubleAnimation Storyboard.TargetName="PressedVeil" Storyboard.TargetProperty="Opacity" To="0.18" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Disabled"><Storyboard><DoubleAnimation Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0"/></Storyboard></VisualState>
         </VisualStateGroup>
         <VisualStateGroup x:Name="FocusStates">
+          <VisualStateGroup.Transitions><VisualTransition GeneratedDuration="0:0:0.18"/></VisualStateGroup.Transitions>
           <VisualState x:Name="Unfocused"/>
-          <VisualState x:Name="PointerFocused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Focused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerFocused"><Storyboard><DoubleAnimation Storyboard.TargetName="FocusRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Focused"><Storyboard><DoubleAnimation Storyboard.TargetName="FocusRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
     </Grid>
@@ -244,16 +238,10 @@
 
   <ControlTemplate x:Key="HeroPrimaryButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid" UseLayoutRounding="True">
-      <Border x:Name="OuterRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
+      <Border x:Name="OuterRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}"/>
       <Border x:Name="Fill" Margin="4" Background="{TemplateBinding Background}" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="24"/>
-      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="24">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
-      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="24">
-        <Border.OpacityTransition><StaticResource ResourceKey="InteractionOpacityTransition"/></Border.OpacityTransition>
-      </Border>
+      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
+      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
       <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <Grid Margin="4">
         <Grid.ColumnDefinitions>
@@ -271,15 +259,17 @@
       </Grid>
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="CommonStates">
+          <VisualStateGroup.Transitions><VisualTransition GeneratedDuration="0:0:0.18"/></VisualStateGroup.Transitions>
           <VisualState x:Name="Normal"/>
-          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Veil.Opacity" Value="0.10"/><Setter Target="OuterRing.BorderBrush" Value="#8CA78BFA"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="PressedVeil.Opacity" Value="0.18"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="RootGrid.Opacity" Value="0.45"/><Setter Target="OuterRing.Opacity" Value="0"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="OuterRing.BorderBrush" Value="#8CA78BFA"/></VisualState.Setters><Storyboard><DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.10" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Pressed"><Storyboard><DoubleAnimation Storyboard.TargetName="PressedVeil" Storyboard.TargetProperty="Opacity" To="0.18" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Disabled"><Storyboard><DoubleAnimation Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0"/><DoubleAnimation Storyboard.TargetName="OuterRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0"/></Storyboard></VisualState>
         </VisualStateGroup>
         <VisualStateGroup x:Name="FocusStates">
+          <VisualStateGroup.Transitions><VisualTransition GeneratedDuration="0:0:0.18"/></VisualStateGroup.Transitions>
           <VisualState x:Name="Unfocused"/>
-          <VisualState x:Name="PointerFocused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
-          <VisualState x:Name="Focused"><VisualState.Setters><Setter Target="FocusRing.Opacity" Value="1"/></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerFocused"><Storyboard><DoubleAnimation Storyboard.TargetName="FocusRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
+          <VisualState x:Name="Focused"><Storyboard><DoubleAnimation Storyboard.TargetName="FocusRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/></Storyboard></VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
     </Grid>
