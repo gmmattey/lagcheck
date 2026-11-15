@@ -22,6 +22,10 @@ class SteamCdnSource : ArtworkSource {
                 "library_hero_2x.jpg" to ImageBytes.Dimensions(3840, 1240),
                 "library_hero.jpg" to ImageBytes.Dimensions(1920, 620),
             )
+            ArtworkType.LOGO -> listOf(
+                "logo_2x.png" to ImageBytes.Dimensions(1280, 720),
+                "logo.png" to ImageBytes.Dimensions(640, 360),
+            )
             ArtworkType.ICON -> return emptyList()
         }
         return listOf(
@@ -42,6 +46,7 @@ class SteamLibraryCacheSource(private val steamRoot: () -> File?) : ArtworkSourc
         val names = when (type) {
             ArtworkType.COVER -> listOf("library_600x900_2x.jpg", "library_600x900.jpg")
             ArtworkType.HERO -> listOf("library_hero_2x.jpg", "library_hero.jpg")
+            ArtworkType.LOGO -> listOf("logo_2x.png", "logo.png")
             ArtworkType.ICON -> null
         }
         val result = mutableListOf<Path>()

@@ -122,7 +122,7 @@ class StoreLibraryTest {
             val game = fakeUwpPackage(File(dir, "inj"))
             val hidden = fakeUwpPackage(File(dir, "hidden"), appListEntry = "none").copy(packageFamilyName = "Hidden.Theme_x")
             val calc = fakeUwpPackage(File(dir, "calc")).copy(packageFamilyName = "Contoso.Calc_x")
-            val asked = mutableListOf<String>()
+            val asked = java.util.Collections.synchronizedList(mutableListOf<String>())
             val store = StoreProductLookup { pfn ->
                 asked += pfn
                 if (pfn.startsWith("Warner")) StoreProduct("Injustice 2", isGame = true) else StoreProduct(pfn, isGame = false)

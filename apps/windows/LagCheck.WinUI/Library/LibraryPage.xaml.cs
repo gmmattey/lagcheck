@@ -69,6 +69,7 @@ public sealed partial class LibraryPage : Page
         SortRecentItem.Content = Strings.Tr("Ordenar: Mais recentes");
         SortPlatformItem.Content = Strings.Tr("Ordenar: Plataforma");
         SortFavoritesItem.Content = Strings.Tr("Ordenar: Favoritos primeiro");
+        SortPlaytimeItem.Content = Strings.Tr("Ordenar: Mais jogados");
         EmptyResultsText.Text = Strings.Tr("Nenhum jogo corresponde à busca ou ao filtro atual.");
         UpdateRescanLabel();
         UpdateChips();
@@ -254,14 +255,48 @@ public sealed partial class LibraryPage : Page
 
     private const string DecorName = "dyn";
     private const string PlayName = "dynPlay";
+    private const string UpdateName = "dynUpdate";
 
     /// <summary>Veredito do último teste e ▶ de jogar direto, só para jogos que têm dado real (sem inventar nada).</summary>
     private void DecorateCard(Grid card)
     {
-        foreach (var old in card.Children.OfType<FrameworkElement>().Where(child => child.Name is DecorName or PlayName).ToList())
+        foreach (var old in card.Children.OfType<FrameworkElement>().Where(child => child.Name is DecorName or PlayName or UpdateName).ToList())
             card.Children.Remove(old);
         if (card.Tag is not LibraryGame game) return;
         var insertAt = Math.Max(card.Children.Count - 1, 0); // o anel de foco fica sempre por último
+
+        if (game.UpdateState != GameUpdateState.Ready)
+        {
+            var isDownloading = game.UpdateState == GameUpdateState.Downloading;
+            var accent = isDownloading ? Color.FromArgb(255, 0x38, 0xBD, 0xF8) : Color.FromArgb(255, 0xFB, 0xBF, 0x24);
+            var statusLabel = Strings.Tr(isDownloading ? "Baixando" : "Atualização");
+            var updateChip = new Border
+            {
+                Name = UpdateName,
+                Background = new SolidColorBrush(Color.FromArgb(0xD9, 0x0D, 0x0F, 0x14)),
+                BorderThickness = new Thickness(1),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, accent.R, accent.G, accent.B)),
+                CornerRadius = new CornerRadius(8),
+                Height = 28,
+                Padding = new Thickness(10, 0, 10, 0),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 10, game.IsFavorite ? 44 : 10, 0),
+                IsHitTestVisible = false,
+                Child = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 6,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Children =
+                    {
+                        new Microsoft.UI.Xaml.Shapes.Ellipse { Width = 7, Height = 7, Fill = new SolidColorBrush(accent), VerticalAlignment = VerticalAlignment.Center },
+                        new TextBlock { Text = statusLabel, FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, VerticalAlignment = VerticalAlignment.Center },
+                    },
+                },
+            };
+            card.Children.Insert(insertAt++, updateChip);
+        }
 
         var entry = LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
             .FirstOrDefault(item => item.PingMs.HasValue && LagCheck.WinUI.History.SessionHistoryStore.MatchesGame(item, game.DiagnosticGameId, game.Title));

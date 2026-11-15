@@ -1,5 +1,7 @@
 package com.lagcheck.desktop.library.network
 
+import com.lagcheck.desktop.library.model.GameInfo
+import com.lagcheck.desktop.library.model.GameModes
 import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.PcGame
 
@@ -8,28 +10,34 @@ data class CatalogGame(val id: String, val name: String)
 
 /**
  * Decide que tipo de diagnóstico um jogo recebe. Nada é adivinhado por trecho de título:
- * ou o jogo casa de forma exata com o catálogo (por id de loja conhecido ou por nome), ou recebe só o diagnóstico geral.
- *
- * - Casou com o catálogo e o catálogo mede em PC: [GameNetworkSupport.LagcheckSupported].
- * - Está na lista de jogos solo verificados: [GameNetworkSupport.OfflineSingleplayer].
- * - Qualquer outro: [GameNetworkSupport.GeneralConnectionOnly], que a interface rotula como conexão geral.
+ * ou o jogo casa de forma exata com o catálogo (por id de loja conhecido ou por nome),
+ * ou usa os modos de jogo declarados pela própria loja para reconhecer jogos exclusivamente solo,
+ * ou recebe só o diagnóstico geral.
  */
 class NetworkSupportResolver(
     private val catalog: () -> List<CatalogGame>,
     private val regionLabel: (String) -> String? = { null },
 ) {
-    fun resolve(game: PcGame): GameNetworkSupport {
+    fun resolve(game: PcGame, info: GameInfo? = null): GameNetworkSupport {
         val titleKey = TitleKey.of(game.title)
         if (titleKey in OFFLINE_TITLES) return GameNetworkSupport.OfflineSingleplayer("Jogo solo, sem servidor para medir")
         val games = catalog()
         val byId = STEAM_APP_TO_CATALOG[game.id]?.let { id -> games.firstOrNull { it.id == id } }
         val match = byId ?: games.firstOrNull { TitleKey.of(it.name) == titleKey }
-        return if (match != null) {
-            GameNetworkSupport.LagcheckSupported(match.id, regionLabel(match.id))
-        } else {
-            GameNetworkSupport.GeneralConnectionOnly("Só conexão geral")
+        if (match != null) {
+            return GameNetworkSupport.LagcheckSupported(match.id, regionLabel(match.id))
         }
+        if (info != null && isStrictlyOffline(info)) {
+            return GameNetworkSupport.OfflineSingleplayer("Jogo solo, sem servidor para medir")
+        }
+        return GameNetworkSupport.GeneralConnectionOnly("Só conexão geral")
     }
+
+    private fun isStrictlyOffline(info: GameInfo): Boolean =
+        GameModes.SINGLEPLAYER in info.modes &&
+            !info.isOnline &&
+            GameModes.MULTIPLAYER !in info.modes &&
+            GameModes.COOP !in info.modes
 
     companion object {
         /** Tudo vira conexão geral: usado quando não há catálogo carregado. */

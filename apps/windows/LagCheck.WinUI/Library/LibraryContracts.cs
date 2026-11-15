@@ -17,12 +17,41 @@ public sealed record GameInfo(
     string? Publisher,
     string? ReleaseDate,
     IReadOnlyList<string> Genres,
-    IReadOnlyList<string> Modes)
+    IReadOnlyList<string> Modes,
+    string? ControllerSupport = null,
+    int? MetacriticScore = null,
+    int? RecommendationsTotal = null,
+    bool HasCloudSaves = false,
+    string? AntiCheat = null,
+    bool? HasPtBr = null,
+    string? PcMinimumRequirements = null,
+    IReadOnlyList<string>? StoreScreenshots = null)
 {
     private static readonly HashSet<string> OnlineModes = new(StringComparer.Ordinal) { "online_multiplayer", "online_coop", "mmo", "crossplay" };
 
-    public bool IsEmpty => Description is null && Developer is null && Publisher is null && ReleaseDate is null && Genres.Count == 0 && Modes.Count == 0;
+    public bool IsEmpty =>
+        Description is null &&
+        Developer is null &&
+        Publisher is null &&
+        ReleaseDate is null &&
+        Genres.Count == 0 &&
+        Modes.Count == 0 &&
+        ControllerSupport is null &&
+        MetacriticScore is null &&
+        RecommendationsTotal is null &&
+        !HasCloudSaves &&
+        AntiCheat is null &&
+        HasPtBr is null &&
+        PcMinimumRequirements is null &&
+        (StoreScreenshots is null || StoreScreenshots.Count == 0);
     public bool IsOnline => Modes.Any(OnlineModes.Contains);
+
+    /// <summary>Indica jogo exclusivamente solo de acordo com os modos declarados pela loja.</summary>
+    public bool IsStrictlyOffline =>
+        Modes.Contains("singleplayer", StringComparer.Ordinal) &&
+        !IsOnline &&
+        !Modes.Contains("multiplayer", StringComparer.Ordinal) &&
+        !Modes.Contains("coop", StringComparer.Ordinal);
 
     /// <summary>Rótulo traduzido de um modo; null para chave desconhecida (não inventa texto).</summary>
     public static string? ModeLabel(string mode) => mode switch
@@ -36,6 +65,13 @@ public sealed record GameInfo(
         "crossplay" => Strings.Tr("Jogo entre plataformas"),
         _ => null,
     };
+}
+
+public enum GameUpdateState
+{
+    Ready,
+    UpdateRequired,
+    Downloading,
 }
 
 /// <summary>Print que o usuário tirou no jogo. Caminhos locais; a miniatura é opcional.</summary>
@@ -65,10 +101,42 @@ public sealed record LibraryGame(
     string? Description,
     IReadOnlyList<string> AlsoIds,
     GameInfo? Info = null,
-    IReadOnlyList<GameScreenshot>? Screenshots = null)
+    IReadOnlyList<GameScreenshot>? Screenshots = null,
+    long PlayTimeMinutes = 0,
+    long? SizeOnDiskBytes = null,
+    GameUpdateState UpdateState = GameUpdateState.Ready,
+    long? DownloadBytesCompleted = null,
+    long? DownloadBytesTotal = null,
+    string? LogoArtworkPath = null)
 {
     /// <summary>Prints do próprio usuário (hoje só Steam); vazio quando o launcher não os expõe.</summary>
     public IReadOnlyList<GameScreenshot> UserScreenshots => Screenshots ?? Array.Empty<GameScreenshot>();
+
+    public string? FormattedPlayTime
+    {
+        get
+        {
+            if (PlayTimeMinutes <= 0) return null;
+            if (PlayTimeMinutes < 60) return Strings.Format("{0} min", PlayTimeMinutes);
+            var hours = PlayTimeMinutes / 60.0;
+            return hours >= 10
+                ? Strings.Format("{0:0} h", Math.Round(hours))
+                : Strings.Format("{0:0.#} h", hours);
+        }
+    }
+
+    public string? FormattedSizeOnDisk
+    {
+        get
+        {
+            if (SizeOnDiskBytes is not { } bytes || bytes <= 0) return null;
+            const double mb = 1024.0 * 1024.0;
+            const double gb = mb * 1024.0;
+            return bytes >= gb
+                ? string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:0.#} GB", bytes / gb)
+                : string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:0} MB", bytes / mb);
+        }
+    }
 
     public long? RecentActivityEpochMs
     {
@@ -145,6 +213,7 @@ public enum LibrarySort
 {
     Name,
     Recent,
+    Playtime,
     Platform,
     Favorites,
 }

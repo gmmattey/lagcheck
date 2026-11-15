@@ -168,10 +168,24 @@ public static class GamePills
     /// Constrói o container com as pílulas separadas para renderização no hero ou em detalhes.
     /// Se não houver nenhum rótulo válido, retorna um elemento colapsado (nada é desenhado).
     /// </summary>
-    public static FrameworkElement Create(LibraryGame game, int max = 4)
+    public static FrameworkElement Create(LibraryGame game, int max = 4, string? extraStatusChip = null)
     {
+        var statusChips = new List<(string Text, Color Accent)>();
+        if (game.UpdateState == GameUpdateState.Downloading)
+        {
+            statusChips.Add((Strings.Tr("Baixando atualização"), Color.FromArgb(255, 0x38, 0xBD, 0xF8)));
+        }
+        else if (game.UpdateState == GameUpdateState.UpdateRequired)
+        {
+            statusChips.Add((Strings.Tr("Atualização pendente"), Color.FromArgb(255, 0xFB, 0xBF, 0x24)));
+        }
+        if (!string.IsNullOrWhiteSpace(extraStatusChip))
+        {
+            statusChips.Add((extraStatusChip.Trim(), Color.FromArgb(255, 0x22, 0xC5, 0x5E)));
+        }
+
         var labels = Labels(game, max);
-        if (labels.Count == 0)
+        if (labels.Count == 0 && statusChips.Count == 0)
         {
             return new Border { Visibility = Visibility.Collapsed };
         }
@@ -190,8 +204,8 @@ public static class GamePills
             EndPoint = new Windows.Foundation.Point(0, 1),
             GradientStops =
             {
-                new GradientStop { Color = Color.FromArgb(0xE6, 0x1D, 0x22, 0x2E), Offset = 0 },
-                new GradientStop { Color = Color.FromArgb(0xE6, 0x12, 0x16, 0x1F), Offset = 1 },
+                new GradientStop { Color = Color.FromArgb(0xEB, 0x15, 0x18, 0x1E), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0xEB, 0x0E, 0x10, 0x14), Offset = 1 },
             },
         };
         var borderBrush = new LinearGradientBrush
@@ -200,8 +214,8 @@ public static class GamePills
             EndPoint = new Windows.Foundation.Point(0, 1),
             GradientStops =
             {
-                new GradientStop { Color = Color.FromArgb(0x30, 255, 255, 255), Offset = 0 },
-                new GradientStop { Color = Color.FromArgb(0x12, 255, 255, 255), Offset = 1 },
+                new GradientStop { Color = Color.FromArgb(0x1E, 255, 255, 255), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0x0D, 255, 255, 255), Offset = 1 },
             },
         };
         var shadowFill = new SolidColorBrush(Color.FromArgb(255, 0x0B, 0x0D, 0x10));
@@ -209,7 +223,7 @@ public static class GamePills
             ? f
             : Typography.BodySemiBoldFont;
 
-        foreach (var label in labels)
+        void AddPill(string text, Color? dotColor)
         {
             var shadowRect = new Microsoft.UI.Xaml.Shapes.Rectangle
             {
@@ -220,29 +234,62 @@ public static class GamePills
             };
             GlowEffect.AttachShadow(shadowRect, Color.FromArgb(0x78, 0, 0, 0), blur: 10f, offsetY: 3f);
 
-            var pill = new Border
+            UIElement pillContent;
+            if (dotColor is { } dot)
             {
-                Height = 28,
-                CornerRadius = new CornerRadius(8),
-                Background = backgroundBrush,
-                BorderBrush = borderBrush,
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(12, 0, 12, 0),
-                Child = new TextBlock
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7, VerticalAlignment = VerticalAlignment.Center };
+                row.Children.Add(new Microsoft.UI.Xaml.Shapes.Ellipse { Width = 7, Height = 7, Fill = new SolidColorBrush(dot), VerticalAlignment = VerticalAlignment.Center });
+                row.Children.Add(new TextBlock
                 {
-                    Text = label,
+                    Text = text,
                     FontFamily = semiBoldFont,
                     FontSize = 13,
                     FontWeight = Microsoft.UI.Text.FontWeights.Normal,
                     Foreground = textBrush,
                     VerticalAlignment = VerticalAlignment.Center,
-                },
+                });
+                pillContent = row;
+            }
+            else
+            {
+                pillContent = new TextBlock
+                {
+                    Text = text,
+                    FontFamily = semiBoldFont,
+                    FontSize = 13,
+                    FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+                    Foreground = textBrush,
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+            }
+
+            var pill = new Border
+            {
+                Height = 28,
+                CornerRadius = new CornerRadius(8),
+                Background = backgroundBrush,
+                BorderBrush = dotColor is { } accent
+                    ? new SolidColorBrush(Color.FromArgb(0x66, accent.R, accent.G, accent.B))
+                    : borderBrush,
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(12, 0, 12, 0),
+                Child = pillContent,
             };
 
             var host = new Grid();
             host.Children.Add(shadowRect);
             host.Children.Add(pill);
             panel.Children.Add(host);
+        }
+
+        foreach (var (text, accent) in statusChips)
+        {
+            AddPill(text, accent);
+        }
+
+        foreach (var label in labels)
+        {
+            AddPill(label, null);
         }
 
         return panel;

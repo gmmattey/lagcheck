@@ -1,21 +1,21 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Paleta Dark Competitive UI (LagCheck Windows v2) -->
-  <Color x:Key="StageColor">#000000</Color>
-  <Color x:Key="DeepColor">#000000</Color>
-  <Color x:Key="SurfaceColor">#171B24</Color>
-  <Color x:Key="PanelColor">#202633</Color>
+  <Color x:Key="StageColor">#060709</Color>
+  <Color x:Key="DeepColor">#0B0D10</Color>
+  <Color x:Key="SurfaceColor">#15181E</Color>
+  <Color x:Key="PanelColor">#1E232B</Color>
   <Color x:Key="LineColor">#0DFFFFFF</Color>
   <Color x:Key="LineStrongColor">#1AFFFFFF</Color>
-  <Color x:Key="TextPrimaryColor">#F5F7FC</Color>
-  <Color x:Key="TextSecondaryColor">#9AA3B5</Color>
-  <Color x:Key="TextTertiaryColor">#8F99AB</Color>
+  <Color x:Key="TextPrimaryColor">#F4F5F7</Color>
+  <Color x:Key="TextSecondaryColor">#8A93A0</Color>
+  <Color x:Key="TextTertiaryColor">#606873</Color>
   <Color x:Key="PurpleColor">#7C3AED</Color>
   <Color x:Key="PurpleLightColor">#A78BFA</Color>
   <Color x:Key="ReadyColor">#22C55E</Color>
   <Color x:Key="CautionColor">#F59E0B</Color>
   <Color x:Key="CoralColor">#FF5A36</Color>
-  <Color x:Key="GlassColor">#B8141828</Color>
-  <Color x:Key="GlassStrongColor">#E0141828</Color>
+  <Color x:Key="GlassColor">#D9111419</Color>
+  <Color x:Key="GlassStrongColor">#F0111419</Color>
 
   <!-- Pincéis -->
   <SolidColorBrush x:Key="StageBrush" Color="{StaticResource StageColor}"/>
@@ -32,23 +32,23 @@
   <SolidColorBrush x:Key="ReadyBrush" Color="{StaticResource ReadyColor}"/>
   <SolidColorBrush x:Key="CautionBrush" Color="{StaticResource CautionColor}"/>
   <SolidColorBrush x:Key="CoralBrush" Color="{StaticResource CoralColor}"/>
-  <SolidColorBrush x:Key="TechLabelBrush" Color="#8791A3"/>
+  <SolidColorBrush x:Key="TechLabelBrush" Color="#606873"/>
   <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}"/>
   <SolidColorBrush x:Key="GlassStrongBrush" Color="{StaticResource GlassStrongColor}"/>
-  <SolidColorBrush x:Key="GlassBorderBrush" Color="#1FFFFFFF"/>
-  <SolidColorBrush x:Key="PillSurfaceBrush" Color="#B8252A36"/>
-  <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#B81C212B"/>
+  <SolidColorBrush x:Key="GlassBorderBrush" Color="#17FFFFFF"/>
+  <SolidColorBrush x:Key="PillSurfaceBrush" Color="#D915181E"/>
+  <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#D912151A"/>
   <LinearGradientBrush x:Key="SurfaceElevatedBrush" StartPoint="0,0" EndPoint="0,1">
-    <GradientStop Color="#EB212734" Offset="0"/>
-    <GradientStop Color="#EB151922" Offset="1"/>
+    <GradientStop Color="#F0181C23" Offset="0"/>
+    <GradientStop Color="#F0111419" Offset="1"/>
   </LinearGradientBrush>
   <LinearGradientBrush x:Key="ChipElevatedBrush" StartPoint="0,0" EndPoint="0,1">
-    <GradientStop Color="#E61D222E" Offset="0"/>
-    <GradientStop Color="#E612161F" Offset="1"/>
+    <GradientStop Color="#EB15181E" Offset="0"/>
+    <GradientStop Color="#EB0E1014" Offset="1"/>
   </LinearGradientBrush>
   <LinearGradientBrush x:Key="SurfaceDepthBorderBrush" StartPoint="0,0" EndPoint="0,1">
-    <GradientStop Color="#2EFFFFFF" Offset="0"/>
-    <GradientStop Color="#12FFFFFF" Offset="1"/>
+    <GradientStop Color="#1CFFFFFF" Offset="0"/>
+    <GradientStop Color="#0DFFFFFF" Offset="1"/>
   </LinearGradientBrush>
   <LinearGradientBrush x:Key="HomeHeroCtaBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="#8B5CF6" Offset="0"/>
@@ -106,7 +106,7 @@
   <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#1AFFFFFF"/>
   <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#26FFFFFF"/>
   <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#26FFFFFF"/>
-  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#202633"/>
+  <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#15181E"/>
   <SolidColorBrush x:Key="ProgressBarBackground" Color="#14FFFFFF"/>
 
   <!-- Tipografia oficial v2 (Tríade Android / Decisão 125):
@@ -183,8 +183,8 @@
 
   <!-- Card premium: degradê translúcido, filete de luz e cantos de 20 -->
   <LinearGradientBrush x:Key="PremiumCardBrush" StartPoint="0,0" EndPoint="0,1">
-    <GradientStop Color="#B81B2030" Offset="0"/>
-    <GradientStop Color="#B8151A28" Offset="1"/>
+    <GradientStop Color="#D915181E" Offset="0"/>
+    <GradientStop Color="#D9101318" Offset="1"/>
   </LinearGradientBrush>
   <Style x:Key="PremiumCardStyle" TargetType="Border">
     <Setter Property="Background" Value="{StaticResource PremiumCardBrush}"/>

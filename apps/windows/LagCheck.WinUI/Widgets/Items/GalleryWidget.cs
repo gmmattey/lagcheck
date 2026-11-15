@@ -120,7 +120,7 @@ public sealed class GalleryWidget : IHomeWidget
     {
         var image = new Image
         {
-            Source = Artwork.Load(filePath, 160),
+            Source = Artwork.Load(filePath, 480),
             Stretch = Stretch.UniformToFill,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,

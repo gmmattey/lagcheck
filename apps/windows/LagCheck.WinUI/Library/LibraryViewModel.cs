@@ -263,6 +263,7 @@ public sealed class LibraryViewModel : INotifyPropertyChanged
             LibrarySort.Recent => query.OrderByDescending(game => game.RecentActivityEpochMs ?? long.MinValue).ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase),
             LibrarySort.Platform => query.OrderBy(game => game.Platform.DisplayName()).ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase),
             LibrarySort.Favorites => query.OrderByDescending(game => game.IsFavorite).ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase),
+            LibrarySort.Playtime => query.OrderByDescending(game => game.PlayTimeMinutes).ThenBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase),
             _ => query.OrderBy(game => game.Title, StringComparer.CurrentCultureIgnoreCase),
         };
 

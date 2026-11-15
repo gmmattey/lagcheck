@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -8,10 +9,24 @@ namespace LagCheck.WinUI;
 
 public sealed partial class MainWindow : Window
 {
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(nint hWnd);
+
     public MainWindow()
     {
         InitializeComponent();
-        AppWindow.Resize(new SizeInt32(1120, 740));
+        var workArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var dpi = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this));
+        var scale = Math.Max(1.0, dpi / 96.0);
+        var width = Math.Min(workArea.Width, (int)Math.Round(1600 * scale));
+        var height = Math.Min(workArea.Height, (int)Math.Round(940 * scale));
+        var restoredBounds = new RectInt32(
+            workArea.X + Math.Max(0, (workArea.Width - width) / 2),
+            workArea.Y + Math.Max(0, (workArea.Height - height) / 2),
+            width,
+            height);
+        AppWindow.MoveAndResize(restoredBounds);
+        WindowMode.SetRestoredBounds(restoredBounds);
         Title = "LagCheck";
         try
         {
@@ -44,6 +59,10 @@ public sealed partial class MainWindow : Window
         }
 
         WindowMode.Attach(this);
+        if (!WindowMode.StartFullScreen && AppWindow.Presenter is OverlappedPresenter overlapped)
+        {
+            overlapped.Maximize();
+        }
         if (WindowMode.StartFullScreen)
         {
             try

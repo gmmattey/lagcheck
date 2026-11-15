@@ -53,6 +53,10 @@ public sealed partial class ShellPage : Page
     public ShellPage()
     {
         InitializeComponent();
+        WallpaperImage.Source = new BitmapImage
+        {
+            UriSource = new Uri("ms-appx:///Assets/wallpaper-network.jpg")
+        };
         ShellChrome.Register(this);
         ShellNavigation.Configure(NavigateToDiagnostic, Navigate, OpenGameDetails, OpenHistory);
         LocalizeUI();

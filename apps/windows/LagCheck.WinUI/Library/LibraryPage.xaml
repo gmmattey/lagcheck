@@ -48,6 +48,7 @@
                     <ComboBoxItem x:Name="SortRecentItem" Content="Ordenar: Mais recentes" Tag="Recent"/>
                     <ComboBoxItem x:Name="SortPlatformItem" Content="Ordenar: Plataforma" Tag="Platform"/>
                     <ComboBoxItem x:Name="SortFavoritesItem" Content="Ordenar: Favoritos primeiro" Tag="Favorites"/>
+                    <ComboBoxItem x:Name="SortPlaytimeItem" Content="Ordenar: Mais jogados" Tag="Playtime"/>
                 </ComboBox>
             </Grid>
 

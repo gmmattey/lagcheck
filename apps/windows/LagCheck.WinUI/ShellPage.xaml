@@ -5,35 +5,9 @@
       xmlns:automation="using:Microsoft.UI.Xaml.Automation">
   <Grid x:Name="RootGrid" Background="{StaticResource DeepBrush}">
 
-    <!-- Plano de fundo padrão do app: degradê escuro com brilho ambiente roxo sutil -->
+    <!-- Papel de parede persistente (estilo PlayStation 5, sem véu escuro para manter o brilho original) -->
     <Grid x:Name="WallpaperHost" IsHitTestVisible="False">
-      <Rectangle>
-        <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="0.15,1">
-            <GradientStop Color="#120F24" Offset="0"/>
-            <GradientStop Color="#0D1018" Offset="0.38"/>
-            <GradientStop Color="#090B10" Offset="0.72"/>
-            <GradientStop Color="#06070B" Offset="1"/>
-          </LinearGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
-      <Rectangle>
-        <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0.78,0" EndPoint="0.15,0.85">
-            <GradientStop Color="#384C1D95" Offset="0"/>
-            <GradientStop Color="#1A2E1065" Offset="0.45"/>
-            <GradientStop Color="#00070914" Offset="1"/>
-          </LinearGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
-      <Rectangle>
-        <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,0">
-            <GradientStop Color="#40070914" Offset="0"/>
-            <GradientStop Color="#00070914" Offset="1"/>
-          </LinearGradientBrush>
-        </Rectangle.Fill>
-      </Rectangle>
+      <Image x:Name="WallpaperImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 
     <!-- Camada de arte atrás de toda a janela (Início e resultado de um jogo): cobre também a sidebar, como no v2 -->
@@ -44,23 +18,23 @@
         </Grid.RenderTransform>
       </Grid>
       <Grid x:Name="BackdropTransition" Opacity="0" IsHitTestVisible="False"/>
-      <!-- Gradientes fixos para garantir leitura de título, pílulas e ações sem cobrir a arte no topo -->
+      <!-- Gradientes fixos apenas na base e no canto do texto para deixar a arte viva -->
       <Rectangle Canvas.ZIndex="3" IsHitTestVisible="False">
         <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0.35" EndPoint="0,1">
-            <GradientStop Color="#00070914" Offset="0"/>
-            <GradientStop Color="#73070914" Offset="0.45"/>
-            <GradientStop Color="#CC070914" Offset="0.75"/>
-            <GradientStop Color="#EB070914" Offset="1"/>
+          <LinearGradientBrush StartPoint="0,0.48" EndPoint="0,1">
+            <GradientStop Color="#00060709" Offset="0"/>
+            <GradientStop Color="#59060709" Offset="0.5"/>
+            <GradientStop Color="#BD060709" Offset="0.8"/>
+            <GradientStop Color="#E6060709" Offset="1"/>
           </LinearGradientBrush>
         </Rectangle.Fill>
       </Rectangle>
       <Rectangle Canvas.ZIndex="3" IsHitTestVisible="False">
         <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0.85" EndPoint="0.62,0.25">
-            <GradientStop Color="#D9070914" Offset="0"/>
-            <GradientStop Color="#80070914" Offset="0.42"/>
-            <GradientStop Color="#00070914" Offset="1"/>
+          <LinearGradientBrush StartPoint="0,0.9" EndPoint="0.52,0.35">
+            <GradientStop Color="#CC060709" Offset="0"/>
+            <GradientStop Color="#59060709" Offset="0.45"/>
+            <GradientStop Color="#00060709" Offset="1"/>
           </LinearGradientBrush>
         </Rectangle.Fill>
       </Rectangle>

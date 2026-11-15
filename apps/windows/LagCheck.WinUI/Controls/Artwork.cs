@@ -37,11 +37,14 @@ public static class Artwork
     public static string? FirstExisting(params string?[] paths) =>
         paths.FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && (!Uri.TryCreate(path, UriKind.Absolute, out var uri) || !uri.IsFile || File.Exists(uri.LocalPath)));
 
-    /// <summary>Pede ao host as capas/banners que ainda faltam nos jogos visíveis (no máximo uma tentativa por jogo e sessão).</summary>
+    /// <summary>Pede ao host as capas/banners/logos que ainda faltam nos jogos visíveis (no máximo uma tentativa por jogo e sessão).</summary>
     public static async Task ResolveMissingAsync(LibraryViewModel viewModel, IEnumerable<LibraryGame> visible)
     {
         var pending = visible
-            .Where(game => game.IsInstalled && (FirstExisting(game.CoverArtworkPath) is null || FirstExisting(game.HeroArtworkPath) is null))
+            .Where(game => game.IsInstalled && (
+                FirstExisting(game.CoverArtworkPath) is null ||
+                FirstExisting(game.HeroArtworkPath) is null ||
+                FirstExisting(game.LogoArtworkPath) is null))
             .Select(game => game.Id)
             .Where(id => Requested.Add(id))
             .ToList();

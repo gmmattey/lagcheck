@@ -15,9 +15,32 @@ data class GameInfo(
     val modes: List<String> = emptyList(),
     /** `false` quando a loja classifica o item como software/ferramenta e não como jogo; `null` quando não se sabe. */
     val isGame: Boolean? = null,
+    /** `"full"`, `"partial"`, ou null quando não informado pela loja. */
+    val controllerSupport: String? = null,
+    val metacriticScore: Int? = null,
+    val recommendationsTotal: Int? = null,
+    val hasCloudSaves: Boolean = false,
+    val antiCheat: String? = null,
+    val hasPtBr: Boolean? = null,
+    val pcMinimumRequirements: String? = null,
+    val storeScreenshots: List<String> = emptyList(),
 ) {
     val isEmpty: Boolean
-        get() = description == null && developer == null && publisher == null && releaseDate == null && genres.isEmpty() && modes.isEmpty() && isGame == null
+        get() = description == null &&
+            developer == null &&
+            publisher == null &&
+            releaseDate == null &&
+            genres.isEmpty() &&
+            modes.isEmpty() &&
+            isGame == null &&
+            controllerSupport == null &&
+            metacriticScore == null &&
+            recommendationsTotal == null &&
+            !hasCloudSaves &&
+            antiCheat == null &&
+            hasPtBr == null &&
+            pcMinimumRequirements == null &&
+            storeScreenshots.isEmpty()
 
     /** `true` quando alguma fonte declarou jogo com componente online. */
     val isOnline: Boolean get() = modes.any { it in GameModes.ONLINE }

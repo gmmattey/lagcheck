@@ -51,6 +51,8 @@ class LibraryStore(private val file: Path, private val legacyFile: Path? = null)
             g.launchUri?.let { props.setProperty("$GAME$n.uri", it) }
             g.lastPlayedEpochMs?.let { props.setProperty("$GAME$n.played", it.toString()) }
             g.installedAtEpochMs?.let { props.setProperty("$GAME$n.installedAt", it.toString()) }
+            if (g.playTimeMinutes > 0) props.setProperty("$GAME$n.playTime", g.playTimeMinutes.toString())
+            g.sizeOnDiskBytes?.let { props.setProperty("$GAME$n.sizeBytes", it.toString()) }
         }
         file.parent?.let { Files.createDirectories(it) }
         val tmp = file.resolveSibling(file.fileName.toString() + ".tmp")
@@ -85,6 +87,8 @@ class LibraryStore(private val file: Path, private val legacyFile: Path? = null)
                 isInstalled = props.getProperty("$GAME$n.installed")?.toBooleanStrictOrNull() ?: true,
                 lastPlayedEpochMs = props.getProperty("$GAME$n.played")?.toLongOrNull(),
                 installedAtEpochMs = props.getProperty("$GAME$n.installedAt")?.toLongOrNull(),
+                playTimeMinutes = props.getProperty("$GAME$n.playTime")?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L,
+                sizeOnDiskBytes = props.getProperty("$GAME$n.sizeBytes")?.toLongOrNull()?.takeIf { it > 0L },
             )
         }
     }

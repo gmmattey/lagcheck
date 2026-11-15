@@ -51,8 +51,21 @@ public static class LibraryWireParser
             ReadString(game, "description"),
             ReadArray(game, "alsoIds").Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray(),
             ParseInfo(game),
-            ParseScreenshots(game));
+            ParseScreenshots(game),
+            PlayTimeMinutes: Math.Max(0, ReadInt64(game, "playTimeMinutes") ?? 0),
+            SizeOnDiskBytes: ReadInt64(game, "sizeOnDiskBytes"),
+            UpdateState: ParseUpdateState(ReadString(game, "updateState")),
+            DownloadBytesCompleted: ReadInt64(game, "downloadBytesCompleted"),
+            DownloadBytesTotal: ReadInt64(game, "downloadBytesTotal"),
+            LogoArtworkPath: ReadLocalPath(game, "logoArtworkPath"));
     }
+
+    private static GameUpdateState ParseUpdateState(string? value) => value switch
+    {
+        "downloading" => GameUpdateState.Downloading,
+        "updateRequired" => GameUpdateState.UpdateRequired,
+        _ => GameUpdateState.Ready,
+    };
 
     private static GameScreenshot[] ParseScreenshots(JsonElement game) =>
         ReadArray(game, "screenshots")
@@ -68,9 +81,28 @@ public static class LibraryWireParser
     {
         if (!game.TryGetProperty("info", out var info) || info.ValueKind != JsonValueKind.Object) return null;
         string[] Strs(string name) => ReadArray(info, name).Select(item => item.GetString()).Where(item => !string.IsNullOrWhiteSpace(item)).Cast<string>().ToArray();
-        var parsed = new GameInfo(ReadString(info, "description"), ReadString(info, "developer"), ReadString(info, "publisher"), ReadString(info, "releaseDate"), Strs("genres"), Strs("modes"));
+        var parsed = new GameInfo(
+            ReadString(info, "description"),
+            ReadString(info, "developer"),
+            ReadString(info, "publisher"),
+            ReadString(info, "releaseDate"),
+            Strs("genres"),
+            Strs("modes"),
+            ControllerSupport: ReadString(info, "controllerSupport"),
+            MetacriticScore: (int?)ReadInt64(info, "metacriticScore"),
+            RecommendationsTotal: (int?)ReadInt64(info, "recommendationsTotal"),
+            HasCloudSaves: ReadBoolean(info, "hasCloudSaves"),
+            AntiCheat: ReadString(info, "antiCheat"),
+            HasPtBr: ReadNullableBoolean(info, "hasPtBr"),
+            PcMinimumRequirements: ReadString(info, "pcMinimumRequirements"),
+            StoreScreenshots: Strs("storeScreenshots"));
         return parsed.IsEmpty ? null : parsed;
     }
+
+    private static bool? ReadNullableBoolean(JsonElement source, string name) =>
+        source.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.True or JsonValueKind.False
+            ? value.GetBoolean()
+            : null;
 
     private static string? ReadLocalPath(JsonElement source, string name)
     {

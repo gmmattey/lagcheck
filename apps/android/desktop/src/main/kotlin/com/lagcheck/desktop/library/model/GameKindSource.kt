@@ -8,6 +8,9 @@ interface GameKindSource {
     /** Resposta que já está em disco ou nos arquivos locais; nunca usa a rede. */
     fun cached(game: PcGame): Boolean?
 
+    /** Metadados de catálogo já presentes em disco/cache; nunca usa a rede. */
+    fun cachedInfo(game: PcGame): GameInfo? = null
+
     /** Pode consultar a loja (se o download estiver permitido) e guarda o resultado para [cached]. */
     suspend fun classify(game: PcGame): Boolean?
 

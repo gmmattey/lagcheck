@@ -3,8 +3,8 @@ package com.lagcheck.desktop.library.artwork
 import com.lagcheck.desktop.library.model.PcGame
 import java.nio.file.Path
 
-/** `COVER` é a capa vertical da grade, `HERO` o banner horizontal do destaque, `ICON` o ícone quando existir. */
-enum class ArtworkType(val key: String) { COVER("cover"), HERO("hero"), ICON("icon") }
+/** `COVER` é a capa vertical da grade, `HERO` o banner horizontal do destaque, `LOGO` o título transparente, `ICON` o ícone quando existir. */
+enum class ArtworkType(val key: String) { COVER("cover"), HERO("hero"), LOGO("logo"), ICON("icon") }
 
 sealed interface ArtworkResult {
     /** Arquivo de imagem pronto para exibir (cache do app ou cache do próprio launcher). */

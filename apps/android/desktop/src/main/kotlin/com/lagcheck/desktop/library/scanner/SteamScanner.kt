@@ -1,6 +1,7 @@
 package com.lagcheck.desktop.library.scanner
 
 import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.model.GameUpdateState
 import com.lagcheck.desktop.library.model.PcGame
 import java.io.File
 
@@ -18,6 +19,7 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
         if (!root.exists() || !root.isDirectory) return ScanResult.Unavailable("Pasta da Steam inacessível")
 
         val libraries = readLibraryFolders(root)
+        val userStats = readUserAppStats(root)
         val games = mutableListOf<PcGame>()
         val unreadable = mutableSetOf<String>()
 
@@ -30,7 +32,7 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
             } ?: continue
 
             for (manifest in manifests) {
-                val game = parseManifest(manifest, folder)
+                val game = parseManifest(manifest, folder, userStats)
                 if (game != null) {
                     games.add(game)
                 } else {
@@ -46,6 +48,33 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
             unreachableRoots = libraries.missing.map { it.path },
             unreadableIds = unreadable,
         )
+    }
+
+    internal data class SteamUserAppStats(val playTimeMinutes: Long, val lastPlayedEpochMs: Long?)
+
+    internal fun readUserAppStats(steamRoot: File): Map<String, SteamUserAppStats> {
+        val userdata = File(steamRoot, "userdata")
+        if (!userdata.isDirectory) return emptyMap()
+        val accounts = userdata.listFiles { f -> f.isDirectory }.orEmpty()
+        if (accounts.isEmpty()) return emptyMap()
+        val merged = HashMap<String, SteamUserAppStats>()
+        for (account in accounts) {
+            val vdf = File(account, "config/localconfig.vdf")
+            if (!vdf.isFile) continue
+            val content = runCatching { vdf.readText() }.getOrNull() ?: continue
+            for ((appId, stats) in parseLocalConfigApps(content)) {
+                val prev = merged[appId]
+                merged[appId] = if (prev == null) {
+                    stats
+                } else {
+                    SteamUserAppStats(
+                        playTimeMinutes = maxOf(prev.playTimeMinutes, stats.playTimeMinutes),
+                        lastPlayedEpochMs = listOfNotNull(prev.lastPlayedEpochMs, stats.lastPlayedEpochMs).maxOrNull(),
+                    )
+                }
+            }
+        }
+        return merged
     }
 
     private fun isIntentionallySkipped(acf: File): Boolean = runCatching {
@@ -129,7 +158,11 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
         return LibraryFolders(existing, missing)
     }
 
-    internal fun parseManifest(acfFile: File, libraryRoot: File): PcGame? {
+    internal fun parseManifest(
+        acfFile: File,
+        libraryRoot: File,
+        userStats: Map<String, SteamUserAppStats> = emptyMap(),
+    ): PcGame? {
         return try {
             val content = acfFile.readText()
             val appId = Regex(""""appid"\s+"(\d+)"""").find(content)?.groupValues?.get(1) ?: return null
@@ -144,11 +177,27 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
             // Flag 4 = Fully Installed (ou flag 6 = update required but installed)
             val isInstalled = (stateFlags and 4) != 0 || stateFlags == 4
 
+            val sizeOnDiskBytes = Regex(""""SizeOnDisk"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+                ?.takeIf { it > 0L }
+            val bytesToDownload = Regex(""""BytesToDownload"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+                ?.takeIf { it >= 0L }
+            val bytesDownloaded = Regex(""""BytesDownloaded"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+                ?.takeIf { it >= 0L }
+
+            val hasIncompleteTransfer = bytesToDownload != null && bytesToDownload > 0L && (bytesDownloaded ?: 0L) < bytesToDownload
+            val updateState = when {
+                (stateFlags and (256 or 512 or 1024 or 2048)) != 0 -> GameUpdateState.DOWNLOADING
+                (stateFlags and 2) != 0 || hasIncompleteTransfer -> GameUpdateState.UPDATE_REQUIRED
+                else -> GameUpdateState.READY
+            }
+
             val fullInstallPath = installDir?.let { File(File(libraryRoot, "steamapps/common"), it).absolutePath }
 
             // O próprio cliente Steam registra o último uso em segundos; 0 significa "nunca jogado" e não vira data.
-            val lastPlayedMs = Regex(""""LastPlayed"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+            val acfLastPlayedMs = Regex(""""LastPlayed"\s+"(\d+)"""").find(content)?.groupValues?.get(1)?.toLongOrNull()
                 ?.takeIf { it > 0 }?.let { it * 1000 }
+            val stats = userStats[appId]
+            val lastPlayedMs = acfLastPlayedMs ?: stats?.lastPlayedEpochMs
 
             PcGame(
                 id = "steam_$appId",
@@ -157,11 +206,112 @@ class SteamScanner(private val customSteamPath: File? = null) : LibraryScanner {
                 installDirectory = fullInstallPath,
                 launchUri = "steam://rungameid/$appId",
                 isInstalled = isInstalled,
+                playTimeMinutes = stats?.playTimeMinutes ?: 0L,
                 lastPlayedEpochMs = lastPlayedMs,
-                tags = listOf("Steam", "PC")
+                tags = listOf("Steam", "PC"),
+                sizeOnDiskBytes = sizeOnDiskBytes,
+                updateState = updateState,
+                downloadBytesCompleted = if (updateState != GameUpdateState.READY && bytesToDownload != null && bytesToDownload > 0L) bytesDownloaded else null,
+                downloadBytesTotal = if (updateState != GameUpdateState.READY && bytesToDownload != null && bytesToDownload > 0L) bytesToDownload else null,
             )
         } catch (_: Exception) {
             null
+        }
+    }
+
+    internal companion object {
+        private val PLAYTIME_REGEX = Regex(""""Playtime"\s+"(\d+)"""", RegexOption.IGNORE_CASE)
+        private val LAST_PLAYED_REGEX = Regex(""""LastPlayed"\s+"(\d+)"""", RegexOption.IGNORE_CASE)
+        private val APPS_HEADER_REGEX = Regex(""""apps"\s*\{""", RegexOption.IGNORE_CASE)
+
+        /**
+         * Extrai `Playtime` (em minutos) e `LastPlayed` por `appId` a partir de `localconfig.vdf`.
+         * Varre apenas os blocos com chave numérica dentro de `"apps" { ... }`.
+         */
+        internal fun parseLocalConfigApps(content: String): Map<String, SteamUserAppStats> {
+            val result = HashMap<String, SteamUserAppStats>()
+            for (header in APPS_HEADER_REGEX.findAll(content)) {
+                var pos = header.range.last + 1 // logo após '{' de "apps"
+                var appsDepth = 1
+                while (pos < content.length && appsDepth > 0) {
+                    val c = content[pos]
+                    when {
+                        c == '"' -> {
+                            val keyResult = readQuoted(content, pos) ?: break
+                            val key = keyResult.first
+                            pos = keyResult.second
+                            val afterKey = skipWhitespace(content, pos)
+                            if (appsDepth == 1 && afterKey < content.length && content[afterKey] == '{') {
+                                val blockEnd = findMatchingBrace(content, afterKey + 1) ?: break
+                                if (key.isNotEmpty() && key.all(Char::isDigit)) {
+                                    val block = content.substring(afterKey + 1, blockEnd)
+                                    val playtime = PLAYTIME_REGEX.find(block)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+                                    val lastPlayed = LAST_PLAYED_REGEX.find(block)?.groupValues?.get(1)?.toLongOrNull()
+                                        ?.takeIf { it > 0L }?.let { it * 1000L }
+                                    if (playtime > 0L || lastPlayed != null) {
+                                        val prev = result[key]
+                                        result[key] = if (prev == null) {
+                                            SteamUserAppStats(playtime, lastPlayed)
+                                        } else {
+                                            SteamUserAppStats(
+                                                playTimeMinutes = maxOf(prev.playTimeMinutes, playtime),
+                                                lastPlayedEpochMs = listOfNotNull(prev.lastPlayedEpochMs, lastPlayed).maxOrNull(),
+                                            )
+                                        }
+                                    }
+                                }
+                                pos = blockEnd + 1
+                            }
+                        }
+                        c == '{' -> { appsDepth++; pos++ }
+                        c == '}' -> { appsDepth--; pos++ }
+                        else -> pos++
+                    }
+                }
+            }
+            return result
+        }
+
+        private fun skipWhitespace(text: String, start: Int): Int {
+            var i = start
+            while (i < text.length && text[i].isWhitespace()) i++
+            return i
+        }
+
+        private fun readQuoted(text: String, openQuote: Int): Pair<String, Int>? {
+            val sb = StringBuilder()
+            var i = openQuote + 1
+            while (i < text.length) {
+                val ch = text[i]
+                if (ch == '\\' && i + 1 < text.length) {
+                    sb.append(text[i + 1])
+                    i += 2
+                } else if (ch == '"') {
+                    return sb.toString() to (i + 1)
+                } else {
+                    sb.append(ch)
+                    i++
+                }
+            }
+            return null
+        }
+
+        private fun findMatchingBrace(text: String, afterOpenBrace: Int): Int? {
+            var depth = 1
+            var i = afterOpenBrace
+            while (i < text.length) {
+                when (text[i]) {
+                    '"' -> i = readQuoted(text, i)?.second ?: return null
+                    '{' -> { depth++; i++ }
+                    '}' -> {
+                        depth--
+                        if (depth == 0) return i
+                        i++
+                    }
+                    else -> i++
+                }
+            }
+            return null
         }
     }
 }

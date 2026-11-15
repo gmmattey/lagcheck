@@ -17,10 +17,14 @@ namespace LagCheck.WinUI.Pages;
 
 public sealed partial class GameDetailsPage : Page
 {
+    private static readonly HashSet<string> SessionResolvedArtworkIds = new(StringComparer.Ordinal);
+
     private LibraryGame? _game;
+    private SteamLiveStats? _liveStats;
     private readonly ILibraryBridge _bridge;
     private bool _isPageLoaded;
     private CancellationTokenSource? _infoCts;
+    private CancellationTokenSource? _liveStatsCts;
 
     private static readonly CultureInfo[] ReleaseParseCultures =
     {
@@ -63,6 +67,9 @@ public sealed partial class GameDetailsPage : Page
             _infoCts?.Cancel();
             _infoCts?.Dispose();
             _infoCts = null;
+            _liveStatsCts?.Cancel();
+            _liveStatsCts?.Dispose();
+            _liveStatsCts = null;
             LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
             SessionHistoryServices.Store.Entries.CollectionChanged -= OnHistoryChanged;
         };
@@ -87,6 +94,7 @@ public sealed partial class GameDetailsPage : Page
         MeasureNowBtn.Content = Strings.Tr("Testar agora");
         StabilityDetailsBtn.Content = Strings.Tr("Ver detalhes da estabilidade");
         ShotsEyebrow.Text = Strings.Tr("CAPTURAS");
+        NewsEyebrow.Text = Strings.Tr("ATUALIZAÇÕES E NOTÍCIAS");
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -95,10 +103,12 @@ public sealed partial class GameDetailsPage : Page
         if (e.Parameter is LibraryGame game)
         {
             _game = game;
+            _liveStats = null;
             ApplyHeroSizing();
             BindGame();
             _ = EnsureLocalizedGameInfoAsync(game);
             _ = ResolveArtworkAsync(game);
+            _ = FetchSteamLiveStatsAsync(game);
             if (_isPageLoaded) AnimateEntrance();
         }
     }
@@ -110,7 +120,7 @@ public sealed partial class GameDetailsPage : Page
             Choreo.FadeSlideIn(BackgroundImage, ms: Choreo.Slow, dy: 0);
         }
         Choreo.FadeSlideIn(PlatformPillContainer, dy: 16, delayMs: 0);
-        Choreo.FadeSlideIn(GameTitleText, dy: 16, delayMs: 60);
+        Choreo.FadeSlideIn(GameLogoImage.Visibility == Visibility.Visible ? (UIElement)GameLogoImage : GameTitleText, dy: 16, delayMs: 60);
         Choreo.FadeSlideIn(GamePillsHost, dy: 16, delayMs: 120);
         Choreo.FadeSlideIn(CtaRow, dy: 16, delayMs: 180);
         if (DescriptionCard.Visibility == Visibility.Visible)
@@ -120,6 +130,10 @@ public sealed partial class GameDetailsPage : Page
         if (ShotsCard.Visibility == Visibility.Visible)
         {
             Choreo.FadeSlideIn(ShotsCard, dy: 16, delayMs: 300);
+        }
+        if (NewsCard.Visibility == Visibility.Visible)
+        {
+            Choreo.FadeSlideIn(NewsCard, dy: 16, delayMs: 300);
         }
         Choreo.FadeSlideIn(SideColumn, dy: 16, delayMs: 300);
     }
@@ -134,9 +148,11 @@ public sealed partial class GameDetailsPage : Page
 
     private async System.Threading.Tasks.Task ResolveArtworkAsync(LibraryGame game)
     {
-        var hasArt = Artwork.FirstExisting(game.HeroArtworkPath) is not null && Artwork.FirstExisting(game.CoverArtworkPath) is not null;
+        var hasLogoOrTried = Artwork.FirstExisting(game.LogoArtworkPath) is not null || SessionResolvedArtworkIds.Contains(game.Id);
+        var hasArt = Artwork.FirstExisting(game.HeroArtworkPath) is not null && Artwork.FirstExisting(game.CoverArtworkPath) is not null && hasLogoOrTried;
         // As informações de catálogo vêm na mesma chamada da arte: pede também quando só elas faltam.
         if (!game.IsInstalled || (hasArt && game.Info is not null)) return;
+        SessionResolvedArtworkIds.Add(game.Id);
         try
         {
             var result = await _bridge.ResolveArtworkAsync(new[] { game.Id });
@@ -150,6 +166,30 @@ public sealed partial class GameDetailsPage : Page
         catch
         {
             // A arte é complementar: o banner neutro continua correto.
+        }
+    }
+
+    private async System.Threading.Tasks.Task FetchSteamLiveStatsAsync(LibraryGame game)
+    {
+        _liveStatsCts?.Cancel();
+        _liveStatsCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _liveStatsCts = cts;
+        try
+        {
+            var stats = await SteamLiveStatsResolver.ResolveAsync(game, cts.Token);
+            if (cts.IsCancellationRequested || stats is null) return;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (cts.IsCancellationRequested || _game?.Id != game.Id) return;
+                _liveStats = stats;
+                BindPills(_game);
+                BindNews();
+            });
+        }
+        catch
+        {
+            // Dados ao vivo são opcionais; falha de rede nunca bloqueia a página.
         }
     }
 
@@ -183,6 +223,20 @@ public sealed partial class GameDetailsPage : Page
     {
         if (_game is not { } game) return;
 
+        var logoArt = Artwork.FirstExisting(game.LogoArtworkPath);
+        if (logoArt is not null)
+        {
+            GameLogoImage.Source = Artwork.Load(logoArt);
+            GameLogoImage.Visibility = Visibility.Visible;
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(GameLogoImage, game.Title);
+            GameTitleText.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            GameLogoImage.Source = null;
+            GameLogoImage.Visibility = Visibility.Collapsed;
+            GameTitleText.Visibility = Visibility.Visible;
+        }
         GameTitleText.Text = game.Title.ToUpperInvariant();
         var logo = Glyphs.PlatformLogo(game.Platform);
         PlatformLogo.Visibility = logo is null ? Visibility.Collapsed : Visibility.Visible;
@@ -219,14 +273,23 @@ public sealed partial class GameDetailsPage : Page
         FavIcon.Foreground = game.IsFavorite ? (Brush)Application.Current.Resources["CoralBrush"] : (Brush)Application.Current.Resources["TextPrimaryBrush"];
         ToolTipService.SetToolTip(FavBtn, game.FavoriteActionLabel);
 
-        GamePillsHost.Child = GamePills.Create(game);
+        BindPills(game);
 
         var description = !string.IsNullOrWhiteSpace(game.Info?.Description) ? game.Info!.Description : game.Description;
         DescriptionText.Text = description ?? string.Empty;
         DescriptionCard.Visibility = string.IsNullOrWhiteSpace(description) ? Visibility.Collapsed : Visibility.Visible;
         BindFacts(game);
         BindScreenshots(game);
+        BindNews();
         BindHistory();
+    }
+
+    private void BindPills(LibraryGame game)
+    {
+        var liveChip = _liveStats?.CurrentPlayers is { } players && players > 0
+            ? Strings.Format("{0:N0} jogando agora", players)
+            : null;
+        GamePillsHost.Child = GamePills.Create(game, extraStatusChip: liveChip);
     }
 
     // ------------------------------------------------------------------ capturas
@@ -236,17 +299,50 @@ public sealed partial class GameDetailsPage : Page
         ShotsPanel.Children.Clear();
         // Só arquivos que ainda existem: print movido ou apagado some da lista em vez de virar quadro vazio.
         var shots = game.UserScreenshots.Where(shot => Artwork.FirstExisting(shot.Path) is not null).ToList();
-        ShotsCard.Visibility = shots.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        if (shots.Count == 0) return;
+        if (shots.Count > 0)
+        {
+            ShotsCard.Visibility = Visibility.Visible;
+            ShotsEyebrow.Text = $"{Strings.Tr("CAPTURAS")} · {shots.Count}";
+            ShotsNote.Text = Strings.Tr("Prints que você tirou neste jogo na Steam.");
+            foreach (var shot in shots)
+            {
+                var image = new Image
+                {
+                    Stretch = Stretch.UniformToFill,
+                    Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 960),
+                };
+                var button = new Button
+                {
+                    Width = 240,
+                    Height = 135,
+                    Padding = new Thickness(0),
+                    CornerRadius = new CornerRadius(10),
+                    Content = image,
+                    Tag = shot,
+                };
+                Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, shot.CreatedEpochMs is { } at ? $"{Strings.Tr("CAPTURAS")} {FormatDate(at)}" : Strings.Tr("CAPTURAS"));
+                if (shot.CreatedEpochMs is { } created) ToolTipService.SetToolTip(button, FormatDate(created));
+                button.Click += Screenshot_Click;
+                ShotsPanel.Children.Add(button);
+            }
+            return;
+        }
 
-        ShotsEyebrow.Text = $"{Strings.Tr("CAPTURAS")} · {shots.Count}";
-        ShotsNote.Text = Strings.Tr("Prints que você tirou neste jogo na Steam.");
-        foreach (var shot in shots)
+        var storeShots = game.Info?.StoreScreenshots?
+            .Where(url => Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
+            .Take(6)
+            .ToList() ?? new List<string>();
+        ShotsCard.Visibility = storeShots.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (storeShots.Count == 0) return;
+
+        ShotsEyebrow.Text = $"{Strings.Tr("CAPTURAS DA LOJA")} · {storeShots.Count}";
+        ShotsNote.Text = Strings.Tr("Imagens divulgadas pela loja oficial.");
+        foreach (var url in storeShots)
         {
             var image = new Image
             {
                 Stretch = Stretch.UniformToFill,
-                Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 480),
+                Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(url)) { DecodePixelWidth = 960 },
             };
             var button = new Button
             {
@@ -255,10 +351,9 @@ public sealed partial class GameDetailsPage : Page
                 Padding = new Thickness(0),
                 CornerRadius = new CornerRadius(10),
                 Content = image,
-                Tag = shot,
+                Tag = url,
             };
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, shot.CreatedEpochMs is { } at ? $"{Strings.Tr("CAPTURAS")} {FormatDate(at)}" : Strings.Tr("CAPTURAS"));
-            if (shot.CreatedEpochMs is { } created) ToolTipService.SetToolTip(button, FormatDate(created));
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, Strings.Tr("CAPTURAS DA LOJA"));
             button.Click += Screenshot_Click;
             ShotsPanel.Children.Add(button);
         }
@@ -266,24 +361,120 @@ public sealed partial class GameDetailsPage : Page
 
     private async void Screenshot_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: GameScreenshot shot }) return;
-        var viewer = new Image { Stretch = Stretch.Uniform, MaxHeight = 560, Source = Artwork.Load(shot.Path, 1920) };
-        var dialog = new ContentDialog
+        if (sender is Button { Tag: GameScreenshot shot })
         {
-            XamlRoot = XamlRoot,
-            Content = viewer,
-            PrimaryButtonText = Strings.Tr("Abrir no visualizador"),
-            CloseButtonText = Strings.Tr("Fechar"),
-            DefaultButton = ContentDialogButton.Close,
-        };
+            var viewer = new Image { Stretch = Stretch.Uniform, MaxHeight = 760, Source = Artwork.Load(shot.Path) };
+            var dialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Content = viewer,
+                PrimaryButtonText = Strings.Tr("Abrir no visualizador"),
+                CloseButtonText = Strings.Tr("Fechar"),
+                DefaultButton = ContentDialogButton.Close,
+            };
+            try
+            {
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                    await Windows.System.Launcher.LaunchFileAsync(await Windows.Storage.StorageFile.GetFileFromPathAsync(shot.Path));
+            }
+            catch
+            {
+                // Visualizar é complementar: falha ao abrir o arquivo não afeta a página.
+            }
+        }
+        else if (sender is Button { Tag: string remoteUrl } && Uri.TryCreate(remoteUrl, UriKind.Absolute, out var remoteUri))
+        {
+            var viewer = new Image
+            {
+                Stretch = Stretch.Uniform,
+                MaxHeight = 760,
+                Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(remoteUri),
+            };
+            var dialog = new ContentDialog
+            {
+                XamlRoot = XamlRoot,
+                Content = viewer,
+                PrimaryButtonText = Strings.Tr("Abrir no navegador"),
+                CloseButtonText = Strings.Tr("Fechar"),
+                DefaultButton = ContentDialogButton.Close,
+            };
+            try
+            {
+                if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+                    await Windows.System.Launcher.LaunchUriAsync(remoteUri);
+            }
+            catch
+            {
+                // Visualizar é complementar: falha ao abrir o link não afeta a página.
+            }
+        }
+    }
+
+    private void BindNews()
+    {
+        NewsPanel.Children.Clear();
+        var news = _liveStats?.News;
+        NewsCard.Visibility = news is { Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
+        if (news is null || news.Count == 0) return;
+
+        NewsEyebrow.Text = Strings.Tr("ATUALIZAÇÕES E NOTÍCIAS");
+        var surface = new SolidColorBrush(Color.FromArgb(0x99, 0x15, 0x18, 0x1E));
+        var border = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255));
+        var headingFont = (FontFamily)Application.Current.Resources["BodySemiBoldFont"];
+        var tertiary = (Brush)Application.Current.Resources["TextTertiaryBrush"];
+
+        foreach (var item in news.Take(3))
+        {
+            var stack = new StackPanel { Spacing = 4, HorizontalAlignment = HorizontalAlignment.Stretch };
+            stack.Children.Add(new TextBlock
+            {
+                Text = item.Title,
+                FontFamily = headingFont,
+                FontSize = 14,
+                FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+                TextWrapping = TextWrapping.Wrap,
+            });
+            var metaParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(item.FeedLabel)) metaParts.Add(item.FeedLabel);
+            if (item.PublishedAt > DateTimeOffset.MinValue) metaParts.Add(FormatDate(item.PublishedAt.ToUnixTimeMilliseconds()));
+            if (metaParts.Count > 0)
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = string.Join(" · ", metaParts),
+                    FontSize = 12,
+                    Foreground = tertiary,
+                });
+            }
+
+            var btn = new Button
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                Padding = new Thickness(16, 12, 16, 12),
+                CornerRadius = new CornerRadius(10),
+                Background = surface,
+                BorderBrush = border,
+                BorderThickness = new Thickness(1),
+                Content = stack,
+                Tag = item.Url,
+            };
+            Fluid.Feedback(btn);
+            btn.Click += NewsItem_Click;
+            NewsPanel.Children.Add(btn);
+        }
+    }
+
+    private async void NewsItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string url } || !Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
         try
         {
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-                await Windows.System.Launcher.LaunchFileAsync(await Windows.Storage.StorageFile.GetFileFromPathAsync(shot.Path));
+            await Windows.System.Launcher.LaunchUriAsync(uri);
         }
         catch
         {
-            // Visualizar é complementar: falha ao abrir o arquivo não afeta a página.
+            // Link complementar; falha silenciosa.
         }
     }
 
@@ -295,11 +486,43 @@ public sealed partial class GameDetailsPage : Page
             (Strings.Tr("PLATAFORMA"), game.PlatformLabel),
             (Strings.Tr("REDE E DIAGNÓSTICO"), game.DiagnosticLabel),
         };
+        if (game.UpdateState != GameUpdateState.Ready)
+        {
+            var stateText = Strings.Tr(game.UpdateState == GameUpdateState.Downloading ? "Baixando atualização" : "Atualização pendente");
+            if (game.DownloadBytesTotal is > 0 && game.DownloadBytesCompleted is >= 0)
+            {
+                var pct = (int)Math.Clamp(game.DownloadBytesCompleted.Value * 100.0 / game.DownloadBytesTotal.Value, 0, 99);
+                stateText = $"{stateText} ({pct}%)";
+            }
+            rows.Add((Strings.Tr("ESTADO NO LAUNCHER"), stateText));
+        }
+        if (game.FormattedPlayTime is { } playTime) rows.Add((Strings.Tr("TEMPO JOGADO"), playTime));
+        if (game.FormattedSizeOnDisk is { } diskSize) rows.Add((Strings.Tr("TAMANHO NO DISCO"), diskSize));
         if (game.Info is { } info)
         {
             if (!string.IsNullOrWhiteSpace(info.Developer)) rows.Add((Strings.Tr("DESENVOLVEDORA"), info.Developer!));
             if (!string.IsNullOrWhiteSpace(info.Publisher) && !string.Equals(info.Publisher, info.Developer, StringComparison.OrdinalIgnoreCase)) rows.Add((Strings.Tr("PUBLICADORA"), info.Publisher!));
             if (FormatRelease(info.ReleaseDate) is { } release) rows.Add((Strings.Tr("LANÇAMENTO"), release));
+            var controller = info.ControllerSupport switch
+            {
+                "full" => Strings.Tr("Completo"),
+                "partial" => Strings.Tr("Parcial"),
+                _ => null,
+            };
+            if (controller is not null) rows.Add((Strings.Tr("CONTROLE"), controller));
+
+            var ratingParts = new List<string>();
+            if (info.MetacriticScore is { } mc) ratingParts.Add($"Metacritic {mc}");
+            if (info.RecommendationsTotal is { } rec) ratingParts.Add(Strings.Format("{0:N0} análises", rec));
+            if (ratingParts.Count > 0) rows.Add((Strings.Tr("AVALIAÇÃO"), string.Join(" · ", ratingParts)));
+
+            var featureParts = new List<string>();
+            if (info.HasCloudSaves) featureParts.Add(Strings.Tr("Nuvem"));
+            if (!string.IsNullOrWhiteSpace(info.AntiCheat)) featureParts.Add(info.AntiCheat!);
+            if (featureParts.Count > 0) rows.Add((Strings.Tr("RECURSOS"), string.Join(" · ", featureParts)));
+
+            if (info.HasPtBr == true) rows.Add((Strings.Tr("IDIOMA PT-BR"), Strings.Tr("Disponível")));
+            if (!string.IsNullOrWhiteSpace(info.PcMinimumRequirements)) rows.Add((Strings.Tr("REQUISITOS MÍNIMOS"), info.PcMinimumRequirements!));
         }
         if (game.RecentActivityEpochMs is { } recent) rows.Add((Strings.Tr("ÚLTIMA ATIVIDADE"), FormatDate(recent)));
         if (game.InstalledAtEpochMs is { } installed) rows.Add((Strings.Tr("INSTALADO EM"), FormatDate(installed)));

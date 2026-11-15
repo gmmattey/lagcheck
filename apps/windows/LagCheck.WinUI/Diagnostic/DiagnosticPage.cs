@@ -73,6 +73,17 @@ public sealed class DiagnosticPage : Page
     private readonly RouteMapView _map = new(animate: true) { CornerRadius = new CornerRadius(19) };
     private readonly Button _startBtn = new();
     private readonly StackPanel _idleControls = new() { Margin = new Thickness(0, 26, 0, 0) };
+    private readonly TextBlock _downloadWarning = new()
+    {
+        Visibility = Visibility.Collapsed,
+        FontSize = 13,
+        Foreground = Brush(Color.FromArgb(255, 0xFB, 0xBF, 0x24)),
+        HorizontalAlignment = HorizontalAlignment.Center,
+        TextAlignment = TextAlignment.Center,
+        TextWrapping = TextWrapping.Wrap,
+        MaxWidth = 520,
+        Margin = new Thickness(0, 12, 0, 0),
+    };
     private readonly StackPanel _runningPanel = new() { Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly Border _progressFill = new() { Height = 2, Background = Brush(Purple), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
     private readonly Grid _progressTrack = new() { Height = 2, Margin = new Thickness(0, 8, 0, 0), Background = Brush(Color.FromArgb(0x14, 255, 255, 255)) };
@@ -170,6 +181,7 @@ public sealed class DiagnosticPage : Page
         _startBtn.HorizontalAlignment = HorizontalAlignment.Center;
         _startBtn.Click += async (_, _) => await StartAsync();
         _idleControls.Children.Add(_startBtn);
+        _idleControls.Children.Add(_downloadWarning);
         _idleTitle.HorizontalAlignment = HorizontalAlignment.Center;
         _idleTitle.TextAlignment = TextAlignment.Center;
 
@@ -447,7 +459,31 @@ public sealed class DiagnosticPage : Page
         }
         ApplyLocation(_map);
         ApplyLocation(_resultMap);
+        _ = RefreshDownloadWarningAsync();
         await started;
+    }
+
+    private async Task RefreshDownloadWarningAsync()
+    {
+        try
+        {
+            var snapshot = await LibraryPageServices.Bridge.GetSnapshotAsync();
+            if (_running) return;
+            var downloading = snapshot.Games.FirstOrDefault(g => g.IsInstalled && g.UpdateState == GameUpdateState.Downloading);
+            if (downloading is not null)
+            {
+                _downloadWarning.Text = Strings.Format("Download ativo detectado no launcher ({0}). Isso pode elevar ping e jitter durante o teste.", downloading.Title);
+                _downloadWarning.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _downloadWarning.Visibility = Visibility.Collapsed;
+            }
+        }
+        catch
+        {
+            _downloadWarning.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void ApplyLocation(RouteMapView map)
@@ -477,6 +513,7 @@ public sealed class DiagnosticPage : Page
         _chooseBtn.Content = HasGame ? Strings.Tr("Escolher outro jogo") : Strings.Tr("Escolher um jogo");
         _map.Reset();
         UpdateProgress(0);
+        _ = RefreshDownloadWarningAsync();
 
         var ticket = ++_diagnosticTransitionTicket;
         if (_donePanel.Visibility == Visibility.Visible)

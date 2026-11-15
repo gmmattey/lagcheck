@@ -18,6 +18,12 @@ sealed interface GameNetworkSupport {
     data class OfflineSingleplayer(val note: String = "Jogo solo / Sem servidores dedicados") : GameNetworkSupport
 }
 
+enum class GameUpdateState(val wireValue: String) {
+    READY("ready"),
+    UPDATE_REQUIRED("updateRequired"),
+    DOWNLOADING("downloading"),
+}
+
 data class PcGame(
     val id: String,
     val title: String,
@@ -41,5 +47,10 @@ data class PcGame(
     /** Ids das cópias deste jogo em outras plataformas, agrupadas como duplicata. */
     val alsoIds: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
-    val description: String? = null
+    val description: String? = null,
+    val sizeOnDiskBytes: Long? = null,
+    val updateState: GameUpdateState = GameUpdateState.READY,
+    val downloadBytesCompleted: Long? = null,
+    val downloadBytesTotal: Long? = null,
+    val logoArtworkUrl: String? = null,
 )

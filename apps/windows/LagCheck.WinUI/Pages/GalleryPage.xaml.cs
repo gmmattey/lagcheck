@@ -146,7 +146,7 @@ public sealed partial class GalleryPage : Page
             Width = 256,
             Height = 144,
             Stretch = Stretch.UniformToFill,
-            Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 640),
+            Source = Artwork.Load(Artwork.FirstExisting(shot.ThumbnailPath, shot.Path), 960),
         };
         var imageBorder = new Border
         {
@@ -181,8 +181,8 @@ public sealed partial class GalleryPage : Page
         var viewer = new Image
         {
             Stretch = Stretch.Uniform,
-            MaxHeight = 560,
-            Source = Artwork.Load(shot.Path, 1920),
+            MaxHeight = 760,
+            Source = Artwork.Load(shot.Path),
         };
         var dialog = new ContentDialog
         {

@@ -60,6 +60,7 @@ class EpicCatalogSource(
         val order = when (type) {
             ArtworkType.COVER -> listOf("DieselGameBoxTall", "OfferImageTall", "Thumbnail")
             ArtworkType.HERO -> listOf("DieselGameBox", "OfferImageWide", "DieselStoreFrontWide", "DieselGameBoxTall")
+            ArtworkType.LOGO -> listOf("DieselGameBoxLogo")
             ArtworkType.ICON -> return emptyList()
         }
         return order.mapNotNull { entry.images[it] }.map(ArtworkCandidate::Remote)
@@ -125,13 +126,14 @@ class XboxPackageArtSource : ArtworkSource {
         val attributes = when (type) {
             ArtworkType.COVER -> arrayOf("Square480x480Logo", "Square150x150Logo", "StoreLogo")
             ArtworkType.HERO -> arrayOf("SplashScreenImage", "Square480x480Logo")
+            ArtworkType.LOGO -> return emptyList()
             ArtworkType.ICON -> arrayOf("Square44x44Logo", "Square150x150Logo")
         }
         return XboxPackageFiles.visuals(game.installDirectory, *attributes).map { ArtworkCandidate.LocalFile(it.toPath() as Path) }
     }
 }
 
-/** Pôster e banner de jogos da Microsoft Store, a partir do que o catálogo da loja já respondeu na varredura. */
+/** Pôster, banner e logo de jogos da Microsoft Store, a partir do que o catálogo da loja já respondeu na varredura. */
 class StoreCatalogArtSource(private val catalog: com.lagcheck.desktop.library.scanner.StoreCatalog) : ArtworkSource {
     override fun candidates(game: PcGame, type: ArtworkType): List<ArtworkCandidate> {
         if (game.platform != GamePlatform.XBOX) return emptyList()
@@ -139,6 +141,7 @@ class StoreCatalogArtSource(private val catalog: com.lagcheck.desktop.library.sc
         val url = when (type) {
             ArtworkType.COVER -> product.posterUrl
             ArtworkType.HERO -> product.heroUrl ?: product.posterUrl
+            ArtworkType.LOGO -> product.logoUrl
             ArtworkType.ICON -> null
         }
         return listOfNotNull(url?.let(ArtworkCandidate::Remote))

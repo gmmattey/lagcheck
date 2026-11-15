@@ -71,11 +71,13 @@ class GameInfoService(
     private val market: String = "br",
     private val language: String = "brazilian",
 ) : GameKindSource {
-    override fun cached(game: PcGame): Boolean? = try {
+    override fun cached(game: PcGame): Boolean? = cachedInfo(game)?.isGame
+
+    override fun cachedInfo(game: PcGame): GameInfo? = try {
         when (game.platform) {
-            GamePlatform.STEAM -> steamAppId(game)?.let { readCache(File(cacheDir, "steam_$it.json"))?.info?.isGame }
-            GamePlatform.EPIC_GAMES -> epic.info(game)?.isGame
-            GamePlatform.XBOX -> store.cached(game.id.removePrefix("xbox_"))?.isGame
+            GamePlatform.STEAM -> steamAppId(game)?.let { readCache(File(cacheDir, "steam_$it.json"))?.info }
+            GamePlatform.EPIC_GAMES -> epic.info(game)
+            GamePlatform.XBOX -> store.cached(game.id.removePrefix("xbox_"))?.info
             GamePlatform.MANUAL -> null
         }
     } catch (_: Exception) {
@@ -143,11 +145,12 @@ class GameInfoService(
     }
 
     companion object {
-        /** 2: o cache passou a guardar a classificação jogo/software. */
-        private const val CACHE_VERSION = 2
+        /** 3: passa a guardar suporte a controle, Metacritic, nuvem, VAC, PT-BR, requisitos e screenshots oficiais. */
+        private const val CACHE_VERSION = 3
         const val POSITIVE_TTL_MS = 14L * 24 * 60 * 60 * 1000
         const val NEGATIVE_TTL_MS = 24L * 60 * 60 * 1000
         private const val MAX_DESCRIPTION = 600
+        private const val MAX_REQUIREMENTS = 360
 
         /**
          * Gêneros que a Steam usa para software (ids estáveis): Contabilidade, Modelagem e animação, Desenho e ilustração,
@@ -181,9 +184,42 @@ class GameInfoService(
 
             val release = (data["release_date"] as? JsonObject)?.takeUnless { (it["coming_soon"] as? JsonPrimitive)?.content == "true" }
                 ?.get("date")?.let { (it as? JsonPrimitive)?.content }?.trim()?.takeIf { it.isNotEmpty() }
-            val modes = (data["categories"] as? JsonArray).orEmpty()
+            val categoryIds = (data["categories"] as? JsonArray).orEmpty()
                 .mapNotNull { ((it as? JsonObject)?.get("id") as? JsonPrimitive)?.content?.toIntOrNull() }
-                .mapNotNull(STEAM_MODES::get).distinct()
+            val modes = categoryIds.mapNotNull(STEAM_MODES::get).distinct()
+
+            val controllerSupport = text("controller_support")?.lowercase()?.takeIf { it == "full" || it == "partial" }
+                ?: when {
+                    28 in categoryIds -> "full"
+                    18 in categoryIds -> "partial"
+                    else -> null
+                }
+            val hasCloudSaves = 23 in categoryIds
+            val antiCheat = if (8 in categoryIds) "VAC" else null
+            val metacriticScore = ((data["metacritic"] as? JsonObject)?.get("score") as? JsonPrimitive)?.content?.toIntOrNull()
+                ?.takeIf { it in 1..100 }
+            val recommendationsTotal = ((data["recommendations"] as? JsonObject)?.get("total") as? JsonPrimitive)?.content?.toIntOrNull()
+                ?.takeIf { it > 0 }
+            val supportedLangs = text("supported_languages")?.lowercase()
+            val hasPtBr = supportedLangs?.let {
+                it.contains("português (brasil)") ||
+                    it.contains("portuguese - brazil") ||
+                    it.contains("portugues (brasil)") ||
+                    it.contains("português do brasil")
+            }
+            val pcMinReq = ((data["pc_requirements"] as? JsonObject)?.get("minimum") as? JsonPrimitive)?.content
+                ?.let(::cleanRequirements)
+                ?.take(MAX_REQUIREMENTS)
+                ?.takeIf { it.isNotEmpty() }
+            val storeScreenshots = (data["screenshots"] as? JsonArray).orEmpty()
+                .mapNotNull { item ->
+                    val obj = item as? JsonObject ?: return@mapNotNull null
+                    ((obj["path_full"] as? JsonPrimitive)?.content ?: (obj["path_thumbnail"] as? JsonPrimitive)?.content)
+                        ?.trim()
+                        ?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                }
+                .distinct()
+                .take(6)
 
             val genreIds = (data["genres"] as? JsonArray).orEmpty()
                 .mapNotNull { ((it as? JsonObject)?.get("id") as? JsonPrimitive)?.content?.toIntOrNull() }
@@ -203,7 +239,25 @@ class GameInfoService(
                 genres = names(data["genres"], "description"),
                 modes = modes,
                 isGame = isGame,
+                controllerSupport = controllerSupport,
+                metacriticScore = metacriticScore,
+                recommendationsTotal = recommendationsTotal,
+                hasCloudSaves = hasCloudSaves,
+                antiCheat = antiCheat,
+                hasPtBr = hasPtBr,
+                pcMinimumRequirements = pcMinReq,
+                storeScreenshots = storeScreenshots,
             ).takeUnless { it.isEmpty }
+        }
+
+        private fun cleanRequirements(raw: String): String {
+            val formatted = raw
+                .replace(Regex("(?i)<br\\s*/?>"), " · ")
+                .replace(Regex("(?i)</li>"), " · ")
+            return cleanText(formatted)
+                .replace(Regex("^(Mínimos|Mínimo|Minimum)\\s*:?\\s*·?\\s*", RegexOption.IGNORE_CASE), "")
+                .replace(Regex("(?:\\s*·\\s*)+"), " · ")
+                .trim(' ', '·')
         }
 
         private fun stringList(element: JsonElement?): List<String> =
@@ -224,6 +278,14 @@ class GameInfoService(
             put("genres", JsonArray(info.genres.map(::JsonPrimitive)))
             put("modes", JsonArray(info.modes.map(::JsonPrimitive)))
             info.isGame?.let { put("isGame", JsonPrimitive(it)) }
+            info.controllerSupport?.let { put("controllerSupport", JsonPrimitive(it)) }
+            info.metacriticScore?.let { put("metacriticScore", JsonPrimitive(it)) }
+            info.recommendationsTotal?.let { put("recommendationsTotal", JsonPrimitive(it)) }
+            if (info.hasCloudSaves) put("hasCloudSaves", JsonPrimitive(true))
+            info.antiCheat?.let { put("antiCheat", JsonPrimitive(it)) }
+            info.hasPtBr?.let { put("hasPtBr", JsonPrimitive(it)) }
+            info.pcMinimumRequirements?.let { put("pcMinimumRequirements", JsonPrimitive(it)) }
+            if (info.storeScreenshots.isNotEmpty()) put("storeScreenshots", JsonArray(info.storeScreenshots.map(::JsonPrimitive)))
         })
 
         internal fun infoFromJson(obj: JsonObject): GameInfo = GameInfo(
@@ -234,6 +296,14 @@ class GameInfoService(
             genres = stringList(obj["genres"]),
             modes = stringList(obj["modes"]),
             isGame = (obj["isGame"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull(),
+            controllerSupport = (obj["controllerSupport"] as? JsonPrimitive)?.content,
+            metacriticScore = (obj["metacriticScore"] as? JsonPrimitive)?.content?.toIntOrNull(),
+            recommendationsTotal = (obj["recommendationsTotal"] as? JsonPrimitive)?.content?.toIntOrNull(),
+            hasCloudSaves = (obj["hasCloudSaves"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: false,
+            antiCheat = (obj["antiCheat"] as? JsonPrimitive)?.content,
+            hasPtBr = (obj["hasPtBr"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull(),
+            pcMinimumRequirements = (obj["pcMinimumRequirements"] as? JsonPrimitive)?.content,
+            storeScreenshots = stringList(obj["storeScreenshots"]),
         )
     }
 }

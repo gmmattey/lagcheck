@@ -19,16 +19,16 @@ namespace LagCheck.WinUI.Widgets;
 /// </summary>
 public sealed class WidgetCard : Grid
 {
-    private static readonly Color SurfaceTop = Color.FromArgb(0xEE, 0x1E, 0x24, 0x30);
-    private static readonly Color SurfaceBottom = Color.FromArgb(0xEE, 0x14, 0x18, 0x21);
-    private static readonly Color SurfaceHoverTop = Color.FromArgb(0xF5, 0x26, 0x2D, 0x3B);
-    private static readonly Color SurfaceHoverBottom = Color.FromArgb(0xF5, 0x19, 0x1E, 0x29);
+    private static readonly Color SurfaceTop = Color.FromArgb(0xF0, 0x16, 0x1A, 0x20);
+    private static readonly Color SurfaceBottom = Color.FromArgb(0xF0, 0x10, 0x13, 0x18);
+    private static readonly Color SurfaceHoverTop = Color.FromArgb(0xF5, 0x1E, 0x23, 0x2B);
+    private static readonly Color SurfaceHoverBottom = Color.FromArgb(0xF5, 0x15, 0x18, 0x1E);
 
     private readonly Rectangle _shadowCaster = new() { RadiusX = 12, RadiusY = 12, Fill = new SolidColorBrush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), IsHitTestVisible = false };
     private readonly Border _frame = new() { CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), Padding = new Thickness(16, 12, 16, 12) };
     private readonly LinearGradientBrush _surfaceBrush = VerticalGradient(SurfaceTop, SurfaceBottom);
     private readonly LinearGradientBrush _surfaceHoverBrush = VerticalGradient(SurfaceHoverTop, SurfaceHoverBottom);
-    private readonly LinearGradientBrush _defaultBorderBrush = VerticalGradient(Color.FromArgb(0x30, 255, 255, 255), Color.FromArgb(0x12, 255, 255, 255));
+    private readonly LinearGradientBrush _defaultBorderBrush = VerticalGradient(Color.FromArgb(0x1C, 255, 255, 255), Color.FromArgb(0x0D, 255, 255, 255));
     private readonly SvgIcon _icon = new() { Size = 14 };
     private readonly TextBlock _title = new() { FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 70, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly Button _actionButton = new();

@@ -60,6 +60,14 @@ public static class WindowMode
 
     public static event Action? FullScreenChanged;
 
+    internal static void SetRestoredBounds(RectInt32 bounds)
+    {
+        if (bounds.Width > 0 && bounds.Height > 0)
+        {
+            _savedBounds = bounds;
+        }
+    }
+
     internal static void Attach(Microsoft.UI.Xaml.Window window)
     {
         _window = window;
@@ -76,13 +84,13 @@ public static class WindowMode
                 }
                 else
                 {
-                    _savedBounds = new RectInt32(100, 100, 1120, 740);
+                    _savedBounds = new RectInt32(80, 60, 1600, 940);
                 }
                 _lastFullScreen = _appWindow.Presenter?.Kind == AppWindowPresenterKind.FullScreen;
             }
             catch
             {
-                _savedBounds = new RectInt32(100, 100, 1120, 740);
+                _savedBounds = new RectInt32(80, 60, 1600, 940);
             }
 
             _appWindow.Changed -= OnAppWindowChanged;

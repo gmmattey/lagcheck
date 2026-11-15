@@ -14,13 +14,13 @@ namespace LagCheck.WinUI.Controls;
 /// </summary>
 public sealed class StripedBackground : Grid
 {
-    private readonly Path _stripes = new() { Fill = new SolidColorBrush(Color.FromArgb(255, 0x23, 0x2A, 0x3A)) };
+    private readonly Path _stripes = new() { Fill = new SolidColorBrush(Color.FromArgb(255, 0x16, 0x1A, 0x21)) };
     private readonly Canvas _canvas = new();
     private double _band = 14;
 
     public StripedBackground()
     {
-        Background = new SolidColorBrush(Color.FromArgb(255, 0x1C, 0x22, 0x30));
+        Background = new SolidColorBrush(Color.FromArgb(255, 0x11, 0x14, 0x19));
         _canvas.Children.Add(_stripes);
         Children.Add(_canvas);
         IsHitTestVisible = false;

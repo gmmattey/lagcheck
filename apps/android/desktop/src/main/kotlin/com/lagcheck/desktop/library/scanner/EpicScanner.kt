@@ -1,6 +1,7 @@
 package com.lagcheck.desktop.library.scanner
 
 import com.lagcheck.desktop.library.model.GamePlatform
+import com.lagcheck.desktop.library.model.GameUpdateState
 import com.lagcheck.desktop.library.model.PcGame
 import java.io.File
 
@@ -66,6 +67,11 @@ class EpicScanner(private val customManifestsPath: File? = null) : LibraryScanne
                 File(installLocation, launchExe).absolutePath
             } else null
 
+            val installSizeBytes = Regex(""""InstallSize"\s*:\s*(\d+)""").find(content)?.groupValues?.get(1)?.toLongOrNull()
+                ?.takeIf { it > 0L }
+            val isIncompleteInstall = Regex(""""bIsIncompleteInstall"\s*:\s*(true|false)""", RegexOption.IGNORE_CASE)
+                .find(content)?.groupValues?.get(1)?.equals("true", ignoreCase = true) == true
+
             PcGame(
                 id = "epic_$appName",
                 title = displayName,
@@ -74,7 +80,9 @@ class EpicScanner(private val customManifestsPath: File? = null) : LibraryScanne
                 executablePath = fullExecutable,
                 launchUri = "com.epicgames.launcher://apps/$appName?action=launch",
                 isInstalled = true,
-                tags = listOf("Epic Games", "PC")
+                tags = listOf("Epic Games", "PC"),
+                sizeOnDiskBytes = installSizeBytes,
+                updateState = if (isIncompleteInstall) GameUpdateState.UPDATE_REQUIRED else GameUpdateState.READY,
             )
         } catch (_: Exception) {
             null

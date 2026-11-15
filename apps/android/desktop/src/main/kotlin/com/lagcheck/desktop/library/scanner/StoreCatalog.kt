@@ -18,8 +18,10 @@ data class StoreProduct(
     val isGame: Boolean,
     val posterUrl: String? = null,
     val heroUrl: String? = null,
+    val logoUrl: String? = null,
     /** Descrição, estúdio, lançamento, gêneros e modos que a loja publicou. */
     val info: com.lagcheck.desktop.library.model.GameInfo? = null,
+    val version: Int = StoreCatalog.PRODUCT_VERSION,
 )
 
 /** Consulta de um pacote ao catálogo da loja. `null` quando não foi possível saber (sem rede, sem permissão). */
@@ -50,7 +52,7 @@ class StoreCatalog(
 
     /** Produto com as informações de catálogo; consulta a loja de novo se o que está em disco veio de antes delas existirem. */
     fun details(packageFamilyName: String): StoreProduct? {
-        cached(packageFamilyName)?.takeIf { !it.isGame || it.info != null }?.let { return it }
+        cached(packageFamilyName)?.takeIf { !it.isGame || (it.info != null && it.version >= PRODUCT_VERSION) }?.let { return it }
         if (!enabled()) return cached(packageFamilyName)
         val product = fetch(packageFamilyName) ?: return cached(packageFamilyName)
         synchronized(lock) {
@@ -100,7 +102,9 @@ class StoreCatalog(
                         isGame = (obj["isGame"] as? JsonPrimitive)?.content == "true",
                         posterUrl = (obj["posterUrl"] as? JsonPrimitive)?.content?.substringBefore("?q=90&w="),
                         heroUrl = (obj["heroUrl"] as? JsonPrimitive)?.content?.substringBefore("?q=90&w="),
+                        logoUrl = (obj["logoUrl"] as? JsonPrimitive)?.content?.substringBefore("?q=90&w="),
                         info = (obj["info"] as? JsonObject)?.let(com.lagcheck.desktop.library.info.GameInfoService.Companion::infoFromJson),
+                        version = (obj["v"] as? JsonPrimitive)?.content?.toIntOrNull() ?: 1,
                     )
                 }
             }
@@ -116,8 +120,10 @@ class StoreCatalog(
                     buildMap {
                         put("title", JsonPrimitive(p.title))
                         put("isGame", JsonPrimitive(p.isGame))
+                        put("v", JsonPrimitive(p.version))
                         p.posterUrl?.let { put("posterUrl", JsonPrimitive(it)) }
                         p.heroUrl?.let { put("heroUrl", JsonPrimitive(it)) }
+                        p.logoUrl?.let { put("logoUrl", JsonPrimitive(it)) }
                         p.info?.let { put("info", com.lagcheck.desktop.library.info.GameInfoService.Companion.infoToJson(it)) }
                     },
                 )
@@ -132,6 +138,8 @@ class StoreCatalog(
     }
 
     companion object {
+        internal const val PRODUCT_VERSION = 2
+
         /** Host das imagens da Microsoft Store. */
         const val IMAGE_HOST = "store-images.s-microsoft.com"
 
@@ -152,7 +160,9 @@ class StoreCatalog(
                 isGame = isGame,
                 posterUrl = image("Poster", "BoxArt"),
                 heroUrl = image("SuperHeroArt", "Hero"),
-                info = parseInfo(product, localized),
+                logoUrl = image("Logo"),
+                info = parseInfo(product, localized, images),
+                version = PRODUCT_VERSION,
             )
         }
 
@@ -167,7 +177,7 @@ class StoreCatalog(
             "XblCrossPlatformCoop" to com.lagcheck.desktop.library.model.GameModes.CROSSPLAY,
         )
 
-        internal fun parseInfo(product: JsonObject, localized: JsonObject?): com.lagcheck.desktop.library.model.GameInfo? {
+        internal fun parseInfo(product: JsonObject, localized: JsonObject?, images: List<JsonObject> = emptyList()): com.lagcheck.desktop.library.model.GameInfo? {
             fun text(obj: JsonObject?, name: String) = (obj?.get(name) as? JsonPrimitive)?.content?.trim()?.takeIf { it.isNotEmpty() }
             val properties = product["Properties"] as? JsonObject
             val market = ((product["MarketProperties"] as? JsonArray)?.firstOrNull() as? JsonObject)
@@ -176,8 +186,16 @@ class StoreCatalog(
                 ?.take(600)?.takeIf { it.isNotEmpty() }
             val genres = (properties?.get("Categories") as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.content?.trim() }.filter(String::isNotEmpty)
                 .ifEmpty { listOfNotNull(text(properties, "Category")) }
-            val modes = (properties?.get("Attributes") as? JsonArray).orEmpty()
-                .mapNotNull { text(it as? JsonObject, "Name") }.mapNotNull(MODE_ATTRIBUTES::get).distinct()
+            val attributeNames = (properties?.get("Attributes") as? JsonArray).orEmpty()
+                .mapNotNull { text(it as? JsonObject, "Name") }
+            val modes = attributeNames.mapNotNull(MODE_ATTRIBUTES::get).distinct()
+            val hasCloudSaves = attributeNames.any { it.equals("XblCloudSaves", ignoreCase = true) }
+            val controllerSupport = if (attributeNames.any { it.equals("ConsoleController", ignoreCase = true) || it.equals("FullControllerSupport", ignoreCase = true) }) "full" else null
+            val screenshots = images
+                .filter { (it["ImagePurpose"] as? JsonPrimitive)?.content == "Screenshot" }
+                .mapNotNull { (it["Uri"] as? JsonPrimitive)?.content?.let(::absolute) }
+                .distinct()
+                .take(6)
             return com.lagcheck.desktop.library.model.GameInfo(
                 description = description,
                 developer = text(localized, "DeveloperName"),
@@ -185,6 +203,9 @@ class StoreCatalog(
                 releaseDate = text(market, "OriginalReleaseDate")?.take(10),
                 genres = genres,
                 modes = modes,
+                hasCloudSaves = hasCloudSaves,
+                controllerSupport = controllerSupport,
+                storeScreenshots = screenshots,
             ).takeUnless { it.isEmpty }
         }
 

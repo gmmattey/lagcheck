@@ -645,6 +645,31 @@ public sealed class LocalizationService
         Add("Ver detalhes da estabilidade", "See stability details", "Ver detalles de estabilidad");
         Add("PING", "PING", "PING");
         Add("PING MÉD", "AVG PING", "PING PROM");
+        Add("Ordenar: Mais jogados", "Sort: Most played", "Ordenar: Más jugados");
+        Add("Baixando atualização", "Downloading update", "Descargando actualización");
+        Add("Atualização pendente", "Update pending", "Actualización pendiente");
+        Add("Baixando", "Downloading", "Descargando");
+        Add("Atualização", "Update", "Actualización");
+        Add("{0:N0} jogando agora", "{0:N0} playing now", "{0:N0} jugando ahora");
+        Add("ATUALIZAÇÕES E NOTÍCIAS", "UPDATES & NEWS", "ACTUALIZACIONES Y NOTICIAS");
+        Add("CAPTURAS DA LOJA", "STORE SCREENSHOTS", "CAPTURAS DE LA TIENDA");
+        Add("Imagens divulgadas pela loja oficial.", "Screenshots published by the official store.", "Imágenes publicadas por la tienda oficial.");
+        Add("Abrir no navegador", "Open in browser", "Abrir en el navegador");
+        Add("TEMPO JOGADO", "PLAYTIME", "TIEMPO JUGADO");
+        Add("TAMANHO NO DISCO", "DISK SIZE", "TAMAÑO EN DISCO");
+        Add("ESTADO NO LAUNCHER", "LAUNCHER STATUS", "ESTADO EN EL LAUNCHER");
+        Add("CONTROLE", "CONTROLLER", "MANDO");
+        Add("Completo", "Full support", "Total");
+        Add("Parcial", "Partial support", "Parcial");
+        Add("AVALIAÇÃO", "REVIEWS", "VALORACIÓN");
+        Add("{0:N0} análises", "{0:N0} reviews", "{0:N0} reseñas");
+        Add("RECURSOS", "FEATURES", "FUNCIONES");
+        Add("Nuvem", "Cloud saves", "Guardado en la nube");
+        Add("IDIOMA PT-BR", "PT-BR LANGUAGE", "IDIOMA PT-BR");
+        Add("Disponível", "Available", "Disponible");
+        Add("REQUISITOS MÍNIMOS", "MINIMUM REQUIREMENTS", "REQUISITOS MÍNIMOS");
+        Add("Jogo solo, sem servidor para medir", "Solo game, no server to measure", "Juego individual, sin servidor para medir");
+        Add("Download ativo detectado no launcher ({0}). Isso pode elevar ping e jitter durante o teste.", "Active launcher download detected ({0}). This may increase ping and jitter during the test.", "Descarga activa detectada en el launcher ({0}). Esto puede elevar el ping y el jitter durante la prueba.");
     }
 
     private static string GetConfigFilePath()

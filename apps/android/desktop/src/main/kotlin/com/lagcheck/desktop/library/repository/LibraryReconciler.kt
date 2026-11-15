@@ -55,7 +55,8 @@ object LibraryReconciler {
         lastPlayedEpochMs = seen.lastPlayedEpochMs ?: old.lastPlayedEpochMs,
         lastLaunchedEpochMs = old.lastLaunchedEpochMs,
         installedAtEpochMs = seen.installedAtEpochMs ?: old.installedAtEpochMs,
-        playTimeMinutes = if (seen.playTimeMinutes > 0) seen.playTimeMinutes else old.playTimeMinutes,
+        playTimeMinutes = maxOf(seen.playTimeMinutes, old.playTimeMinutes),
+        sizeOnDiskBytes = seen.sizeOnDiskBytes ?: old.sizeOnDiskBytes,
         isFavorite = old.isFavorite,
     )
 
@@ -87,6 +88,8 @@ object LibraryReconciler {
                 if (group.size == 1) winner else winner.copy(
                     isFavorite = group.any { it.isFavorite },
                     lastLaunchedEpochMs = group.mapNotNull { it.lastLaunchedEpochMs }.maxOrNull(),
+                    playTimeMinutes = group.maxOf { it.playTimeMinutes },
+                    sizeOnDiskBytes = winner.sizeOnDiskBytes ?: group.firstNotNullOfOrNull { it.sizeOnDiskBytes },
                     alsoIds = group.map { it.id }.filter { it != winner.id }.sorted(),
                 )
             }

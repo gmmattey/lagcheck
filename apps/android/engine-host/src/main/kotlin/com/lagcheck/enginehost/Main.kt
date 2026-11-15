@@ -266,6 +266,7 @@ internal class EngineHost(
                     put("id", id)
                     result.coverPath?.let { put("coverArtworkPath", it) }
                     result.heroPath?.let { put("heroArtworkPath", it) }
+                    result.logoPath?.let { put("logoArtworkPath", it) }
                 })
             }
         }
@@ -288,7 +289,7 @@ internal class EngineHost(
                     val result = runCatching { library.resolveArtwork(id) }.getOrElse { ArtworkAction.NotFound }
                     processed++
                     if (result is ArtworkAction.Done) {
-                        if (result.coverPath != null || result.heroPath != null) available++
+                        if (result.coverPath != null || result.heroPath != null || result.logoPath != null) available++
                         emitArtwork(requestId, id, result)
                     }
                 }
@@ -306,6 +307,7 @@ internal class EngineHost(
         put("id", id)
         result.coverPath?.let { put("coverArtworkPath", it) }
         result.heroPath?.let { put("heroArtworkPath", it) }
+        result.logoPath?.let { put("logoArtworkPath", it) }
     })
 
     private fun emitLibrarySnapshot(requestId: String?) = emit(HostJson.message("library.snapshot", requestId) {
@@ -495,17 +497,25 @@ private class LibraryBridge {
     private suspend fun resolveArtwork(game: PcGame): ArtworkAction {
         val cover = DesktopArtwork.resolver.resolve(game, ArtworkType.COVER).pathOrNull()
         val hero = DesktopArtwork.resolver.resolve(game, ArtworkType.HERO).pathOrNull()
-        artwork[game.id] = ArtworkPaths(cover, hero)
+        val logo = DesktopArtwork.resolver.resolve(game, ArtworkType.LOGO).pathOrNull()
+        artwork[game.id] = ArtworkPaths(cover, hero, logo)
         // Informações de catálogo vão junto: mesma tela, mesma regra de rede, e a falha nunca derruba a arte.
-        runCatching { com.lagcheck.desktop.DesktopGameInfo.service.resolve(game) }.getOrNull()?.let { info[game.id] = it }
-        return ArtworkAction.Done(cover, hero)
+        runCatching { com.lagcheck.desktop.DesktopGameInfo.service.resolve(game) }.getOrNull()?.let {
+            info[game.id] = it
+            repository.refreshNetworkSupport()
+        }
+        return ArtworkAction.Done(cover, hero, logo)
     }
 
     fun snapshot(): JsonObject = buildJsonObject {
         put("isScanning", repository.isScanning)
         put("hasScanned", repository.hasScanned)
         repository.selectedGame?.id?.let { put("heroGameId", it); put("selectedGameId", it) }
-        put("games", buildJsonArray { repository.games.forEach { add(it.toJson(artwork[it.id], info[it.id], screenshotsOf(it))) } })
+        put("games", buildJsonArray {
+            repository.games.forEach {
+                add(it.toJson(artwork[it.id], info[it.id] ?: com.lagcheck.desktop.DesktopGameInfo.service.cachedInfo(it), screenshotsOf(it)))
+            }
+        })
     }
 
     // Só Steam por enquanto; o índice é lido uma vez e reaproveitado enquanto os arquivos da Steam não mudam.
@@ -576,10 +586,10 @@ private sealed interface LaunchAction {
     data object NotFound : LaunchAction
 }
 private sealed interface ArtworkAction {
-    data class Done(val coverPath: String?, val heroPath: String?) : ArtworkAction
+    data class Done(val coverPath: String?, val heroPath: String?, val logoPath: String? = null) : ArtworkAction
     data object NotFound : ArtworkAction
 }
-private data class ArtworkPaths(val cover: String?, val hero: String?)
+private data class ArtworkPaths(val cover: String?, val hero: String?, val logo: String? = null)
 
 private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.library.model.GameInfo? = null, screenshots: List<com.lagcheck.desktop.library.scanner.GameScreenshot> = emptyList()): JsonObject = buildJsonObject {
     put("id", id)
@@ -588,12 +598,18 @@ private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.lib
     put("isInstalled", isInstalled)
     put("isFavorite", isFavorite)
     put("isLaunchable", !launchUri.isNullOrBlank() || !executablePath.isNullOrBlank())
+    if (playTimeMinutes > 0L) put("playTimeMinutes", playTimeMinutes)
+    sizeOnDiskBytes?.let { put("sizeOnDiskBytes", it) }
+    put("updateState", updateState.wireValue)
+    downloadBytesCompleted?.let { put("downloadBytesCompleted", it) }
+    downloadBytesTotal?.let { put("downloadBytesTotal", it) }
     lastPlayedEpochMs?.let { put("lastPlayedEpochMs", it) }
     lastLaunchedEpochMs?.let { put("lastLaunchedEpochMs", it) }
     installedAtEpochMs?.let { put("installedAtEpochMs", it) }
     // A UI WinUI só recebe caminho local aprovado pelo host. URLs remotas nunca são entregues ao XAML.
     (artwork?.cover ?: localArtworkRes)?.let { put("coverArtworkPath", it) }
     (artwork?.hero ?: localArtworkRes)?.let { put("heroArtworkPath", it) }
+    artwork?.logo?.let { put("logoArtworkPath", it) }
     put("networkKind", networkSupport.kind())
     put("networkLabel", networkSupport.label())
     diagnosticGameId()?.let { put("diagnosticGameId", it) }
@@ -607,6 +623,14 @@ private fun PcGame.toJson(artwork: ArtworkPaths?, info: com.lagcheck.desktop.lib
             details.releaseDate?.let { put("releaseDate", it) }
             put("genres", buildJsonArray { details.genres.forEach { add(JsonPrimitive(it)) } })
             put("modes", buildJsonArray { details.modes.forEach { add(JsonPrimitive(it)) } })
+            details.controllerSupport?.let { put("controllerSupport", it) }
+            details.metacriticScore?.let { put("metacriticScore", it) }
+            details.recommendationsTotal?.let { put("recommendationsTotal", it) }
+            if (details.hasCloudSaves) put("hasCloudSaves", true)
+            details.antiCheat?.let { put("antiCheat", it) }
+            details.hasPtBr?.let { put("hasPtBr", it) }
+            details.pcMinimumRequirements?.let { put("pcMinimumRequirements", it) }
+            if (details.storeScreenshots.isNotEmpty()) put("storeScreenshots", buildJsonArray { details.storeScreenshots.forEach { add(JsonPrimitive(it)) } })
         })
     }
     put("alsoIds", buildJsonArray { alsoIds.forEach { add(JsonPrimitive(it)) } })

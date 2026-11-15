@@ -210,6 +210,7 @@ public sealed partial class HomePage : Page
     private void ApplyHeroSizing()
     {
         var vh = ViewportHeight / 100.0;
+        GameLogoImage.MaxHeight = Math.Clamp(9.5 * vh, 54, 104);
         GameTitleText.FontSize = Math.Clamp(8 * vh, 36, 76);
         GameTitleText.LineHeight = GameTitleText.FontSize * 0.98;
         GameHeroPanel.Spacing = Math.Clamp(2 * vh, 8, 18);
@@ -336,6 +337,20 @@ public sealed partial class HomePage : Page
         PcHeroPanel.Visibility = Visibility.Collapsed;
         EmptyHeroPanel.Visibility = Visibility.Collapsed;
 
+        var logoArtPath = Artwork.FirstExisting(hero.LogoArtworkPath);
+        if (logoArtPath is not null)
+        {
+            GameLogoImage.Source = Artwork.Load(logoArtPath);
+            GameLogoImage.Visibility = Visibility.Visible;
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(GameLogoImage, hero.Title);
+            GameTitleText.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            GameLogoImage.Source = null;
+            GameLogoImage.Visibility = Visibility.Collapsed;
+            GameTitleText.Visibility = Visibility.Visible;
+        }
         GameTitleText.Text = hero.Title.ToUpperInvariant();
         GamePillsHost.Child = GamePills.Create(hero);
         _ = EnsureLocalizedHeroInfoAsync(hero);
@@ -515,7 +530,7 @@ public sealed partial class HomePage : Page
         };
         GlowEffect.AttachShadow(shadowRect, Color.FromArgb(0xAA, 0, 0, 0), blur: 18f, offsetY: 6f);
         tile.Children.Add(shadowRect);
-        var clip = new Border { CornerRadius = new CornerRadius(10), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)), Child = face };
+        var clip = new Border { CornerRadius = new CornerRadius(10), Background = new SolidColorBrush(Color.FromArgb(255, 0x15, 0x18, 0x1E)), Child = face };
         tile.Children.Add(clip);
         var borderHighlight = new LinearGradientBrush
         {
@@ -523,8 +538,8 @@ public sealed partial class HomePage : Page
             EndPoint = new Windows.Foundation.Point(0, 1),
             GradientStops =
             {
-                new GradientStop { Color = Color.FromArgb(0x36, 255, 255, 255), Offset = 0 },
-                new GradientStop { Color = Color.FromArgb(0x14, 255, 255, 255), Offset = 1 },
+                new GradientStop { Color = Color.FromArgb(0x22, 255, 255, 255), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0x0D, 255, 255, 255), Offset = 1 },
             },
         };
         tile.Children.Add(new Border { CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(1), BorderBrush = borderHighlight, IsHitTestVisible = false });

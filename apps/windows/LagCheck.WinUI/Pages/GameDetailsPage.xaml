@@ -11,24 +11,24 @@
         <!-- Camada de arte e escurecimento FIXA (não rola com o ScrollViewer) -->
         <Grid x:Name="BackgroundLayer" Visibility="Collapsed">
             <Image x:Name="BackgroundImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-            <!-- (a) Camada de escurecimento vertical fixa: #8C070914 (topo) -> #B8070914 (45%) -> #F2070914 (100%) -->
+            <!-- (a) Camada de escurecimento vertical apenas na transição inferior para leitura sem lavar a arte -->
             <Rectangle>
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#26070914" Offset="0"/>
-                        <GradientStop Color="#73070914" Offset="0.42"/>
-                        <GradientStop Color="#CC070914" Offset="0.68"/>
-                        <GradientStop Color="#F5070914" Offset="1"/>
+                        <GradientStop Color="#0D0B0D10" Offset="0"/>
+                        <GradientStop Color="#400B0D10" Offset="0.45"/>
+                        <GradientStop Color="#B80B0D10" Offset="0.76"/>
+                        <GradientStop Color="#F50B0D10" Offset="1"/>
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
             <!-- (b) Camada de escurecimento direcionada ao canto inferior esquerdo onde fica o título e pílulas -->
             <Rectangle>
                 <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0.75" EndPoint="0.68,0.2">
-                        <GradientStop Color="#E0070914" Offset="0"/>
-                        <GradientStop Color="#8C070914" Offset="0.48"/>
-                        <GradientStop Color="#00070914" Offset="1"/>
+                    <LinearGradientBrush StartPoint="0,0.85" EndPoint="0.55,0.28">
+                        <GradientStop Color="#CC0B0D10" Offset="0"/>
+                        <GradientStop Color="#590B0D10" Offset="0.45"/>
+                        <GradientStop Color="#000B0D10" Offset="1"/>
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
@@ -58,6 +58,7 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
+                        <Image x:Name="GameLogoImage" MaxHeight="104" MaxWidth="380" Stretch="Uniform" HorizontalAlignment="Left" Visibility="Collapsed"/>
                         <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="64" LineStackingStrategy="BlockLineHeight"
                                    TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                         <!-- Pílulas de gênero/modo (Tarefa 3) -->
@@ -100,6 +101,13 @@
                                     <StackPanel x:Name="ShotsPanel" Orientation="Horizontal" Spacing="12" Padding="0,0,0,8"/>
                                 </ScrollViewer>
                                 <TextBlock x:Name="ShotsNote" FontSize="13" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="NewsCard" Padding="0" Visibility="Collapsed">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Name="NewsEyebrow" Text="ATUALIZAÇÕES E NOTÍCIAS" Style="{StaticResource TechLabelStyle}"/>
+                                <StackPanel x:Name="NewsPanel" Spacing="10"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

@@ -53,27 +53,70 @@ internal static class EngineLibraryParser
         Long(game, "lastPlayedEpochMs"),
         Long(game, "lastLaunchedEpochMs"),
         Long(game, "installedAtEpochMs"),
-        String(game, "coverArtworkPath"),
-        String(game, "heroArtworkPath"),
+        LocalPath(game, "coverArtworkPath"),
+        LocalPath(game, "heroArtworkPath"),
         NetworkKind(String(game, "networkKind")),
         NetworkKind(String(game, "networkKind")) == GameNetworkKind.Supported ? String(game, "diagnosticGameId") : null,
         String(game, "networkLabel") ?? "Conexão geral",
         Strings(game, "tags"),
         String(game, "description"),
         Strings(game, "alsoIds"),
-        ReadInfo(game));
+        ReadInfo(game),
+        ReadScreenshots(game),
+        Math.Max(0, Long(game, "playTimeMinutes") ?? 0),
+        Long(game, "sizeOnDiskBytes"),
+        UpdateState(String(game, "updateState")),
+        Long(game, "downloadBytesCompleted"),
+        Long(game, "downloadBytesTotal"),
+        LocalPath(game, "logoArtworkPath"));
+
+    private static GameUpdateState UpdateState(string? value) => value switch
+    {
+        "downloading" => GameUpdateState.Downloading,
+        "updateRequired" => GameUpdateState.UpdateRequired,
+        _ => GameUpdateState.Ready,
+    };
+
+    private static GameScreenshot[] ReadScreenshots(JsonElement game) =>
+        game.TryGetProperty("screenshots", out var arr) && arr.ValueKind == JsonValueKind.Array
+            ? arr.EnumerateArray()
+                .Where(item => item.ValueKind == JsonValueKind.Object)
+                .Select(item => (Path: LocalPath(item, "path"), Item: item))
+                .Where(entry => entry.Path is not null)
+                .Select(entry => new GameScreenshot(
+                    entry.Path!,
+                    LocalPath(entry.Item, "thumbnailPath"),
+                    Long(entry.Item, "createdEpochMs"),
+                    (int?)Long(entry.Item, "width"),
+                    (int?)Long(entry.Item, "height")))
+                .ToArray()
+            : Array.Empty<GameScreenshot>();
 
     private static GameInfo? ReadInfo(JsonElement game)
     {
         if (!game.TryGetProperty("info", out var info) || info.ValueKind != JsonValueKind.Object) return null;
-        var parsed = new GameInfo(String(info, "description"), String(info, "developer"), String(info, "publisher"), String(info, "releaseDate"), Strings(info, "genres"), Strings(info, "modes"));
+        var parsed = new GameInfo(
+            String(info, "description"),
+            String(info, "developer"),
+            String(info, "publisher"),
+            String(info, "releaseDate"),
+            Strings(info, "genres"),
+            Strings(info, "modes"),
+            ControllerSupport: String(info, "controllerSupport"),
+            MetacriticScore: (int?)Long(info, "metacriticScore"),
+            RecommendationsTotal: (int?)Long(info, "recommendationsTotal"),
+            HasCloudSaves: Bool(info, "hasCloudSaves"),
+            AntiCheat: String(info, "antiCheat"),
+            HasPtBr: NullableBool(info, "hasPtBr"),
+            PcMinimumRequirements: String(info, "pcMinimumRequirements"),
+            StoreScreenshots: Strings(info, "storeScreenshots"));
         return parsed.IsEmpty ? null : parsed;
     }
 
     private static GamePlatform Platform(string? value) => value?.ToLowerInvariant() switch
     {
         "steam" => GamePlatform.Steam,
-        "epic" or "epicgames" => GamePlatform.EpicGames,
+        "epic" or "epic_games" or "epicgames" => GamePlatform.EpicGames,
         "xbox" => GamePlatform.Xbox,
         _ => GamePlatform.Manual,
     };
@@ -87,8 +130,16 @@ internal static class EngineLibraryParser
 
     private static string Required(JsonElement value, string name) => String(value, name) ?? throw new DiagnosticEngineException("INVALID_LIBRARY_RESPONSE", "O motor local retornou um jogo sem " + name + ".");
     private static string? String(JsonElement value, string name) => value.TryGetProperty(name, out var item) && item.ValueKind == JsonValueKind.String ? item.GetString() : null;
+    private static string? LocalPath(JsonElement value, string name)
+    {
+        var path = String(value, name);
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        return Uri.TryCreate(path, UriKind.Absolute, out var uri) && !uri.IsFile ? null : path;
+    }
     private static bool Bool(JsonElement value, string name) => value.TryGetProperty(name, out var item)
         && (item.ValueKind is JsonValueKind.True or JsonValueKind.False) && item.GetBoolean();
+    private static bool? NullableBool(JsonElement value, string name) => value.TryGetProperty(name, out var item)
+        && (item.ValueKind is JsonValueKind.True or JsonValueKind.False) ? item.GetBoolean() : null;
     private static long? Long(JsonElement value, string name) => value.TryGetProperty(name, out var item) && item.TryGetInt64(out var number) ? number : null;
     private static IReadOnlyList<string> Strings(JsonElement value, string name) => value.TryGetProperty(name, out var item) && item.ValueKind == JsonValueKind.Array
         ? item.EnumerateArray().Where(entry => entry.ValueKind == JsonValueKind.String).Select(entry => entry.GetString()!).ToArray()

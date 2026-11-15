@@ -62,6 +62,7 @@ class LibraryRepository(
     var hasScanned by mutableStateOf(false)
     var launchMessage by mutableStateOf<String?>(null)
 
+    private val publishLock = Any()
     private var selectedId by mutableStateOf<String?>(null)
     private var prefs: LibraryStore.Snapshot = store.load()
     private var known: List<PcGame> = prefs.knownGames
@@ -115,7 +116,7 @@ class LibraryRepository(
     }
 
     /** Recalcula a lista visível: sem software, rede, preferências, depois deduplicação entre plataformas. */
-    private fun publish() {
+    private fun publish() = synchronized(publishLock) {
         val view = LibraryReconciler.dedupe(known.filter { kindSource.cached(it) != false }.map(::withPrefsAndNetwork))
         Snapshot.withMutableSnapshot {
             games.clear()
@@ -123,10 +124,15 @@ class LibraryRepository(
         }
     }
 
+    /** Reaplica suporte de rede com base no cache recém-atualizado da loja (ex.: jogos solo detectados). */
+    fun refreshNetworkSupport() {
+        publish()
+    }
+
     private fun withPrefsAndNetwork(game: PcGame): PcGame = game.copy(
         isFavorite = game.id in prefs.favorites,
         lastLaunchedEpochMs = prefs.lastLaunched[game.id],
-        networkSupport = networkResolver.resolve(game),
+        networkSupport = networkResolver.resolve(game, kindSource.cachedInfo(game)),
     )
 
     fun toggleFavorite(game: PcGame) {

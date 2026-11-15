@@ -53,13 +53,14 @@ public sealed class ActivityWidget : IHomeWidget
 
         var dateStr = activity.Value.ToLocalTime().ToString("d MMM yyyy", DateCulture());
         var relStr = WidgetParts.RelativeDay(activity.Value);
+        var displayRel = game.FormattedPlayTime is { } playTime ? $"{relStr} · {playTime}" : relStr;
         var caption = relStr;
         var summary = Strings.Format("Última atividade: {0} ({1}).", dateStr, relStr);
 
         var body = span switch
         {
-            { Cols: 2, Rows: 2 } => BuildGameDetailsBody(context, game, dateStr, relStr),
-            _ => BuildCompactGameBody(dateStr, relStr),
+            { Cols: 2, Rows: 2 } => BuildGameDetailsBody(context, game, dateStr, displayRel),
+            _ => BuildCompactGameBody(dateStr, displayRel),
         };
 
         return new WidgetContent(
@@ -90,13 +91,14 @@ public sealed class ActivityWidget : IHomeWidget
         var latest = known[0];
         var latestDate = latest.Activity!.Value;
         var relStr = WidgetParts.RelativeDay(latestDate);
+        var displayRel = latest.Game.FormattedPlayTime is { } playTime ? $"{relStr} · {playTime}" : relStr;
         var caption = Strings.Format(installed.Count == 1 ? "{0} jogo instalado" : "{0} jogos instalados", installed.Count);
         var summary = Strings.Format("Última atividade: {0}, {1}.", latest.Game.Title, relStr);
 
         var body = span switch
         {
-            { Cols: 2, Rows: 2 } => BuildPcDetailsBody(context, latest.Game.Title, relStr, caption, known.Select(k => (k.Game.Title, k.Activity!.Value)).Take(4).ToList()),
-            _ => BuildCompactPcBody(latest.Game.Title, relStr, caption),
+            { Cols: 2, Rows: 2 } => BuildPcDetailsBody(context, latest.Game.Title, displayRel, caption, known.Select(k => (k.Game.Title, k.Activity!.Value)).Take(4).ToList()),
+            _ => BuildCompactPcBody(latest.Game.Title, displayRel, caption),
         };
 
         return new WidgetContent(

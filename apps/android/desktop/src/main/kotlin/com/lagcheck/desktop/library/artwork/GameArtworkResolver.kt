@@ -148,6 +148,7 @@ class GameArtworkResolver(
     private fun isCompatible(dimensions: ImageBytes.Dimensions, type: ArtworkType): Boolean = when (type) {
         ArtworkType.HERO -> dimensions.width >= dimensions.height * 3 / 2
         ArtworkType.COVER -> dimensions.height > dimensions.width && dimensions.height * 10 >= dimensions.width * 12
+        ArtworkType.LOGO -> dimensions.width * 2 >= dimensions.height
         ArtworkType.ICON -> true
     }
 }

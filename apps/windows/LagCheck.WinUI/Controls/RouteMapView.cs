@@ -242,7 +242,7 @@ public sealed class RouteMapView : Grid
     private void OnRendering(object? sender, object e)
     {
         var now = Now();
-        var dt = _lastFrame == 0 ? 0.016 : Math.Min((now - _lastFrame) / 1000.0, 0.05);
+        var dt = _lastFrame == 0 ? (1.0 / 144.0) : Math.Min((now - _lastFrame) / 1000.0, 0.05);
         _lastFrame = now;
         var target = Target();
         var k = 1 - Math.Exp(-dt * 3.2);
