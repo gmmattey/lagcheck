@@ -102,7 +102,7 @@ public sealed class WidgetHost : Grid
     private readonly WidgetGridPanel _panel = new() { AllowDrop = true };
     private readonly StackPanel _toolbar = new() { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
     private readonly TextBlock _hint = new() { FontSize = 12, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
-    private readonly Border _hintPill = new() { CornerRadius = new CornerRadius(17), Padding = new Thickness(14, 8, 14, 8), Background = new SolidColorBrush(Color.FromArgb(0xD9, 0x0B, 0x0D, 0x12)), HorizontalAlignment = HorizontalAlignment.Left, MaxWidth = 380, Visibility = Visibility.Collapsed };
+    private readonly Border _hintPill = new() { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromArgb(0x24, 255, 255, 255)), Padding = new Thickness(14, 8, 14, 8), Background = new SolidColorBrush(Color.FromArgb(0xD9, 0x0B, 0x0D, 0x12)), HorizontalAlignment = HorizontalAlignment.Left, MaxWidth = 380, Visibility = Visibility.Collapsed };
     private readonly WrapPanel _hiddenChips = new() { Spacing = 8, Visibility = Visibility.Collapsed };
     private WidgetContext? _context;
     private bool _editing;
@@ -362,7 +362,9 @@ public sealed class WidgetHost : Grid
             Height = 34,
             MinHeight = 34,
             Padding = new Thickness(14, 0, 14, 0),
-            CornerRadius = new CornerRadius(17),
+            CornerRadius = new CornerRadius(8),
+            BorderThickness = new Thickness(1),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x24, 255, 255, 255)),
             Content = row,
             Background = primary ? (Brush)Application.Current.Resources["PurpleBrush"] : new SolidColorBrush(Color.FromArgb(0xB8, 0x14, 0x18, 0x28)),
             Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),

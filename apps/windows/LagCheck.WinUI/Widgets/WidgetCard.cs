@@ -19,11 +19,16 @@ namespace LagCheck.WinUI.Widgets;
 /// </summary>
 public sealed class WidgetCard : Grid
 {
-    private static readonly Color Surface = Color.FromArgb(0xDB, 0x20, 0x26, 0x36);
-    private static readonly Color SurfaceHover = Color.FromArgb(0xEB, 0x2C, 0x33, 0x46);
+    private static readonly Color SurfaceTop = Color.FromArgb(0xEE, 0x1E, 0x24, 0x30);
+    private static readonly Color SurfaceBottom = Color.FromArgb(0xEE, 0x14, 0x18, 0x21);
+    private static readonly Color SurfaceHoverTop = Color.FromArgb(0xF5, 0x26, 0x2D, 0x3B);
+    private static readonly Color SurfaceHoverBottom = Color.FromArgb(0xF5, 0x19, 0x1E, 0x29);
 
-    private readonly Border _frame = new() { CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1), Padding = new Thickness(16, 12, 16, 12) };
-    private readonly SolidColorBrush _frameBrush = new(Surface);
+    private readonly Rectangle _shadowCaster = new() { RadiusX = 12, RadiusY = 12, Fill = new SolidColorBrush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)), IsHitTestVisible = false };
+    private readonly Border _frame = new() { CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), Padding = new Thickness(16, 12, 16, 12) };
+    private readonly LinearGradientBrush _surfaceBrush = VerticalGradient(SurfaceTop, SurfaceBottom);
+    private readonly LinearGradientBrush _surfaceHoverBrush = VerticalGradient(SurfaceHoverTop, SurfaceHoverBottom);
+    private readonly LinearGradientBrush _defaultBorderBrush = VerticalGradient(Color.FromArgb(0x30, 255, 255, 255), Color.FromArgb(0x12, 255, 255, 255));
     private readonly SvgIcon _icon = new() { Size = 14 };
     private readonly TextBlock _title = new() { FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 70, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly Button _actionButton = new();
@@ -32,7 +37,7 @@ public sealed class WidgetCard : Grid
     private readonly Grid _bodyHost = new();
     private readonly TextBlock _caption = new() { FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 6, 0, 0) };
     private readonly Border _staleChip = new();
-    private readonly Rectangle _editOutline = new() { RadiusX = 20, RadiusY = 20, StrokeThickness = 1.5, StrokeDashArray = { 4, 3 }, IsHitTestVisible = false, Opacity = 0 };
+    private readonly Rectangle _editOutline = new() { RadiusX = 12, RadiusY = 12, StrokeThickness = 1.5, StrokeDashArray = { 4, 3 }, IsHitTestVisible = false, Opacity = 0 };
     private readonly Grid _skeleton = new() { RowSpacing = 8, Visibility = Visibility.Collapsed };
 
     private Action? _activate;
@@ -71,10 +76,21 @@ public sealed class WidgetCard : Grid
 
     // ------------------------------------------------------------------ construção
 
+    private static LinearGradientBrush VerticalGradient(Color top, Color bottom) => new()
+    {
+        StartPoint = new Windows.Foundation.Point(0, 0),
+        EndPoint = new Windows.Foundation.Point(0, 1),
+        GradientStops =
+        {
+            new GradientStop { Color = top, Offset = 0 },
+            new GradientStop { Color = bottom, Offset = 1 },
+        },
+    };
+
     private void BuildChrome()
     {
-        _frame.Background = _frameBrush;
-        _frame.BorderBrush = new SolidColorBrush(Color.FromArgb(0x24, 255, 255, 255));
+        _frame.Background = _surfaceBrush;
+        _frame.BorderBrush = _defaultBorderBrush;
 
         var root = new Grid { RowSpacing = 8 };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -100,7 +116,7 @@ public sealed class WidgetCard : Grid
         _actionButton.Padding = new Thickness(8, 0, 8, 0);
         _actionButton.FontSize = 12;
         _actionButton.Foreground = (Brush)Application.Current.Resources["PurpleLightBrush"];
-        _actionButton.CornerRadius = new CornerRadius(14);
+        _actionButton.CornerRadius = new CornerRadius(8);
         _actionButton.Visibility = Visibility.Collapsed;
         right.Children.Add(_actionButton);
 
@@ -111,7 +127,7 @@ public sealed class WidgetCard : Grid
         _sizeButton.MinHeight = 28;
         _sizeButton.Padding = new Thickness(10, 0, 10, 0);
         _sizeButton.FontSize = 12;
-        _sizeButton.CornerRadius = new CornerRadius(14);
+        _sizeButton.CornerRadius = new CornerRadius(8);
         _sizeButton.Click += (_, _) => SizeRequested?.Invoke(this);
         AutomationProperties.SetName(_sizeButton, Strings.Tr("Alterar tamanho"));
         ToolTipService.SetToolTip(_sizeButton, Strings.Tr("Alterar tamanho"));
@@ -129,7 +145,7 @@ public sealed class WidgetCard : Grid
         root.Children.Add(_caption);
 
         _staleChip.Background = new SolidColorBrush(Color.FromArgb(0x33, 0xF5, 0x9E, 0x0B));
-        _staleChip.CornerRadius = new CornerRadius(9);
+        _staleChip.CornerRadius = new CornerRadius(6);
         _staleChip.Padding = new Thickness(8, 2, 8, 2);
         _staleChip.HorizontalAlignment = HorizontalAlignment.Right;
         _staleChip.VerticalAlignment = VerticalAlignment.Top;
@@ -138,6 +154,8 @@ public sealed class WidgetCard : Grid
         _staleChip.Child = new TextBlock { Text = Strings.Tr("DESATUALIZADO"), FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 60, Foreground = new SolidColorBrush(Color.FromArgb(255, 0xF5, 0x9E, 0x0B)) };
         Grid.SetRow(_staleChip, 1);
 
+        GlowEffect.AttachShadow(_shadowCaster, Color.FromArgb(0x98, 0, 0, 0), blur: 20f, offsetY: 6f);
+        Children.Add(_shadowCaster);
         _frame.Child = root;
         Children.Add(_frame);
         _editOutline.Stroke = (Brush)Application.Current.Resources["PurpleLightBrush"];
@@ -147,7 +165,7 @@ public sealed class WidgetCard : Grid
         _editBar.VerticalAlignment = VerticalAlignment.Top;
         _editBar.Margin = new Thickness(0, -16, 10, 0);
         _editBar.Padding = new Thickness(4);
-        _editBar.CornerRadius = new CornerRadius(18);
+        _editBar.CornerRadius = new CornerRadius(10);
         _editBar.Background = new SolidColorBrush(Color.FromArgb(0xFA, 0x14, 0x18, 0x28));
         Children.Add(_editBar);
         root.Children.Add(_staleChip);
@@ -161,7 +179,7 @@ public sealed class WidgetCard : Grid
             Height = 28,
             MinHeight = 28,
             Padding = new Thickness(0),
-            CornerRadius = new CornerRadius(14),
+            CornerRadius = new CornerRadius(8),
             Background = new SolidColorBrush(Color.FromArgb(0xB3, 0x25, 0x2A, 0x36)),
             Content = new FontIcon { Glyph = glyph, FontFamily = new FontFamily("Segoe Fluent Icons"), FontSize = 12, Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"] },
         };
@@ -241,7 +259,7 @@ public sealed class WidgetCard : Grid
 
         _frame.BorderBrush = content.Accent is SolidColorBrush accent && content.State == WidgetState.Ready
             ? new SolidColorBrush(Color.FromArgb(0x66, accent.Color.R, accent.Color.G, accent.Color.B))
-            : new SolidColorBrush(Color.FromArgb(0x24, 255, 255, 255));
+            : _defaultBorderBrush;
 
         var summary = content.Summary ?? content.Message ?? string.Empty;
         AutomationProperties.SetName(this, string.IsNullOrWhiteSpace(summary) ? _title.Text : $"{_title.Text}: {summary}");
@@ -314,7 +332,7 @@ public sealed class WidgetCard : Grid
     {
         _hovered = hover;
         var lit = hover && Clickable;
-        _frameBrush.Color = lit ? SurfaceHover : Surface;
+        _frame.Background = lit ? _surfaceHoverBrush : _surfaceBrush;
         if (_editing) return;
         Fluid.Hover(this, lit, 1.02f, -3f);
     }
@@ -350,7 +368,7 @@ public sealed class WidgetCard : Grid
             _editBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
             _actionButton.Visibility = value || _actionButton.Tag is null ? Visibility.Collapsed : Visibility.Visible;
             Choreo.FadeTo(_editOutline, value ? 1 : 0);
-            if (value) { Fluid.Hover(this, false); _frameBrush.Color = Surface; }
+            if (value) { Fluid.Hover(this, false); _frame.Background = _surfaceBrush; }
             UpdateInteractivity();
         }
     }

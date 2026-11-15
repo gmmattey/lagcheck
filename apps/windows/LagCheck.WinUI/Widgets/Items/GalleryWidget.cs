@@ -126,17 +126,37 @@ public sealed class GalleryWidget : IHomeWidget
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
+        var shadowRect = new Microsoft.UI.Xaml.Shapes.Rectangle
+        {
+            RadiusX = 8,
+            RadiusY = 8,
+            Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0x0B, 0x0D, 0x10)),
+            IsHitTestVisible = false,
+        };
+        GlowEffect.AttachShadow(shadowRect, Windows.UI.Color.FromArgb(0x88, 0, 0, 0), blur: 10f, offsetY: 4f);
+
         var border = new Border
         {
-            CornerRadius = new CornerRadius(10),
+            CornerRadius = new CornerRadius(8),
+            BorderThickness = new Thickness(1),
+            BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x28, 255, 255, 255)),
             Child = image,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
+        var host = new Grid
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        host.Children.Add(shadowRect);
+        host.Children.Add(border);
+
         var btn = new Button
         {
-            Content = border,
+            Content = host,
+            CornerRadius = new CornerRadius(8),
             Padding = new Thickness(0),
             BorderThickness = new Thickness(0),
             Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),

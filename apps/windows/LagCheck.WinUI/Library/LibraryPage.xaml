@@ -42,8 +42,8 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="SearchBox" PlaceholderText="Buscar na sua biblioteca"
                          Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Height="46" CornerRadius="14" Padding="16,13,16,0" FontSize="14"/>
-                <ComboBox x:Name="SortBox" Grid.Column="1" SelectionChanged="Sort_SelectionChanged" Height="46" MinWidth="230" CornerRadius="14" Padding="14,0" FontSize="14" SelectedIndex="0">
+                         Height="46" CornerRadius="12" Padding="16,13,16,0" FontSize="14"/>
+                <ComboBox x:Name="SortBox" Grid.Column="1" SelectionChanged="Sort_SelectionChanged" Height="46" MinWidth="230" CornerRadius="12" Padding="14,0" FontSize="14" SelectedIndex="0">
                     <ComboBoxItem x:Name="SortNameItem" Content="Ordenar: Nome A–Z" Tag="Name"/>
                     <ComboBoxItem x:Name="SortRecentItem" Content="Ordenar: Mais recentes" Tag="Recent"/>
                     <ComboBoxItem x:Name="SortPlatformItem" Content="Ordenar: Plataforma" Tag="Platform"/>
@@ -68,36 +68,39 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:LibraryGame">
-                        <Grid CornerRadius="18" IsTabStop="True" UseSystemFocusVisuals="True" automation:AutomationProperties.Name="{x:Bind Title}"
-                              ToolTipService.ToolTip="{x:Bind Title}" Background="#171B24">
-                            <ctl:StripedBackground Band="14"/>
-                            <Image Source="{x:Bind local:CardBind.Cover(CoverArtworkPath)}" Stretch="UniformToFill"/>
-                            <Grid VerticalAlignment="Bottom" Padding="14,30,14,12">
-                                <Grid.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#000D0F14" Offset="0"/>
-                                        <GradientStop Color="#EB0D0F14" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Grid.Background>
-                                <TextBlock Text="{x:Bind Title}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Normal" FontSize="17" LineHeight="19.5" LineStackingStrategy="BlockLineHeight"
-                                           TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-                            </Grid>
-                            <Border Background="#B80D0F14" CornerRadius="15" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
-                                    ToolTipService.ToolTip="{x:Bind PlatformLabel}">
-                                <Grid>
-                                    <ctl:SvgIcon Data="{x:Bind local:CardBind.Logo(Platform)}" FillOnly="True" Size="15" Foreground="{StaticResource TextPrimaryBrush}"
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind local:CardBind.HasLogo(Platform)}"/>
-                                    <ctl:SvgIcon Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="15" Foreground="{StaticResource TextPrimaryBrush}"
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind local:CardBind.NoLogo(Platform)}"/>
+                        <Grid Background="Transparent" IsTabStop="True" UseSystemFocusVisuals="True" automation:AutomationProperties.Name="{x:Bind Title}"
+                              ToolTipService.ToolTip="{x:Bind Title}">
+                            <Rectangle x:Name="CardShadowCaster" RadiusX="12" RadiusY="12" Fill="#FF0B0D10" IsHitTestVisible="False"/>
+                            <Grid CornerRadius="12" Background="#15181E">
+                                <ctl:StripedBackground Band="14"/>
+                                <Image Source="{x:Bind local:CardBind.Cover(CoverArtworkPath)}" Stretch="UniformToFill"/>
+                                <Grid VerticalAlignment="Bottom" Padding="14,30,14,12">
+                                    <Grid.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#000D0F14" Offset="0"/>
+                                            <GradientStop Color="#EB0D0F14" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Grid.Background>
+                                    <TextBlock Text="{x:Bind Title}" FontFamily="{StaticResource HeadingBoldFont}" FontWeight="Normal" FontSize="17" LineHeight="19.5" LineStackingStrategy="BlockLineHeight"
+                                               TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
-                            </Border>
-                            <Border Background="#B30D0F14" CornerRadius="14" Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
-                                    Visibility="{x:Bind local:CardBind.Show(IsFavorite)}">
-                                <ctl:SvgIcon Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" IsFilled="True" Size="14" Foreground="{StaticResource CoralBrush}"
-                                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <Border CornerRadius="18" BorderThickness="1" BorderBrush="#14FFFFFF" IsHitTestVisible="False"/>
-                            <Border CornerRadius="18" BorderThickness="2" BorderBrush="#B3A78BFA" Opacity="0" IsHitTestVisible="False"/>
+                                <Border Background="#B80D0F14" CornerRadius="8" BorderThickness="1" BorderBrush="#24FFFFFF" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+                                        ToolTipService.ToolTip="{x:Bind PlatformLabel}">
+                                    <Grid>
+                                        <ctl:SvgIcon Data="{x:Bind local:CardBind.Logo(Platform)}" FillOnly="True" Size="15" Foreground="{StaticResource TextPrimaryBrush}"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind local:CardBind.HasLogo(Platform)}"/>
+                                        <ctl:SvgIcon Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="15" Foreground="{StaticResource TextPrimaryBrush}"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind local:CardBind.NoLogo(Platform)}"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#B30D0F14" CornerRadius="8" BorderThickness="1" BorderBrush="#24FFFFFF" Width="28" Height="28" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
+                                        Visibility="{x:Bind local:CardBind.Show(IsFavorite)}">
+                                    <ctl:SvgIcon Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" IsFilled="True" Size="14" Foreground="{StaticResource CoralBrush}"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <Border CornerRadius="12" BorderThickness="1" BorderBrush="{StaticResource SurfaceDepthBorderBrush}" IsHitTestVisible="False"/>
+                            <Border CornerRadius="12" BorderThickness="2" BorderBrush="#B3A78BFA" Opacity="0" IsHitTestVisible="False"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

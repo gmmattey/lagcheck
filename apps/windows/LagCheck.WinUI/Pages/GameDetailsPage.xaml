@@ -22,12 +22,12 @@
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <!-- (b) Camada de escurecimento horizontal fixa: #CC070914 (0%) -> #66070914 (55%) -> #00070914 (100%) -->
+            <!-- (b) Camada de escurecimento direcionada ao canto inferior esquerdo onde fica o título e pílulas -->
             <Rectangle>
                 <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#D9070914" Offset="0"/>
-                        <GradientStop Color="#80070914" Offset="0.55"/>
+                    <LinearGradientBrush StartPoint="0,0.75" EndPoint="0.68,0.2">
+                        <GradientStop Color="#E0070914" Offset="0"/>
+                        <GradientStop Color="#8C070914" Offset="0.48"/>
                         <GradientStop Color="#00070914" Offset="1"/>
                     </LinearGradientBrush>
                 </Rectangle.Fill>
@@ -40,7 +40,7 @@
                 <!-- Primeira seção com altura ~ 58% da janela (MinHeight 420) -->
                 <Grid x:Name="HeroSection" MinHeight="420">
                     <Button x:Name="BackBtn" Click="GoBack_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,72,0,0"
-                            Height="36" CornerRadius="18" Padding="10,0,16,0" Background="#D9252A36" automation:AutomationProperties.Name="Voltar">
+                            Height="36" CornerRadius="10" Padding="10,0,16,0" Background="{StaticResource SurfaceElevatedBrush}" BorderBrush="{StaticResource SurfaceDepthBorderBrush}" BorderThickness="1" automation:AutomationProperties.Name="Voltar">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <ctl:SvgIcon Data="M15 6l-6 6 6 6" Size="16" StrokeWidth="2.5" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock x:Name="BackBtnText" Text="Voltar" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="14" VerticalAlignment="Center"/>
@@ -48,26 +48,35 @@
                     </Button>
 
                     <StackPanel VerticalAlignment="Bottom" Margin="48,0,48,32" Spacing="14" MaxWidth="820" HorizontalAlignment="Left">
-                        <Border x:Name="PlatformPill" Background="#D9282E3C" CornerRadius="14" Height="34" Padding="14,0" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock x:Name="PlatformText" Text="PC" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="13" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                        <Grid x:Name="PlatformPillContainer" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Rectangle x:Name="PlatformPillShadow" RadiusX="8" RadiusY="8" Fill="#FF0B0D10" IsHitTestVisible="False"/>
+                            <Border x:Name="PlatformPill" Background="{StaticResource SurfaceElevatedBrush}" BorderBrush="{StaticResource SurfaceDepthBorderBrush}" BorderThickness="1" CornerRadius="8" Height="32" Padding="12,0" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <ctl:SvgIcon x:Name="PlatformLogo" FillOnly="True" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <ctl:SvgIcon x:Name="PlatformMonitor" Data="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 20h8M12 16v4" Size="16" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock x:Name="PlatformText" Text="PC" FontFamily="{StaticResource BodySemiBoldFont}" FontWeight="Normal" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                         <TextBlock x:Name="GameTitleText" Style="{StaticResource DisplayTitleStyle}" FontSize="64" LineHeight="64" LineStackingStrategy="BlockLineHeight"
                                    TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
                         <!-- Pílulas de gênero/modo (Tarefa 3) -->
                         <Border x:Name="GamePillsHost" HorizontalAlignment="Left"/>
                         <StackPanel x:Name="CtaRow" Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
-                            <Grid>
-                                <Rectangle x:Name="LaunchGlow" RadiusX="28" RadiusY="28" Fill="{StaticResource PurpleBrush}"/>
+                            <Grid HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Rectangle x:Name="LaunchGlow" RadiusX="12" RadiusY="12" Fill="{StaticResource PurpleBrush}"/>
                                 <Button x:Name="LaunchBtn" Style="{StaticResource HeroPrimaryButtonStyle}" Content="JOGAR AGORA" Click="Launch_Click"/>
                             </Grid>
-                            <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Testar conexão" Click="CheckConnection_Click"/>
-                            <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">
-                                <ctl:SvgIcon x:Name="FavIcon" Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
-                            </Button>
+                            <Grid x:Name="CheckConnContainer" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Rectangle x:Name="CheckConnShadow" RadiusX="12" RadiusY="12" Fill="#FF0B0D10" IsHitTestVisible="False"/>
+                                <Button x:Name="CheckConnBtn" Style="{StaticResource GhostPillButtonStyle}" Content="Testar conexão" Click="CheckConnection_Click"/>
+                            </Grid>
+                            <Grid x:Name="FavBtnContainer" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Rectangle x:Name="FavBtnShadow" RadiusX="12" RadiusY="12" Fill="#FF0B0D10" IsHitTestVisible="False"/>
+                                <Button x:Name="FavBtn" Style="{StaticResource CircleIconButtonStyle}" Click="ToggleFavorite_Click" automation:AutomationProperties.Name="Favoritar jogo">
+                                    <ctl:SvgIcon x:Name="FavIcon" Data="M12 21s-7-4.6-9.3-9A5.3 5.3 0 0 1 12 6.6 5.3 5.3 0 0 1 21.3 12C19 16.4 12 21 12 21z" Size="18" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </Button>
+                            </Grid>
                         </StackPanel>
                     </StackPanel>
                 </Grid>

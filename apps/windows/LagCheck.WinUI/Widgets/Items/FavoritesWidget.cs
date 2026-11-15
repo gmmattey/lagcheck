@@ -165,18 +165,34 @@ public sealed class FavoritesWidget : IHomeWidget
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
+        var shadowRect = new Microsoft.UI.Xaml.Shapes.Rectangle
+        {
+            RadiusX = cornerRadius,
+            RadiusY = cornerRadius,
+            Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0x0B, 0x0D, 0x10)),
+            IsHitTestVisible = false,
+        };
+        GlowEffect.AttachShadow(shadowRect, Windows.UI.Color.FromArgb(0x88, 0, 0, 0), blur: 10f, offsetY: 4f);
+
         var border = new Border
         {
             Width = width,
             Height = height,
             CornerRadius = new CornerRadius(cornerRadius),
+            BorderThickness = new Thickness(1),
+            BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x28, 255, 255, 255)),
             Child = image,
             Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0x1E, 0x23, 0x2B)),
         };
 
+        var host = new Grid();
+        host.Children.Add(shadowRect);
+        host.Children.Add(border);
+
         var btn = new Button
         {
-            Content = border,
+            Content = host,
+            CornerRadius = new CornerRadius(cornerRadius),
             Padding = new Thickness(0),
             BorderThickness = new Thickness(0),
             Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),

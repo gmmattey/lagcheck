@@ -44,7 +44,27 @@
         </Grid.RenderTransform>
       </Grid>
       <Grid x:Name="BackdropTransition" Opacity="0" IsHitTestVisible="False"/>
-      <Rectangle x:Name="BackdropVeil" Visibility="Collapsed">
+      <!-- Gradientes fixos para garantir leitura de título, pílulas e ações sem cobrir a arte no topo -->
+      <Rectangle Canvas.ZIndex="3" IsHitTestVisible="False">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0.35" EndPoint="0,1">
+            <GradientStop Color="#00070914" Offset="0"/>
+            <GradientStop Color="#73070914" Offset="0.45"/>
+            <GradientStop Color="#CC070914" Offset="0.75"/>
+            <GradientStop Color="#EB070914" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle Canvas.ZIndex="3" IsHitTestVisible="False">
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0.85" EndPoint="0.62,0.25">
+            <GradientStop Color="#D9070914" Offset="0"/>
+            <GradientStop Color="#80070914" Offset="0.42"/>
+            <GradientStop Color="#00070914" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle x:Name="BackdropVeil" Canvas.ZIndex="4" Visibility="Collapsed">
         <Rectangle.Fill>
           <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#E60B0D10" Offset="0"/>
@@ -61,7 +81,7 @@
     <Border x:Name="DragRegion" VerticalAlignment="Top" Height="32" Background="Transparent" Margin="100,0,0,0"/>
 
     <Button x:Name="TopHomeButton" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="48,6,0,0"
-            Width="44" Height="44" Padding="0" CornerRadius="22"
+            Width="44" Height="44" Padding="0" CornerRadius="10"
             Style="{StaticResource CircleIconButtonStyle}" Click="TopNavigation_Click" automation:AutomationProperties.Name="Voltar">
       <Grid>
         <Image x:Name="TopBrandIcon" Source="ms-appx:///Assets/lagcheck-mark.svg" Width="24" Height="24"/>

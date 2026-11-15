@@ -62,6 +62,11 @@ public sealed partial class HomePage : Page
         ViewModel = new LibraryViewModel(LibraryPageServices.Bridge, LibraryPageServices.DiagnosticNavigator);
         DataContext = ViewModel;
         GlowEffect.Attach(LaunchGlow, Color.FromArgb(0xA8, 0x7C, 0x3A, 0xED), 24);
+        GlowEffect.AttachShadow(PlatformPillShadow, Color.FromArgb(0x90, 0, 0, 0), blur: 12f, offsetY: 4f);
+        GlowEffect.AttachShadow(PcPlatformPillShadow, Color.FromArgb(0x90, 0, 0, 0), blur: 12f, offsetY: 4f);
+        GlowEffect.AttachShadow(CheckConnShadow, Color.FromArgb(0xA0, 0, 0, 0), blur: 14f, offsetY: 5f);
+        GlowEffect.AttachShadow(DetailsBtnShadow, Color.FromArgb(0xA0, 0, 0, 0), blur: 14f, offsetY: 5f);
+        GlowEffect.AttachShadow(FavBtnShadow, Color.FromArgb(0xA0, 0, 0, 0), blur: 14f, offsetY: 5f);
         LaunchBtn.PointerEntered += (_, _) => { _launchHovered = true; UpdateLaunchChrome(); };
         LaunchBtn.PointerExited += (_, _) => { _launchHovered = false; UpdateLaunchChrome(); };
         LocalizeUI();
@@ -337,7 +342,10 @@ public sealed partial class HomePage : Page
         ApplyPlatform(hero);
         ApplyVerdict(hero);
 
-        CheckConnBtn.Visibility = hero.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
+        var canTest = hero.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
+        CheckConnContainer.Visibility = canTest;
+        CheckConnShadow.Visibility = canTest;
+        CheckConnBtn.Visibility = canTest;
         _canLaunch = hero.IsInstalled && hero.IsLaunchable;
         LaunchBtn.IsEnabled = _canLaunch;
         UpdateLaunchChrome();
@@ -434,6 +442,7 @@ public sealed partial class HomePage : Page
         VerdictText.Text = text;
         VerdictText.Foreground = new SolidColorBrush(color);
         VerdictBorder.Background = new SolidColorBrush(Color.FromArgb(0x29, color.R, color.G, color.B));
+        VerdictBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(0x4D, color.R, color.G, color.B));
     }
 
     // ------------------------------------------------------------------ slides
@@ -498,12 +507,31 @@ public sealed partial class HomePage : Page
     private RecentTile MakeTile(UIElement face, string name, bool selected, LibraryGame? game)
     {
         var tile = new Grid { Width = SlotW, Height = SlotH };
-        var clip = new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)), Child = face };
+        var shadowRect = new Rectangle
+        {
+            RadiusX = 10,
+            RadiusY = 10,
+            Fill = new SolidColorBrush(Color.FromArgb(255, 0x0B, 0x0D, 0x10)),
+            IsHitTestVisible = false,
+        };
+        GlowEffect.AttachShadow(shadowRect, Color.FromArgb(0xAA, 0, 0, 0), blur: 18f, offsetY: 6f);
+        tile.Children.Add(shadowRect);
+        var clip = new Border { CornerRadius = new CornerRadius(10), Background = new SolidColorBrush(Color.FromArgb(255, 0x17, 0x1B, 0x24)), Child = face };
         tile.Children.Add(clip);
-        tile.Children.Add(new Border { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255)), IsHitTestVisible = false });
+        var borderHighlight = new LinearGradientBrush
+        {
+            StartPoint = new Windows.Foundation.Point(0, 0),
+            EndPoint = new Windows.Foundation.Point(0, 1),
+            GradientStops =
+            {
+                new GradientStop { Color = Color.FromArgb(0x36, 255, 255, 255), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0x14, 255, 255, 255), Offset = 1 },
+            },
+        };
+        tile.Children.Add(new Border { CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(1), BorderBrush = borderHighlight, IsHitTestVisible = false });
         var ring = new Border
         {
-            CornerRadius = new CornerRadius(10),
+            CornerRadius = new CornerRadius(12),
             BorderThickness = new Thickness(2),
             BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0xA7, 0x8B, 0xFA)),
             Margin = new Thickness(-2),

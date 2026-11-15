@@ -50,6 +50,9 @@ public sealed partial class GameDetailsPage : Page
         InitializeComponent();
         _bridge = LibraryPageServices.Bridge;
         GlowEffect.Attach(LaunchGlow, Color.FromArgb(0x8C, 0x7C, 0x3A, 0xED), 36);
+        GlowEffect.AttachShadow(PlatformPillShadow, Color.FromArgb(0x90, 0, 0, 0), blur: 12f, offsetY: 4f);
+        GlowEffect.AttachShadow(CheckConnShadow, Color.FromArgb(0xA0, 0, 0, 0), blur: 14f, offsetY: 5f);
+        GlowEffect.AttachShadow(FavBtnShadow, Color.FromArgb(0xA0, 0, 0, 0), blur: 14f, offsetY: 5f);
         LocalizeUI();
         foreach (var button in new[] { LaunchBtn, CheckConnBtn, FavBtn, MeasureNowBtn, BackBtn }) Fluid.Feedback(button);
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
@@ -103,9 +106,9 @@ public sealed partial class GameDetailsPage : Page
     {
         if (BackgroundLayer.Visibility == Visibility.Visible)
         {
-            Choreo.FadeSlideIn(BackgroundLayer, ms: Choreo.Slow, dy: 0);
+            Choreo.FadeSlideIn(BackgroundImage, ms: Choreo.Slow, dy: 0);
         }
-        Choreo.FadeSlideIn(PlatformPill, dy: 16, delayMs: 0);
+        Choreo.FadeSlideIn(PlatformPillContainer, dy: 16, delayMs: 0);
         Choreo.FadeSlideIn(GameTitleText, dy: 16, delayMs: 60);
         Choreo.FadeSlideIn(GamePillsHost, dy: 16, delayMs: 120);
         Choreo.FadeSlideIn(CtaRow, dy: 16, delayMs: 180);
@@ -194,7 +197,7 @@ public sealed partial class GameDetailsPage : Page
             BackgroundLayer.Visibility = Visibility.Visible;
             if (isArtworkRefresh)
             {
-                Choreo.Refresh(BackgroundLayer);
+                Choreo.Refresh(BackgroundImage);
             }
         }
         else
@@ -203,7 +206,10 @@ public sealed partial class GameDetailsPage : Page
             BackgroundLayer.Visibility = Visibility.Collapsed;
         }
 
-        CheckConnBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
+        var canTest = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
+        CheckConnContainer.Visibility = canTest;
+        CheckConnShadow.Visibility = canTest;
+        CheckConnBtn.Visibility = canTest;
         MeasureNowBtn.Visibility = game.CanTestConnection ? Visibility.Visible : Visibility.Collapsed;
         var canLaunch = game.IsInstalled && game.IsLaunchable;
         LaunchBtn.IsEnabled = canLaunch;

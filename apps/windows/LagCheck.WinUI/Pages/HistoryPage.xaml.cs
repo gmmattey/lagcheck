@@ -147,7 +147,7 @@ public sealed partial class HistoryPage : Page
         if (string.IsNullOrEmpty(region)) region = Strings.Tr("REGIÃO NÃO INFORMADA");
         var time = !entry.HasCapturedAt
             ? string.Empty
-            : entry.CapturedAt.ToLocalTime().Date == DateTime.Today ? entry.TimeLabel : entry.CapturedAt.ToLocalTime().ToString("d MMM");
+            : entry.CapturedAt.ToLocalTime().Date == DateTime.Today ? entry.TimeLabel : entry.CapturedAt.ToLocalTime().ToString("d MMM", LocalizationService.Instance.EffectiveCulture);
         var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Verdicts.ColorOf(tone));
         return new HistoryRow(game ?? Strings.Tr("Conexão geral"), verdict, brush, region, entry.PingLabel, entry.JitterLabel, entry.LossLabel, time);
     }

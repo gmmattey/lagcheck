@@ -184,18 +184,46 @@ public static class GamePills
         var textBrush = Application.Current?.Resources.TryGetValue("TextPrimaryBrush", out var brushObj) == true && brushObj is Brush b
             ? b
             : new SolidColorBrush(Color.FromArgb(255, 0xF5, 0xF7, 0xFC));
-        var backgroundBrush = new SolidColorBrush(Color.FromArgb(0xB3, 0x0B, 0x0D, 0x12));
-        var borderBrush = new SolidColorBrush(Color.FromArgb(0x1F, 255, 255, 255));
+        var backgroundBrush = new LinearGradientBrush
+        {
+            StartPoint = new Windows.Foundation.Point(0, 0),
+            EndPoint = new Windows.Foundation.Point(0, 1),
+            GradientStops =
+            {
+                new GradientStop { Color = Color.FromArgb(0xE6, 0x1D, 0x22, 0x2E), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0xE6, 0x12, 0x16, 0x1F), Offset = 1 },
+            },
+        };
+        var borderBrush = new LinearGradientBrush
+        {
+            StartPoint = new Windows.Foundation.Point(0, 0),
+            EndPoint = new Windows.Foundation.Point(0, 1),
+            GradientStops =
+            {
+                new GradientStop { Color = Color.FromArgb(0x30, 255, 255, 255), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(0x12, 255, 255, 255), Offset = 1 },
+            },
+        };
+        var shadowFill = new SolidColorBrush(Color.FromArgb(255, 0x0B, 0x0D, 0x10));
         var semiBoldFont = Application.Current?.Resources.TryGetValue("BodySemiBoldFont", out var fontObj) == true && fontObj is FontFamily f
             ? f
             : Typography.BodySemiBoldFont;
 
         foreach (var label in labels)
         {
+            var shadowRect = new Microsoft.UI.Xaml.Shapes.Rectangle
+            {
+                RadiusX = 8,
+                RadiusY = 8,
+                Fill = shadowFill,
+                IsHitTestVisible = false,
+            };
+            GlowEffect.AttachShadow(shadowRect, Color.FromArgb(0x78, 0, 0, 0), blur: 10f, offsetY: 3f);
+
             var pill = new Border
             {
                 Height = 28,
-                CornerRadius = new CornerRadius(14),
+                CornerRadius = new CornerRadius(8),
                 Background = backgroundBrush,
                 BorderBrush = borderBrush,
                 BorderThickness = new Thickness(1),
@@ -210,7 +238,11 @@ public static class GamePills
                     VerticalAlignment = VerticalAlignment.Center,
                 },
             };
-            panel.Children.Add(pill);
+
+            var host = new Grid();
+            host.Children.Add(shadowRect);
+            host.Children.Add(pill);
+            panel.Children.Add(host);
         }
 
         return panel;

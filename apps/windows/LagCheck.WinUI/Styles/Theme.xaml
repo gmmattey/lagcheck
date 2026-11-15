@@ -38,6 +38,18 @@
   <SolidColorBrush x:Key="GlassBorderBrush" Color="#1FFFFFFF"/>
   <SolidColorBrush x:Key="PillSurfaceBrush" Color="#B8252A36"/>
   <SolidColorBrush x:Key="ChipSurfaceBrush" Color="#B81C212B"/>
+  <LinearGradientBrush x:Key="SurfaceElevatedBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#EB212734" Offset="0"/>
+    <GradientStop Color="#EB151922" Offset="1"/>
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="ChipElevatedBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#E61D222E" Offset="0"/>
+    <GradientStop Color="#E612161F" Offset="1"/>
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="SurfaceDepthBorderBrush" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Color="#2EFFFFFF" Offset="0"/>
+    <GradientStop Color="#12FFFFFF" Offset="1"/>
+  </LinearGradientBrush>
   <LinearGradientBrush x:Key="HomeHeroCtaBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="#8B5CF6" Offset="0"/>
     <GradientStop Color="#7C3AED" Offset="0.52"/>
@@ -176,15 +188,15 @@
   </LinearGradientBrush>
   <Style x:Key="PremiumCardStyle" TargetType="Border">
     <Setter Property="Background" Value="{StaticResource PremiumCardBrush}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
   <Style x:Key="GlassCardStyle" TargetType="Border">
     <Setter Property="Background" Value="{StaticResource GlassBrush}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="CornerRadius" Value="12"/>
     <Setter Property="Padding" Value="20"/>
   </Style>
 
@@ -239,9 +251,9 @@
   <ControlTemplate x:Key="HeroPrimaryButtonTemplate" TargetType="Button">
     <Grid x:Name="RootGrid" UseLayoutRounding="True">
       <Border x:Name="OuterRing" BorderBrush="{StaticResource HomeHeroCtaRingBrush}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}"/>
-      <Border x:Name="Fill" Margin="4" Background="{TemplateBinding Background}" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="24"/>
-      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
-      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="24"/>
+      <Border x:Name="Fill" Margin="4" Background="{TemplateBinding Background}" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="12"/>
+      <Border x:Name="Veil" Margin="4" Background="White" Opacity="0" IsHitTestVisible="False" CornerRadius="12"/>
+      <Border x:Name="PressedVeil" Margin="4" Background="Black" Opacity="0" IsHitTestVisible="False" CornerRadius="12"/>
       <Border x:Name="FocusRing" BorderBrush="{StaticResource PurpleLightBrush}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False"/>
       <Grid Margin="4">
         <Grid.ColumnDefinitions>
@@ -253,7 +265,7 @@
                           Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         <Grid Grid.Column="2" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Ellipse Fill="White"/>
+          <Border CornerRadius="8" Background="White"/>
           <FontIcon Glyph="&#xE72A;" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource PurpleBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
       </Grid>
@@ -299,10 +311,10 @@
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource PurpleBrush}"/>
     <Setter Property="Foreground" Value="White"/>
-    <Setter Property="CornerRadius" Value="28"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
 
-  <!-- CTA exclusivo do Hero da Home: o anel externo separa a ação principal dos demais botões em pílula. -->
+  <!-- CTA exclusivo do Hero da Home: o anel externo separa a ação principal dos demais botões. -->
   <Style x:Key="HomeHeroCtaButtonStyle" TargetType="Button">
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="BorderBrush" Value="#33FFFFFF"/>
@@ -317,7 +329,7 @@
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource HomeHeroCtaBrush}"/>
     <Setter Property="Foreground" Value="White"/>
-    <Setter Property="CornerRadius" Value="24"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
 
   <Style x:Key="HeroPrimaryButtonStyle" TargetType="Button">
@@ -331,44 +343,44 @@
     <Setter Property="CharacterSpacing" Value="25"/>
     <Setter Property="Background" Value="{StaticResource HomeHeroCtaBrush}"/>
     <Setter Property="Foreground" Value="White"/>
-    <Setter Property="CornerRadius" Value="28"/>
+    <Setter Property="CornerRadius" Value="16"/>
   </Style>
 
   <Style x:Key="GhostPillButtonStyle" TargetType="Button">
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
     <Setter Property="FontWeight" Value="Normal"/>
-    <Setter Property="Height" Value="56"/>
+    <Setter Property="Height" Value="52"/>
     <Setter Property="Padding" Value="32,0"/>
     <Setter Property="FontSize" Value="14"/>
-    <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
-    <Setter Property="CornerRadius" Value="28"/>
+    <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
 
   <Style x:Key="CircleIconButtonStyle" TargetType="Button">
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="Width" Value="46"/>
     <Setter Property="Height" Value="46"/>
     <Setter Property="Padding" Value="0"/>
-    <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
-    <Setter Property="CornerRadius" Value="23"/>
+    <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
 
   <Style x:Key="SecondaryButtonStyle" TargetType="Button">
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="FontFamily" Value="{StaticResource BodySemiBoldFont}"/>
     <Setter Property="FontWeight" Value="Normal"/>
     <Setter Property="MinHeight" Value="44"/>
     <Setter Property="Padding" Value="28,0"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="Background" Value="{StaticResource PillSurfaceBrush}"/>
-    <Setter Property="CornerRadius" Value="22"/>
+    <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}"/>
+    <Setter Property="CornerRadius" Value="12"/>
   </Style>
 
   <!-- Variante compacta do secundário (Procurar jogos, Medir agora): mesmo respiro lateral, altura menor -->
@@ -376,21 +388,21 @@
     <Setter Property="Height" Value="40"/>
     <Setter Property="MinHeight" Value="40"/>
     <Setter Property="Padding" Value="26,0"/>
-    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="CornerRadius" Value="10"/>
   </Style>
 
   <Style x:Key="PillChipButtonStyle" TargetType="Button">
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="BorderBrush" Value="#17FFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource SurfaceDepthBorderBrush}"/>
     <Setter Property="Template" Value="{StaticResource FlatButtonTemplate}"/>
     <Setter Property="FontFamily" Value="{StaticResource BodyMediumFont}"/>
     <Setter Property="FontWeight" Value="Normal"/>
-    <Setter Property="Height" Value="38"/>
-    <Setter Property="Padding" Value="22,0"/>
+    <Setter Property="Height" Value="36"/>
+    <Setter Property="Padding" Value="16,0"/>
     <Setter Property="FontSize" Value="13"/>
-    <Setter Property="Background" Value="{StaticResource ChipSurfaceBrush}"/>
+    <Setter Property="Background" Value="{StaticResource ChipElevatedBrush}"/>
     <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-    <Setter Property="CornerRadius" Value="19"/>
+    <Setter Property="CornerRadius" Value="8"/>
   </Style>
 
   <!-- Link roxo sem fundo (Cancelar, Escolher outro jogo) -->

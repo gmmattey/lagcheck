@@ -181,6 +181,10 @@ public sealed partial class LibraryPage : Page
         // O jogo do card vem do índice (não depende de DataContext, que o ItemsRepeater nem sempre preenche).
         var game = index >= 0 && index < ViewModel.VisibleGames.Count ? ViewModel.VisibleGames[index] : null;
         card.Tag = game;
+        if (card.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>().FirstOrDefault(r => r.Name == "CardShadowCaster") is { } shadowCaster)
+        {
+            GlowEffect.AttachShadow(shadowCaster, Color.FromArgb(0xAA, 0, 0, 0), blur: 20f, offsetY: 7f);
+        }
         Fluid.Prepare(card);
         DecorateCard(card);
 
@@ -268,7 +272,9 @@ public sealed partial class LibraryPage : Page
             {
                 Name = DecorName,
                 Background = new SolidColorBrush(Color.FromArgb(0xD9, 0x0D, 0x0F, 0x14)),
-                CornerRadius = new CornerRadius(15),
+                BorderThickness = new Thickness(1),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x24, 255, 255, 255)),
+                CornerRadius = new CornerRadius(8),
                 Height = 30,
                 Padding = new Thickness(10, 0, 12, 0),
                 HorizontalAlignment = HorizontalAlignment.Left,
@@ -299,7 +305,7 @@ public sealed partial class LibraryPage : Page
                 Width = 44,
                 Height = 44,
                 Padding = new Thickness(0),
-                CornerRadius = new CornerRadius(22),
+                CornerRadius = new CornerRadius(10),
                 Background = (Brush)Application.Current.Resources["PurpleBrush"],
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
