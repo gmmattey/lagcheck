@@ -398,8 +398,7 @@ public sealed partial class HomePage : Page
         // Veredito e métricas reais: filtrados estritamente pelo jogo em destaque.
         var match = LagCheck.WinUI.History.SessionHistoryServices.Store.Entries.FirstOrDefault(entry =>
             entry.PingMs.HasValue
-            && !string.IsNullOrWhiteSpace(hero.DiagnosticGameId)
-            && string.Equals(entry.GameId, hero.DiagnosticGameId, StringComparison.OrdinalIgnoreCase));
+            && LagCheck.WinUI.History.SessionHistoryStore.MatchesGame(entry, hero.DiagnosticGameId, hero.Title));
 
         if (match is null || !match.PingMs.HasValue)
         {
@@ -586,7 +585,7 @@ public sealed partial class HomePage : Page
             var selected = !_pcSelected && hero is not null && game.Id == hero.Id;
             var face = new Grid();
             face.Children.Add(new StripedBackground { Band = 14 });
-            if (Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath), 280) is { } cover)
+            if (Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath)) is { } cover)
                 face.Children.Add(new Image { Source = cover, Stretch = Stretch.UniformToFill });
             var item = MakeTile(face, game.Title, selected, game);
             var id = game.Id;
@@ -645,7 +644,8 @@ public sealed partial class HomePage : Page
             OpenHistory: () => ShellChrome.Shell?.Navigate(NavigationRoute.History),
             OpenGallery: () => ShellChrome.Shell?.NavigateToGallery(),
             TestConnection: (id, title) => ShellNavigation.NavigateToDiagnostic(id, title),
-            RefreshPlatforms: () => _ = LoadPlatformStatusAsync(_loadGeneration, force: true));
+            RefreshPlatforms: () => _ = LoadPlatformStatusAsync(_loadGeneration, force: true),
+            OpenHistoryFiltered: (id, title) => ShellNavigation.OpenHistory(id, title));
         Widgets.Update(new WidgetContext(
             game,
             game is null,

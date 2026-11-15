@@ -263,8 +263,8 @@ public sealed partial class LibraryPage : Page
         if (card.Tag is not LibraryGame game) return;
         var insertAt = Math.Max(card.Children.Count - 1, 0); // o anel de foco fica sempre por último
 
-        var entry = string.IsNullOrWhiteSpace(game.DiagnosticGameId) ? null : LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
-            .FirstOrDefault(item => item.PingMs.HasValue && string.Equals(item.GameId, game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase));
+        var entry = LagCheck.WinUI.History.SessionHistoryServices.Store.Entries
+            .FirstOrDefault(item => item.PingMs.HasValue && LagCheck.WinUI.History.SessionHistoryStore.MatchesGame(item, game.DiagnosticGameId, game.Title));
         if (entry is not null && Verdicts.ToneOf(entry.Verdict) != VerdictTone.Unknown)
         {
             var color = Verdicts.ColorOf(Verdicts.ToneOf(entry.Verdict));

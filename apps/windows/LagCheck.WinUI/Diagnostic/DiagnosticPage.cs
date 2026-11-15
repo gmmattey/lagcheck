@@ -109,7 +109,7 @@ public sealed class DiagnosticPage : Page
     /// <param name="autoStart">Vindo de um jogo, a medição começa sozinha: não há um segundo botão para confirmar.</param>
     public DiagnosticPage(string? gameId, string? gameTitle, DiagnosticEngineClient? engine, bool autoStart = false)
     {
-        _autoStart = autoStart && !string.IsNullOrWhiteSpace(gameId);
+        _autoStart = autoStart && (!string.IsNullOrWhiteSpace(gameId) || !string.IsNullOrWhiteSpace(gameTitle));
         _gameId = gameId;
         _gameTitle = gameTitle ?? string.Empty;
         _client = engine ?? WinUiEngineComposition.Client;
@@ -120,7 +120,7 @@ public sealed class DiagnosticPage : Page
         LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
     }
 
-    private bool HasGame => !string.IsNullOrWhiteSpace(_gameId);
+    private bool HasGame => !string.IsNullOrWhiteSpace(_gameId) || !string.IsNullOrWhiteSpace(_gameTitle);
 
     public void ConfigureGame(string? gameId, string? gameTitle)
     {
@@ -920,7 +920,9 @@ public sealed class DiagnosticPage : Page
         try
         {
             var snapshot = await LibraryPageServices.Bridge.GetSnapshotAsync();
-            var game = snapshot.Games.FirstOrDefault(item => string.Equals(item.DiagnosticGameId, _gameId, StringComparison.OrdinalIgnoreCase));
+            var game = snapshot.Games.FirstOrDefault(item =>
+                (!string.IsNullOrWhiteSpace(_gameId) && string.Equals(item.DiagnosticGameId, _gameId, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(_gameTitle) && string.Equals(item.Title, _gameTitle, StringComparison.OrdinalIgnoreCase)));
             if (game is { IsInstalled: true, IsLaunchable: true } && _donePanel.Visibility == Visibility.Visible && _shareText.Length > 0)
             {
                 _launchGame = game;

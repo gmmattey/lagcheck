@@ -98,8 +98,8 @@ class StoreCatalog(
                     map[pfn] = StoreProduct(
                         title = (obj["title"] as? JsonPrimitive)?.content ?: pfn,
                         isGame = (obj["isGame"] as? JsonPrimitive)?.content == "true",
-                        posterUrl = (obj["posterUrl"] as? JsonPrimitive)?.content,
-                        heroUrl = (obj["heroUrl"] as? JsonPrimitive)?.content,
+                        posterUrl = (obj["posterUrl"] as? JsonPrimitive)?.content?.substringBefore("?q=90&w="),
+                        heroUrl = (obj["heroUrl"] as? JsonPrimitive)?.content?.substringBefore("?q=90&w="),
                         info = (obj["info"] as? JsonObject)?.let(com.lagcheck.desktop.library.info.GameInfoService.Companion::infoFromJson),
                     )
                 }
@@ -150,8 +150,8 @@ class StoreCatalog(
             return StoreProduct(
                 title = title.ifBlank { return null },
                 isGame = isGame,
-                posterUrl = image("Poster", "BoxArt")?.let { "$it?q=90&w=600&h=900" },
-                heroUrl = image("SuperHeroArt", "Hero")?.let { "$it?q=90&w=1920&h=1080" },
+                posterUrl = image("Poster", "BoxArt"),
+                heroUrl = image("SuperHeroArt", "Hero"),
                 info = parseInfo(product, localized),
             )
         }

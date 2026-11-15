@@ -631,6 +631,20 @@ public sealed class LocalizationService
         Add("Gratuito para jogar", "Free to Play", "Gratis para jugar");
         Add("Acesso Antecipado", "Early Access", "Acceso anticipado");
         Add("Multijogador Massivo", "Massively Multiplayer", "Multijugador masivo");
+        Add("ESTABILIDADE DA REDE", "NETWORK STABILITY", "ESTABILIDAD DE LA RED");
+        Add("ESTABILIDADE NO JOGO", "IN-GAME STABILITY", "ESTABILIDAD EN EL JUEGO");
+        Add("Rede estável", "Stable network", "Red estable");
+        Add("Oscilação moderada", "Moderate oscillation", "Oscilación moderada");
+        Add("Rede instável", "Unstable network", "Red inestable");
+        Add("{0}% estável", "{0}% stable", "{0}% estable");
+        Add("{0}% estável em {1} medições", "{0}% stable across {1} checks", "{0}% estable en {1} mediciones");
+        Add("{0}% estável em {1} medição", "{0}% stable across {1} check", "{0}% estable en {1} medición");
+        Add("Estabilidade: {0} ({1}%), último ping {2:0.#} ms.", "Stability: {0} ({1}%), latest ping {2:0.#} ms.", "Estabilidad: {0} ({1}%), último ping {2:0.#} ms.");
+        Add("Visão geral", "Overview", "Vista general");
+        Add("Ver detalhes", "See details", "Ver detalles");
+        Add("Ver detalhes da estabilidade", "See stability details", "Ver detalles de estabilidad");
+        Add("PING", "PING", "PING");
+        Add("PING MÉD", "AVG PING", "PING PROM");
     }
 
     private static string GetConfigFilePath()

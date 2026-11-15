@@ -145,7 +145,7 @@ public sealed class ActivityWidget : IHomeWidget
         panel.Children.Add(BuildCompactGameBody(dateStr, relStr));
 
         var gameTests = context.History
-            .Where(e => e.HasCapturedAt && string.Equals(e.GameId, game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase))
+            .Where(e => e.HasCapturedAt && LagCheck.WinUI.History.SessionHistoryStore.MatchesGame(e, game.DiagnosticGameId, game.Title))
             .OrderByDescending(e => e.CapturedAt)
             .Take(4)
             .ToList();

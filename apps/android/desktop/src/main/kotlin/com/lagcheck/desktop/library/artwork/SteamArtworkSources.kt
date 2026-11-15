@@ -13,7 +13,10 @@ class SteamCdnSource : ArtworkSource {
     override fun candidates(game: PcGame, type: ArtworkType): List<ArtworkCandidate> {
         val id = steamAppId(game) ?: return emptyList()
         val files = when (type) {
-            ArtworkType.COVER -> listOf("library_600x900.jpg" to ImageBytes.Dimensions(600, 900))
+            ArtworkType.COVER -> listOf(
+                "library_600x900_2x.jpg" to ImageBytes.Dimensions(1200, 1800),
+                "library_600x900.jpg" to ImageBytes.Dimensions(600, 900),
+            )
             // A Steam publica o _2x em 3840x1240; o arquivo normal (1920x620) continua como fallback.
             ArtworkType.HERO -> listOf(
                 "library_hero_2x.jpg" to ImageBytes.Dimensions(3840, 1240),
@@ -37,7 +40,7 @@ class SteamLibraryCacheSource(private val steamRoot: () -> File?) : ArtworkSourc
         val id = steamAppId(game) ?: return emptyList()
         val cacheDir = steamRoot()?.toPath()?.resolve("appcache")?.resolve("librarycache") ?: return emptyList()
         val names = when (type) {
-            ArtworkType.COVER -> listOf("library_600x900.jpg")
+            ArtworkType.COVER -> listOf("library_600x900_2x.jpg", "library_600x900.jpg")
             ArtworkType.HERO -> listOf("library_hero_2x.jpg", "library_hero.jpg")
             ArtworkType.ICON -> null
         }

@@ -158,8 +158,8 @@ class StoreLibraryTest {
         val product = StoreCatalog.parseProduct(body)!!
         assertTrue(product.isGame)
         assertEquals("Injustice 2", product.title)
-        assertEquals("https://store-images.s-microsoft.com/image/p?q=90&w=600&h=900", product.posterUrl)
-        assertEquals("https://store-images.s-microsoft.com/image/h?q=90&w=1920&h=1080", product.heroUrl)
+        assertEquals("https://store-images.s-microsoft.com/image/p", product.posterUrl)
+        assertEquals("https://store-images.s-microsoft.com/image/h", product.heroUrl)
         assertFalse(StoreCatalog.parseProduct("""{"Products":[{"ProductType":"Application","LocalizedProperties":[{"ProductTitle":"Calc"}]}]}""")!!.isGame)
     }
 }

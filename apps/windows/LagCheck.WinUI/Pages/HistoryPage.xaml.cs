@@ -24,6 +24,9 @@ public sealed partial class HistoryPage : Page
     private int _historyStateTicket;
     private UIElement? _activeStateView;
     private bool _isPageLoaded;
+    private string? _selectedGameId;
+    private string? _selectedGameTitle;
+    private string? _lastChipsSignature;
 
     public HistoryPage()
     {
@@ -36,7 +39,12 @@ public sealed partial class HistoryPage : Page
         {
             _isPageLoaded = true;
             Choreo.FadeSlideIn(TitleText, dy: 14, delayMs: 0);
-            Choreo.FadeSlideIn(SearchBox, dy: 14, delayMs: 40);
+            Choreo.FadeSlideIn(ScopeChipsScroll, dy: 12, delayMs: 20);
+            if (StabilityCard.Visibility == Visibility.Visible)
+            {
+                Choreo.FadeSlideIn(StabilityCard, dy: 14, delayMs: 35);
+            }
+            Choreo.FadeSlideIn(SearchBox, dy: 14, delayMs: 50);
             if (_activeStateView is not null)
             {
                 Choreo.FadeSlideIn(_activeStateView, dy: 14, delayMs: 80);
@@ -50,8 +58,28 @@ public sealed partial class HistoryPage : Page
         };
     }
 
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        var filter = e.Parameter as HistoryNavigationFilter;
+        var key = filter is not null ? SessionHistoryStore.EffectiveGameKey(filter.GameId, filter.GameTitle) : null;
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            _selectedGameId = key;
+            _selectedGameTitle = !string.IsNullOrWhiteSpace(filter?.GameTitle) ? filter!.GameTitle : key;
+        }
+        else
+        {
+            _selectedGameId = null;
+            _selectedGameTitle = null;
+        }
+        _lastChipsSignature = null;
+        UpdateVisibleEntries();
+    }
+
     private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() =>
     {
+        _lastChipsSignature = null;
         LocalizeUI();
         UpdateVisibleEntries();
     });
@@ -136,12 +164,173 @@ public sealed partial class HistoryPage : Page
     private void Entries_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => DispatcherQueue.TryEnqueue(UpdateVisibleEntries);
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => UpdateVisibleEntries();
 
+    private string? ResolveGameName(string? gameId, string? recordedTitle)
+    {
+        if (!string.IsNullOrWhiteSpace(recordedTitle)) return recordedTitle;
+        if (SessionHistoryStore.IsGeneralId(gameId)) return null;
+        if (gameId is { Length: > 0 } && _gameNames.TryGetValue(gameId, out var catalogName) && !string.IsNullOrWhiteSpace(catalogName))
+            return catalogName;
+        return null;
+    }
+
+    private void RebuildScopeChips()
+    {
+        var games = new List<(string Id, string Title)>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in _history.Entries)
+        {
+            var id = entry.EffectiveGameKey;
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            if (!seen.Add(id)) continue;
+            var label = ResolveGameName(entry.GameId, entry.GameTitle) ?? id;
+            games.Add((id, label));
+        }
+
+        if (!string.IsNullOrWhiteSpace(_selectedGameId) && seen.Add(_selectedGameId))
+        {
+            var label = ResolveGameName(_selectedGameId, _selectedGameTitle) ?? _selectedGameId;
+            games.Add((_selectedGameId, label));
+        }
+
+        var sig = string.Join("|",
+            LocalizationService.Instance.SelectedLanguage,
+            _selectedGameId ?? "",
+            string.Join(";", games.Select(g => $"{g.Id}={g.Title}")));
+        if (string.Equals(sig, _lastChipsSignature, StringComparison.Ordinal)) return;
+        _lastChipsSignature = sig;
+
+        ScopeChips.Children.Clear();
+        ScopeChips.Children.Add(BuildScopeChip(Strings.Tr("Visão geral"), null, null, _selectedGameId is null));
+        foreach (var (id, title) in games)
+        {
+            var selected = string.Equals(_selectedGameId, id, StringComparison.OrdinalIgnoreCase);
+            ScopeChips.Children.Add(BuildScopeChip(title, id, title, selected));
+        }
+        ScopeChipsScroll.Visibility = ScopeChips.Children.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private Button BuildScopeChip(string label, string? gameId, string? gameTitle, bool selected)
+    {
+        var btn = new Button
+        {
+            Content = label,
+            Style = (Style)Application.Current.Resources["PillChipButtonStyle"],
+            FontSize = 13,
+            Padding = new Thickness(14, 7, 14, 7),
+            MinHeight = 36,
+        };
+        if (selected)
+        {
+            btn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x7C, 0x3A, 0xED));
+            btn.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA));
+            btn.Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"];
+        }
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(btn, label);
+        btn.Click += (_, _) =>
+        {
+            _selectedGameId = gameId;
+            _selectedGameTitle = gameTitle;
+            UpdateVisibleEntries();
+        };
+        return btn;
+    }
+
+    private void UpdateStabilityCard()
+    {
+        var summary = NetworkStabilitySummary.Build(_history.Entries, _selectedGameId, maxPoints: 30);
+        if (!summary.HasData)
+        {
+            StabilityCard.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        StabilityCard.Visibility = Visibility.Visible;
+        var culture = LocalizationService.Instance.EffectiveCulture;
+        var toneColor = Verdicts.ColorOf(summary.StabilityTone);
+        StabilityDot.Fill = new SolidColorBrush(toneColor);
+
+        var title = Strings.Tr(string.IsNullOrWhiteSpace(_selectedGameId) ? "ESTABILIDADE DA REDE" : "ESTABILIDADE NO JOGO");
+        if (!string.IsNullOrWhiteSpace(_selectedGameId))
+        {
+            var resolvedGame = ResolveGameName(_selectedGameId, _selectedGameTitle) ?? _selectedGameId;
+            title = $"{title} · {resolvedGame.ToUpper(CultureInfo.CurrentCulture)}";
+        }
+        StabilityTitle.Text = title;
+
+        var headline = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary.StabilityTone));
+        StabilityHeadline.Text = headline;
+        StabilityPercent.Text = Math.Abs(summary.MaxPing - summary.MinPing) < 0.5
+            ? string.Format(culture, "{0:0.#} ms", summary.AvgPing)
+            : string.Format(culture, "{0:0}–{1:0} ms", summary.MinPing, summary.MaxPing);
+        StabilityPercent.Foreground = new SolidColorBrush(toneColor);
+        StabilitySubtitle.Text = string.Format(
+            culture,
+            Strings.Tr(summary.TotalCount == 1 ? "{0}% estável em {1} medição" : "{0}% estável em {1} medições"),
+            summary.StabilityPercentage,
+            summary.TotalCount);
+
+        StabilityChartHost.Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, toneColor);
+
+        StabilityGaugesHost.Children.Clear();
+        var pingTone = LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(summary.AvgPing, 45, 90);
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+            Strings.Tr("PING MÉD"),
+            string.Format(culture, "{0:0.#}", summary.AvgPing),
+            "ms",
+            Verdicts.ColorOf(pingTone),
+            pingTone,
+            LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(summary.AvgPing, 45, 90, 160),
+            ringSize: 54));
+
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));
+
+        var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 8, 20) : VerdictTone.Unknown;
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+            Strings.Tr("JITTER"),
+            summary.AvgJitter is { } jv ? string.Format(culture, "{0:0.#}", jv) : "—",
+            summary.AvgJitter.HasValue ? "ms" : null,
+            Verdicts.ColorOf(jitterTone),
+            jitterTone,
+            summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 8, 20, 40) : 0,
+            ringSize: 54));
+
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));
+
+        var lossTone = summary.MaxLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 0.5, 2.5) : VerdictTone.Unknown;
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+            Strings.Tr("PERDA"),
+            summary.MaxLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
+            summary.MaxLoss.HasValue ? "%" : null,
+            Verdicts.ColorOf(lossTone),
+            lossTone,
+            summary.MaxLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 0.5, 2.5, 10) : 0,
+            ringSize: 54));
+
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));
+
+        var loadTone = summary.AvgLoadDelta is { } ld ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(ld, 15, 40) : VerdictTone.Unknown;
+        StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+            Strings.Tr("SOB CARGA"),
+            summary.AvgLoadDelta is { } ldv ? string.Format(culture, ldv >= 0 ? "+{0:0.#}" : "{0:0.#}", ldv) : "—",
+            summary.AvgLoadDelta.HasValue ? "ms" : null,
+            Verdicts.ColorOf(loadTone),
+            loadTone,
+            summary.AvgLoadDelta is { } ldr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(ldr, 15, 40, 80) : 0,
+            ringSize: 54));
+
+        if (summary.Latest?.PingMs is { } latestPing)
+        {
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+                StabilityCard,
+                string.Format(culture, Strings.Tr("Estabilidade: {0} ({1}%), último ping {2:0.#} ms."), headline, summary.StabilityPercentage, latestPing));
+        }
+    }
+
     private HistoryRow ToRow(SessionHistoryEntry entry)
     {
         var tone = Verdicts.ToneOf(entry.Verdict);
         // Nome do jogo testado: o título guardado na medição; senão o catálogo do motor. Nunca a categoria/perfil.
-        string? game = !string.IsNullOrWhiteSpace(entry.GameTitle) ? entry.GameTitle
-            : entry.GameId is { Length: > 0 } id && _gameNames.TryGetValue(id, out var name) ? name : null;
+        string? game = ResolveGameName(entry.GameId, entry.GameTitle);
         var verdict = Verdicts.Headline(tone, game is not null);
         var region = RegionCatalog.Label(entry.RegionId);
         if (string.IsNullOrEmpty(region)) region = Strings.Tr("REGIÃO NÃO INFORMADA");
@@ -154,8 +343,14 @@ public sealed partial class HistoryPage : Page
 
     private void UpdateVisibleEntries()
     {
+        RebuildScopeChips();
+        UpdateStabilityCard();
+
         var query = SearchBox?.Text?.Trim() ?? string.Empty;
-        var rows = _history.Entries.Select(ToRow)
+        var filteredEntries = string.IsNullOrWhiteSpace(_selectedGameId)
+            ? _history.Entries
+            : _history.Entries.Where(entry => SessionHistoryStore.MatchesGame(entry, _selectedGameId, _selectedGameTitle));
+        var rows = filteredEntries.Select(ToRow)
             .Where(row => string.IsNullOrEmpty(query) || row.Region.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Game.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Verdict.Contains(query, StringComparison.OrdinalIgnoreCase))
             .ToList();
         HistoryList.ItemsSource = rows;

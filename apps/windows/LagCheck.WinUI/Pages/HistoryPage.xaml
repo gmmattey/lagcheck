@@ -3,8 +3,10 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:LagCheck.WinUI.Pages"
       Background="Transparent">
-  <Grid RowSpacing="20" Padding="{StaticResource PagePadding}">
+  <Grid RowSpacing="16" Padding="{StaticResource PagePadding}">
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
@@ -12,9 +14,49 @@
 
     <TextBlock x:Name="TitleText" Text="HISTÓRICO" Style="{StaticResource PageHeaderStyle}"/>
 
-    <TextBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="Buscar por região ou veredito" TextChanged="SearchBox_TextChanged" Height="44" CornerRadius="12"/>
+    <ScrollViewer x:Name="ScopeChipsScroll" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="ScopeChips" Orientation="Horizontal" Spacing="8"/>
+    </ScrollViewer>
 
-    <Grid Grid.Row="2" RowSpacing="0">
+    <Border x:Name="StabilityCard" Grid.Row="2" Style="{StaticResource GlassCardStyle}" Padding="20,18" Visibility="Collapsed">
+      <Grid ColumnSpacing="20">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Spacing="10">
+          <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Ellipse x:Name="StabilityDot" Width="8" Height="8" VerticalAlignment="Center"/>
+                <TextBlock x:Name="StabilityTitle" Style="{StaticResource TechLabelStyle}" VerticalAlignment="Center"/>
+              </StackPanel>
+              <TextBlock x:Name="StabilityHeadline" FontFamily="{StaticResource HeadingBoldFont}" FontSize="22" FontWeight="Normal" Foreground="{StaticResource TextPrimaryBrush}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <TextBlock x:Name="StabilityPercent" Style="{StaticResource MetricTextStyle}" FontSize="24" HorizontalAlignment="Right"/>
+              <TextBlock x:Name="StabilitySubtitle" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+            </StackPanel>
+          </Grid>
+
+          <Border x:Name="StabilityChartHost" Height="120"/>
+        </StackPanel>
+
+        <Border Grid.Column="1" Width="1" Background="#1FFFFFFF" Margin="0,4"/>
+
+        <StackPanel x:Name="StabilityGaugesHost" Grid.Column="2" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+
+    <TextBox x:Name="SearchBox" Grid.Row="3" PlaceholderText="Buscar por região ou veredito" TextChanged="SearchBox_TextChanged" Height="44" CornerRadius="12"/>
+
+    <Grid Grid.Row="4" RowSpacing="0">
       <Border x:Name="TableCard" Padding="0" Visibility="Collapsed">
         <Grid RowSpacing="0">
           <Grid.RowDefinitions>

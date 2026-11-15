@@ -1,7 +1,9 @@
+#if WINDOWS
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
+#endif
 using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Controls;
@@ -30,6 +32,7 @@ public static class Verdicts
         return VerdictTone.Unknown;
     }
 
+#if WINDOWS
     public static Color ColorOf(VerdictTone tone) => tone switch
     {
         VerdictTone.Ok => Color.FromArgb(255, 0x22, 0xC5, 0x5E),
@@ -37,6 +40,7 @@ public static class Verdicts
         VerdictTone.Bad => Color.FromArgb(255, 0xFF, 0x5A, 0x36),
         _ => Color.FromArgb(255, 0x9A, 0xA3, 0xB5),
     };
+#endif
 
     public static string Headline(VerdictTone tone, bool hasGame) => tone switch
     {
@@ -54,6 +58,7 @@ public static class Verdicts
         _ => Strings.Tr("Conexão indeterminada"),
     };
 
+#if WINDOWS
     /// <summary>Marcador do v2: círculo = bom, quadrado = atenção, losango = ruim (forma além da cor).</summary>
     public static FrameworkElement Marker(VerdictTone tone, double size = 10)
     {
@@ -68,4 +73,5 @@ public static class Verdicts
         marker.VerticalAlignment = VerticalAlignment.Center;
         return marker;
     }
+#endif
 }

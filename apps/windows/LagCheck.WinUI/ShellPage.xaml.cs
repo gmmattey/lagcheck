@@ -54,7 +54,7 @@ public sealed partial class ShellPage : Page
     {
         InitializeComponent();
         ShellChrome.Register(this);
-        ShellNavigation.Configure(NavigateToDiagnostic, Navigate, OpenGameDetails);
+        ShellNavigation.Configure(NavigateToDiagnostic, Navigate, OpenGameDetails, OpenHistory);
         LocalizeUI();
         ContentFrame.Navigated += ContentFrame_Navigated;
         ContentFrame.NavigationFailed += (_, e) =>
@@ -176,6 +176,15 @@ public sealed partial class ShellPage : Page
         UpdateTopNavigation();
     }
 
+    public void OpenHistory(string? gameId = null, string? gameTitle = null)
+    {
+        _currentRoute = NavigationRoute.History;
+        _currentGameTitle = null;
+        ClearBackdrop();
+        NavigateFrame(typeof(HistoryPage), new HistoryNavigationFilter(gameId, gameTitle));
+        UpdateTopNavigation();
+    }
+
     /// <summary>Medição de rede contextual (com gameId) ou genérica de referência (sem gameId).</summary>
     public void NavigateToDiagnostic(string? gameId = null, string? gameTitle = null)
     {
@@ -186,7 +195,7 @@ public sealed partial class ShellPage : Page
         {
             try
             {
-                ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle, autoStart: !string.IsNullOrWhiteSpace(gameId));
+                ContentFrame.Content = WinUiEngineComposition.CreateDiagnosticPage(gameId, gameTitle, autoStart: !string.IsNullOrWhiteSpace(gameId) || !string.IsNullOrWhiteSpace(gameTitle));
             }
             catch (Exception)
             {
@@ -560,9 +569,7 @@ public sealed partial class ShellPage : Page
         try
         {
             if (_imageCache.TryGetValue(path, out var cached)) return cached;
-            // Decodifica na largura da janela: banners de 4K inteiros travavam a troca de jogo.
-            var width = (int)Math.Clamp(Math.Ceiling(RootGrid.ActualWidth > 0 ? RootGrid.ActualWidth : 1920), 960, 2560);
-            var image = new BitmapImage { DecodePixelWidth = width, UriSource = new Uri(path) };
+            var image = new BitmapImage { UriSource = new Uri(path) };
             if (_imageCache.Count >= 10) _imageCache.Clear(); // poucos fundos recentes bastam; evita crescer sem limite
             _imageCache[path] = image;
             return image;

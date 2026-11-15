@@ -30,6 +30,10 @@
     <Compile Include="..\LagCheck.WinUI\Library\LibraryWireParser.cs" Link="Library\LibraryWireParser.cs" />
     <Compile Include="..\LagCheck.WinUI\Widgets\WidgetLayout.cs" Link="Widgets\WidgetLayout.cs" />
     <Compile Include="..\LagCheck.WinUI\Controls\GamePills.cs" Link="Controls\GamePills.cs" />
+    <Compile Include="..\LagCheck.WinUI\Controls\Verdicts.cs" Link="Controls\Verdicts.cs" />
+    <Compile Include="..\LagCheck.WinUI\Diagnostic\DiagnosticEngineClient.cs" Link="Diagnostic\DiagnosticEngineClient.cs" />
+    <Compile Include="..\LagCheck.WinUI\History\SessionHistoryStore.cs" Link="History\SessionHistoryStore.cs" />
+    <Compile Include="..\LagCheck.WinUI\History\NetworkStabilitySummary.cs" Link="History\NetworkStabilitySummary.cs" />
     <Compile Include="..\LagCheck.WinUI\Window\WindowPrefsStore.cs" Link="Window\WindowPrefsStore.cs" />
   </ItemGroup>
 </Project>

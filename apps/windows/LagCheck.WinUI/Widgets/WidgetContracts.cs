@@ -57,7 +57,15 @@ public sealed record WidgetActions(
     Action OpenHistory,
     Action OpenGallery,
     Action<string?, string?> TestConnection,
-    Action RefreshPlatforms);
+    Action RefreshPlatforms,
+    Action<string?, string?>? OpenHistoryFiltered = null)
+{
+    public void NavigateToHistory(string? gameId = null, string? gameTitle = null)
+    {
+        if (OpenHistoryFiltered is not null) OpenHistoryFiltered(gameId, gameTitle);
+        else OpenHistory();
+    }
+}
 
 /// <summary>
 /// Um widget da Início. Registre a implementação em <see cref="WidgetRegistry"/>; o host decide

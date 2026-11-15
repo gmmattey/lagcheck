@@ -8,52 +8,51 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 using LagCheck.WinUI.Controls;
+using LagCheck.WinUI.History;
 using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Widgets.Items;
 
 public sealed class LatencyWidget : IHomeWidget
 {
+    private bool _hasGameContext;
+
     public string Id => "latency";
-    public string Title => Strings.Tr("ÚLTIMO TESTE");
+    public string Title => Strings.Tr(_hasGameContext ? "ESTABILIDADE NO JOGO" : "ESTABILIDADE DA REDE");
     public string IconPath => "M4 20v-4M10 20v-8M16 20V8M22 20V4";
 
-    public bool IsAvailable(WidgetContext context) => true;
+    public bool IsAvailable(WidgetContext context)
+    {
+        _hasGameContext = context.Game is not null && !context.IsPc;
+        return true;
+    }
 
     // Sem nenhum teste real não há o que desenhar em 2x2: o card vazio fica compacto.
-    public IReadOnlyList<WidgetSpan> Sizes(WidgetContext context) => HasData(context)
+    public IReadOnlyList<WidgetSpan> Sizes(WidgetContext context) => BuildSummary(context, 12).HasData
         ? [new WidgetSpan(2, 2), new WidgetSpan(2, 1), new WidgetSpan(4, 2)]
         : [new WidgetSpan(2, 1)];
 
-    private static bool HasData(WidgetContext context) => context.History.Any(entry =>
-        entry.HasCapturedAt &&
-        Verdicts.ToneOf(entry.Verdict) != VerdictTone.Unknown &&
-        entry.PingMs is { } p && double.IsFinite(p) && p >= 0 && p <= 10000 &&
-        (context.Game is null || context.IsPc ||
-            string.Equals(entry.GameId, context.Game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase)));
+    private static NetworkStabilitySummary BuildSummary(WidgetContext context, int maxPoints)
+    {
+        if (context.Game is not null && !context.IsPc)
+        {
+            return NetworkStabilitySummary.Build(context.History, context.Game.HistoryGameKey, maxPoints);
+        }
+        return NetworkStabilitySummary.Build(context.History, null, maxPoints);
+    }
 
     public WidgetContent Render(WidgetContext context, WidgetSpan span)
     {
+        _hasGameContext = context.Game is not null && !context.IsPc;
         var effectiveSpan = Sizes(context).Contains(span) ? span : Sizes(context)[0];
 
-        var conclusive = context.History.Where(entry =>
-            entry.HasCapturedAt &&
-            Verdicts.ToneOf(entry.Verdict) != VerdictTone.Unknown &&
-            entry.PingMs is { } p &&
-            !double.IsNaN(p) &&
-            !double.IsInfinity(p) &&
-            p >= 0 &&
-            p <= 10000);
+        var maxPoints = effectiveSpan == new WidgetSpan(4, 2) ? 24 : 12;
+        var summary = BuildSummary(context, maxPoints);
 
-        if (context.Game is not null && !context.IsPc)
-        {
-            conclusive = conclusive.Where(entry =>
-                string.Equals(entry.GameId, context.Game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase));
-        }
+        var targetGameId = _hasGameContext ? context.Game!.HistoryGameKey : null;
+        var targetGameTitle = _hasGameContext ? context.Game!.Title : null;
 
-        var ordered = conclusive.OrderBy(entry => entry.CapturedAt).ToList();
-
-        if (ordered.Count == 0)
+        if (!summary.HasData || summary.Latest is not { } latest)
         {
             var canTest = context.Game is null || context.Game.CanTestConnection;
             WidgetAction? testAction = canTest
@@ -69,26 +68,30 @@ public sealed class LatencyWidget : IHomeWidget
                 Summary: Strings.Tr("Nenhum teste ainda."));
         }
 
-        var latest = ordered[^1];
-        var tone = Verdicts.ToneOf(latest.Verdict);
-        var accentBrush = new SolidColorBrush(Verdicts.ColorOf(tone));
+        var latestTone = Verdicts.ToneOf(latest.Verdict);
+        var stabilityTone = summary.StabilityTone;
+        var accentBrush = new SolidColorBrush(Verdicts.ColorOf(stabilityTone));
+        var stabilityText = NetworkStabilitySummary.HeadlineWord(stabilityTone);
+        var pctText = Strings.Format("{0}% estável", summary.StabilityPercentage);
 
-        var maxPoints = effectiveSpan == new WidgetSpan(4, 2) ? 24 : 12;
-        var ptEntries = ordered.TakeLast(maxPoints).ToList();
-        var pingValues = ptEntries.Select(e => e.PingMs!.Value).ToList();
-        var minPing = pingValues.Min();
-        var avgPing = pingValues.Average();
-        var maxPing = pingValues.Max();
+        var caption = Strings.Format(
+            summary.TotalCount == 1 ? "{0} teste · {1}" : "{0} testes · {1}",
+            summary.TotalCount,
+            WidgetParts.RelativeDay(latest.CapturedAt));
 
-        var caption = Strings.Format(ordered.Count == 1 ? "{0} teste · {1}" : "{0} testes · {1}", ordered.Count, WidgetParts.RelativeDay(latest.CapturedAt));
-        var action = new WidgetAction(Strings.Tr("Ver histórico"), () => context.Actions.OpenHistory());
-        var summary = Strings.Format("Último teste: {0:0.#} ms, {1}.", latest.PingMs ?? 0, Verdicts.StatusWord(tone).ToLower(CultureInfo.CurrentCulture));
+        Action openDetails = () => context.Actions.NavigateToHistory(targetGameId, targetGameTitle);
+        var action = new WidgetAction(Strings.Tr("Ver detalhes"), openDetails);
+        var a11ySummary = Strings.Format(
+            "Estabilidade: {0} ({1}%), último ping {2:0.#} ms.",
+            stabilityText.ToLower(CultureInfo.CurrentCulture),
+            summary.StabilityPercentage,
+            latest.PingMs ?? 0);
 
         var body = effectiveSpan switch
         {
-            { Cols: 2, Rows: 1 } => BuildCompactBody(latest, tone, pingValues),
-            { Cols: 4, Rows: 2 } => BuildWideBody(latest, tone, pingValues, minPing, avgPing, maxPing),
-            _ => BuildFullBody(latest, tone, pingValues, minPing, avgPing, maxPing),
+            { Cols: 2, Rows: 1 } => BuildCompactBody(latest, latestTone, summary, stabilityText),
+            { Cols: 4, Rows: 2 } => BuildWideBody(latest, latestTone, summary, stabilityText, pctText),
+            _ => BuildFullBody(latest, latestTone, summary, stabilityText, pctText),
         };
 
         return new WidgetContent(
@@ -96,14 +99,16 @@ public sealed class LatencyWidget : IHomeWidget
             Body: body,
             Caption: caption,
             Action: action,
+            Activate: openDetails,
             Accent: accentBrush,
-            Summary: summary);
+            Summary: a11ySummary);
     }
 
     private static UIElement BuildCompactBody(
-        LagCheck.WinUI.History.SessionHistoryEntry latest,
-        VerdictTone tone,
-        IReadOnlyList<double> pingValues)
+        SessionHistoryEntry latest,
+        VerdictTone latestTone,
+        NetworkStabilitySummary summary,
+        string stabilityText)
     {
         var grid = new Grid
         {
@@ -114,34 +119,30 @@ public sealed class LatencyWidget : IHomeWidget
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96, GridUnitType.Pixel) });
 
         var left = new StackPanel { Spacing = 4, VerticalAlignment = VerticalAlignment.Center };
-        var chip = BuildChip(tone);
-        left.Children.Add(chip);
-
-        var pingBlock = BuildPingBlock(latest.PingMs!.Value, tone, fontSize: 28);
-        left.Children.Add(pingBlock);
+        left.Children.Add(BuildStabilityChip(summary.StabilityTone, $"{stabilityText} · {summary.StabilityPercentage}%"));
+        left.Children.Add(BuildPingBlock(latest.PingMs!.Value, latestTone, fontSize: 26));
 
         Grid.SetColumn(left, 0);
         grid.Children.Add(left);
 
-        var spark = new Border
+        var chart = new Border
         {
-            Height = 44,
+            Height = 46,
             VerticalAlignment = VerticalAlignment.Center,
-            Child = WidgetParts.Sparkline(pingValues, Verdicts.ColorOf(tone)),
+            Child = WidgetParts.StabilityChart(summary.Points, Verdicts.ColorOf(summary.StabilityTone)),
         };
-        Grid.SetColumn(spark, 1);
-        grid.Children.Add(spark);
+        Grid.SetColumn(chart, 1);
+        grid.Children.Add(chart);
 
         return grid;
     }
 
     private static UIElement BuildFullBody(
-        LagCheck.WinUI.History.SessionHistoryEntry latest,
-        VerdictTone tone,
-        IReadOnlyList<double> pingValues,
-        double minPing,
-        double avgPing,
-        double maxPing)
+        SessionHistoryEntry latest,
+        VerdictTone latestTone,
+        NetworkStabilitySummary summary,
+        string stabilityText,
+        string pctText)
     {
         var grid = new Grid
         {
@@ -153,24 +154,42 @@ public sealed class LatencyWidget : IHomeWidget
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        var chip = BuildChip(tone);
-        Grid.SetRow(chip, 0);
-        grid.Children.Add(chip);
+        var topRow = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var pingBlock = BuildPingBlock(latest.PingMs!.Value, tone, fontSize: 36, margin: new Thickness(0, 4, 0, 0));
+        var chip = BuildStabilityChip(summary.StabilityTone, stabilityText);
+        Grid.SetColumn(chip, 0);
+        topRow.Children.Add(chip);
+
+        var pctBadge = new TextBlock
+        {
+            Text = pctText,
+            FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"],
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Verdicts.ColorOf(summary.StabilityTone)),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        Grid.SetColumn(pctBadge, 1);
+        topRow.Children.Add(pctBadge);
+
+        Grid.SetRow(topRow, 0);
+        grid.Children.Add(topRow);
+
+        var pingBlock = BuildPingBlock(latest.PingMs!.Value, latestTone, fontSize: 32, margin: new Thickness(0, 4, 0, 0));
         Grid.SetRow(pingBlock, 1);
         grid.Children.Add(pingBlock);
 
-        var spark = new Border
+        var chart = new Border
         {
-            MinHeight = 36,
+            MinHeight = 38,
             Margin = new Thickness(0, 4, 0, 8),
-            Child = WidgetParts.Sparkline(pingValues, Verdicts.ColorOf(tone)),
+            Child = WidgetParts.StabilityChart(summary.Points, Verdicts.ColorOf(summary.StabilityTone)),
         };
-        Grid.SetRow(spark, 2);
-        grid.Children.Add(spark);
+        Grid.SetRow(chart, 2);
+        grid.Children.Add(chart);
 
-        var metricRow = BuildMinAvgMaxRow(minPing, avgPing, maxPing);
+        var metricRow = BuildMinAvgMaxRow(summary.MinPing, summary.AvgPing, summary.MaxPing);
         Grid.SetRow(metricRow, 3);
         grid.Children.Add(metricRow);
 
@@ -178,12 +197,11 @@ public sealed class LatencyWidget : IHomeWidget
     }
 
     private static UIElement BuildWideBody(
-        LagCheck.WinUI.History.SessionHistoryEntry latest,
-        VerdictTone tone,
-        IReadOnlyList<double> pingValues,
-        double minPing,
-        double avgPing,
-        double maxPing)
+        SessionHistoryEntry latest,
+        VerdictTone latestTone,
+        NetworkStabilitySummary summary,
+        string stabilityText,
+        string pctText)
     {
         var grid = new Grid
         {
@@ -191,7 +209,8 @@ public sealed class LatencyWidget : IHomeWidget
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140, GridUnitType.Pixel) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(136, GridUnitType.Pixel) });
 
         var left = new Grid();
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -200,42 +219,46 @@ public sealed class LatencyWidget : IHomeWidget
         var top = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Spacing = 16,
+            Spacing = 12,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        top.Children.Add(BuildChip(tone));
-        top.Children.Add(BuildPingBlock(latest.PingMs!.Value, tone, fontSize: 30));
+        top.Children.Add(BuildStabilityChip(summary.StabilityTone, $"{stabilityText} · {pctText}"));
+        top.Children.Add(BuildPingBlock(latest.PingMs!.Value, latestTone, fontSize: 28));
         Grid.SetRow(top, 0);
         left.Children.Add(top);
 
-        var spark = new Border
+        var chart = new Border
         {
             Margin = new Thickness(0, 8, 12, 0),
-            Child = WidgetParts.Sparkline(pingValues, Verdicts.ColorOf(tone)),
+            Child = WidgetParts.StabilityChart(summary.Points, Verdicts.ColorOf(summary.StabilityTone)),
         };
-        Grid.SetRow(spark, 1);
-        left.Children.Add(spark);
+        Grid.SetRow(chart, 1);
+        left.Children.Add(chart);
 
         Grid.SetColumn(left, 0);
         grid.Children.Add(left);
+
+        var divider = WidgetParts.VerticalDivider(6);
+        Grid.SetColumn(divider, 1);
+        grid.Children.Add(divider);
 
         var right = new StackPanel
         {
             Spacing = 6,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(12, 0, 0, 0),
+            Margin = new Thickness(14, 0, 0, 0),
         };
-        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÍN"), minPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(minPing)));
-        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÉD"), avgPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(avgPing)));
-        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÁX"), maxPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(maxPing)));
+        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÍN"), summary.MinPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(summary.MinPing)));
+        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÉD"), summary.AvgPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(summary.AvgPing)));
+        right.Children.Add(WidgetParts.Metric(Strings.Tr("MÁX"), summary.MaxPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(summary.MaxPing)));
 
-        Grid.SetColumn(right, 1);
+        Grid.SetColumn(right, 2);
         grid.Children.Add(right);
 
         return grid;
     }
 
-    private static FrameworkElement BuildChip(VerdictTone tone)
+    private static FrameworkElement BuildStabilityChip(VerdictTone tone, string text)
     {
         var stack = new StackPanel
         {
@@ -251,7 +274,7 @@ public sealed class LatencyWidget : IHomeWidget
 
         stack.Children.Add(new TextBlock
         {
-            Text = Verdicts.StatusWord(tone),
+            Text = text,
             FontSize = 12,
             Foreground = secBrush,
             VerticalAlignment = VerticalAlignment.Center,
@@ -296,19 +319,32 @@ public sealed class LatencyWidget : IHomeWidget
     {
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         var c0 = WidgetParts.Metric(Strings.Tr("MÍN"), minPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(minPing));
+        c0.HorizontalAlignment = HorizontalAlignment.Center;
         Grid.SetColumn(c0, 0);
         grid.Children.Add(c0);
 
+        var d0 = WidgetParts.VerticalDivider(2);
+        Grid.SetColumn(d0, 1);
+        grid.Children.Add(d0);
+
         var c1 = WidgetParts.Metric(Strings.Tr("MÉD"), avgPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(avgPing));
-        Grid.SetColumn(c1, 1);
+        c1.HorizontalAlignment = HorizontalAlignment.Center;
+        Grid.SetColumn(c1, 2);
         grid.Children.Add(c1);
 
+        var d1 = WidgetParts.VerticalDivider(2);
+        Grid.SetColumn(d1, 3);
+        grid.Children.Add(d1);
+
         var c2 = WidgetParts.Metric(Strings.Tr("MÁX"), maxPing.ToString("0", CultureInfo.CurrentCulture), "ms", WidgetParts.PingColor(maxPing));
-        Grid.SetColumn(c2, 2);
+        c2.HorizontalAlignment = HorizontalAlignment.Center;
+        Grid.SetColumn(c2, 4);
         grid.Children.Add(c2);
 
         return grid;

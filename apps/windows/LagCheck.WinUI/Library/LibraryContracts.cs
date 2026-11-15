@@ -93,6 +93,7 @@ public sealed record LibraryGame(
     public bool CanTestConnection => IsInstalled
         && NetworkKind != GameNetworkKind.Offline
         && (NetworkKind != GameNetworkKind.Supported || !string.IsNullOrWhiteSpace(DiagnosticGameId));
+    public string HistoryGameKey => !string.IsNullOrWhiteSpace(DiagnosticGameId) ? DiagnosticGameId : Title;
     public string DiagnosticLabel => NetworkKind switch
     {
         GameNetworkKind.Supported when string.IsNullOrWhiteSpace(DiagnosticGameId) => Strings.Tr("Sem diagnóstico"),

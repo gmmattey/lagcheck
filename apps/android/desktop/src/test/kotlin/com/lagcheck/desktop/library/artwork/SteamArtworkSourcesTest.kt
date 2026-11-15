@@ -8,8 +8,8 @@ class SteamArtworkSourcesTest {
     fun cdnGeraUrlsDeCapaEBannerSoParaSteam() {
         val s = SteamCdnSource()
         val cover = s.candidates(steamGame, ArtworkType.COVER).map { (it as ArtworkCandidate.Remote).url }
-        assertEquals("https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_600x900.jpg", cover.first())
-        assertTrue(cover.all { it.startsWith("https://") && it.endsWith("library_600x900.jpg") })
+        assertEquals("https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_600x900_2x.jpg", cover.first())
+        assertTrue(cover.any { it.startsWith("https://") && it.endsWith("library_600x900.jpg") })
         val hero = s.candidates(steamGame, ArtworkType.HERO).map { (it as ArtworkCandidate.Remote).url }
         assertEquals("https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_hero_2x.jpg", hero.first())
         assertTrue(hero.any { it.endsWith("library_hero.jpg") })

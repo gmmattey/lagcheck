@@ -85,6 +85,7 @@ public sealed partial class GameDetailsPage : Page
         HistEyebrow.Text = Strings.Tr("HISTÓRICO DE MEDIÇÕES");
         HistStatusText.Text = Strings.Tr("Sem medições");
         MeasureNowBtn.Content = Strings.Tr("Testar agora");
+        StabilityDetailsBtn.Content = Strings.Tr("Ver detalhes da estabilidade");
         ShotsEyebrow.Text = Strings.Tr("CAPTURAS");
     }
 
@@ -193,7 +194,7 @@ public sealed partial class GameDetailsPage : Page
         var heroArt = Artwork.FirstExisting(game.HeroArtworkPath);
         if (heroArt is not null)
         {
-            BackgroundImage.Source = Artwork.Load(heroArt, 2560);
+            BackgroundImage.Source = Artwork.Load(heroArt);
             BackgroundLayer.Visibility = Visibility.Visible;
             if (isArtworkRefresh)
             {
@@ -342,14 +343,137 @@ public sealed partial class GameDetailsPage : Page
 
     private static string FormatDate(long epochMs) => DateTimeOffset.FromUnixTimeMilliseconds(epochMs).ToLocalTime().ToString("d MMM yyyy", LocalizationService.Instance.EffectiveCulture);
 
+    private void StabilityDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (_game is not null)
+        {
+            LagCheck.WinUI.ShellNavigation.OpenHistory(_game.HistoryGameKey, _game.Title);
+        }
+    }
+
     private void BindHistory()
     {
+        StabilityBlock.Children.Clear();
         HistoryPanel.Children.Clear();
-        var id = _game?.DiagnosticGameId;
-        var entries = string.IsNullOrWhiteSpace(id)
+        var gameKey = _game?.HistoryGameKey;
+        var summary = string.IsNullOrWhiteSpace(gameKey)
+            ? NetworkStabilitySummary.Empty
+            : NetworkStabilitySummary.Build(SessionHistoryServices.Store.Entries, gameKey, maxPoints: 16);
+
+        if (summary.HasData && summary.Latest is not null)
+        {
+            StabilityBlock.Visibility = Visibility.Visible;
+            StabilityDetailsBtn.Visibility = Visibility.Visible;
+
+            var culture = LocalizationService.Instance.EffectiveCulture;
+            var toneColor = Verdicts.ColorOf(summary.StabilityTone);
+
+            var headerRow = new Grid { ColumnSpacing = 8 };
+            headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var statusBadge = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+            statusBadge.Children.Add(Verdicts.Marker(summary.StabilityTone));
+            statusBadge.Children.Add(new TextBlock
+            {
+                Text = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary.StabilityTone)),
+                FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"],
+                FontSize = 14,
+                FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+                Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"],
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            });
+            headerRow.Children.Add(statusBadge);
+
+            var pctText = new TextBlock
+            {
+                Text = string.Format(culture, Strings.Tr("{0}% estável"), summary.StabilityPercentage),
+                FontFamily = (FontFamily)Application.Current.Resources["MetricFont"],
+                FontSize = 12,
+                Foreground = new SolidColorBrush(toneColor),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            Grid.SetColumn(pctText, 1);
+            headerRow.Children.Add(pctText);
+            StabilityBlock.Children.Add(headerRow);
+
+            var chartHost = new Border
+            {
+                Height = 72,
+                Padding = new Thickness(8, 6, 8, 6),
+                CornerRadius = new CornerRadius(10),
+                Background = new SolidColorBrush(Color.FromArgb(0x0A, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)),
+                BorderThickness = new Thickness(1),
+                Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, toneColor),
+            };
+            StabilityBlock.Children.Add(chartHost);
+
+            var gaugesGrid = new Grid { ColumnSpacing = 8, Margin = new Thickness(0, 2, 0, 0) };
+            gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 8, 20) : VerdictTone.Unknown;
+            var jitterGauge = LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+                Strings.Tr("JITTER"),
+                summary.AvgJitter is { } jv ? string.Format(culture, "{0:0.#}", jv) : "—",
+                summary.AvgJitter.HasValue ? "ms" : null,
+                Verdicts.ColorOf(jitterTone),
+                jitterTone,
+                summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 8, 20, 40) : 0,
+                ringSize: 42);
+            jitterGauge.HorizontalAlignment = HorizontalAlignment.Center;
+            gaugesGrid.Children.Add(jitterGauge);
+
+            var div1 = LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(6);
+            Grid.SetColumn(div1, 1);
+            gaugesGrid.Children.Add(div1);
+
+            var lossTone = summary.MaxLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 0.5, 2.5) : VerdictTone.Unknown;
+            var lossGauge = LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+                Strings.Tr("PERDA"),
+                summary.MaxLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
+                summary.MaxLoss.HasValue ? "%" : null,
+                Verdicts.ColorOf(lossTone),
+                lossTone,
+                summary.MaxLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 0.5, 2.5, 10) : 0,
+                ringSize: 42);
+            lossGauge.HorizontalAlignment = HorizontalAlignment.Center;
+            Grid.SetColumn(lossGauge, 2);
+            gaugesGrid.Children.Add(lossGauge);
+
+            var div2 = LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(6);
+            Grid.SetColumn(div2, 3);
+            gaugesGrid.Children.Add(div2);
+
+            var loadTone = summary.AvgLoadDelta is { } ld ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(ld, 15, 40) : VerdictTone.Unknown;
+            var loadGauge = LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
+                Strings.Tr("SOB CARGA"),
+                summary.AvgLoadDelta is { } ldv ? string.Format(culture, ldv >= 0 ? "+{0:0.#}" : "{0:0.#}", ldv) : "—",
+                summary.AvgLoadDelta.HasValue ? "ms" : null,
+                Verdicts.ColorOf(loadTone),
+                loadTone,
+                summary.AvgLoadDelta is { } ldr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(ldr, 15, 40, 80) : 0,
+                ringSize: 42);
+            loadGauge.HorizontalAlignment = HorizontalAlignment.Center;
+            Grid.SetColumn(loadGauge, 4);
+            gaugesGrid.Children.Add(loadGauge);
+
+            StabilityBlock.Children.Add(gaugesGrid);
+        }
+        else
+        {
+            StabilityBlock.Visibility = Visibility.Collapsed;
+            StabilityDetailsBtn.Visibility = Visibility.Collapsed;
+        }
+
+        var entries = _game is null
             ? new List<SessionHistoryEntry>()
             : SessionHistoryServices.Store.Entries
-                .Where(entry => string.Equals(entry.GameId, id, StringComparison.OrdinalIgnoreCase) && entry.PingMs.HasValue)
+                .Where(entry => entry.PingMs.HasValue && SessionHistoryStore.MatchesGame(entry, _game.DiagnosticGameId, _game.Title))
                 .Take(6)
                 .ToList();
 

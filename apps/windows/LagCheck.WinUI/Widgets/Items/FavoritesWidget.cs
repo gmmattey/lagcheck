@@ -159,7 +159,7 @@ public sealed class FavoritesWidget : IHomeWidget
     {
         var image = new Image
         {
-            Source = Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath), 120),
+            Source = Artwork.Load(Artwork.FirstExisting(game.CoverArtworkPath)),
             Stretch = Stretch.UniformToFill,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,

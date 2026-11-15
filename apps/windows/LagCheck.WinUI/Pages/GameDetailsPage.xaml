@@ -112,10 +112,14 @@
                         <Border Padding="0,20,0,0" BorderBrush="{StaticResource LineStrongBrush}" BorderThickness="0,1,0,0">
                             <StackPanel Spacing="6">
                                 <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource TechLabelStyle}"/>
+                                <StackPanel x:Name="StabilityBlock" Spacing="10" Visibility="Collapsed" Margin="0,4,0,6"/>
                                 <StackPanel x:Name="HistoryPanel"/>
                                 <TextBlock x:Name="HistStatusText" Text="Sem medições" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" LineHeight="19.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                 <Button x:Name="MeasureNowBtn" Content="Testar agora" Style="{StaticResource SecondaryCompactButtonStyle}"
                                         Margin="0,8,0,0" Click="CheckConnection_Click" HorizontalAlignment="Left"/>
+                                <Button x:Name="StabilityDetailsBtn" Content="Ver detalhes da estabilidade" Style="{StaticResource TextLinkButtonStyle}"
+                                        Visibility="Collapsed" Padding="0" MinHeight="36" Margin="0,2,0,0" HorizontalAlignment="Left"
+                                        Click="StabilityDetails_Click"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

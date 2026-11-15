@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 using LagCheck.WinUI.Controls;
 using LagCheck.WinUI.Diagnostic;
+using LagCheck.WinUI.History;
 using LagCheck.WinUI.Localization;
 
 namespace LagCheck.WinUI.Widgets.Items;
@@ -24,30 +25,17 @@ public sealed class RouteQualityWidget : IHomeWidget
     [
         new WidgetSpan(2, 1),
         new WidgetSpan(4, 1),
+        new WidgetSpan(2, 2),
     ];
 
     public WidgetContent Render(WidgetContext context, WidgetSpan span)
     {
         var effectiveSpan = Sizes(context).Contains(span) ? span : Sizes(context)[0];
+        var hasGame = context.Game is not null && !context.IsPc;
 
-        var conclusive = context.History.Where(entry =>
-            entry.HasCapturedAt &&
-            Verdicts.ToneOf(entry.Verdict) != VerdictTone.Unknown &&
-            entry.PingMs is { } p &&
-            !double.IsNaN(p) &&
-            !double.IsInfinity(p) &&
-            p >= 0 &&
-            p <= 10000);
+        var summary = NetworkStabilitySummary.Build(context.History, hasGame ? context.Game!.HistoryGameKey : null, 12);
 
-        if (context.Game is not null && !context.IsPc)
-        {
-            conclusive = conclusive.Where(entry =>
-                string.Equals(entry.GameId, context.Game.DiagnosticGameId, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var ordered = conclusive.OrderBy(entry => entry.CapturedAt).ToList();
-
-        if (ordered.Count == 0)
+        if (!summary.HasData || summary.Latest is not { } latest)
         {
             return new WidgetContent(
                 State: WidgetState.Empty,
@@ -55,19 +43,17 @@ public sealed class RouteQualityWidget : IHomeWidget
                 Summary: Strings.Tr("Sem teste ainda."));
         }
 
-        var latest = ordered[^1];
         var tone = Verdicts.ToneOf(latest.Verdict);
         var accentBrush = new SolidColorBrush(Verdicts.ColorOf(tone));
-
-        var secColor = Color.FromArgb(255, 0x9A, 0xA3, 0xB5);
-        var jitterColor = latest.JitterMs is { } j ? WidgetParts.JitterColor(j) : secColor;
-        var lossColor = latest.PacketLossPercentage is { } l ? WidgetParts.LossColor(l) : secColor;
-
         var regionName = RegionCatalog.Find(latest.RegionId)?.Name ?? latest.RegionLabel;
 
+        var targetGameId = hasGame ? context.Game!.HistoryGameKey : null;
+        var targetGameTitle = hasGame ? context.Game!.Title : null;
+        Action openDetails = () => context.Actions.NavigateToHistory(targetGameId, targetGameTitle);
+
         var caption = latest.HasCapturedAt ? WidgetParts.RelativeDay(latest.CapturedAt) : null;
-        var action = new WidgetAction(Strings.Tr("Ver histórico"), () => context.Actions.OpenHistory());
-        var summary = Strings.Format(
+        var action = new WidgetAction(Strings.Tr("Ver detalhes"), openDetails);
+        var a11ySummary = Strings.Format(
             "Qualidade da rota: jitter {0}, perda {1}, região {2}.",
             latest.JitterLabel,
             latest.LossLabel,
@@ -75,8 +61,9 @@ public sealed class RouteQualityWidget : IHomeWidget
 
         var body = effectiveSpan switch
         {
-            { Cols: 4, Rows: 1 } => BuildWideBody(latest, tone, context.Game is not null && !context.IsPc, jitterColor, lossColor, regionName),
-            _ => BuildCompactBody(latest, jitterColor, lossColor, regionName),
+            { Cols: 4, Rows: 1 } => BuildWideBody(latest, tone, hasGame, regionName),
+            { Cols: 2, Rows: 2 } => BuildTallBody(latest, tone, hasGame, regionName),
+            _ => BuildRingsRow(latest, ringSize: 44),
         };
 
         return new WidgetContent(
@@ -84,52 +71,100 @@ public sealed class RouteQualityWidget : IHomeWidget
             Body: body,
             Caption: caption,
             Action: action,
+            Activate: openDetails,
             Accent: accentBrush,
-            Summary: summary);
+            Summary: a11ySummary);
     }
 
-    private static UIElement BuildCompactBody(
-        LagCheck.WinUI.History.SessionHistoryEntry latest,
-        Color jitterColor,
-        Color lossColor,
-        string regionName)
+    private static Grid BuildRingsRow(SessionHistoryEntry latest, double ringSize)
     {
+        var secColor = Color.FromArgb(255, 0x9A, 0xA3, 0xB5);
+
         var grid = new Grid
         {
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.8, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.8, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        var jitterStr = latest.JitterMs is { } j ? j.ToString("0.#", CultureInfo.CurrentCulture) : "—";
-        var lossStr = latest.PacketLossPercentage is { } l ? l.ToString("0.#", CultureInfo.CurrentCulture) : "—";
+        // Coluna 1: JITTER
+        var jitterGauge = latest.JitterMs is { } j
+            ? WidgetParts.RingMetricGauge(
+                Strings.Tr("JITTER"),
+                j.ToString("0.#", CultureInfo.CurrentCulture),
+                "ms",
+                WidgetParts.JitterColor(j),
+                WidgetParts.MetricVerdictTone(j, 8, 20),
+                WidgetParts.MetricRatio(j, 8, 20, 50),
+                ringSize)
+            : WidgetParts.RingMetricGauge(Strings.Tr("JITTER"), "—", null, secColor, VerdictTone.Unknown, 0, ringSize);
+        Grid.SetColumn(jitterGauge, 0);
+        grid.Children.Add(jitterGauge);
 
-        var c0 = WidgetParts.Metric(Strings.Tr("JITTER"), jitterStr, latest.JitterMs is not null ? "ms" : null, jitterColor);
-        Grid.SetColumn(c0, 0);
-        grid.Children.Add(c0);
+        var d0 = WidgetParts.VerticalDivider(ringSize < 48 ? 6 : 8);
+        Grid.SetColumn(d0, 1);
+        grid.Children.Add(d0);
 
-        var c1 = WidgetParts.Metric(Strings.Tr("PERDA"), lossStr, latest.PacketLossPercentage is not null ? "%" : null, lossColor);
-        Grid.SetColumn(c1, 1);
-        grid.Children.Add(c1);
+        // Coluna 2: PERDA
+        var lossGauge = latest.PacketLossPercentage is { } l
+            ? WidgetParts.RingMetricGauge(
+                Strings.Tr("PERDA"),
+                l.ToString("0.#", CultureInfo.CurrentCulture),
+                "%",
+                WidgetParts.LossColor(l),
+                WidgetParts.MetricVerdictTone(l, 0.5, 2),
+                WidgetParts.MetricRatio(l, 0.5, 2, 10),
+                ringSize)
+            : WidgetParts.RingMetricGauge(Strings.Tr("PERDA"), "—", null, secColor, VerdictTone.Unknown, 0, ringSize);
+        Grid.SetColumn(lossGauge, 2);
+        grid.Children.Add(lossGauge);
 
-        // Região é texto (ex.: "São Paulo"): fonte de corpo e até duas linhas, em vez do número grande.
-        var c2 = new StackPanel { Spacing = 2 };
-        c2.Children.Add(new TextBlock { Text = Strings.Tr("REGIÃO").ToUpper(CultureInfo.CurrentCulture), Style = (Style)Application.Current.Resources["TechLabelStyle"] });
-        c2.Children.Add(new TextBlock { Text = regionName, FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"], FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.Normal, TextWrapping = TextWrapping.Wrap, MaxLines = 2, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"] });
-        Grid.SetColumn(c2, 2);
-        grid.Children.Add(c2);
+        var d1 = WidgetParts.VerticalDivider(ringSize < 48 ? 6 : 8);
+        Grid.SetColumn(d1, 3);
+        grid.Children.Add(d1);
+
+        // Coluna 3: SOB CARGA (ou PING caso não haja dado sob carga)
+        FrameworkElement thirdGauge;
+        if (latest.LoadDeltaMs is { } load)
+        {
+            thirdGauge = WidgetParts.RingMetricGauge(
+                Strings.Tr("SOB CARGA"),
+                "+" + load.ToString("0.#", CultureInfo.CurrentCulture),
+                "ms",
+                WidgetParts.LoadColor(load),
+                WidgetParts.MetricVerdictTone(load, 15, 40),
+                WidgetParts.MetricRatio(load, 15, 40, 120),
+                ringSize);
+        }
+        else if (latest.PingMs is { } p)
+        {
+            thirdGauge = WidgetParts.RingMetricGauge(
+                Strings.Tr("PING"),
+                p.ToString("0", CultureInfo.CurrentCulture),
+                "ms",
+                WidgetParts.PingColor(p),
+                WidgetParts.MetricVerdictTone(p, 45, 90),
+                WidgetParts.MetricRatio(p, 45, 90, 220),
+                ringSize);
+        }
+        else
+        {
+            thirdGauge = WidgetParts.RingMetricGauge(Strings.Tr("SOB CARGA"), "—", null, secColor, VerdictTone.Unknown, 0, ringSize);
+        }
+        Grid.SetColumn(thirdGauge, 4);
+        grid.Children.Add(thirdGauge);
 
         return grid;
     }
 
     private static UIElement BuildWideBody(
-        LagCheck.WinUI.History.SessionHistoryEntry latest,
+        SessionHistoryEntry latest,
         VerdictTone tone,
         bool hasGame,
-        Color jitterColor,
-        Color lossColor,
         string regionName)
     {
         var grid = new Grid
@@ -137,34 +172,106 @@ public sealed class RouteQualityWidget : IHomeWidget
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2.2, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) });
 
-        var metricsGrid = (Grid)BuildCompactBody(latest, jitterColor, lossColor, regionName);
-        Grid.SetColumn(metricsGrid, 0);
-        grid.Children.Add(metricsGrid);
+        var rings = BuildRingsRow(latest, ringSize: 46);
+        rings.Margin = new Thickness(0, 0, 10, 0);
+        Grid.SetColumn(rings, 0);
+        grid.Children.Add(rings);
 
-        var headlineStack = new StackPanel
+        var divider = WidgetParts.VerticalDivider(6);
+        Grid.SetColumn(divider, 1);
+        grid.Children.Add(divider);
+
+        var infoStack = new StackPanel
         {
             Spacing = 4,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(16, 0, 0, 0),
+            Margin = new Thickness(14, 0, 0, 0),
         };
-
-        var headlineText = new TextBlock
+        infoStack.Children.Add(new TextBlock
         {
-            Text = Verdicts.Headline(tone, hasGame),
-            FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"],
+            Text = Strings.Tr("REGIÃO").ToUpper(CultureInfo.CurrentCulture),
+            Style = (Style)Application.Current.Resources["TechLabelStyle"],
+        });
+        infoStack.Children.Add(new TextBlock
+        {
+            Text = regionName,
+            FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"],
             FontSize = 13,
             FontWeight = Microsoft.UI.Text.FontWeights.Normal,
-            TextWrapping = TextWrapping.Wrap,
-            LineHeight = 16,
-            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
-        };
-        headlineStack.Children.Add(headlineText);
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"],
+        });
+        infoStack.Children.Add(new TextBlock
+        {
+            Text = Verdicts.Headline(tone, hasGame),
+            FontFamily = (FontFamily)Application.Current.Resources["BodyMediumFont"],
+            FontSize = 12,
+            FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground = new SolidColorBrush(Verdicts.ColorOf(tone)),
+        });
 
-        Grid.SetColumn(headlineStack, 1);
-        grid.Children.Add(headlineStack);
+        Grid.SetColumn(infoStack, 2);
+        grid.Children.Add(infoStack);
+
+        return grid;
+    }
+
+    private static UIElement BuildTallBody(
+        SessionHistoryEntry latest,
+        VerdictTone tone,
+        bool hasGame,
+        string regionName)
+    {
+        var grid = new Grid
+        {
+            VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var rings = BuildRingsRow(latest, ringSize: 52);
+        Grid.SetRow(rings, 0);
+        grid.Children.Add(rings);
+
+        var footer = new StackPanel
+        {
+            Spacing = 4,
+            Padding = new Thickness(0, 10, 0, 0),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x18, 255, 255, 255)),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+        };
+        footer.Children.Add(new TextBlock
+        {
+            Text = Strings.Tr("REGIÃO").ToUpper(CultureInfo.CurrentCulture),
+            Style = (Style)Application.Current.Resources["TechLabelStyle"],
+        });
+        footer.Children.Add(new TextBlock
+        {
+            Text = regionName,
+            FontFamily = (FontFamily)Application.Current.Resources["BodySemiBoldFont"],
+            FontSize = 13,
+            FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"],
+        });
+        footer.Children.Add(new TextBlock
+        {
+            Text = Verdicts.Headline(tone, hasGame),
+            FontFamily = (FontFamily)Application.Current.Resources["BodyMediumFont"],
+            FontSize = 12,
+            FontWeight = Microsoft.UI.Text.FontWeights.Normal,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground = new SolidColorBrush(Verdicts.ColorOf(tone)),
+        });
+
+        Grid.SetRow(footer, 1);
+        grid.Children.Add(footer);
 
         return grid;
     }

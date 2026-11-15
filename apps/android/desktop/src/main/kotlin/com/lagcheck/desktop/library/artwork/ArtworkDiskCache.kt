@@ -19,11 +19,12 @@ class ArtworkDiskCache(
     /** Devolve o arquivo em cache e marca como usado agora (para a remoção por uso). */
     fun get(gameId: String, type: ArtworkType, allowLegacy: Boolean = true): Path? {
         getImage(imageFile(gameId, type))?.let { return it }
-        return if (allowLegacy) getImage(legacyImageFile(gameId, type)) else null
+        return if (allowLegacy) getLegacy(gameId, type) else null
     }
 
     /** Arte baixada antes da priorização de resolução; usada somente como fallback seguro. */
-    fun getLegacy(gameId: String, type: ArtworkType): Path? = getImage(legacyImageFile(gameId, type))
+    fun getLegacy(gameId: String, type: ArtworkType): Path? =
+        getImage(v2ImageFile(gameId, type)) ?: getImage(legacyImageFile(gameId, type))
 
     fun put(gameId: String, type: ArtworkType, bytes: ByteArray): Path {
         Files.createDirectories(dir)
@@ -89,10 +90,11 @@ class ArtworkDiskCache(
     }
 
     private fun imageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${cacheKey(type)}$IMG")
+    private fun v2ImageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${type.key}-v2$IMG")
     private fun legacyImageFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${type.key}$IMG")
     private fun missFile(gameId: String, type: ArtworkType) = dir.resolve("${key(gameId)}.${cacheKey(type)}.miss")
 
-    private fun cacheKey(type: ArtworkType) = "${type.key}-v2"
+    private fun cacheKey(type: ArtworkType) = "${type.key}-v3"
 
     companion object {
         const val DEFAULT_MAX_BYTES = 200L * 1024 * 1024

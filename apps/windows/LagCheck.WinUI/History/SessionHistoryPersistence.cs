@@ -129,12 +129,15 @@ internal sealed class SessionHistoryPersistence
         && entry.SessionId.Length <= 128
         && !string.IsNullOrWhiteSpace(entry.GameId)
         && entry.GameId.Length <= 256
+        && (entry.GameTitle is null || entry.GameTitle.Length <= 256)
         && !string.IsNullOrWhiteSpace(entry.Verdict)
         && entry.Verdict.Length <= 160
         && entry.CapturedAt != DateTimeOffset.MinValue
         && IsFinite(entry.PingMs)
         && IsFinite(entry.JitterMs)
         && IsFinite(entry.PacketLossPercentage)
+        && IsFinite(entry.LoadDeltaMs)
+        && IsFinite(entry.WorstSpikeMs)
         && (entry.RegionId is null || entry.RegionId.Length <= 160);
 
     private static bool IsFinite(double? value) => value is not { } number || double.IsFinite(number);
@@ -151,6 +154,9 @@ internal sealed record PersistedSessionHistoryEntry(
     double? PacketLossPercentage,
     string? RegionId,
     DateTimeOffset CapturedAt,
-    string GameId);
+    string GameId,
+    string? GameTitle = null,
+    double? LoadDeltaMs = null,
+    double? WorstSpikeMs = null);
 
 internal sealed record PersistedHistoryDocument(int Version, IReadOnlyList<PersistedSessionHistoryEntry> Entries);
