@@ -265,6 +265,7 @@ public sealed partial class SettingsPage : Page
                 {
                     if (i != index) _categoryPanels[i].Visibility = Visibility.Collapsed;
                 }
+                ApplyAdaptiveSpacing(newPanel);
                 newPanel.Visibility = Visibility.Visible;
                 Choreo.FadeSlideIn(newPanel, ms: Choreo.Base, dy: 10);
             });
@@ -275,10 +276,55 @@ public sealed partial class SettingsPage : Page
             {
                 _categoryPanels[i].Visibility = (i == index) ? Visibility.Visible : Visibility.Collapsed;
             }
+            ApplyAdaptiveSpacing(newPanel);
             if (animate)
             {
                 Choreo.FadeSlideIn(newPanel, ms: Choreo.Base, dy: 10);
             }
+        }
+    }
+
+    private void ApplyAdaptiveSpacing(StackPanel? activePanel = null)
+    {
+        var availableHeight = LayoutGrid.ActualHeight > 0
+            ? LayoutGrid.ActualHeight
+            : Math.Max(320, ActualHeight - 160);
+
+        if (CategoriesPanel.Orientation == Orientation.Vertical)
+        {
+            var catCount = _categoryButtons.Length;
+            var catRemaining = Math.Max(0, availableHeight * 0.72 - catCount * 44);
+            CategoriesPanel.Spacing = catCount <= 1 ? 6 : Math.Clamp(catRemaining / (catCount - 1), 6, 20);
+        }
+        else
+        {
+            CategoriesPanel.Spacing = 6;
+        }
+
+        var panel = activePanel ?? (_lastSelectedCategoryIndex >= 0 && _lastSelectedCategoryIndex < _categoryPanels.Length
+            ? _categoryPanels[_lastSelectedCategoryIndex]
+            : null);
+        if (panel is null) return;
+
+        var rows = new List<SettingsRow>();
+        foreach (var child in panel.Children)
+        {
+            if (child is SettingsRow row && row.Visibility == Visibility.Visible)
+            {
+                rows.Add(row);
+            }
+        }
+
+        var count = rows.Count;
+        if (count == 0) return;
+
+        var targetRowHeight = Math.Clamp((availableHeight * 0.55) / count, 64, 92);
+        var remaining = Math.Max(0, availableHeight * 0.80 - count * targetRowHeight);
+        panel.Spacing = count <= 1 ? 0 : Math.Clamp(remaining / (count - 1), 0, 28);
+
+        foreach (var row in rows)
+        {
+            row.MinHeight = targetRowHeight;
         }
     }
 
@@ -363,6 +409,8 @@ public sealed partial class SettingsPage : Page
             Grid.SetColumnSpan(ContentScrollViewer, 1);
             Grid.SetRow(ContentScrollViewer, 1);
         }
+
+        ApplyAdaptiveSpacing();
     }
 
     private async void Preference_Toggled(object sender, RoutedEventArgs e)

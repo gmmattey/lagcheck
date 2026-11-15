@@ -11,9 +11,9 @@ using Windows.UI;
 namespace LagCheck.WinUI.Controls;
 
 /// <summary>
-/// Botão de categoria da barra lateral de Ajustes no estilo PlayStation 5.
+/// Botão de categoria de Ajustes.
 /// Estado inativo exibe texto simples em TextSecondary (sobe para TextPrimary no hover/foco);
-/// estado ativo/focado tem contorno claro (#C9C4E8, 1.5px, cantos 6px) e fundo quase transparente.
+/// estado ativo usa preenchimento discreto e barra roxa lateral (#7C3AED), sem borda pesada.
 /// </summary>
 public sealed class SettingsCategoryButton : UserControl
 {
@@ -21,14 +21,16 @@ public sealed class SettingsCategoryButton : UserControl
     private readonly Border _hoverBorder = new();
     private readonly Border _focusBorder = new();
     private readonly Border _selectedBorder = new();
+    private readonly Border _selectedAccent = new();
     private readonly TextBlock _label = new();
     private bool _isPointerOver;
     private bool _isFocused;
 
-    private static readonly SolidColorBrush SelectedBorderBrush = new(Color.FromArgb(255, 0xC9, 0xC4, 0xE8)); // #C9C4E8
-    private static readonly SolidColorBrush SelectedBackgroundBrush = new(Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF)); // Quase transparente
+    private static readonly SolidColorBrush SelectedBorderBrush = new(Microsoft.UI.Colors.Transparent);
+    private static readonly SolidColorBrush SelectedBackgroundBrush = new(Color.FromArgb(0x0E, 0xFF, 0xFF, 0xFF)); // Toque sutil sem moldura de card
+    private static readonly SolidColorBrush SelectedAccentBrush = new(Color.FromArgb(0xFF, 0x7C, 0x3A, 0xED)); // PurpleColor #7C3AED
     private static readonly SolidColorBrush HoverBackgroundBrush = new(Color.FromArgb(0x0C, 0xFF, 0xFF, 0xFF));
-    private static readonly SolidColorBrush FocusedBorderBrush = new(Color.FromArgb(0x80, 0xC9, 0xC4, 0xE8));
+    private static readonly SolidColorBrush FocusedBorderBrush = new(Color.FromArgb(0x80, 0xA7, 0x8B, 0xFA));
     private static readonly SolidColorBrush TransparentBrush = new(Microsoft.UI.Colors.Transparent);
 
     private static readonly SolidColorBrush TextPrimaryBrush = new(Color.FromArgb(255, 0xF5, 0xF7, 0xFC)); // #F5F7FC
@@ -44,33 +46,44 @@ public sealed class SettingsCategoryButton : UserControl
         MinHeight = 44;
         HorizontalAlignment = HorizontalAlignment.Stretch;
 
-        _hoverBorder.CornerRadius = new CornerRadius(6);
+        _hoverBorder.CornerRadius = new CornerRadius(8);
         _hoverBorder.Background = HoverBackgroundBrush;
         Choreo.FadeTo(_hoverBorder, 0);
         _hoverBorder.IsHitTestVisible = false;
 
-        _focusBorder.CornerRadius = new CornerRadius(6);
+        _focusBorder.CornerRadius = new CornerRadius(8);
         _focusBorder.Background = HoverBackgroundBrush;
         _focusBorder.BorderBrush = FocusedBorderBrush;
-        _focusBorder.BorderThickness = new Thickness(1.5);
+        _focusBorder.BorderThickness = new Thickness(1);
         Choreo.FadeTo(_focusBorder, 0);
         _focusBorder.IsHitTestVisible = false;
 
-        _selectedBorder.CornerRadius = new CornerRadius(6);
+        _selectedBorder.CornerRadius = new CornerRadius(8);
         _selectedBorder.Background = SelectedBackgroundBrush;
         _selectedBorder.BorderBrush = SelectedBorderBrush;
-        _selectedBorder.BorderThickness = new Thickness(1.5);
+        _selectedBorder.BorderThickness = new Thickness(1);
         Choreo.FadeTo(_selectedBorder, 0);
         _selectedBorder.IsHitTestVisible = false;
+
+        _selectedAccent.Width = 3;
+        _selectedAccent.Height = 20;
+        _selectedAccent.CornerRadius = new CornerRadius(1.5);
+        _selectedAccent.Background = SelectedAccentBrush;
+        _selectedAccent.HorizontalAlignment = HorizontalAlignment.Left;
+        _selectedAccent.VerticalAlignment = VerticalAlignment.Center;
+        _selectedAccent.Margin = new Thickness(6, 0, 0, 0);
+        Choreo.FadeTo(_selectedAccent, 0);
+        _selectedAccent.IsHitTestVisible = false;
 
         _label.FontSize = 15;
         _label.TextTrimming = TextTrimming.CharacterEllipsis;
         _label.VerticalAlignment = VerticalAlignment.Center;
-        _label.Margin = new Thickness(16, 10, 16, 10);
+        _label.Margin = new Thickness(18, 10, 16, 10);
 
         _container.Children.Add(_hoverBorder);
         _container.Children.Add(_focusBorder);
         _container.Children.Add(_selectedBorder);
+        _container.Children.Add(_selectedAccent);
         _container.Children.Add(_label);
         Content = _container;
 
@@ -139,6 +152,7 @@ public sealed class SettingsCategoryButton : UserControl
         if (IsSelected)
         {
             Choreo.FadeTo(_selectedBorder, 1);
+            Choreo.FadeTo(_selectedAccent, 1);
             Choreo.FadeTo(_focusBorder, 0);
             Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextPrimaryBrush;
@@ -147,6 +161,7 @@ public sealed class SettingsCategoryButton : UserControl
         else if (_isFocused)
         {
             Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_selectedAccent, 0);
             Choreo.FadeTo(_focusBorder, 1);
             Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextPrimaryBrush;
@@ -155,6 +170,7 @@ public sealed class SettingsCategoryButton : UserControl
         else if (_isPointerOver)
         {
             Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_selectedAccent, 0);
             Choreo.FadeTo(_focusBorder, 0);
             Choreo.FadeTo(_hoverBorder, 1);
             _label.Foreground = TextPrimaryBrush;
@@ -163,6 +179,7 @@ public sealed class SettingsCategoryButton : UserControl
         else
         {
             Choreo.FadeTo(_selectedBorder, 0);
+            Choreo.FadeTo(_selectedAccent, 0);
             Choreo.FadeTo(_focusBorder, 0);
             Choreo.FadeTo(_hoverBorder, 0);
             _label.Foreground = TextSecondaryBrush;

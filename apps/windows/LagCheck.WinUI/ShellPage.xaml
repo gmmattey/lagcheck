@@ -5,23 +5,31 @@
       xmlns:automation="using:Microsoft.UI.Xaml.Automation">
   <Grid x:Name="RootGrid" Background="{StaticResource DeepBrush}">
 
-    <!-- Papel de parede persistente (estilo PlayStation 5) -->
+    <!-- Plano de fundo padrão do app: degradê escuro com brilho ambiente roxo sutil -->
     <Grid x:Name="WallpaperHost" IsHitTestVisible="False">
-      <Image x:Name="WallpaperImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-      <!-- Véu escuro vertical: #4D070914 (topo) a #A6070914 (base) -->
       <Rectangle>
         <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#4D070914" Offset="0"/>
-            <GradientStop Color="#A6070914" Offset="1"/>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="0.15,1">
+            <GradientStop Color="#120F24" Offset="0"/>
+            <GradientStop Color="#0D1018" Offset="0.38"/>
+            <GradientStop Color="#090B10" Offset="0.72"/>
+            <GradientStop Color="#06070B" Offset="1"/>
           </LinearGradientBrush>
         </Rectangle.Fill>
       </Rectangle>
-      <!-- Véu escuro horizontal leve: mais escuro à esquerda (#4D070914 -> #00070914) -->
       <Rectangle>
         <Rectangle.Fill>
-          <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#4D070914" Offset="0"/>
+          <LinearGradientBrush StartPoint="0.78,0" EndPoint="0.15,0.85">
+            <GradientStop Color="#384C1D95" Offset="0"/>
+            <GradientStop Color="#1A2E1065" Offset="0.45"/>
+            <GradientStop Color="#00070914" Offset="1"/>
+          </LinearGradientBrush>
+        </Rectangle.Fill>
+      </Rectangle>
+      <Rectangle>
+        <Rectangle.Fill>
+          <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,0">
+            <GradientStop Color="#40070914" Offset="0"/>
             <GradientStop Color="#00070914" Offset="1"/>
           </LinearGradientBrush>
         </Rectangle.Fill>
