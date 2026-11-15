@@ -78,15 +78,15 @@ Português brasileiro, direto e sem prometer além da leitura: “Pronto para Ra
 
 O sistema vale para iOS, Android e Windows (prévia). Os valores de referência estão em `tokens/*.json`; como cada plataforma os implementa e onde diverge está em [`tokens/platforms.json`](tokens/platforms.json).
 
-| | iOS | Android | Windows (prévia) |
+| | iOS | Android | Windows (WinUI 3) |
 | --- | --- | --- | --- |
-| Código dos tokens | `Sources/NolaggyDesign/Tokens/` | `android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt` |
-| Cores, espaçamento, raio | Tokens completos (`NLColor`, `NLSpacing`, `NLRadius`) | `LagCheckColors`, `LagCheckSpacing`, `LagCheckRadius` | Tokens próprios |
+| Código dos tokens | `apps/ios/Sources/NolaggyDesign/Tokens/` | `apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/` | `apps/windows/LagCheck.WinUI/Styles/Theme.xaml` |
+| Cores, espaçamento, raio | Tokens completos (`NLColor`, `NLSpacing`, `NLRadius`) | `LagCheckColors`, `LagCheckSpacing`, `LagCheckRadius` | Tokens próprios em `Theme.xaml` (cantos e profundidade alinhados ao Android) |
 | Fonte | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) | Barlow Semi Condensed (títulos), Barlow (corpo), Chakra Petch (métricas) |
-| Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40 dp mouse, 44 dp toque |
-| Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Barra lateral: Início, Jogos, Histórico, Ajustes |
+| Alvo mínimo | 44 pt | 48 dp na maioria, 44 dp em alguns | 40–44 px no mouse, 44 px no toque |
+| Navegação | 4 abas: Início, Jogos, Histórico, Configurações | 4 abas: Início, Jogos, Histórico, Configurações | Sem barra lateral: atalhos no topo da Início (Biblioteca, Histórico, Galeria, Busca, Ajustes) e seta de voltar |
 
-Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `tokens/*.json`, depois o código. O Windows tem documento próprio: [`docs/09-design-system-windows.md`](../docs/09-design-system-windows.md).
+Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `tokens/*.json`, depois o código. O Windows WinUI 3 tem documento próprio em [`apps/windows/DESIGN.md`](../../apps/windows/DESIGN.md) (a prévia anterior em Compose Desktop segue em [`docs/09-design-system-windows.md`](../../docs/09-design-system-windows.md)).
 
 **Texto terciário** é `#606873` nas três plataformas (aprovado em 7/nov/2026). Contraste de 3,45:1 sobre o fundo, abaixo do mínimo de 4,5:1 para texto pequeno; usar só em metadados e rótulos de apoio, nunca para informação essencial.
 
@@ -94,9 +94,11 @@ Em conflito, a ordem é: decisão registrada em `docs/DECISOES.md`, depois `toke
 
 ## Anti-patterns / Anti-padrões
 
-- Não usar roxo como fundo amplo, nem Coral Solar como CTA comum.
-- Não transformar cada bloco em card nem aplicar glassmorphism.
-- Usar apenas as capas editoriais oficiais do catálogo verificável; não usar arte de jogo como fundo da tela de medição em andamento.
+- Não usar a cor da marca (`#7C3AED`) fora do CTA principal da tela (proibido em fundo amplo, ações secundárias ou decoração); não usar Coral Solar como CTA comum.
+- Evitar cardlização: não transformar cada bloco em card nem aplicar glassmorphism.
+- Não usar linhas de contorno em cards e pílulas: preferir profundidade e contraste de superfície no lugar de bordas marcadas.
+- Não exagerar no arredondamento dos cantos: manter raios contidos e proporcionais ao componente.
+- Usar artes dos jogos obtidas da CDN das lojas (via API do LagCheck no iOS/Android e direto das lojas no Windows), nunca versionadas no repositório; não usar arte de jogo como fundo da tela de medição em andamento.
 - Não fazer resultado inconclusivo parecer bom ou preencher métricas ausentes.
 - Não inferir banda/canal Wi-Fi a partir de SSID, BSSID, RSSI ou ausência de dados.
 - Não repetir CTA primário no mesmo viewport, nem esconder ações destrutivas sem confirmação.
