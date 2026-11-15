@@ -42,6 +42,12 @@ object PlatformHealthParsers {
     const val PSN = "PlayStation Network"
     const val XBOX = "Xbox Network"
     const val NINTENDO = "Nintendo Switch Online"
+    const val STEAM = "Steam"
+    const val EPIC_GAMES = "Epic Games"
+    const val PC_SERVICES = "Steam / Epic Games"
+
+    private const val STATUS_MAX_AGE_MILLIS = 5 * 60 * 1000L
+    private const val STATUS_MAX_FUTURE_SKEW_MILLIS = 60 * 1000L
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -125,5 +131,67 @@ object PlatformHealthParsers {
             )
         }
         return PlatformHealth.operational(Platform.NINTENDO, NINTENDO)
+    }
+
+    /**
+     * Parser do endpoint unificado `https://lagcheck.signallq.com/api/status`.
+     * Retorna `null` quando o payload não é válido ou quando o console solicitado veio como `unknown`/expirado,
+     * permitindo fallback direto para o CDN da fabricante. Para `PC`, avalia Steam e Epic Games.
+     */
+    fun parseStatusApi(data: ByteArray, platform: Platform, nowMillis: Long = System.currentTimeMillis()): PlatformHealth? {
+        val obj = root(data) ?: return null
+        val entries = obj["platforms"].arr()?.objects() ?: return null
+        val byId = HashMap<String, Pair<String, PlatformHealthStatus>>()
+        for (item in entries) {
+            val id = item["id"].str() ?: continue
+            if (byId.containsKey(id)) continue
+            val defaultName = when (id) {
+                "playstation" -> PSN
+                "xbox" -> XBOX
+                "nintendo" -> NINTENDO
+                "steam" -> STEAM
+                "epicgames" -> EPIC_GAMES
+                else -> continue
+            }
+            val rawName = item["name"].str()?.trim()?.takeIf { it.isNotEmpty() && it.length <= 80 } ?: defaultName
+            val checkedAtMillis = item["checkedAt"].str()?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() }
+            val isFresh = checkedAtMillis != null &&
+                checkedAtMillis <= nowMillis + STATUS_MAX_FUTURE_SKEW_MILLIS &&
+                nowMillis - checkedAtMillis <= STATUS_MAX_AGE_MILLIS
+            val status = if (!isFresh) {
+                PlatformHealthStatus.Unknown
+            } else {
+                when (item["status"].str()) {
+                    "operational" -> PlatformHealthStatus.Operational
+                    "degraded" -> PlatformHealthStatus.Degraded("")
+                    "outage" -> PlatformHealthStatus.MajorOutage("")
+                    else -> PlatformHealthStatus.Unknown
+                }
+            }
+            byId[id] = rawName to status
+        }
+
+        return when (platform) {
+            Platform.PLAYSTATION -> byId["playstation"]?.second?.takeIf { it !is PlatformHealthStatus.Unknown }?.let { PlatformHealth(platform, it, PSN) }
+            Platform.XBOX -> byId["xbox"]?.second?.takeIf { it !is PlatformHealthStatus.Unknown }?.let { PlatformHealth(platform, it, XBOX) }
+            Platform.NINTENDO -> byId["nintendo"]?.second?.takeIf { it !is PlatformHealthStatus.Unknown }?.let { PlatformHealth(platform, it, NINTENDO) }
+            Platform.PC -> {
+                val pcEntries = listOfNotNull(byId["steam"], byId["epicgames"])
+                val affected = pcEntries.filter { it.second is PlatformHealthStatus.Degraded || it.second is PlatformHealthStatus.MajorOutage }
+                when {
+                    affected.isNotEmpty() -> {
+                        val isOutage = affected.any { it.second is PlatformHealthStatus.MajorOutage }
+                        val affectedNames = affected.map { it.first }
+                        val serviceName = if (affectedNames.size == 1) affectedNames.first() else PC_SERVICES
+                        val status = if (isOutage) PlatformHealthStatus.MajorOutage("") else PlatformHealthStatus.Degraded("")
+                        PlatformHealth(platform, status, serviceName, affectedNames)
+                    }
+                    pcEntries.any { it.second is PlatformHealthStatus.Operational } ->
+                        PlatformHealth.operational(platform, PC_SERVICES)
+                    else -> PlatformHealth.unknown(platform, PC_SERVICES)
+                }
+            }
+            else -> null
+        }
     }
 }

@@ -1,9 +1,15 @@
 import Foundation
 import NolaggyDomain
 
-/// Cliente leve e direto para verificação de integridade das redes de console (PSN, Xbox Live, Nintendo)
-/// a custo estritamente zero, consultando os CDNs públicos oficiais das fabricantes sem intermediários.
+/// Cliente leve para verificação de integridade das redes de plataforma (PSN, Xbox Live, Nintendo, Steam, Epic Games).
+/// Consulta primeiro o endpoint agregado `https://lagcheck.signallq.com/api/status` e, para consoles, faz fallback
+/// nos CDNs públicos oficiais das fabricantes se o agregado falhar ou estiver expirado.
 public actor DirectPlatformHealthClient: PlatformHealthProvider {
+    public static let statusEndpoint = URL(string: "https://lagcheck.signallq.com/api/status")!
+    private static let statusMaxResponseBytes = 64 * 1024
+    private static let statusMaxAgeSeconds: TimeInterval = 5 * 60
+    private static let statusMaxFutureSkewSeconds: TimeInterval = 60
+
     private let urlSession: URLSession
     private let cacheTTLSeconds: TimeInterval
     private var cache: [String: (health: PlatformHealth, expiresAt: Date)] = [:]
@@ -35,14 +41,29 @@ public actor DirectPlatformHealthClient: PlatformHealthProvider {
 
         let resolvedHealth: PlatformHealth
         switch platform {
-        case .playstation:
-            resolvedHealth = await fetchPlayStationHealth(market: market)
-        case .xbox:
-            resolvedHealth = await fetchXboxHealth(market: market)
-        case .nintendo:
-            resolvedHealth = await fetchNintendoHealth(market: market)
-        case .iphone, .pc:
+        case .iphone:
             resolvedHealth = PlatformHealth.operational(for: platform, serviceName: "Plataforma Local")
+        case .playstation:
+            if let fromApi = await fetchStatusApi(for: platform) {
+                resolvedHealth = fromApi
+            } else {
+                resolvedHealth = await fetchPlayStationHealth(market: market)
+            }
+        case .xbox:
+            if let fromApi = await fetchStatusApi(for: platform) {
+                resolvedHealth = fromApi
+            } else {
+                resolvedHealth = await fetchXboxHealth(market: market)
+            }
+        case .nintendo:
+            if let fromApi = await fetchStatusApi(for: platform) {
+                resolvedHealth = fromApi
+            } else {
+                resolvedHealth = await fetchNintendoHealth(market: market)
+            }
+        case .pc:
+            resolvedHealth = await fetchStatusApi(for: platform)
+                ?? PlatformHealth.unknown(for: platform, serviceName: "Steam / Epic Games")
         }
 
         cache[cacheKey] = (health: resolvedHealth, expiresAt: now.addingTimeInterval(cacheTTLSeconds))
@@ -284,5 +305,128 @@ public actor DirectPlatformHealthClient: PlatformHealthProvider {
         } catch {
             return PlatformHealth.unknown(for: .nintendo, serviceName: serviceName)
         }
+    }
+
+    // MARK: - Unified Status API (`lagcheck.signallq.com/api/status`)
+
+    private func fetchStatusApi(for platform: Platform) async -> PlatformHealth? {
+        var request = URLRequest(url: Self.statusEndpoint)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  http.statusCode == 200,
+                  data.count <= Self.statusMaxResponseBytes else {
+                return nil
+            }
+            return Self.parseStatusApiPayload(data: data, for: platform)
+        } catch {
+            return nil
+        }
+    }
+
+    public static func parseStatusApiPayload(
+        data: Data,
+        for platform: Platform,
+        now: Date = Date()
+    ) -> PlatformHealth? {
+        guard data.count <= statusMaxResponseBytes,
+              let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let entries = root["platforms"] as? [[String: Any]] else {
+            return nil
+        }
+
+        let defaultNames: [String: String] = [
+            "playstation": "PlayStation Network",
+            "xbox": "Xbox Network",
+            "nintendo": "Nintendo Switch Online",
+            "steam": "Steam",
+            "epicgames": "Epic Games",
+        ]
+
+        var byId: [String: (name: String, status: PlatformHealthStatus)] = [:]
+        for item in entries {
+            guard let id = item["id"] as? String,
+                  let fallbackName = defaultNames[id],
+                  byId[id] == nil else {
+                continue
+            }
+
+            let rawName = (item["name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let name = (rawName != nil && !rawName!.isEmpty && rawName!.count <= 80) ? rawName! : fallbackName
+
+            let checkedAt = (item["checkedAt"] as? String).flatMap { parseIso8601($0) }
+            let isFresh: Bool
+            if let checkedAt {
+                let age = now.timeIntervalSince(checkedAt)
+                isFresh = checkedAt <= now.addingTimeInterval(statusMaxFutureSkewSeconds) && age <= statusMaxAgeSeconds
+            } else {
+                isFresh = false
+            }
+
+            let status: PlatformHealthStatus
+            if !isFresh {
+                status = .unknown
+            } else {
+                switch item["status"] as? String {
+                case "operational":
+                    status = .operational
+                case "degraded":
+                    status = .degraded(summary: "")
+                case "outage":
+                    status = .majorOutage(summary: "")
+                default:
+                    status = .unknown
+                }
+            }
+            byId[id] = (name: name, status: status)
+        }
+
+        switch platform {
+        case .playstation:
+            guard let entry = byId["playstation"], entry.status != .unknown else { return nil }
+            return PlatformHealth(platform: platform, status: entry.status, serviceName: defaultNames["playstation"]!)
+        case .xbox:
+            guard let entry = byId["xbox"], entry.status != .unknown else { return nil }
+            return PlatformHealth(platform: platform, status: entry.status, serviceName: defaultNames["xbox"]!)
+        case .nintendo:
+            guard let entry = byId["nintendo"], entry.status != .unknown else { return nil }
+            return PlatformHealth(platform: platform, status: entry.status, serviceName: defaultNames["nintendo"]!)
+        case .pc:
+            let pcEntries = [byId["steam"], byId["epicgames"]].compactMap { $0 }
+            let affected = pcEntries.filter {
+                if case .degraded = $0.status { return true }
+                if case .majorOutage = $0.status { return true }
+                return false
+            }
+            if !affected.isEmpty {
+                let isOutage = affected.contains {
+                    if case .majorOutage = $0.status { return true }
+                    return false
+                }
+                let affectedNames = affected.map(\.name)
+                let serviceName = affectedNames.count == 1 ? affectedNames[0] : "Steam / Epic Games"
+                let status: PlatformHealthStatus = isOutage ? .majorOutage(summary: "") : .degraded(summary: "")
+                return PlatformHealth(platform: platform, status: status, serviceName: serviceName, affectedServices: affectedNames)
+            }
+            let anyOperational = pcEntries.contains { $0.status == .operational }
+            return anyOperational
+                ? PlatformHealth.operational(for: platform, serviceName: "Steam / Epic Games")
+                : PlatformHealth.unknown(for: platform, serviceName: "Steam / Epic Games")
+        case .iphone:
+            return nil
+        }
+    }
+
+    private static func parseIso8601(_ value: String) -> Date? {
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = withFractional.date(from: value) {
+            return date
+        }
+        let standard = ISO8601DateFormatter()
+        standard.formatOptions = [.withInternetDateTime]
+        return standard.date(from: value)
     }
 }

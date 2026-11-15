@@ -192,4 +192,45 @@ final class DirectPlatformHealthClientTests: XCTestCase {
         let health2 = await client.checkHealth(for: .iphone, market: "BR")
         XCTAssertEqual(health1, health2)
     }
+
+    func testStatusApiParsesConsolesAndPcSteamAndEpic() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let json = """
+        {
+          "platforms": [
+            {"id":"playstation","name":"PlayStation Network","status":"operational","checkedAt":"2023-11-14T22:13:00Z"},
+            {"id":"steam","name":"Steam","status":"outage","checkedAt":"2023-11-14T22:13:00Z"},
+            {"id":"epicgames","name":"Epic Games","status":"operational","checkedAt":"2023-11-14T22:13:00Z"}
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let psn = DirectPlatformHealthClient.parseStatusApiPayload(data: json, for: .playstation, now: now)
+        XCTAssertEqual(psn?.status, .operational)
+
+        let pc = DirectPlatformHealthClient.parseStatusApiPayload(data: json, for: .pc, now: now)
+        XCTAssertEqual(pc?.isIssueReported, true)
+        XCTAssertEqual(pc?.serviceName, "Steam")
+        XCTAssertEqual(pc?.affectedServices, ["Steam"])
+        if case .majorOutage = pc?.status {} else {
+            XCTFail("Esperava majorOutage para Steam fora do ar")
+        }
+    }
+
+    func testStatusApiRejectsStaleTimestamp() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let staleJson = """
+        {
+          "platforms": [
+            {"id":"playstation","name":"PlayStation Network","status":"outage","checkedAt":"2023-11-14T22:00:00Z"},
+            {"id":"steam","name":"Steam","status":"outage","checkedAt":"2023-11-14T22:00:00Z"}
+          ]
+        }
+        """.data(using: .utf8)!
+
+        XCTAssertNil(DirectPlatformHealthClient.parseStatusApiPayload(data: staleJson, for: .playstation, now: now))
+        let stalePc = DirectPlatformHealthClient.parseStatusApiPayload(data: staleJson, for: .pc, now: now)
+        XCTAssertEqual(stalePc?.status, .unknown)
+        XCTAssertEqual(stalePc?.isIssueReported, false)
+    }
 }

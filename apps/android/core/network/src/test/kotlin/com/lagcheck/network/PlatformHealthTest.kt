@@ -59,29 +59,81 @@ class PlatformHealthTest {
         assertThat(PlatformHealthParsers.parsePlayStation(b("""{"outra":"coisa"}"""), "BR").isIssueReported).isFalse()
     }
 
-    @Test fun clientSkipsNonConsolePlatformsAndFailsOpen() = runBlocking {
+    @Test fun clientSkipsMobileAndFailsOpen() = runBlocking {
         var calls = 0
         val client = PlatformHealthClient(fetch = { calls++; null })
         assertThat(client.check(Platform.MOBILE)).isNull()
-        assertThat(client.check(Platform.PC)).isNull()
         assertThat(calls).isEqualTo(0)
-        val h = client.check(Platform.PLAYSTATION, "BR")!!
-        assertThat(h.status).isEqualTo(PlatformHealthStatus.Unknown)
-        assertThat(h.isIssueReported).isFalse()
+
+        val pc = client.check(Platform.PC)!!
+        assertThat(pc.status).isEqualTo(PlatformHealthStatus.Unknown)
+        assertThat(pc.isIssueReported).isFalse()
+
+        val psn = client.check(Platform.PLAYSTATION, "BR")!!
+        assertThat(psn.status).isEqualTo(PlatformHealthStatus.Unknown)
+        assertThat(psn.isIssueReported).isFalse()
     }
 
     @Test fun clientCachesWithinTtlAndRefetchesAfter() = runBlocking {
-        var now = 0L
+        var now = 1_700_000_000_000L
         var calls = 0
+        val payload = """{"platforms":[{"id":"nintendo","name":"Nintendo","status":"operational","checkedAt":"2023-11-14T22:13:20Z"}]}""".toByteArray()
         val client = PlatformHealthClient(
-            fetch = { calls++; """{"operational_statuses":[]}""".toByteArray() },
+            fetch = { calls++; payload },
             cacheTtlMillis = 1000, clock = { now }
         )
         client.check(Platform.NINTENDO); client.check(Platform.NINTENDO)
         assertThat(calls).isEqualTo(1)
-        now = 1500
+        now += 1500
         client.check(Platform.NINTENDO)
         assertThat(calls).isEqualTo(2)
+    }
+
+    @Test fun statusApiParsesPcSteamAndEpicAndRejectsStaleTimestamps() {
+        val now = 1_700_000_000_000L
+        val json = b("""
+            {
+              "platforms": [
+                {"id":"playstation","name":"PlayStation Network","status":"operational","checkedAt":"2023-11-14T22:13:00Z"},
+                {"id":"steam","name":"Steam","status":"outage","checkedAt":"2023-11-14T22:13:00Z"},
+                {"id":"epicgames","name":"Epic Games","status":"operational","checkedAt":"2023-11-14T22:13:00Z"}
+              ]
+            }
+        """)
+        val psn = PlatformHealthParsers.parseStatusApi(json, Platform.PLAYSTATION, now)!!
+        assertThat(psn.status).isEqualTo(PlatformHealthStatus.Operational)
+
+        val pc = PlatformHealthParsers.parseStatusApi(json, Platform.PC, now)!!
+        assertThat(pc.isMajorOutage).isTrue()
+        assertThat(pc.serviceName).isEqualTo("Steam")
+        assertThat(pc.affectedServices).containsExactly("Steam")
+
+        val staleJson = b("""
+            {
+              "platforms": [
+                {"id":"playstation","name":"PlayStation Network","status":"outage","checkedAt":"2023-11-14T22:00:00Z"},
+                {"id":"steam","name":"Steam","status":"outage","checkedAt":"2023-11-14T22:00:00Z"}
+              ]
+            }
+        """)
+        assertThat(PlatformHealthParsers.parseStatusApi(staleJson, Platform.PLAYSTATION, now)).isNull()
+        val stalePc = PlatformHealthParsers.parseStatusApi(staleJson, Platform.PC, now)!!
+        assertThat(stalePc.status).isEqualTo(PlatformHealthStatus.Unknown)
+        assertThat(stalePc.isIssueReported).isFalse()
+    }
+
+    @Test fun clientFallsBackToDirectCdnWhenStatusApiFails() = runBlocking {
+        val requested = mutableListOf<String>()
+        val client = PlatformHealthClient(
+            fetch = { url ->
+                requested += url
+                if (url == PlatformHealthClient.STATUS_API_URL) null
+                else """{"operational_statuses":[{"message":"Manutenção"}]}""".toByteArray()
+            }
+        )
+        val nintendo = client.check(Platform.NINTENDO)!!
+        assertThat(nintendo.isMajorOutage).isTrue()
+        assertThat(requested).containsExactly(PlatformHealthClient.STATUS_API_URL, PlatformHealthClient.NINTENDO_URL).inOrder()
     }
 
     @Test fun regionAndLocaleRouting() {

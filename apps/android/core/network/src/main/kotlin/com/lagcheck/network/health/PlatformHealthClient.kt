@@ -9,8 +9,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Status público das redes de console (PSN, Xbox, Nintendo), direto nos CDNs das fabricantes: custo zero, sem Worker,
- * sem identificação. Só PlayStation, Xbox e Nintendo consultam; celular e PC não têm rede de console a checar.
+ * Status público das redes de plataforma (PSN, Xbox, Nintendo, Steam, Epic Games).
+ * Consulta primeiro `https://lagcheck.signallq.com/api/status` e, para consoles, faz fallback nos CDNs públicos das
+ * fabricantes se o agregado falhar ou estiver expirado. Celular retorna `null` (sem rede externa a checar).
  * Falha de rede, HTTP diferente de 200 ou formato inesperado = `Unknown` (nunca alerta, nunca "operacional" inventado).
  */
 class PlatformHealthClient(
@@ -24,23 +25,33 @@ class PlatformHealthClient(
     private val lock = Mutex()
 
     suspend fun check(platform: Platform, market: String = "BR"): PlatformHealth? {
-        if (platform != Platform.PLAYSTATION && platform != Platform.XBOX && platform != Platform.NINTENDO) return null
+        if (platform != Platform.PLAYSTATION &&
+            platform != Platform.XBOX &&
+            platform != Platform.NINTENDO &&
+            platform != Platform.PC
+        ) {
+            return null
+        }
         val key = "${platform.name}_${market.uppercase()}"
         lock.withLock { cache[key]?.takeIf { clock() < it.expiresAt } }?.let { return it.health }
 
-        val health = when (platform) {
+        val fromStatusApi = fetch(STATUS_API_URL)?.let { PlatformHealthParsers.parseStatusApi(it, platform, clock()) }
+        val health = fromStatusApi ?: when (platform) {
             Platform.PLAYSTATION -> fetch(psnUrl(market))?.let { PlatformHealthParsers.parsePlayStation(it, market) }
                 ?: PlatformHealth.unknown(platform, PlatformHealthParsers.PSN)
             Platform.XBOX -> fetch(xboxUrl(market))?.let(PlatformHealthParsers::parseXbox)
                 ?: PlatformHealth.unknown(platform, PlatformHealthParsers.XBOX)
-            else -> fetch(NINTENDO_URL)?.let(PlatformHealthParsers::parseNintendo)
+            Platform.NINTENDO -> fetch(NINTENDO_URL)?.let(PlatformHealthParsers::parseNintendo)
                 ?: PlatformHealth.unknown(platform, PlatformHealthParsers.NINTENDO)
+            Platform.PC -> PlatformHealth.unknown(platform, PlatformHealthParsers.PC_SERVICES)
+            else -> return null
         }
         lock.withLock { cache[key] = Cached(health, clock() + cacheTtlMillis) }
         return health
     }
 
     companion object {
+        const val STATUS_API_URL = "https://lagcheck.signallq.com/api/status"
         private val AMERICAS = setOf("BR", "US", "CA", "MX", "CL", "AR", "PE", "CO", "PA", "CR", "EC", "GT", "SV", "PY", "HN", "NI", "UY", "BO")
         const val NINTENDO_URL = "https://www.nintendo.co.jp/netinfo/en_US/status.json"
 
