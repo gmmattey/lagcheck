@@ -48,6 +48,13 @@ public sealed class LocalizationService
         var specific => specific
     };
 
+    public CultureInfo EffectiveCulture => EffectiveLanguage switch
+    {
+        AppLanguage.En => new CultureInfo("en-US"),
+        AppLanguage.Es => new CultureInfo("es-ES"),
+        _ => new CultureInfo("pt-BR")
+    };
+
     public static AppLanguage ResolveSystemLanguage()
     {
         var cultureName = CultureInfo.CurrentUICulture.Name;
@@ -602,6 +609,28 @@ public sealed class LocalizationService
         Add("{0} capturas salvas.", "{0} saved screenshots.", "{0} capturas guardadas.");
         Add("{0} favoritos instalados.", "{0} installed favorites.", "{0} favoritos instalados.");
         Add("Não foi possível carregar as capturas agora.", "Couldn't load screenshots right now.", "No se pudieron cargar las capturas ahora.");
+
+        // -------------------------------------------------------------
+        // Gêneros de loja (Steam e Microsoft Store)
+        // -------------------------------------------------------------
+        Add("Simulação", "Simulation", "Simulación");
+        Add("Ação", "Action", "Acción");
+        Add("Aventura", "Adventure", "Aventura");
+        Add("Estratégia", "Strategy", "Estrategia");
+        Add("RPG", "RPG", "Rol");
+        Add("Corrida", "Racing", "Carreras");
+        Add("Esportes", "Sports", "Deportes");
+        Add("Casual", "Casual", "Casual");
+        Add("Indie", "Indie", "Indie");
+        Add("Luta", "Fighting", "Lucha");
+        Add("Tiro", "Shooter", "Disparos");
+        Add("Plataforma", "Platformer", "Plataformas");
+        Add("Cartas e tabuleiro", "Card & board", "Cartas y tablero");
+        Add("Clássicos", "Classics", "Clásicos");
+        Add("Quebra-cabeça", "Puzzle & trivia", "Rompecabezas");
+        Add("Gratuito para jogar", "Free to Play", "Gratis para jugar");
+        Add("Acesso Antecipado", "Early Access", "Acceso anticipado");
+        Add("Multijogador Massivo", "Massively Multiplayer", "Multijugador masivo");
     }
 
     private static string GetConfigFilePath()

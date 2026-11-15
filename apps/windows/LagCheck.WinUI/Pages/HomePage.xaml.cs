@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -44,6 +45,7 @@ public sealed partial class HomePage : Page
     private string _recentsKey = string.Empty;
     private bool _platformsLoading;
     private RecentTile? _pcTile;
+    private CancellationTokenSource? _heroInfoCts;
 
     /// <summary>Slot fixo no layout: selecionado/repouso é só escala de composição, então nada reflui ao trocar de jogo.</summary>
     private sealed class RecentTile
@@ -83,6 +85,9 @@ public sealed partial class HomePage : Page
     {
         if (!_wired) return;
         _wired = false;
+        _heroInfoCts?.Cancel();
+        _heroInfoCts?.Dispose();
+        _heroInfoCts = null;
         LagCheck.WinUI.History.SessionHistoryServices.Store.Entries.CollectionChanged -= _historyChangedHandler;
         ViewModel.VisibleGames.CollectionChanged -= OnGamesChanged;
         ViewModel.PropertyChanged -= OnViewModelChanged;
@@ -328,6 +333,7 @@ public sealed partial class HomePage : Page
 
         GameTitleText.Text = hero.Title.ToUpperInvariant();
         GamePillsHost.Child = GamePills.Create(hero);
+        _ = EnsureLocalizedHeroInfoAsync(hero);
         ApplyPlatform(hero);
         ApplyVerdict(hero);
 
@@ -344,6 +350,29 @@ public sealed partial class HomePage : Page
         UpdateWidgets();
         if (rebuildRecents) ApplyViewportSizing();
         else ApplyHeroSizing();
+    }
+
+    private async System.Threading.Tasks.Task EnsureLocalizedHeroInfoAsync(LibraryGame hero)
+    {
+        _heroInfoCts?.Cancel();
+        _heroInfoCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _heroInfoCts = cts;
+        var language = LocalizationService.Instance.EffectiveLanguage;
+        try
+        {
+            var localized = await LocalizedGameInfoResolver.ResolveAsync(hero, language, cts.Token);
+            if (cts.IsCancellationRequested || ReferenceEquals(localized, hero)) return;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (cts.IsCancellationRequested || _pcSelected || _selectedId != hero.Id) return;
+                GamePillsHost.Child = GamePills.Create(localized);
+            });
+        }
+        catch
+        {
+            // Fallback silencioso para os rótulos já carregados.
+        }
     }
 
     private void ApplyPlatform(LibraryGame hero)

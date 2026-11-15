@@ -245,15 +245,9 @@ public sealed partial class GalleryPage : Page
     {
         try
         {
-            var culture = LocalizationService.Instance.EffectiveLanguage switch
-            {
-                AppLanguage.En => CultureInfo.GetCultureInfo("en-US"),
-                AppLanguage.Es => CultureInfo.GetCultureInfo("es-ES"),
-                _ => CultureInfo.GetCultureInfo("pt-BR"),
-            };
             return DateTimeOffset.FromUnixTimeMilliseconds(epochMs)
                 .ToLocalTime()
-                .ToString("d", culture);
+                .ToString("d", LocalizationService.Instance.EffectiveCulture);
         }
         catch (ArgumentOutOfRangeException)
         {

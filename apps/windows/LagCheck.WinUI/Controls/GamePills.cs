@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using LagCheck.WinUI.Library;
+using LagCheck.WinUI.Localization;
 
 #if WINDOWS
 using Microsoft.UI.Xaml;
@@ -44,6 +45,66 @@ public static class GamePills
         return false;
     }
 
+    private static readonly Dictionary<string, string> GenreCanonicalKeys = new(StringComparer.Ordinal)
+    {
+        ["simulacao"] = "Simulação",
+        ["simulation"] = "Simulação",
+        ["simulacion"] = "Simulação",
+        ["acao"] = "Ação",
+        ["action"] = "Ação",
+        ["accion"] = "Ação",
+        ["aventura"] = "Aventura",
+        ["adventure"] = "Aventura",
+        ["estrategia"] = "Estratégia",
+        ["strategy"] = "Estratégia",
+        ["rpg"] = "RPG",
+        ["rol"] = "RPG",
+        ["corrida"] = "Corrida",
+        ["racing"] = "Corrida",
+        ["carreras"] = "Corrida",
+        ["esportes"] = "Esportes",
+        ["desporto"] = "Esportes",
+        ["sports"] = "Esportes",
+        ["deportes"] = "Esportes",
+        ["casual"] = "Casual",
+        ["indie"] = "Indie",
+        ["luta"] = "Luta",
+        ["fighting"] = "Luta",
+        ["lucha"] = "Luta",
+        ["tiro"] = "Tiro",
+        ["shooter"] = "Tiro",
+        ["disparos"] = "Tiro",
+        ["plataforma"] = "Plataforma",
+        ["platformer"] = "Plataforma",
+        ["plataformas"] = "Plataforma",
+        ["cartas e tabuleiro"] = "Cartas e tabuleiro",
+        ["card & board"] = "Cartas e tabuleiro",
+        ["cartas y tablero"] = "Cartas e tabuleiro",
+        ["classicos"] = "Clássicos",
+        ["classics"] = "Clássicos",
+        ["quebra-cabeca"] = "Quebra-cabeça",
+        ["puzzle & trivia"] = "Quebra-cabeça",
+        ["rompecabezas"] = "Quebra-cabeça",
+        ["gratuito para jogar"] = "Gratuito para jogar",
+        ["free to play"] = "Gratuito para jogar",
+        ["gratis para jugar"] = "Gratuito para jogar",
+        ["acesso antecipado"] = "Acesso Antecipado",
+        ["early access"] = "Acesso Antecipado",
+        ["acceso anticipado"] = "Acesso Antecipado",
+        ["multijogador massivo"] = "Multijogador Massivo",
+        ["massively multiplayer"] = "Multijogador Massivo",
+        ["multijugador masivo"] = "Multijogador Massivo",
+    };
+
+    private static string TranslateGenreOrTag(string raw)
+    {
+        var trimmed = raw.Trim();
+        var normalized = StripDiacritics(trimmed).ToLowerInvariant();
+        return GenreCanonicalKeys.TryGetValue(normalized, out var canonical)
+            ? Strings.Tr(canonical)
+            : Strings.Tr(trimmed);
+    }
+
     /// <summary>
     /// Extrai os rótulos prioritários da loja (até 2 gêneros e até 2 modos), com limite de até 4 rótulos,
     /// sem repetição e excluindo identificadores de plataforma.
@@ -73,8 +134,9 @@ public static class GamePills
             foreach (var genre in info.Genres)
             {
                 if (genreCount >= 2) break;
+                if (string.IsNullOrWhiteSpace(genre)) continue;
                 var before = result.Count;
-                if (TryAdd(genre)) return result;
+                if (TryAdd(TranslateGenreOrTag(genre))) return result;
                 if (result.Count > before) genreCount++; // só o que entrou conta; duplicatas não gastam a cota
             }
 
@@ -93,7 +155,8 @@ public static class GamePills
         {
             foreach (var tag in game.Tags)
             {
-                if (TryAdd(tag)) return result;
+                if (string.IsNullOrWhiteSpace(tag)) continue;
+                if (TryAdd(TranslateGenreOrTag(tag))) return result;
             }
         }
 

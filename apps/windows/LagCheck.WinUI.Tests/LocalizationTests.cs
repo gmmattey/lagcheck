@@ -1,4 +1,6 @@
 using System.Globalization;
+using LagCheck.WinUI.Controls;
+using LagCheck.WinUI.Library;
 using LagCheck.WinUI.Localization;
 using Xunit;
 
@@ -147,5 +149,75 @@ public sealed class LocalizationTests
         Assert.Equal("Abrir en pantalla completa", Strings.Tr("Abrir em tela cheia"));
         Assert.Equal("Activado", Strings.Tr("Ligado"));
         Assert.Equal("Desactivado", Strings.Tr("Desligado"));
+    }
+
+    [Fact]
+    public void Effective_culture_follows_selected_app_language()
+    {
+        var service = LocalizationService.Instance;
+        var prev = service.SelectedLanguage;
+        try
+        {
+            service.SelectedLanguage = AppLanguage.PtBr;
+            Assert.Equal("pt-BR", service.EffectiveCulture.Name);
+
+            service.SelectedLanguage = AppLanguage.En;
+            Assert.Equal("en-US", service.EffectiveCulture.Name);
+
+            service.SelectedLanguage = AppLanguage.Es;
+            Assert.Equal("es-ES", service.EffectiveCulture.Name);
+        }
+        finally
+        {
+            service.SelectedLanguage = prev;
+        }
+    }
+
+    [Fact]
+    public void GamePills_translates_store_genres_to_selected_language()
+    {
+        var service = LocalizationService.Instance;
+        var prev = service.SelectedLanguage;
+        var game = new LibraryGame(
+            Id: "steam_949230",
+            Title: "Cities: Skylines II",
+            Platform: GamePlatform.Steam,
+            IsInstalled: true,
+            IsFavorite: false,
+            IsLaunchable: true,
+            LastPlayedEpochMs: null,
+            LastLaunchedEpochMs: null,
+            InstalledAtEpochMs: null,
+            CoverArtworkPath: null,
+            HeroArtworkPath: null,
+            NetworkKind: GameNetworkKind.Offline,
+            DiagnosticGameId: null,
+            NetworkLabel: "Offline",
+            Tags: System.Array.Empty<string>(),
+            Description: null,
+            AlsoIds: System.Array.Empty<string>(),
+            Info: new GameInfo(
+                Description: null,
+                Developer: "Iceflake Studios",
+                Publisher: "Paradox Interactive",
+                ReleaseDate: "2023-10-24",
+                Genres: new[] { "Simulation", "Strategy" },
+                Modes: new[] { "singleplayer" }));
+
+        try
+        {
+            service.SelectedLanguage = AppLanguage.PtBr;
+            Assert.Equal(new[] { "Simulação", "Estratégia", "Um jogador" }, GamePills.Labels(game));
+
+            service.SelectedLanguage = AppLanguage.En;
+            Assert.Equal(new[] { "Simulation", "Strategy", "Single-player" }, GamePills.Labels(game));
+
+            service.SelectedLanguage = AppLanguage.Es;
+            Assert.Equal(new[] { "Simulación", "Estrategia", "Un jugador" }, GamePills.Labels(game));
+        }
+        finally
+        {
+            service.SelectedLanguage = prev;
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -19,6 +20,30 @@ public sealed partial class GameDetailsPage : Page
     private LibraryGame? _game;
     private readonly ILibraryBridge _bridge;
     private bool _isPageLoaded;
+    private CancellationTokenSource? _infoCts;
+
+    private static readonly CultureInfo[] ReleaseParseCultures =
+    {
+        CultureInfo.InvariantCulture,
+        CultureInfo.GetCultureInfo("pt-PT"),
+        CultureInfo.GetCultureInfo("pt-BR"),
+        CultureInfo.GetCultureInfo("en-US"),
+        CultureInfo.GetCultureInfo("es-ES"),
+    };
+
+    private static readonly string[] ReleaseDateFormats =
+    {
+        "yyyy-MM-dd",
+        "d/MMM./yyyy",
+        "d/MMM/yyyy",
+        "d 'de' MMM. 'de' yyyy",
+        "d 'de' MMM 'de' yyyy",
+        "d 'de' MMMM 'de' yyyy",
+        "d MMM, yyyy",
+        "d MMM yyyy",
+        "MMM d, yyyy",
+        "MMMM d, yyyy",
+    };
 
     public GameDetailsPage()
     {
@@ -32,12 +57,20 @@ public sealed partial class GameDetailsPage : Page
         Loaded += (_, _) => { _isPageLoaded = true; AnimateEntrance(); };
         Unloaded += (_, _) =>
         {
+            _infoCts?.Cancel();
+            _infoCts?.Dispose();
+            _infoCts = null;
             LocalizationService.Instance.LanguageChanged -= OnLanguageChanged;
             SessionHistoryServices.Store.Entries.CollectionChanged -= OnHistoryChanged;
         };
     }
 
-    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() => { LocalizeUI(); BindGame(); });
+    private void OnLanguageChanged() => DispatcherQueue.TryEnqueue(() =>
+    {
+        LocalizeUI();
+        BindGame();
+        if (_game is { } game) _ = EnsureLocalizedGameInfoAsync(game);
+    });
     private void OnHistoryChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => DispatcherQueue.TryEnqueue(BindHistory);
 
     private void LocalizeUI()
@@ -60,6 +93,7 @@ public sealed partial class GameDetailsPage : Page
             _game = game;
             ApplyHeroSizing();
             BindGame();
+            _ = EnsureLocalizedGameInfoAsync(game);
             _ = ResolveArtworkAsync(game);
             if (_isPageLoaded) AnimateEntrance();
         }
@@ -106,11 +140,36 @@ public sealed partial class GameDetailsPage : Page
             {
                 _game = updated;
                 BindGame(isArtworkRefresh: true);
+                _ = EnsureLocalizedGameInfoAsync(updated);
             }
         }
         catch
         {
             // A arte é complementar: o banner neutro continua correto.
+        }
+    }
+
+    private async System.Threading.Tasks.Task EnsureLocalizedGameInfoAsync(LibraryGame game)
+    {
+        _infoCts?.Cancel();
+        _infoCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _infoCts = cts;
+        var language = LocalizationService.Instance.EffectiveLanguage;
+        try
+        {
+            var localized = await LocalizedGameInfoResolver.ResolveAsync(game, language, cts.Token);
+            if (cts.IsCancellationRequested || ReferenceEquals(localized, game)) return;
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (cts.IsCancellationRequested || _game?.Id != game.Id) return;
+                _game = localized;
+                BindGame();
+            });
+        }
+        catch
+        {
+            // Falha ao traduzir dados da loja mantém o conteúdo já carregado.
         }
     }
 
@@ -243,8 +302,8 @@ public sealed partial class GameDetailsPage : Page
             var row = new StackPanel
             {
                 Spacing = 4,
-                Padding = new Thickness(0, 16, 0, 16),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0x0D, 255, 255, 255)),
+                Padding = new Thickness(0, 12, 0, 12),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)),
                 BorderThickness = new Thickness(0, i == 0 ? 0 : 1, 0, 0),
             };
             row.Children.Add(new TextBlock { Text = rows[i].Key, FontFamily = (FontFamily)Application.Current.Resources["TechnicalFont"], FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.Normal, CharacterSpacing = 70, Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"] });
@@ -253,16 +312,29 @@ public sealed partial class GameDetailsPage : Page
         }
     }
 
-    /// <summary>A Microsoft entrega ISO (2012-07-28); a Steam já entrega texto localizado, mostrado como veio.</summary>
+    /// <summary>Normaliza datas da Microsoft (ISO) e da Steam para a cultura selecionada no app.</summary>
     private static string? FormatRelease(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
-        return DateTime.TryParseExact(raw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
-            ? date.ToString("d MMM yyyy", CultureInfo.CurrentUICulture)
-            : raw;
+        var trimmed = raw.Trim();
+        var targetCulture = LocalizationService.Instance.EffectiveCulture;
+
+        foreach (var culture in ReleaseParseCultures)
+        {
+            if (DateTime.TryParseExact(trimmed, ReleaseDateFormats, culture, DateTimeStyles.AllowWhiteSpaces, out var exact))
+                return exact.ToString("d MMM yyyy", targetCulture);
+        }
+
+        foreach (var culture in ReleaseParseCultures)
+        {
+            if (DateTime.TryParse(trimmed, culture, DateTimeStyles.AllowWhiteSpaces, out var parsed))
+                return parsed.ToString("d MMM yyyy", targetCulture);
+        }
+
+        return trimmed;
     }
 
-    private static string FormatDate(long epochMs) => DateTimeOffset.FromUnixTimeMilliseconds(epochMs).ToLocalTime().ToString("d MMM yyyy", CultureInfo.CurrentUICulture);
+    private static string FormatDate(long epochMs) => DateTimeOffset.FromUnixTimeMilliseconds(epochMs).ToLocalTime().ToString("d MMM yyyy", LocalizationService.Instance.EffectiveCulture);
 
     private void BindHistory()
     {

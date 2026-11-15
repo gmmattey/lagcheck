@@ -15,9 +15,10 @@
             <Rectangle>
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#33070914" Offset="0"/>
-                        <GradientStop Color="#59070914" Offset="0.45"/>
-                        <GradientStop Color="#E6070914" Offset="1"/>
+                        <GradientStop Color="#26070914" Offset="0"/>
+                        <GradientStop Color="#73070914" Offset="0.42"/>
+                        <GradientStop Color="#CC070914" Offset="0.68"/>
+                        <GradientStop Color="#F5070914" Offset="1"/>
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
@@ -71,20 +72,19 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- Conteúdo em duas colunas -->
-                <Grid Padding="48,16,48,56" ColumnSpacing="40">
+                <!-- Conteúdo em duas colunas direto sobre o fundo, sem cards -->
+                <Grid Padding="48,16,48,56" ColumnSpacing="48">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="340"/>
+                        <ColumnDefinition Width="320"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Spacing="22">
-                        <!-- Card de vidro para o texto corrido da descrição (Padding 20,16) -->
-                        <Border x:Name="DescriptionCard" Style="{StaticResource PremiumCardStyle}" Padding="20,16" Visibility="Collapsed">
-                            <TextBlock x:Name="DescriptionText" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" LineHeight="23" TextWrapping="Wrap" MaxWidth="760" HorizontalAlignment="Left"/>
+                    <StackPanel Grid.Column="0" Spacing="28">
+                        <Border x:Name="DescriptionCard" Padding="0,4,0,20" BorderBrush="{StaticResource LineStrongBrush}" BorderThickness="0,0,0,1" Visibility="Collapsed">
+                            <TextBlock x:Name="DescriptionText" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" LineHeight="24" TextWrapping="Wrap" MaxWidth="760" HorizontalAlignment="Left"/>
                         </Border>
 
-                        <Border x:Name="ShotsCard" Style="{StaticResource PremiumCardStyle}" Padding="22,18" Visibility="Collapsed">
+                        <Border x:Name="ShotsCard" Padding="0" Visibility="Collapsed">
                             <StackPanel Spacing="12">
                                 <TextBlock x:Name="ShotsEyebrow" Text="CAPTURAS" Style="{StaticResource TechLabelStyle}"/>
                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Auto">
@@ -95,12 +95,12 @@
                         </Border>
                     </StackPanel>
 
-                    <StackPanel x:Name="SideColumn" Grid.Column="1" Spacing="20">
-                        <Border Style="{StaticResource PremiumCardStyle}" Padding="22,8">
+                    <StackPanel x:Name="SideColumn" Grid.Column="1" Spacing="24">
+                        <Border Padding="0">
                             <StackPanel x:Name="FactsPanel"/>
                         </Border>
 
-                        <Border Style="{StaticResource PremiumCardStyle}" Padding="22,18">
+                        <Border Padding="0,20,0,0" BorderBrush="{StaticResource LineStrongBrush}" BorderThickness="0,1,0,0">
                             <StackPanel Spacing="6">
                                 <TextBlock x:Name="HistEyebrow" Text="HISTÓRICO DE MEDIÇÕES" Style="{StaticResource TechLabelStyle}"/>
                                 <StackPanel x:Name="HistoryPanel"/>

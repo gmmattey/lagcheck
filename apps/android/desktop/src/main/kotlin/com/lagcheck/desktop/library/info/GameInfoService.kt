@@ -69,7 +69,7 @@ class GameInfoService(
     private val fetcher: InfoFetcher = HttpInfoFetcher(),
     private val now: () -> Long = System::currentTimeMillis,
     private val market: String = "br",
-    private val language: String = "portuguese",
+    private val language: String = "brazilian",
 ) : GameKindSource {
     override fun cached(game: PcGame): Boolean? = try {
         when (game.platform) {
