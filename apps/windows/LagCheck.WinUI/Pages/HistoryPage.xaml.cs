@@ -26,6 +26,8 @@ public sealed partial class HistoryPage : Page
     private bool _isPageLoaded;
     private string? _selectedGameId;
     private string? _selectedGameTitle;
+    private int _selectedWindowDays = 14;
+    private string? _selectedNetworkFilter;
     private string? _lastChipsSignature;
 
     public HistoryPage()
@@ -192,24 +194,87 @@ public sealed partial class HistoryPage : Page
             games.Add((_selectedGameId, label));
         }
 
+        var networks = NetworkStabilitySummary.Build(
+            _history.Entries,
+            _selectedGameId,
+            maxPoints: 30,
+            windowDays: _selectedWindowDays).Networks;
+
+        if (_selectedNetworkFilter is not null && !networks.Contains(_selectedNetworkFilter, StringComparer.Ordinal))
+        {
+            _selectedNetworkFilter = null;
+        }
+
         var sig = string.Join("|",
             LocalizationService.Instance.SelectedLanguage,
             _selectedGameId ?? "",
+            _selectedWindowDays,
+            _selectedNetworkFilter ?? "",
+            _history.Entries.Count > 0,
+            string.Join(",", networks),
             string.Join(";", games.Select(g => $"{g.Id}={g.Title}")));
         if (string.Equals(sig, _lastChipsSignature, StringComparison.Ordinal)) return;
         _lastChipsSignature = sig;
 
         ScopeChips.Children.Clear();
-        ScopeChips.Children.Add(BuildScopeChip(Strings.Tr("Visão geral"), null, null, _selectedGameId is null));
+        ScopeChips.Children.Add(BuildFilterChip(Strings.Tr("Visão geral"), _selectedGameId is null, () =>
+        {
+            _selectedGameId = null;
+            _selectedGameTitle = null;
+            _selectedNetworkFilter = null;
+            UpdateVisibleEntries();
+        }));
         foreach (var (id, title) in games)
         {
             var selected = string.Equals(_selectedGameId, id, StringComparison.OrdinalIgnoreCase);
-            ScopeChips.Children.Add(BuildScopeChip(title, id, title, selected));
+            ScopeChips.Children.Add(BuildFilterChip(title, selected, () =>
+            {
+                _selectedGameId = id;
+                _selectedGameTitle = title;
+                _selectedNetworkFilter = null;
+                UpdateVisibleEntries();
+            }));
         }
         ScopeChipsScroll.Visibility = ScopeChips.Children.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+        WindowChips.Children.Clear();
+        foreach (var days in new[] { 7, 14, 30 })
+        {
+            var label = Strings.Tr($"{days} dias");
+            WindowChips.Children.Add(BuildFilterChip(label, _selectedWindowDays == days, () =>
+            {
+                _selectedWindowDays = days;
+                UpdateVisibleEntries();
+            }));
+        }
+        WindowChipsScroll.Visibility = _history.Entries.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        NetworkChips.Children.Clear();
+        if (networks.Count > 1)
+        {
+            NetworkChips.Children.Add(BuildFilterChip(Strings.Tr("Todas as redes"), _selectedNetworkFilter is null, () =>
+            {
+                _selectedNetworkFilter = null;
+                UpdateVisibleEntries();
+            }));
+            foreach (var net in networks)
+            {
+                var label = NetworkStabilitySummary.LocalizedNetworkLabel(net);
+                NetworkChips.Children.Add(BuildFilterChip(label, string.Equals(_selectedNetworkFilter, net, StringComparison.Ordinal), () =>
+                {
+                    _selectedNetworkFilter = net;
+                    UpdateVisibleEntries();
+                }));
+            }
+            NetworkChipsScroll.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            NetworkChipsScroll.Visibility = Visibility.Collapsed;
+        }
     }
 
-    private Button BuildScopeChip(string label, string? gameId, string? gameTitle, bool selected)
+    private Button BuildFilterChip(string label, bool selected, Action onClick)
     {
         var btn = new Button
         {
@@ -218,27 +283,25 @@ public sealed partial class HistoryPage : Page
             FontSize = 13,
             Padding = new Thickness(14, 7, 14, 7),
             MinHeight = 36,
+            CornerRadius = new CornerRadius(8),
+            BorderThickness = new Thickness(0),
+            Background = (Brush)Application.Current.Resources[selected ? "PanelBrush" : "SurfaceBrush"],
+            Foreground = (Brush)Application.Current.Resources[selected ? "TextPrimaryBrush" : "TextSecondaryBrush"],
         };
-        if (selected)
-        {
-            btn.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x33, 0x7C, 0x3A, 0xED));
-            btn.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xA7, 0x8B, 0xFA));
-            btn.Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"];
-        }
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(btn, label);
-        btn.Click += (_, _) =>
-        {
-            _selectedGameId = gameId;
-            _selectedGameTitle = gameTitle;
-            UpdateVisibleEntries();
-        };
+        btn.Click += (_, _) => onClick();
         return btn;
     }
 
     private void UpdateStabilityCard()
     {
-        var summary = NetworkStabilitySummary.Build(_history.Entries, _selectedGameId, maxPoints: 30);
-        if (!summary.HasData)
+        var summary = NetworkStabilitySummary.Build(
+            _history.Entries,
+            _selectedGameId,
+            maxPoints: 30,
+            windowDays: _selectedWindowDays,
+            networkFilter: _selectedNetworkFilter);
+        if (!summary.HasData && summary.InconclusiveCount == 0)
         {
             StabilityCard.Visibility = Visibility.Collapsed;
             return;
@@ -257,6 +320,38 @@ public sealed partial class HistoryPage : Page
         }
         StabilityTitle.Text = title;
 
+        if (!summary.HasSummary)
+        {
+            StabilityHeadline.Text = Strings.Tr("Poucas medições ainda");
+            StabilityPercent.Visibility = Visibility.Collapsed;
+            StabilitySubtitle.Text = summary.HasData
+                ? string.Format(culture, "{0:0.#} ms", summary.AvgPing)
+                : string.Empty;
+            StabilityDivider.Visibility = Visibility.Collapsed;
+            StabilityGaugesHost.Visibility = Visibility.Collapsed;
+            StabilityGaugesHost.Children.Clear();
+            StabilityChartHost.Visibility = summary.Points.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            StabilityChartHost.Child = summary.Points.Count > 0
+                ? LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, Windows.UI.Color.FromArgb(0xFF, 0x8A, 0x93, 0xA0))
+                : null;
+
+            var hints = new List<string> { Strings.Tr("Faça pelo menos 3 checks na mesma rede para ver a evolução.") };
+            if (summary.InconclusiveCount > 0)
+            {
+                hints.Add(summary.InconclusiveCount == 1
+                    ? Strings.Tr("1 inconclusivo")
+                    : Strings.Format("{0} inconclusivos", summary.InconclusiveCount));
+            }
+            StabilityHint.Text = string.Join(" · ", hints);
+            StabilityHint.Visibility = Visibility.Visible;
+            return;
+        }
+
+        StabilityPercent.Visibility = Visibility.Visible;
+        StabilityDivider.Visibility = Visibility.Visible;
+        StabilityGaugesHost.Visibility = Visibility.Visible;
+        StabilityChartHost.Visibility = Visibility.Visible;
+
         var headline = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary.StabilityTone));
         StabilityHeadline.Text = headline;
         StabilityPercent.Text = Math.Abs(summary.MaxPing - summary.MinPing) < 0.5
@@ -269,7 +364,31 @@ public sealed partial class HistoryPage : Page
             summary.StabilityPercentage,
             summary.TotalCount);
 
-        StabilityChartHost.Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, toneColor);
+        var chartColor = summary.HasMixedContexts
+            ? Windows.UI.Color.FromArgb(0xFF, 0x8A, 0x93, 0xA0)
+            : toneColor;
+        StabilityChartHost.Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, chartColor);
+
+        var activeHints = new List<string>();
+        if (!summary.CanDrawCurve)
+        {
+            activeHints.Add(Strings.Tr("Faça pelo menos 3 checks na mesma rede para ver a evolução."));
+        }
+        if (summary.InconclusiveCount > 0)
+        {
+            activeHints.Add(summary.InconclusiveCount == 1
+                ? Strings.Tr("1 inconclusivo")
+                : Strings.Format("{0} inconclusivos", summary.InconclusiveCount));
+        }
+        if (activeHints.Count > 0)
+        {
+            StabilityHint.Text = string.Join(" · ", activeHints);
+            StabilityHint.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            StabilityHint.Visibility = Visibility.Collapsed;
+        }
 
         StabilityGaugesHost.Children.Clear();
         var pingTone = LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(summary.AvgPing, 45, 90);
@@ -284,26 +403,27 @@ public sealed partial class HistoryPage : Page
 
         StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));
 
-        var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 8, 20) : VerdictTone.Unknown;
+        var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 12, 25) : VerdictTone.Unknown;
         StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
             Strings.Tr("JITTER"),
             summary.AvgJitter is { } jv ? string.Format(culture, "{0:0.#}", jv) : "—",
             summary.AvgJitter.HasValue ? "ms" : null,
             Verdicts.ColorOf(jitterTone),
             jitterTone,
-            summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 8, 20, 40) : 0,
+            summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 12, 25, 40) : 0,
             ringSize: 54));
 
         StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));
 
-        var lossTone = summary.MaxLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 0.5, 2.5) : VerdictTone.Unknown;
+        var avgLoss = summary.AvgLoss ?? summary.MaxLoss;
+        var lossTone = avgLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 1, 3) : VerdictTone.Unknown;
         StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
             Strings.Tr("PERDA"),
-            summary.MaxLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
-            summary.MaxLoss.HasValue ? "%" : null,
+            avgLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
+            avgLoss.HasValue ? "%" : null,
             Verdicts.ColorOf(lossTone),
             lossTone,
-            summary.MaxLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 0.5, 2.5, 10) : 0,
+            avgLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 1, 3, 10) : 0,
             ringSize: 54));
 
         StabilityGaugesHost.Children.Add(LagCheck.WinUI.Widgets.WidgetParts.VerticalDivider(10));

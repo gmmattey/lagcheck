@@ -99,6 +99,7 @@ internal sealed class EngineWireMessage
     public JsonElement? Snapshot { get; init; }
     public JsonElement? Games { get; init; }
     public JsonElement? Entries { get; init; }
+    public JsonElement? Summary { get; init; }
     public JsonElement? Settings { get; init; }
     public JsonElement? Update { get; init; }
     public bool? Enabled { get; init; }

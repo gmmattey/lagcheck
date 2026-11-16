@@ -48,7 +48,7 @@ Cada projeto possui comandos rápidos que devem ser executados antes de consider
 
 | Projeto | Comandos de Validação |
 | :--- | :--- |
-| **`lagcheck`** | `swift test` (iOS/macOS) · `./gradlew test` (Android) · `./gradlew :desktop:compileKotlin :desktop:test` e `./gradlew :desktop:shots` (protótipo Windows, em `android/`, com `JAVA_HOME` em um JDK 17+) · `npm test` em `worker/` (a falha de paridade do catálogo da Decisão 106 é anterior e conhecida) |
+| **`lagcheck`** | `./gradlew :core:domain:allTests :app:testProductionDebugUnitTest` (em `apps/android/`) · `xcodebuild test -project apps/ios/Nolaggy.xcodeproj -scheme NolaggyUnitTests -destination 'platform=iOS Simulator,...'` (iOS) · `dotnet test apps/windows/LagCheck.WinUI.Tests/LagCheck.WinUI.Tests.csproj` (Windows WinUI 3) · `./gradlew :desktop:compileKotlin :desktop:test` e `:desktop:shots` (legado Compose Desktop, em `apps/android/`) · `npm test` em `apps/worker/` |
 | **`linka`** | `swift test` nos pacotes tocados · `xcodebuild -scheme LinkaApp -destination 'platform=iOS Simulator,name=iPhone 16'` |
 | **`wifi-check`** | `swift test` (suíte WiFiCheckTests) |
 | **`landings`** | `npm run check` (executa testes e builds de todos os sites em 15s) |

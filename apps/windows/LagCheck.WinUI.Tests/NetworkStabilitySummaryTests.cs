@@ -216,4 +216,44 @@ public sealed class NetworkStabilitySummaryTests
         var overallSummary = NetworkStabilitySummary.Build(entries, gameIdFilter: null);
         Assert.Equal(5, overallSummary.TotalCount);
     }
+
+    [Fact]
+    public void Build_breaks_curve_across_different_regions_or_networks_and_requires_three_per_segment()
+    {
+        var entries = new[]
+        {
+            new SessionHistoryEntry("1", "ready", 20, 2, 0, "sa-east-1", BaseTime.AddHours(-5), "valorant", "VALORANT", NetworkType: "ETHERNET"),
+            new SessionHistoryEntry("2", "ready", 22, 2, 0, "sa-east-1", BaseTime.AddHours(-4), "valorant", "VALORANT", NetworkType: "ETHERNET"),
+            new SessionHistoryEntry("3", "ready", 21, 2, 0, "sa-east-1", BaseTime.AddHours(-3), "valorant", "VALORANT", NetworkType: "ETHERNET"),
+            new SessionHistoryEntry("4", "caution", 38, 6, 0, "us-east-1", BaseTime.AddHours(-2), "valorant", "VALORANT", NetworkType: "WIFI"),
+            new SessionHistoryEntry("5", "ready", 42, 4, 0, "us-east-1", BaseTime.AddHours(-1), "valorant", "VALORANT", NetworkType: "WIFI"),
+        };
+
+        var summary = NetworkStabilitySummary.Build(entries, gameIdFilter: "valorant", windowDays: 14, now: BaseTime);
+
+        Assert.True(summary.CanDrawCurve);
+        Assert.True(summary.HasSummary);
+        Assert.True(summary.HasMixedContexts);
+        Assert.Equal(["ETHERNET", "WIFI"], summary.Networks);
+        Assert.Equal([false, true, true, false, false], summary.Points.Select(p => p.ConnectToPrevious).ToArray());
+    }
+
+    [Fact]
+    public void Build_counts_inconclusive_separately_and_marks_below_three_without_curve()
+    {
+        var entries = new[]
+        {
+            MakeEntry("r1", "ready", 18, -10, loadDeltaMs: null),
+            MakeEntry("inc1", "inconclusive", 99, -5),
+        };
+
+        var summary = NetworkStabilitySummary.Build(entries, windowDays: 7, now: BaseTime);
+
+        Assert.True(summary.HasData);
+        Assert.False(summary.HasSummary);
+        Assert.False(summary.CanDrawCurve);
+        Assert.Equal(1, summary.TotalCount);
+        Assert.Equal(1, summary.InconclusiveCount);
+        Assert.Null(summary.AvgLoadDelta);
+    }
 }

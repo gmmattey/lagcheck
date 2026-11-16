@@ -485,15 +485,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         refreshPlatformHealth()
     }
 
+    private fun preferredPlatformFor(game: CatalogGame): String =
+        game.platforms.firstOrNull { it.equals("Mobile", ignoreCase = true) }
+            ?: game.platforms.firstOrNull()
+            ?: "Mobile"
+
     /**
      * Escolhe o jogo atual sem perguntar dispositivo (Decisão 80): o aparelho é o celular.
      * A plataforma de rota vem do catálogo: Mobile quando existir, senão o primeiro contexto do jogo.
      */
     fun chooseGame(game: CatalogGame) {
-        val platform = game.platforms.firstOrNull { it.equals("Mobile", ignoreCase = true) }
-            ?: game.platforms.firstOrNull()
-            ?: "Mobile"
-        selectGame(game, platform, _selectedConnectionType.value, null)
+        selectGame(game, preferredPlatformFor(game), _selectedConnectionType.value, null)
         productAnalytics.track(ProductAnalyticsEvent.GameSelected(game.id))
     }
 
@@ -560,7 +562,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         connectionType: String = _selectedConnectionType.value,
         declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = _declaredExternalLink.value
     ) {
-        selectGame(targetGame, platform, connectionType, declaredExternalLink)
+        // Jogo iniciado direto da Home (ex.: CS2 em POPULARES) não pode herdar plataforma incompatível do check anterior.
+        val resolvedPlatform = when {
+            com.lagcheck.session.PlatformLabels.isGenericGameId(targetGame.id) ->
+                platform.takeIf { it.isNotBlank() } ?: "Mobile"
+            targetGame.platforms.isEmpty() || targetGame.platforms.any { it.equals(platform, ignoreCase = true) } ->
+                platform
+            else -> preferredPlatformFor(targetGame)
+        }
+        selectGame(targetGame, resolvedPlatform, connectionType, declaredExternalLink)
         com.lagcheck.android.data.RemoteArtworkRepository.setDownloadsEnabled(false)
         refreshRadioTelemetry()
         val radioSnapshot = _liveRadioTelemetry.value
@@ -578,14 +588,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (isMobile && !hasConsentedMobileData) {
             _currentScreen.value = Screen.Measurement(
                 game = targetGame,
-                platform = platform,
+                platform = resolvedPlatform,
                 connectionType = observedConnection,
                 showMobileDataConsent = true
             )
             return
         }
 
-        executeActualCheck(targetGame, platform, observedConnection, _declaredExternalLink.value, radioSnapshot)
+        executeActualCheck(targetGame, resolvedPlatform, observedConnection, _declaredExternalLink.value, radioSnapshot)
     }
 
     fun confirmMobileDataAndStart() {

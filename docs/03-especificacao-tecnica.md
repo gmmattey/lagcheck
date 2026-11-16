@@ -1,37 +1,36 @@
 # LagCheck — especificação técnica do MVP
 
-**Status:** rascunho técnico inicial  
-**Aplicativo:** iPhone, iOS 17 ou superior  
-**Documentos relacionados:** [Funcional](./01-funcional.md) · [Arquitetura](./02-arquitetura.md)
+**Status:** especificação técnica atualizada (Decisões 106, 120, 123, 134–136, 143–145)
+**Aplicativo:** iPhone (iOS 17+), Android (API 26+) sobre motor KMP único (`LagCheckEngine`)
+**Documentos relacionados:** [Funcional](./01-funcional.md) · [Arquitetura](./02-arquitetura.md) · [Contrato KMP](../apps/android/core/domain/ENGINE_CONTRACT.md)
 
 ## 1. Escopo técnico fechado
 
 | Área | Decisão |
 | --- | --- |
-| App | Nativo para iPhone, iOS 17+, Swift e SwiftUI. |
-| Medição | UDP direto do iPhone para AWS GameLift Ping Beacons. |
-| Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 30 s em repouso + 30 s sob carga (cerca de 64 s no total); carga de até 60 MB no Wi-Fi e 10 MB na rede móvel (Decisão 135). Chamado simplesmente de **Check** na interface. |
-| Veredito Principal | `GameReadinessVerdict` (`.ready`, `.caution`, `.notReady`, `.inconclusive`). Protagonista visual imediato. |
-| Score | Local, determinístico, de 0 a 100 (mantido para detalhes, histórico e telemetria). |
-| Catálogo & Telemetria | Catálogo Ed25519 local no build; Worker gratuito somente para carga `/v1/load` e telemetria anônima `/v1/telemetry`. |
-| Assinatura | Ed25519; somente a chave pública vai no app. |
-| Histórico | SwiftData local; 90 dias e máximo de 100 medições por jogo, organizado por títulos e vereditos. |
-| Publicidade | AdMob Native Advanced e UMP nos dois clientes, conforme Decisões 82, 94 e 95; iOS Debug com IDs de teste e Release com IDs de produção. |
-| Privacidade | Telemetria mínima anônima via Worker próprio sem PII/IP; publicidade usa AdMob/UMP isolados no app, com consentimento e declarações próprias. |
+| Apps & Motor | iOS (`apps/ios/`, SwiftUI) e Android (`apps/android/`, Kotlin/Compose) consumindo o motor único Kotlin Multiplatform (`apps/android/core/domain`, `LagCheckEngine`, Decisão 134). |
+| Medição | UDP direto do dispositivo para infraestrutura de referência (AWS GameLift, Azure PlayFab, Valve A2S) + mapa equiretangular nativo com `/v1/approx-location` (Decisão 123). |
+| Check (Deep Check) | Wi-Fi e rede móvel (com consentimento); 60 probes (~30 s) em repouso + 60 probes (~30 s) sob carga (~64 s no total; mínimo 20 respostas válidas por fase, Decisão 135); carga contínua até 60 MB no Wi-Fi e 10 MB na rede móvel via `GET /v1/load`. Chamado simplesmente de **Check** na interface. |
+| Veredito Principal | `GameReadinessVerdict` (`READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`, regra `readiness-v3.0`). Protagonista visual imediato. |
+| Score | Local, determinístico (`0–100`), acoplado aos guardrails do veredito (mantido para detalhes, histórico e telemetria). |
+| Catálogo & Telemetria | Catálogo base embutido sem assinatura com 54 jogos e refresh opcional via `catalog-v3.json` (Decisão 106); Cloudflare Worker gratuito somente para `/v1/load` e `/v1/telemetry`. |
+| Histórico & Estabilidade | Persistência local (SwiftData no iOS / DataStore no Android); 90 dias e máximo de 100 medições por jogo; evolução da estabilidade via `LagCheckEngine.stabilitySummary` (`stability-summary-v1`, Decisão 143). |
+| Publicidade | AdMob Native Advanced em faixa horizontal compacta (sem contorno) e UMP em `Início`, `Jogos`, `Histórico` e `Resultado` válido (Decisões 82, 96, 97 e 144). |
+| Privacidade | Telemetria mínima anônima via Worker sem PII/IP e analytics de funil com exclusão local (Decisões 108 e 109). |
 | Idiomas | PT-BR, inglês e espanhol. |
 
-Android passou a ser alvo oficial pelas Decisões 67–69; o contrato do port está em [Arquitetura Android](./08-arquitetura-android.md). Esta especificação detalha a implementação iOS. Não entram no MVP1: conta, sincronização em nuvem, VPN/otimização de rota, banco de dados remoto, analytics de terceiros, comparação Wi-Fi versus celular, fallback HTTP/ICMP para UDP, AdMob, UMP, banners e assistentes de IA no fluxo principal.
+Android é alvo oficial (Decisões 67–69) e o protótipo interno Windows WinUI 3 (`apps/windows/`) consome o mesmo `LagCheckEngine` via `engine-host` (`apps/android/engine-host/`). Ficam fora de escopo: conta obrigatória, sincronização em nuvem, VPN/otimização de rota, fallback HTTP/ICMP para UDP e assistentes de IA no fluxo principal.
 
-## 2. Organização do código iOS
+## 2. Organização do código iOS (`apps/ios/`)
 
 ```text
-LagCheck/
-├── App/                 composição, ciclo de vida e dependências
-├── Features/            Home, Game, Measurement, Result, Details, History, Settings
-├── Domain/              modelos, NGQE, regras, resolvedor de contexto, sintomas e GameReadinessEvaluator
-├── Infrastructure/      UDP, caminho de rede, HTTP load, catálogo, telemetria e SwiftData
-├── Resources/           catálogo-base, traduções, chaves públicas e assets
-└── Tests/               unitários, contratos, integração e UI
+apps/ios/
+├── Sources/
+│   ├── NolaggyApp/         composição, ciclo de vida, AdMob/UMP e Features (Home, Games, Measurement, Result, Details, History, Settings)
+│   ├── NolaggyDesign/      tokens Dark Competitive UI, fontes, RouteMap e componentes SwiftUI
+│   ├── NolaggyDomain/      fachada fina sobre o XCFramework KMP LagCheckEngine + modelos Swift
+│   └── NolaggyInfrastructure/ UDP, caminho de rede, gateway, carga HTTP, catálogo, telemetria e SwiftData
+└── Tests/                  unitários, contrato KMP, integração e UI
 ```
 
 `Domain` não importa SwiftUI, SwiftData, Network ou URLSession. `Infrastructure` implementa protocolos consumidos por `Domain` e `Features`. `App` monta as dependências em produção e as substitui por fakes nos testes.

@@ -20,14 +20,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -273,7 +277,11 @@ class MainActivity : ComponentActivity() {
                         .background(LagCheckColors.Background)
                         .padding(innerPadding)
                         .then(
-                            if (currentScreen is Screen.Home) Modifier.statusBarsPadding() else Modifier.safeDrawingPadding()
+                            if (currentScreen is Screen.Home) {
+                                Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                            } else {
+                                Modifier.safeDrawingPadding()
+                            }
                         )
                 ) {
                 AnimatedContent(
@@ -302,7 +310,7 @@ class MainActivity : ComponentActivity() {
                             historyItems
                                 .sortedByDescending { it.timestamp }
                                 .mapNotNull { item ->
-                                    if (item.gameId == "generic_gaming" || !seen.add(item.gameId)) {
+                                    if (com.lagcheck.session.PlatformLabels.isGenericGameId(item.gameId) || !seen.add(item.gameId)) {
                                         null
                                     } else {
                                         catalogById[item.gameId]?.let { game -> game to item }
@@ -313,7 +321,7 @@ class MainActivity : ComponentActivity() {
                         val orderedPopular = preferredPopularOrder.mapNotNull { catalogById[it] } +
                             catalogGames.filter { it.id !in preferredPopularOrder }
                         val popularGames = orderedPopular
-                            .filter { it.id != "generic_gaming" && it.id !in favoriteIds }
+                            .filter { !com.lagcheck.session.PlatformLabels.isGenericGameId(it.id) && it.id !in favoriteIds }
                             .take(6)
 
                         HomeScreen(

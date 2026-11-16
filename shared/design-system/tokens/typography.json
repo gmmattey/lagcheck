@@ -1,52 +1,54 @@
 {
   "$schema": "lagcheck/tokens/typography",
-  "description": "Pilhas tipográficas do LagCheck Design System definidas em colors_and_type.css e DESIGN.md. Display arredondada para títulos e vereditos; Corpo nativo Apple para leitura e controles; Técnica monoespaçada para métricas e telemetria.",
+  "description": "Tríade tipográfica oficial do LagCheck Design System (Decisão 125 / DESIGN.md): Barlow Semi Condensed para títulos e vereditos; Barlow para corpo e controles; Chakra Petch para métricas, kickers e telemetria com algarismos tabulares.",
   "fontFamilies": {
     "display": {
-      "css": "ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif",
-      "swiftUI": ".system(..., design: .rounded)",
-      "usage": "Vereditos, nomes de jogo, score e títulos de grande impacto."
+      "family": "Barlow Semi Condensed",
+      "weights": [700, 800],
+      "css": "'Barlow Semi Condensed', system-ui, sans-serif",
+      "usage": "Vereditos, nomes de tela (caixa alta), nomes de jogo e chamadas."
     },
     "body": {
-      "css": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      "swiftUI": ".system(..., design: .default)",
-      "usage": "Texto de leitura, botões de controle, parágrafos explicativos."
+      "family": "Barlow",
+      "weights": [400, 500, 600],
+      "css": "'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "usage": "Texto de leitura, navegação, botões de controle e parágrafos explicativos."
     },
     "mono": {
-      "css": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-      "swiftUI": ".system(..., design: .monospaced) / .monospacedDigit()",
-      "usage": "Rota, métricas observadas, tempo, ping/jitter/perda e contexto de rede."
+      "family": "Chakra Petch",
+      "weights": [600],
+      "css": "'Chakra Petch', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      "usage": "Score, rota, métricas observadas, tempo, ping/jitter/perda, kickers técnicos e contexto de rede (tnum)."
     }
   },
   "tracking": {
     "displayTight": -0.8,
     "displaySnug": -0.5,
     "default": 0,
-    "monoWide": 1.2,
-    "monoExtraWide": 1.5
+    "monoWide": 1.0,
+    "monoExtraWide": 1.2
   },
   "platforms": {
     "ios": {
-      "display": "SF arredondada do sistema (.rounded)",
-      "body": "SF do sistema",
-      "mono": "SF Mono do sistema (.monospaced / .monospacedDigit)",
-      "source": "Sources/NolaggyDesign/Tokens/NLTypography.swift"
+      "display": "BarlowSemiCondensed-Bold / ExtraBold",
+      "body": "Barlow-Regular / Medium / SemiBold",
+      "mono": "ChakraPetch-SemiBold (.monospacedDigit())",
+      "source": "apps/ios/Sources/NolaggyDesign/Tokens/NLTypography.swift"
     },
     "android": {
-      "display": "Google Sans Flex",
-      "body": "Google Sans Flex",
-      "mono": "Google Sans Flex com algarismos tabulares (feature tnum); não usa fonte monoespaçada",
-      "decision": "Decisão 80, item 4: única família do Android; Nunito, Roboto e fontes monoespaçadas saíram do app",
-      "source": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt"
+      "display": "BarlowSemiCondensed Bold / ExtraBold",
+      "body": "Barlow Regular / Medium / SemiBold",
+      "mono": "ChakraPetch SemiBold (tnum)",
+      "decision": "Decisão 125: unificada com o site e iOS",
+      "source": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt"
     },
     "windows": {
       "display": "Barlow Semi Condensed (700/800), empacotada",
       "body": "Barlow (400/500/600), empacotada",
       "mono": "Chakra Petch (600), empacotada para métricas",
-      "decision": "Referência visual aprovada: gmmattey/landings/sites/lagcheck/src/layouts/Base.astro e src/styles/global.css. Fontes OFL incluídas em android/desktop/src/main/resources/fonts/; a renderização é verificada pelas capturas desktop.",
-      "source": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt",
-      "status": "implementada; pendente de validação pelas capturas desktop"
+      "decision": "Decisões 119 e 125: fontes OFL incluídas em apps/windows/LagCheck.WinUI/Assets/Fonts/ e apps/android/desktop/src/main/resources/fonts/",
+      "source": "apps/windows/LagCheck.WinUI/Controls/Typography.cs"
     }
   },
-  "nota": "Os campos css e swiftUI de fontFamilies descrevem a pilha da Apple, que vale para iOS e para os protótipos HTML. Android e Windows usam a família própria de cada plataforma, como mostra platforms."
+  "nota": "Todas as plataformas e o site compartilham a mesma tríade oficial (Decisão 125). Títulos principais e secundários no mobile usam caixa alta (Decisão 145)."
 }

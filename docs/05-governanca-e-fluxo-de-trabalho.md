@@ -11,7 +11,9 @@ Esta governança existe para manter o LagCheck simples, confiável e coerente en
 
 O objetivo não é criar burocracia. É evitar três erros caros: prometer precisão que a medição não entrega, transformar uma tela em uma solução visual isolada e alterar a fundação técnica sem saber o impacto no resultado para o jogador.
 
-## 2. Time e responsabilidades
+> **Nota de simplificação operacional (2026-11-15):** Para eliminar burocracia e handoffs em arquivo, a squad do repositório passou a operar com **4 agentes titulares** definidos em `.codex/agents/*.toml` e detalhados em [`AGENTS.md`](../AGENTS.md) e [`.agents/WORKFLOW.md`](../.agents/WORKFLOW.md): **Marcelo** (Produto, Negócio & Orquestração / Aceite), **Priscila** (UX/UI & Design System), **Camillo** (Engenharia Full-Stack & Motor KMP) e **Renan** (QA, Testes & Aparelho Real), no ciclo ágil de 3 passos (`Enquadramento → Construção & Auto-Teste → Prova de Fogo`). As responsabilidades técnicas, gates de integridade e matrizes abaixo continuam válidas como referência de controle de qualidade.
+
+## 2. Time e responsabilidades (Mapeamento histórico de frentes)
 
 | Pessoa | Frente | Responsabilidade principal | Não decide sozinho |
 | --- | --- | --- | --- |
@@ -73,8 +75,8 @@ Para uma decisão virar execução, ela precisa responder: qual problema resolve
 ### 5.1 Design e experiência — Renan
 
 - Nenhuma tela segue para desenvolvimento sem objetivo, fluxo e estados de carregamento, vazio, erro, cancelamento e sucesso necessários.
-- A direção **Dark Competitive UI** é a fonte de verdade visual (Decisão 51): fundo quase preto (`#0B0D10`), superfícies grafite, painéis com borda fina de 1px (sem card soup), tipografia pesada, números monoespaçados e Roxo Gamer (`#7C3AED`) para ação primária; Coral Solar (`#FF5A36`) é reservado para atenção, erro e ações destrutivas (Decisão 66, que refina a 51).
-- A wordmark `lagcheck` é a marca oficial. O jogo é o protagonista visual, recebendo artwork autoral amplo em destaque na Home.
+- A direção **Dark Competitive UI** em [`shared/design-system/DESIGN.md`](../shared/design-system/DESIGN.md) é a fonte de verdade visual (Decisões 51, 66, 125–128, 143–145): fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E` / `#1E232B`), profundidade sem linhas de contorno em cards, busca, pílulas e anúncios, tríade tipográfica **Barlow Semi Condensed** + **Barlow** + **Chakra Petch**, títulos de tela em caixa alta, raios `8/12/26/pill`, e Roxo Gamer (`#7C3AED`) restrito à ação primária; Coral Solar (`#FF5A36`) reservado para atenção, erro e ações destrutivas.
+- A marca oficial é **LagCheck** no texto e a wordmark oficial é `Lagcheck` (`wordmark-primary.svg`, Decisão 124). O jogo é o protagonista visual na Home e em Jogos.
 - Tokens são a fonte de verdade. Valor de cor, espaço, raio ou tipografia solto na tela exige revisão de design.
 - Marca, ícones e artes vêm de arquivo-fonte aprovado e versionado. Não se redesenha, deforma, recolore ou adiciona efeito ad hoc a um asset.
 - Todo fluxo cumpre contraste adequado, alvo de toque de pelo menos 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor. O verde (`#22C55E`) é estritamente semântico para condição de prontidão, nunca cor da marca.
@@ -199,7 +201,7 @@ Fix cirúrgico por Rian/Iury → Breno valida caminho crítico → Restaurar bui
 | Valor, jornada, regras de negócio e métricas visíveis | `docs/01-funcional.md` |
 | Limites de módulos, serviços e integração | `docs/02-arquitetura.md` |
 | Contratos, algoritmos, endpoints e critérios de validação | `docs/03-especificacao-tecnica.md` |
-| Tokens, componentes, brand e comportamento visual | `docs/04-design-system.md`, `design-system/` e `design-system/prototypes/ios-reference/` |
+| Tokens, componentes, brand e comportamento visual | `shared/design-system/DESIGN.md`, `apps/windows/DESIGN.md`, `docs/04-design-system.md` e `shared/design-system/` |
 | Regras de colaboração, workflow e gates | este documento e `.agents/WORKFLOW.md` |
 | **Decisões registradas (08 a 63+) e novas deliberações** | **`docs/DECISOES.md` (documento único vivo de decisões)** |
 

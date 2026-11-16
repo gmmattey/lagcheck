@@ -95,7 +95,7 @@ fun TechnicalDetailsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = tr("Detalhes Técnicos"),
+                text = tr("Detalhes Técnicos").uppercase(),
                 style = LagCheckTypography.PageTitle.copy(fontSize = 24.sp),
                 color = LagCheckColors.TextPrimary
             )

@@ -79,7 +79,7 @@ fun CheckHistoryItemDetailsScreen(
             }
 
             Text(
-                text = tr("Detalhes"),
+                text = tr("Detalhes").uppercase(),
                 style = LagCheckTypography.BodySemibold.copy(fontSize = 17.sp),
                 color = LagCheckColors.TextPrimary,
                 modifier = Modifier.weight(1f),

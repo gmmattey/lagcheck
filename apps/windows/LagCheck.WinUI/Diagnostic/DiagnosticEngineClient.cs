@@ -247,6 +247,12 @@ public sealed class DiagnosticEngineClient : IAsyncDisposable
 
     public Task<IReadOnlyList<EngineHistoryEntry>> GetSessionHistoryAsync(CancellationToken cancellationToken = default) => GetHistorySnapshotAsync(cancellationToken);
 
+    public async Task<JsonElement?> GetStabilitySummaryAsync(object requestPayload, CancellationToken cancellationToken = default)
+    {
+        var response = await RequestAsync("history.stability", new { request = requestPayload }, cancellationToken).ConfigureAwait(false);
+        return response.Summary;
+    }
+
     public async Task<EngineSettings> GetSettingsAsync(CancellationToken cancellationToken = default) =>
         ReadSettings(await RequestAsync("settings.get", null, cancellationToken).ConfigureAwait(false));
 

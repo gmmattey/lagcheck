@@ -24,6 +24,7 @@ import com.lagcheck.desktop.library.model.GameNetworkSupport
 import com.lagcheck.desktop.library.model.PcGame
 import com.lagcheck.desktop.library.repository.LibraryRepository
 import com.lagcheck.domain.model.GameReadinessAssessment
+import com.lagcheck.engine.LagCheckEngine
 import com.lagcheck.network.transport.UdpProbeTransport
 import com.lagcheck.network.worker.HttpLoadTransport
 import com.lagcheck.session.CheckOrchestrator
@@ -136,6 +137,7 @@ internal class EngineHost(
             "library.artwork.resolve" -> libraryArtworkResolve(command, requestId)
             "catalog.snapshot" -> emitCatalog(requestId)
             "history.snapshot" -> emitHistory(requestId)
+            "history.stability" -> emitHistoryStability(command, requestId)
             "settings.get" -> emitSettings(requestId)
             "settings.set" -> setSettings(command, requestId)
             "location.get" -> emitLocation(requestId, refresh = false)
@@ -327,6 +329,14 @@ internal class EngineHost(
     private fun emitHistory(requestId: String?) = emit(HostJson.message("history.snapshot", requestId) {
         put("entries", JsonArray(history.toList()))
     })
+
+    private fun emitHistoryStability(command: JsonObject, requestId: String?) {
+        val requestObject = (command["request"] as? JsonObject) ?: command
+        val summaryElement = HostJson.parse(LagCheckEngine.stabilitySummary(HostJson.encode(requestObject)))
+        emit(HostJson.message("history.stability", requestId) {
+            put("summary", summaryElement)
+        })
+    }
 
     private fun emitSettings(requestId: String?) = emit(HostJson.message("settings", requestId) { put("settings", settings.snapshot()) })
 

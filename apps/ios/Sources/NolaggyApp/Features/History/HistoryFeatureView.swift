@@ -17,7 +17,9 @@ struct HistoryView: View {
 
     @State private var showingClearConfirmation: Bool = false
     @State private var selectedEntryForDetails: MeasurementHistoryEntry? = nil
-    @State private var selectedRitualWindow: HistoryRitualSummary.Window = .fourteenDays
+    @State private var selectedWindowDays: Int = 14
+    @State private var selectedGameID: String? = nil
+    @State private var selectedNetworkFilter: String? = nil
 
     private var groupedGames: [(gameID: String, name: String, latest: MeasurementHistoryEntry, entries: [MeasurementHistoryEntry])] {
         let grouped = Dictionary(grouping: entries, by: { $0.resolvedContext.context.gameID })
@@ -27,6 +29,45 @@ struct HistoryView: View {
             return (gameID: gameID, name: gameName(latest), latest: latest, entries: sortedItems)
         }
         .sorted(by: { $0.latest.completedAt > $1.latest.completedAt })
+    }
+
+    private var effectiveGameID: String? {
+        guard let selectedGameID,
+              groupedGames.contains(where: { $0.gameID == selectedGameID }) else {
+            return nil
+        }
+        return selectedGameID
+    }
+
+    private var stabilitySummary: StabilitySummaryResponseDTO {
+        StabilityHistoryAdapter.evaluate(
+            entries: entries,
+            windowDays: selectedWindowDays,
+            gameIdFilter: effectiveGameID,
+            networkFilter: selectedNetworkFilter,
+            maxPoints: 30,
+            gameName: gameName
+        )
+    }
+
+    private var scopeOptions: [StabilityChipOption] {
+        [StabilityChipOption(key: nil, label: AppLocalization.string("history.scope.overview", comment: ""))]
+            + groupedGames.map { StabilityChipOption(key: $0.gameID, label: $0.name) }
+    }
+
+    private var windowOptions: [StabilityChipOption] {
+        [
+            StabilityChipOption(key: "7", label: AppLocalization.string("history.ritual.window_7", comment: "")),
+            StabilityChipOption(key: "14", label: AppLocalization.string("history.ritual.window_14", comment: "")),
+            StabilityChipOption(key: "30", label: AppLocalization.string("history.ritual.window_30", comment: ""))
+        ]
+    }
+
+    private var visibleGroups: [(gameID: String, name: String, latest: MeasurementHistoryEntry, entries: [MeasurementHistoryEntry])] {
+        if let effectiveGameID {
+            return groupedGames.filter { $0.gameID == effectiveGameID }
+        }
+        return groupedGames
     }
 
     var body: some View {
@@ -57,17 +98,56 @@ struct HistoryView: View {
                     NativeAdSlot(placement: .history)
                         .padding(.horizontal, NLSpacing.md)
                 } else {
-                    ritualWindowPicker
-                        .padding(.horizontal, NLSpacing.md)
+                    let summary = stabilitySummary
 
-                    historyOverview
+                    if scopeOptions.count > 1 {
+                        StabilityChipRow(
+                            options: scopeOptions,
+                            selectedKey: effectiveGameID,
+                            onSelected: { newGameID in
+                                selectedGameID = newGameID
+                                selectedNetworkFilter = nil
+                            }
+                        )
                         .padding(.horizontal, NLSpacing.md)
+                    }
+
+                    StabilityChipRow(
+                        options: windowOptions,
+                        selectedKey: String(selectedWindowDays),
+                        onSelected: { key in
+                            if let key, let days = Int(key) {
+                                selectedWindowDays = days
+                            }
+                        }
+                    )
+                    .padding(.horizontal, NLSpacing.md)
+
+                    if summary.availableNetworks.count > 1 {
+                        let networkOptions = [
+                            StabilityChipOption(key: nil, label: AppLocalization.string("history.network.all", comment: ""))
+                        ] + summary.availableNetworks.map { net in
+                            StabilityChipOption(key: net, label: localizedNetworkLabel(net))
+                        }
+                        StabilityChipRow(
+                            options: networkOptions,
+                            selectedKey: selectedNetworkFilter,
+                            onSelected: { selectedNetworkFilter = $0 }
+                        )
+                        .padding(.horizontal, NLSpacing.md)
+                    }
+
+                    StabilityEvolutionBlock(
+                        summary: summary,
+                        isOverview: effectiveGameID == nil
+                    )
+                    .padding(.horizontal, NLSpacing.md)
 
                     // Grupos por jogo
                     VStack(spacing: 24) {
-                        ForEach(groupedGames, id: \.gameID) { group in
+                        ForEach(visibleGroups, id: \.gameID) { group in
                             gameGroupSection(group: group)
-                            if group.gameID == groupedGames.first?.gameID {
+                            if group.gameID == visibleGroups.first?.gameID {
                                 NativeAdSlot(placement: .history)
                             }
                         }
@@ -138,11 +218,6 @@ struct HistoryView: View {
             .padding(.bottom, 10)
             .contentShape(Rectangle())
 
-            if let summary = HistoryRitualSummary(entries: group.entries, window: selectedRitualWindow), summary.hasEnoughEvidence {
-                ritualSummary(summary)
-                    .padding(.vertical, 12)
-            }
-
             // Lista de Medições do Jogo
             VStack(spacing: 0) {
                 ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
@@ -155,78 +230,6 @@ struct HistoryView: View {
         .padding(.bottom, 4)
         .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
         .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
-    }
-
-    /// Dá contexto ao histórico sem converter observações em previsão.
-    private var historyOverview: some View {
-        HStack(spacing: 0) {
-            historyOverviewMetric(value: "\(entries.count)", label: LocalizedStringKey("history.overview.checks"))
-            historyOverviewMetric(value: "\(entries.filter { !$0.isInconclusive && $0.readinessVerdict == .ready }.count)", label: LocalizedStringKey("history.overview.ready"))
-            historyOverviewMetric(value: "\(groupedGames.count)", label: LocalizedStringKey("history.overview.games"))
-        }
-        .padding(.vertical, 18)
-        .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
-        .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
-    }
-
-    private func historyOverviewMetric(value: String, label: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(verbatim: value)
-                .font(.system(size: 26, weight: .medium).monospacedDigit())
-                .foregroundStyle(NLColor.textPrimary)
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(NLColor.textTertiary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 18)
-    }
-
-    private var ritualWindowPicker: some View {
-        HStack(spacing: 8) {
-            ForEach(HistoryRitualSummary.Window.allCases, id: \.rawValue) { window in
-                Button {
-                    selectedRitualWindow = window
-                } label: {
-                    Text(ritualWindowTitle(window))
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(selectedRitualWindow == window ? NLColor.textPrimary : NLColor.textSecondary)
-                        .frame(minHeight: 44)
-                        .padding(.horizontal, 12)
-                        .background(
-                            Capsule()
-                                .fill(selectedRitualWindow == window ? NLColor.backgroundRaised : NLColor.surface)
-                        )
-                        .shadow(color: NLShadow.cardColor, radius: 4, x: 0, y: 2)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(ritualWindowTitle(window))
-                .accessibilityAddTraits(selectedRitualWindow == window ? .isSelected : [])
-            }
-        }
-        .accessibilityElement(children: .contain)
-    }
-
-    private func ritualSummary(_ summary: HistoryRitualSummary) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(String(format: AppLocalization.string("history.ritual.ready_count", comment: ""), summary.readyCount, summary.comparableCount))
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(NLColor.textPrimary)
-            Text(String(format: AppLocalization.string("history.ritual.breakdown", comment: ""), summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount))
-                .font(.system(size: 10))
-                .foregroundStyle(NLColor.textTertiary)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func ritualWindowTitle(_ window: HistoryRitualSummary.Window) -> String {
-        let key: String = switch window {
-        case .sevenDays: "history.ritual.window_7"
-        case .fourteenDays: "history.ritual.window_14"
-        case .thirtyDays: "history.ritual.window_30"
-        }
-        return AppLocalization.string(key, comment: "")
     }
 
     private func historyItemRow(entry: MeasurementHistoryEntry, hasSeparator: Bool) -> some View {

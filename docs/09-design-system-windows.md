@@ -1,11 +1,9 @@
-# LagCheck — Design System e Especificação Desktop do Windows
+# LagCheck — Design System e Especificação Desktop do Windows (Histórico Compose Desktop)
 
-> **Status:** Protótipo interno de referência (Decisões 114, 115 e 116 de `docs/DECISOES.md`). Não é alvo oficial de distribuição ampla; cada publicação exige autorização explícita do Luiz.
-> **Fonte visual obrigatória e canônica:** `DESIGN.md` e `index.html` de `/Users/giammattey/Open Design/lagcheck-web-ds-82b1/`, em paridade com as marcas oficiais em `sites/lagcheck/src/assets/brand/`.
-> **Protótipo visual de referência:** `design-system/prototypes/windows-premium/index.html`.
-> **Implementação nativa Compose Desktop:** `android/desktop/` (reaproveitando o `core` de medição UDP do Android).
-
-> **Atualização (Decisão 118):** a Home do Windows passou a ser a biblioteca de jogos instalados, e o diagnóstico é contextual ao jogo e não bloqueante. Onde este documento descreve a Home como painel de leitura de partida, vale a Decisão 118 até a Etapa 6 reescrever esta especificação.
+> **Nota (Decisões 119, 120 e 137–143):** A especificação visual ativa para o protótipo **WinUI 3** (`apps/windows/`) mora em [`apps/windows/DESIGN.md`](../apps/windows/DESIGN.md) em conjunto com [`shared/design-system/DESIGN.md`](../shared/design-system/DESIGN.md) (`Styles/Theme.xaml`). Este documento preserva a referência inicial da prévia Compose Desktop em `apps/android/desktop/` (Decisões 114–116).
+> **Status:** Protótipo interno de referência. Não é alvo oficial de distribuição ampla; cada publicação exige autorização explícita do Luiz.
+> **Protótipo visual histórico:** `shared/design-system/prototypes/windows-premium/index.html`.
+> **Implementação Compose Desktop:** `apps/android/desktop/` (sobre o `core` Kotlin do Android).
 
 ---
 

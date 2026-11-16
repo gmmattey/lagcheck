@@ -229,6 +229,7 @@ struct NolaggyNamedScreenHeader<Trailing: View>: View {
                 Text(title)
                     .font(NLTypography.screenTitle)
                     .foregroundStyle(NLColor.textPrimary)
+                    .textCase(.uppercase)
                     .tracking(-0.8)
 
                 if let subtitle {

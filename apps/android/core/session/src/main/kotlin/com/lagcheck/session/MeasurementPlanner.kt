@@ -22,6 +22,10 @@ sealed class PlanResult {
 object PlatformLabels {
     const val GENERIC_GAME_ID = "check-geral"
 
+    /** Reconhece todas as variantes do check geral (UI, domínio offline e histórico legado). */
+    fun isGenericGameId(gameId: String): Boolean =
+        gameId == GENERIC_GAME_ID || gameId == "generic-gaming" || gameId == "generic_gaming"
+
     /** Rótulo da UI → plataforma do catálogo. Celular (Android) usa o contexto de celular do catálogo. */
     fun toPlatform(label: String): Platform {
         val l = label.lowercase()
@@ -63,7 +67,7 @@ object MeasurementPlanner {
         now: Instant = Instant.now()
     ): PlanResult {
         val platform = PlatformLabels.toPlatform(platformLabel)
-        val context = if (gameId == PlatformLabels.GENERIC_GAME_ID) GameContext.genericGaming(market, platform)
+        val context = if (PlatformLabels.isGenericGameId(gameId)) GameContext.genericGaming(market, platform)
         else GameContext(gameId, market, platform)
         return try {
             when (val r = RemoteCatalogResolver.resolve(context, payload, now)) {
@@ -83,7 +87,7 @@ object MeasurementPlanner {
         now: Instant = Instant.now()
     ): com.lagcheck.domain.rules.RegionalSelectionSnapshot<GameContext, ResolvedCandidate>? {
         val platform = PlatformLabels.toPlatform(platformLabel)
-        val context = if (gameId == PlatformLabels.GENERIC_GAME_ID) GameContext.genericGaming(market, platform)
+        val context = if (PlatformLabels.isGenericGameId(gameId)) GameContext.genericGaming(market, platform)
         else GameContext(gameId, market, platform)
 
         return try {
@@ -125,7 +129,7 @@ object MeasurementPlanner {
         now: Instant = Instant.now()
     ): AutomaticRegionalPlan? {
         val platform = PlatformLabels.toPlatform(platformLabel)
-        val context = if (gameId == PlatformLabels.GENERIC_GAME_ID) GameContext.genericGaming(market, platform)
+        val context = if (PlatformLabels.isGenericGameId(gameId)) GameContext.genericGaming(market, platform)
         else GameContext(gameId, market, platform)
         val resolved = try {
             AutomaticGameRouteResolver.resolve(context, payload, preflight, now)

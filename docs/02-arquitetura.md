@@ -1,13 +1,12 @@
 # LagCheck — arquitetura do MVP
 
-**Status:** rascunho inicial para V1  
-**Plataforma inicial:** iPhone (iOS 17 ou superior)  
-**Documento relacionado:** [Documentação funcional](./01-funcional.md)
+**Status:** referência arquitetural atualizada (Decisões 120, 134–136, 143)
+**Plataformas:** iPhone (iOS 17+), Android (API 26+) e motor compartilhado KMP (usado também pelo protótipo Windows WinUI 3 e site)
+**Documento relacionado:** [Documentação funcional](./01-funcional.md) · [Contrato do motor](../apps/android/core/domain/ENGINE_CONTRACT.md)
 
-> **Decisões fechadas:** a distribuição iOS usa o Apple Developer Program já existente. Fora dessa conta, o MVP tem meta de custo operacional recorrente zero. O catálogo assinado acompanha cada build; a telemetria mínima anônima de retenção usa o Cloudflare Worker no plano gratuito, sem banco de dados complexo ou SDKs pagos.
-> A App Store pode distribuir o app globalmente, mas o catálogo com suporte oficial do MVP começa em Brasil e Estados Unidos.
-> O plano original do MVP1 não incluía publicidade. As Decisões 82, 96 e 97 autorizam AdMob/UMP e unidades Native Advanced em Home, Histórico, Jogos e Resultado nos dois clientes, mantendo medição e domínio isolados.
-> **Atualização Decisões 50 e 55:** O modelo de domínio incorpora o `GameReadinessEvaluator` produzindo `GameReadinessVerdict`, além de motores dedicados de integridade diagnóstica: `SampleQualityEvaluator`, `LoadImpactEvaluator` multidimensional (`deep-load-impact-v2`), `EvidenceRecommendationEngine` e probe isolado de gateway local (`en0`) para estrita separação entre instabilidade doméstica e rota externa. A telemetria remota mínima para validação de retenção é suportada via Worker (`POST /v1/telemetry`), sem PII nem armazenamento de IP.
+> **Decisões fechadas:** a meta de custo operacional recorrente zero continua vigente. O catálogo acompanha o build sem assinatura (Decisão 106, atualizado em segundo plano com validação rigorosa via `catalog-v3.json`); a carga e a telemetria mínima anônima usam o único Cloudflare Worker gratuito (`nolaggy-deep-check`, em `GET /v1/load` e `POST /v1/telemetry`), sem PII nem armazenamento de IP. Localização aproximada (`/v1/approx-location`) e status de plataformas (`/api/status`) são servidos pelo site.
+> **Publicidade:** As Decisões 82, 96, 97 e 144 autorizam AdMob/UMP e unidades Native Advanced em faixa horizontal compacta (sem contorno) apenas em Início, Histórico, Jogos e Resultado concluído válido no iOS e no Android, mantendo medição e domínio isolados.
+> **Motor único KMP (Decisões 134, 135, 136 e 143):** toda regra de score, veredito (`readiness-v3.0`), carga (`deep-load-impact-v4`), picos (`spike-pattern-v2`), watchdog (`sample-quality-v2`), casos de uso (`use-cases-v1`) e evolução de estabilidade do Histórico (`stability-summary-v1`) mora exclusivamente em `apps/android/core/domain` (Kotlin Multiplatform), compilada para JVM (Android/`engine-host` Windows), XCFramework `LagCheckEngine` (iOS, encapsulada por `NolaggyDomain`) e pacote JS (site). O transporte (UDP, carga HTTP, gateway, rádio) permanece nativo em cada plataforma.
 
 ## 1. Objetivo arquitetural
 

@@ -620,15 +620,14 @@ public sealed partial class GameDetailsPage : Page
             headerRow.Children.Add(pctText);
             StabilityBlock.Children.Add(headerRow);
 
+            var chartColor = summary.HasMixedContexts
+                ? Color.FromArgb(0xFF, 0x8A, 0x93, 0xA0)
+                : toneColor;
             var chartHost = new Border
             {
                 Height = 72,
-                Padding = new Thickness(8, 6, 8, 6),
-                CornerRadius = new CornerRadius(10),
-                Background = new SolidColorBrush(Color.FromArgb(0x0A, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0x14, 255, 255, 255)),
-                BorderThickness = new Thickness(1),
-                Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, toneColor),
+                Padding = new Thickness(4, 4, 4, 4),
+                Child = LagCheck.WinUI.Widgets.WidgetParts.StabilityChart(summary.Points, chartColor),
             };
             StabilityBlock.Children.Add(chartHost);
 
@@ -639,14 +638,14 @@ public sealed partial class GameDetailsPage : Page
             gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             gaugesGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 8, 20) : VerdictTone.Unknown;
+            var jitterTone = summary.AvgJitter is { } j ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(j, 12, 25) : VerdictTone.Unknown;
             var jitterGauge = LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
                 Strings.Tr("JITTER"),
                 summary.AvgJitter is { } jv ? string.Format(culture, "{0:0.#}", jv) : "—",
                 summary.AvgJitter.HasValue ? "ms" : null,
                 Verdicts.ColorOf(jitterTone),
                 jitterTone,
-                summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 8, 20, 40) : 0,
+                summary.AvgJitter is { } jr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(jr, 12, 25, 40) : 0,
                 ringSize: 42);
             jitterGauge.HorizontalAlignment = HorizontalAlignment.Center;
             gaugesGrid.Children.Add(jitterGauge);
@@ -655,14 +654,15 @@ public sealed partial class GameDetailsPage : Page
             Grid.SetColumn(div1, 1);
             gaugesGrid.Children.Add(div1);
 
-            var lossTone = summary.MaxLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 0.5, 2.5) : VerdictTone.Unknown;
+            var avgLoss = summary.AvgLoss ?? summary.MaxLoss;
+            var lossTone = avgLoss is { } l ? LagCheck.WinUI.Widgets.WidgetParts.MetricVerdictTone(l, 1, 3) : VerdictTone.Unknown;
             var lossGauge = LagCheck.WinUI.Widgets.WidgetParts.RingMetricGauge(
                 Strings.Tr("PERDA"),
-                summary.MaxLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
-                summary.MaxLoss.HasValue ? "%" : null,
+                avgLoss is { } lv ? string.Format(culture, "{0:0.#}", lv) : "—",
+                avgLoss.HasValue ? "%" : null,
                 Verdicts.ColorOf(lossTone),
                 lossTone,
-                summary.MaxLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 0.5, 2.5, 10) : 0,
+                avgLoss is { } lr ? LagCheck.WinUI.Widgets.WidgetParts.MetricRatio(lr, 1, 3, 10) : 0,
                 ringSize: 42);
             lossGauge.HorizontalAlignment = HorizontalAlignment.Center;
             Grid.SetColumn(lossGauge, 2);

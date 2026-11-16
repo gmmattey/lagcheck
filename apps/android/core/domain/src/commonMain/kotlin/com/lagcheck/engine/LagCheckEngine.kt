@@ -19,6 +19,7 @@ import com.lagcheck.domain.rules.GameReadinessEvaluator
 import com.lagcheck.domain.rules.ResultInterpreter
 import com.lagcheck.domain.rules.SampleQualityEvaluator
 import com.lagcheck.domain.rules.SpikePatternEvaluator
+import com.lagcheck.domain.rules.StabilitySummaryEvaluator
 import com.lagcheck.domain.rules.UseCaseEvaluator
 import com.lagcheck.domain.rules.QualityEvaluator
 import com.lagcheck.domain.rules.RootCauseEvaluator
@@ -125,6 +126,22 @@ object LagCheckEngine {
     /** Nota descritiva de bufferbloat (`bufferbloat-grade-v1`) para um aumento de P50 sob carga, em ms. */
     fun bufferbloatGrade(increaseMilliseconds: Double): String = BufferbloatGrade.fromIncrease(increaseMilliseconds).value
 
+    /** Série de evolução da estabilidade e os 4 anéis de resumo (`stability-summary-v1`, Decisão 143). */
+    fun stabilitySummary(requestJson: String): String = runCatching {
+        val req = json.decodeFromString<StabilitySummaryRequestDto>(requestJson)
+        val result = StabilitySummaryEvaluator.evaluate(
+            StabilitySummaryEvaluator.Request(
+                entries = req.entries.map { it.toDomain() },
+                windowDays = req.windowDays,
+                nowEpochMs = req.nowEpochMs,
+                gameIdFilter = req.gameIdFilter,
+                networkFilter = req.networkFilter,
+                maxPoints = req.maxPoints
+            )
+        )
+        json.encodeToString(result.toDto())
+    }.getOrElse { error -> json.encodeToString(EngineError(error.message ?: "invalid_request")) }
+
     fun policy(): String = json.encodeToString(EnginePolicy(
         plannedProbeCount = com.lagcheck.domain.model.ProbeAcceptancePolicy.PLANNED_PROBE_COUNT,
         sendIntervalMillis = com.lagcheck.domain.model.ProbeAcceptancePolicy.SEND_INTERVAL_MILLIS,
@@ -215,3 +232,151 @@ private fun UseCaseEvaluator.Evaluation.toDto() = UseCasesDto(overallTone.name, 
 }
 @Serializable private data class RootCauseRequest(val gateway: GatewayOutcomeDto, val wanP50Ms: Double? = null, val wanJitterMs: Double? = null, val wanLossPercentage: Double, val platformDegraded: Boolean = false, val platformServiceName: String? = null)
 @Serializable private data class RootCauseResponse(val culprit: String, val ruleVersion: String)
+
+@Serializable
+private data class StabilityEntryDto(
+    val capturedAtEpochMs: Long,
+    val pingMs: Double? = null,
+    val jitterMs: Double? = null,
+    val packetLossPercentage: Double? = null,
+    val loadDeltaMs: Double? = null,
+    val verdict: String,
+    val validResponseCount: Int? = null,
+    val gameId: String? = null,
+    val gameTitle: String? = null,
+    val platform: String? = null,
+    val declaredExternalLink: String? = null,
+    val networkType: String? = null,
+    val regionId: String? = null,
+    val ruleVersion: String? = null
+) {
+    fun toDomain() = StabilitySummaryEvaluator.EntryInput(
+        capturedAtEpochMs = capturedAtEpochMs,
+        pingMs = pingMs,
+        jitterMs = jitterMs,
+        packetLossPercentage = packetLossPercentage,
+        loadDeltaMs = loadDeltaMs,
+        verdict = verdict,
+        validResponseCount = validResponseCount,
+        gameId = gameId,
+        gameTitle = gameTitle,
+        platform = platform,
+        declaredExternalLink = declaredExternalLink,
+        networkType = networkType,
+        regionId = regionId,
+        ruleVersion = ruleVersion
+    )
+}
+
+@Serializable
+private data class StabilitySummaryRequestDto(
+    val entries: List<StabilityEntryDto>,
+    val windowDays: Int = 14,
+    val nowEpochMs: Long,
+    val gameIdFilter: String? = null,
+    val networkFilter: String? = null,
+    val maxPoints: Int = 30
+)
+
+@Serializable
+private data class StabilityPointDto(
+    val capturedAtEpochMs: Long,
+    val pingMs: Double,
+    val jitterMs: Double? = null,
+    val packetLossPercentage: Double? = null,
+    val loadDeltaMs: Double? = null,
+    val verdict: String,
+    val gameId: String? = null,
+    val gameTitle: String? = null,
+    val networkType: String? = null,
+    val regionId: String? = null,
+    val segmentIndex: Int,
+    val connectToPrevious: Boolean
+)
+
+@Serializable
+private data class StabilityRingDto(
+    val value: Double? = null,
+    val tone: String,
+    val fillRatio: Double
+)
+
+@Serializable
+private data class StabilityRingsDto(
+    val ping: StabilityRingDto,
+    val jitter: StabilityRingDto,
+    val loss: StabilityRingDto,
+    val load: StabilityRingDto
+)
+
+@Serializable
+private data class StabilitySummaryResponseDto(
+    val ruleVersion: String,
+    val windowDays: Int,
+    val points: List<StabilityPointDto>,
+    val canDrawCurve: Boolean,
+    val hasSummary: Boolean,
+    val hasMixedContexts: Boolean,
+    val availableNetworks: List<String>,
+    val summaryNetworkType: String? = null,
+    val summaryRegionId: String? = null,
+    val totalComparableCount: Int,
+    val readyCount: Int,
+    val cautionCount: Int,
+    val badCount: Int,
+    val inconclusiveCount: Int,
+    val stabilityPercentage: Int? = null,
+    val stabilityTone: String,
+    val headlineKey: String,
+    val minPingMs: Double? = null,
+    val avgPingMs: Double? = null,
+    val maxPingMs: Double? = null,
+    val rings: StabilityRingsDto? = null,
+    val latest: StabilityPointDto? = null
+)
+
+private fun StabilitySummaryEvaluator.Point.toDto() = StabilityPointDto(
+    capturedAtEpochMs = capturedAtEpochMs,
+    pingMs = pingMs,
+    jitterMs = jitterMs,
+    packetLossPercentage = packetLossPercentage,
+    loadDeltaMs = loadDeltaMs,
+    verdict = verdict.name,
+    gameId = gameId,
+    gameTitle = gameTitle,
+    networkType = networkType,
+    regionId = regionId,
+    segmentIndex = segmentIndex,
+    connectToPrevious = connectToPrevious
+)
+
+private fun StabilitySummaryEvaluator.RingMetric.toDto() = StabilityRingDto(
+    value = value,
+    tone = tone.name,
+    fillRatio = fillRatio
+)
+
+private fun StabilitySummaryEvaluator.Result.toDto() = StabilitySummaryResponseDto(
+    ruleVersion = ruleVersion,
+    windowDays = windowDays,
+    points = points.map { it.toDto() },
+    canDrawCurve = canDrawCurve,
+    hasSummary = hasSummary,
+    hasMixedContexts = hasMixedContexts,
+    availableNetworks = availableNetworks,
+    summaryNetworkType = summaryNetworkType,
+    summaryRegionId = summaryRegionId,
+    totalComparableCount = totalComparableCount,
+    readyCount = readyCount,
+    cautionCount = cautionCount,
+    badCount = badCount,
+    inconclusiveCount = inconclusiveCount,
+    stabilityPercentage = stabilityPercentage,
+    stabilityTone = stabilityTone.name,
+    headlineKey = headlineKey,
+    minPingMs = minPingMs,
+    avgPingMs = avgPingMs,
+    maxPingMs = maxPingMs,
+    rings = rings?.let { StabilityRingsDto(it.ping.toDto(), it.jitter.toDto(), it.loss.toDto(), it.load.toDto()) },
+    latest = latest?.toDto()
+)

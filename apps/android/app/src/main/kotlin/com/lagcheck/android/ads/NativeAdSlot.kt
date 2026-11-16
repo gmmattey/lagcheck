@@ -2,6 +2,7 @@ package com.lagcheck.android.ads
 
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
 import android.view.Gravity
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -22,7 +23,6 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.lagcheck.android.BuildConfig
@@ -99,68 +99,82 @@ private fun createNativeAdView(context: android.content.Context, label: String, 
     val view = NativeAdView(context)
     view.background = GradientDrawable().apply {
         setColor(LagCheckColors.Surface.toArgb())
-        cornerRadius = dp(16).toFloat()
-        setStroke(dp(1), LagCheckColors.Border.toArgb())
+        cornerRadius = dp(12).toFloat()
     }
     val content = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(16), dp(12), dp(16), dp(16))
+        setPadding(dp(14), dp(10), dp(14), dp(12))
     }
     view.addView(content, FrameLayout.LayoutParams(-1, -2))
 
-    // O SDK insere AdChoices no NativeAdView; a primeira linha reserva seu canto superior direito.
-    val badge = text(label, 12f, secondary, true).apply {
+    // O SDK insere AdChoices no canto superior direito do NativeAdView; a faixa superior reserva essa margem.
+    val attributionRow = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+    }
+    val badge = text(label, 11f, secondary, true).apply {
         contentDescription = label
-        setPadding(dp(7), dp(3), dp(7), dp(3))
+        setPadding(dp(6), dp(2), dp(6), dp(2))
         background = GradientDrawable().apply {
             setColor(LagCheckColors.Panel.toArgb())
             cornerRadius = dp(4).toFloat()
         }
     }
-    content.addView(badge, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(10) })
+    attributionRow.addView(badge, LinearLayout.LayoutParams(-2, -2))
     view.tag = badge
-
-    val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-    content.addView(row)
-    val icon = ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER }
-    if (ad.icon != null) {
-        icon.setImageDrawable(ad.icon!!.drawable)
-        row.addView(icon, LinearLayout.LayoutParams(dp(44), dp(44)).apply { rightMargin = dp(12) })
-        view.iconView = icon
-    }
-    val headings = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-    row.addView(headings, LinearLayout.LayoutParams(0, -2, 1f))
-    val headline = text(ad.headline.orEmpty(), 16f, primary, true).apply { maxLines = 2 }
-    headings.addView(headline)
-    view.headlineView = headline
     ad.advertiser?.let { advertiser ->
-        val advertiserView = text(advertiser, 12f, secondary).apply { maxLines = 1 }
-        headings.addView(advertiserView)
+        val advertiserView = text(advertiser, 11f, LagCheckColors.TextTertiary.toArgb()).apply {
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+        }
+        attributionRow.addView(
+            advertiserView,
+            LinearLayout.LayoutParams(0, -2, 1f).apply { leftMargin = dp(8) }
+        )
         view.advertiserView = advertiserView
     }
-    ad.body?.let { body ->
-        val bodyView = text(body, 14f, secondary).apply { maxLines = 3 }
-        content.addView(bodyView, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
-        view.bodyView = bodyView
+    content.addView(
+        attributionRow,
+        LinearLayout.LayoutParams(-1, -2).apply {
+            bottomMargin = dp(8)
+            rightMargin = dp(24)
+        }
+    )
+
+    val row = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
     }
-    ad.mediaContent?.let { media ->
-        val mediaView = MediaView(context)
-        mediaView.mediaContent = media
-        content.addView(mediaView, LinearLayout.LayoutParams(-1, dp(150)).apply { topMargin = dp(12) })
-        view.mediaView = mediaView
+    content.addView(row, LinearLayout.LayoutParams(-1, -2))
+    if (ad.icon != null) {
+        val icon = ImageView(context).apply {
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setImageDrawable(ad.icon!!.drawable)
+        }
+        row.addView(icon, LinearLayout.LayoutParams(dp(38), dp(38)).apply { rightMargin = dp(10) })
+        view.iconView = icon
     }
+    val headline = text(ad.headline.orEmpty(), 14f, primary, true).apply {
+        maxLines = 2
+        ellipsize = TextUtils.TruncateAt.END
+    }
+    row.addView(headline, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(10) })
+    view.headlineView = headline
+
     ad.callToAction?.let { callToAction ->
-        val cta = text(callToAction, 14f, primary, true).apply {
+        val cta = text(callToAction, 12f, primary, true).apply {
             gravity = Gravity.CENTER
             minHeight = dp(44)
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            setPadding(dp(12), 0, dp(12), 0)
             contentDescription = callToAction
             background = GradientDrawable().apply {
                 setColor(LagCheckColors.Panel.toArgb())
-                setStroke(dp(1), LagCheckColors.Border.toArgb())
-                cornerRadius = dp(10).toFloat()
+                cornerRadius = dp(8).toFloat()
             }
         }
-        content.addView(cta, LinearLayout.LayoutParams(-1, dp(44)).apply { topMargin = dp(12) })
+        row.addView(cta, LinearLayout.LayoutParams(-2, dp(44)))
         view.callToActionView = cta
     }
     view.setNativeAd(ad)

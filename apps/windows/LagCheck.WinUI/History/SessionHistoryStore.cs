@@ -224,7 +224,8 @@ public sealed record SessionHistoryEntry(
     string? GameTitle = null,
     bool HasCapturedAt = true,
     double? LoadDeltaMs = null,
-    double? WorstSpikeMs = null)
+    double? WorstSpikeMs = null,
+    string? NetworkType = null)
 {
     public string? EffectiveGameKey => SessionHistoryStore.EffectiveGameKey(GameId, GameTitle);
     public string PingLabel => PingMs is { } value ? $"{value:0.#} ms" : "—";

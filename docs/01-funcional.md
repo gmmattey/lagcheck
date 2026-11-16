@@ -102,14 +102,14 @@ Não haverá onboarding longo antes do primeiro teste. Permissões e perguntas a
 
 Objetivo: responder imediatamente à pergunta "posso jogar agora?" e permitir disparar o Check em um toque.
 
-Conteúdo e comportamento, nesta ordem:
+Conteúdo e comportamento, nesta ordem (Decisões 132, 144 e 145):
 
-1. **Estado Atual / Último jogo testado**: exibe o jogo recente, plataforma anterior memorizada e CTA proeminente para iniciar o **Check**.
-2. **Histórico contextual**: link limpo ("Últimos checks ›") levando ao histórico de vereditos do jogo.
-3. **Alternar jogo**: acesso direto à aba Jogos.
-4. **Menu secundário (`…`)**: acesso aos Ajustes, Suporte e Políticas.
+1. **Hero full-bleed em carrossel:** ocupa toda a largura da tela até a borda superior atrás da barra de status com gradiente direto para `#0B0D10`. Sem jogos testados, mostra a arte padrão (`home_hero_default`) com `PRONTO PRA RANKED?`; com histórico, alterna os últimos até 3 jogos únicos testados com sua arte, pílula concisa do último veredito e o CTA sólido compacto `TESTAR AGORA` (`#7C3AED`).
+2. **Busca rápida logo abaixo do Hero:** atalho padronizado (`"Buscar jogo..."`, cantos `12 dp/pt`, `#15181E`, sem borda) levando direto à aba `Jogos`.
+3. **`SEUS FAVORITOS` e `POPULARES`:** favoritos em acesso rápido (até 4 jogos) e `POPULARES` em grade fixa **2 linhas × 3 colunas** (`3:4`, até 6 jogos) com a micro-instrução `"Toque no jogo para iniciar o teste"` abaixo do título.
+4. **Anúncio nativo compacto (quando aplicável):** faixa horizontal discreta (`NativeAdSlot`) no fluxo de rolagem, sem contorno e sem deslocar o conteúdo.
 
-A Home não é um dashboard técnico, não exibe score 0–100 no topo e não disputa a atenção do usuário com shelves de catálogo concorrentes.
+A Home não é um dashboard técnico, não exibe score 0–100 no topo e mantém o foco em iniciar ou repetir o Check.
 
 ### 7.2 Seleção do jogo e do contexto
 
@@ -194,18 +194,18 @@ Esta área atende pessoas que querem evidência técnica profunda sem poluir o v
 O histórico é local e organizado por prontidão e títulos de jogos (Decisão 50). Em vez de apresentar uma lista de números e scores abstratos, foca na estabilidade do jogo:
 - Lista os últimos vereditos (Ready, Caution, Not Ready) por jogo e plataforma;
 - Cada jogo mantém no máximo 100 medições e resultados com mais de 90 dias são removidos automaticamente;
-- Para cada jogo, o ritual local de Histórico pode resumir os últimos 7, 14 ou 30 dias somente quando houver pelo menos 3 Checks válidos e comparáveis em 2 dias. O resumo informa a quantidade de vereditos observados; inconclusivos aparecem separados e nunca são tratados como falha ou entram na fração de prontidão. Não prevê a conexão, não aponta causa e não compara contextos distintos;
+- Para cada jogo e na Visão geral do Histórico, a evolução de estabilidade (janelas de 7, 14 ou 30 dias, padrão 14) só traça curva de ping e exibe os 4 anéis médios (`Ping méd`, `Jitter`, `Perda` e `Sob carga`, calibrados aos limites competitivos de prontidão) quando houver pelo menos 3 Checks válidos e comparáveis no mesmo contexto (Decisão 143). Com 1–2 Checks válidos, mostra apenas a leitura isolada sem unir linha. Na Visão geral, é possível filtrar por rede e pontos de redes ou regiões diferentes nunca são ligados por linha contínua. Inconclusivos aparecem separados e nunca entram na curva, nos anéis ou na fração de prontidão. Não prevê a conexão, não calcula média de score e não aponta causa;
 - A pessoa pode apagar todo o histórico nas configurações;
 - Permite disparar um novo Check do jogo a partir de qualquer entrada histórica.
 
 ### 7.8 Navegação e abas
 
-A navegação da V1 é enxuta e focada na ação (Decisão 50):
-- **Tab Bar de 4 destinos** (Decisão 80 no Android e Decisão 98 no iOS, que refinaram as 2 abas originais da Decisão 50; no Windows é uma barra lateral):
-  1. **Início:** Estado atual, atalho direto de Check para o último jogo e histórico contextual ("Últimos checks ›").
-  2. **Jogos:** Catálogo com busca e filtros rápidos. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
-  3. **Histórico:** Lista dos checks anteriores, também acessível pelo atalho na Home.
-  4. **Ajustes** (`Configurações` no Android): permite consultar idioma, apagar histórico local, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
+A navegação mobile é enxuta e focada na ação (Decisões 80, 98, 142 e 145):
+- **Tab Bar de 4 destinos** no iOS e no Android (títulos internos das telas sempre em caixa alta; barra inferior com capitalização normal; no Windows WinUI 3 a navegação é sem sidebar, partindo de `Este PC` com atalhos no topo):
+  1. **Início:** Hero full-bleed em carrossel, busca padronizada abaixo da capa, favoritos e grade 2×3 de populares.
+  2. **Jogos (`JOGOS`):** Catálogo em **grade de 3 colunas** (`3:4`) com busca padronizada sempre visível. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
+  3. **Histórico (`HISTÓRICO`):** Evolução da estabilidade da conexão (`stability-summary-v1`) e lista dos checks anteriores com reteste rápido.
+  4. **Ajustes** (`CONFIGURAÇÕES` no Android): permite consultar idioma, apagar histórico local, avaliar o app, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
 
 ### 7.9 Widget de prontidão por jogo (Decisão 88)
 
