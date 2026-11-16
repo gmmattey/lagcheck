@@ -98,6 +98,11 @@ android {
         }
     }
 
+    // Só o APK direto (GitHub) declara REQUEST_INSTALL_PACKAGES; o AAB da Play Store não deve incluir.
+    if ((project.findProperty("lagcheck.allowApkSelfUpdate") as String?) == "true") {
+        sourceSets.getByName("release").manifest.srcFile("src/directApk/AndroidManifest.xml")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

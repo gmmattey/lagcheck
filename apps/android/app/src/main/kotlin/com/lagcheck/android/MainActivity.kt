@@ -239,6 +239,19 @@ class MainActivity : ComponentActivity() {
                 )
             }
             val isMeasuring = currentScreen is Screen.Measurement || currentScreen is Screen.RegionalSelection
+            val isNeedsInstallPerm = updateState is com.lagcheck.android.update.AppUpdateUiState.NeedsInstallPermission
+            androidx.compose.runtime.DisposableEffect(isNeedsInstallPerm, updateState) {
+                val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                    if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                        val pending = updateState as? com.lagcheck.android.update.AppUpdateUiState.NeedsInstallPermission
+                        if (pending != null && com.lagcheck.android.update.ApkInstaller.canInstallPackages(this@MainActivity)) {
+                            viewModel.proceedWithApkInstall(pending.apkFile)
+                        }
+                    }
+                }
+                this@MainActivity.lifecycle.addObserver(observer)
+                onDispose { this@MainActivity.lifecycle.removeObserver(observer) }
+            }
             if (!isMeasuring) {
                 com.lagcheck.android.ui.components.UpdateDialog(
                     state = updateState,

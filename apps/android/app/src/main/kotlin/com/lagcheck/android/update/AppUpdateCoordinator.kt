@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 sealed interface AppUpdateUiState {
@@ -55,8 +56,15 @@ class AppUpdateCoordinator(
         installedBuild = installedVersionCode
     ),
     private val downloader: ApkDownloader = ApkDownloader(File(context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: "/tmp"), "updates")),
+    private val downloadExecutor: suspend (String, String, (DownloadProgress) -> Unit) -> Result<File> = { url, name, onProgress ->
+        downloader.download(downloadUrl = url, targetFileName = name, onProgress = onProgress)
+    },
     private val playStoreManager: PlayStoreUpdateManager? = context?.let { PlayStoreUpdateManager(it) },
     private val canInstallPackagesProvider: () -> Boolean = { context?.let { ApkInstaller.canInstallPackages(it) } ?: true },
+    private val hasInstallPermissionDeclaredProvider: () -> Boolean = { context?.let { ApkInstaller.hasInstallPermissionDeclared(it) } ?: true },
+    private val installLauncher: suspend (Context, File) -> Result<Unit> = { ctx, file ->
+        withContext(Dispatchers.Main) { ApkInstaller.installApk(ctx, file) }
+    },
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
@@ -160,10 +168,14 @@ class AppUpdateCoordinator(
             return
         }
 
+        startDirectApkDownload(fallbackActivity = activity)
+    }
+
+    internal fun startDirectApkDownload(fallbackActivity: Activity? = null) {
         // Fluxo APK: download transparente
         val release = cachedRelease ?: return
         if (!release.isApkAsset || release.apkDownloadUrl.isBlank()) {
-            openInBrowser(activity, release.apkDownloadUrl)
+            fallbackActivity?.let { openInBrowser(it, release.apkDownloadUrl) }
             return
         }
 
@@ -175,25 +187,39 @@ class AppUpdateCoordinator(
                 totalBytes = release.apkSize
             )
 
-            val result = downloader.download(
-                downloadUrl = release.apkDownloadUrl,
-                targetFileName = release.apkFileName.ifBlank { "lagcheck-update.apk" },
-                onProgress = { progress ->
-                    _uiState.value = AppUpdateUiState.Downloading(
-                        progressPercent = progress.percentage,
-                        bytesDownloaded = progress.bytesDownloaded,
-                        totalBytes = progress.totalBytes
-                    )
-                }
-            )
+            val result = downloadExecutor(
+                release.apkDownloadUrl,
+                release.apkFileName.ifBlank { "lagcheck-update.apk" }
+            ) { progress ->
+                _uiState.value = AppUpdateUiState.Downloading(
+                    progressPercent = progress.percentage,
+                    bytesDownloaded = progress.bytesDownloaded,
+                    totalBytes = progress.totalBytes
+                )
+            }
 
             result.fold(
                 onSuccess = { apkFile ->
-                    if (canInstallPackagesProvider()) {
-                        _uiState.value = AppUpdateUiState.ReadyToInstall(apkFile, isFromStore = false)
-                        context?.let { ApkInstaller.installApk(it, apkFile) }
-                    } else {
-                        _uiState.value = AppUpdateUiState.NeedsInstallPermission(apkFile)
+                    when {
+                        canInstallPackagesProvider() -> {
+                            _uiState.value = AppUpdateUiState.ReadyToInstall(apkFile, isFromStore = false)
+                            val ctx = context
+                            if (ctx != null) {
+                                installLauncher(ctx, apkFile).onFailure { err ->
+                                    _uiState.value = AppUpdateUiState.Error(
+                                        err.message ?: "Não foi possível abrir o instalador. Baixe pelo navegador."
+                                    )
+                                }
+                            }
+                        }
+                        hasInstallPermissionDeclaredProvider() -> {
+                            _uiState.value = AppUpdateUiState.NeedsInstallPermission(apkFile)
+                        }
+                        else -> {
+                            _uiState.value = AppUpdateUiState.Error(
+                                "Este build não pode abrir o instalador direto. Baixe a atualização pelo navegador."
+                            )
+                        }
                     }
                 },
                 onFailure = { error ->
@@ -207,9 +233,21 @@ class AppUpdateCoordinator(
         val ctx = context ?: return
         if (canInstallPackagesProvider()) {
             _uiState.value = AppUpdateUiState.ReadyToInstall(apkFile, isFromStore = false)
-            ApkInstaller.installApk(ctx, apkFile)
+            scope.launch(ioDispatcher) {
+                installLauncher(ctx, apkFile).onFailure { err ->
+                    _uiState.value = AppUpdateUiState.Error(
+                        err.message ?: "Não foi possível abrir o instalador. Baixe pelo navegador."
+                    )
+                }
+            }
+        } else if (hasInstallPermissionDeclaredProvider()) {
+            runCatching {
+                ctx.startActivity(ApkInstaller.requestInstallPermissionIntent(ctx))
+            }.onFailure {
+                openInBrowser(ctx)
+            }
         } else {
-            ctx.startActivity(ApkInstaller.requestInstallPermissionIntent(ctx))
+            openInBrowser(ctx)
         }
     }
 
