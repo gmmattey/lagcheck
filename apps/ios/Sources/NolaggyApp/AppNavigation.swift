@@ -177,14 +177,22 @@ struct NolaggyBackHeader: View {
     }
 }
 
-/// Cabeçalho canônico das telas nomeadas (Jogos, Detalhes, Histórico, Ajustes).
-/// A barra de ações superior (52 pt) mantém os controles de retorno e ações secundárias;
-/// o título fica logo abaixo, alinhado à esquerda, sem colisão com o chevron.
+private struct NamedScrollOffsetPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+/// Cabeçalho canônico das telas nomeadas no iOS (Apple HIG + Dark Competitive UI).
+/// Quando não há botão voltar nem ação à direita, omite a barra fantasma superior de 52 pt;
+/// ao rolar, recolhe suavemente para barra fixa compacta com título centralizado e fundo translúcido.
 struct NolaggyNamedScreenHeader<Trailing: View>: View {
     let title: LocalizedStringKey
     var subtitle: LocalizedStringKey? = nil
     var leadingAction: (() -> Void)? = nil
     var leadingAccessibilityIdentifier: String = "screen-back"
+    var hasTrailingAction: Bool = false
     @ViewBuilder var trailing: () -> Trailing
 
     init(
@@ -192,38 +200,48 @@ struct NolaggyNamedScreenHeader<Trailing: View>: View {
         subtitle: LocalizedStringKey? = nil,
         leadingAction: (() -> Void)? = nil,
         leadingAccessibilityIdentifier: String = "screen-back",
+        hasTrailingAction: Bool = Trailing.self != EmptyView.self,
         @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
     ) {
         self.title = title
         self.subtitle = subtitle
         self.leadingAction = leadingAction
         self.leadingAccessibilityIdentifier = leadingAccessibilityIdentifier
+        self.hasTrailingAction = hasTrailingAction
         self.trailing = trailing
+    }
+
+    private var showsActionRow: Bool {
+        leadingAction != nil || hasTrailingAction
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 0) {
-                if let leadingAction {
-                    Button(action: leadingAction) {
-                        Image(systemName: "chevron.backward")
-                            .font(NLTypography.navigationIcon)
-                            .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                            .contentShape(Rectangle())
+            if showsActionRow {
+                HStack(spacing: 0) {
+                    if let leadingAction {
+                        Button(action: leadingAction) {
+                            Image(systemName: "chevron.backward")
+                                .font(NLTypography.navigationIcon)
+                                .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(NLColor.textPrimary)
+                        .accessibilityLabel(Text("quick_check.back"))
+                        .accessibilityIdentifier(leadingAccessibilityIdentifier)
+                    } else {
+                        Spacer().frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .accessibilityLabel(Text("quick_check.back"))
-                    .accessibilityIdentifier(leadingAccessibilityIdentifier)
-                } else {
-                    Spacer().frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+
+                    Spacer()
+
+                    trailing()
                 }
-
-                Spacer()
-
-                trailing()
+                .frame(height: 52)
+            } else {
+                Spacer().frame(height: NLSpacing.sm)
             }
-            .frame(height: 52)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -241,6 +259,175 @@ struct NolaggyNamedScreenHeader<Trailing: View>: View {
             .padding(.top, 2)
         }
         .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+    }
+}
+
+/// Container rolável no padrão Apple HIG: título grande à esquerda em repouso que recolhe
+/// suavemente ao rolar para uma barra fixa translúcida com título centralizado em CAIXA ALTA.
+struct NolaggyCollapsibleScreen<Trailing: View, Content: View>: View {
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey? = nil
+    var leadingAction: (() -> Void)? = nil
+    var leadingAccessibilityIdentifier: String = "screen-back"
+    var hasTrailingAction: Bool = false
+    var horizontalContentPadding: CGFloat = 0
+    @ViewBuilder var trailing: () -> Trailing
+    @ViewBuilder var content: () -> Content
+
+    @State private var scrollOffset: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey? = nil,
+        leadingAction: (() -> Void)? = nil,
+        leadingAccessibilityIdentifier: String = "screen-back",
+        hasTrailingAction: Bool = Trailing.self != EmptyView.self,
+        horizontalContentPadding: CGFloat = 0,
+        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() },
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.leadingAction = leadingAction
+        self.leadingAccessibilityIdentifier = leadingAccessibilityIdentifier
+        self.hasTrailingAction = hasTrailingAction
+        self.horizontalContentPadding = horizontalContentPadding
+        self.trailing = trailing
+        self.content = content
+    }
+
+    private var collapseProgress: CGFloat {
+        let scrolled = max(0, -scrollOffset)
+        return min(max((scrolled - 12) / 34, 0), 1)
+    }
+
+    private var showsActionRow: Bool {
+        leadingAction != nil || hasTrailingAction
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    GeometryReader { geo in
+                        Color.clear.preference(
+                            key: NamedScrollOffsetPreferenceKey.self,
+                            value: geo.frame(in: .named("nolaggyNamedScroll")).minY
+                        )
+                    }
+                    .frame(height: 0)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Spacer().frame(height: showsActionRow ? 54 : NLSpacing.sm)
+
+                        Text(title)
+                            .font(NLTypography.screenTitle)
+                            .foregroundStyle(NLColor.textPrimary)
+                            .textCase(.uppercase)
+                            .tracking(-0.8)
+
+                        if let subtitle {
+                            Text(subtitle)
+                                .font(NLTypography.monospaceSubtitle)
+                                .foregroundStyle(NLColor.textSecondary)
+                        }
+                    }
+                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    .opacity(Double(1 - collapseProgress * 0.9))
+
+                    content()
+                        .padding(.horizontal, horizontalContentPadding)
+                }
+            }
+            .coordinateSpace(name: "nolaggyNamedScroll")
+            .onPreferenceChange(NamedScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
+            }
+
+            if showsActionRow || collapseProgress > 0.01 {
+                collapsedBar
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: collapseProgress > 0.01)
+    }
+
+    private var collapsedBar: some View {
+        ZStack {
+            if collapseProgress > 0.05 {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .overlay(NLColor.deep.opacity(0.68))
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(NLColor.borderHairline)
+                            .frame(height: 0.5)
+                    }
+                    .ignoresSafeArea(edges: .top)
+                    .opacity(Double(collapseProgress))
+            }
+
+            HStack(spacing: 0) {
+                if let leadingAction {
+                    Button(action: leadingAction) {
+                        Image(systemName: "chevron.backward")
+                            .font(NLTypography.navigationIcon)
+                            .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(NLColor.textPrimary)
+                    .accessibilityLabel(Text("quick_check.back"))
+                    .accessibilityIdentifier(leadingAccessibilityIdentifier)
+                } else {
+                    Spacer().frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                }
+
+                Spacer(minLength: 8)
+
+                Text(title)
+                    .font(.custom("BarlowSemiCondensed-Bold", size: 17))
+                    .foregroundStyle(NLColor.textPrimary)
+                    .textCase(.uppercase)
+                    .tracking(-0.3)
+                    .lineLimit(1)
+                    .opacity(Double(collapseProgress))
+
+                Spacer(minLength: 8)
+
+                if hasTrailingAction {
+                    trailing()
+                        .frame(minWidth: NLSizing.touchTarget, alignment: .trailing)
+                } else {
+                    Spacer().frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                }
+            }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .frame(height: 52)
+        }
+        .frame(height: 52)
+    }
+}
+
+extension NolaggyCollapsibleScreen where Trailing == EmptyView {
+    init(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey? = nil,
+        leadingAction: (() -> Void)? = nil,
+        leadingAccessibilityIdentifier: String = "screen-back",
+        horizontalContentPadding: CGFloat = 0,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(
+            title: title,
+            subtitle: subtitle,
+            leadingAction: leadingAction,
+            leadingAccessibilityIdentifier: leadingAccessibilityIdentifier,
+            hasTrailingAction: false,
+            horizontalContentPadding: horizontalContentPadding,
+            trailing: { EmptyView() },
+            content: content
+        )
     }
 }
 

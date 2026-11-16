@@ -10,7 +10,11 @@ struct DeepCheckDetailsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            NolaggyCollapsibleScreen(
+                title: LocalizedStringKey("deep_check.result.details"),
+                leadingAction: { dismiss() },
+                leadingAccessibilityIdentifier: "deep-check-details-back"
+            ) {
                 VStack(spacing: NLSpacing.lg) {
                     measurementContext
                     if let impact = result.metrics.loadImpact { impactCard(impact) }
@@ -21,16 +25,8 @@ struct DeepCheckDetailsView: View {
                 .padding(.vertical, NLSpacing.lg)
             }
             .background(NolaggyScreenBackground())
-            .navigationTitle(Text("deep_check.result.details"))
-            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    NolaggyBackButton(action: { dismiss() }, accessibilityIdentifier: "deep-check-details-back")
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .preferredColorScheme(.dark)
     }

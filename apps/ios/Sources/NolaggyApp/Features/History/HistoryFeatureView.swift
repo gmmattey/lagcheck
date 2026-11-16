@@ -71,26 +71,24 @@ struct HistoryView: View {
     }
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
-                // Cabeçalho da Tela Nomeada
-                NolaggyNamedScreenHeader(
-                    title: LocalizedStringKey("history.title"),
-                    leadingAction: showsBackHeader ? returnToHome : nil,
-                    leadingAccessibilityIdentifier: "history-back",
-                    trailing: {
-                        if !entries.isEmpty {
-                            Button(action: { showingClearConfirmation = true }) {
-                                Text(LocalizedStringKey("history.clear_all"))
-                                    .font(.system(size: 13, weight: .regular))
-                                    .foregroundStyle(NLColor.textSecondary)
-                                    .frame(height: 44)
-                            }
-                            .accessibilityIdentifier("history-clear-all")
-                        }
+        NolaggyCollapsibleScreen(
+            title: LocalizedStringKey("history.title"),
+            leadingAction: showsBackHeader ? returnToHome : nil,
+            leadingAccessibilityIdentifier: "history-back",
+            hasTrailingAction: !entries.isEmpty,
+            trailing: {
+                if !entries.isEmpty {
+                    Button(action: { showingClearConfirmation = true }) {
+                        Text(LocalizedStringKey("history.clear_all"))
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundStyle(NLColor.textSecondary)
+                            .frame(height: 44)
                     }
-                )
-
+                    .accessibilityIdentifier("history-clear-all")
+                }
+            }
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
                 if entries.isEmpty {
                     emptyStateView
                         .padding(.horizontal, NLSpacing.md)
@@ -164,6 +162,7 @@ struct HistoryView: View {
 
                 Spacer(minLength: NLSpacing.xl)
             }
+            .padding(.top, NLSpacing.md)
         }
         .background(NLColor.deep.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)

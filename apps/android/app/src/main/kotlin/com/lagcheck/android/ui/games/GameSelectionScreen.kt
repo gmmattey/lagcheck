@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
+import com.lagcheck.android.ui.components.CollapsibleScreenTopBar
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
 import com.lagcheck.core.designsystem.theme.LagCheckColors
@@ -71,18 +74,29 @@ fun GameSelectionScreen(
         gameSelectionContent(allGames, recentChecks, favorites, searchQuery)
     }
     val hasSearchText = searchQuery.isNotBlank()
+    val listState = rememberLazyListState()
+    val isHeaderCollapsed by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 24 }
+    }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize().background(LagCheckColors.Background).padding(horizontal = LagCheckSpacing.space6)
+    Column(
+        modifier = modifier.fillMaxSize().background(LagCheckColors.Background)
     ) {
-        item {
-            TopBar(showBackButton, onBack)
-            Spacer(Modifier.height(LagCheckSpacing.space3_5))
-            Text(tr("Jogos").uppercase(), style = LagCheckTypography.PageTitle, color = LagCheckColors.TextPrimary)
-            Spacer(Modifier.height(LagCheckSpacing.space4))
-            SearchField(searchQuery) { searchQuery = it }
-            Spacer(Modifier.height(LagCheckSpacing.space5))
-        }
+        CollapsibleScreenTopBar(
+            title = tr("Jogos"),
+            isCollapsed = isHeaderCollapsed,
+            onBack = if (showBackButton) onBack else null
+        )
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().padding(horizontal = LagCheckSpacing.space6)
+        ) {
+            item {
+                Spacer(Modifier.height(LagCheckSpacing.space2))
+                SearchField(searchQuery) { searchQuery = it }
+                Spacer(Modifier.height(LagCheckSpacing.space5))
+            }
 
         if (hasSearchText) {
             if (content.searchResults.isEmpty()) {
@@ -117,20 +131,6 @@ fun GameSelectionScreen(
                 }
             } else item { Spacer(Modifier.height(LagCheckSpacing.space10)) }
         }
-    }
-}
-
-@Composable
-private fun TopBar(showBackButton: Boolean, onBack: () -> Unit) {
-    Box(Modifier.fillMaxWidth().height(52.dp).padding(top = LagCheckSpacing.space2)) {
-        if (showBackButton) {
-            Box(Modifier.size(48.dp).clip(CircleShape).clickable(onClick = onBack), Alignment.CenterStart) {
-                com.lagcheck.core.designsystem.components.ChevronLeftIcon(
-                    modifier = Modifier.padding(start = LagCheckSpacing.space1),
-                    size = 20.dp,
-                    color = LagCheckColors.TextPrimary
-                )
-            }
         }
     }
 }

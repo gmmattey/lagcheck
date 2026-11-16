@@ -13,7 +13,7 @@ O transporte (UDP, HTTP de carga, gateway, rádio, upload do site) é nativo de 
 | `LagCheckEngine.gatewayOutcome(gatewayJson)` | telemetria do roteador `{rttMs, jitterMs, validResponses, plannedResponses, isWifi}` | `{kind: STABLE \| DEGRADED \| UNOBSERVABLE, rttMs, lossPercentage}` |
 | `LagCheckEngine.rootCause(requestJson)` | `{gateway: {kind, rttMs, lossPercentage}, wanP50Ms, wanJitterMs, wanLossPercentage, platformDegraded, platformServiceName}` | `{culprit: localWiFi \| internetProvider \| gamePlatform \| allClear \| unobservable, ruleVersion}` (`root-cause-v2`: operadora só com roteador impecável) |
 | `LagCheckEngine.bufferbloatGrade(increaseMilliseconds)` | aumento de P50 sob carga, em ms | `A+` a `F` (`bufferbloat-grade-v1`, descritiva) |
-| `LagCheckEngine.stabilitySummary(requestJson)` | `{entries, windowDays, nowEpochMs, gameIdFilter?, networkFilter?, maxPoints?}` | série cronológica segmentada, contagens, faixa de ping e 4 anéis (`stability-summary-v1`, Decisão 143) |
+| `LagCheckEngine.stabilitySummary(requestJson)` | `{entries, windowDays, nowEpochMs, gameIdFilter?, networkFilter?, maxPoints?}` | série cronológica segmentada, contagens, faixa de ping e 4 anéis (`stability-summary-v2`, Decisão 143) |
 
 - Swift: `LagCheckEngine.shared.evaluate(requestJson:)`. JS: `import { LagCheckEngine } from 'lagcheck-engine'`. JVM: `com.lagcheck.engine.LagCheckEngine`.
 - Campos desconhecidos são ignorados; enums são as strings em MAIÚSCULAS abaixo.

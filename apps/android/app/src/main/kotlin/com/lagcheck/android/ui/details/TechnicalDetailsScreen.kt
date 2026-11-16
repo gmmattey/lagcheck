@@ -21,6 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lagcheck.android.ui.components.CollapsibleScreenTopBar
 import com.lagcheck.core.designsystem.components.VerdictIndicatorBadge
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -78,45 +82,43 @@ fun TechnicalDetailsScreen(
     }
 
     val dateFormatted = com.lagcheck.android.ui.AppLocale.dayAndClock(evaluation.timestamp)
+    val scrollState = rememberScrollState()
+    val isHeaderCollapsed by remember { derivedStateOf { scrollState.value > 24 } }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = LagCheckSpacing.space6)
-            .verticalScroll(rememberScrollState())
     ) {
-        // 1. Header: "Detalhes Técnicos" (esquerda) + "Fechar" (direita)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = tr("Detalhes Técnicos").uppercase(),
-                style = LagCheckTypography.PageTitle.copy(fontSize = 24.sp),
-                color = LagCheckColors.TextPrimary
-            )
-
-            Box(
-                modifier = Modifier
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(LagCheckRadius.sm))
-                    .clickable { onClose() }
-                    .padding(horizontal = LagCheckSpacing.space2),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = tr("Fechar"),
-                    fontSize = 14.sp,
-                    color = LagCheckColors.TextMuted
-                )
+        CollapsibleScreenTopBar(
+            title = tr("Detalhes Técnicos"),
+            isCollapsed = isHeaderCollapsed,
+            onBack = null,
+            trailingAction = {
+                Box(
+                    modifier = Modifier
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(LagCheckRadius.sm))
+                        .clickable { onClose() }
+                        .padding(horizontal = LagCheckSpacing.space2),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = tr("Fechar"),
+                        fontSize = 14.sp,
+                        color = LagCheckColors.TextMuted
+                    )
+                }
             }
-        }
+        )
 
-        Spacer(modifier = Modifier.height(LagCheckSpacing.space5))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = LagCheckSpacing.space6)
+                .verticalScroll(scrollState)
+        ) {
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
         // 2. Card Compacto de Resumo do Veredito
         Box(
@@ -141,7 +143,7 @@ fun TechnicalDetailsScreen(
                 }
                 Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
                 Text(
-                    text = "${game.name} · ${evaluation.platform} · $dateFormatted",
+                    text = "${game.name} · Mobile · $dateFormatted",
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
@@ -421,6 +423,7 @@ fun TechnicalDetailsScreen(
         }
 
         Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
+        }
     }
 }
 

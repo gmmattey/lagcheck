@@ -634,7 +634,8 @@ public sealed class LocalizationService
         Add("ESTABILIDADE DA REDE", "NETWORK STABILITY", "ESTABILIDAD DE LA RED");
         Add("ESTABILIDADE NO JOGO", "IN-GAME STABILITY", "ESTABILIDAD EN EL JUEGO");
         Add("Rede estável", "Stable network", "Red estable");
-        Add("Oscilação moderada", "Moderate oscillation", "Oscilación moderada");
+        Add("Instável em todos os checks", "Unstable on every check", "Inestable en todos los checks");
+        Add("Condições instáveis", "Unstable conditions", "Condiciones inestables");
         Add("Rede instável", "Unstable network", "Red inestable");
         Add("{0}% estável", "{0}% stable", "{0}% estable");
         Add("{0}% estável em {1} medições", "{0}% stable across {1} checks", "{0}% estable en {1} mediciones");

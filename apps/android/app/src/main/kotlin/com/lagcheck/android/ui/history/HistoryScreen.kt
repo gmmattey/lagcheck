@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +25,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.data.StabilityHistoryAdapter
-import com.lagcheck.android.ui.components.SecondaryScreenHeader
+import com.lagcheck.android.ui.components.CollapsibleScreenTopBar
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -103,38 +105,43 @@ fun HistoryScreen(
         else groupedByGame.filterKeys { it == effectiveSelectedGameId }
     }
 
+    val listState = rememberLazyListState()
+    val isHeaderCollapsed by remember {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 24 }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = LagCheckSpacing.space6)
-        ) {
-            // 1. Header Canônico: Voltar '‹' + Histórico + Limpar
-            item {
-                SecondaryScreenHeader(
-                    title = tr("Histórico"),
-                    onBack = null,
-                    trailingAction = {
-                        if (historyItems.isNotEmpty()) {
-                            Text(
-                                text = tr("Limpar"),
-                                fontSize = 13.sp,
-                                color = LagCheckColors.TextMuted,
-                                modifier = Modifier
-                                    .clickable { showConfirmDeleteSheet = true }
-                                    .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1_5)
-                            )
-                        }
+        Column(modifier = Modifier.fillMaxSize()) {
+            CollapsibleScreenTopBar(
+                title = tr("Histórico"),
+                isCollapsed = isHeaderCollapsed,
+                onBack = null,
+                trailingAction = if (historyItems.isNotEmpty()) {
+                    {
+                        Text(
+                            text = tr("Limpar"),
+                            fontSize = 13.sp,
+                            color = LagCheckColors.TextMuted,
+                            modifier = Modifier
+                                .clickable { showConfirmDeleteSheet = true }
+                                .padding(horizontal = LagCheckSpacing.space2, vertical = LagCheckSpacing.space1_5)
+                        )
                     }
-                )
-            }
+                } else null
+            )
 
-            // 2. Se vazio: Estado Vazio idêntico ao protótipo
-            if (historyItems.isEmpty()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = LagCheckSpacing.space6)
+            ) {
+                // Estado Vazio idêntico ao protótipo
+                if (historyItems.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -337,6 +344,7 @@ fun HistoryScreen(
                     )
                     Spacer(modifier = Modifier.height(LagCheckSpacing.space10))
                 }
+            }
             }
         }
 

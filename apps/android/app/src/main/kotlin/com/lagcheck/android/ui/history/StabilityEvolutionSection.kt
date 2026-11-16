@@ -123,7 +123,8 @@ internal fun StabilityEvolutionBlock(
 
     val headline = when (summary.headlineKey) {
         "stability.headline.stable" -> tr("Rede estável")
-        "stability.headline.moderate" -> tr("Oscilação moderada")
+        "stability.headline.never_ready" -> tr("Instável em todos os checks")
+        "stability.headline.moderate" -> tr("Condições instáveis")
         "stability.headline.unstable" -> tr("Rede instável")
         "stability.headline.insufficient" -> tr("Poucas medições ainda")
         else -> tr("Sem medições")
@@ -235,7 +236,7 @@ internal fun StabilityEvolutionBlock(
 
             StabilityPingChart(
                 points = summary.points,
-                lineColor = if (summary.hasSummary) toneColor else LagCheckColors.TextSecondary,
+                lineColor = if (!summary.hasSummary || summary.hasMixedContexts) LagCheckColors.TextSecondary else toneColor,
                 selectedIndex = selectedPointIndex,
                 onSelectIndex = { idx ->
                     selectedPointIndex = if (selectedPointIndex == idx) null else idx
@@ -339,15 +340,20 @@ private fun StabilityPingChart(
         val usableW = size.width - padX * 2f
         val usableH = size.height - padY * 2f
 
-        // Linhas-guia horizontais discretas (topo e base)
+        // Linhas-guia horizontais discretas (topo, meio e base — paridade com iOS)
         val dashEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx()), 0f)
-        drawLine(guideColor, Offset(padX, padY), Offset(size.width - padX, padY), strokeWidth = 1.dp.toPx(), pathEffect = dashEffect)
-        drawLine(guideColor, Offset(padX, size.height - padY), Offset(size.width - padX, size.height - padY), strokeWidth = 1.dp.toPx(), pathEffect = dashEffect)
+        for (fraction in floatArrayOf(0f, 0.5f, 1f)) {
+            val yLine = padY + usableH * fraction
+            drawLine(guideColor, Offset(padX, yLine), Offset(size.width - padX, yLine), strokeWidth = 1.dp.toPx(), pathEffect = dashEffect)
+        }
 
+        // Piso mínimo de 10 ms + respiro de 15% (paridade 1:1 com iOS) para variações de poucos ms não parecerem queda brusca.
         val minPing = points.minOf { it.pingMs }
         val maxPing = points.maxOf { it.pingMs }
-        val range = maxPing - minPing
-        val flat = range <= 0.0001
+        val span = maxOf(maxPing - minPing, 10.0)
+        val baseline = maxOf(0.0, minPing - span * 0.15)
+        val top = maxPing + span * 0.15
+        val effectiveSpan = maxOf(top - baseline, 1.0)
 
         points.forEachIndexed { index, pt ->
             val x = if (points.size == 1) {
@@ -355,7 +361,7 @@ private fun StabilityPingChart(
             } else {
                 padX + usableW * (index.toFloat() / (points.size - 1).toFloat())
             }
-            val normY = if (flat) 0.5f else ((pt.pingMs - minPing) / range).toFloat()
+            val normY = ((pt.pingMs - baseline) / effectiveSpan).toFloat().coerceIn(0f, 1f)
             val y = padY + usableH * (1f - normY)
             coords.add(Offset(x, y))
         }
@@ -408,7 +414,8 @@ private fun StabilityPingChart(
 private fun StabilityRingsRow(rings: StabilitySummaryEvaluator.Rings) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
-        val useTwoByTwo = maxWidth < 310.dp || density.fontScale > 1.25f
+        val useTwoByTwo = maxWidth < 240.dp || density.fontScale > 1.25f
+        val ringSize = if (maxWidth < 285.dp) 50.dp else 54.dp
 
         val items = listOf(
             Triple(tr("PING MÉD"), rings.ping, "ms"),
@@ -423,15 +430,15 @@ private fun StabilityRingsRow(rings: StabilitySummaryEvaluator.Rings) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    RingGaugeItem(items[0].first, items[0].second, items[0].third, isSignedLoad = false, modifier = Modifier.weight(1f))
-                    RingGaugeItem(items[1].first, items[1].second, items[1].third, isSignedLoad = false, modifier = Modifier.weight(1f))
+                    RingGaugeItem(items[0].first, items[0].second, items[0].third, isSignedLoad = false, modifier = Modifier.weight(1f), ringSize = ringSize)
+                    RingGaugeItem(items[1].first, items[1].second, items[1].third, isSignedLoad = false, modifier = Modifier.weight(1f), ringSize = ringSize)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    RingGaugeItem(items[2].first, items[2].second, items[2].third, isSignedLoad = false, modifier = Modifier.weight(1f))
-                    RingGaugeItem(items[3].first, items[3].second, items[3].third, isSignedLoad = true, modifier = Modifier.weight(1f))
+                    RingGaugeItem(items[2].first, items[2].second, items[2].third, isSignedLoad = false, modifier = Modifier.weight(1f), ringSize = ringSize)
+                    RingGaugeItem(items[3].first, items[3].second, items[3].third, isSignedLoad = true, modifier = Modifier.weight(1f), ringSize = ringSize)
                 }
             }
         } else {
@@ -446,7 +453,8 @@ private fun StabilityRingsRow(rings: StabilitySummaryEvaluator.Rings) {
                         metric = metric,
                         unit = unit,
                         isSignedLoad = idx == 3,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        ringSize = ringSize
                     )
                 }
             }
@@ -526,7 +534,7 @@ private fun RingGaugeItem(
                 Text(
                     text = valueText,
                     style = LagCheckTypography.MonoData.copy(fontSize = 14.sp, lineHeight = 15.sp),
-                    color = if (metric.value == null) LagCheckColors.TextTertiary else toneColor,
+                    color = if (metric.value == null) LagCheckColors.TextTertiary else LagCheckColors.TextPrimary,
                     maxLines = 1
                 )
                 if (metric.value != null) {
@@ -542,24 +550,14 @@ private fun RingGaugeItem(
 
         Spacer(modifier = Modifier.height(LagCheckSpacing.space1_5))
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(toneColor)
-            )
-            Text(
-                text = label,
-                style = LagCheckTypography.MonoKicker.copy(fontSize = 10.sp, lineHeight = 12.sp),
-                color = LagCheckColors.TextTertiary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Text(
+            text = label,
+            style = LagCheckTypography.MonoKicker.copy(fontSize = 10.sp, lineHeight = 12.sp),
+            color = LagCheckColors.TextTertiary,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

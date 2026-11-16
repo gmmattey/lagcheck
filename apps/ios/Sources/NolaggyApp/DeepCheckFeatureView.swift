@@ -188,7 +188,7 @@ struct DeepCheckFeatureView: View {
 
                 let req = ConnectionBoosterRequest(
                     gameName: gameName,
-                    platform: activeContext.context.platform,
+                    platform: .iphone,
                     networkKind: observedPhoneNetwork,
                     p50Milliseconds: result.metrics.rest.p50Milliseconds ?? 0.0,
                     jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
@@ -410,7 +410,7 @@ struct DeepCheckFeatureView: View {
             profileID: activeContext.profileID,
             gameID: activeContext.context.gameID,
             gameName: gameName,
-            platform: activeContext.context.platform,
+            platform: .iphone,
             regionFriendlyName: friendlyRegion,
             regionID: activeContext.regionID,
             destinationKind: destinationKind,
@@ -428,7 +428,7 @@ struct DeepCheckFeatureView: View {
             )
             analyticsTracker.track(.resultViewed(
                 gameID: activeContext.context.gameID,
-                platform: activeContext.context.platform.rawValue,
+                platform: Platform.iphone.rawValue,
                 resultClass: evaluation.verdict.rawValue
             ))
         }
@@ -440,7 +440,7 @@ struct DeepCheckFeatureView: View {
             profileID: activeContext.profileID,
             gameID: activeContext.context.gameID,
             gameName: gameName,
-            platform: activeContext.context.platform,
+            platform: .iphone,
             regionFriendlyName: friendlyRegion,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
@@ -450,7 +450,7 @@ struct DeepCheckFeatureView: View {
         .onAppear {
             analyticsTracker.track(.resultViewed(
                 gameID: activeContext.context.gameID,
-                platform: activeContext.context.platform.rawValue,
+                platform: Platform.iphone.rawValue,
                 resultClass: GameReadinessVerdict.inconclusive.rawValue
             ))
         }
@@ -753,8 +753,8 @@ struct DeepCheckFeatureView: View {
                     jitterMs: result.restResult.metrics.jitterMilliseconds ?? 0.0,
                     packetLossPercentage: result.restResult.metrics.packetLossPercentage,
                     bufferbloatGrade: result.metrics.loadImpact?.bufferbloatGrade.rawValue,
-                    platform: activeContext.context.platform,
-                    declaredExternalLink: activeContext.context.declaredExternalLink,
+                    platform: .iphone,
+                    declaredExternalLink: nil,
                     capturedAt: Date()
                 )
                 if WidgetArtworkSnapshotWriter.saveArtwork(forGameID: activeContext.context.gameID) {

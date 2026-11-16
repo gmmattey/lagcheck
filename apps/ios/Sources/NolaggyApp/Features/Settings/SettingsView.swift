@@ -57,21 +57,18 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            ScrollView(.vertical, showsIndicators: false) {
+            NolaggyCollapsibleScreen(
+                title: LocalizedStringKey("navigation.settings"),
+                leadingAction: showsBackHeader ? {
+                    if let onDismiss {
+                        onDismiss()
+                    } else {
+                        dismiss()
+                    }
+                } : nil,
+                leadingAccessibilityIdentifier: "settings-back"
+            ) {
                 VStack(alignment: .leading, spacing: 24) {
-                    // Barra superior e Título
-                    NolaggyNamedScreenHeader(
-                        title: LocalizedStringKey("navigation.settings"),
-                        leadingAction: showsBackHeader ? {
-                            if let onDismiss {
-                                onDismiss()
-                            } else {
-                                dismiss()
-                            }
-                        } : nil,
-                        leadingAccessibilityIdentifier: "settings-back"
-                    )
-
                     // Seção 1: Preferências
                     VStack(alignment: .leading, spacing: 10) {
                         Text(LocalizedStringKey("settings.preferences.title"))
@@ -305,6 +302,7 @@ struct SettingsView: View {
 
                     Spacer(minLength: NLSpacing.xl)
                 }
+                .padding(.top, NLSpacing.md)
             }
 
             // Toast Flutuante

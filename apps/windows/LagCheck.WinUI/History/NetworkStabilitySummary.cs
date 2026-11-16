@@ -20,7 +20,7 @@ public sealed record StabilityPoint(
 
 /// <summary>
 /// Resumo determinístico da estabilidade da rede (Visão geral ou filtrado por jogo)
-/// espelhando o avaliador único KMP `stability-summary-v1` (Decisão 143).
+/// espelhando o avaliador único KMP `stability-summary-v2` (Decisão 143).
 /// </summary>
 public sealed record NetworkStabilitySummary(
     IReadOnlyList<StabilityPoint> Points,
@@ -271,12 +271,23 @@ public sealed record NetworkStabilitySummary(
     public static string HeadlineKey(VerdictTone tone) => tone switch
     {
         VerdictTone.Ok => "Rede estável",
-        VerdictTone.Warn => "Oscilação moderada",
+        VerdictTone.Warn => "Condições instáveis",
         VerdictTone.Bad => "Rede instável",
         _ => "Sem medições",
     };
 
+    public static string HeadlineKey(NetworkStabilitySummary summary)
+    {
+        if (summary.StabilityTone == VerdictTone.Warn && summary.HasData && summary.ReadyCount == 0 && summary.BadCount == 0)
+        {
+            return "Instável em todos os checks";
+        }
+        return HeadlineKey(summary.StabilityTone);
+    }
+
     public static string HeadlineWord(VerdictTone tone) => Strings.Tr(HeadlineKey(tone));
+
+    public static string HeadlineWord(NetworkStabilitySummary summary) => Strings.Tr(HeadlineKey(summary));
 
     public static string LocalizedNetworkLabel(string networkType) => networkType.ToUpperInvariant() switch
     {

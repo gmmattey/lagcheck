@@ -14,7 +14,7 @@ final class StabilitySummaryBridgeTests: XCTestCase {
 
         let summary = StabilityHistoryAdapter.evaluate(entries: entries, windowDays: 14, now: now)
 
-        XCTAssertEqual(summary.ruleVersion, "stability-summary-v1")
+        XCTAssertEqual(summary.ruleVersion, "stability-summary-v2")
         XCTAssertEqual(summary.totalComparableCount, 4)
         XCTAssertEqual(summary.availableNetworks, ["WIFI", "CELLULAR"])
         XCTAssertTrue(summary.hasSummary)

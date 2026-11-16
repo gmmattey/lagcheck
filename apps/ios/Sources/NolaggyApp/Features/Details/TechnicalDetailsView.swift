@@ -40,25 +40,23 @@ public struct TechnicalDetailsView: View {
     }
 
     public var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
+        NolaggyCollapsibleScreen(
+            title: LocalizedStringKey("technical_details.title"),
+            hasTrailingAction: true,
+            trailing: {
+                Button(action: {
+                    onDismiss()
+                    dismiss()
+                }) {
+                    Text(LocalizedStringKey("technical_details.close"))
+                        .font(NLTypography.bodyEmphasis)
+                        .foregroundStyle(NLColor.textSecondary)
+                        .frame(height: 44)
+                }
+                .accessibilityIdentifier("technical-details-close")
+            }
+        ) {
             VStack(alignment: .leading, spacing: 20) {
-                // Barra superior de ações e Título alinhado à esquerda
-                NolaggyNamedScreenHeader(
-                    title: LocalizedStringKey("technical_details.title"),
-                    trailing: {
-                        Button(action: {
-                            onDismiss()
-                            dismiss()
-                        }) {
-                            Text(LocalizedStringKey("technical_details.close"))
-                                .font(NLTypography.bodyEmphasis)
-                                .foregroundStyle(NLColor.textSecondary)
-                                .frame(height: 44)
-                        }
-                        .accessibilityIdentifier("technical-details-close")
-                    }
-                )
-
                 if let result, evaluation.verdict != .inconclusive {
                     // 1. Resumo do veredito compacto
                     compactVerdictSection(evaluation: evaluation)
@@ -90,6 +88,7 @@ public struct TechnicalDetailsView: View {
 
                 Spacer(minLength: NLSpacing.xl)
             }
+            .padding(.top, NLSpacing.md)
         }
         .background(NLColor.deep.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)

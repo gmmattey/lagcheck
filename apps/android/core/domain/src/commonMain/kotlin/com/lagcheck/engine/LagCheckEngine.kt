@@ -126,7 +126,7 @@ object LagCheckEngine {
     /** Nota descritiva de bufferbloat (`bufferbloat-grade-v1`) para um aumento de P50 sob carga, em ms. */
     fun bufferbloatGrade(increaseMilliseconds: Double): String = BufferbloatGrade.fromIncrease(increaseMilliseconds).value
 
-    /** Série de evolução da estabilidade e os 4 anéis de resumo (`stability-summary-v1`, Decisão 143). */
+    /** Série de evolução da estabilidade e os 4 anéis de resumo (`stability-summary-v2`, Decisão 143). */
     fun stabilitySummary(requestJson: String): String = runCatching {
         val req = json.decodeFromString<StabilitySummaryRequestDto>(requestJson)
         val result = StabilitySummaryEvaluator.evaluate(

@@ -14,7 +14,7 @@
 | Veredito Principal | `GameReadinessVerdict` (`READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`, regra `readiness-v3.0`). Protagonista visual imediato. |
 | Score | Local, determinístico (`0–100`), acoplado aos guardrails do veredito (mantido para detalhes, histórico e telemetria). |
 | Catálogo & Telemetria | Catálogo base embutido sem assinatura com 54 jogos e refresh opcional via `catalog-v3.json` (Decisão 106); Cloudflare Worker gratuito somente para `/v1/load` e `/v1/telemetry`. |
-| Histórico & Estabilidade | Persistência local (SwiftData no iOS / DataStore no Android); 90 dias e máximo de 100 medições por jogo; evolução da estabilidade via `LagCheckEngine.stabilitySummary` (`stability-summary-v1`, Decisão 143). |
+| Histórico & Estabilidade | Persistência local (SwiftData no iOS / DataStore no Android); 90 dias e máximo de 100 medições por jogo; evolução da estabilidade via `LagCheckEngine.stabilitySummary` (`stability-summary-v2`, Decisão 143). |
 | Publicidade | AdMob Native Advanced em faixa horizontal compacta (sem contorno) e UMP em `Início`, `Jogos`, `Histórico` e `Resultado` válido (Decisões 82, 96, 97 e 144). |
 | Privacidade | Telemetria mínima anônima via Worker sem PII/IP e analytics de funil com exclusão local (Decisões 108 e 109). |
 | Idiomas | PT-BR, inglês e espanhol. |

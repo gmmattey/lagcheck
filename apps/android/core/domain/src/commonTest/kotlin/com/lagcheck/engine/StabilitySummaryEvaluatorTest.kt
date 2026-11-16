@@ -285,4 +285,30 @@ class StabilitySummaryEvaluatorTest {
         assertEquals(MetricTone.WARN, moderate.jitter.tone)
         assertEquals(MetricTone.WARN, moderate.loss.tone)
     }
+
+    @Test
+    fun allCautionChecksUseNeverReadyHeadlineInWarnToneWithoutBlamingJitter() {
+        val entries = listOf(
+            entry(daysAgo = 4, pingMs = 23.0, jitterMs = 8.9, lossPct = 0.0, loadDeltaMs = 0.0, verdict = "CAUTION"),
+            entry(daysAgo = 3, pingMs = 22.0, jitterMs = 8.9, lossPct = 0.0, loadDeltaMs = 0.0, verdict = "CAUTION"),
+            entry(daysAgo = 2, pingMs = 20.0, jitterMs = 8.9, lossPct = 0.0, loadDeltaMs = 0.0, verdict = "CAUTION"),
+            entry(daysAgo = 1, pingMs = 23.0, jitterMs = 8.9, lossPct = 0.0, loadDeltaMs = 0.0, verdict = "CAUTION")
+        )
+        val res = StabilitySummaryEvaluator.evaluate(Request(entries = entries, windowDays = 14, nowEpochMs = now))
+
+        assertEquals("stability-summary-v2", res.ruleVersion)
+        assertEquals(4, res.totalComparableCount)
+        assertEquals(0, res.readyCount)
+        assertEquals(4, res.cautionCount)
+        assertEquals(0, res.badCount)
+        assertEquals(0, res.stabilityPercentage)
+        assertEquals(MetricTone.WARN, res.stabilityTone)
+        assertEquals("stability.headline.never_ready", res.headlineKey)
+
+        val rings = assertNotNull(res.rings)
+        assertEquals(MetricTone.OK, rings.ping.tone)
+        assertEquals(MetricTone.OK, rings.jitter.tone)
+        assertEquals(MetricTone.OK, rings.loss.tone)
+        assertEquals(MetricTone.OK, rings.load.tone)
+    }
 }

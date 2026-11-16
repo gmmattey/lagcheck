@@ -63,15 +63,10 @@ struct QuickCheckFeatureView: View {
     @State var showingCockpit = false
     @State var pendingIncomingDuel: HostDuelPayload? = nil
     @State var showingDuelInvitation = false
-    @AppStorage("user_default_platform") var userPreferredPlatformRaw: String = ""
     @AppStorage(AppLocalization.selectedLanguageKey) var selectedLanguage: String = AppLanguage.system.rawValue
     @ObservedObject var favoritesStore = FavoriteGamesStore.shared
     @State private var hasTrackedAppOpen = false
     @State private var artworkLoaderReady = false
-
-    var preferredGamingPlatform: Platform? {
-        Platform(rawValue: userPreferredPlatformRaw)
-    }
 
     let historyRepository: any MeasurementHistoryRepository
     let regionalPreferenceRepository: any RegionalPreferenceRepository
@@ -190,13 +185,9 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
-                            supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
-                            analyticsTracker: analyticsTracker,
-                            onStartDeepCheck: { platform, externalLink in
-                                if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
-                                    openDeepCheck(resolvedContext: resolved, platform: platform)
-                                }
+                            onStartDeepCheck: {
+                                startCheckDirectly(for: game)
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
@@ -222,13 +213,9 @@ struct QuickCheckFeatureView: View {
                             scoreState: scoreState(for: game),
                             evaluation: evaluatedScores[game.id],
                             resolvedContext: resolveGameContext(game),
-                            supportedPlatforms: supportedPlatforms(for: game),
                             gameHistory: history.filter { $0.resolvedContext.context.gameID == game.id },
-                            analyticsTracker: analyticsTracker,
-                            onStartDeepCheck: { platform, externalLink in
-                                if let resolved = resolveGameContext(game, platform: platform, declaredExternalLink: externalLink) {
-                                    openDeepCheck(resolvedContext: resolved, platform: platform)
-                                }
+                            onStartDeepCheck: {
+                                startCheckDirectly(for: game)
                             },
                             onOpenHistory: {
                                 selectedGameForDetails = nil
@@ -601,15 +588,9 @@ struct QuickCheckFeatureView: View {
             }
         }
 
-        // 2. Determina a melhor plataforma suportada automaticamente sem perguntar ao jogador:
-        //    a) Preferência de plataforma global do jogador (se configurada)
-        //    b) iPhone (se suportado pelo jogo)
-        //    c) Plataforma nativa do game.context
-        //    d) Qualquer plataforma suportada pelo catálogo (ex: PlayStation ou PC para Warzone/Valorant)
+        // 2. Sem seleção de plataforma (Decisão 147): tenta sempre iPhone primeiro,
+        //    usando o contexto publicado pelo catálogo apenas como rota quando não houver entrada iPhone.
         var candidates: [Platform] = []
-        if let preferred = preferredGamingPlatform {
-            candidates.append(preferred)
-        }
         candidates.append(.iphone)
         candidates.append(game.context.platform)
         candidates.append(contentsOf: supportedPlatforms(for: game))
@@ -721,7 +702,7 @@ struct QuickCheckFeatureView: View {
         let market = remoteCatalog.map { CatalogMeasurementJourney.resolvedMarket(in: $0) } ?? "BR"
         let genericGame = CatalogMeasurementJourney.genericGamingGame(
             market: market,
-            platform: preferredGamingPlatform ?? .iphone,
+            platform: .iphone,
             declaredExternalLink: nil,
             localizedName: AppLocalization.string("generic_gaming.name", comment: "")
         )

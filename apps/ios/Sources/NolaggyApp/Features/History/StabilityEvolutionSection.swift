@@ -418,6 +418,8 @@ struct StabilityEvolutionBlock: View {
         switch key {
         case "stability.headline.stable":
             return AppLocalization.string("history.stability.headline.stable", comment: "")
+        case "stability.headline.never_ready":
+            return AppLocalization.string("history.stability.headline.never_ready", comment: "")
         case "stability.headline.moderate":
             return AppLocalization.string("history.stability.headline.moderate", comment: "")
         case "stability.headline.unstable":

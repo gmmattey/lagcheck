@@ -928,7 +928,8 @@
 "history.stability.title_overview" = "ESTABILIDADE DA REDE";
 "history.stability.title_game" = "ESTABILIDADE NO JOGO";
 "history.stability.headline.stable" = "Rede estável";
-"history.stability.headline.moderate" = "Oscilação moderada";
+"history.stability.headline.never_ready" = "Instável em todos os checks";
+"history.stability.headline.moderate" = "Condições instáveis";
 "history.stability.headline.unstable" = "Rede instável";
 "history.stability.headline.insufficient" = "Poucas medições ainda";
 "history.stability.headline.empty" = "Sem medições";

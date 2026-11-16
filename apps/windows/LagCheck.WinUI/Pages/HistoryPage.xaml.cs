@@ -352,7 +352,7 @@ public sealed partial class HistoryPage : Page
         StabilityGaugesHost.Visibility = Visibility.Visible;
         StabilityChartHost.Visibility = Visibility.Visible;
 
-        var headline = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary.StabilityTone));
+        var headline = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary));
         StabilityHeadline.Text = headline;
         StabilityPercent.Text = Math.Abs(summary.MaxPing - summary.MinPing) < 0.5
             ? string.Format(culture, "{0:0.#} ms", summary.AvgPing)

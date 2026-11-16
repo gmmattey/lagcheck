@@ -27,7 +27,6 @@ public struct CheckCompletoResultView: View {
     public let exit: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var activePlatformForTips: Platform? = nil
     @State private var resultMap = RouteMapController()
 
     private enum ShareDestination: Identifiable {
@@ -122,20 +121,14 @@ public struct CheckCompletoResultView: View {
 
                     Spacer()
 
-                    Text(verbatim: regionFriendlyName.isEmpty ? "\(gameName) · \(platform.displayName)" : "\(gameName) · \(platform.displayName) · \(regionFriendlyName)")
+                    Text(verbatim: regionFriendlyName.isEmpty ? "\(gameName) · \(Platform.iphone.displayName)" : "\(gameName) · \(Platform.iphone.displayName) · \(regionFriendlyName)")
                         .font(NLTypography.statusLine)
                         .foregroundStyle(NLColor.textTertiary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                         .accessibilityIdentifier("check-completo-context")
                 }
                 .frame(height: 52)
-
-                if platform != .iphone {
-                    Text(LocalizedStringKey("check_completo.context.estimate_footnote"))
-                        .font(NLTypography.caption)
-                        .foregroundStyle(NLColor.textTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.top, 4)
-                }
 
                 // Veredito protagonista. Esta sequência acompanha a tela
                 // Android: kicker, indicador, manchete, contexto e só então
@@ -172,6 +165,8 @@ public struct CheckCompletoResultView: View {
                             ShareNetworkBar(scene: scene, linkCardURL: preparedShareCardURL) { items in
                                 activeShareDestination = .link(items: items)
                             }
+                            .frame(maxWidth: 360)
+                            .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.top, 16)
                         }
                     }
@@ -268,7 +263,9 @@ public struct CheckCompletoResultView: View {
 
                 // Ações do Resultado
                 actionsSection(evaluation: evaluation)
-                NativeAdSlot(placement: .result)
+                if evaluation.verdict != .inconclusive {
+                    NativeAdSlot(placement: .result)
+                }
             }
             .padding(.horizontal, NLSpacing.md)
             .padding(.bottom, NLSpacing.xl)
@@ -388,11 +385,13 @@ public struct CheckCompletoResultView: View {
         .clipShape(RoundedRectangle(cornerRadius: NLRadius.sm, style: .continuous))
         .shadow(color: NLShadow.cardColor, radius: 8, x: 0, y: 4)
         .accessibilityLabel(a11yLabel)
-        .padding(.top, 24)
         .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private func weightText(evaluation: GameReadinessEvaluation) -> String {
+        if evaluation.verdict == .inconclusive {
+            return AppLocalization.string("result.weight.insufficient_data", comment: "")
+        }
         if let firstFinding = evaluation.findings.first {
             return AppLocalization.string(firstFinding.labelKey, comment: "")
         }
@@ -551,46 +550,17 @@ public struct CheckCompletoResultView: View {
     // MARK: - 5.1 Oportunidade de Maior Impacto (Decisão 56 / Ajuste de Produto)
 
     private func platformOptimizationSection(evaluation: GameReadinessEvaluation) -> some View {
-        let targetPlatform = activePlatformForTips ?? platform
         let topOptimization = HighImpactOptimizationEvaluator.evaluateSingleTopOptimization(
-            targetPlatform: targetPlatform,
+            targetPlatform: .iphone,
             evaluation: evaluation,
             isWiFi: isWiFi
         )
 
         return VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            HStack {
-                Text(LocalizedStringKey("game_readiness.single_optimization.header"))
-                    .font(NLTypography.sectionHeader)
-                    .foregroundStyle(NLColor.textTertiary)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                Menu {
-                    ForEach(Platform.allCases, id: \.self) { p in
-                        Button(action: { activePlatformForTips = p }) {
-                            if (activePlatformForTips ?? platform) == p {
-                                Label(p.displayName, systemImage: "checkmark")
-                            } else {
-                                Text(p.displayName)
-                            }
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(targetPlatform.displayName)
-                            .font(NLTypography.captionStrong)
-                            .foregroundStyle(NLColor.accentPrimary)
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(NLColor.accentPrimary)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(NLColor.accentPrimarySubtle, in: Capsule())
-                }
-            }
+            Text(LocalizedStringKey("game_readiness.single_optimization.header"))
+                .font(NLTypography.sectionHeader)
+                .foregroundStyle(NLColor.textTertiary)
+                .textCase(.uppercase)
 
             singleImpactOptimizationCard(optimization: topOptimization)
         }
@@ -636,7 +606,7 @@ public struct CheckCompletoResultView: View {
 
     private func exportResultPDF(evaluation: GameReadinessEvaluation) {
         let topOpt = HighImpactOptimizationEvaluator.evaluateSingleTopOptimization(
-            targetPlatform: activePlatformForTips ?? platform,
+            targetPlatform: .iphone,
             evaluation: evaluation,
             isWiFi: isWiFi
         )
@@ -653,7 +623,7 @@ public struct CheckCompletoResultView: View {
 
         if let pdfURL = LagCheckPDFExporter.generateMeasurementResultPDF(
             gameName: gameName,
-            platformName: (activePlatformForTips ?? platform).displayName,
+            platformName: Platform.iphone.displayName,
             regionName: regionFriendlyName,
             verdictHeadline: AppLocalization.string(evaluation.headlineKey, comment: ""),
             verdictColor: uiColor,

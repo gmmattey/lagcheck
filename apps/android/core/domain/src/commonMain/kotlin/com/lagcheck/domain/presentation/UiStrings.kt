@@ -236,6 +236,8 @@ object UiStrings {
         t("EVITARIA RANKED AGORA", "WOULD AVOID RANKED NOW", "EVITARÍA RANKED AHORA")
         t("CONDIÇÕES INSTÁVEIS", "UNSTABLE CONDITIONS", "CONDICIONES INESTABLES")
         t("Bufferbloat", "Bufferbloat", "Bufferbloat")
+        t("SOB CARGA:", "UNDER LOAD:", "BAJO CARGA:")
+        t("0% perda", "0% loss", "0% pérdida")
         // endregion
 
         // region Gráfico de Estabilidade e 4 Anéis (Decisão 143)
@@ -245,7 +247,8 @@ object UiStrings {
         t("ESTABILIDADE DA REDE", "NETWORK STABILITY", "ESTABILIDAD DE RED")
         t("ESTABILIDADE NO JOGO", "GAME STABILITY", "ESTABILIDAD EN EL JUEGO")
         t("Rede estável", "Stable network", "Red estable")
-        t("Oscilação moderada", "Moderate jitter", "Oscilación moderada")
+        t("Instável em todos os checks", "Unstable on every check", "Inestable en todos los checks")
+        t("Condições instáveis", "Unstable conditions", "Condiciones inestables")
         t("Rede instável", "Unstable network", "Red inestable")
         t("Poucas medições ainda", "Few measurements yet", "Pocas mediciones aún")
         t("Sem medições", "No measurements", "Sin mediciones")

@@ -71,7 +71,7 @@ public sealed class LatencyWidget : IHomeWidget
         var latestTone = Verdicts.ToneOf(latest.Verdict);
         var stabilityTone = summary.StabilityTone;
         var accentBrush = new SolidColorBrush(Verdicts.ColorOf(stabilityTone));
-        var stabilityText = NetworkStabilitySummary.HeadlineWord(stabilityTone);
+        var stabilityText = NetworkStabilitySummary.HeadlineWord(summary);
         var pctText = Strings.Format("{0}% estável", summary.StabilityPercentage);
 
         var caption = Strings.Format(

@@ -76,7 +76,8 @@ public sealed class NetworkStabilitySummaryTests
         Assert.Equal(1, summary.CautionCount);
         Assert.Equal(0, summary.StabilityPercentage);
         Assert.Equal(VerdictTone.Warn, summary.StabilityTone);
-        Assert.Equal("Oscilação moderada", NetworkStabilitySummary.HeadlineKey(summary.StabilityTone));
+        Assert.Equal("Condições instáveis", NetworkStabilitySummary.HeadlineKey(summary.StabilityTone));
+        Assert.Equal("Instável em todos os checks", NetworkStabilitySummary.HeadlineKey(summary));
     }
 
     [Fact]
