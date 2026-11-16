@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -42,9 +44,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
@@ -154,7 +165,9 @@ fun VerdictScreen(
 
     val pingText = evaluation.pingMs?.let { "%.0f ms".format(java.util.Locale.ROOT, it) } ?: "— ms"
     val jitterText = evaluation.jitterMs?.let { trf("%.0f ms jitter", it) } ?: tr("— ms jitter")
-    val lossText = evaluation.packetLossPercentage?.let { trf("%.1f%% perda", it) } ?: tr("— perda")
+    val lossText = evaluation.packetLossPercentage?.let {
+        if (it <= 0.05) tr("0% perda") else trf("%.1f%% perda", it)
+    } ?: tr("— perda")
     val regionLabel = evaluation.regionLabel
 
     fun shareToDiscord() {
@@ -279,7 +292,7 @@ fun VerdictScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp),
+                .height(52.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -297,10 +310,16 @@ fun VerdictScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.width(LagCheckSpacing.space2))
+
             Text(
                 text = listOf(game.name, "Mobile", regionLabel).filter { it.isNotBlank() }.joinToString(" · "),
                 style = LagCheckTypography.MonoData,
-                color = LagCheckColors.TextMuted
+                color = LagCheckColors.TextMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f)
             )
         }
 
@@ -447,7 +466,7 @@ fun VerdictScreen(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = tr("Bufferbloat"),
+                    text = tr("SOB CARGA:"),
                     style = LagCheckTypography.MonoSmall,
                     color = LagCheckColors.TextMuted
                 )
@@ -497,7 +516,7 @@ fun VerdictScreen(
             PrimaryButton(
                 text = tr("Testar novamente"),
                 onClick = onRetry,
-                height = 56.dp
+                height = 58.dp
             )
 
             val secondaryShape = RoundedCornerShape(LagCheckRadius.md)
@@ -506,85 +525,135 @@ fun VerdictScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .height(54.dp)
                             .shadow(elevation = 6.dp, shape = secondaryShape)
                             .clip(secondaryShape)
                             .background(LagCheckColors.Surface)
                             .clickable { onViewDuelVersus() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = tr("Ver Confronto do Duelo"),
-                            style = LagCheckTypography.CtaPrimary,
-                            color = LagCheckColors.TextPrimary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
+                        ) {
+                            DuelActionTrophyIcon(color = LagCheckColors.TextPrimary)
+                            Text(
+                                text = tr("Ver Confronto do Duelo"),
+                                style = LagCheckTypography.CtaPrimary,
+                                color = LagCheckColors.TextPrimary
+                            )
+                        }
                     }
                 } else {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .height(54.dp)
                             .shadow(elevation = 6.dp, shape = secondaryShape)
                             .clip(secondaryShape)
                             .background(LagCheckColors.Surface)
                             .clickable { showNickSheet = true },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = tr("Desafiar Duo no Lobby"),
-                            style = LagCheckTypography.CtaPrimary,
-                            color = LagCheckColors.TextPrimary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
+                        ) {
+                            DuelActionGamepadIcon(color = LagCheckColors.TextPrimary)
+                            Text(
+                                text = tr("Desafiar Duo no Lobby"),
+                                style = LagCheckTypography.CtaPrimary,
+                                color = LagCheckColors.TextPrimary
+                            )
+                        }
                     }
                 }
-            }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .shadow(elevation = 6.dp, shape = secondaryShape)
-                    .clip(secondaryShape)
-                    .background(LagCheckColors.Surface)
-                    .clickable { onDetails() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = tr("Ver detalhes"),
-                    style = LagCheckTypography.CtaPrimary,
-                    color = LagCheckColors.TextPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
-
-            // PDF fica à direita; as redes ficam sob o card.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                // PDF: disponível só no resultado
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .shadow(elevation = 6.dp, shape = secondaryShape)
+                        .clip(secondaryShape)
                         .background(LagCheckColors.Surface)
-                        .semantics { contentDescription = tr("PDF") }
-                        .clickable { exportPDF() },
+                        .clickable { onDetails() },
                     contentAlignment = Alignment.Center
                 ) {
-                    PdfDocumentIcon(size = 18.dp, color = LagCheckColors.TextSecondary)
+                    Text(
+                        text = tr("Ver detalhes"),
+                        style = LagCheckTypography.CtaPrimary,
+                        color = LagCheckColors.TextPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
+
+                // PDF fica à direita; as redes ficam sob o card.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    // PDF: disponível só no resultado válido
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(LagCheckColors.Surface)
+                            .semantics { contentDescription = tr("PDF") }
+                            .clickable { exportPDF() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PdfDocumentIcon(size = 18.dp, color = LagCheckColors.TextSecondary)
+                    }
                 }
             }
         }
 
-        if (nativeAd != null) {
+        if (nativeAd != null && evaluation.verdict != GameReadinessVerdict.INCONCLUSIVE) {
             com.lagcheck.android.ads.NativeAdSlot(
                 nativeAd,
                 Modifier.padding(top = LagCheckSpacing.space8)
             )
         }
         Spacer(modifier = Modifier.height(LagCheckSpacing.space8))
+    }
+}
+
+@Composable
+private fun DuelActionGamepadIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(16.dp)) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(width = 1.6.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(w * 0.1f, h * 0.24f),
+            size = Size(w * 0.8f, h * 0.52f),
+            cornerRadius = CornerRadius(w * 0.2f, w * 0.2f),
+            style = stroke
+        )
+        drawLine(color, Offset(w * 0.28f, h * 0.5f), Offset(w * 0.42f, h * 0.5f), strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round)
+        drawLine(color, Offset(w * 0.35f, h * 0.43f), Offset(w * 0.35f, h * 0.57f), strokeWidth = 1.5.dp.toPx(), cap = StrokeCap.Round)
+        drawCircle(color, radius = 1.dp.toPx(), center = Offset(w * 0.65f, h * 0.44f))
+        drawCircle(color, radius = 1.dp.toPx(), center = Offset(w * 0.72f, h * 0.54f))
+    }
+}
+
+@Composable
+private fun DuelActionTrophyIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(16.dp)) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(width = 1.6.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(w * 0.26f, h * 0.16f),
+            size = Size(w * 0.48f, h * 0.42f),
+            cornerRadius = CornerRadius(w * 0.12f, w * 0.12f),
+            style = stroke
+        )
+        drawLine(color, Offset(w * 0.5f, h * 0.58f), Offset(w * 0.5f, h * 0.8f), strokeWidth = 1.6.dp.toPx(), cap = StrokeCap.Round)
+        drawLine(color, Offset(w * 0.32f, h * 0.82f), Offset(w * 0.68f, h * 0.82f), strokeWidth = 1.6.dp.toPx(), cap = StrokeCap.Round)
     }
 }

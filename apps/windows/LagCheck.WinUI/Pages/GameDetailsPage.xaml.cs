@@ -599,7 +599,7 @@ public sealed partial class GameDetailsPage : Page
             statusBadge.Children.Add(Verdicts.Marker(summary.StabilityTone));
             statusBadge.Children.Add(new TextBlock
             {
-                Text = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary.StabilityTone)),
+                Text = Strings.Tr(NetworkStabilitySummary.HeadlineKey(summary)),
                 FontFamily = (FontFamily)Application.Current.Resources["HeadingBoldFont"],
                 FontSize = 14,
                 FontWeight = Microsoft.UI.Text.FontWeights.Normal,

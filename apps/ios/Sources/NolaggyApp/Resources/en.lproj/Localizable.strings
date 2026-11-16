@@ -928,7 +928,8 @@
 "history.stability.title_overview" = "NETWORK STABILITY";
 "history.stability.title_game" = "GAME STABILITY";
 "history.stability.headline.stable" = "Stable network";
-"history.stability.headline.moderate" = "Moderate jitter";
+"history.stability.headline.never_ready" = "Unstable on every check";
+"history.stability.headline.moderate" = "Unstable conditions";
 "history.stability.headline.unstable" = "Unstable network";
 "history.stability.headline.insufficient" = "Few measurements yet";
 "history.stability.headline.empty" = "No measurements";

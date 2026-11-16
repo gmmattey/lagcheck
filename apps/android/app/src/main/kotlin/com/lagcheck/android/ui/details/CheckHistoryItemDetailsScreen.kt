@@ -20,6 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +36,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lagcheck.core.designsystem.components.ChevronLeftIcon
+import com.lagcheck.android.ui.components.CollapsibleScreenTopBar
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
 import com.lagcheck.core.designsystem.theme.LagCheckRadius
@@ -49,47 +52,27 @@ fun CheckHistoryItemDetailsScreen(
     modifier: Modifier = Modifier
 ) {
     val dateFormatted = com.lagcheck.android.ui.AppLocale.dayAndClock(item.timestamp)
+    val scrollState = rememberScrollState()
+    val isHeaderCollapsed by remember { derivedStateOf { scrollState.value > 24 } }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .padding(horizontal = LagCheckSpacing.space6)
-            .verticalScroll(rememberScrollState())
     ) {
-        // Header de volta/título "Detalhes" com alvo 44dp
-        Row(
+        CollapsibleScreenTopBar(
+            title = tr("Detalhes"),
+            isCollapsed = isHeaderCollapsed,
+            onBack = onClose
+        )
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = LagCheckSpacing.space2)
-                .height(48.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(horizontal = LagCheckSpacing.space6)
+                .verticalScroll(scrollState)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable { onClose() },
-                contentAlignment = Alignment.CenterStart
-            ) {
-                ChevronLeftIcon(
-                    size = 20.dp,
-                    color = LagCheckColors.TextPrimary
-                )
-            }
-
-            Text(
-                text = tr("Detalhes").uppercase(),
-                style = LagCheckTypography.BodySemibold.copy(fontSize = 17.sp),
-                color = LagCheckColors.TextPrimary,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.size(48.dp))
-        }
-
-        Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
+            Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
 
         // Contexto disponível de modo compacto
         Column(verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1)) {
@@ -181,6 +164,7 @@ fun CheckHistoryItemDetailsScreen(
         }
 
         Spacer(modifier = Modifier.height(LagCheckSpacing.space9))
+        }
     }
 }
 

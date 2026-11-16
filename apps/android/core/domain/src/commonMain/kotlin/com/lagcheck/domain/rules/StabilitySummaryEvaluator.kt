@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
  * incompatíveis (rede/região) e calculando os 4 anéis de resumo (Decisão 143).
  */
 object StabilitySummaryEvaluator {
-    const val VERSION = "stability-summary-v1"
+    const val VERSION = "stability-summary-v2"
     const val MINIMUM_COMPARABLE_CHECKS = 3
     private const val DAY_MILLIS = 86_400_000L
     private const val MAX_VALID_PING_MS = 10_000.0
@@ -402,6 +402,10 @@ object StabilitySummaryEvaluator {
             (pct < 40 && bad > 0) || lastTwoBad -> {
                 stabilityTone = MetricTone.BAD
                 headlineKey = "stability.headline.unstable"
+            }
+            ready == 0 && bad == 0 -> {
+                stabilityTone = MetricTone.WARN
+                headlineKey = "stability.headline.never_ready"
             }
             else -> {
                 stabilityTone = MetricTone.WARN

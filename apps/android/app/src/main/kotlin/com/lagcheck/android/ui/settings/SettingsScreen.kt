@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lagcheck.android.ui.components.SecondaryScreenHeader
+import com.lagcheck.android.ui.components.CollapsibleScreenTopBar
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
 import com.lagcheck.core.designsystem.theme.LagCheckTypography
@@ -93,24 +94,30 @@ fun SettingsScreen(
     var showLicensesSheet by remember { mutableStateOf(false) }
     var reminderIsEnabled by remember(reminderEnabled) { mutableStateOf(reminderEnabled) }
 
+    val scrollState = rememberScrollState()
+    val isHeaderCollapsed by remember { derivedStateOf { scrollState.value > 24 } }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = LagCheckSpacing.space6)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Header Canônico: Voltar '‹' + Ajustes
-            SecondaryScreenHeader(
+        Column(modifier = Modifier.fillMaxSize()) {
+            CollapsibleScreenTopBar(
                 title = tr("Configurações"),
+                isCollapsed = isHeaderCollapsed,
                 onBack = null
             )
 
-            // 1. Grupo: Preferências
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = LagCheckSpacing.space6)
+                    .verticalScroll(scrollState)
+            ) {
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
+
+                // 1. Grupo: Preferências
             SettingsSectionHeader(title = tr("PREFERÊNCIAS"))
 
             SettingsGroup {
@@ -266,6 +273,7 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(48.dp))
+            }
         }
 
         if (showLicensesSheet) {

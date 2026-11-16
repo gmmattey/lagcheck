@@ -1035,16 +1035,12 @@ struct HomeCatalogView: View {
     }
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
+        NolaggyCollapsibleScreen(
+            title: LocalizedStringKey("games.title"),
+            leadingAction: onReturnToHome,
+            leadingAccessibilityIdentifier: "games-return-home"
+        ) {
             VStack(alignment: .leading, spacing: 0) {
-                topBar
-
-                Text(LocalizedStringKey("games.title"))
-                    .font(NLTypography.screenTitle)
-                    .foregroundStyle(NLColor.textPrimary)
-                    .textCase(.uppercase)
-                    .padding(.top, 14)
-
                 searchField
                     .padding(.top, NLSpacing.md)
                     .padding(.bottom, 20)
@@ -1074,29 +1070,6 @@ struct HomeCatalogView: View {
         .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
-    }
-
-    private var topBar: some View {
-        HStack {
-            if let onReturnToHome {
-                Button(action: onReturnToHome) {
-                    Image(systemName: "chevron.backward")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(NLColor.textPrimary)
-                        .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityIdentifier("games-return-home")
-                .accessibilityLabel(LocalizedStringKey("quick_check.back"))
-            } else {
-                Color.clear.frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-            }
-
-            Spacer()
-
-            Color.clear.frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
-        }
-        .frame(height: 52)
     }
 
     /// Barra de busca padronizada com a Home: 12pt de canto, superfície #15181E sem contorno.

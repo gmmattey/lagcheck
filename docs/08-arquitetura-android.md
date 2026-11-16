@@ -44,7 +44,7 @@ O widget Android autorizado pela Decisão 88 usa Glance dentro de `:app`, sem tr
 
 O módulo `apps/android/core/domain` (`LagCheckEngine`, ver `ENGINE_CONTRACT.md`) é a fonte única de verdade de todas as regras para Android, iOS (`LagCheckEngine.xcframework` encapsulado por `NolaggyDomain`), Windows (`engine-host`) e site (pacote JS).
 
-- **Regras:** `pilot-2026.11.14.1`, `mobile-realtime-2026.11.14.1`, `casual-realtime-2026.11.14.1`, `readiness-v3.0`, `spike-pattern-v2`, `sample-quality-v2`, `deep-load-impact-v4`, `recommendations-v2` e `stability-summary-v1`. Vetores normativos rodam nos três alvos via `:core:domain:allTests`.
+- **Regras:** `pilot-2026.11.14.1`, `mobile-realtime-2026.11.14.1`, `casual-realtime-2026.11.14.1`, `readiness-v3.0`, `spike-pattern-v2`, `sample-quality-v2`, `deep-load-impact-v4`, `recommendations-v2` e `stability-summary-v2`. Vetores normativos rodam nos três alvos via `:core:domain:allTests`.
 - **Veredito:** `READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`. Menos de 20 respostas UDP válidas por fase é inconclusivo, sem fallback HTTP/ICMP e sem nota inventada (Decisão 135).
 - **Medição:** repouso (60 probes, 1 a cada 500 ms, ~30 s) e carga contínua (60 probes com downloads paralelos `/v1/load` até 60 MB no Wi-Fi ou 10 MB no celular, ~64 s no total). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
 - **Destino:** catálogo embarcado de 54 jogos com refresh opcional validado (`catalog-v3.json`, `ETag`), rotas `gameLiftPing`, `playFabQoS`, `steamA2S` e pré-leitura regional automática (`RouteMeasurementMap` + `/v1/approx-location`).

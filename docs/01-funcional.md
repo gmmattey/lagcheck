@@ -204,7 +204,7 @@ A navegação mobile é enxuta e focada na ação (Decisões 80, 98, 142 e 145):
 - **Tab Bar de 4 destinos** no iOS e no Android (títulos internos das telas sempre em caixa alta; barra inferior com capitalização normal; no Windows WinUI 3 a navegação é sem sidebar, partindo de `Este PC` com atalhos no topo):
   1. **Início:** Hero full-bleed em carrossel, busca padronizada abaixo da capa, favoritos e grade 2×3 de populares.
   2. **Jogos (`JOGOS`):** Catálogo em **grade de 3 colunas** (`3:4`) com busca padronizada sempre visível. No estado vazio de busca ("jogo não encontrado"), exibe o card de assistência com fallback para "Fazer Check Geral".
-  3. **Histórico (`HISTÓRICO`):** Evolução da estabilidade da conexão (`stability-summary-v1`) e lista dos checks anteriores com reteste rápido.
+  3. **Histórico (`HISTÓRICO`):** Evolução da estabilidade da conexão (`stability-summary-v2`) e lista dos checks anteriores com reteste rápido.
   4. **Ajustes** (`CONFIGURAÇÕES` no Android): permite consultar idioma, apagar histórico local, avaliar o app, suporte e políticas de privacidade. A seleção de região é automática pelo motor e oculta da navegação comum.
 
 ### 7.9 Widget de prontidão por jogo (Decisão 88)

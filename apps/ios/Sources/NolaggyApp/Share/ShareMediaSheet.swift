@@ -199,32 +199,23 @@ public struct ShareNetworkBar: View {
         ZStack {
             Circle()
                 .fill(network.brandColor)
-                .frame(width: 44, height: 44)
+                .frame(width: 48, height: 48)
 
             switch network {
             case .whatsapp:
-                WhatsAppLogo(size: 20, color: .white)
-            case .discord:
-                DiscordLogo(size: 20, color: .white)
+                WhatsAppLogo(size: 24, color: .white)
             case .telegram:
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(.white)
-            case .tiktok:
-                Text("♪")
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundStyle(.white)
+                TelegramLogo(size: 24, color: .white)
             case .x:
-                Text("𝕏")
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundStyle(.white)
+                XLogo(size: 24, color: .white)
+            case .tiktok:
+                TikTokLogo(size: 24, color: .white)
             case .instagram:
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
+                InstagramLogo(size: 24, color: .white)
+            case .discord:
+                DiscordLogo(size: 24, color: .white)
             }
         }
-        .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
     }
 }
 

@@ -129,7 +129,7 @@ public struct StabilitySummaryResponseDTO: Codable, Equatable, Sendable {
 
     public static func empty(windowDays: Int = 14) -> StabilitySummaryResponseDTO {
         StabilitySummaryResponseDTO(
-            ruleVersion: "stability-summary-v1",
+            ruleVersion: "stability-summary-v2",
             windowDays: windowDays,
             points: [],
             canDrawCurve: false,

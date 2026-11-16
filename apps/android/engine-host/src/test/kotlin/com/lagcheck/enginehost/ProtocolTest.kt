@@ -83,7 +83,7 @@ class ProtocolTest {
         val response = out.single()
         assertTrue(response.contains("\"type\":\"history.stability\""))
         assertTrue(response.contains("\"requestId\":\"r4\""))
-        assertTrue(response.contains("\"ruleVersion\":\"stability-summary-v1\""))
+        assertTrue(response.contains("\"ruleVersion\":\"stability-summary-v2\""))
         assertTrue(response.contains("\"canDrawCurve\":true"))
         assertTrue(response.contains("\"stabilityPercentage\":100"))
     }

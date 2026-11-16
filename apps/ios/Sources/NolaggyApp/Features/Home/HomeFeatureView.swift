@@ -285,9 +285,9 @@ extension QuickCheckFeatureView {
         return availableGames.first(where: { $0.id == effectiveGameID })?.name ?? "—"
     }
 
-    /// Plataforma configurada pelo usuário, ou da última medição relevante, ou iPhone por padrão.
+    /// O aparelho do teste é sempre o iPhone (Decisão 147).
     var effectivePlatform: Platform? {
-        preferredGamingPlatform ?? lastHistoryEntryForEffectiveGame?.resolvedContext.context.platform ?? .iphone
+        .iphone
     }
 
     /// A Home fala primeiro da última observação real, sem atribuir um score

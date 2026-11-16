@@ -191,11 +191,15 @@ class MainActivity : ComponentActivity() {
             androidx.compose.runtime.LaunchedEffect(currentScreen is Screen.Home) {
                 if (currentScreen is Screen.Home) ads.start()
             }
-            val adPlacement = when (currentScreen) {
+            val adPlacement = when (val screen = currentScreen) {
                 is Screen.Home -> com.lagcheck.session.ads.AdPlacement.HOME
                 is Screen.History -> com.lagcheck.session.ads.AdPlacement.HISTORY
                 is Screen.GameSelection -> com.lagcheck.session.ads.AdPlacement.GAMES
-                is Screen.Verdict -> com.lagcheck.session.ads.AdPlacement.RESULT
+                is Screen.Verdict -> if (screen.evaluation.verdict != com.lagcheck.domain.model.GameReadinessVerdict.INCONCLUSIVE) {
+                    com.lagcheck.session.ads.AdPlacement.RESULT
+                } else {
+                    null
+                }
                 else -> null
             }
             val showNativeAd = com.lagcheck.session.ads.AdPolicy.shouldShowNative(

@@ -106,61 +106,6 @@ struct GameDetailMeasurementScope: View {
     }
 }
 
-/// Contexto explícito antes da ação. A escolha de cabo representa um
-/// equipamento externo conectado por Ethernet; ela nunca é tratada como
-/// telemetria Wi-Fi do iPhone.
-struct GameDetailMeasurementContextCard: View {
-    let supportedPlatforms: [Platform]
-    @Binding var selectedPlatform: Platform
-    @Binding var selectedExternalLink: ExternalEquipmentLink?
-
-    private var needsEquipmentConnection: Bool { selectedPlatform != .iphone }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            Text(LocalizedStringKey("game_detail.context.platform_title"))
-                .font(NLTypography.bodyEmphasis)
-                .foregroundStyle(NLColor.textPrimary)
-
-            PlatformSelectorRow(supportedPlatforms: supportedPlatforms, selectedPlatform: $selectedPlatform)
-
-            if needsEquipmentConnection {
-                Text(LocalizedStringKey("game_detail.context.connection_title"))
-                    .font(NLTypography.footnote)
-                    .foregroundStyle(NLColor.textSecondary)
-
-                HStack(spacing: NLSpacing.xs) {
-                    connectionButton(.wifi, titleKey: "game_detail.context.connection_wifi", icon: "wifi")
-                    connectionButton(.ethernet, titleKey: "game_detail.context.connection_cable", icon: "cable.connector")
-                }
-            }
-        }
-        .padding(NLSpacing.cardPadding)
-        .background(NLColor.backgroundRaised, in: RoundedRectangle(cornerRadius: NLRadius.card))
-        .overlay(RoundedRectangle(cornerRadius: NLRadius.card).stroke(NLColor.borderSubtle, lineWidth: NLStroke.hairline))
-    }
-
-    private func connectionButton(_ connection: ExternalEquipmentLink, titleKey: LocalizedStringKey, icon: String) -> some View {
-        let isSelected = selectedExternalLink == connection
-        return Button {
-            UISelectionFeedbackGenerator().selectionChanged()
-            selectedExternalLink = connection
-        } label: {
-            Label(titleKey, systemImage: icon)
-                .font(NLTypography.captionStrong)
-                .foregroundStyle(isSelected ? NLColor.textPrimary : NLColor.textSecondary)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .padding(.horizontal, NLSpacing.xs)
-                .background(isSelected ? NLColor.accentPrimarySubtle : NLColor.backgroundBase, in: RoundedRectangle(cornerRadius: NLRadius.controlSmall))
-                .overlay(RoundedRectangle(cornerRadius: NLRadius.controlSmall).stroke(isSelected ? NLColor.accentPrimary : NLColor.borderSubtle, lineWidth: isSelected ? 1.5 : NLStroke.hairline))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(titleKey)
-        .accessibilityHint(Text(isSelected ? "game_detail.context.connection_selected" : "game_detail.context.connection_hint"))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
 struct GameDetailVerdictCard: View {
     let presentation: GameDetailPresentation
     var body: some View {
@@ -314,20 +259,15 @@ struct GameDetailPlatformsRow: View {
     }
 }
 
-/// A tela do jogo mostra uma única leitura comparável ao contexto atual. A
-/// linha do tempo completa pertence ao Histórico, que preserva os contextos.
+/// A tela do jogo mostra a última leitura válida feita no aparelho. A linha do tempo completa pertence ao Histórico.
 struct GameDetailExclusiveHistoryCard: View {
     let entries: [MeasurementHistoryEntry]
-    let selectedPlatform: Platform
-    let selectedExternalLink: ExternalEquipmentLink?
     let onOpenHistory: () -> Void
 
     private var latestContextualEntry: MeasurementHistoryEntry? {
         entries
             .filter { entry in
                 entry.resolvedContext.hasCompleteConnectionFacts
-                    && entry.resolvedContext.context.platform == selectedPlatform
-                    && entry.resolvedContext.context.declaredExternalLink == selectedExternalLink
                     && !entry.isInconclusive
             }
             .max(by: { $0.completedAt < $1.completedAt })
