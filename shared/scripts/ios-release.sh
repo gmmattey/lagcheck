@@ -105,6 +105,17 @@ if [[ "$MODE" == "notes-only" ]]; then
   exit 0
 fi
 
+# Garante que o XCFramework do motor KMP exista antes do xcodebuild resolver dependências.
+XCF_GRADLE_TASKS=(":core:domain:assembleLagCheckEngineReleaseXCFramework")
+XCF_INITIAL="release"
+if [[ "$SKIP_TESTS" != "true" ]]; then
+  XCF_GRADLE_TASKS=(":core:domain:assembleLagCheckEngineDebugXCFramework" ":core:domain:assembleLagCheckEngineReleaseXCFramework")
+  XCF_INITIAL="debug"
+fi
+(cd "$ROOT/apps/android" && ./gradlew "${XCF_GRADLE_TASKS[@]}")
+mkdir -p "$ROOT/apps/android/core/domain/build/XCFrameworks"
+ln -sfn "$XCF_INITIAL" "$ROOT/apps/android/core/domain/build/XCFrameworks/active"
+
 cd "$IOS_DIR"
 if command -v xcodegen >/dev/null 2>&1; then
   xcodegen generate >/dev/null

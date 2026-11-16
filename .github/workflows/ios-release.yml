@@ -61,6 +61,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up JDK 17 for KMP XCFramework
+        if: inputs.mode != 'notes-only'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Resolve build number
         id: meta
         env:

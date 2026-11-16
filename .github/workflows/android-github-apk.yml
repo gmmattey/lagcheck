@@ -56,7 +56,7 @@ jobs:
       - name: Run Android unit tests
         working-directory: apps/android
         run: |
-          ./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test :app:testProductionDebugUnitTest --no-daemon
+          ./gradlew :core:domain:jvmTest :core:catalog:test :core:network:test :core:session:test :app:testProductionDebugUnitTest --no-daemon
 
       - name: Configure signing key and production AdMob IDs (ADS_ENABLED=true)
         env:
