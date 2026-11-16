@@ -93,7 +93,7 @@ jobs:
       - name: Run Android unit tests
         working-directory: apps/android
         run: |
-          ./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test :app:testValidationDebugUnitTest --no-daemon
+          ./gradlew :core:domain:jvmTest :core:catalog:test :core:network:test :core:session:test :app:testValidationDebugUnitTest --no-daemon
 
       - name: Configure upload signing key and AdMob properties
         env:
