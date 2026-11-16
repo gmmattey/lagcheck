@@ -32,6 +32,8 @@ Uma instalação local não é beta. Um build enviado ao App Store Connect não 
 | **Android — APK direto no GitHub** | `.github/workflows/android-github-apk.yml` + `shared/scripts/android-release.sh --artifact apk --ads-enabled true` | **Ativado** (`BuildConfig.ADS_ENABLED = true` com secrets `ADMOB_*` de produção) | GitHub Release (`android-vX.Y-bN`) + `whatsnew` em linguagem comercial comparando desde a versão anterior + `SHA-256` |
 | **iOS (TestFlight e App Store)** | `.github/workflows/ios-release.yml` + `shared/scripts/ios-release.sh` | **Ativado** (`LAGCHECK_ADS_ENABLED=YES`, IDs reais no Release verificados no `Info.plist`) | App Store Connect (`release-notes-*.txt`, até `4000` caracteres) + GitHub Release em linguagem comercial |
 
+No Android, `shared/scripts/android-release.sh` também isola o manifesto por artefato: o `.aab` enviado à Google Play é compilado com `-Plagcheck.allowApkSelfUpdate=false` (sem `REQUEST_INSTALL_PACKAGES`), enquanto o `.apk` direto do GitHub é compilado com `-Plagcheck.allowApkSelfUpdate=true` (mesclando `apps/android/app/src/directApk/AndroidManifest.xml` para o auto-updater da Decisão 121 funcionar sem crash). A assinatura do APK direto usa a upload key, distinta da assinatura da Google Play App Signing — portanto o APK do GitHub não sobrescreve uma instalação vinda da Play Store sem desinstalação prévia.
+
 Toda nota enviada às lojas ou ao GitHub usa obrigatoriamente o gerador `shared/scripts/generate_release_notes.py` (ou destaques manuais no mesmo padrão comercial), filtrando commits internos (`docs/`, `ci/`, `winui:`/`windows`, arquivos de configuração) e comparando diretamente o que mudou para o jogador desde a versão anterior.
 
 Simulador e emulador ajudam a validar interface e lógica isolada, mas não
