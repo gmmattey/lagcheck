@@ -92,4 +92,63 @@ class AppUpdateCoordinatorTest {
 
         tempDir.deleteRecursively()
     }
+
+    @Test
+    fun whenInstallPermissionMissingInManifestEmitsErrorInsteadOfCrashing() = testScope.runTest {
+        val tempDir = File.createTempFile("lagcheck_test", "dir3").apply {
+            delete()
+            mkdirs()
+        }
+        val fakeApk = File(tempDir, "LagCheck-Android-1.3-b14.apk").apply { writeText("apk") }
+        try {
+            val release = fakeRelease.copy(
+                tagName = "android-v1.3-b14",
+                versionName = "1.3",
+                buildNumber = 14
+            )
+            val coordinator = AppUpdateCoordinator(
+                context = null,
+                scope = this,
+                installedVersionName = "1.3",
+                installedVersionCode = 13,
+                isStoreInstall = false,
+                releaseFeed = FakeReleaseFeed(release),
+                downloader = ApkDownloader(tempDir),
+                downloadExecutor = { _, _, _ -> Result.success(fakeApk) },
+                canInstallPackagesProvider = { false },
+                hasInstallPermissionDeclaredProvider = { false },
+                ioDispatcher = testDispatcher
+            )
+
+            coordinator.checkForUpdates(manual = true)
+            advanceUntilIdle()
+            assertThat(coordinator.uiState.value).isInstanceOf(AppUpdateUiState.UpdateAvailable::class.java)
+
+            coordinator.startDirectApkDownload()
+            advanceUntilIdle()
+            assertThat(coordinator.uiState.value).isInstanceOf(AppUpdateUiState.Error::class.java)
+
+            val coordinatorWithDeclaredPerm = AppUpdateCoordinator(
+                context = null,
+                scope = this,
+                installedVersionName = "1.3",
+                installedVersionCode = 13,
+                isStoreInstall = false,
+                releaseFeed = FakeReleaseFeed(release),
+                downloader = ApkDownloader(tempDir),
+                downloadExecutor = { _, _, _ -> Result.success(fakeApk) },
+                canInstallPackagesProvider = { false },
+                hasInstallPermissionDeclaredProvider = { true },
+                ioDispatcher = testDispatcher
+            )
+            coordinatorWithDeclaredPerm.checkForUpdates(manual = true)
+            advanceUntilIdle()
+            coordinatorWithDeclaredPerm.startDirectApkDownload()
+            advanceUntilIdle()
+            assertThat(coordinatorWithDeclaredPerm.uiState.value)
+                .isInstanceOf(AppUpdateUiState.NeedsInstallPermission::class.java)
+        } finally {
+            tempDir.deleteRecursively()
+        }
+    }
 }

@@ -1,7 +1,9 @@
 package com.lagcheck.android.update
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -10,12 +12,25 @@ import java.io.File
 
 object ApkInstaller {
 
-    fun canInstallPackages(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.packageManager.canRequestPackageInstalls()
+    fun hasInstallPermissionDeclared(context: Context): Boolean = runCatching {
+        val pm = context.packageManager
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageInfo(
+                context.packageName,
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong())
+            )
         } else {
-            true
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
         }
+        info.requestedPermissions?.contains(Manifest.permission.REQUEST_INSTALL_PACKAGES) == true
+    }.getOrDefault(false)
+
+    fun canInstallPackages(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return true
+        return runCatching {
+            context.packageManager.canRequestPackageInstalls()
+        }.getOrDefault(false)
     }
 
     fun requestInstallPermissionIntent(context: Context): Intent {

@@ -103,20 +103,39 @@ else
   cd "$ROOT/android"
 fi
 
-GRADLE_TASKS=()
-if [[ "$ARTIFACT" == "aab" || "$ARTIFACT" == "both" ]]; then
-  GRADLE_TASKS+=(":app:bundle${VARIANT}")
-fi
-if [[ "$ARTIFACT" == "apk" || "$ARTIFACT" == "both" ]]; then
-  GRADLE_TASKS+=(":app:assemble${VARIANT}")
-fi
-
 echo "Gerando Android ${VARIANT} | version=${VERSION_NAME} (${VERSION_CODE}) | artifact=${ARTIFACT} | adsEnabled=${ADS_ENABLED}" >&2
 
-./gradlew clean "${GRADLE_TASKS[@]}" \
-  -Plagcheck.versionName="$VERSION_NAME" \
-  -Plagcheck.versionCode="$VERSION_CODE" \
-  -Plagcheck.adsEnabled="$ADS_ENABLED"
+MERGED_MANIFEST="app/build/intermediates/merged_manifest/${BUILD_VARIANT}/process${VARIANT}MainManifest/AndroidManifest.xml"
+
+if [[ "$ARTIFACT" == "aab" || "$ARTIFACT" == "both" ]]; then
+  ./gradlew clean ":app:bundle${VARIANT}" \
+    -Plagcheck.versionName="$VERSION_NAME" \
+    -Plagcheck.versionCode="$VERSION_CODE" \
+    -Plagcheck.adsEnabled="$ADS_ENABLED" \
+    -Plagcheck.allowApkSelfUpdate=false
+
+  if [[ -f "$MERGED_MANIFEST" ]] && grep -Fq "android.permission.REQUEST_INSTALL_PACKAGES" "$MERGED_MANIFEST"; then
+    echo "Erro: AAB da Play Store não deve declarar REQUEST_INSTALL_PACKAGES." >&2
+    exit 1
+  fi
+fi
+
+if [[ "$ARTIFACT" == "apk" || "$ARTIFACT" == "both" ]]; then
+  APK_CLEAN_TASK=()
+  if [[ "$ARTIFACT" == "apk" ]]; then
+    APK_CLEAN_TASK=("clean")
+  fi
+  ./gradlew "${APK_CLEAN_TASK[@]}" ":app:assemble${VARIANT}" \
+    -Plagcheck.versionName="$VERSION_NAME" \
+    -Plagcheck.versionCode="$VERSION_CODE" \
+    -Plagcheck.adsEnabled="$ADS_ENABLED" \
+    -Plagcheck.allowApkSelfUpdate=true
+
+  if [[ ! -f "$MERGED_MANIFEST" ]] || ! grep -Fq "android.permission.REQUEST_INSTALL_PACKAGES" "$MERGED_MANIFEST"; then
+    echo "Erro: APK direto deve declarar REQUEST_INSTALL_PACKAGES no manifest." >&2
+    exit 1
+  fi
+fi
 
 mkdir -p "$OUT"
 SHA_FILES=()
