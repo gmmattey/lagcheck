@@ -159,16 +159,13 @@ fun CollapsibleScreenTopBar(
     modifier: Modifier = Modifier
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (isCollapsed) LagCheckColors.Surface else LagCheckColors.Background,
-        label = "topBarContainer"
+        targetValue = if (isCollapsed) LagCheckColors.Surface else LagCheckColors.Background
     )
     val elevation by animateDpAsState(
-        targetValue = if (isCollapsed) 4.dp else 0.dp,
-        label = "topBarElevation"
+        targetValue = if (isCollapsed) 4.dp else 0.dp
     )
     val dividerAlpha by animateFloatAsState(
-        targetValue = if (isCollapsed) 1f else 0f,
-        label = "topBarDivider"
+        targetValue = if (isCollapsed) 1f else 0f
     )
     val hasActionRow = onBack != null || trailingAction != null
 
