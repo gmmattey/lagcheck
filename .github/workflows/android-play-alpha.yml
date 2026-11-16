@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: "Versão do produto (X.Y, ex.: 1.2)"
+        description: "Versão do produto (X.Y, ex.: 1.3)"
         required: true
-        default: "1.2"
+        default: "1.3"
         type: string
       track:
-        description: "Track do Google Play Console"
+        description: "Track do Google Play Console (alpha mantém anúncios obrigatoriamente desativados)"
         required: true
         default: "alpha"
         type: choice
@@ -33,8 +33,13 @@ on:
         options:
           - completed
           - draft
+      enable_ads_non_alpha:
+        description: "Ativar anúncios AdMob (ignorado e mantido DESATIVADO na trilha alpha)"
+        required: false
+        default: false
+        type: boolean
       release_notes:
-        description: "Notas da versão (opcional; em branco gera automático pelo delta do último release)"
+        description: "Destaques comerciais opcionais (em branco gera diff comercial automático)"
         required: false
         default: ""
         type: string
@@ -68,13 +73,31 @@ jobs:
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Resolve AdMob policy per Play track
+        id: policy
+        run: |
+          TRACK="${{ inputs.track }}"
+          ENABLE_NON_ALPHA="${{ inputs.enable_ads_non_alpha }}"
+          if [ "$TRACK" = "alpha" ]; then
+            ADS_ENABLED="false"
+            echo "Trilha alpha na Google Play: anúncios AdMob desativados (ADS_ENABLED=false)."
+          elif [ "$ENABLE_NON_ALPHA" = "true" ]; then
+            ADS_ENABLED="true"
+            echo "Trilha ${TRACK}: anúncios AdMob ativados explicitamente (ADS_ENABLED=true)."
+          else
+            ADS_ENABLED="false"
+            echo "Trilha ${TRACK}: anúncios AdMob desativados (ADS_ENABLED=false)."
+          fi
+          echo "ads_enabled=${ADS_ENABLED}" >> "$GITHUB_OUTPUT"
+
       - name: Run Android unit tests
         working-directory: apps/android
         run: |
           ./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test :app:testValidationDebugUnitTest --no-daemon
 
-      - name: Configure upload signing key and build properties
+      - name: Configure upload signing key and AdMob properties
         env:
+          ADS_ENABLED: ${{ steps.policy.outputs.ads_enabled }}
           ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
           ANDROID_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
           ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
@@ -99,25 +122,46 @@ jobs:
           keyPassword=$ANDROID_UPLOAD_KEY_PASSWORD
           EOF
 
-          mkdir -p "$HOME/.gradle"
-          {
-            [ -n "$ADMOB_APP_ID" ] && echo "lagcheck.admobAppId=$ADMOB_APP_ID"
-            [ -n "$ADMOB_NATIVE_HOME_UNIT_ID" ] && echo "lagcheck.admobNativeHomeUnitId=$ADMOB_NATIVE_HOME_UNIT_ID"
-            [ -n "$ADMOB_NATIVE_HISTORY_UNIT_ID" ] && echo "lagcheck.admobNativeHistoryUnitId=$ADMOB_NATIVE_HISTORY_UNIT_ID"
-            [ -n "$ADMOB_NATIVE_GAMES_UNIT_ID" ] && echo "lagcheck.admobNativeGamesUnitId=$ADMOB_NATIVE_GAMES_UNIT_ID"
-            [ -n "$ADMOB_NATIVE_RESULT_UNIT_ID" ] && echo "lagcheck.admobNativeResultUnitId=$ADMOB_NATIVE_RESULT_UNIT_ID"
-          } >> "$HOME/.gradle/gradle.properties" || true
+          if [ "$ADS_ENABLED" = "true" ]; then
+            if [ -z "$ADMOB_APP_ID" ] || [ -z "$ADMOB_NATIVE_HOME_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_HISTORY_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_GAMES_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_RESULT_UNIT_ID" ]; then
+              echo "Erro: anúncios ativados exigem todos os secrets ADMOB_* configurados." >&2
+              exit 1
+            fi
+            mkdir -p "$HOME/.gradle"
+            {
+              echo "lagcheck.admobAppId=$ADMOB_APP_ID"
+              echo "lagcheck.admobNativeHomeUnitId=$ADMOB_NATIVE_HOME_UNIT_ID"
+              echo "lagcheck.admobNativeHistoryUnitId=$ADMOB_NATIVE_HISTORY_UNIT_ID"
+              echo "lagcheck.admobNativeGamesUnitId=$ADMOB_NATIVE_GAMES_UNIT_ID"
+              echo "lagcheck.admobNativeResultUnitId=$ADMOB_NATIVE_RESULT_UNIT_ID"
+            } >> "$HOME/.gradle/gradle.properties"
+          else
+            echo "Anúncios desativados: IDs de produção AdMob não injetados neste build."
+          fi
 
       - name: Build and verify signed AAB
         id: build
         env:
+          ADS_ENABLED: ${{ steps.policy.outputs.ads_enabled }}
           LAGCHECK_BUILD_OFFSET: ${{ vars.LAGCHECK_BUILD_OFFSET || '8' }}
         run: |
           VERSION_NAME="${{ inputs.version_name }}"
           CHANNEL="${{ inputs.channel }}"
           VERSION_CODE="$((GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET))"
 
-          bash shared/scripts/android-release.sh "$VERSION_NAME" "" "$CHANNEL"
+          bash shared/scripts/android-release.sh "$VERSION_NAME" "$VERSION_CODE" "$CHANNEL" \
+            --artifact aab \
+            --ads-enabled "$ADS_ENABLED"
+
+          FLAVOR="validation"
+          if [ "$CHANNEL" = "production" ]; then
+            FLAVOR="production"
+          fi
+          BUILD_CONFIG="apps/android/app/build/generated/source/buildConfig/${FLAVOR}/release/com/lagcheck/android/BuildConfig.java"
+          grep -Fq "public static final boolean ADS_ENABLED = ${ADS_ENABLED};" "$BUILD_CONFIG" || {
+            echo "Erro: BuildConfig.ADS_ENABLED não corresponde ao esperado (${ADS_ENABLED})." >&2
+            exit 1
+          }
 
           OUT_DIR="shared/distribution/release/android/v${VERSION_NAME}-b${VERSION_CODE}-${CHANNEL}"
           AAB_PATH="${OUT_DIR}/lagcheck-android-${CHANNEL}-v${VERSION_NAME}-b${VERSION_CODE}.aab"
@@ -128,7 +172,49 @@ jobs:
           echo "aab_path=${AAB_PATH}" >> "$GITHUB_OUTPUT"
           echo "mapping_path=${MAPPING_PATH}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload AAB and mapping to GitHub Artifacts
+      - name: Generate commercial release notes diff (pt-BR, en-US, es-ES)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ADS_ENABLED: ${{ steps.policy.outputs.ads_enabled }}
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          VERSION_CODE: ${{ steps.build.outputs.version_code }}
+          TRACK: ${{ inputs.track }}
+        run: |
+          mkdir -p whatsnew
+          BASE_REF=""
+          HEAD_SHA="$(git rev-parse HEAD)"
+          CANDIDATE_SHA="$(gh run list --workflow=android-play-alpha.yml --status=success --limit=1 --json headSha --jq '.[0].headSha' 2>/dev/null || true)"
+          if [ -n "$CANDIDATE_SHA" ] && [ "$CANDIDATE_SHA" != "$HEAD_SHA" ] && git cat-file -e "${CANDIDATE_SHA}^{commit}" 2>/dev/null; then
+            BASE_REF="$CANDIDATE_SHA"
+          fi
+
+          python3 shared/scripts/generate_release_notes.py \
+            --platform android \
+            --channel "play-${TRACK}" \
+            --version "$VERSION_NAME" \
+            --build "$VERSION_CODE" \
+            --base-ref "$BASE_REF" \
+            --custom-notes "$CUSTOM_NOTES" \
+            --ads-enabled "$ADS_ENABLED" \
+            --out-whatsnew-dir whatsnew \
+            --out-github-md "${{ steps.build.outputs.out_dir }}/release-diff.md"
+
+          {
+            echo "### Política de anúncios deste build"
+            echo "- Track: \`${TRACK}\` | \`ADS_ENABLED=${ADS_ENABLED}\`"
+            echo ""
+            cat "${{ steps.build.outputs.out_dir }}/release-diff.md"
+            echo ""
+            for f in whatsnew/whatsnew-*; do
+              echo "#### $(basename "$f")"
+              echo '```text'
+              cat "$f"
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload AAB, mapping and commercial notes to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: lagcheck-android-${{ inputs.channel }}-v${{ inputs.version_name }}-b${{ steps.build.outputs.version_code }}
@@ -136,94 +222,9 @@ jobs:
             ${{ steps.build.outputs.out_dir }}/*.aab
             ${{ steps.build.outputs.out_dir }}/mapping.txt
             ${{ steps.build.outputs.out_dir }}/SHA256SUMS.txt
+            ${{ steps.build.outputs.out_dir }}/release-diff.md
+            whatsnew/whatsnew-*
           retention-days: 30
-
-      - name: Generate release notes from commit delta
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CUSTOM_NOTES: ${{ inputs.release_notes }}
-          VERSION_NAME: ${{ inputs.version_name }}
-          VERSION_CODE: ${{ steps.build.outputs.version_code }}
-        run: |
-          mkdir -p whatsnew
-          python3 - <<'PY'
-          import os, subprocess
-
-          custom = os.environ.get("CUSTOM_NOTES", "").strip()
-          version_name = os.environ["VERSION_NAME"]
-          version_code = os.environ["VERSION_CODE"]
-
-          def git_lines(rev_range):
-              res = subprocess.run(
-                  ["git", "log", "--no-merges", "--pretty=format:- %s", rev_range],
-                  capture_output=True, text=True
-              )
-              return [l.strip() for l in res.stdout.splitlines() if l.strip()]
-
-          if custom:
-              notes = custom
-          else:
-              prev_sha = ""
-              try:
-                  gh = subprocess.run(
-                      ["gh", "run", "list", "--workflow=android-play-alpha.yml",
-                       "--status=success", "--limit=1", "--json", "headSha", "--jq", ".[0].headSha"],
-                      capture_output=True, text=True
-                  )
-                  candidate = gh.stdout.strip()
-                  if candidate and subprocess.run(
-                      ["git", "cat-file", "-e", f"{candidate}^{{commit}}"],
-                      capture_output=True
-                  ).returncode == 0:
-                      prev_sha = candidate
-              except Exception:
-                  pass
-
-              lines = []
-              if prev_sha:
-                  lines = git_lines(f"{prev_sha}..HEAD")
-              else:
-                  tag = subprocess.run(
-                      ["git", "describe", "--tags", "--match", "android-v*", "--abbrev=0"],
-                      capture_output=True, text=True
-                  )
-                  if tag.returncode == 0 and tag.stdout.strip():
-                      lines = git_lines(f"{tag.stdout.strip()}..HEAD")
-                  else:
-                      res = subprocess.run(
-                          ["git", "log", "-n", "10", "--no-merges", "--pretty=format:- %s"],
-                          capture_output=True, text=True
-                      )
-                      lines = [l.strip() for l in res.stdout.splitlines() if l.strip()]
-
-              if not lines:
-                  notes = f"Ajustes e melhorias internas da versão v{version_name} ({version_code})."
-              else:
-                  # Play Console limita whatsnew a 500 caracteres por idioma.
-                  selected = []
-                  total = 0
-                  for line in lines:
-                      add_len = len(line) + (1 if selected else 0)
-                      if total + add_len > 495:
-                          break
-                      selected.append(line)
-                      total += add_len
-                  if not selected:
-                      notes = lines[0][:497] + "..."
-                  elif len(selected) < len(lines):
-                      notes = "\n".join(selected) + "\n..."
-                  else:
-                      notes = "\n".join(selected)
-
-          notes = notes[:500]
-          with open("whatsnew/whatsnew-pt-BR", "w", encoding="utf-8") as f:
-              f.write(notes + "\n")
-
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-          if summary_path:
-              with open(summary_path, "a", encoding="utf-8") as s:
-                  s.write(f"### Notas da versão (pt-BR)\n\n```\n{notes}\n```\n")
-          PY
 
       - name: Publish to Google Play Console (${{ inputs.track }})
         uses: r0adkll/upload-google-play@v1

@@ -1,4 +1,4 @@
-# LagCheck — fluxo de release
+s# LagCheck — fluxo de release
 
 **Status:** regra operacional da V1  
 **Idioma:** PT-BR  
@@ -18,9 +18,21 @@ Uma instalação local não é beta. Um build enviado ao App Store Connect não 
 | Canal | Para quem | Como instala | Pode usar dados/serviços de produção? | Objetivo |
 | --- | --- | --- | --- | --- |
 | Debug | Time de desenvolvimento | Xcode/ADB em aparelho físico | Não por padrão | Construir e depurar rapidamente |
-| TestFlight | Time interno e beta testers autorizados | App TestFlight | Sim, com proteções e dados reais mínimos | Validar o release candidato em condições reais |
-| Google Play interno/fechado | Time interno ou testers Android autorizados | Google Play | Sim, com proteções e dados reais mínimos | Validar o AAB candidato em condições reais |
-| Produção | Público da App Store | App Store | Sim | Entregar uma versão aprovada e monitorada |
+| TestFlight | Time interno e beta testers autorizados | App TestFlight | Sim (`LAGCHECK_ADS_ENABLED=YES`, proteções e dados reais mínimos) | Validar o release candidato em condições reais |
+| Google Play trilha `alpha` | Time interno ou testers Android na Play | Google Play (`android-play-alpha.yml`) | Sem anúncios (`lagcheck.adsEnabled=false`) | Validar o AAB candidato na Play sem AdMob |
+| Google Play `internal` / `beta` | Testers autorizados na Play | Google Play | Sim (anúncios opcionais por parâmetro) | Validar o AAB candidato antes de produção |
+| APK direto no GitHub | Usuários Android fora da Play (`android-vX.Y-bN`) | GitHub Releases (`android-github-apk.yml`) | Sim (`lagcheck.adsEnabled=true` com IDs de produção) | Entregar APK assinado oficial com auto-update |
+| Produção | Público da App Store / Google Play | App Store / Google Play | Sim (`LAGCHECK_ADS_ENABLED=YES` / `adsEnabled=true`) | Entregar uma versão aprovada e monitorada |
+
+### 2.1 Matriz oficial de anúncios AdMob e notas comerciais (Decisão 146)
+
+| Canal / Plataforma | Workflow / Script | Estado do AdMob | Notas de versão enviadas |
+| --- | --- | --- | --- |
+| **Android — Google Play (`alpha`)** | `.github/workflows/android-play-alpha.yml` + `shared/scripts/android-release.sh --artifact aab --ads-enabled false` | **Desativado** (`BuildConfig.ADS_ENABLED = false`; sem IDs de produção nem UMP) | `whatsnew-pt-BR`, `whatsnew-en-US`, `whatsnew-es-ES` (`<= 500` caracteres em linguagem comercial) |
+| **Android — APK direto no GitHub** | `.github/workflows/android-github-apk.yml` + `shared/scripts/android-release.sh --artifact apk --ads-enabled true` | **Ativado** (`BuildConfig.ADS_ENABLED = true` com secrets `ADMOB_*` de produção) | GitHub Release (`android-vX.Y-bN`) + `whatsnew` em linguagem comercial comparando desde a versão anterior + `SHA-256` |
+| **iOS (TestFlight e App Store)** | `.github/workflows/ios-release.yml` + `shared/scripts/ios-release.sh` | **Ativado** (`LAGCHECK_ADS_ENABLED=YES`, IDs reais no Release verificados no `Info.plist`) | App Store Connect (`release-notes-*.txt`, até `4000` caracteres) + GitHub Release em linguagem comercial |
+
+Toda nota enviada às lojas ou ao GitHub usa obrigatoriamente o gerador `shared/scripts/generate_release_notes.py` (ou destaques manuais no mesmo padrão comercial), filtrando commits internos (`docs/`, `ci/`, `winui:`/`windows`, arquivos de configuração) e comparando diretamente o que mudou para o jogador desde a versão anterior.
 
 Simulador e emulador ajudam a validar interface e lógica isolada, mas não
 substituem instalação Debug em aparelho iOS ou Android para medir rede,
@@ -211,23 +223,21 @@ Não existe “desfazer o binário” publicado como se fosse um deploy web. Rev
 
 Hotfix aumenta `MINOR` e recebe novo build. Exemplo: `1.0 (120)` público com defeito → `1.1 (121)` para TestFlight e App Review. A urgência não elimina teste de regressão para o problema corrigido.
 
-## 8. GitHub e identidade de build — sem publicação automatizada
+## 8. GitHub, workflows manuais e identidade de build
 
-O GitHub rastreia o código e pode numerar builds, mas não publica o app por conta própria. A automação de release dedicada só é criada quando houver autorização, sem chaves no repositório; até lá, o script aceita um build informado manualmente.
+O GitHub rastreia o código e executa workflows manuais (`workflow_dispatch`) sob demanda para empacotar e publicar artefatos configurados com secrets protegidos, sem publicação automática em pushes comuns na `main`.
 
-Quando existir, a automação de release deve adotar:
-
-| Elemento futuro | Regra prevista |
+| Elemento | Regra vigente |
 | --- | --- |
 | Branch principal | `main` representa o estado integrado e liberável; não recebe alteração direta sem revisão |
 | Trabalho isolado | cada frente usa branch curta com escopo claro; merge só após revisão e validação correspondente |
 | Pull request | descreve comportamento, documentos afetados, validações executadas e riscos; não afirma publicação sem prova externa |
-| Tags | `vX.Y` marca exatamente o commit da versão de produto liberada; o build correspondente fica registrado na release note |
-| Build | `GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET`; o offset inicial é `11` e só muda se uma entrega externa consumir outro build |
-| CI | em pull request: build, testes e lint; em tag de release: archive reproduzível e validações adicionais. Upload para Apple só existe com autorização explícita |
-| Segredos | certificados, chaves do App Store Connect e assinatura de catálogo ficam em cofre de segredos; nunca em código, arquivo de configuração versionado ou log |
-| Proteção | aprovação obrigatória, checks verdes e histórico auditável para `main` e tags de release |
-| Releases | notas humanas, versão/build, link de TestFlight ou App Store quando existir e evidência real do estado de distribuição |
+| Tags | `android-vX.Y-bN` (APK direto Android) e `ios-vX.Y-bN` (notas/releases iOS) marcam o commit exato liberado |
+| Build | `GITHUB_RUN_NUMBER + offset`, nunca menor que o maior build já publicado na respectiva trilha |
+| Workflows de release | `android-play-alpha.yml` (AAB com `ADS_ENABLED=false` na trilha `alpha`), `android-github-apk.yml` (APK direto com `ADS_ENABLED=true` e secrets `ADMOB_*`) e `ios-release.yml` (`LAGCHECK_ADS_ENABLED=YES`) |
+| Notas entre versões | geradas via `shared/scripts/generate_release_notes.py` em **linguagem comercial** comparando versão anterior e atual para lojas (`whatsnew` / App Store) e GitHub Releases |
+| Segredos | certificados, keystores, chaves do Play Console / App Store Connect e IDs `ADMOB_*` ficam apenas em GitHub Secrets; nunca em código ou log |
+| Proteção | checks verdes (`analytics-ci.yml`, testes Android/iOS) e histórico auditável para `main` e tags de release |
 
 Automação futura acelera passos repetitivos; ela não substitui os gates de produto, a aprovação de submissão nem a confirmação de publicação.
 

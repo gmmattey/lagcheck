@@ -33,3 +33,6 @@ jobs:
         run: npm ci --prefix apps/worker
       - name: Worker unit tests (including Vercel/Discord)
         run: npm test --prefix apps/worker
+
+      - name: Release scripts unit tests
+        run: python3 -m unittest discover -s shared/scripts/tests -v

@@ -1,0 +1,189 @@
+name: iOS Release & Commercial Notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Versão do produto (X.Y, ex.: 1.2)"
+        required: true
+        default: "1.2"
+        type: string
+      build_number:
+        description: "Build inteiro crescente (opcional; em branco soma GITHUB_RUN_NUMBER + offset)"
+        required: false
+        default: ""
+        type: string
+      channel:
+        description: "Destino Apple da release"
+        required: true
+        default: "testflight"
+        type: choice
+        options:
+          - testflight
+          - app-store
+      mode:
+        description: "verify-archive (CI sem certificado Apple), archive-and-upload (com secrets ASC), ou notes-only"
+        required: true
+        default: "verify-archive"
+        type: choice
+        options:
+          - verify-archive
+          - archive-and-upload
+          - notes-only
+      publish_github_release:
+        description: "Criar tag ios-vX.Y-bN e release documental no GitHub com o diff comercial"
+        required: false
+        default: false
+        type: boolean
+      release_notes:
+        description: "Destaques comerciais opcionais (em branco gera diff comercial automático)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  ios-release:
+    name: Validate iOS (AdMob ON) & Commercial Diff
+    runs-on: macos-15
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve build number
+        id: meta
+        env:
+          INPUT_BUILD: ${{ inputs.build_number }}
+          LAGCHECK_IOS_BUILD_OFFSET: ${{ vars.LAGCHECK_IOS_BUILD_OFFSET || '12' }}
+        run: |
+          if [ -n "$INPUT_BUILD" ]; then
+            BUILD_NUMBER="$INPUT_BUILD"
+          else
+            CANDIDATE="$((GITHUB_RUN_NUMBER + LAGCHECK_IOS_BUILD_OFFSET))"
+            LAST_TAG_BUILD="$(git tag -l 'ios-v*-b*' | sed -nE 's/^ios-v[0-9.]+-b([0-9]+)$/\1/p' | sort -n | tail -n 1 || true)"
+            LAST_TAG_BUILD="${LAST_TAG_BUILD:-0}"
+            MIN_NEXT="$((LAST_TAG_BUILD + 1))"
+            if [ "$CANDIDATE" -ge "$MIN_NEXT" ]; then
+              BUILD_NUMBER="$CANDIDATE"
+            else
+              BUILD_NUMBER="$MIN_NEXT"
+            fi
+          fi
+          OUT_DIR="shared/distribution/release/ios/v${{ inputs.version_name }}-b${BUILD_NUMBER}"
+          TAG_NAME="ios-v${{ inputs.version_name }}-b${BUILD_NUMBER}"
+          echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "out_dir=${OUT_DIR}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare notes or verify unsigned Release archive (LAGCHECK_ADS_ENABLED=YES)
+        if: inputs.mode != 'archive-and-upload'
+        env:
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+        run: |
+          if [ "${{ inputs.mode }}" = "verify-archive" ]; then
+            brew install xcodegen || true
+          fi
+          bash shared/scripts/ios-release.sh "${{ inputs.version_name }}" "${{ steps.meta.outputs.build_number }}" \
+            --channel "${{ inputs.channel }}" \
+            --mode "${{ inputs.mode }}" \
+            --custom-notes "$CUSTOM_NOTES"
+
+      - name: Sign, Archive & Upload to TestFlight (LAGCHECK_ADS_ENABLED=YES)
+        if: inputs.mode == 'archive-and-upload'
+        env:
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+          IOS_CERT_P12_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERT_P12_BASE64 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
+        run: |
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_PRIVATE_KEY_BASE64" ] || [ -z "$IOS_CERT_P12_BASE64" ] || [ -z "$IOS_CERT_PASSWORD" ]; then
+            echo "Erro: configure os secrets APP_STORE_CONNECT_* e IOS_DISTRIBUTION_CERT_* ou rode em modo verify-archive." >&2
+            exit 1
+          fi
+
+          brew install xcodegen || true
+
+          KEYCHAIN_PATH="$RUNNER_TEMP/lagcheck-signing.keychain-db"
+          KEYCHAIN_PASS="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          printf '%s' "$IOS_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -P "$IOS_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          ASC_KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$ASC_KEY_DIR"
+          printf '%s' "$ASC_PRIVATE_KEY_BASE64" | base64 --decode > "$ASC_KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
+
+          bash shared/scripts/ios-release.sh "${{ inputs.version_name }}" "${{ steps.meta.outputs.build_number }}" \
+            --channel "${{ inputs.channel }}" \
+            --mode archive \
+            --custom-notes "$CUSTOM_NOTES"
+
+          IPA_FILE="$(find "${{ steps.meta.outputs.out_dir }}" -name '*.ipa' | head -n 1)"
+          [ -n "$IPA_FILE" ] || { echo "Erro: IPA não gerado." >&2; exit 1; }
+
+          xcrun altool --upload-app --type ios -f "$IPA_FILE" \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Publish commercial release notes to Step Summary
+        run: |
+          {
+            echo "### iOS Release ${{ inputs.version_name }} (build ${{ steps.meta.outputs.build_number }})"
+            echo "- Canal: \`${{ inputs.channel }}\` | \`LAGCHECK_ADS_ENABLED=YES\`"
+            echo ""
+            cat "${{ steps.meta.outputs.out_dir }}/github-release-notes.md"
+            echo ""
+            for f in "${{ steps.meta.outputs.out_dir }}"/appstore/release-notes-*.txt; do
+              echo "#### $(basename "$f")"
+              echo '```text'
+              cat "$f"
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload commercial notes to Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lagcheck-ios-notes-v${{ inputs.version_name }}-b${{ steps.meta.outputs.build_number }}
+          path: |
+            ${{ steps.meta.outputs.out_dir }}/appstore/*.txt
+            ${{ steps.meta.outputs.out_dir }}/github-release-notes.md
+          retention-days: 30
+
+      - name: Create GitHub Release with commercial diff (optional)
+        if: inputs.publish_github_release == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.meta.outputs.tag_name }}
+          OUT_DIR: ${{ steps.meta.outputs.out_dir }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Erro: release ${TAG_NAME} já existe no GitHub." >&2
+            exit 1
+          fi
+          gh release create "$TAG_NAME" \
+            --target "${GITHUB_SHA}" \
+            --title "LagCheck iOS ${{ inputs.version_name }} (build ${{ steps.meta.outputs.build_number }})" \
+            --notes-file "${OUT_DIR}/github-release-notes.md"
+
+      - name: Clean up temporary signing material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/dist.p12" "$HOME/.appstoreconnect/private_keys"/AuthKey_*.p8 || true
+          rm -rf shared/distribution/release/ios/v"${{ inputs.version_name }}"-b"${{ steps.meta.outputs.build_number }}"

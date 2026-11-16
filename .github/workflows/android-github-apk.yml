@@ -1,0 +1,222 @@
+name: Android GitHub Direct APK Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Versão do produto (X.Y, ex.: 1.3)"
+        required: true
+        default: "1.3"
+        type: string
+      version_code:
+        description: "Build inteiro crescente (opcional; em branco calcula maior que o último android-v*-bN)"
+        required: false
+        default: ""
+        type: string
+      release_notes:
+        description: "Destaques comerciais opcionais (em branco gera diff comercial desde a última release)"
+        required: false
+        default: ""
+        type: string
+      prerelease:
+        description: "Marcar este release no GitHub como pré-lançamento"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: android-github-apk-release
+  cancel-in-progress: false
+
+jobs:
+  publish-apk:
+    name: Build, Sign & Publish GitHub APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Android unit tests
+        working-directory: apps/android
+        run: |
+          ./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test :app:testProductionDebugUnitTest --no-daemon
+
+      - name: Configure signing key and production AdMob IDs (ADS_ENABLED=true)
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ADMOB_NATIVE_HOME_UNIT_ID: ${{ secrets.ADMOB_NATIVE_HOME_UNIT_ID }}
+          ADMOB_NATIVE_HISTORY_UNIT_ID: ${{ secrets.ADMOB_NATIVE_HISTORY_UNIT_ID }}
+          ADMOB_NATIVE_GAMES_UNIT_ID: ${{ secrets.ADMOB_NATIVE_GAMES_UNIT_ID }}
+          ADMOB_NATIVE_RESULT_UNIT_ID: ${{ secrets.ADMOB_NATIVE_RESULT_UNIT_ID }}
+        run: |
+          if [ -z "$ANDROID_UPLOAD_KEYSTORE_BASE64" ] || [ -z "$ANDROID_UPLOAD_STORE_PASSWORD" ] || [ -z "$ANDROID_UPLOAD_KEY_ALIAS" ] || [ -z "$ANDROID_UPLOAD_KEY_PASSWORD" ]; then
+            echo "Erro: configure os secrets ANDROID_UPLOAD_KEYSTORE_BASE64, ANDROID_UPLOAD_STORE_PASSWORD, ANDROID_UPLOAD_KEY_ALIAS e ANDROID_UPLOAD_KEY_PASSWORD." >&2
+            exit 1
+          fi
+
+          if [ -z "$ADMOB_APP_ID" ] || [ -z "$ADMOB_NATIVE_HOME_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_HISTORY_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_GAMES_UNIT_ID" ] || [ -z "$ADMOB_NATIVE_RESULT_UNIT_ID" ]; then
+            echo "Erro: APK direto no GitHub exige anúncios ativados com todos os secrets ADMOB_* de produção." >&2
+            exit 1
+          fi
+
+          mkdir -p shared/distribution/release/keys
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 --decode > shared/distribution/release/keys/lagcheck-upload.jks
+          cat > shared/distribution/release/keys/lagcheck-upload.properties <<EOF
+          storeFile=lagcheck-upload.jks
+          storePassword=$ANDROID_UPLOAD_STORE_PASSWORD
+          keyAlias=$ANDROID_UPLOAD_KEY_ALIAS
+          keyPassword=$ANDROID_UPLOAD_KEY_PASSWORD
+          EOF
+
+          mkdir -p "$HOME/.gradle"
+          {
+            echo "lagcheck.admobAppId=$ADMOB_APP_ID"
+            echo "lagcheck.admobNativeHomeUnitId=$ADMOB_NATIVE_HOME_UNIT_ID"
+            echo "lagcheck.admobNativeHistoryUnitId=$ADMOB_NATIVE_HISTORY_UNIT_ID"
+            echo "lagcheck.admobNativeGamesUnitId=$ADMOB_NATIVE_GAMES_UNIT_ID"
+            echo "lagcheck.admobNativeResultUnitId=$ADMOB_NATIVE_RESULT_UNIT_ID"
+          } >> "$HOME/.gradle/gradle.properties"
+
+      - name: Resolve versionCode and build signed production APK
+        id: build
+        env:
+          INPUT_VERSION_CODE: ${{ inputs.version_code }}
+          LAGCHECK_BUILD_OFFSET: ${{ vars.LAGCHECK_BUILD_OFFSET || '8' }}
+        run: |
+          VERSION_NAME="${{ inputs.version_name }}"
+          if [ -n "$INPUT_VERSION_CODE" ]; then
+            VERSION_CODE="$INPUT_VERSION_CODE"
+          else
+            CANDIDATE_RUN="$((GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET))"
+            LAST_TAG_BUILD="$(git tag -l 'android-v*-b*' | sed -nE 's/^android-v[0-9.]+-b([0-9]+)$/\1/p' | sort -n | tail -n 1 || true)"
+            LAST_TAG_BUILD="${LAST_TAG_BUILD:-0}"
+            MIN_NEXT="$((LAST_TAG_BUILD + 1))"
+            if [ "$CANDIDATE_RUN" -ge "$MIN_NEXT" ]; then
+              VERSION_CODE="$CANDIDATE_RUN"
+            else
+              VERSION_CODE="$MIN_NEXT"
+            fi
+          fi
+
+          bash shared/scripts/android-release.sh "$VERSION_NAME" "$VERSION_CODE" production \
+            --artifact apk \
+            --ads-enabled true
+
+          BUILD_CONFIG="apps/android/app/build/generated/source/buildConfig/production/release/com/lagcheck/android/BuildConfig.java"
+          grep -Fq "public static final boolean ADS_ENABLED = true;" "$BUILD_CONFIG" || {
+            echo "Erro: APK do GitHub deve ter ADS_ENABLED = true." >&2
+            exit 1
+          }
+          if grep -Fq "3940256099942544" "$BUILD_CONFIG"; then
+            echo "Erro: IDs de teste do AdMob detectados no BuildConfig de produção." >&2
+            exit 1
+          fi
+
+          OUT_DIR="shared/distribution/release/android/v${VERSION_NAME}-b${VERSION_CODE}-production"
+          APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}-production.apk"
+          APK_PATH="${OUT_DIR}/${APK_NAME}"
+          APK_SHA256="$(shasum -a 256 "$APK_PATH" | awk '{print $1}')"
+          TAG_NAME="android-v${VERSION_NAME}-b${VERSION_CODE}"
+
+          echo "version_code=${VERSION_CODE}" >> "$GITHUB_OUTPUT"
+          echo "out_dir=${OUT_DIR}" >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_path=${APK_PATH}" >> "$GITHUB_OUTPUT"
+          echo "apk_sha256=${APK_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate commercial release notes diff for GitHub and stores
+        env:
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          VERSION_CODE: ${{ steps.build.outputs.version_code }}
+          APK_NAME: ${{ steps.build.outputs.apk_name }}
+          APK_SHA256: ${{ steps.build.outputs.apk_sha256 }}
+          OUT_DIR: ${{ steps.build.outputs.out_dir }}
+        run: |
+          python3 shared/scripts/generate_release_notes.py \
+            --platform android \
+            --channel github-apk \
+            --version "$VERSION_NAME" \
+            --build "$VERSION_CODE" \
+            --custom-notes "$CUSTOM_NOTES" \
+            --ads-enabled true \
+            --apk-name "$APK_NAME" \
+            --apk-sha256 "$APK_SHA256" \
+            --out-whatsnew-dir "${OUT_DIR}/whatsnew" \
+            --out-github-md "${OUT_DIR}/github-release-notes.md"
+
+          {
+            echo "### Tag: \`${{ steps.build.outputs.tag_name }}\` | \`ADS_ENABLED=true\`"
+            echo ""
+            cat "${OUT_DIR}/github-release-notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK, mapping and notes to Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lagcheck-android-apk-v${{ inputs.version_name }}-b${{ steps.build.outputs.version_code }}
+          path: |
+            ${{ steps.build.outputs.apk_path }}
+            ${{ steps.build.outputs.out_dir }}/mapping.txt
+            ${{ steps.build.outputs.out_dir }}/SHA256SUMS.txt
+            ${{ steps.build.outputs.out_dir }}/github-release-notes.md
+            ${{ steps.build.outputs.out_dir }}/whatsnew/whatsnew-*
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.build.outputs.tag_name }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          VERSION_CODE: ${{ steps.build.outputs.version_code }}
+          OUT_DIR: ${{ steps.build.outputs.out_dir }}
+          APK_PATH: ${{ steps.build.outputs.apk_path }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Erro: release ${TAG_NAME} já existe no GitHub. Incremente o build." >&2
+            exit 1
+          fi
+
+          EXTRA_ARGS=()
+          if [ "$PRERELEASE" = "true" ]; then
+            EXTRA_ARGS+=(--prerelease)
+          fi
+
+          ASSETS=("$APK_PATH" "${OUT_DIR}/SHA256SUMS.txt")
+          if [ -f "${OUT_DIR}/mapping.txt" ]; then
+            ASSETS+=("${OUT_DIR}/mapping.txt")
+          fi
+
+          gh release create "$TAG_NAME" \
+            "${ASSETS[@]}" \
+            --target "${GITHUB_SHA}" \
+            --title "LagCheck Android ${VERSION_NAME} (build ${VERSION_CODE})" \
+            --notes-file "${OUT_DIR}/github-release-notes.md" \
+            "${EXTRA_ARGS[@]}"
+
+      - name: Clean up signing key material
+        if: always()
+        run: rm -rf shared/distribution/release/keys
