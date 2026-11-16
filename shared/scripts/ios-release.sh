@@ -150,7 +150,7 @@ xcodebuild archive \
   MARKETING_VERSION="$VERSION_NAME" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
   LAGCHECK_ADS_ENABLED=YES \
-  "${ARCHIVE_EXTRA[@]}" \
+  ${ARCHIVE_EXTRA[@]+"${ARCHIVE_EXTRA[@]}"} \
   -quiet
 
 INFO_PLIST="$ARCHIVE_PATH/Products/Applications/Nolaggy.app/Info.plist"
@@ -171,6 +171,9 @@ echo "Archive iOS verificado: LagCheckAdsEnabled=$ADS_PLIST_VAL | GADApplication
 
 if [[ "$MODE" == "archive" ]]; then
   EXPORT_PLIST="${LAGCHECK_IOS_EXPORT_OPTIONS:-$ROOT/shared/distribution/release/ExportOptions-TestFlight.plist}"
+  if [[ "$EXPORT_PLIST" != /* && ! -f "$EXPORT_PLIST" && -f "$ROOT/$EXPORT_PLIST" ]]; then
+    EXPORT_PLIST="$ROOT/$EXPORT_PLIST"
+  fi
   [[ -f "$EXPORT_PLIST" ]] || { echo "Erro: ExportOptions não encontrado em $EXPORT_PLIST" >&2; exit 1; }
   xcodebuild -exportArchive \
     -archivePath "$ARCHIVE_PATH" \
