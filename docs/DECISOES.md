@@ -1402,7 +1402,7 @@
      - Comparação semântica de versões (`VersionComparer` suportando `major.minor.patch` e `-b<buildNumber>`).
      - Pop-up nativo (`UpdateDialog`) em **Dark Competitive UI** apresentando a nova versão, tamanho e notas.
      - Ao autorizar ("ATUALIZAR AGORA"), o download do APK é realizado de forma transparente em segundo plano com indicador de progresso e salvo no cache (`updates/lagcheck-update.apk`).
-     - Ao concluir, invoca a instalação nativa do sistema via `FileProvider` (`ACTION_VIEW`). Caso a permissão `REQUEST_INSTALL_PACKAGES` ainda não tenha sido concedida pelo usuário nas configurações do Android, direciona com 1 toque para autorização antes de prosseguir.
+     - Ao concluir, invoca a instalação nativa do sistema via `FileProvider` (`ACTION_VIEW`). Caso a permissão `REQUEST_INSTALL_PACKAGES` ainda não tenha sido concedida pelo usuário nas configurações do Android, direciona com 1 toque para autorização antes de prosseguir e retoma a instalação ao retornar ao app (`ON_RESUME`). **Isolamento de manifest (atualizado em `v1.3-b14`):** `REQUEST_INSTALL_PACKAGES` é declarada apenas em `src/debug/AndroidManifest.xml` e `src/directApk/AndroidManifest.xml` (ativada somente quando `shared/scripts/android-release.sh` gera APK direto com `-Plagcheck.allowApkSelfUpdate=true`), mantendo o `.aab` da Google Play sem a permissão; `ApkInstaller.canInstallPackages` trata `SecurityException` sem fechar o app.
      - Contingência com link direto para download via navegador caso o usuário prefira.
   3. **Fluxo de Loja / Google Play Store (`PlayStoreUpdateManager`):**
      - Integração com a API oficial Google Play In-App Updates (`com.google.android.play:app-update-ktx:2.1.0`).
