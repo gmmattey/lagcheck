@@ -231,6 +231,7 @@
 "home.network.awaiting_result" = "Esperando resultado";
 "home.featured" = "Destacados";
 "home.popular" = "Más jugados";
+"home.popular.hint" = "Toca un juego para iniciar el test";
 "home.all_games" = "Todos los juegos";
 "home.score" = "Score";
 "home.hero.detail" = "Toca para ver detalles y probar tu conexión.";
@@ -912,3 +913,24 @@
 "route_map.you" = "Tú";
 "route_map.a11y" = "Mapa de la ruta medida";
 "route_map.unavailable" = "Ubicación aproximada no disponible";
+
+/* Gráfico de Estabilidad y 4 Anillos (Decisión 143) */
+"history.scope.overview" = "Resumen";
+"history.network.all" = "Todas las redes";
+"history.network.other" = "Otro";
+"history.stability.title_overview" = "ESTABILIDAD DE RED";
+"history.stability.title_game" = "ESTABILIDAD EN EL JUEGO";
+"history.stability.headline.stable" = "Red estable";
+"history.stability.headline.moderate" = "Oscilación moderada";
+"history.stability.headline.unstable" = "Red inestable";
+"history.stability.headline.insufficient" = "Pocas mediciones aún";
+"history.stability.headline.empty" = "Sin mediciones";
+"history.stability.minimum_checks" = "Haz al menos 3 checks en la misma red para ver la evolución.";
+"history.stability.ring.ping" = "PING MED";
+"history.stability.ring.jitter" = "JITTER";
+"history.stability.ring.loss" = "PÉRDIDA";
+"history.stability.ring.load" = "CARGA";
+"history.stability.inconclusive.singular" = "1 no concluyente";
+"history.stability.inconclusive.plural %d" = "%d no concluyentes";
+"history.stability.latest_check" = "Último check";
+"history.stability.chart_a11y %@" = "Gráfico de estabilidad: %@";

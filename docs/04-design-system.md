@@ -1,23 +1,16 @@
 # LagCheck — sistema de design (V1)
 
-**Status:** rascunho implementation-ready para V1
+**Status:** referência do sistema de design (atualizado pelas Decisões 124–145)
 **Idioma do documento:** PT-BR
-**Sistema mínimo:** iOS 17, SwiftUI
-**Documentos relacionados:** [Funcional](./01-funcional.md) · [Arquitetura](./02-arquitetura.md) · [Especificação técnica](./03-especificacao-tecnica.md)
-**Ativos relacionados:** `design-system/tokens/`, `design-system/assets/brand/`, `design-system/assets/app-icon/`, `design-system/components.md`
-**Protótipo iOS canônico:** [`design-system/prototypes/ios-reference/`](../design-system/prototypes/ios-reference/)
+**Fonte visual canônica multiplataforma:** [`shared/design-system/DESIGN.md`](../shared/design-system/DESIGN.md) e [`shared/design-system/tokens/`](../shared/design-system/tokens/)
+**Documentos relacionados:** [Funcional](./01-funcional.md) · [Arquitetura](./02-arquitetura.md) · [Especificação técnica](./03-especificacao-tecnica.md) · [Design Windows](./09-design-system-windows.md) · [Adaptação WinUI 3](../apps/windows/DESIGN.md)
+**Ativos relacionados:** `shared/design-system/tokens/`, `shared/design-system/assets/brand/`, `shared/design-system/assets/app-icon/`, `shared/design-system/components.md`
 
-Este documento não altera nem substitui os três documentos funcionais/técnicos existentes. Ele traduz as regras de produto já fechadas (Seções 7, 11 e 12 do documento funcional; Seção 9 da arquitetura) em um sistema visual consistente e implementável.
+Este documento traduz as regras de produto em um sistema visual consistente para os apps nativos. Em caso de divergência entre seções históricas deste arquivo e `shared/design-system/DESIGN.md` ou `docs/DECISOES.md`, prevalecem `docs/DECISOES.md` e `shared/design-system/DESIGN.md`.
 
-> **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação; não há pendência de criação ou aprovação de marca.
+> **Status dos ativos de marca (Decisão 124):** o símbolo oficial é `lagcheck-mark.svg` ("L + check" com órbita) e a wordmark oficial é `wordmark-primary.svg` (`Lagcheck`, substituindo a grafia em minúsculas da Decisão 25). O App Icon oficial é gerado a partir do mesmo símbolo em `shared/scripts/generate-brand-icons.py`.
 >
-> **Atualização (Decisão 91):** o App Icon oficial é a versão modernizada do glifo (profundidade, gradiente lilás→roxo e brilho na base), com Dark e Tinted no iOS e primeiro plano dentro da zona segura de 66 dp, mais monocromático, no Android. O wordmark também usa o símbolo novo, e os wordmarks mono foram refeitos a partir do primary (Decisão 92).
-
-> **Status dos ativos de marca:** wordmark, símbolo compacto e App Icons presentes em `design-system/assets/` são os ativos oficiais e aprovados do LagCheck para a V1. Eles são a fonte de verdade para produto, App Store e materiais de divulgação.
->
-> **Direção Visual Vigente (Decisões 51 e 66 — Dark Competitive UI):** O LagCheck adota a direção visual de **produto gamer competitivo de alta performance**, substituindo a estética de "utilitário de rede / Apple HIG genérico". A experiência é fundamentada em fundo quase preto, superfícies grafite, arte do jogo como protagonista, painéis de borda fina (eliminando o "card soup"), tipografia pesada, números monoespaçados, telemetria viva compacta e Roxo Gamer (`#7C3AED`) para ações primárias; Coral Solar (`#FF5A36`) reservado a atenção, erro e ações destrutivas (Decisão 66).
->
-> **Iniciativa Unificada:** Essa linguagem integra a entrega *“Lagcheck Competitive Redesign + Ready Check”* (Decisões 50 e 51).
+> **Direção Visual Vigente (Decisões 51, 66, 125–128, 143–145 — Dark Competitive UI):** fundo quase preto (`#0B0D10`), superfícies grafite (`#15181E` / `#1E232B`), profundidade por contraste tonal sem linhas de contorno em cards/busca/pílulas/anúncios (Decisão 128), tríade tipográfica **Barlow Semi Condensed** + **Barlow** + **Chakra Petch** (Decisão 125), raios `8 / 12 / 26 / pill` (Decisão 126), títulos de tela em caixa alta (Decisão 145) e **Roxo Gamer** (`#7C3AED`) restrito ao CTA principal; **Coral Solar** (`#FF5A36`) reservado a atenção, erro e ações destrutivas.
 
 ## 1. Direção visual: Dark Competitive UI
 
@@ -25,12 +18,12 @@ LagCheck fala a linguagem de jogadores competitivos: **impacto, foco, clareza e 
 
 1. **Veredito antes das métricas:** O jogador descobre instantaneamente se a conexão está pronta para a partida (`● PRONTO PARA RANKED` ou `▲ EU EVITARIA RANKED AGORA`). O score 0–100 e métricas aprofundadas ficam subordinados à decisão.
 2. **O jogo é o protagonista:** O artwork do jogo ocupa o espaço central de prestígio da tela. A rede e a telemetria apoiam a experiência com precisão cirúrgica, sem transformar o app em um painel de NOC.
-3. **Gamer premium, limpo e direto:** Nada de RGB espalhado, gradientes cyberpunk caricatos ou dezenas de cards empilhados. Usamos painéis amplos com borda fina (1px `rgba(255, 255, 255, 0.08)`), tipografia pesada, labels em caixa alta compacta e **Roxo Gamer** como acento de ação primária (Decisão 66). O verde é utilizado estritamente com função semântica para indicar condição pronta, nunca como cor corporativa.
+3. **Gamer premium, limpo e direto:** Nada de RGB espalhado, gradientes cyberpunk caricatos ou dezenas de cards empilhados. Usamos camadas tonais por contraste (`#0B0D10`, `#15181E`, `#1E232B`) sem linhas de contorno em cards, campos de busca, pílulas ou anúncios (Decisão 128), títulos de tela em caixa alta (Decisão 145) e **Roxo Gamer** (`#7C3AED`) como acento exclusivo de ação primária (Decisão 66). O verde é utilizado estritamente com função semântica para indicar condição pronta, nunca como cor corporativa.
 
 ### 1.1 Wordmark e regras da marca
 
-- Marca oficial: **LagCheck** (sempre com `lagcheck` em minúsculas).
-- Wordmark oficial: símbolo e `check` em Roxo Gamer; `lag` em branco (Decisão 66). O símbolo isolado está em `design-system/assets/brand/app-icon-foreground-only.svg`.
+- Marca oficial: **LagCheck** no texto e wordmark **Lagcheck** (`wordmark-primary.svg`, Decisão 124).
+- Símbolo oficial: `lagcheck-mark.svg` ("L" roxo com faixas de velocidade, check branco e órbita com dois nós), localizado em `shared/design-system/assets/brand/`.
 - Fundos aprovados: Quase preto profundo (`#0B0D10`).
 - Sem símbolo ™ ou ® nesta versão.
 
@@ -53,11 +46,11 @@ Ver `design-system/tokens/colors.json` para os valores exatos e a estrutura `cor
 | Fundo | `background.base` | Fundo padrão, azul-marinho profundo quase preto. |
 | Fundo | `background.raised` / `background.overlay` | Cards, sheets, banners — camadas de profundidade sem sombra pesada. |
 | Texto | `text.primary` / `text.secondary` / `text.tertiary` | Hierarquia de leitura. |
-| Acento | `accent.primary` | Coral Solar (`#FF6B35`) — CTA, anel de medição, tabs ativas, seleção de categoria. Uso estratégico, não decorativo. |
+| Acento | `action.primary` | Roxo Gamer (`#7C3AED`) — CTA principal, seleção ativa e progresso (Decisão 66). Nunca usado em fundos amplos ou filtros. |
 | Score | `score.excellent` / `score.unstable` / `score.lagRisk` / `score.neutral` | Cores semânticas do LagCheck Score (Seção 4). |
 | Gráfico | `graph.line` / `graph.fillTop` / `graph.spike` / `graph.spikeSevere` | Paleta dedicada do LatencyGraph. |
 
-Regra de uso: **no máximo uma ocorrência de `accent.primary` em destaque por tela** (ex.: um botão primário OU o símbolo da marca no header, não ambos competindo). Score e gráfico têm paletas próprias e não competem com o acento de marca.
+Regra de uso: **no máximo uma ocorrência de `action.primary` (`#7C3AED`) em destaque por tela** (o CTA principal). Score e gráfico têm paletas próprias e não competem com o acento de marca.
 
 ## 4. Cores semânticas e Vereditos da Dark Competitive UI
 
@@ -67,30 +60,28 @@ A comunicação de estado baseia-se nos vereditos da partida (`GameReadinessVerd
 | --- | --- | --- | --- |
 | Pronto para Jogar | `● PRONTO PARA RANKED` | `semantic.ready` | Verde semântico sóbrio (`#22C55E`). Comunica condição saudável para partidas competitivas. |
 | Atenção / Instável | `▲ CONDIÇÕES INSTÁVEIS` | `semantic.caution` | Âmbar funcional (`#F59E0B`). Oscilação ou impacto sob carga. |
-| Evitaria Ranked | `▲ EU EVITARIA RANKED AGORA` | `semantic.notReady` | Vermelho técnico (`#EF4444`). Perda de pacotes, latência inadequada ou instabilidade severa. |
+| Evitaria Ranked | `▲ EU EVITARIA RANKED AGORA` | `semantic.notReady` | Coral Solar (`#FF5A36`). Perda de pacotes, latência inadequada ou instabilidade severa. |
 | Inconclusivo | `— INCONCLUSIVO` | `semantic.neutral` | Cinza frio (`#8A93A0`). Dados insuficientes. |
-| Ação Primária | Botões `[ FAZER CHECK ]` e `[ TESTAR NOVAMENTE ]` | `brand.coralSolar` | Coral Solar (`#FF5A36`). Acento exclusivo de ação dominante. |
+| Ação Primária | Botões `[ TESTAR AGORA ]` e `[ TESTAR NOVAMENTE ]` | `gamerPurple.primary` | Roxo Gamer (`#7C3AED`), cantos `12 px`, sem anéis externos (Decisões 66, 126 e 144). |
 
 Regras de aplicação:
 - O verde **não é a cor da marca** e nunca deve colorir botões, banners decorativos ou fundos. Ele existe unicamente como indicador de estado no veredito positivo.
-- O Coral Solar é a assinatura de ação do app e guia o olhar para o próximo passo.
+- O Coral Solar (`#FF5A36`) fica reservado exclusivamente a risco, erro, alerta crítico e ações destrutivas (Decisão 66).
 
 ## 5. Tipografia
 
-A tipografia do LagCheck expressa a energia de alta performance gamer através da família SF Pro com tratamentos específicos:
+A tipografia do LagCheck segue a tríade unificada nas quatro frentes (iOS, Android, Windows e Web — Decisão 125):
 
-- **Headlines:** Títulos pesados e imersivos (`.system(size: 28...34, weight: .bold)`), com tracking levemente comprimido. Sem fontes arredondadas ou visual "fofo".
-- **Números de Telemetria:** Numerais estritamente monoespaçados (`.monospacedDigit()`, `.heavy` ou `.bold`) para exibir RTT (ms), jitter e perda (%), garantindo estabilidade ótica durante o teste ao vivo.
-- **Labels Técnicos:** Caixa alta compacta (Small Caps ou Uppercase com tracking expandido) para tags de telemetria: `PING`, `JITTER`, `PERDA`, `ESTABILIDADE`, `REGIÃO`.
-- **Textos de Apoio e Diagnóstico:** Corpo de leitura limpo em branco quente (`#F4F5F7`) e cinza secundário (`#8A93A0`).
+- **Títulos e vereditos (`Barlow Semi Condensed` 700/800):** títulos de tela (sempre em **CAIXA ALTA**: `JOGOS`, `HISTÓRICO`, `AJUSTES` / `CONFIGURAÇÕES`, `DETALHES`, `DETALHES TÉCNICOS`, `DADOS DA REDE`, Decisão 145), nomes de jogo em destaque e manchete de veredito, com tracking negativo.
+- **Corpo e controles (`Barlow` 400/500/600):** textos explicativos, listas, campos de busca, barra de navegação inferior (capitalização normal) e rótulos de botões.
+- **Telemetria e rótulos técnicos (`Chakra Petch` 600, `tnum`):** valores de ping, jitter, perda, score, rótulos de seção (`SEUS FAVORITOS`, `POPULARES`, `ESTABILIDADE DA REDE`) e metadados técnicos com algarismos tabulares.
 
-## 6. Painéis, bordas e eliminação do "Card Soup"
+## 6. Profundidade sem contornos e eliminação do "Card Soup"
 
-A Dark Competitive UI abandona cartões soltos empilhados com sombras difusas:
-- **Painéis Amplos:** Áreas unificadas com fundo grafite (`#15181E` / `#1E232B`).
-- **Borda Fina:** Traço contínuo e discreto de 1px em `rgba(255, 255, 255, 0.08)`, conferindo acabamento de hardware gamer de alta precisão.
-- **Raio Contínuo:** Cantos em raio moderno e controlado (12pt a 16pt), sem visual excessivamente arredondado.
-- **Hierarquia:** Criada por contraste tonal entre o fundo quase preto (`#0B0D10`) e a superfície dos painéis, dispensando sombras multinível pesadas.
+A Dark Competitive UI abandona cartões soltos empilhados e linhas de contorno (Decisão 128):
+- **Camadas tonais:** áreas construídas com contraste direto entre fundo (`#0B0D10`), superfície (`#15181E`) e painel elevado (`#1E232B`), evitando card dentro de card.
+- **Sem contorno em cards, pílulas, busca e anúncios:** a separação vem do contraste entre superfícies e sombra sutil em sheets/CTAs.
+- **Raio Contínuo:** `8 px` para mídia/capas (`3:4`) e métricas; `12 px` para campos de busca, cartões compactos e CTAs; `26 px` para bottom sheets; `999 px` para pílulas concisas e tab bar flutuante.
 
 ## 7. Motion e Telemetria Viva
 
@@ -155,28 +146,29 @@ Regras de layout para os dois clientes:
 
 ## 12. Inventário de componentes
 
-Anatomia completa, variantes, estados e API SwiftUI pretendida estão em [`design-system/components.md`](../design-system/components.md). Resumo do inventário atualizado (Decisões 24, 34, 35 e 88):
+Anatomia completa, variantes, estados e mapa por plataforma estão em [`shared/design-system/components.md`](../shared/design-system/components.md). Resumo atualizado (Decisões 123–128, 143–145):
 
 | Componente | Papel |
 | --- | --- |
-| `MeasurementLiveTrail` | **Trilha Viva de Medição (Decisão 34):** fluxo de pacotes nos 3 nós (`iPhone` ➔ `Wi-Fi` ➔ `Região Gamer`) com partículas proporcionais ao RTT, evaporação de pacotes perdidos e diagnóstico de saturação sob estresse. Substitui o gauge circular e o gráfico abstrato. |
-| `RouteTrailSummaryCard` | **Atestado da Rota HIG (Decisão 35):** síntese visual dos 3 nós pós-teste com selos semânticos de integridade (`checkmark.circle.fill` / alertas), integrando o resultado final. |
-| `LagCheckScore` | Pílula semântica no topo do Hero Editorial (`[ 92 · EXCELENTE ]`) com tipografia `.monospacedDigit()`. |
-| `MetricCard` (Grid 2x2) | Cards compactos com curvatura contínua 12pt para Ping, Jitter, Perda de Pacotes e Picos de Latência, com realce automático de cor na causa raiz. |
-| `PlatformSelectionSheet` | Seleção interativa da plataforma de jogo (iPhone, PlayStation, Xbox, PC, Nintendo Switch) antes de iniciar a medição. |
-| `PrimaryButton` | Ação principal da tela (Coral Solar `#FF6B35`, pílula, alto contraste, 52pt). |
-| `InsightBanner` | Explicação/causa em destaque da qualidade observada para a partida. |
+| `RouteMeasurementMap` | **Mapa de medição nativo (Decisão 123):** malha de pontos equiretangular com origem aproximada ("Você") e região medida, arcos Bézier e sondas reais durante e após o Check. |
+| `RouteTrailSummaryCard` | **Atestado da Rota (Decisão 35):** síntese visual dos 3 nós pós-teste com selos semânticos de integridade (`checkmark.circle.fill` / alertas), integrando o resultado final. |
+| `VerdictIndicatorBadge` | Indicador tático de veredito semântico com forma, cor e texto (`PRONTO PARA RANKED`, `CONDIÇÕES INSTÁVEIS`, `EU EVITARIA RANKED AGORA`, `INCONCLUSIVO`). |
+| `StabilityEvolutionSection` | **Evolução no Histórico (Decisão 143):** curva de ping por segmento de rede/região (`>= 3` checks válidos) e 4 anéis médios (`Ping méd`, `Jitter`, `Perda`, `Sob carga`), em bloco único sem contorno. |
+| `MetricCard` / `MetricBox` | Blocos compactos para Ping, Jitter, Perda de Pacotes e Sob Carga em `Chakra Petch` tabular. |
+| `CatalogSearchField` | Barra de busca unificada em **Início**, **Jogos** e seleção de favoritos (`#15181E`, `12 px`, altura mínima `46`, sem borda ou sombra — Decisão 145). |
+| `PrimaryButton` | Ação principal da tela (Roxo Gamer `#7C3AED`, cantos `12 px`, altura `58` ou `46` no Hero da Home, sem halo externo duplo — Decisões 126 e 144). |
+| `NativeAdSlot` | Faixa horizontal compacta (~`88–96 px`) sem `MediaView` grande e sem linha de contorno em `Início`, `Jogos`, `Histórico` e `Resultado` concluído válido (Decisão 144). |
 | `StatusMessage` | Estados de progresso, erro, cancelamento e inconclusivo. |
-| `EmptyState` | Ausência de histórico, catálogo indisponível, busca sem resultado. |
-| `GameReadinessWidget` | Superfície compacta de sistema: arte editorial autorizada do último Check válido, gradiente profundo, jogo/região, P50 monoespaçado e veredito por texto+forma. Home Screen usa arte como contexto; Lock Screen retangular usa miniatura; circular/inline priorizam legibilidade. |
+| `EmptyState` | Ausência de histórico, catálogo indisponível, busca sem resultado (com fallback para Check Geral). |
+| `GameReadinessWidget` | Superfície compacta de sistema: arte editorial autorizada do último Check válido, gradiente profundo, jogo/região, P50 monoespaçado e veredito por texto+forma. |
 
 O `GameReadinessWidget` usa exclusivamente a arte editorial fornecida pelo catálogo validado da plataforma em que está instalado. A imagem recebe gradiente `background.deep` suficiente para não reduzir contraste do veredito e da P50; não há texto sobre área clara sem sobreposição. Resultado vencido, inconclusivo ou sem arte válida remove métricas e veredito, mantendo apenas a ação localizada de novo Check e identidade neutra. O widget não introduz uma cor de CTA: Roxo Gamer é reservado ao ícone/arte neutra e as cores semânticas aparecem acompanhadas por headline e indicador de forma.
 
 ### Navegação de retorno
 
-Configurações abre como tela própria pelo ícone de ajustes, nunca por gaveta lateral. A tela usa `List` agrupada do iPhone, preservando o fundo visual do LagCheck; Histórico, preferências, privacidade e informações do app seguem a hierarquia nativa. O fundo do app é um degradê contínuo da escala de azuis do produto, sem ilustração ou textura, para não competir com a jornada.
+Configurações/Ajustes abre como destino próprio na barra de 4 abas (`Início`, `Jogos`, `Histórico`, `Ajustes`/`Configurações` — Decisões 80 e 98), nunca por gaveta lateral. Todas as telas principais e secundárias exibem o título em **CAIXA ALTA** (`JOGOS`, `HISTÓRICO`, `AJUSTES` / `CONFIGURAÇÕES`, `DETALHES`, `DETALHES TÉCNICOS`, `DADOS DA REDE`), mantendo a barra inferior com capitalização normal.
 
-Na vitrine de jogos, a busca começa como uma lupa no canto superior direito. Ao tocar, ela se expande no mesmo eixo para o campo nativo de texto e revela os filtros de categoria; fechar a busca limpa texto e filtros, devolve a lupa e não ocupa espaço permanente na Home. Na Home, a wordmark fica alinhada à esquerda e busca e Ajustes são agrupados à direita em uma única cápsula Glass, com lupa seguida de reticências. Isso evita controles circulares concorrendo com a marca e preserva dois alvos independentes de 44 pt.
+Na Home (`Início`), a arte do Hero ocupa toda a largura da tela até o topo atrás da barra de status com gradiente contínuo para `#0B0D10`, acompanhada pelo botão sólido compacto `TESTAR AGORA` (`#7C3AED`, altura `46`, cantos `12 px`). Logo abaixo do Hero fica a barra de busca padronizada (`#15181E`, `12 px`, sem borda/sombra), seguida por `SEUS FAVORITOS` e `POPULARES` em grade fixa **2 linhas × 3 colunas** (`3:4`) com `"Toque no jogo para iniciar o teste"`. Na aba `Jogos`, a busca permanece sempre visível com o mesmo visual da Home acima da grade de **3 colunas** (`3:4`).
 
 Cards da Home não usam contorno em repouso. A separação do fundo vem da elevação definida em `shadow.json`: sombra curta para o atalho de última medição e elevação mais marcada para o bloco de iniciar medição. Com Reduzir Transparência, as sombras são removidas e a diferença entre superfícies preserva a hierarquia.
 
@@ -242,4 +234,4 @@ Convenções obrigatórias:
 5. **Acessibilidade embutida no componente, não em quem o consome.** `accessibilityLabel`, `accessibilityValue`, tamanho mínimo de toque e comportamento em Dynamic Type grande são responsabilidade do componente (Seção 9), não recriados em cada tela que o usa.
 6. **Motion via tokens nomeados** (`NLMotion.scoreReveal`, etc.), nunca `withAnimation(.easeInOut(duration: 0.3))` solto em `Features`. Cada API de componente que anima expõe o estado final de forma síncrona quando `UIAccessibility.isReduceMotionEnabled` é verdadeiro.
 7. **Sem SDKs externos no módulo.** `LagCheckDesign` não importa Google Mobile Ads, SwiftData, Network nem nenhum adaptador de `Infrastructure`. As Views do SDK das Decisões 96 e 97 ficam na camada de app em cada plataforma, fora do design system. `BannerAdSlot` é apenas referência histórica.
-8. **Geração a partir dos tokens JSON**: os arquivos em `Tokens/` devem ser gerados (manual ou por script) a partir de `design-system/tokens/*.json`, preservando os mesmos nomes semânticos (`NLColor.scoreExcellent`, `NLSpacing.resultConclusionToMetrics`, etc.), para que designer e engenheiro leiam o mesmo vocabulário nos dois lados.
+8. **Geração a partir dos tokens JSON**: os arquivos em `Tokens/` devem ser alinhados a `shared/design-system/tokens/*.json`, preservando os mesmos nomes semânticos (`NLColor.*`, `NLTypography.*`, `NLSpacing.*`, `NLRadius.*`) para que designer e engenheiro leiam o mesmo vocabulário nas três plataformas.

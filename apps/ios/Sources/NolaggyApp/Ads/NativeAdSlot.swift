@@ -207,23 +207,45 @@ struct NativeAdSlot: View {
     }
 }
 
+private final class PaddingLabel: UILabel {
+    private let textInsets: UIEdgeInsets
+
+    init(insets: UIEdgeInsets) {
+        self.textInsets = insets
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) {
+        self.textInsets = .zero
+        super.init(coder: coder)
+    }
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: textInsets))
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let size = super.intrinsicContentSize
+        return CGSize(
+            width: size.width + textInsets.left + textInsets.right,
+            height: size.height + textInsets.top + textInsets.bottom
+        )
+    }
+}
+
 private struct NativeAdContent: UIViewRepresentable {
     let ad: NativeAd
 
     func makeUIView(context: Context) -> NativeAdView {
         let view = NativeAdView()
         view.backgroundColor = UIColor(NLColor.surface)
-        view.layer.cornerRadius = 14
-        view.layer.borderColor = UIColor(NLColor.borderStrong).cgColor
-        view.layer.borderWidth = 1
+        view.layer.cornerRadius = NLRadius.md
         view.clipsToBounds = true
 
-        let badge = UILabel()
+        let badge = PaddingLabel(insets: UIEdgeInsets(top: 2, left: 6, bottom: 2, right: 6))
         badge.text = AppLocalization.string("ads.label", comment: "Advertisement attribution")
-        badge.textColor = .white
+        badge.textColor = UIColor(NLColor.textSecondary)
         badge.backgroundColor = UIColor(NLColor.panel)
-        badge.layer.borderColor = UIColor(NLColor.borderStrong).cgColor
-        badge.layer.borderWidth = 1
         badge.font = .preferredFont(forTextStyle: .caption2)
         badge.adjustsFontForContentSizeCategory = true
         badge.textAlignment = .center
@@ -232,73 +254,72 @@ private struct NativeAdContent: UIViewRepresentable {
         badge.layer.cornerRadius = 4
         badge.clipsToBounds = true
         badge.setContentHuggingPriority(.required, for: .horizontal)
-        badge.widthAnchor.constraint(greaterThanOrEqualToConstant: 54).isActive = true
-        badge.heightAnchor.constraint(greaterThanOrEqualToConstant: 23).isActive = true
-
-        let headline = UILabel()
-        headline.font = .preferredFont(forTextStyle: .headline)
-        headline.textColor = UIColor(NLColor.textPrimary)
-        headline.numberOfLines = 0
-        headline.adjustsFontForContentSizeCategory = true
-        view.headlineView = headline
-
-        let icon = UIImageView()
-        icon.contentMode = .scaleAspectFit
-        icon.layer.cornerRadius = 7
-        icon.clipsToBounds = true
-        icon.translatesAutoresizingMaskIntoConstraints = false
-        icon.widthAnchor.constraint(equalToConstant: 40).isActive = true
-        icon.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        view.iconView = icon
-
-        let body = UILabel()
-        body.font = .preferredFont(forTextStyle: .subheadline)
-        body.textColor = UIColor(NLColor.textSecondary)
-        body.numberOfLines = 0
-        body.adjustsFontForContentSizeCategory = true
-        view.bodyView = body
+        badge.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         let advertiser = UILabel()
-        advertiser.font = .preferredFont(forTextStyle: .caption1)
-        advertiser.textColor = UIColor(NLColor.textSecondary)
-        advertiser.numberOfLines = 0
+        advertiser.font = .preferredFont(forTextStyle: .caption2)
+        advertiser.textColor = UIColor(NLColor.textTertiary)
+        advertiser.numberOfLines = 1
+        advertiser.lineBreakMode = .byTruncatingTail
         advertiser.adjustsFontForContentSizeCategory = true
         view.advertiserView = advertiser
 
-        let media = MediaView()
-        media.contentMode = .scaleAspectFit
-        media.translatesAutoresizingMaskIntoConstraints = false
-        media.heightAnchor.constraint(greaterThanOrEqualToConstant: 140).isActive = true
-        view.mediaView = media
+        let attributionSpacer = UIView()
+        attributionSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
-        let cta = UILabel()
-        cta.font = .preferredFont(forTextStyle: .callout)
+        let attributionRow = UIStackView(arrangedSubviews: [badge, advertiser, attributionSpacer])
+        attributionRow.axis = .horizontal
+        attributionRow.alignment = .center
+        attributionRow.spacing = 8
+
+        let icon = UIImageView()
+        icon.contentMode = .scaleAspectFit
+        icon.layer.cornerRadius = NLRadius.sm
+        icon.clipsToBounds = true
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        icon.widthAnchor.constraint(equalToConstant: 38).isActive = true
+        icon.heightAnchor.constraint(equalToConstant: 38).isActive = true
+        view.iconView = icon
+
+        let headline = UILabel()
+        headline.font = .systemFont(ofSize: 14, weight: .semibold)
+        headline.textColor = UIColor(NLColor.textPrimary)
+        headline.numberOfLines = 2
+        headline.lineBreakMode = .byTruncatingTail
+        headline.adjustsFontForContentSizeCategory = true
+        headline.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        view.headlineView = headline
+
+        let cta = PaddingLabel(insets: UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12))
+        cta.font = .systemFont(ofSize: 12, weight: .semibold)
         cta.adjustsFontForContentSizeCategory = true
         cta.textColor = UIColor(NLColor.textPrimary)
         cta.backgroundColor = UIColor(NLColor.panel)
-        cta.layer.borderColor = UIColor(NLColor.borderStrong).cgColor
-        cta.layer.borderWidth = 1
         cta.textAlignment = .center
-        cta.numberOfLines = 0
-        cta.layer.cornerRadius = 8
+        cta.numberOfLines = 1
+        cta.lineBreakMode = .byTruncatingTail
+        cta.layer.cornerRadius = NLRadius.sm
         cta.clipsToBounds = true
+        cta.setContentHuggingPriority(.required, for: .horizontal)
+        cta.setContentCompressionResistancePriority(.required, for: .horizontal)
         cta.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         view.callToActionView = cta
 
-        let top = UIStackView(arrangedSubviews: [badge, icon, headline])
-        top.axis = .horizontal
-        top.alignment = .center
-        top.spacing = 8
-        // The top trailing corner remains clear for the SDK's AdChoices overlay.
-        let stack = UIStackView(arrangedSubviews: [top, advertiser, body, media, cta])
+        let mainRow = UIStackView(arrangedSubviews: [icon, headline, cta])
+        mainRow.axis = .horizontal
+        mainRow.alignment = .center
+        mainRow.spacing = 10
+
+        let stack = UIStackView(arrangedSubviews: [attributionRow, mainRow])
         stack.axis = .vertical
-        stack.spacing = 10
+        stack.spacing = 8
         stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
-            stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 28),
+            attributionRow.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -38),
+            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 14),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -14),
+            stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
             stack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -12)
         ])
         return view
@@ -306,14 +327,12 @@ private struct NativeAdContent: UIViewRepresentable {
 
     func updateUIView(_ view: NativeAdView, context: Context) {
         (view.headlineView as? UILabel)?.text = ad.headline
-        (view.bodyView as? UILabel)?.text = ad.body
-        view.bodyView?.isHidden = ad.body == nil
         (view.advertiserView as? UILabel)?.text = ad.advertiser
         view.advertiserView?.isHidden = ad.advertiser == nil
         (view.iconView as? UIImageView)?.image = ad.icon?.image
         view.iconView?.isHidden = ad.icon == nil
-        view.mediaView?.mediaContent = ad.mediaContent
-        view.mediaView?.isHidden = ad.mediaContent.aspectRatio <= 0
+        view.bodyView = nil
+        view.mediaView = nil
         (view.callToActionView as? UILabel)?.text = ad.callToAction
         view.callToActionView?.isHidden = ad.callToAction == nil
         view.nativeAd = ad

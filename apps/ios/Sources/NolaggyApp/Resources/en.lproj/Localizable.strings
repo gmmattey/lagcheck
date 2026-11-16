@@ -231,6 +231,7 @@
 "home.network.awaiting_result" = "Waiting for result";
 "home.featured" = "Featured";
 "home.popular" = "Most Popular";
+"home.popular.hint" = "Tap a game to start the test";
 "home.all_games" = "All games";
 "home.score" = "Score";
 "home.hero.detail" = "Tap for details and to test your connection.";
@@ -919,3 +920,24 @@
 "route_map.you" = "You";
 "route_map.a11y" = "Map of the measured route";
 "route_map.unavailable" = "Approximate location unavailable";
+
+/* Stability Evolution Chart & 4 Rings (Decision 143) */
+"history.scope.overview" = "Overview";
+"history.network.all" = "All networks";
+"history.network.other" = "Other";
+"history.stability.title_overview" = "NETWORK STABILITY";
+"history.stability.title_game" = "GAME STABILITY";
+"history.stability.headline.stable" = "Stable network";
+"history.stability.headline.moderate" = "Moderate jitter";
+"history.stability.headline.unstable" = "Unstable network";
+"history.stability.headline.insufficient" = "Few measurements yet";
+"history.stability.headline.empty" = "No measurements";
+"history.stability.minimum_checks" = "Run at least 3 checks on the same network to see trends.";
+"history.stability.ring.ping" = "AVG PING";
+"history.stability.ring.jitter" = "JITTER";
+"history.stability.ring.loss" = "LOSS";
+"history.stability.ring.load" = "LOAD";
+"history.stability.inconclusive.singular" = "1 inconclusive";
+"history.stability.inconclusive.plural %d" = "%d inconclusive";
+"history.stability.latest_check" = "Latest check";
+"history.stability.chart_a11y %@" = "Stability chart: %@";

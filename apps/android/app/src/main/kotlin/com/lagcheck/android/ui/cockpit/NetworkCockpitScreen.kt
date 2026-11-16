@@ -110,7 +110,7 @@ fun NetworkCockpitScreen(
             }
 
             Text(
-                text = tr("Dados da Rede"),
+                text = tr("Dados da Rede").uppercase(),
                 style = LagCheckTypography.PageTitle.copy(fontSize = 18.sp),
                 color = LagCheckColors.TextPrimary
             )

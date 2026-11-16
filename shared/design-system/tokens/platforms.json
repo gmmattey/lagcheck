@@ -1,26 +1,26 @@
 {
   "$schema": "lagcheck/tokens/platforms",
-  "description": "Como cada plataforma implementa os tokens do LagCheck. Valores lidos do código em 2026-11-07. Divergência registrada aqui não significa aprovada: veja o campo status e a Decisão 117 em docs/DECISOES.md.",
+  "description": "Como cada plataforma implementa os tokens do LagCheck. Valores alinhados ao código em 2026-11-15 (Decisões 117, 120, 125, 126, 128, 142 e 144).",
   "sources": {
     "ios": {
-      "cores": "Sources/NolaggyDesign/Tokens/NLColor.swift",
-      "espacamento": "Sources/NolaggyDesign/Tokens/NLSpacing.swift",
-      "raio": "Sources/NolaggyDesign/Tokens/NLRadius.swift",
-      "tipografia": "Sources/NolaggyDesign/Tokens/NLTypography.swift",
-      "componentes": "Sources/NolaggyDesign/Components/"
+      "cores": "apps/ios/Sources/NolaggyDesign/Tokens/NLColor.swift",
+      "espacamento": "apps/ios/Sources/NolaggyDesign/Tokens/NLSpacing.swift",
+      "raio": "apps/ios/Sources/NolaggyDesign/Tokens/NLRadius.swift",
+      "tipografia": "apps/ios/Sources/NolaggyDesign/Tokens/NLTypography.swift",
+      "componentes": "apps/ios/Sources/NolaggyDesign/Components/"
     },
     "android": {
-      "cores": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt",
-      "tipografia": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt",
-      "espacamento": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Spacing.kt",
-      "raio": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Radius.kt",
-      "componentes": "android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/"
+      "cores": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Color.kt",
+      "tipografia": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Type.kt",
+      "espacamento": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Spacing.kt",
+      "raio": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/theme/Radius.kt",
+      "componentes": "apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/"
     },
     "windows": {
-      "tokens": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Tokens.kt",
-      "tema": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Theme.kt",
-      "componentes": "android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/Components.kt",
-      "documento": "docs/09-design-system-windows.md"
+      "tokens": "apps/windows/LagCheck.WinUI/Styles/Theme.xaml",
+      "tipografia": "apps/windows/LagCheck.WinUI/Controls/Typography.cs",
+      "documento": "apps/windows/DESIGN.md",
+      "desktopComposePreview": "apps/android/desktop/src/main/kotlin/com/lagcheck/desktop/ds/"
     }
   },
   "alinhado": {
@@ -34,10 +34,12 @@
       "warning #F59E0B",
       "inconclusive #8A93A0",
       "textPrimary #F4F5F7",
-      "textSecondary #8A93A0"
+      "textSecondary #8A93A0",
+      "textTertiary #606873"
     ],
-    "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16). Android segue desde 2026-11-08 via LagCheckSpacing, com meios passos (6, 10, 14, 18) e 36 e 40 extras.",
-    "raio": "iOS segue radius.json (8, 13, 17, 26, pill). Android segue desde 2026-11-08 via LagCheckRadius, com xs = 4 extra."
+    "espacamento": "iOS segue spacing.json (4 a 32, margem de tela 22, card 16). Android segue via LagCheckSpacing, com meios passos (6, 10, 14, 18) e 36 e 40 extras.",
+    "raio": "iOS e Android seguem radius.json (sm 8, md/lg 12, xl 26, pill 999) desde a Decisão 126; Android mantém xs = 4 extra.",
+    "tipografia": "Tríade unificada nas três plataformas e no site (Decisão 125): Barlow Semi Condensed (títulos e vereditos), Barlow (corpo e controles) e Chakra Petch (métricas e kickers com algarismos tabulares)."
   },
   "divergencias": [
     {
@@ -47,38 +49,39 @@
       "ios": "#606873",
       "android": "#606873",
       "windows": "#606873",
-      "status": "resolvida em 2026-11-07: Luiz aprovou #606873 nas três plataformas (Decisão 117). Contraste 3,45:1 sobre o fundo; ainda abaixo de 4,5:1 (WCAG AA) para texto pequeno."
+      "status": "resolvida em 2026-11-07: Luiz aprovou #606873 nas três plataformas (Decisão 117). Contraste 3,45:1 sobre o fundo; usar só em metadados e rótulos de apoio."
     },
     {
       "id": "fonte",
-      "tokens_json": "Pilha Apple: SF arredondada (títulos), SF (corpo) e SF mono (métricas)",
-      "ios": "SF arredondada, SF e SF mono do sistema",
-      "android": "Google Sans Flex em tudo, com algarismos tabulares nas métricas (Decisão 80)",
-      "windows": "Barlow Semi Condensed para títulos, Barlow para corpo, Chakra Petch para métricas e Cascadia Mono/ui-monospace para rótulos técnicos (Decisão 118)",
-      "status": "resolvida em 2026-11-08: Android e Windows estão decididos; faltava o design system registrar. A fonte \"técnica\" difere nas três plataformas (SF Mono, Google Sans com tnum, Consolas) e isso é intencional na Decisão 80 para o Android."
+      "tokens_json": "Tríade unificada (Decisão 125): Barlow Semi Condensed (display), Barlow (corpo) e Chakra Petch (métricas)",
+      "ios": "Barlow Semi Condensed, Barlow e Chakra Petch empacotadas em NolaggyDesign/Resources/Fonts/",
+      "android": "Barlow Semi Condensed, Barlow e Chakra Petch empacotadas em core/designsystem/src/main/res/font/",
+      "windows": "Barlow Semi Condensed, Barlow e Chakra Petch empacotadas em LagCheck.WinUI/Assets/Fonts/",
+      "status": "resolvida pela Decisão 125 (2026-11-12): tríade unificada em iOS, Android, Windows e Web."
     },
     {
       "id": "espacamento-e-cores-android",
-      "android": "Espaçamento: LagCheckSpacing em 297 usos de padding, spacedBy e Spacer (22 arquivos). Cores: Border, Panel e Good do tema no lugar de 6 literais; marcas de terceiros em LagCheckBrandColors.",
-      "status": "resolvida em 2026-11-08 (Decisão 117). Verde dos gráficos de Detalhes passou de #34D399 para #22C55E."
+      "android": "Espaçamento: LagCheckSpacing. Cores e profundidade sem linhas de contorno em cards, busca e anúncios (Decisões 117, 128 e 144); marcas de terceiros em LagCheckBrandColors.",
+      "status": "resolvida e alinhada."
     },
     {
       "id": "tokens-proprios-windows",
       "windows": {
-        "espacamento": "4, 8, 12, 16, 24, 32 dp",
-        "raio": "controle 10 dp, painel 14 dp",
-        "alvoMinimo": "40 dp com mouse; 44 dp para toque",
+        "stage": "#000000 / #060709 (Decisão 138)",
+        "espacamento": "4, 8, 12, 16, 24, 32 px",
+        "raio": "controle/painel 8 a 16 px",
+        "alvoMinimo": "40–44 px com mouse; 44 px para toque",
         "accentHover": "#8B5CF6",
         "accentPressed": "#6D28D9"
       },
-      "status": "documentado em docs/09 (Decisões 114 a 116); raios 10 e 14 e accentHover não existem em radius.json e colors.json"
+      "status": "documentado em apps/windows/DESIGN.md (Decisões 119, 138, 141 e 142)."
     },
     {
       "id": "navegacao",
       "ios": "4 abas: Início, Jogos, Histórico, Ajustes (Decisão 98)",
       "android": "4 abas: Início, Jogos, Histórico, Configurações (Decisão 80)",
-      "windows": "barra lateral: Início, Jogos, Histórico, Ajustes (Decisão 116)",
-      "status": "resolvida em 2026-11-07: o código estava certo (Decisões 80 e 98); a documentação que dizia 2 abas foi corrigida"
+      "windows": "Sem barra lateral: Este PC no topo, atalhos Biblioteca, Histórico, Galeria, Buscar (Ctrl+F) e Ajustes, mais botão de voltar (Decisão 142)",
+      "status": "alinhada às Decisões 80, 98 e 142."
     },
     {
       "id": "cores-fixas-ios",

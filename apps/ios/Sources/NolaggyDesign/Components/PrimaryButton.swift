@@ -20,6 +20,7 @@ public struct PrimaryButton: View {
     private let icon: Image?
     private let isLoading: Bool
     private let isEnabled: Bool
+    private let minHeight: CGFloat
     private let accessibilityIdentifier: String?
     private let action: () -> Void
 
@@ -29,6 +30,7 @@ public struct PrimaryButton: View {
         icon: Image? = nil,
         isLoading: Bool = false,
         isEnabled: Bool = true,
+        minHeight: CGFloat = NLSizing.primaryButtonHeight,
         accessibilityIdentifier: String? = nil,
         action: @escaping () -> Void
     ) {
@@ -37,6 +39,7 @@ public struct PrimaryButton: View {
         self.icon = icon
         self.isLoading = isLoading
         self.isEnabled = isEnabled
+        self.minHeight = minHeight
         self.accessibilityIdentifier = accessibilityIdentifier
         self.action = action
     }
@@ -54,7 +57,7 @@ public struct PrimaryButton: View {
                 }
             }
             .foregroundStyle(foregroundColor)
-            .frame(minWidth: NLSizing.primaryButtonMinWidth, maxWidth: .infinity, minHeight: NLSizing.primaryButtonHeight)
+            .frame(minWidth: NLSizing.primaryButtonMinWidth, maxWidth: .infinity, minHeight: minHeight)
             .padding(.horizontal, NLSpacing.md)
         }
         .buttonStyle(PrimaryButtonStyle(style: style, isEnabled: isEnabled && !isLoading))

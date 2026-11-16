@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
-import com.lagcheck.android.data.HistoryRitualSummary
+import com.lagcheck.android.data.StabilityHistoryAdapter
 import com.lagcheck.android.ui.components.SecondaryScreenHeader
 import com.lagcheck.core.designsystem.components.rowDivider
 import com.lagcheck.core.designsystem.theme.LagCheckColors
@@ -76,10 +76,31 @@ fun HistoryScreen(
     val context = LocalContext.current
     var showConfirmDeleteSheet by remember { mutableStateOf(false) }
     var selectedRitualWindow by remember { mutableStateOf(14) }
+    var selectedGameId by remember { mutableStateOf<String?>(null) }
+    var selectedNetworkFilter by remember { mutableStateOf<String?>(null) }
 
     // Agrupamento por jogo idêntico ao protótipo
     val groupedByGame = remember(historyItems) {
         historyItems.groupBy { it.gameId }
+    }
+
+    val effectiveSelectedGameId = remember(selectedGameId, groupedByGame) {
+        selectedGameId?.takeIf { groupedByGame.containsKey(it) }
+    }
+    val selectedGameTitle = remember(effectiveSelectedGameId, groupedByGame) {
+        effectiveSelectedGameId?.let { id -> groupedByGame[id]?.firstOrNull()?.gameName ?: id }
+    }
+    val stabilityResult = remember(historyItems, selectedRitualWindow, effectiveSelectedGameId, selectedNetworkFilter) {
+        StabilityHistoryAdapter.evaluate(
+            entries = historyItems,
+            windowDays = selectedRitualWindow,
+            gameIdFilter = effectiveSelectedGameId,
+            networkFilter = selectedNetworkFilter
+        )
+    }
+    val visibleGroups = remember(groupedByGame, effectiveSelectedGameId) {
+        if (effectiveSelectedGameId == null) groupedByGame
+        else groupedByGame.filterKeys { it == effectiveSelectedGameId }
     }
 
     Box(
@@ -180,33 +201,56 @@ fun HistoryScreen(
                     }
                 }
             } else {
+                // 3. Filtros limpos (escopo, janela 7/14/30d e rede quando houver mais de uma)
+                if (groupedByGame.size > 1) {
+                    item(key = "scope_filter") {
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
+                        val scopeOptions = buildList {
+                            add(null to tr("Visão geral"))
+                            groupedByGame.forEach { (id, checks) ->
+                                add(id to (checks.firstOrNull()?.gameName ?: id))
+                            }
+                        }
+                        StabilityChipRow(
+                            options = scopeOptions,
+                            selectedKey = effectiveSelectedGameId,
+                            onSelected = {
+                                selectedGameId = it
+                                selectedNetworkFilter = null
+                            }
+                        )
+                    }
+                }
+
                 item(key = "ritual_window") {
                     RitualWindowPicker(selectedWindow = selectedRitualWindow, onSelected = { selectedRitualWindow = it })
                 }
 
-                // 3. Resumo: checks · prontos · jogos
-                item(key = "summary") {
-                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
-                    val summaryShape = RoundedCornerShape(LagCheckRadius.md)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(elevation = 6.dp, shape = summaryShape)
-                            .clip(summaryShape)
-                            .background(LagCheckColors.Surface)
-                            .padding(horizontal = LagCheckSpacing.space5, vertical = LagCheckSpacing.space4_5)
-                    ) {
-                        listOf(
-                            Triple(historyItems.size.toString(), tr("checks"), 0.8f),
-                            Triple(historyItems.count { it.verdict == GameReadinessVerdict.READY }.toString(), tr("prontos p/ Ranked"), 1.5f),
-                            Triple(groupedByGame.size.toString(), tr("jogos"), 0.8f)
-                        ).forEach { (value, label, w) ->
-                            Column(modifier = Modifier.weight(w)) {
-                                Text(text = value, fontSize = 26.sp, fontWeight = FontWeight.Medium, color = LagCheckColors.TextPrimary)
-                                Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
-                                Text(text = label, fontSize = 12.sp, color = LagCheckColors.TextMuted)
+                if (effectiveSelectedGameId == null && stabilityResult.availableNetworks.size > 1) {
+                    item(key = "network_filter") {
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space2))
+                        val netOptions = buildList {
+                            add(null to tr("Todas as redes"))
+                            stabilityResult.availableNetworks.forEach { net ->
+                                add(net to (networkDisplayLabel(net) ?: net))
                             }
                         }
+                        StabilityChipRow(
+                            options = netOptions,
+                            selectedKey = selectedNetworkFilter,
+                            onSelected = { selectedNetworkFilter = it }
+                        )
+                    }
+                }
+
+                // 4. Bloco único de estabilidade (gráfico de ping + 4 anéis)
+                if (stabilityResult.points.isNotEmpty() || stabilityResult.inconclusiveCount > 0) {
+                    item(key = "stability_evolution") {
+                        Spacer(modifier = Modifier.height(LagCheckSpacing.space3_5))
+                        StabilityEvolutionBlock(
+                            summary = stabilityResult,
+                            selectedGameTitle = selectedGameTitle
+                        )
                     }
                 }
 
@@ -219,8 +263,8 @@ fun HistoryScreen(
                     }
                 }
 
-                // 4. Um cartão por jogo, com seus checks dentro
-                groupedByGame.forEach { (gameId, checks) ->
+                // 5. Seções por jogo direto sobre superfície limpa (sem card dentro de card)
+                visibleGroups.forEach { (gameId, checks) ->
                     val catalogGame = catalogGames.firstOrNull { it.id == gameId }
                         ?: (OfficialGameCatalog.games + OfficialGameCatalog.pendingExpansion).firstOrNull { it.id == gameId }
                         ?: com.lagcheck.domain.model.CatalogGame(gameId, checks.first().gameName, "Online", drawableResName = "")
@@ -229,9 +273,9 @@ fun HistoryScreen(
                         val groupShape = RoundedCornerShape(LagCheckRadius.md)
                         Column(
                             modifier = Modifier
-                                .padding(top = LagCheckSpacing.space2_5)
+                                .padding(top = LagCheckSpacing.space3)
                                 .fillMaxWidth()
-                                .shadow(elevation = 6.dp, shape = groupShape)
+                                .shadow(elevation = 4.dp, shape = groupShape)
                                 .clip(groupShape)
                                 .background(LagCheckColors.Surface)
                                 .padding(start = LagCheckSpacing.space4_5, end = LagCheckSpacing.space4_5, top = LagCheckSpacing.space1_5, bottom = LagCheckSpacing.space1)
@@ -245,7 +289,7 @@ fun HistoryScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(42.dp)
-                                        .clip(RoundedCornerShape(LagCheckRadius.md))
+                                        .clip(RoundedCornerShape(LagCheckRadius.sm))
                                         .background(LagCheckColors.Panel)
                                 ) {
                                     com.lagcheck.android.ui.components.RemoteGameArtwork(catalogGame, Modifier.fillMaxSize())
@@ -274,29 +318,6 @@ fun HistoryScreen(
                                     }
                                 }
                             }
-
-                            HistoryRitualSummary.forEntries(checks, selectedRitualWindow)
-                                ?.takeIf { it.hasEnoughEvidence }
-                                ?.let { summary ->
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = LagCheckSpacing.space3)
-                                    ) {
-                                        Text(
-                                            text = trf("Pronto em %d de %d checks", summary.readyCount, summary.comparableCount),
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = LagCheckColors.TextPrimary
-                                        )
-                                        Spacer(modifier = Modifier.height(LagCheckSpacing.space1))
-                                        Text(
-                                            text = trf("Instável: %d · Evitaria: %d · Inconclusivos: %d", summary.cautionCount, summary.notReadyCount, summary.inconclusiveCount),
-                                            style = LagCheckTypography.MonoSmall,
-                                            color = LagCheckColors.TextMuted
-                                        )
-                                    }
-                                }
                             checks.forEachIndexed { index, item ->
                                 HistoryRowItem(item = item, showDivider = index < checks.lastIndex, onClick = { onSelectCheck(item) })
                             }
@@ -410,31 +431,13 @@ fun HistoryScreen(
 
 @Composable
 private fun RitualWindowPicker(selectedWindow: Int, onSelected: (Int) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = LagCheckSpacing.space3_5, bottom = LagCheckSpacing.space1),
-        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
-    ) {
-        listOf(7, 14, 30).forEach { days ->
-            val selected = days == selectedWindow
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(if (selected) LagCheckColors.Panel else LagCheckColors.Surface)
-                    .clickable { onSelected(days) }
-                    .height(44.dp)
-                    .padding(horizontal = LagCheckSpacing.space3),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = trf("Últimos %d dias", days),
-                    style = LagCheckTypography.MonoSmall,
-                    color = if (selected) LagCheckColors.TextPrimary else LagCheckColors.TextMuted
-                )
-            }
-        }
-    }
+    val windowOptions = listOf(7, 14, 30).map { days -> days.toString() to trf("Últimos %d dias", days) }
+    StabilityChipRow(
+        options = windowOptions,
+        selectedKey = selectedWindow.toString(),
+        onSelected = { key -> key?.toIntOrNull()?.let(onSelected) },
+        modifier = Modifier.padding(top = LagCheckSpacing.space3)
+    )
 }
 
 @Composable

@@ -91,6 +91,10 @@ class ShelfAndPlannerTest {
         val plan = MeasurementPlanner.plan(payload, PlatformLabels.GENERIC_GAME_ID, "Android", now = now) as PlanResult.Ready
         assertThat(plan.context.profileId).isEqualTo(QualityProfileId.BATTLE_ROYALE_COMPETITIVE)
         assertThat(plan.context.regionId).isEqualTo("sa-east-1")
+
+        val catalogGenericPlan = MeasurementPlanner.plan(payload, OfficialGameCatalog.genericGaming.id, "Mobile", now = now) as PlanResult.Ready
+        assertThat(catalogGenericPlan.context.regionId).isEqualTo("sa-east-1")
+        assertThat(MeasurementPlanner.planRegional(payload, OfficialGameCatalog.genericGaming.id, "Mobile", now = now)).isNotNull()
     }
 
     @Test fun regionalPlanPreReadsEverySignedReferenceBeforeChoosing() {

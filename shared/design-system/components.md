@@ -1,29 +1,31 @@
 # LagCheck — inventário de componentes (`LagCheckDesign`)
 
-Companion de [`docs/04-design-system.md`](../docs/04-design-system.md). Cada componente abaixo documenta anatomia, variantes, estados e a API SwiftUI pretendida para o módulo `LagCheckDesign`. Todos os valores citados (cor, espaçamento, raio, tipografia, motion) referenciam os tokens semânticos de `design-system/tokens/` — nenhum valor mágico.
+Companion de [`docs/04-design-system.md`](../../docs/04-design-system.md) e [`shared/design-system/DESIGN.md`](DESIGN.md). Todos os valores citados (cor, espaçamento, raio, tipografia, motion) referenciam os tokens semânticos de `shared/design-system/tokens/` — nenhum valor mágico.
 
 Convenções de leitura: **Anatomia** lista as partes visuais; **Variantes** são configurações escolhidas por quem usa o componente; **Estados** são condições que o próprio componente gerencia ou recebe como binding; **API** é a assinatura pública pretendida.
 
 ---
 
-## Mapa por plataforma (lido do código em 2026-11-07)
+## Mapa por plataforma (atualizado em 2026-11-15)
 
-Os nomes das seções abaixo são os da especificação original (módulo `LagCheckDesign`, API SwiftUI pretendida). No código o módulo iOS se chama `NolaggyDesign`, e Android e Windows têm componentes próprios. Esta tabela liga cada especificação ao que existe hoje; `—` significa que não achei equivalente.
+Os nomes das seções abaixo preservam parte da nomenclatura original (`LagCheckDesign`). No código o módulo iOS se chama `NolaggyDesign`, e Android (`core:designsystem` + `app`) e Windows (`LagCheck.WinUI`) têm componentes próprios alinhados ao `shared/design-system/DESIGN.md`.
 
-| Especificação | iOS (`NolaggyDesign`) | Android | Windows (prévia) |
+| Especificação | iOS (`NolaggyDesign` / `NolaggyApp`) | Android (`core:designsystem` / `app`) | Windows (`LagCheck.WinUI`) |
 | --- | --- | --- | --- |
-| `LagCheckScore` | `NolaggyScore`, `VerdictIndicatorBadge` | `VerdictHeroBadge`, `VerdictIndicatorBadge` | `VerdictHeadline` |
-| `MeasurementPulse` | `MeasurementPulse`, `HomeCircularPulseGaugeHero` | `HomeCircularPulseGaugeHero`, `MeasurementLiveTrail` | `CircularGauge` |
-| `LatencyGraph` | `LatencyGraph` | `LatencyChart` | `LatencyChart` |
-| `GameTile` | `CatalogGameTile`, `CompactCatalogGameTile`, `GameRowView` | `GameRow` | `ListRow` |
+| `LagCheckScore` | `NolaggyScore`, `VerdictIndicatorBadge` | `VerdictHeroBadge`, `VerdictIndicatorBadge` | `VerdictBadge` |
+| `MeasurementPulse` | `RouteMeasurementMapView` (Decisão 123) | `RouteMeasurementMap` (Decisão 123) | `RouteMapCanvas` |
+| `LatencyGraph` | `LatencyGraph`, `StabilityEvolutionSection` | `LatencyChart`, `StabilityEvolutionSection` | `LatencyChart`, `StabilityRings` |
+| `GameTile` | `CatalogGameTile`, `CompactCatalogGameTile`, `GameRowView` | `GameTile`, `GameRow` | `GameCard` |
+| `CatalogSearchField` | Campo `#15181E`, `12pt`, `minHeight 46` (Home, Jogos, Favoritos) | Campo `#15181E`, `12dp`, `minHeight 46` (Home, Jogos) | Busca WinUI (`Ctrl+F`) |
 | `PlatformSelector` | `PlatformSelectorRow` (em `Features/Details`) | `PlatformGlyphRow` | — |
-| `PrimaryButton` | `PrimaryButton` | `PrimaryButton` | `PrimaryButton`, `SecondaryButton` |
-| `MetricRow` | `MetricRow` | `MetricBox` | `MetricTile` |
+| `PrimaryButton` | `PrimaryButton` (`12pt`, `#7C3AED`) | `PrimaryButton` (`12dp`, `#7C3AED`) | `HomeHeroCta` / `PrimaryButton` |
+| `MetricRow` | `MetricRow` | `MetricBox` | `MetricStrip` |
 | `InsightBanner` | `InsightBanner`, `NetworkBandAdviceBanner` | — | — |
 | `StatusMessage` | `StatusMessage` | — | `StatusMarker` |
-| `EmptyState` | — | `EmptySearch` | `EmptyState` |
+| `EmptyState` | `EmptyState` | `EmptySearch` | `EmptyState` |
+| `NativeAdSlot` | `NativeAdSlot` (faixa horizontal compacta, sem contorno) | `NativeAdSlot` (faixa horizontal compacta, sem contorno) | — (sem anúncios) |
 
-**No código e sem seção abaixo:** iOS `ConsolidatedRouteTrailView`, `RouteTrailSummaryCard`, `RootCauseIsolationView`, `SessionCompatibilityStrip`, `LiveNetworkSignalCapsule`, `RegionalReferenceCard`, `GameArtwork`, `CatalogSearchField`; Android `RadioSignalPill`; Windows `Panel`, `PageHeader`, `SidebarItem`, `SettingSwitch`. Documentar cada um é trabalho pendente.
+**Componentes adicionais em uso:** iOS `ConsolidatedRouteTrailView`, `RouteTrailSummaryCard`, `RootCauseIsolationView`, `SessionCompatibilityStrip`, `LiveNetworkSignalCapsule`, `RegionalReferenceCard`, `GameArtwork`, `GameReadinessWidget`; Android `RadioSignalPill`, `GameReadinessWidget` (Glance).
 
 
 ## `LagCheckScore`
@@ -244,11 +246,22 @@ public protocol PlatformSelectorOption: Identifiable, Equatable {
 Ação principal única de cada tela. Nunca duas instâncias `.primary` competindo na mesma tela.
 
 **Anatomia**
-- Fundo retangular arredondado (`radius.button` / 17px), altura `primaryButton.height` (58pt), min-width 220pt.
-- Rótulo, `NLTypography.ctaButton` (16pt, weight 800/heavy, tracking -0.2px), cor `text.onAccent` (#FFFFFF).
-- Ícone opcional à esquerda/direita, `icon.sm`, gap `primaryButton.iconGap` (8px).
-- Sombra de ação primária Roxo Gamer (`shadow.action`: 0 12px 14px rgba(124, 58, 237, 0.35)).
+- Fundo retangular com cantos contidos (`NLRadius.lg` / `LagCheckRadius.lg` = `12 px`, Decisão 126), altura padrão `56–58 px` ou `46 px` na variante compacta do Hero da Home (Decisão 144), sem anel externo duplo ou halo translúcido.
+- Rótulo em `Barlow` SemiBold (`NLTypography.ctaButton` / `LagCheckTypography.CtaPrimary`), cor `text.onAccent` (`#FFFFFF`).
+- Ícone opcional à esquerda/direita, gap `8 px`.
+- Sombra de ação primária Roxo Gamer (`shadow.action`).
 - Spinner opcional substituindo o rótulo em `.loading`.
+
+---
+
+## `CatalogSearchField` (Barra de busca padronizada)
+
+Campo de busca unificado entre **Início**, **Jogos** e a folha de seleção de favoritos (Decisão 145).
+
+**Anatomia**
+- Superfície `surface` (`#15181E`), cantos `NLRadius.md` / `LagCheckRadius.md` (`12 px`), altura mínima `46 px`, preenchimento horizontal `16 px` e vertical `12 px`.
+- Sem linha de contorno/borda e sem sombra.
+- Ícone de lupa (`18 px`), placeholder `"Buscar jogo..."` (Android) / localizado em `text.tertiary` (`#606873`), e botão de limpar ao digitar.
 
 **Variantes**
 | Variante | Uso |
@@ -428,18 +441,16 @@ public struct EmptyState: View {
 
 ---
 
-## Módulo de anúncio nativo (Decisões 96 e 97)
+## Módulo de anúncio nativo (Decisões 96, 97 e 144)
 
-Home, Histórico, Jogos e Resultado podem inserir um módulo AdMob Native Advanced no fluxo de rolagem. A implementação pertence à camada de app de cada plataforma; `LagCheckDesign` não importa o SDK nem reserva espaço.
+Home, Histórico, Jogos e Resultado concluído válido inserem um módulo AdMob Native Advanced em faixa horizontal compacta no fluxo de rolagem. A implementação pertence à camada de app de cada plataforma (`NativeAdSlot`); `LagCheckDesign` não importa o SDK nem reserva espaço.
 
 **Anatomia**
-- Superfície separada do conteúdo funcional, com tokens `surfaceAd.background`, `surfaceAd.label` e margem `adSlotMargin`.
-- Rótulo localizado "Anúncio"/"Ad" visível antes dos assets publicitários.
-- Headline, mídia/ícone, patrocinador, CTA e AdChoices apresentados pelas views do SDK. Nenhum gesto do app sobrepõe CTA ou AdChoices.
+- Faixa horizontal compacta (~`88–96 dp/pt`) sobre superfície `#15181E`, cantos `12 px`, **sem linha de contorno** e **sem `MediaView` grande** nem blocos extensos de texto secundário (Decisão 144).
+- Selo localizado `"Anúncio"`/`"Ad"` visível junto ao anunciante opcional, ícone quadrado, título em até 2 linhas e botão discreto à direita (alvo mínimo `44 dp/pt`).
+- Preserva o `AdChoices` do SDK sem sobreposição de gestos.
 
 **Comportamento**
-- Renderizar somente após consentimento que permita requisição e anúncio carregado. Pendência, negativa, erro ou falta de inventário deixam a tela sem módulo, rótulo ou lacuna.
-- O módulo fica após conteúdo e ações essenciais; no Resultado, após veredito, métricas, explicação e todas as ações. Não aparece durante Check nem em Detalhes, Configurações, Widget ou App Clip.
-- VoiceOver e TalkBack anunciam o caráter publicitário antes dos assets. Texto ampliado deve crescer sem corte ou altura rígida. A ação do anúncio mantém o estilo do SDK e não usa a ênfase da ação primária do LagCheck.
-
-`BannerAdSlot` e sua reserva fixa de altura são referências históricas, substituídas por este contrato.
+- Renderizar somente após consentimento UMP que permita requisição e anúncio carregado. Pendência, negativa, erro ou falta de inventário deixam a tela sem módulo, rótulo ou lacuna.
+- Fica após conteúdo e ações essenciais; no Resultado, após veredito, métricas, explicação e todas as ações. Nunca aparece durante Check, resultado inconclusivo nem em Detalhes, Configurações/Ajustes, Widget ou App Clip.
+- VoiceOver e TalkBack anunciam o caráter publicitário antes dos assets. A ação do anúncio não assume o Roxo Gamer (`#7C3AED`) da ação primária do LagCheck.

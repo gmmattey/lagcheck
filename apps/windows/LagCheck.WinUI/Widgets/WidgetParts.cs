@@ -464,7 +464,8 @@ public static class WidgetParts
             var range = max - min;
             var flat = range <= 0.0001;
 
-            var linePoints = new PointCollection();
+            var segmentLines = new List<PointCollection>();
+            PointCollection? activeSegment = null;
             var count = points.Count;
 
             for (var i = 0; i < count; i++)
@@ -473,7 +474,22 @@ public static class WidgetParts
                 var x = count == 1 ? padX + usableW / 2.0 : padX + (usableW * i / (count - 1));
                 var y = flat ? padY + usableH * 0.5 : padY + usableH * (1.0 - (pt.PingMs - min) / range);
 
-                linePoints.Add(new Point(x, y));
+                if (i > 0 && pt.ConnectToPrevious)
+                {
+                    if (activeSegment is null)
+                    {
+                        var prevPt = points[i - 1];
+                        var prevX = count == 1 ? padX + usableW / 2.0 : padX + (usableW * (i - 1) / (count - 1));
+                        var prevY = flat ? padY + usableH * 0.5 : padY + usableH * (1.0 - (prevPt.PingMs - min) / range);
+                        activeSegment = [new Point(prevX, prevY)];
+                        segmentLines.Add(activeSegment);
+                    }
+                    activeSegment.Add(new Point(x, y));
+                }
+                else
+                {
+                    activeSegment = null;
+                }
 
                 var isLast = i == count - 1;
                 var ptColor = Verdicts.ColorOf(pt.Tone);
@@ -520,17 +536,19 @@ public static class WidgetParts
                 canvas.Children.Add(dot);
             }
 
-            if (count >= 2)
+            var insertIndex = Math.Min(2, canvas.Children.Count);
+            foreach (var segPoints in segmentLines)
             {
+                if (segPoints.Count < 2) continue;
                 var polyline = new Polyline
                 {
                     StrokeThickness = 2.0,
                     Stroke = new SolidColorBrush(Color.FromArgb(0xA6, lineColor.R, lineColor.G, lineColor.B)),
                     StrokeLineJoin = PenLineJoin.Round,
-                    Points = linePoints,
+                    Points = segPoints,
                     IsHitTestVisible = false,
                 };
-                canvas.Children.Insert(2, polyline);
+                canvas.Children.Insert(insertIndex++, polyline);
             }
         }
 

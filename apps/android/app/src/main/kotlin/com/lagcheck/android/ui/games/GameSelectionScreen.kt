@@ -20,8 +20,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,10 +30,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lagcheck.android.data.CheckHistoryItem
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.trf
@@ -76,7 +78,7 @@ fun GameSelectionScreen(
         item {
             TopBar(showBackButton, onBack)
             Spacer(Modifier.height(LagCheckSpacing.space3_5))
-            Text(tr("Jogos"), style = LagCheckTypography.PageTitle, color = LagCheckColors.TextPrimary)
+            Text(tr("Jogos").uppercase(), style = LagCheckTypography.PageTitle, color = LagCheckColors.TextPrimary)
             Spacer(Modifier.height(LagCheckSpacing.space4))
             SearchField(searchQuery) { searchQuery = it }
             Spacer(Modifier.height(LagCheckSpacing.space5))
@@ -100,12 +102,12 @@ fun GameSelectionScreen(
                 item { GameRail(tr("FAVORITOS"), content.favoriteGames, favorites, onToggleFavorite, onGameSelected) }
             }
             item { RailTitle(tr("TODOS OS JOGOS A–Z")) }
-            items(content.allGames.chunked(2), key = { row -> "grid-${row.first().id}" }) { row ->
+            items(content.allGames.chunked(3), key = { row -> "grid-${row.first().id}" }) { row ->
                 Row(Modifier.padding(bottom = LagCheckSpacing.space3), horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)) {
                     row.forEach { game ->
                         GameCard(game, game.id in favorites, onToggleFavorite, onGameSelected, Modifier.weight(1f))
                     }
-                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
             // A escolha essencial terminou; anúncio nunca entra em busca ou vazio.
@@ -133,29 +135,65 @@ private fun TopBar(showBackButton: Boolean, onBack: () -> Unit) {
     }
 }
 
-/** Busca sempre visível: a pessoa no lobby digita sem abrir nada antes. */
+/** Barra de busca padronizada com a Home: 12dp de canto, superfície #15181E sem contorno. */
 @Composable
 private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = { Text(tr("Buscar jogo"), color = LagCheckColors.TextMuted, style = LagCheckTypography.BodyMedium) },
-        textStyle = LagCheckTypography.BodyMedium,
-        leadingIcon = { com.lagcheck.core.designsystem.components.SearchIcon(size = 18.dp, color = LagCheckColors.TextMuted) },
-        trailingIcon = if (query.isEmpty()) null else {
-            {
-                Box(
-                    Modifier.size(48.dp).clip(CircleShape).clickable { onQueryChange("") }
-                        .semantics { contentDescription = tr("Fechar busca") },
-                    contentAlignment = Alignment.Center
-                ) { com.lagcheck.core.designsystem.components.CloseIcon(size = 16.dp, color = LagCheckColors.TextMuted) }
+    val searchShape = RoundedCornerShape(LagCheckRadius.md)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 46.dp)
+            .clip(searchShape)
+            .background(LagCheckColors.Surface)
+            .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5)
+    ) {
+        com.lagcheck.core.designsystem.components.SearchIcon(
+            size = 18.dp,
+            color = LagCheckColors.TextMuted
+        )
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            if (query.isEmpty()) {
+                Text(
+                    text = tr("Buscar jogo..."),
+                    style = LagCheckTypography.BodyMedium.copy(fontSize = 14.sp),
+                    color = LagCheckColors.TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-        },
-        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp),
-        singleLine = true,
-        shape = RoundedCornerShape(percent = 50),
-        colors = searchFieldColors()
-    )
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                singleLine = true,
+                textStyle = LagCheckTypography.BodyMedium.copy(
+                    fontSize = 14.sp,
+                    color = LagCheckColors.TextPrimary
+                ),
+                cursorBrush = SolidColor(LagCheckColors.AccentPrimary),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        if (query.isNotEmpty()) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .clickable { onQueryChange("") }
+                    .semantics { contentDescription = tr("Fechar busca") },
+                contentAlignment = Alignment.Center
+            ) {
+                com.lagcheck.core.designsystem.components.CloseIcon(
+                    size = 15.dp,
+                    color = LagCheckColors.TextMuted
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -220,7 +258,9 @@ private fun GameCard(
                 game.name,
                 modifier = Modifier.padding(top = LagCheckSpacing.space2).defaultMinSize(minHeight = 44.dp),
                 style = LagCheckTypography.Subtext.copy(fontWeight = FontWeight.SemiBold),
-                color = LagCheckColors.TextPrimary
+                color = LagCheckColors.TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
         FavoriteToggle(game, isFavorite, onToggleFavorite, Modifier.align(Alignment.TopEnd))
@@ -265,14 +305,6 @@ private fun EmptySearch(onStartGeneralCheck: () -> Unit) {
     }
     Spacer(Modifier.height(LagCheckSpacing.space10))
 }
-
-@Composable
-private fun searchFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = LagCheckColors.Surface, unfocusedContainerColor = LagCheckColors.Surface,
-    focusedBorderColor = LagCheckColors.AccentPrimary, unfocusedBorderColor = LagCheckColors.BorderStrong,
-    focusedTextColor = LagCheckColors.TextPrimary, unfocusedTextColor = LagCheckColors.TextPrimary,
-    cursorColor = LagCheckColors.AccentPrimary
-)
 
 private data class GameSelectionContent(
     val allGames: List<CatalogGame>,

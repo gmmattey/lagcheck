@@ -2,7 +2,6 @@ package com.lagcheck.android.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
@@ -11,12 +10,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +30,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -35,7 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -85,50 +89,17 @@ fun HomeScreen(
 ) {
     val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.HOME) else null
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(LagCheckColors.Background)
-            .verticalScroll(rememberScrollState())
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = LagCheckSpacing.space6)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
-
-            // 1. Barra de busca flutuante em pílula (Decisão 131)
-            val searchShape = RoundedCornerShape(percent = 50)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(elevation = 6.dp, shape = searchShape)
-                    .clip(searchShape)
-                    .background(LagCheckColors.Surface)
-                    .clickable { onOpenGames() }
-                    .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = null,
-                    tint = LagCheckColors.TextMuted,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = tr("Buscar jogo..."),
-                    style = LagCheckTypography.BodyMedium.copy(fontSize = 14.sp),
-                    color = LagCheckColors.TextMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
-
-            // 2. Hero Carrossel com arte de fundo + veredito limpo (Decisão 132)
+            // 1. Hero full-bleed até o topo (edge-to-edge com fade contínuo na base)
             HomeHeroCarousel(
                 recentGameChecks = recentGameChecks,
                 fallbackLatestCheck = latestCheck,
@@ -137,53 +108,56 @@ fun HomeScreen(
                 onOpenHistoryItem = onOpenHistoryItem
             )
 
-            if (platformHealth != null) {
-                Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
-                PlatformHealthBanner(platformHealth)
-            }
-
-            Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
-
-            // 3. Trilho 1: SEUS FAVORITOS (pôsteres 3:4)
-            val gamesList = favoriteGames.take(FavoriteGames.MAX)
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = LagCheckSpacing.space6)
             ) {
-                HomeSectionHeader(
-                    title = tr("SEUS FAVORITOS"),
-                    onSeeAll = onOpenGames
-                )
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
 
+                // 2. Barra de busca logo abaixo da capa principal
+                val searchShape = RoundedCornerShape(LagCheckRadius.md)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                        .defaultMinSize(minHeight = 46.dp)
+                        .clip(searchShape)
+                        .background(LagCheckColors.Surface)
+                        .clickable { onOpenGames() }
+                        .padding(horizontal = LagCheckSpacing.space4, vertical = LagCheckSpacing.space3),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5)
                 ) {
-                    gamesList.forEach { game ->
-                        HomeGameCard(
-                            game = game,
-                            onClick = { onStartGameCheck(game) }
-                        )
-                    }
-
-                    if (gamesList.size < FavoriteGames.MAX) {
-                        AddFavoriteGameCard(onClick = onOpenGames)
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = LagCheckColors.TextMuted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = tr("Buscar jogo..."),
+                        style = LagCheckTypography.BodyMedium.copy(fontSize = 14.sp),
+                        color = LagCheckColors.TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-            }
 
-            // 4. Trilho 2: POPULARES (pôsteres 3:4)
-            if (popularGames.isNotEmpty()) {
+                if (platformHealth != null) {
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space4))
+                    PlatformHealthBanner(platformHealth)
+                }
+
                 Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
 
+                // 3. Trilho 1: SEUS FAVORITOS (pôsteres 3:4)
+                val gamesList = favoriteGames.take(FavoriteGames.MAX)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
                 ) {
                     HomeSectionHeader(
-                        title = tr("POPULARES"),
+                        title = tr("SEUS FAVORITOS"),
                         onSeeAll = onOpenGames
                     )
 
@@ -193,24 +167,90 @@ fun HomeScreen(
                             .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
                     ) {
-                        popularGames.forEach { game ->
+                        gamesList.forEach { game ->
                             HomeGameCard(
                                 game = game,
                                 onClick = { onStartGameCheck(game) }
                             )
                         }
+
+                        if (gamesList.size < FavoriteGames.MAX) {
+                            AddFavoriteGameCard(onClick = onOpenGames)
+                        }
                     }
                 }
-            }
 
-            if (nativeAd != null) {
-                com.lagcheck.android.ads.NativeAdSlot(
-                    nativeAd,
-                    Modifier.padding(top = LagCheckSpacing.space6)
-                )
+                // 4. Grade 2x3: POPULARES
+                if (popularGames.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space1)
+                        ) {
+                            HomeSectionHeader(
+                                title = tr("POPULARES"),
+                                onSeeAll = onOpenGames
+                            )
+                            Text(
+                                text = tr("Toque no jogo para iniciar o teste"),
+                                style = LagCheckTypography.Subtext,
+                                color = LagCheckColors.TextMuted
+                            )
+                        }
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                        ) {
+                            popularGames.take(6).chunked(3).forEach { rowGames ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                                ) {
+                                    rowGames.forEach { game ->
+                                        HomeGameCard(
+                                            game = game,
+                                            onClick = { onStartGameCheck(game) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .aspectRatio(0.75f)
+                                        )
+                                    }
+                                    repeat(3 - rowGames.size) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (nativeAd != null) {
+                    com.lagcheck.android.ads.NativeAdSlot(
+                        nativeAd,
+                        Modifier.padding(top = LagCheckSpacing.space6)
+                    )
+                }
+                Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
             }
-            Spacer(modifier = Modifier.height(LagCheckSpacing.space6))
         }
+
+        // Protege os ícones da barra de status durante a rolagem sobre a arte e o conteúdo
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsTopHeight(WindowInsets.statusBars)
+                .background(
+                    Brush.verticalGradient(
+                        0.0f to LagCheckColors.Background.copy(alpha = 0.85f),
+                        1.0f to LagCheckColors.Background.copy(alpha = 0.35f)
+                    )
+                )
+        )
     }
 }
 
@@ -259,13 +299,12 @@ private fun HomeGameCard(
     game: CatalogGame,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
+        .width(114.dp)
+        .height(152.dp)
 ) {
     val shape = RoundedCornerShape(LagCheckRadius.md)
     Box(
         modifier = modifier
-            .width(114.dp)
-            .height(152.dp)
-            .shadow(elevation = 6.dp, shape = shape)
             .clip(shape)
             .background(LagCheckColors.Surface)
             .clickable { onClick() }
@@ -293,15 +332,17 @@ private fun HomeGameCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(LagCheckSpacing.space3),
+                .padding(LagCheckSpacing.space2_5),
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = game.name,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = LagCheckColors.TextPrimary,
-                maxLines = 1
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -317,7 +358,6 @@ private fun AddFavoriteGameCard(
         modifier = modifier
             .width(114.dp)
             .height(152.dp)
-            .shadow(elevation = 6.dp, shape = shape)
             .clip(shape)
             .background(LagCheckColors.Surface)
             .clickable { onClick() },
@@ -350,7 +390,9 @@ private fun HomeHeroCarousel(
     onStartGameCheck: (CatalogGame) -> Unit,
     onOpenHistoryItem: (CheckHistoryItem) -> Unit
 ) {
-    val heroShape = RoundedCornerShape(LagCheckRadius.md)
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val heroHeight = 288.dp + statusBarTop
+
     if (recentGameChecks.isEmpty()) {
         HomeHeroSlideCard(
             title = tr("PRONTO PRA RANKED?"),
@@ -359,9 +401,7 @@ private fun HomeHeroCarousel(
             onOpenCheck = { fallbackLatestCheck?.let(onOpenHistoryItem) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(216.dp)
-                .shadow(elevation = 10.dp, shape = heroShape)
-                .clip(heroShape),
+                .height(heroHeight),
             backgroundContent = {
                 Image(
                     painter = painterResource(id = R.drawable.home_hero_default),
@@ -388,11 +428,11 @@ private fun HomeHeroCarousel(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2_5)
+        verticalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
     ) {
         HorizontalPager(
             state = pagerState,
-            pageSpacing = LagCheckSpacing.space3,
+            pageSpacing = 0.dp,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
             val (game, check) = recentGameChecks[page]
@@ -403,9 +443,7 @@ private fun HomeHeroCarousel(
                 onOpenCheck = { onOpenHistoryItem(check) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(216.dp)
-                    .shadow(elevation = 10.dp, shape = heroShape)
-                    .clip(heroShape),
+                    .height(heroHeight),
                 backgroundContent = {
                     RemoteGameArtwork(
                         game = game,
@@ -447,19 +485,21 @@ private fun HomeHeroSlideCard(
     backgroundContent: @Composable () -> Unit
 ) {
     Box(
-        modifier = modifier.background(LagCheckColors.Surface)
+        modifier = modifier.background(LagCheckColors.Background)
     ) {
         backgroundContent()
 
-        // Gradiente escuro para garantir legibilidade do texto e CTA sobre qualquer arte
+        // Gradiente contínuo da arte para legibilidade da status bar no topo e fusão ao fundo #0B0D10 na base
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        0.0f to LagCheckColors.Background.copy(alpha = 0.25f),
-                        0.45f to LagCheckColors.Background.copy(alpha = 0.62f),
-                        1.0f to LagCheckColors.Background.copy(alpha = 0.94f)
+                        0.00f to LagCheckColors.Background.copy(alpha = 0.45f),
+                        0.26f to LagCheckColors.Background.copy(alpha = 0.10f),
+                        0.56f to LagCheckColors.Background.copy(alpha = 0.65f),
+                        0.86f to LagCheckColors.Background.copy(alpha = 0.96f),
+                        1.00f to LagCheckColors.Background
                     )
                 )
         )
@@ -468,8 +508,8 @@ private fun HomeHeroSlideCard(
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
-                        0.0f to LagCheckColors.Background.copy(alpha = 0.42f),
-                        0.75f to Color.Transparent
+                        0.0f to LagCheckColors.Background.copy(alpha = 0.35f),
+                        0.70f to Color.Transparent
                     )
                 )
         )
@@ -477,7 +517,13 @@ private fun HomeHeroSlideCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(LagCheckSpacing.space5),
+                .statusBarsPadding()
+                .padding(
+                    start = LagCheckSpacing.space6,
+                    end = LagCheckSpacing.space6,
+                    top = LagCheckSpacing.space3,
+                    bottom = LagCheckSpacing.space4
+                ),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             HeroLastCheckPill(
@@ -496,94 +542,11 @@ private fun HomeHeroSlideCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                HeroHaloButton(
+                PrimaryButton(
                     text = tr("TESTAR AGORA"),
-                    onClick = onStartClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeroHaloButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val pillShape = RoundedCornerShape(percent = 50)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.40f),
-                        LagCheckColors.AccentPrimaryLight.copy(alpha = 0.28f)
-                    )
-                ),
-                shape = pillShape
-            )
-            .padding(4.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .shadow(
-                    elevation = 12.dp,
-                    shape = pillShape,
-                    ambientColor = LagCheckColors.AccentPrimary,
-                    spotColor = LagCheckColors.AccentPrimary
-                )
-                .clip(pillShape)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF8B5CF6),
-                            LagCheckColors.AccentPrimary,
-                            Color(0xFF6D28D9)
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.30f),
-                            Color.Transparent
-                        )
-                    ),
-                    shape = pillShape
-                )
-                .clickable(onClick = onClick)
-                .padding(start = LagCheckSpacing.space5, end = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Spacer(modifier = Modifier.width(28.dp))
-            Text(
-                text = text,
-                style = LagCheckTypography.CtaPrimary,
-                color = Color.White,
-                modifier = Modifier.weight(1f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(Color.White),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = LagCheckColors.AccentPrimary,
-                    modifier = Modifier.size(16.dp)
+                    onClick = onStartClick,
+                    height = 46.dp,
+                    contentColor = Color.White
                 )
             }
         }

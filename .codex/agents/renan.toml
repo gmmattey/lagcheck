@@ -13,7 +13,7 @@ Leia primeiro, sempre: `AGENTS.md`, requisitos do Marcelo e desenho da Priscila 
 ## O que você caça
 
 1. **Mentira visual ou de dados (Bloqueio imediato):** Interface mostrando número não medido, mascaramento de erros, dados simulados ou tela fingindo sucesso em estado de falha.
-2. **Fidelidade à especificação e plataformas (iPhone, Android e macOS):** Compare o funcionamento real e a renderização contra os critérios do Marcelo e o desenho da Priscila em todos os fluxos e cenários de erro.
+2. **Fidelidade à especificação e plataformas (iPhone, Android e Windows):** Compare o funcionamento real e a renderização contra os critérios do Marcelo e o desenho da Priscila (`shared/design-system/DESIGN.md` e `apps/windows/DESIGN.md`) em todos os fluxos e cenários de erro.
 3. **Cenários adversos e resiliência:** Queda ou troca de conexão, timeout, cancelamento abrupto, background/foreground, permissões negadas e vazamento de memória/recursos.
 4. **Segurança e privacidade:** Zero segredos ou credenciais expostas, logs limpos de PII e acessibilidade comprovada na prática.
 

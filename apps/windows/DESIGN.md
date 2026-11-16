@@ -28,12 +28,12 @@ A navegação é **sem barra lateral**: o conteúdo ocupa toda a janela. No topo
 
 | Tela | Papel no fluxo do Windows |
 | --- | --- |
-| **Início** (`HomePage`) | Abre no último jogo selecionado (ou `Este PC`). Trilho de instalados no topo, Hero no canto inferior esquerdo (plataforma, título/logo, último veredito + ping, `JOGAR AGORA`, `Testar conexão`, detalhes e favorito) e grade personalizável de widgets à direita. |
+| **Início** (`HomePage`) | Visão geral **Este PC** como entrada padrão (ou último jogo selecionado). Jogos instalados e ações imediatas no topo, status pontual de plataformas (`/api/status`: Steam, Epic Games, Xbox) antes do contexto por jogo e grade personalizável de widgets com dados locais reais (capturas, atividade conhecida e histórico de checks). |
 | **Biblioteca** (`LibraryPage`) | Coleção local completa com busca (`Ctrl+F`), ordenação, filtros por launcher/estado, tag de veredito e início rápido (`▶`). |
-| **Detalhes do Jogo** (`GameDetailsPage`) | Capa imersiva no topo com ações imediatas; abaixo em duas colunas: descrição, capturas e atualizações da loja à esquerda; ficha técnica, resumo de estabilidade da rede (com medidores em anel) e histórico do jogo à direita. |
+| **Detalhes do Jogo** (`GameDetailsPage`) | Capa imersiva no topo com ações imediatas; abaixo em duas colunas: descrição, capturas e atualizações da loja à esquerda; ficha técnica, resumo de estabilidade da rede (curva + 4 anéis via `stability-summary-v1`) e histórico do jogo à direita. |
 | **Galeria** (`GalleryPage`) | Exibe somente capturas locais reais encontradas no PC. |
 | **Conexão** (`DiagnosticPage`) | Cockpit de telemetria em três estados: Repouso (mapa de datacenters), Medição (numeral ao vivo e fases reais) e Resultado (veredito, métricas, evidência de rota, Voz/Streaming/NAT, servidores, copiar resultado e `JOGAR AGORA` quando contextual). |
-| **Histórico** (`HistoryPage`) | Filtro por escopo (geral ou por jogo), card de estabilidade da rede com gráfico e medidores em anel, busca e tabela de sessões. |
+| **Histórico** (`HistoryPage`) | Filtro por escopo (Visão geral ou por jogo) e janela (`7/14/30` dias) + rede, bloco único sem contornos de estabilidade da rede com curva de ping (`>= 3` checks válidos no mesmo contexto) e 4 medidores em anel (`Ping méd`, `Jitter`, `Perda`, `Sob carga`), busca e lista de sessões. |
 | **Ajustes** (`SettingsPage`) | Layout em duas colunas (categorias à esquerda, opções à direita): Tela e janela (`F11`), Aparência e idioma (`Sistema`, `PT-BR`, `EN`, `ES`), Jogos e imagens, Privacidade e rede, Atualizações e Sobre. |
 
 ---

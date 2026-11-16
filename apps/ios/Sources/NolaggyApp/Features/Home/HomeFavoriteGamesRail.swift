@@ -79,25 +79,28 @@ public struct HomeFavoriteGamesRail: View {
                                 NLColor.surface,
                                 in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
                             )
-                            .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("home-favorite-game-add-slot")
                     }
                 }
                 .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, 4)
             }
         }
     }
 }
 
-/// Trilho de jogos populares na Home (pôsteres 3:4, toque direto para testar).
+/// Grade 2x3 de jogos populares na Home (pôsteres 3:4, toque direto para testar).
 public struct HomePopularGamesRail: View {
     let popularGames: [CatalogMeasurementJourney.Game]
     let selectedGameID: String?
     let onSelectGame: (CatalogMeasurementJourney.Game) -> Void
     let onSeeAll: () -> Void
+
+    private let columns = Array(
+        repeating: GridItem(.flexible(), spacing: NLSpacing.sm),
+        count: 3
+    )
 
     public init(
         popularGames: [CatalogMeasurementJourney.Game],
@@ -113,44 +116,48 @@ public struct HomePopularGamesRail: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: NLSpacing.sm) {
-            HStack {
-                Text(LocalizedStringKey("home.popular"))
-                    .font(NLTypography.sectionHeader)
-                    .foregroundStyle(NLColor.textSecondary)
-                    .textCase(.uppercase)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(LocalizedStringKey("home.popular"))
+                        .font(NLTypography.sectionHeader)
+                        .foregroundStyle(NLColor.textSecondary)
+                        .textCase(.uppercase)
 
-                Spacer()
+                    Spacer()
 
-                Button(action: onSeeAll) {
-                    HStack(spacing: 2) {
-                        Text(LocalizedStringKey("home.quick_rail.see_all"))
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(verbatim: "›")
-                            .font(.system(size: 15, weight: .bold))
+                    Button(action: onSeeAll) {
+                        HStack(spacing: 2) {
+                            Text(LocalizedStringKey("home.quick_rail.see_all"))
+                                .font(.system(size: 13, weight: .semibold))
+                            Text(verbatim: "›")
+                                .font(.system(size: 15, weight: .bold))
+                        }
+                        .foregroundStyle(NLColor.gamerPurpleLight)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
                     }
-                    .foregroundStyle(NLColor.gamerPurpleLight)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("home-popular-games-see-all")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("home-popular-games-see-all")
+
+                Text(LocalizedStringKey("home.popular.hint"))
+                    .font(NLTypography.caption)
+                    .foregroundStyle(NLColor.textSecondary)
             }
             .padding(.horizontal, NLSpacing.screenMarginHorizontal)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NLSpacing.sm) {
-                    ForEach(popularGames) { game in
-                        HomePosterGameCard(
-                            game: game,
-                            isSelected: game.id == selectedGameID,
-                            onTap: { onSelectGame(game) }
-                        )
-                        .accessibilityIdentifier("home-popular-game-\(game.id)")
-                    }
+            LazyVGrid(columns: columns, spacing: NLSpacing.sm) {
+                ForEach(Array(popularGames.prefix(6))) { game in
+                    HomePosterGameCard(
+                        game: game,
+                        isSelected: game.id == selectedGameID,
+                        fillsWidth: true,
+                        onTap: { onSelectGame(game) }
+                    )
+                    .accessibilityIdentifier("home-popular-game-\(game.id)")
                 }
-                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                .padding(.vertical, 4)
             }
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
         }
     }
 }
@@ -158,13 +165,13 @@ public struct HomePopularGamesRail: View {
 private struct HomePosterGameCard: View {
     let game: CatalogMeasurementJourney.Game
     let isSelected: Bool
+    var fillsWidth: Bool = false
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .bottomLeading) {
                 VerifiedGameArtwork(game: game, aspectRatio: 0.75)
-                    .frame(width: 114, height: 152)
 
                 LinearGradient(
                     stops: [
@@ -178,21 +185,32 @@ private struct HomePosterGameCard: View {
                 )
 
                 Text(game.name)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(NLColor.textPrimary)
-                    .lineLimit(1)
-                    .padding(NLSpacing.sm)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .padding(10)
             }
-            .frame(width: 114, height: 152)
+            .modifier(PosterCardSizingModifier(fillsWidth: fillsWidth))
+            .background(NLColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
-            .shadow(
-                color: isSelected ? NLColor.accentPrimary.opacity(0.35) : NLShadow.cardColor,
-                radius: isSelected ? 10 : 6,
-                x: 0,
-                y: isSelected ? 4 : 3
-            )
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct PosterCardSizingModifier: ViewModifier {
+    let fillsWidth: Bool
+
+    func body(content: Content) -> some View {
+        if fillsWidth {
+            content
+                .frame(maxWidth: .infinity)
+                .aspectRatio(0.75, contentMode: .fit)
+        } else {
+            content
+                .frame(width: 114, height: 152)
+        }
     }
 }
 
@@ -237,9 +255,10 @@ public struct FavoriteGamesSelectionSheet: View {
                         }
                     }
                 }
-                .padding(NLSpacing.sm)
-                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md))
-                .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
+                .padding(.horizontal, NLSpacing.md)
+                .padding(.vertical, 12)
+                .frame(minHeight: 46)
+                .background(NLColor.surface, in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous))
                 .padding(.horizontal, NLSpacing.md)
 
                 // Lista de Jogos

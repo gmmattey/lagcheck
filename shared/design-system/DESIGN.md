@@ -10,7 +10,7 @@ O visual é escuro, calmo e técnico, sem cair numa caricatura gamer. A área de
 
 ## Color / Cor
 
-Os tokens canônicos em hex valem para iOS, Android, Windows e Web (ver [`tokens/platforms.json`](tokens/platforms.json)): fundo `--bg` (`#0B0D10`), superfície (`#15181E`), painel elevado (`#1E232B`), texto primário (`#F4F5F7`), texto secundário (`#8A93A0`), texto terciário (`#606873`), borda (`white` 8–16%), Roxo Gamer (`#7C3AED`), Coral Solar (`#FF5A36`), Âmbar (`#F59E0B`) e Verde (`#22C55E`). Não converter automaticamente de `oklch` antigos: `oklch(0.585 0.214 299)` resulta em `#9052e6`, não em `#7C3AED`. Roxo Gamer é reservado para ação, seleção, foco e progresso; Coral Solar serve a erro, risco ou ação destrutiva; Verde comunica resultado favorável e nunca substitui uma explicação textual.
+Os tokens canônicos em hex valem para iOS, Android, Windows e Web (ver [`tokens/platforms.json`](tokens/platforms.json)): fundo `--bg` (`#0B0D10`), superfície (`#15181E`), painel elevado (`#1E232B`), texto primário (`#F4F5F7`), texto secundário (`#8A93A0`), texto terciário (`#606873`), Roxo Gamer (`#7C3AED`), Coral Solar (`#FF5A36`), Âmbar (`#F59E0B`) e Verde (`#22C55E`). A separação entre blocos vem de contraste tonal entre superfícies e elevação sutil, evitando linhas de contorno/bordas em cards, pílulas, campos de busca e anúncios (Decisão 128). Não converter automaticamente de `oklch` antigos: `oklch(0.585 0.214 299)` resulta em `#9052e6`, não em `#7C3AED`. Roxo Gamer é reservado para ação principal, seleção ativa, foco e progresso; Coral Solar serve a erro, risco ou ação destrutiva; Verde comunica resultado favorável e nunca substitui uma explicação textual.
 
 ## Typography / Tipografia
 
@@ -23,7 +23,7 @@ A tipografia é unificada entre iOS, Android, Windows e Web (Decisão 125):
 | Métricas e dados | **Chakra Petch** | 600 | Valores e rótulos de ping, jitter, perda de pacotes, rotas e tags técnicas (algarismos tabulares) |
 | Fallback | Pilha sans-serif/mono do sistema | conforme componente | Leitura quando a fonte web não carregar |
 
-As fontes empacotadas e suas licenças OFL ficam em `apps/android/core/designsystem/src/main/res/font/`, `apps/ios/Sources/NolaggyDesign/Resources/Fonts/` e `apps/android/desktop/src/main/resources/fonts/`. Títulos trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. Não usar fonte de métrica para parágrafos nem Barlow Semi Condensed em leitura contínua.
+As fontes empacotadas e suas licenças OFL ficam em `apps/android/core/designsystem/src/main/res/font/`, `apps/ios/Sources/NolaggyDesign/Resources/Fonts/`, `apps/windows/LagCheck.WinUI/Assets/Fonts/` e `apps/android/desktop/src/main/resources/fonts/`. Títulos trabalham com tracking negativo; rótulos técnicos são pequenos, em caixa alta e com tracking positivo. No mobile, **títulos principais e secundários das telas ficam sempre em CAIXA ALTA** (`JOGOS`, `HISTÓRICO`, `AJUSTES` / `CONFIGURAÇÕES`, `DETALHES`, `DETALHES TÉCNICOS`, `DADOS DA REDE`), mantendo a capitalização normal nos rótulos da barra inferior (`Início`, `Jogos`, `Histórico`, `Ajustes` / `Configurações`). Não usar fonte de métrica para parágrafos nem Barlow Semi Condensed em leitura contínua.
 
 **Regras de implementação web (`gmmattey/landings/pages/lagcheck/src/styles/global.css`):**
 - Centralizar as famílias em *custom properties* CSS, sem repetir configurações em páginas individuais. Aplicar as regras por papéis semânticos para que toda a home, páginas de jogos, ferramentas e páginas institucionais compartilhem a mesma tipografia.
@@ -43,25 +43,32 @@ O mapa de medição mostra de onde o check sai e até qual região ele foi medid
 - **Arcos e sondas reais:** arco quadrático de Bézier (`computeArc` / `bezierPoint`) em `--purple` (`#7C3AED`). Tudo que se move vem de medição real: saída fixa em `420 ms` (`620 ms` na varredura inicial com `45 ms` de escalonamento entre regiões) e volta proporcional ao RTT observado (`clamp(rttMs * 8, 300, 700)` ms) com easing cúbico simétrico.
 - **Rótulos sem sobreposição:** apenas “Você” e a região escolhida (ou mais rápida na varredura) recebem rótulo, com detecção de colisão de caixas para nunca sobrepor nem sair da área útil.
 - **"Você":** localização aproximada pelo IP no endpoint do site (`/v1/approx-location`, 0,5°), com rótulo "Você · Cidade"; a varredura espera por ela, como o `trySweep()` do site. Se falhar, os apps usam o país do aparelho; sem país, a nota "Localização aproximada indisponível".
-- **Implementação nativa:** `RouteMapController` + `RouteMeasurementMapView` (`NolaggyDesign/Components/RouteMap/` no iOS) e `RouteMapController` + `RouteMeasurementMap` (`core/designsystem/components/map/` no Android), porta direta de `route-map.ts` (Decisão 123). Contêiner com raio 13, borda de 1 px, proporção 4:3 na medição e 16:10 no resultado.
+- **Implementação nativa:** `RouteMapController` + `RouteMeasurementMapView` (`apps/ios/Sources/NolaggyDesign/Components/RouteMap/`) e `RouteMapController` + `RouteMeasurementMap` (`apps/android/core/designsystem/src/main/kotlin/com/lagcheck/core/designsystem/components/map/`), porta direta de `route-map.ts` (Decisão 123). Contêiner com raio 12 e proporção 4:3 na medição e 16:10 no resultado.
 
 ## Espaçamento, forma e elevação
 
-Base de 4 px. Conteúdo de tela usa 22 px nas laterais, controles usam no mínimo 44 px e CTA principal 56–62 px. Raios: 8 px para mídia e métricas, 13 px para campos/cartões compactos, 17 px para CTA, 26 px para bottom sheet e pill para estado conciso. Elevação só aparece em menu, toast, CTA e sheet.
+Base de 4 px. Conteúdo de tela usa 22 px nas laterais; controles interativos usam no mínimo 44 pt (iOS) / 44–48 dp (Android) e CTA principal de tela cheia 56–58 px (46 px no botão compacto `TESTAR AGORA` do Hero na Home). Raios (Decisão 126): 8 px para mídia e métricas (`sm`), 12 px para campos de busca, cartões compactos e CTAs (`md`/`lg`), 26 px para bottom sheet (`xl`) e pill (999 px) para pílulas concisas de status e tab bar flutuante. Sem bordas/contornos marcados em cards, busca, pílulas ou anúncios; elevação e contraste de superfície definem a hierarquia (Decisão 128).
 
 ## Layout
 
-O shell é mobile-first: status, barra superior, conteúdo de decisão e indicador do sistema. Não há uma navegação persistente de destino para escolher jogo; a seleção é uma etapa transitória. A Home usa uma só ação primária. Em detalhes, o veredito continua presente e os dados entram por seções: score, métricas, série temporal, rota e recomendações.
+No mobile (iOS e Android), a navegação tem **4 destinos** (`Início`, `Jogos`, `Histórico`, `Ajustes`/`Configurações` — Decisões 80 e 98). Os títulos das telas são sempre em caixa alta:
+
+- **Início (Decisões 132 e 144):** Hero full-bleed ocupando toda a largura e subindo até o topo atrás da barra de status, com gradiente direto para `#0B0D10` (carrossel com até 3 jogos testados recentemente ou `home_hero_default`) e botão sólido `TESTAR AGORA` (`#7C3AED`, altura 46, raio 12). Logo abaixo do Hero fica a barra de busca padronizada; em seguida `SEUS FAVORITOS` e `POPULARES` em grade fixa **2 linhas × 3 colunas** (`3:4`, até 6 jogos) com a frase `"Toque no jogo para iniciar o teste"` abaixo do título.
+- **Jogos (Decisão 145):** título `JOGOS` em caixa alta, mesma barra de busca padronizada da Home e catálogo em **grade de 3 colunas** (`3:4`).
+- **Histórico (Decisão 143):** título `HISTÓRICO` em caixa alta, filtros sem `#7C3AED` e bloco único de estabilidade da conexão (curva de ping traçada apenas com `>= 3` checks válidos por segmento de rede/região + 4 anéis `Ping méd`, `Jitter`, `Perda` e `Sob carga` + contagem separada de inconclusivos) acima da lista de sessões.
+- **Resultado e Detalhes:** o veredito é o protagonista imediato; em detalhes (`DETALHES` / `DETALHES TÉCNICOS`), entram score, métricas, série temporal, rota e recomendações.
+- **Anúncio nativo (`NativeAdSlot`, Decisão 144):** apenas em `Início`, `Jogos`, `Histórico` e `Resultado` concluído válido, sempre como faixa horizontal compacta (~88–96 px), sem `MediaView` grande e sem contorno.
 
 ## Componentes
 
 - **Wordmark:** `wordmark-primary.svg` (Decisão 124), "Lagcheck" com o símbolo L + check: "Lag" branco e "check" em degradê roxo; usar em superfícies escuras. As variantes `wordmark-mono-*` e `lagcheck-wordmark-light.svg` ainda são da marca anterior.
 - **Símbolo:** `lagcheck-mark.svg`, "L" roxo com faixas de velocidade, check branco e órbita com dois nós.
 - **Ícone do app:** `app-icon-source.svg`, o símbolo oficial sobre o fundo grafite com brilho roxo embaixo, gerado por `shared/scripts/generate-brand-icons.py`.
-- **Botão primário:** largura cheia na tela, roxo, alto contraste e sombra de ação. Um por viewport para a mesma ação.
-- **Botão secundário/atalho:** transparente ou bordado; nunca compete com o primário.
+- **Botão primário:** Roxo Gamer (`#7C3AED`), cantos `12 px`, alto contraste e sombra de ação, sem halo ou anel externo duplo (Decisões 126 e 144). Um por viewport para a mesma ação.
+- **Botão secundário/atalho:** superfície neutra sem contorno marcado; nunca compete com o primário.
+- **Barra de busca:** idêntica em `Início`, `Jogos` e seleção de favoritos — superfície `#15181E`, cantos `12 px`, altura mínima `46`, sem linha de contorno e sem sombra.
 - **Pill de telemetria:** estado curto com ponto de status e texto mono.
-- **Linha de catálogo/histórico:** divisória, capa neutra e contexto técnico; sem cards redundantes.
+- **Linha de catálogo/histórico:** divisória ou contraste de superfície, capa neutra `3:4` e contexto técnico; sem cards redundantes.
 - **Bottom sheet:** confirmação, plataforma e escolha contextual; alça, raio superior amplo e scrim.
 - **Veredito:** display grande + texto interpretativo + métricas apenas quando observadas.
 - **Métricas e evidência:** superfícies discretas, valores mono e rótulo claro. Ausência de leitura fica explícita.
@@ -72,7 +79,7 @@ Os protótipos usam `cubic-bezier(.2, 0, 0, 1)`. Pressão dá escala de até `.9
 
 ## Voice / Voz
 
-Português brasileiro, direto e sem prometer além da leitura: “Pronto para Ranked”, “Condições instáveis”, “Não foi possível avaliar com segurança desta vez”. Chamar o teste de **check** e dar motivo quando interrompido. Não inventar banda, rota, perda ou conclusão saudável se a medição não existe.
+Português brasileiro, direto e sem prometer além da leitura: “Pronto para Ranked”, “Eu evitaria Ranked agora”, “Condições instáveis”, “Inconclusivo”. Chamar o teste de **check** e dar motivo quando interrompido. Não inventar banda, rota, perda ou conclusão saudável se a medição não existe.
 
 ## Plataformas
 

@@ -1,8 +1,10 @@
 {
   "$schema": "lagcheck/tokens/sizing",
-  "description": "Dimensões semânticas do LagCheck Design System. Controles usam no mínimo 44px e CTA principal 56–62px (58px padrão).",
+  "description": "Dimensões semânticas do LagCheck Design System. Controles usam no mínimo 44px; busca usa altura mínima 46px; CTA compacto do Hero usa 46px e CTA padrão 56–58px.",
   "sizes": {
     "touchTarget": 44,
+    "searchFieldMinHeight": 46,
+    "heroCompactButtonHeight": 46,
     "primaryButtonHeight": 58,
     "primaryButtonMinWidth": 200,
     "liveChipHeight": 27,

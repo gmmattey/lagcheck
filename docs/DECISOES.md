@@ -89,7 +89,7 @@
 | [83](#decisão-83) | Ícone do app com mascote no Android (Clássico, Joinha, Piscadinha, Comemorando) | **Vigente (Implementado)** | Um activity-alias por ícone, trocado em Configurações; sem reinstalar | Marco / Renan / Rian / Luiz |
 | [84](#decisão-84) | Giam como Product Owner Operacional e Gate de Qualidade da Squad | **Vigente (Governança)** | Refina a divisão de papéis da Decisão 63: Giam enquadra e aceita missões; Marco lidera estratégia e orquestração | Giam / Marco / Luiz |
 | [85](#decisão-85) | Retirada do gate entre MVP1 e MVP1.1 | **Vigente (Produto)** | Telemetria informa prioridade, mas não bloqueia escopo de retenção ou evolução aprovada | Luiz / Giam / Marco |
-| [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Vigente (Implementado localmente; validação visual pendente)** | Resumo local comparável em 7/14/30 dias; sem previsão ou causa | Luiz / Giam / Marco / Squad |
+| [86](#decisão-86) | Ritual honesto do Histórico por jogo | **Refinada pela Decisão 143** | Resumo local comparável em 7/14/30 dias; evolução visual e 4 anéis definidos na Decisão 143 | Luiz / Giam / Marco / Squad |
 | [87](#decisão-87) | Lembrete local pré-partida, configurado pela pessoa | **Vigente (implementado localmente; validação física pendente)** | Opt-in local, um horário diário e abertura do Check sem execução automática | Luiz / Giam / Marco / Rian / Renan / Breno |
 | [88](#decisão-88) | Widget de prontidão por jogo — arte oficial por plataforma e Check direto | **Vigente (Implementado localmente; validação visual/física pendente)** | Refina a #49 e a Decisão 75: iOS e Android mostram a arte editorial do último Check válido e iniciam novo Check daquele contexto por toque explícito | Luiz / Giam / Marco / Camillo / Rian / Renan / Iury / Breno |
 | [89](#decisão-89) | Ativação coordenada do catálogo de 48 jogos por referência regional | **Vigente (implementado localmente; distribuição pendente)** | Refina a Decisão 70: os 48 jogos entram no envelope assinado local, com referência AWS regional, nunca rota própria de jogo | Luiz / Giam / Marco / Iury / Rian / Breno |
@@ -135,7 +135,7 @@
 | [130](#decisão-130) | Home com Hero retangular estilo site (título + CTA `12 px` em Roxo Gamer), sem gauge circular | **Vigente (refinada pela 131)** | Remove o gauge circular da Home e adota card Hero `#15181E` com sombra, título `PRONTO PRA RANKED?` e botão `TESTAR AGORA` (`12 px`) | Luiz / Squad |
 | [131](#decisão-131) | Home com busca em pílula, Hero unificado com último check, trilhos 3:4 (Favoritos + Populares) e tab bar em pílula no Android | **Vigente (refinada pela 132)** | Adiciona busca em pílula no topo, unifica pílula do último check dentro do Hero (`#1E232B`→`#15181E` + glow `#7C3AED`), adota trilhos horizontais 3:4 (`114x152`) para Favoritos e Populares, e tab bar flutuante em pílula no Android | Luiz / Squad |
 | [132](#decisão-132) | Hero da Home em carrossel deslizante com arte de fundo e veredito limpo | **Vigente (implementado localmente)** | Sem jogos testados: arte padrão do site (`home_hero_default`) + `PRONTO PRA RANKED?`. Com 1 a 3+ jogos testados: carrossel com os últimos 3 jogos únicos testados, arte do jogo ao fundo, gradiente escuro, pílula só com o veredito (sem dados técnicos), nome do jogo e `TESTAR AGORA` | Luiz / Squad |
-| [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Vigente (implementado localmente)** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
+| [133](#decisão-133) | CTA do Hero da Home em pílula com anel externo translúcido e seta circular | **Superada pela Decisão 144** | Adapta o modelo de CTA em pílula com anel contornando para o Design System no botão `TESTAR AGORA` do Hero da Home (gradiente Roxo Gamer, anel externo sutil e seta branca circular à direita) | Luiz / Squad |
 | [134](#decisão-134) | Motor diagnóstico único em Kotlin Multiplatform (iOS, Android, Windows e site) | **Em implementação** | Substitui o item 1 da Decisão 68 (“Swift é fonte de verdade”): o motor KMP vira a única implementação de regra; a cópia Swift e a cópia TypeScript do site deixam de calcular regra | Luiz / Camillo / Iury |
 | [135](#decisão-135) | Correções da auditoria do motor: plano de 60 probes, carga contínua, carga v3, picos v2 e veredito v3 | **Em implementação (carga refinada pela 136)** | Refina as Decisões 55 e 69: versões `*-2026.11.14.1`, `readiness-v3.0`, `deep-load-impact-v3`, `spike-pattern-v2`, `sample-quality-v2`, `load-transfer-v2` | Luiz / Iury / Camillo |
 | [136](#decisão-136) | Perda de pacotes calibrada por estatística: carga v4 e recomendação presa ao guardrail | **Em implementação** | Refina a Decisão 135: `deep-load-impact-v4` (perda sob carga em pacotes) e `recommendations-v2` (“evite ranked” usa o guardrail de perda do perfil) | Luiz / Iury / Camillo |
@@ -145,6 +145,9 @@
 | [140](#decisão-140) | CTAs principais WinUI compartilham o componente do Hero | **Vigente (implementado localmente; validação visual pendente)** | Estende o acabamento aprovado aos CTAs principais sem alterar comportamento ou ações secundárias | Luiz / Priscila / Camillo / Renan |
 | [141](#decisão-141) | Home WinUI: status de plataformas primeiro e contexto do jogo depois | **Vigente (em implementação; validação em Windows pendente)** | Reordena a Home da Decisão 118 com widgets de dados locais reais e status pontual de `/api/status` | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [142](#decisão-142) | WinUI: `Este PC` como visão geral e navegação sem sidebar | **Vigente (em implementação; validação em Windows pendente)** | Refina a Decisão 141: visão geral do PC reúne status, histórico e atividade conhecida; contexto do jogo permanece disponível | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [143](#decisão-143) | Evolução da estabilidade de conexão no Histórico (regra única KMP, curva de ping e 4 anéis) | **Vigente (em implementação)** | Refina as Decisões 86, 134, 141 e 142: unifica no KMP a série de ping, filtro de rede, mínimo de 3 checks, inconclusivos separados e 4 anéis | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [144](#decisão-144) | Home edge-to-edge, CTA padrão no Hero, Populares 2×3 e anúncio compacto | **Vigente** | Substitui a Decisão 133 e refina Decisões 82 e 131: Hero full-bleed até o topo com fade contínuo, `PrimaryButton` compacto (`#7C3AED`), busca abaixo do Hero, grade 2×3 em Populares com instrução e anúncio em faixa horizontal compacta nas 4 telas | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [145](#decisão-145) | Aba Jogos em 3 colunas, barra de busca unificada com a Home e títulos em caixa alta | **Vigente** | Refina a Decisão 105 e complementa a 144: grade de 3 colunas (`3:4`) em Jogos, busca padronizada (`#15181E`, `12 px`, `minHeight 46`, sem contorno/sombra) em Início/Jogos/Favoritos e títulos de tela sempre em caixa alta | Luiz / Marcelo / Priscila / Camillo / Renan |
 
 
 
@@ -1546,7 +1549,7 @@
 
 - **Data:** 13 de novembro de 2026.
 - **Título:** CTA do Hero da Home em pílula com anel externo translúcido e seta circular.
-- **Status Atual:** **Vigente (implementado localmente).** Pedida e aprovada pelo Luiz.
+- **Status Atual:** **Superada pela Decisão 144.** Pedida e aprovada originalmente pelo Luiz; substituída pelo `PrimaryButton` compacto sólido em `#7C3AED` (`12 dp/pt`).
 - **Frentes envolvidas:** Luiz (decisão), Priscila (design system), Camillo (implementação Android/iOS), Renan (validação).
 - **Decisão:** adapta o CTA `TESTAR AGORA` do card Hero da Home no Android e no iOS para o formato em pílula com gradiente Roxo Gamer (`#8B5CF6` → `#7C3AED` → `#6D28D9`), brilho/sombra luminosa, ícone circular branco com seta `→` em `#7C3AED` à direita e um anel externo fino translúcido (`4 px` de respiro) contornando o botão. Os demais `PrimaryButton` do app seguem em `12 px`.
 - **Critérios de aceite:** builds e testes unitários passando no Android e no iOS, e conferência visual no emulador/simulador.
@@ -1669,6 +1672,47 @@
 - **Integridade dos dados:** o status de cada plataforma continua consulta pontual, sem polling ou monitoramento contínuo. O histórico geral usa somente Checks válidos persistidos localmente; atividade só aparece quando o launcher a informou. A tela não cria atividade, datas, screenshots, disponibilidade de serviço, score, veredito, média, tendência ou diagnóstico. Sem dado, apresenta estado vazio ou indisponível.
 - **Limites:** esta mudança não altera o motor UDP, score, veredito, catálogo, Worker, telemetria, permissões, fontes de arte dos jogos ou o status de protótipo não publicável do Windows. A arte própria de `Este PC` não autoriza reutilizar arte de terceiros nem incluir dados pessoais.
 - **Critérios de validação e aceite:** a navegação sem sidebar mantém todos os destinos acessíveis por teclado e leitor de tela; `Este PC` abre primeiro e exibe separadamente Steam, Epic Games e Xbox, histórico de Checks válidos e atividade conhecida; estado com dados ausentes, resposta atrasada e falha é honesto e não impede abrir ou jogar; a seleção de jogo preserva seu contexto próprio; textos PT-BR/EN/ES, build e testes WinUI passam; a revisão em Windows cobre 100%, 125%, 150% e 200% de escala.
+
+#### Decisão 143
+
+- **Data:** 15 de novembro de 2026.
+- **Título:** Evolução da estabilidade de conexão no Histórico (regra única KMP, curva de ping e 4 anéis).
+- **Status Atual:** **Vigente (em implementação).** Aprovada por Luiz após revisão conjunta da squad (`/grill-me`). Refina as Decisões 86, 134, 141 e 142.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Priscila (design system), Camillo (motor KMP e clientes) e Renan (validação).
+- **Contexto e decisão:**
+  1. **Escopo e telas:** iOS, Android e Windows passam a compartilhar a mesma regra determinística de evolução da conexão no **Histórico** (Visão geral e por jogo). A Home mobile permanece focada no Check; o Windows mantém também o bloco em Detalhes do Jogo e nos widgets da Home alinhados à mesma regra.
+  2. **Separação de contextos:** por jogo compara apenas medições comparáveis (mesmo `gameId`, rede observada, região, plataforma, vínculo externo e versão de regra). Na Visão geral, o usuário pode filtrar por rede (`Tudo`, `Wi-Fi`, `Dados móveis` / `Cabo`) e a curva **nunca une com linha contínua** pontos de redes ou regiões distintas.
+  3. **Janelas, mínimo e inconclusivos:** janelas de `7`, `14` (padrão) e `30` dias. A curva de ping (com pontos coloridos pelo veredito: verde, âmbar ou coral) só traça linha com `>= 3` checks válidos e comparáveis no mesmo segmento; com `1–2` checks válidos exibe apenas os pontos/última leitura, sem linha nem tendência. Inconclusivos nunca entram na curva nem nos anéis; aparecem apenas na contagem separada.
+  4. **Resumo e 4 anéis autorizados:** autoriza exibir os 4 anéis médios (`Ping méd`, `Jitter`, `Perda` e `Sob carga` — exibindo `—` quando ausente, como em medições sem fase de carga) junto ao resumo factual (`Pronto em X de Y checks`, faixa `min–max ms`, instáveis, evitaria e inconclusivos) calculados estritamente sobre checks válidos e comparáveis do mesmo contexto, com cortes alinhados ao perfil competitivo (`Ping`: verde `<= 45 ms`, âmbar `<= 90 ms`; `Jitter`: verde `<= 12 ms`, âmbar `<= 25 ms`; `Perda`: verde `<= 1%`, âmbar `<= 3%`; `Sob carga`: verde `<= 15 ms`, âmbar `<= 40 ms`). Continua proibido calcular média de score ou prever qualidade futura.
+  5. **Visual (`DESIGN.md`):** bloco único com profundidade sutil sem linhas de contorno e sem card dentro de card (removendo `GlassCardStyle` com borda e contornos de chips no Windows e evitando cardlização no mobile); gráfico acima e 4 anéis abaixo no mobile (ao lado no desktop); filtros em superfície elevada com cantos contidos (`8–10 px`) e sem `#7C3AED`; `#7C3AED` fica restrito ao CTA principal da tela.
+  6. **Arquitetura (`stability-summary-v1`):** a lógica pura de filtragem, segmentação, métricas dos 4 anéis e estado da curva mora no motor compartilhado KMP (`core:domain`), consumida por Android, iOS (`LagCheckEngine`) e WinUI (`engine-host`), preservando a persistência local de cada plataforma.
+- **Critérios de validação e aceite:** testes unitários em `core:domain` cobrindo `0`, `1–2` e `3+` checks, quebra de linha entre redes/regiões distintas, isolamento de inconclusivos e ausência de `loadDeltaMs`; entrega em WIP = 1 na ordem `KMP → Android → iOS → Windows`, com conferência visual de contraste, ausência de contornos, acessibilidade e escala.
+
+#### Decisão 144
+
+- **Data:** 15 de novembro de 2026.
+- **Título:** Home edge-to-edge, CTA padrão no Hero, Populares 2×3 e anúncio compacto.
+- **Status Atual:** **Vigente.** Aprovada por Luiz (`/grill-me`). Substitui a Decisão 133 e refina as Decisões 82 e 131.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Priscila (design system), Camillo (iOS e Android) e Renan (validação).
+- **Decisão:**
+  1. **Hero full-bleed até o topo (`Início`):** no Android e no iOS, a arte do Hero ocupa toda a largura da tela (sem margem lateral ou borda arredondada) e sobe até a borda superior atrás da barra de status, mantendo a base na mesma posição anterior (~`288–290` dp/pt abaixo da status bar) com gradiente contínuo direto para `#0B0D10` e proteção de contraste para os ícones do sistema na rolagem.
+  2. **CTA padronizado (`TESTAR AGORA`):** sai o botão em pílula com halo duplo da Decisão 133 e entra o `PrimaryButton` oficial sólido em `#7C3AED` com altura compacta (`46` dp/pt) e cantos contidos (`12` dp/pt, sem contornos extras).
+  3. **Busca abaixo da capa:** o atalho `"Buscar jogo..."` sai do topo e passa para logo abaixo do Hero (entre a capa principal e `SEUS FAVORITOS`), com cantos `12` dp/pt e superfície `#15181E` sem contorno.
+  4. **Populares em grade 2×3 e micro-instrução:** a seção `POPULARES` troca a rolagem horizontal por grade fixa **2 linhas × 3 colunas** (`3:4`) ocupando a largura útil (até 6 jogos), com a linha `"Toque no jogo para iniciar o teste"` (`PT-BR` / `EN` / `ES`) logo abaixo do título.
+  5. **Anúncio nativo em faixa horizontal compacta (`NativeAdSlot`):** remove o bloco grande de `MediaView` e textos secundários e elimina linhas de contorno nas 4 telas autorizadas (`Início`, `Jogos`, `Histórico`, `Resultado`), exibindo apenas faixa horizontal (~`88–96` dp/pt) com selo `Anúncio`, anunciante opcional, ícone, título em até 2 linhas e botão discreto à direita (`>= 44` dp/pt de alvo).
+- **Critérios de validação e aceite:** build e testes unitários em Android e iOS; verificação visual ao vivo no emulador Android e simulador iOS em rolagem (sem sobrepor status bar, títulos de jogos legíveis, faixa compacta de anúncio funcional e preservando acessibilidade).
+
+#### Decisão 145
+
+- **Data:** 15 de novembro de 2026.
+- **Título:** Aba Jogos em 3 colunas, barra de busca unificada com a Home e títulos em caixa alta.
+- **Status Atual:** **Vigente.** Pedida e aprovada por Luiz. Refina a Decisão 105 e complementa a Decisão 144.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Priscila (design system), Camillo (iOS e Android) e Renan (validação).
+- **Decisão:**
+  1. **Grade de 3 colunas na aba `Jogos`:** o catálogo principal no Android e no iOS passa de 2 para **3 colunas** (`3:4`), na mesma proporção dos `Populares` na Home (`Início`).
+  2. **Barra de busca unificada com a Home:** a aba `Jogos` e a folha de seleção de favoritos no iOS passam a usar exatamente o mesmo campo da Home — superfície `#15181E`, cantos `12 dp/pt` (`LagCheckRadius.md` / `NLRadius.md`), altura mínima `46 dp/pt`, preenchimento horizontal `16 dp/pt` e vertical `12 dp/pt`, sem contorno/borda, sem sombra e placeholder `"Buscar jogo..."` (Android) / localizado.
+  3. **Títulos de tela sempre em caixa alta:** os cabeçalhos das telas principais e secundárias no Android e no iOS exibem títulos em maiúsculas (`JOGOS`, `HISTÓRICO`, `CONFIGURAÇÕES` / `AJUSTES`, `DETALHES`, `DETALHES TÉCNICOS`, `DADOS DA REDE`), preservando a capitalização normal na barra inferior (`Início`, `Jogos`, `Histórico`, `Configurações` / `Ajustes`).
+- **Critérios de validação e aceite:** testes unitários em Android e `NolaggyUnitTests` no iOS aprovados; verificação visual ao vivo no emulador Android e simulador iOS confirmando `JOGOS`, `HISTÓRICO`, busca padronizada e grade 3 colunas.
 
 ## Como Registrar Novas Decisões
 

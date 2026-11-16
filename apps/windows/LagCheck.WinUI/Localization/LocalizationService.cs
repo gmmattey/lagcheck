@@ -645,6 +645,17 @@ public sealed class LocalizationService
         Add("Ver detalhes da estabilidade", "See stability details", "Ver detalles de estabilidad");
         Add("PING", "PING", "PING");
         Add("PING MÉD", "AVG PING", "PING PROM");
+        Add("7 dias", "7 days", "7 días");
+        Add("14 dias", "14 days", "14 días");
+        Add("30 dias", "30 days", "30 días");
+        Add("Todas as redes", "All networks", "Todas las redes");
+        Add("Wi-Fi", "Wi-Fi", "Wi-Fi");
+        Add("Rede móvel", "Cellular", "Red móvil");
+        Add("Ethernet", "Ethernet", "Ethernet");
+        Add("Poucas medições ainda", "Few measurements yet", "Pocas mediciones aún");
+        Add("Faça pelo menos 3 checks na mesma rede para ver a evolução.", "Run at least 3 checks on the same network to see trends.", "Haz al menos 3 checks en la misma red para ver la evolución.");
+        Add("1 inconclusivo", "1 inconclusive", "1 no concluyente");
+        Add("{0} inconclusivos", "{0} inconclusive", "{0} no concluyentes");
         Add("Ordenar: Mais jogados", "Sort: Most played", "Ordenar: Más jugados");
         Add("Baixando atualização", "Downloading update", "Descargando actualización");
         Add("Atualização pendente", "Update pending", "Actualización pendiente");

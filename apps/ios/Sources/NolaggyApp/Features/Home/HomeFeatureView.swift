@@ -110,92 +110,117 @@ extension QuickCheckFeatureView {
     }
 
     var discoveryView: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 0) {
-                if remoteCatalog == nil {
-                    catalogUnavailable
-                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                        .padding(.top, 96)
-                } else {
-                    // 1. Barra de busca flutuante em pílula + 2. Hero unificado (Decisão 131)
-                    VStack(spacing: NLSpacing.md) {
-                        Button(action: openGamesFromHome) {
-                            HStack(spacing: NLSpacing.sm) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(NLColor.textTertiary)
-                                Text(LocalizedStringKey("catalog.search.placeholder"))
-                                    .font(NLTypography.body)
-                                    .foregroundStyle(NLColor.textTertiary)
-                                    .lineLimit(1)
-                                Spacer(minLength: 0)
+        GeometryReader { proxy in
+            let topSafeArea = proxy.safeAreaInsets.top
+            let containerWidth = proxy.size.width
+
+            ZStack(alignment: .top) {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        if remoteCatalog == nil {
+                            catalogUnavailable
+                                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                                .padding(.top, topSafeArea + 96)
+                        } else {
+                            // 1. Hero full-bleed até o topo + 2. Busca logo abaixo da capa
+                            HomeHeroCarousel(
+                                recentGameChecks: recentGameHeroSlides,
+                                fallbackLatestEntry: latestHistoryEntry,
+                                containerWidth: containerWidth,
+                                topSafeArea: topSafeArea,
+                                verdictSymbol: { latestResultSymbol($0) },
+                                verdictColor: { latestResultColor($0) },
+                                verdictTitle: { latestResultSummaryText($0) },
+                                onStartGeneralCheck: { handlePrimaryCTA() },
+                                onStartGameCheck: { game in
+                                    selectedGameID = game.id
+                                    startCatalogCheckDirectly(for: game)
+                                },
+                                onOpenEntry: { entry in
+                                    completedEntry = entry
+                                    showingDetails = true
+                                }
+                            )
+
+                            Button(action: openGamesFromHome) {
+                                HStack(spacing: NLSpacing.sm) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(NLColor.textTertiary)
+                                    Text(LocalizedStringKey("catalog.search.placeholder"))
+                                        .font(NLTypography.body)
+                                        .foregroundStyle(NLColor.textTertiary)
+                                        .lineLimit(1)
+                                    Spacer(minLength: 0)
+                                }
+                                .padding(.horizontal, NLSpacing.md)
+                                .padding(.vertical, 12)
+                                .frame(minHeight: 46)
+                                .background(
+                                    NLColor.surface,
+                                    in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+                                )
                             }
-                            .padding(.horizontal, NLSpacing.md)
-                            .padding(.vertical, 12)
-                            .background(NLColor.surface, in: Capsule())
-                            .shadow(color: NLShadow.cardColor, radius: 6, x: 0, y: 3)
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("home-search-bar")
+                            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                            .padding(.top, NLSpacing.md)
+                            .padding(.bottom, NLSpacing.lg)
+
+                            // 3. Trilho 1: Jogos Favoritos (pôsteres 3:4)
+                            HomeFavoriteGamesRail(
+                                favoriteGames: favoriteGamesList,
+                                selectedGameID: selectedGameID,
+                                onSelectGame: { game in
+                                    selectedGameID = game.id
+                                    startCatalogCheckDirectly(for: game)
+                                },
+                                onManageFavorites: {
+                                    openGamesFromHome()
+                                }
+                            )
+                            .padding(.bottom, NLSpacing.lg)
+
+                            // 4. Grade 2x3: Jogos Populares (pôsteres 3:4)
+                            if !popularGamesList.isEmpty {
+                                HomePopularGamesRail(
+                                    popularGames: popularGamesList,
+                                    selectedGameID: selectedGameID,
+                                    onSelectGame: { game in
+                                        selectedGameID = game.id
+                                        startCatalogCheckDirectly(for: game)
+                                    },
+                                    onSeeAll: {
+                                        openGamesFromHome()
+                                    }
+                                )
+                                .padding(.bottom, NLSpacing.lg)
+                            }
+
+                            NativeAdSlot(placement: .home)
+                                .padding(.horizontal, NLSpacing.screenMarginHorizontal)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("home-search-bar")
-
-                        HomeHeroCarousel(
-                            recentGameChecks: recentGameHeroSlides,
-                            fallbackLatestEntry: latestHistoryEntry,
-                            verdictSymbol: { latestResultSymbol($0) },
-                            verdictColor: { latestResultColor($0) },
-                            verdictTitle: { latestResultSummaryText($0) },
-                            onStartGeneralCheck: { handlePrimaryCTA() },
-                            onStartGameCheck: { game in
-                                selectedGameID = game.id
-                                startCatalogCheckDirectly(for: game)
-                            },
-                            onOpenEntry: { entry in
-                                completedEntry = entry
-                                showingDetails = true
-                            }
-                        )
                     }
-                    .padding(.horizontal, NLSpacing.screenMarginHorizontal)
-                    .padding(.top, NLSpacing.md)
-                    .padding(.bottom, NLSpacing.lg)
-
-                    // 3. Trilho 1: Jogos Favoritos (pôsteres 3:4)
-                    HomeFavoriteGamesRail(
-                        favoriteGames: favoriteGamesList,
-                        selectedGameID: selectedGameID,
-                        onSelectGame: { game in
-                            selectedGameID = game.id
-                            startCatalogCheckDirectly(for: game)
-                        },
-                        onManageFavorites: {
-                            openGamesFromHome()
-                        }
-                    )
-                    .padding(.bottom, NLSpacing.lg)
-
-                    // 4. Trilho 2: Jogos Populares (pôsteres 3:4)
-                    if !popularGamesList.isEmpty {
-                        HomePopularGamesRail(
-                            popularGames: popularGamesList,
-                            selectedGameID: selectedGameID,
-                            onSelectGame: { game in
-                                selectedGameID = game.id
-                                startCatalogCheckDirectly(for: game)
-                            },
-                            onSeeAll: {
-                                openGamesFromHome()
-                            }
-                        )
-                        .padding(.bottom, NLSpacing.lg)
-                    }
-
-                    NativeAdSlot(placement: .home)
-                        .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+                    .frame(width: containerWidth)
                 }
+                .scrollContentBackground(.hidden)
+                .ignoresSafeArea(edges: .top)
+                .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
+
+                // Protege a leitura da barra de status durante a rolagem sobre a arte e o conteúdo
+                LinearGradient(
+                    colors: [
+                        NLColor.backgroundBase.opacity(0.85),
+                        NLColor.backgroundBase.opacity(0.35)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(width: containerWidth, height: topSafeArea)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
             }
         }
-        .scrollContentBackground(.hidden)
-        .safeAreaPadding(.bottom, NLSizing.touchTarget * 2)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -698,6 +723,8 @@ extension QuickCheckFeatureView {
 private struct HomeHeroCarousel: View {
     let recentGameChecks: [(game: CatalogMeasurementJourney.Game, entry: MeasurementHistoryEntry)]
     let fallbackLatestEntry: MeasurementHistoryEntry?
+    let containerWidth: CGFloat
+    let topSafeArea: CGFloat
     let verdictSymbol: (MeasurementHistoryEntry) -> String
     let verdictColor: (MeasurementHistoryEntry) -> Color
     let verdictTitle: (MeasurementHistoryEntry) -> String
@@ -707,13 +734,14 @@ private struct HomeHeroCarousel: View {
 
     @State private var currentPage: Int = 0
 
-    var body: some View {
-        let heroShape = RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+    private var heroHeight: CGFloat { 290 + topSafeArea }
 
+    var body: some View {
         if recentGameChecks.isEmpty {
             HomeHeroSlideCard(
                 gameTitle: nil,
                 latestEntry: fallbackLatestEntry,
+                topSafeArea: topSafeArea,
                 verdictSymbol: fallbackLatestEntry.map(verdictSymbol) ?? "—",
                 verdictColor: fallbackLatestEntry.map(verdictColor) ?? NLColor.textTertiary,
                 verdictTitle: fallbackLatestEntry.map(verdictTitle),
@@ -728,16 +756,16 @@ private struct HomeHeroCarousel: View {
                     .resizable()
                     .scaledToFill()
             }
-            .frame(height: 216)
-            .clipShape(heroShape)
-            .shadow(color: NLShadow.cardColor, radius: 10, x: 0, y: 5)
+            .frame(width: containerWidth, height: heroHeight)
+            .clipped()
         } else {
-            VStack(spacing: NLSpacing.sm) {
+            VStack(spacing: NLSpacing.xs) {
                 TabView(selection: $currentPage) {
                     ForEach(Array(recentGameChecks.enumerated()), id: \.element.game.id) { index, item in
                         HomeHeroSlideCard(
                             gameTitle: item.game.name.uppercased(),
                             latestEntry: item.entry,
+                            topSafeArea: topSafeArea,
                             verdictSymbol: verdictSymbol(item.entry),
                             verdictColor: verdictColor(item.entry),
                             verdictTitle: verdictTitle(item.entry),
@@ -746,14 +774,13 @@ private struct HomeHeroCarousel: View {
                         ) {
                             VerifiedGameArtwork(game: item.game, aspectRatio: 16.0 / 9.0)
                         }
-                        .clipShape(heroShape)
+                        .frame(width: containerWidth, height: heroHeight)
+                        .clipped()
                         .tag(index)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 216)
-                .clipShape(heroShape)
-                .shadow(color: NLShadow.cardColor, radius: 10, x: 0, y: 5)
+                .frame(width: containerWidth, height: heroHeight)
                 .task(id: "\(recentGameChecks.count)-\(currentPage)") {
                     guard recentGameChecks.count > 1 else { return }
                     try? await Task.sleep(for: .seconds(5))
@@ -782,6 +809,7 @@ private struct HomeHeroCarousel: View {
 private struct HomeHeroSlideCard<Background: View>: View {
     let gameTitle: String?
     let latestEntry: MeasurementHistoryEntry?
+    let topSafeArea: CGFloat
     let verdictSymbol: String
     let verdictColor: Color
     let verdictTitle: String?
@@ -791,15 +819,19 @@ private struct HomeHeroSlideCard<Background: View>: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            background()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Color.clear
+                .overlay {
+                    background()
+                }
                 .clipped()
 
             LinearGradient(
                 stops: [
-                    .init(color: NLColor.backgroundBase.opacity(0.25), location: 0.0),
-                    .init(color: NLColor.backgroundBase.opacity(0.62), location: 0.45),
-                    .init(color: NLColor.backgroundBase.opacity(0.94), location: 1.0)
+                    .init(color: NLColor.backgroundBase.opacity(0.45), location: 0.0),
+                    .init(color: NLColor.backgroundBase.opacity(0.10), location: 0.26),
+                    .init(color: NLColor.backgroundBase.opacity(0.65), location: 0.56),
+                    .init(color: NLColor.backgroundBase.opacity(0.96), location: 0.86),
+                    .init(color: NLColor.backgroundBase, location: 1.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -807,8 +839,8 @@ private struct HomeHeroSlideCard<Background: View>: View {
 
             LinearGradient(
                 stops: [
-                    .init(color: NLColor.backgroundBase.opacity(0.42), location: 0.0),
-                    .init(color: .clear, location: 0.75)
+                    .init(color: NLColor.backgroundBase.opacity(0.35), location: 0.0),
+                    .init(color: .clear, location: 0.70)
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -842,85 +874,20 @@ private struct HomeHeroSlideCard<Background: View>: View {
                             .minimumScaleFactor(0.75)
                     }
 
-                    HeroHaloButton(
+                    PrimaryButton(
                         title: LocalizedStringKey("home.gauge.test_now"),
+                        minHeight: 46,
+                        accessibilityIdentifier: "home-cta-start-lagcheck",
                         action: onStart
                     )
-                    .accessibilityIdentifier("home-cta-start-lagcheck")
                 }
             }
-            .padding(NLSpacing.lg)
+            .padding(.top, topSafeArea + NLSpacing.sm)
+            .padding(.horizontal, NLSpacing.screenMarginHorizontal)
+            .padding(.bottom, NLSpacing.md)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
-        .background(NLColor.surface)
-    }
-}
-
-private struct HeroHaloButton: View {
-    let title: LocalizedStringKey
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(red: 139 / 255, green: 92 / 255, blue: 246 / 255),
-                        NLColor.gamerPurple,
-                        Color(red: 109 / 255, green: 40 / 255, blue: 217 / 255)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                HStack {
-                    Spacer(minLength: 28)
-                    Text(title)
-                        .font(NLTypography.ctaButton)
-                        .foregroundStyle(Color.white)
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                    ZStack {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 28, height: 28)
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(NLColor.gamerPurple)
-                    }
-                }
-                .padding(.leading, NLSpacing.md)
-                .padding(.trailing, 10)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.30), .clear],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 1
-                    )
-            )
-            .shadow(color: NLColor.gamerPurple.opacity(0.45), radius: 10, x: 0, y: 4)
-            .padding(4)
-            .overlay(
-                Capsule()
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.40), NLColor.gamerPurpleLight.opacity(0.28)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 1
-                    )
-            )
-        }
-        .buttonStyle(.plain)
+        .background(NLColor.backgroundBase)
     }
 }
 

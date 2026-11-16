@@ -115,7 +115,7 @@ fun SecondaryScreenHeader(
             horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
         ) {
             Text(
-                text = title,
+                text = title.uppercase(),
                 style = LagCheckTypography.PageTitle,
                 color = LagCheckColors.TextPrimary
             )

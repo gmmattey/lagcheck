@@ -18,42 +18,38 @@ O LagCheck para Android expande a experiência do aplicativo mantendo 100% de pa
 
 ---
 
-## 2. Estrutura Modular do Projeto Android (`android/`)
+## 2. Estrutura Modular do Projeto Android (`apps/android/`)
 
-Arquitetura modular em Gradle. Os módulos JVM não importam Android SDK e são testados em qualquer máquina (`./gradlew :core:domain:test :core:catalog:test :core:network:test :core:session:test`).
+Arquitetura modular em Gradle + Kotlin Multiplatform (`core:domain`). Os módulos sem dependência do Android SDK são testados diretamente (`./gradlew :core:domain:allTests :core:catalog:test :core:network:test :core:session:test`).
 
 ```
-android/
+apps/android/
 ├── core/
-│   ├── domain/          JVM puro. QualityEvaluator (3 perfis), SampleQuality, SpikePattern, DeepCheck (carga v2),
-│   │                    ResultInterpreter, GameReadinessEvaluator readiness-v2.0, ReadinessPresenter (PT-BR/EN/ES).
-│   ├── catalog/         JVM puro. Ed25519 (RFC 8032, verify-only), envelope v3 assinado, validação, resolução de rota,
-│   │                    repositório com base embarcada + cache + refresh diário.
-│   ├── network/         JVM. Codecs GameLift/PlayFab/Steam A2S, ProbeLedger, UdpProbeTransport,
-│   │                    cliente do Worker (catálogo, carga, telemetria). STUN fica só como codec legado (NAT, fase 2).
-│   ├── session/         JVM. CheckOrchestrator (repouso → carga → veredito), MeasurementPlanner, TelemetryReporter.
+│   ├── domain/          KMP (JVM + iOS XCFramework + JS). Única implementação de score, veredito readiness-v3.0,
+│   │                    SampleQuality v2, SpikePattern v2, DeepCheck carga v4, UseCases v1 e StabilitySummary v1.
+│   ├── catalog/         JVM puro. Envelope v3 embarcado sem assinatura (Decisão 106) + refresh opcional em cache.
+│   ├── network/         JVM. Codecs GameLift/PlayFab/Steam A2S, ProbeLedger, UdpProbeTransport, cliente do Worker.
+│   ├── session/         JVM. CheckOrchestrator (60 probes repouso + 60 probes carga contínua), MeasurementPlanner, TelemetryReporter.
 │   ├── telemetry-radio/ Android SDK: WifiManager, ConnectivityManager (o diferencial Android).
-│   └── designsystem/    Jetpack Compose: tokens Dark Competitive UI.
-└── app/                 Composição (Compose). ViewModel fino sobre :core:session.
+│   └── designsystem/    Jetpack Compose: tokens Dark Competitive UI, Barlow/Chakra Petch e RouteMeasurementMap.
+├── app/                 Composição (Compose). ViewModel fino sobre :core:session, AdMob/UMP e Glance Widget.
+├── engine-host/         Host JVM NDJSON consumido pelo cliente Windows WinUI 3 (Decisão 119).
+└── desktop/             Protótipo histórico Compose Desktop (Decisões 114–116).
 ```
 Dependência: `domain ← catalog ← network ← session ← app`.
 
-O widget Android autorizado pela Decisão 88 será uma superfície de apresentação dentro de `:app` (provider/Glance ou equivalente nativo), sem transportar regras de rede para fora de `:core:session`. Ele lerá somente um snapshot privado gerado pelo app após Check válido: contexto para repetir a medição, valores observados e miniatura editorial da fonte oficial Android (`RemoteArtworkRepository` ou resource embarcado). Não usa App Group iOS, captura iOS, URL externa no render, Worker novo ou fetch em background; ao toque, entrega `gameId` e contexto ao `MainActivity`, que revalida catálogo e inicia o Check normal.
+O widget Android autorizado pela Decisão 88 usa Glance dentro de `:app`, sem transportar regras de rede para fora de `:core:session`. Ele lê somente um snapshot privado gerado pelo app após Check válido e, ao toque, entrega `gameId` e contexto ao `MainActivity`, que revalida catálogo e inicia o Check normal.
 
-## 3. Paridade com o iOS (Decisão 68)
+## 3. Paridade Única via KMP (Decisões 68, 134–136 e 143)
 
-O Kotlin é port do Swift, não reinterpretação. A fonte de verdade é `Sources/NolaggyDomain` e o catálogo v3 assinado.
+O módulo `apps/android/core/domain` (`LagCheckEngine`, ver `ENGINE_CONTRACT.md`) é a fonte única de verdade de todas as regras para Android, iOS (`LagCheckEngine.xcframework` encapsulado por `NolaggyDomain`), Windows (`engine-host`) e site (pacote JS).
 
-- **Regras:** `pilot-2026.09.08.1`, `mobile-realtime-2026.09.08.1`, `casual-realtime-2026.09.08.1`, `readiness-v2.0`, `spike-pattern-v1`, `sample-quality-v1`, `deep-load-impact-v2`. Os testes JVM carregam os vetores dos testes Swift.
-- **Veredito:** `READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`. Menos de 10 respostas UDP válidas é inconclusivo, sem fallback HTTP/ICMP e sem nota inventada.
-- **Medição:** repouso (30 probes, 1 a cada 500 ms, fechamento em 17 s) e depois carga (30 probes com `GET /v1/load` concorrente). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
-- **Destino:** o do catálogo assinado (`gameLiftPing`, `playFabQoS`, `steamA2S`). Hoje todas as rotas ativas são `awsFallback` em `sa-east-1`, com confiança média. Rotas `gameOwned` pendentes nunca são medidas. Rota própria Steam A2S ativa só vence após a pré-validação de identidade (`SteamA2sRoutePreflight`, contrato `steam-a2s-preflight-1`, vetores em `Tests/Vectors/`); qualquer falha volta à referência AWS assinada. Nenhuma rota própria está ativa no catálogo atual.
-- **Plataforma:** o catálogo v3 só publica `iphone|playstation|xbox|pc|nintendo`. O celular Android usa o contexto `iphone` (mesmas rotas) até o catálogo ganhar `android`.
-- **Fase 2 (implementada):** banda Wi-Fi (frequência real do Android), qualidade de voz, NAT/STUN (CGNAT e NAT duplo), probe de gateway por DNS/UDP, recomendações por evidência e EN/ES. O gateway é medido, exibido e **entra no veredito** (Decisão 69; o iOS não usa o gateway no veredito, então pode haver divergência entre plataformas; reverter é o default de `LocalDiagnostics.gatewayInfluencesVerdict`). Sem resposta do roteador = não observável, nunca acusa o Wi-Fi. Recomendação sobre rota ou operadora só com primeiro salto comprovadamente limpo (Decisão 50).
-- **Decisão 69:** status das redes de console (PSN/Xbox/Nintendo, direto nos endpoints públicos, fail-open, aviso na Home), favoritos locais e relatório em PDF (`PdfDocument`, conteúdo em `RouteReport`).
-- **Fora do port:** Connection Booster (Gemini com chave embutida: fere custo zero e segurança).
-- **Cockpit:** mostra só o que foi medido. Campo sem leitura aparece como "—". Nunca há valor padrão (o protótipo antigo exibia NAT, UPnP, voz e gateway `192.168.1.1` que ninguém medira).
-- **Idiomas:** PT-BR, EN e ES. Textos de tela passam por `tr("texto em PT-BR")` e um teste varre o app exigindo tradução para cada um (`UiStringsCompletenessTest`).
+- **Regras:** `pilot-2026.11.14.1`, `mobile-realtime-2026.11.14.1`, `casual-realtime-2026.11.14.1`, `readiness-v3.0`, `spike-pattern-v2`, `sample-quality-v2`, `deep-load-impact-v4`, `recommendations-v2` e `stability-summary-v1`. Vetores normativos rodam nos três alvos via `:core:domain:allTests`.
+- **Veredito:** `READY`, `CAUTION`, `NOT_READY`, `INCONCLUSIVE`. Menos de 20 respostas UDP válidas por fase é inconclusivo, sem fallback HTTP/ICMP e sem nota inventada (Decisão 135).
+- **Medição:** repouso (60 probes, 1 a cada 500 ms, ~30 s) e carga contínua (60 probes com downloads paralelos `/v1/load` até 60 MB no Wi-Fi ou 10 MB no celular, ~64 s no total). O veredito avalia o repouso e penaliza a degradação sob carga. Conexão que morre no meio cancela a sessão por integridade.
+- **Destino:** catálogo embarcado de 54 jogos com refresh opcional validado (`catalog-v3.json`, `ETag`), rotas `gameLiftPing`, `playFabQoS`, `steamA2S` e pré-leitura regional automática (`RouteMeasurementMap` + `/v1/approx-location`).
+- **Gateway e rádio:** gateway medido e exibido; sem resposta do roteador = `UNOBSERVABLE`, nunca acusa Wi-Fi ou operadora sem gateway comprovadamente estável.
+- **Idiomas:** PT-BR, EN e ES via `UiStrings.kt` (`tr(...)`) com teste de completude (`UiStringsCompletenessTest`).
 
 ## 4. O Módulo de Telemetria de Rádio (`:core:telemetry-radio`)
 
@@ -76,12 +72,12 @@ Um único Cloudflare Worker (`nolaggy-deep-check`), sem endpoint novo (hosts igu
 
 ## 6. Design System em Jetpack Compose (`:core:designsystem`)
 
-Em total conformidade com a Decisão 66 e o protótipo canônico:
-- **Cor Primária de Ação:** Roxo Gamer (`#7C3AED`).
+Em conformidade com `shared/design-system/DESIGN.md` e as Decisões 66, 125–128 e 143–145:
+- **Cor Primária de Ação:** Roxo Gamer (`#7C3AED`), restrito ao CTA principal.
 - **Cor de Atenção / Risco de Lag:** Coral Solar (`#FF5A36`).
-- **Superfícies:** Fundo Profundo (`#0B0D10`), Superfície (`#15181E`), Painéis (`#1E232B`), Bordas 1px (`#262D38`).
-- **Escala de Raios:** 8px, 13px, 17px (botão), 26px (bottom sheet) e 999px (chips/pills).
-- **Tipografia:** Manchetes de veredito arredondadas e números de latência/jitter em monoespaçado estilo cockpit.
+- **Superfícies sem contorno:** Fundo Profundo (`#0B0D10`), Superfície (`#15181E`), Painéis (`#1E232B`), separação por contraste tonal sem bordas em cards, campos de busca, pílulas ou anúncios (Decisão 128).
+- **Escala de Raios:** `4 dp` (`xs`), `8 dp` (`sm` mídia/métricas), `12 dp` (`md`/`lg` busca, cards e CTAs — Decisão 126), `26 dp` (`xl` sheet) e `999 dp` (`pill` status e tab bar flutuante).
+- **Tipografia:** Tríade unificada **Barlow Semi Condensed** (títulos de tela sempre em caixa alta e vereditos), **Barlow** (corpo, controles e navegação inferior) e **Chakra Petch** com algarismos tabulares `tnum` (score, métricas e kickers — Decisão 125).
 
 ## 7. Evidência posterior ao port (2026-10-03)
 

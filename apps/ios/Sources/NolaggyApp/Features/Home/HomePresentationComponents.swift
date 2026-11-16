@@ -1042,6 +1042,7 @@ struct HomeCatalogView: View {
                 Text(LocalizedStringKey("games.title"))
                     .font(NLTypography.screenTitle)
                     .foregroundStyle(NLColor.textPrimary)
+                    .textCase(.uppercase)
                     .padding(.top, 14)
 
                 searchField
@@ -1098,19 +1099,26 @@ struct HomeCatalogView: View {
         .frame(height: 52)
     }
 
-    /// Busca sempre visível: quem está no lobby digita sem abrir nada antes.
+    /// Barra de busca padronizada com a Home: 12pt de canto, superfície #15181E sem contorno.
     private var searchField: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: NLSpacing.sm) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 15))
-                .foregroundStyle(NLColor.textSecondary)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(NLColor.textTertiary)
 
-            TextField(searchPlaceholder, text: $query)
-                .font(NLTypography.callout)
-                .foregroundStyle(NLColor.textPrimary)
-                .focused($isSearchFocused)
-                .submitLabel(.search)
-                .accessibilityIdentifier("catalog-search-input")
+            TextField(
+                "",
+                text: $query,
+                prompt: Text(searchPlaceholder)
+                    .font(NLTypography.body)
+                    .foregroundStyle(NLColor.textTertiary)
+            )
+            .font(NLTypography.body)
+            .foregroundStyle(NLColor.textPrimary)
+            .tint(NLColor.accentPrimary)
+            .focused($isSearchFocused)
+            .submitLabel(.search)
+            .accessibilityIdentifier("catalog-search-input")
 
             if !query.isEmpty {
                 Button {
@@ -1118,8 +1126,8 @@ struct HomeCatalogView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
-                        .foregroundStyle(NLColor.textSecondary)
-                        .frame(width: NLSizing.touchTarget, height: NLSizing.touchTarget)
+                        .foregroundStyle(NLColor.textTertiary)
+                        .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                 }
                 .accessibilityIdentifier("catalog-search-close")
@@ -1127,9 +1135,12 @@ struct HomeCatalogView: View {
             }
         }
         .padding(.horizontal, NLSpacing.md)
-        .frame(minHeight: 52)
-        .background(NLColor.surface, in: Capsule())
-        .overlay(Capsule().stroke(isSearchFocused ? NLColor.borderFocus : NLColor.borderStrong, lineWidth: 1))
+        .padding(.vertical, 12)
+        .frame(minHeight: 46)
+        .background(
+            NLColor.surface,
+            in: RoundedRectangle(cornerRadius: NLRadius.md, style: .continuous)
+        )
     }
 
     @ViewBuilder private var searchContent: some View {
@@ -1197,7 +1208,7 @@ struct HomeCatalogView: View {
         }
     }
 
-    /// Catálogo inteiro em grade de 2 colunas: mostra mais jogos por tela que um trilho e rola na vertical.
+    /// Catálogo inteiro em grade de 3 colunas: mostra mais jogos por tela que um trilho e rola na vertical.
     private func gameGrid(title: LocalizedStringKey, games: [CatalogMeasurementJourney.Game], identifier: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
@@ -1207,7 +1218,7 @@ struct HomeCatalogView: View {
                 .padding(.bottom, 12)
                 .accessibilityAddTraits(.isHeader)
             LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 12, alignment: .top), GridItem(.flexible(), spacing: 12, alignment: .top)],
+                columns: Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3),
                 alignment: .leading,
                 spacing: 12
             ) {
@@ -1250,6 +1261,7 @@ struct HomeCatalogView: View {
                     Text(game.name)
                         .font(NLTypography.footnote.weight(.semibold))
                         .foregroundStyle(NLColor.textPrimary)
+                        .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(width: fixedWidth, alignment: .leading)

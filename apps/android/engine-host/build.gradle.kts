@@ -25,6 +25,7 @@ application {
 
 dependencies {
     // Reuso deliberado: sessão, catálogo, UDP, carga e a biblioteca existente continuam Kotlin.
+    implementation(project(":core:domain"))
     implementation(project(":core:session"))
     implementation(project(":desktop"))
     // LibraryRepository expõe SnapshotStateList; o host lê somente seu conteúdo projetado.
