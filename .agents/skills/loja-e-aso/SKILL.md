@@ -20,3 +20,8 @@ Esta skill orienta a squad (Marcelo, Priscila e Renan) na preparação e otimiza
 ## 3. Compliance com Diretrizes de Revisão
 - Declarações de privacidade alinhadas exatamente com os dados coletados (App Privacy Details / Data Safety).
 - Se houver compras in-app ou publicidade, consentimento UMP/ATT e termos de uso claros.
+
+## 4. Notas de Versão e Diff Comercial (Lojas e GitHub)
+- Toda atualização enviada para Google Play (`whatsnew`), App Store Connect ("Novidades da versão") e GitHub Releases usa **linguagem comercial voltada ao jogador**, destacando o que melhorou desde a versão anterior.
+- Use `shared/scripts/generate_release_notes.py` (ou os workflows em `.github/workflows/`) para transformar o histórico desde a última versão em bullets limpos em PT-BR, EN e ES — nunca copie mensagens cruas de commit, nomes de arquivo, IDs internos ou notas de outras plataformas (como Windows).
+- Política de anúncios AdMob por canal (Decisão 146): Android Play `alpha` = **desativado**; APK direto no GitHub = **ativado**; iOS (TestFlight/App Store) = **ativado**.

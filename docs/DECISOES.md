@@ -148,6 +148,7 @@
 | [143](#decisão-143) | Evolução da estabilidade de conexão no Histórico (regra única KMP, curva de ping e 4 anéis) | **Vigente (em implementação)** | Refina as Decisões 86, 134, 141 e 142: unifica no KMP a série de ping, filtro de rede, mínimo de 3 checks, inconclusivos separados e 4 anéis | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [144](#decisão-144) | Home edge-to-edge, CTA padrão no Hero, Populares 2×3 e anúncio compacto | **Vigente** | Substitui a Decisão 133 e refina Decisões 82 e 131: Hero full-bleed até o topo com fade contínuo, `PrimaryButton` compacto (`#7C3AED`), busca abaixo do Hero, grade 2×3 em Populares com instrução e anúncio em faixa horizontal compacta nas 4 telas | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [145](#decisão-145) | Aba Jogos em 3 colunas, barra de busca unificada com a Home e títulos em caixa alta | **Vigente** | Refina a Decisão 105 e complementa a 144: grade de 3 colunas (`3:4`) em Jogos, busca padronizada (`#15181E`, `12 px`, `minHeight 46`, sem contorno/sombra) em Início/Jogos/Favoritos e títulos de tela sempre em caixa alta | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [146](#decisão-146) | Política de anúncios AdMob por canal de distribuição mobile e diff comercial entre versões | **Vigente** | Google Play `alpha` com anúncios desativados (`ADS_ENABLED=false`), APK direto no GitHub com anúncios ativados (`ADS_ENABLED=true`), iOS com anúncios ativados (`LAGCHECK_ADS_ENABLED=YES`) e notas comerciais entre versões para lojas e GitHub | Luiz / Marcelo / Camillo / Renan |
 
 
 
@@ -1713,6 +1714,20 @@
   2. **Barra de busca unificada com a Home:** a aba `Jogos` e a folha de seleção de favoritos no iOS passam a usar exatamente o mesmo campo da Home — superfície `#15181E`, cantos `12 dp/pt` (`LagCheckRadius.md` / `NLRadius.md`), altura mínima `46 dp/pt`, preenchimento horizontal `16 dp/pt` e vertical `12 dp/pt`, sem contorno/borda, sem sombra e placeholder `"Buscar jogo..."` (Android) / localizado.
   3. **Títulos de tela sempre em caixa alta:** os cabeçalhos das telas principais e secundárias no Android e no iOS exibem títulos em maiúsculas (`JOGOS`, `HISTÓRICO`, `CONFIGURAÇÕES` / `AJUSTES`, `DETALHES`, `DETALHES TÉCNICOS`, `DADOS DA REDE`), preservando a capitalização normal na barra inferior (`Início`, `Jogos`, `Histórico`, `Configurações` / `Ajustes`).
 - **Critérios de validação e aceite:** testes unitários em Android e `NolaggyUnitTests` no iOS aprovados; verificação visual ao vivo no emulador Android e simulador iOS confirmando `JOGOS`, `HISTÓRICO`, busca padronizada e grade 3 colunas.
+
+#### Decisão 146
+
+- **Data:** 15 de novembro de 2026.
+- **Título:** Política de anúncios AdMob por canal de distribuição mobile e diff comercial entre versões.
+- **Status Atual:** **Vigente.** Pedida e aprovada por Luiz. Refina o fluxo operacional das Decisões 82, 96 e 97.
+- **Frentes envolvidas:** Luiz (decisão), Marcelo (produto), Camillo (automação CI/CD Android/iOS) e Renan (validação).
+- **Contexto e problema:** O workflow da Google Play (`android-play-alpha.yml`) ainda injetava IDs de produção de AdMob sem desligar `lagcheck.adsEnabled` na trilha `alpha`, não havia automação dedicada para APK direto no GitHub nem para notas iOS, e as notas geradas para a Play Console expunham mensagens cruas de commit técnico para o jogador.
+- **Decisão:**
+  1. **Android — trilha `alpha` na Google Play (`android-play-alpha.yml`):** anúncios obrigatoriamente **desativados** (`lagcheck.adsEnabled=false`, `BuildConfig.ADS_ENABLED = false`), sem injetar IDs de produção AdMob nem inicializar UMP/MobileAds nessa trilha.
+  2. **Android — APK direto no GitHub (`android-github-apk.yml`, canal `production`, tag `android-vX.Y-bN`):** anúncios obrigatoriamente **ativados** (`lagcheck.adsEnabled=true`, `BuildConfig.ADS_ENABLED = true`) com os IDs reais do AdMob Android via Secrets do repositório, asset assinado `LagCheck-Android-<versão>-b<build>-production.apk` e checksum `SHA256SUMS.txt` compatíveis com o auto-updater da Decisão 121.
+  3. **iOS (`ios-release.sh` / `ios-release.yml`):** anúncios obrigatoriamente **ativados** (`LAGCHECK_ADS_ENABLED=YES`, `LagCheckAdsEnabled=YES`), mantendo IDs de teste apenas em `Debug` e os IDs reais do AdMob iOS em `Release` (`apps/ios/project.yml`).
+  4. **Diff comercial entre versões para lojas e GitHub:** toda publicação em loja (`whatsnew` na Google Play em `pt-BR`, `en-US` e `es-ES` até 500 caracteres; App Store Connect até 4000 caracteres) e todo GitHub Release enviam o comparativo desde a versão anterior em **linguagem comercial clara para quem joga** (`shared/scripts/generate_release_notes.py`), filtrando commits internos, de documentação, CI ou de outras plataformas (como Windows).
+- **Critérios de validação e aceite:** testes unitários em `shared/scripts/tests/test_generate_release_notes.py`, validação sintática dos scripts (`android-release.sh`, `ios-release.sh`) e dos workflows YAML (`android-play-alpha.yml`, `android-github-apk.yml`, `ios-release.yml`), além da conferência automática de `BuildConfig.ADS_ENABLED` (Android) e `Info.plist` `LagCheckAdsEnabled` (iOS) em cada build.
 
 ## Como Registrar Novas Decisões
 
