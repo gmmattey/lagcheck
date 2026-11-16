@@ -134,7 +134,7 @@ jobs:
           fi
 
           OUT_DIR="shared/distribution/release/android/v${VERSION_NAME}-b${VERSION_CODE}-production"
-          APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}-production.apk"
+          APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}.apk"
           APK_PATH="${OUT_DIR}/${APK_NAME}"
           APK_SHA256="$(shasum -a 256 "$APK_PATH" | awk '{print $1}')"
           TAG_NAME="android-v${VERSION_NAME}-b${VERSION_CODE}"

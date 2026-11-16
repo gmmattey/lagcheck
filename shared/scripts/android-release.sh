@@ -11,7 +11,7 @@
 # Em GitHub Actions, se versionCode vier vazio, usa GITHUB_RUN_NUMBER + LAGCHECK_BUILD_OFFSET.
 # Saída padronizada: shared/distribution/release/android/v<versionName>-b<versionCode>-<ambiente>/
 #   lagcheck-android-<ambiente>-v<versionName>-b<versionCode>.aab   (quando artifact=aab|both)
-#   LagCheck-Android-<versionName>-b<versionCode>-<ambiente>.apk    (quando artifact=apk|both)
+#   LagCheck-Android-<versionName>-b<versionCode>.apk               (quando artifact=apk|both em production)
 #   mapping.txt                                                     (símbolos do R8)
 #   SHA256SUMS.txt
 set -euo pipefail
@@ -91,7 +91,11 @@ BUILD_VARIANT="${BUILD_FLAVOR}Release"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="${LAGCHECK_RELEASE_DIR:-$ROOT/shared/distribution/release/android/v${VERSION_NAME}-b${VERSION_CODE}-${CHANNEL}}"
 AAB_NAME="lagcheck-android-${CHANNEL}-v${VERSION_NAME}-b${VERSION_CODE}.aab"
-APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}-${CHANNEL}.apk"
+if [[ "$CHANNEL" == "production" ]]; then
+  APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}.apk"
+else
+  APK_NAME="LagCheck-Android-${VERSION_NAME}-b${VERSION_CODE}-${CHANNEL}.apk"
+fi
 
 if [[ -d "$ROOT/apps/android" ]]; then
   cd "$ROOT/apps/android"
