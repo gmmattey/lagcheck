@@ -92,9 +92,8 @@ public enum EvidenceRecommendationEngine {
             recKeys.append("CHECK_LOCAL_INTERFERENCE")
         }
 
-        if evidence.natType == .type3Strict && (evidence.serverArchitecture == .peerToPeer || evidence.serverArchitecture == .hybrid) {
-            recKeys.append("ENABLE_UPNP")
-        }
+        // Uma leitura STUN isolada não prova restrição nem alcançabilidade de
+        // entrada; portanto não pode recomendar UPnP ou mexer no roteador.
 
         if evidence.outOfOrderCount >= 2 && evidence.gatewayOutcome.isStable {
             recKeys.append("ROUTE_INSTABILITY")

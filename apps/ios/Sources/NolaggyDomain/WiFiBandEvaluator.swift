@@ -27,7 +27,17 @@ public enum WiFiBandEvaluator {
         // 2. SSID, RTT e jitter não são evidência de frequência/canal no iOS.
         // O nome escolhido pelo roteador não confirma a rádio em uso.
 
-        // 3. Verificação de resposta do gateway (se sondado)
+        // 3. Sem plano ou sem resposta de primeiro salto não existe base para
+        // chamar o Wi-Fi de estável. A rota remota não substitui essa evidência.
+        guard telemetry.plannedSampleCount > 0 else {
+            return makeResult(
+                diagnostic: .inconclusive(reason: .insufficientSamples),
+                confidence: .none,
+                telemetry: telemetry
+            )
+        }
+
+        // 4. Verificação de resposta do gateway (se sondado)
         if telemetry.plannedSampleCount > 0 && telemetry.validSampleCount == 0 {
             return makeResult(
                 diagnostic: .inconclusive(reason: .gatewayUnresponsive),
@@ -36,7 +46,7 @@ public enum WiFiBandEvaluator {
             )
         }
 
-        // 4. Se houver amostras insuficientes para análise estatística
+        // 5. Se houver amostras insuficientes para análise estatística
         if telemetry.plannedSampleCount > 0 && telemetry.validSampleCount < Thresholds.minimumSamplesRequired {
             return makeResult(
                 diagnostic: .inconclusive(reason: .insufficientSamples),
@@ -45,7 +55,7 @@ public enum WiFiBandEvaluator {
             )
         }
 
-        // 5. Avaliação do primeiro salto (gateway local)
+        // 6. Avaliação do primeiro salto (gateway local)
         if let localJitter = telemetry.gatewayJitterMs, let localMedian = telemetry.gatewayRTTMedianMs {
             // Contenção severa no enlace local. Não confirma 2.4 GHz.
             let isHighJitter = localJitter > Thresholds.highJitterContentionMs
@@ -69,7 +79,7 @@ public enum WiFiBandEvaluator {
             }
         }
 
-        // 6. Se o enlace local foi medido e não apresentou anomalias de contenção
+        // 7. Se o enlace local foi medido e não apresentou anomalias de contenção
         if telemetry.gatewayRTTMedianMs != nil {
             return makeResult(
                 diagnostic: .stableWiFi,
@@ -78,9 +88,9 @@ public enum WiFiBandEvaluator {
             )
         }
 
-        // 7. Sem SSID explícito e sem medição local válida, não se afirma frequência com confiança (Decisão 50/55)
+        // 8. Sem medição local válida, não se afirma frequência nem estabilidade (Decisão 50/55)
         return makeResult(
-            diagnostic: .stableWiFi,
+            diagnostic: .inconclusive(reason: .insufficientSamples),
             confidence: .none,
             telemetry: telemetry
         )

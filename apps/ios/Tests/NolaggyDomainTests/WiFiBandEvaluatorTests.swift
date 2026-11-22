@@ -104,7 +104,7 @@ final class WiFiBandEvaluatorTests: XCTestCase {
         XCTAssertEqual(result.confidence, .medium)
     }
 
-    func testWANLoadDeltaAloneDoesNotAccuseWiFiContentionWithoutLocalEvidence() {
+    func testWANLoadDeltaWithoutLocalSamplesIsInconclusive() {
         // Decisão 50/55: Carga WAN (bufferbloat) sem evidência isolada no gateway local não acusa Wi-Fi 2.4GHz
         let telemetry = WiFiLocalTelemetry(
             loadDeltaP50Ms: 42.0,
@@ -114,8 +114,7 @@ final class WiFiBandEvaluatorTests: XCTestCase {
         )
         let result = WiFiBandEvaluator.evaluate(telemetry: telemetry)
 
-        XCTAssertNotEqual(result.diagnostic, .suspected24GHzContention)
-        XCTAssertEqual(result.diagnostic, .stableWiFi)
+        XCTAssertEqual(result.diagnostic, .inconclusive(reason: .insufficientSamples))
         XCTAssertEqual(result.confidence, .none)
     }
 

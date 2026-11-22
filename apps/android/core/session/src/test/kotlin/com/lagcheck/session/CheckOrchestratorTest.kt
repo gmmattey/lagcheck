@@ -65,9 +65,9 @@ class CheckOrchestratorTest {
         assertThat(r.assessment.isUnderLoadAffected).isTrue()
     }
 
-    @Test fun loadUnavailableKeepsTheRestVerdictAndDropsLoadSamples() = runBlocking {
+    @Test fun loadUnavailableMakesTheCompleteCheckInconclusive() = runBlocking {
         val r = CheckOrchestrator(script(good(30.0), good(500.0)), { LoadOutcome.Unavailable }).run(ctx)
-        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
+        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.INCONCLUSIVE)
         assertThat(r.loadSamples).isNull()
         assertThat(r.loadMeasured).isFalse()
     }
@@ -104,7 +104,7 @@ class CheckOrchestratorTest {
         assertThat(r.abortReason).isEqualTo(InconclusiveReason.POOR_SAMPLE_QUALITY)
     }
 
-    @Test fun loadPhaseUnavailableHttpKeepsRestEvaluation() = runBlocking {
+    @Test fun unavailableLoadDoesNotTreatPartialLoadSamplesAsACompleteCheck() = runBlocking {
         val fewValid = ProbeCollection(
             List(5) { ProbeSample(it, 30.0, ProbeOutcome.RECEIVED) } +
             List(25) { ProbeSample(it + 5, null, ProbeOutcome.TIMEOUT) },
@@ -112,7 +112,14 @@ class CheckOrchestratorTest {
         )
         val r = CheckOrchestrator(script(good(30.0), fewValid), { LoadOutcome.Unavailable }).run(ctx)
         assertThat(r.loadSamples).isNull()
-        assertThat(r.assessment.verdict).isNotEqualTo(GameReadinessVerdict.INCONCLUSIVE)
+        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.INCONCLUSIVE)
+    }
+
+    @Test fun zeroByteCompletedLoadIsAlsoIncomplete() = runBlocking {
+        val r = CheckOrchestrator(script(good(30.0), good(30.0)), { LoadOutcome.Completed(0) }).run(ctx)
+        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.INCONCLUSIVE)
+        assertThat(r.loadSamples).isNull()
+        assertThat(r.loadMeasured).isFalse()
     }
 
     @Test fun progressIsMonotonicAcrossBothPhasesAndReportsPing() = runBlocking {

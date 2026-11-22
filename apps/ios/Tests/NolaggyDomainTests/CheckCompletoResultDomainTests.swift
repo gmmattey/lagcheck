@@ -35,8 +35,8 @@ final class CheckCompletoResultDomainTests: XCTestCase {
             natSnapshot: nat,
             profile: .battleRoyaleCompetitive
         )
-        XCTAssertEqual(compatibility.multiplayer, .check)
-        XCTAssertEqual(compatibility.calls, .check)
+        XCTAssertEqual(compatibility.multiplayer, .neutral)
+        XCTAssertEqual(compatibility.calls, .neutral)
         XCTAssertEqual(compatibility.streaming, .neutral)
     }
 
@@ -113,7 +113,7 @@ final class CheckCompletoResultDomainTests: XCTestCase {
         XCTAssertEqual(compatibility.streaming, .neutral)
     }
 
-    func testNATRestrictionTriggersAttentionInMultiplayerAndCalls() throws {
+    func testLegacyNATSnapshotDoesNotChangeCompatibilityWithoutReachabilityProof() throws {
         let restResult = try completedQualityResult(samples: sampleSequence(count: 30, rtt: 25.0))
         let deepResult = DeepCheckResult(
             restResult: restResult,
@@ -134,8 +134,8 @@ final class CheckCompletoResultDomainTests: XCTestCase {
             natSnapshot: strictNAT,
             profile: .battleRoyaleCompetitive
         )
-        XCTAssertEqual(compatibility.multiplayer, .attention)
-        XCTAssertEqual(compatibility.calls, .attention)
+        XCTAssertEqual(compatibility.multiplayer, .neutral)
+        XCTAssertEqual(compatibility.calls, .neutral)
         XCTAssertEqual(compatibility.streaming, .neutral)
     }
 

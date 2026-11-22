@@ -61,44 +61,44 @@ class CockpitPresenterTest {
     @Test fun beforeTheProbesFinishItSaysMeasuringNotAGuess() {
         val r = rows(wifiRadio, null)
         assertThat(r["Tipo de NAT"]).isEqualTo("Medindo…")
-        assertThat(r["Latência do roteador"]).isEqualTo("Medindo…")
+        assertThat(r["Resposta DNS do gateway"]).isEqualTo("Medindo…")
         assertThat(r["Voz (Discord)"]).isEqualTo("Medindo…")
     }
 
-    @Test fun measuredNatAndGatewayAreRenderedWithTheirRealStates() {
+    @Test fun gatewayResponseIsFactualAndNatNeverClaimsTopology() {
         val strict = NatTopologySnapshot(NatType.TYPE_3_STRICT, CgnatStatus.DETECTED, DoubleNatStatus.NOT_DETECTED)
         val report = LocalNetworkReport(WiFiLocalTelemetry(8.4, 1.0, 1.1, validSampleCount = 3, plannedSampleCount = 3), strict, null)
         val r = rows(wifiRadio, report)
-        assertThat(r["Tipo de NAT"]).isEqualTo("NAT Tipo 3 (Estrito)")
-        assertThat(r["CGNAT"]).isEqualTo("Detectado")
-        assertThat(r["NAT duplo"]).isEqualTo("Não detectado")
-        assertThat(r["Latência do roteador"]).isEqualTo("8 ms")
-        assertThat(r["Voz (Discord)"]).isEqualTo("Favorável · roteador 8 ms")
+        assertThat(r["Tipo de NAT"]).isEqualTo("Inconclusivo")
+        assertThat(r["CGNAT"]).isEqualTo("—")
+        assertThat(r["NAT duplo"]).isEqualTo("—")
+        assertThat(r["Resposta DNS do gateway"]).isEqualTo("8 ms")
+        assertThat(r["Voz (Discord)"]).isEqualTo("Não avaliado")
     }
 
     @Test fun silentRouterIsReportedAsNoResponseAndVoiceNotAssessed() {
         val report = LocalNetworkReport(WiFiLocalTelemetry(validSampleCount = 0, plannedSampleCount = 3), NatTopologySnapshot.INCONCLUSIVE, null)
         val r = rows(wifiRadio, report)
-        assertThat(r["Latência do roteador"]).isEqualTo("Sem resposta")
+        assertThat(r["Resposta DNS do gateway"]).isEqualTo("Sem resposta")
         assertThat(r["Voz (Discord)"]).isEqualTo("Não avaliado")
         assertThat(r["Tipo de NAT"]).isEqualTo("Inconclusivo")
         assertThat(r["CGNAT"]).isEqualTo("—")
     }
 
-    @Test fun slowRouterGetsAnAttentionNotAnAccusation() {
+    @Test fun dnsResponseDoesNotTurnIntoVoiceAdvice() {
         val report = LocalNetworkReport(WiFiLocalTelemetry(22.0, 3.0, 1.2, validSampleCount = 3, plannedSampleCount = 3), null, null)
-        assertThat(rows(wifiRadio, report)["Voz (Discord)"]).isEqualTo("Atenção · roteador 22 ms")
+        assertThat(rows(wifiRadio, report)["Voz (Discord)"]).isEqualTo("Não avaliado")
     }
 
-    @Test fun useCasesRequireTheMeasuredBandAndGatewayLatency() {
+    @Test fun useCasesStayUnassessedWithoutTheirOwnEvidence() {
         val report = LocalNetworkReport(
             WiFiLocalTelemetry(3.0, 0.4, 0.5, validSampleCount = 3, plannedSampleCount = 3),
             NatTopologySnapshot(NatType.TYPE_2_MODERATE, CgnatStatus.NOT_DETECTED, DoubleNatStatus.NOT_DETECTED),
             null
         )
         val on5Ghz = rows(wifiRadio, report)
-        assertThat(on5Ghz["Cloud Gaming"]).contains("Favorável")
-        assertThat(on5Ghz["Multiplayer"]).contains("Favorável")
+        assertThat(on5Ghz["Cloud Gaming"]).isEqualTo("Não avaliado")
+        assertThat(on5Ghz["Multiplayer"]).isEqualTo("Não avaliado")
 
         val on6Ghz = rows(wifiRadio.copy(wifiDetails = RadioTelemetrySnapshot.WifiDetails(6055, -47, 866, 866, "Wi-Fi 6E")), report)
         assertThat(on6Ghz["Cloud Gaming"]).isEqualTo("Não avaliado")
@@ -113,14 +113,14 @@ class CockpitPresenterTest {
         val strict = NatTopologySnapshot(NatType.TYPE_3_STRICT, CgnatStatus.DETECTED, DoubleNatStatus.SUSPECT_OR_DETECTED)
         val report = LocalNetworkReport(WiFiLocalTelemetry(8.0, 1.0, 1.1, validSampleCount = 3, plannedSampleCount = 3), strict, null)
         val en = rows(wifiRadio, report, ReadinessLanguage.EN)
-        assertThat(en["NAT type"]).isEqualTo("NAT Type 3 (Strict)")
-        assertThat(en["Router latency"]).isEqualTo("8 ms")
-        assertThat(en["Voice chat (Discord)"]).isEqualTo("Good · router 8 ms")
-        assertThat(en["CGNAT"]).isEqualTo("Detected")
+        assertThat(en["NAT type"]).isEqualTo("Inconclusive")
+        assertThat(en["Gateway DNS response"]).isEqualTo("8 ms")
+        assertThat(en["Voice chat (Discord)"]).isEqualTo("Not assessed")
+        assertThat(en["CGNAT"]).isEqualTo("—")
         val es = rows(wifiRadio, report, ReadinessLanguage.ES)
-        assertThat(es["Tipo de NAT"]).isNotEmpty()
-        assertThat(es["NAT doble"]).isEqualTo("Sospechado")
-        assertThat(es["Voz (Discord)"]).isEqualTo("Favorable · router 8 ms")
+        assertThat(es["Tipo de NAT"]).isEqualTo("No concluyente")
+        assertThat(es["NAT doble"]).isEqualTo("—")
+        assertThat(es["Voz (Discord)"]).isEqualTo("No evaluado")
     }
 
     @Test fun shareTextIsBuiltFromTheSameRowsAsTheScreen() {
@@ -132,12 +132,14 @@ class CockpitPresenterTest {
 
     // region Reporter (probes reais com troca injetada)
     @Test fun reporterMeasuresGatewayAndNatOnWifiAndSkipsGatewayOnCellular() = runBlocking {
-        val stun = StunTopologyProbe(exchange = StunExchange { _, _, _ -> null })
+        var stunCalls = 0
+        val stun = StunTopologyProbe(exchange = StunExchange { _, _, _ -> stunCalls += 1; null })
         val diag = LocalDiagnostics(GatewayProber(GatewayExchange { _, _ -> 3.0 }), stun)
         val reporter = LocalNetworkReporter(diag)
         val onWifi = reporter.capture(CheckEnvironment(isWiFi = true, gatewayAddress = "10.0.0.1"))
         assertThat(onWifi.telemetry!!.validSampleCount).isEqualTo(3)
         assertThat(onWifi.nat!!.natType).isEqualTo(NatType.INCONCLUSIVE)
+        assertThat(stunCalls).isEqualTo(0)
         val cellular = reporter.capture(CheckEnvironment(isWiFi = false))
         assertThat(cellular.telemetry).isNull()
         assertThat(cellular.wifiBand).isNull()

@@ -65,7 +65,7 @@ final class EvidenceRecommendationEngineTests: XCTestCase {
         XCTAssertEqual(rec?.evidenceBadge, "Rota Externa")
     }
 
-    func testStrictNATOnP2PGameYieldsUPnPRecommendation() {
+    func testLegacyStrictNATDoesNotYieldUPnPRecommendation() {
         let evidence = DiagnosticEvidence(
             gatewayOutcome: .stable(rttMilliseconds: 1.5),
             natType: .type3Strict,
@@ -74,8 +74,7 @@ final class EvidenceRecommendationEngineTests: XCTestCase {
         let recommendations = EvidenceRecommendationEngine.generateRecommendations(evidence: evidence)
 
         let rec = recommendations.first { $0.title == "Habilite UPnP no Roteador" }
-        XCTAssertNotNil(rec)
-        XCTAssertEqual(rec?.evidenceBadge, "NAT Restrito")
+        XCTAssertNil(rec)
     }
 
     func testStrictNATOnDedicatedServerGameDoesNotYieldNATRecommendation() {

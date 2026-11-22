@@ -169,6 +169,11 @@ public enum GameReadinessEvaluator {
         guard let result = deepCheckResult else {
             return .inconclusive
         }
+        guard result.metrics.load != nil,
+              let loadSamples = result.metrics.loadSamples,
+              loadSamples.filter(\.isValidResponse).count >= ProbeAcceptancePolicy.minimumValidResponses else {
+            return .inconclusive
+        }
         return evaluate(
             qualityResult: result.restResult,
             loadImpact: result.metrics.loadImpact,
@@ -195,6 +200,14 @@ public enum GameReadinessEvaluator {
         }
 
         if qualityResult.metrics.validResponseCount < ProbeAcceptancePolicy.minimumValidResponses {
+            return .inconclusive
+        }
+
+        // Quando a chamada representa Check Completo, a fase de carga precisa
+        // existir como série UDP real. Um agregado ou fase ausente não pode ser
+        // apresentado como resultado completo, nem virar share/histórico válido.
+        if let deepCheckMetrics,
+           (deepCheckMetrics.loadSamples?.filter(\.isValidResponse).count ?? 0) < ProbeAcceptancePolicy.minimumValidResponses {
             return .inconclusive
         }
 

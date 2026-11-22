@@ -20,6 +20,10 @@ public struct StunServerEndpoint: Sendable, Equatable {
 }
 
 /// Cliente de sondagem STUN a custo zero (Decisão 32) baseado em Network.framework.
+///
+/// A sondagem de topologia está suspensa: duas trocas STUN em sockets independentes
+/// só mostram o mapeamento observado por cada socket. Elas não comprovam tipo de
+/// NAT, CGNAT, NAT duplo nem disponibilidade de encaminhamento de portas.
 public final class StunProbeClient: Sendable {
     public let host: String
     public let port: UInt16
@@ -47,71 +51,12 @@ public final class StunProbeClient: Sendable {
         self.localAddressResolver = localAddressResolver
     }
 
-    /// Executa a sondagem UDP assíncrona e retorna o snapshot da topologia de rede.
-    /// Quando `localIP` não é fornecido, resolve o IP local real da interface ativa
-    /// (Wi-Fi ou celular) para permitir a detecção de NAT Tipo 1 (Aberto).
+    /// Retorna topologia inconclusiva até que exista um método que preserve o mesmo
+    /// socket e prove o comportamento de encaminhamento necessário para a conclusão.
+    /// A medição UDP do Check é independente deste diagnóstico e continua ativa.
     public func probeTopology(localIP: String? = nil) async -> NATTopologySnapshot {
-        let resolvedLocalIP = localIP ?? localAddressResolver.resolveLocalIPv4()
-
-        let primaryResult = await performBindingProbe(host: host, port: port)
-
-        guard let primary = primaryResult else {
-            return .inconclusive
-        }
-
-        let secondaryResult = await performBindingProbe(host: secondaryServer.host, port: secondaryServer.port)
-
-        let (isPortMappingConsistent, detectedDoubleHop) = evaluateDualProbe(primary: primary, secondary: secondaryResult)
-
-        return NATTopologyEvaluator.evaluate(
-            localIP: resolvedLocalIP,
-            publicIP: primary.publicIP,
-            externalPort: primary.externalPort,
-            isPortMappingConsistent: isPortMappingConsistent,
-            detectedDoubleHop: detectedDoubleHop
-        )
-    }
-
-    /// Compara os resultados de dois servidores STUN independentes para inferir
-    /// se o mapeamento de porta é consistente (mesmo NAT observando de fontes
-    /// distintas) e se há indícios de NAT duplo (múltiplas camadas de tradução).
-    ///
-    /// - Apenas a sondagem primária respondeu: não há dados suficientes para
-    ///   afirmar inconsistência; assume-se o caso conservador (mapeamento
-    ///   consistente, sem duplo hop detectado) já que nada contradiz o resultado único.
-    /// - Ambas respondem com o mesmo IP público e a mesma porta externa:
-    ///   mapeamento consistente, sem indício de duplo NAT.
-    /// - Ambas respondem com o mesmo IP público mas portas externas diferentes:
-    ///   mapeamento de porta inconsistente, típico de NAT simétrico.
-    /// - As duas respondem com IPs públicos diferentes: indício forte de duas
-    ///   camadas de tradução (NAT duplo / CGNAT em cascata com NAT do roteador).
-    private func evaluateDualProbe(
-        primary: StunPacketCodec.StunBindingResult,
-        secondary: StunPacketCodec.StunBindingResult?
-    ) -> (isPortMappingConsistent: Bool, detectedDoubleHop: Bool) {
-        guard let secondary else {
-            return (true, false)
-        }
-
-        if primary.publicIP != secondary.publicIP {
-            return (false, true)
-        }
-
-        if primary.externalPort != secondary.externalPort {
-            return (false, false)
-        }
-
-        return (true, false)
-    }
-
-    private func performBindingProbe(host: String, port: UInt16) async -> StunPacketCodec.StunBindingResult? {
-        let (requestData, txID) = StunPacketCodec.buildBindingRequest()
-        do {
-            let responseData = try await transport.exchange(packet: requestData, host: host, port: port, timeoutSeconds: timeoutSeconds)
-            return StunPacketCodec.parseBindingResponse(data: responseData, expectedTransactionID: txID)
-        } catch {
-            return nil
-        }
+        _ = localIP
+        return .inconclusive
     }
 }
 

@@ -19,7 +19,7 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         XCTAssertEqual(state, .requiresWiFi)
     }
 
-    func testLoadFailureKeepsValidRestResultAndSignalsUnavailability() async throws {
+    func testLoadFailureIsInconclusiveAndDoesNotProduceADeepCheckResult() async throws {
         let coordinator = makeCoordinator(
             transport: ScriptedTransport(samples: [received(30, rtt: 30), received(30, rtt: 80)]),
             load: FixedLoadTransport(outcome: .unavailable)
@@ -28,13 +28,12 @@ final class DeepCheckSessionCoordinatorTests: XCTestCase {
         try await waitForCompletion(coordinator)
 
         let state = await coordinator.sessionState()
-        guard case let .completed(finished, .completed(result), availability) = state else {
-            return XCTFail("Expected completed Deep Check with valid rest result.")
+        guard case let .completed(finished, .inconclusive(reason, diagnostics), availability) = state else {
+            return XCTFail("Expected inconclusive Deep Check when the load phase is unavailable.")
         }
         XCTAssertEqual(finished, session)
-        XCTAssertEqual(result.restResult.metrics.p50Milliseconds, 30)
-        XCTAssertNil(result.metrics.load)
-        XCTAssertNil(result.metrics.loadImpact)
+        XCTAssertEqual(reason, .insufficientUDPResponses)
+        XCTAssertEqual(diagnostics.p50Milliseconds, 30)
         XCTAssertEqual(availability, .loadUnavailable)
     }
 

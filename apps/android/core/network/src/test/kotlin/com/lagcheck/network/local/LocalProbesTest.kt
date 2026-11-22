@@ -120,39 +120,34 @@ class LocalProbesTest {
 
     private fun probe(ex: StunExchange, local: String? = "192.168.1.50") = runBlocking { StunTopologyProbe(a, b, 100, ex).probe(local) }
 
-    @Test fun consistentMappingBehindAHomeRouterIsModerate() {
+    @Test fun matchingRepliesAcrossSeparateSocketsStayInconclusive() {
         val s = probe(exchangeFor(mapOf("a" to ("177.136.20.10" to 40000), "b" to ("177.136.20.10" to 40000))))
-        assertThat(s.natType).isEqualTo(NatType.TYPE_2_MODERATE)
-        assertThat(s.publicIpMasked).isEqualTo("177.136.***.***")
-        assertThat(s.externalPort).isEqualTo(40000)
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
-    @Test fun differentPortsAcrossServersMeansStrictSymmetricNat() {
+    @Test fun differentPortsAcrossSeparateSocketsDoNotProveStrictNat() {
         val s = probe(exchangeFor(mapOf("a" to ("177.136.20.10" to 40000), "b" to ("177.136.20.10" to 40001))))
-        assertThat(s.natType).isEqualTo(NatType.TYPE_3_STRICT)
-        assertThat(s.doubleNatStatus.isImpacted).isFalse()
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
-    @Test fun differentPublicIpsAcrossServersMeansDoubleNat() {
+    @Test fun differentPublicIpsDoNotProveDoubleNat() {
         val s = probe(exchangeFor(mapOf("a" to ("177.136.20.10" to 40000), "b" to ("177.136.99.99" to 40000))))
-        assertThat(s.natType).isEqualTo(NatType.TYPE_3_STRICT)
-        assertThat(s.doubleNatStatus.isImpacted).isTrue()
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
-    @Test fun cgnatRangeIsDetected() {
+    @Test fun publicCgnatRangeDoesNotDiagnoseCarrierNAT() {
         val s = probe(exchangeFor(mapOf("a" to ("100.70.15.22" to 40000), "b" to ("100.70.15.22" to 40000))))
-        assertThat(s.cgnatStatus.isImpacted).isTrue()
-        assertThat(s.natType).isEqualTo(NatType.TYPE_3_STRICT)
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
-    @Test fun onlyOneServerAnsweringDoesNotAccuseSymmetricNat() {
+    @Test fun oneServerReplyDoesNotConfirmModerateNat() {
         val s = probe(exchangeFor(mapOf("a" to ("177.136.20.10" to 40000), "b" to null)))
-        assertThat(s.natType).isEqualTo(NatType.TYPE_2_MODERATE)
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
-    @Test fun publicEqualsLocalIsOpen() {
+    @Test fun publicAndLocalAddressMatchDoesNotConfirmOpenNat() {
         val s = probe(exchangeFor(mapOf("a" to ("177.136.20.10" to 40000), "b" to ("177.136.20.10" to 40000))), local = "177.136.20.10")
-        assertThat(s.natType).isEqualTo(NatType.TYPE_1_OPEN)
+        assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
     }
 
     @Test fun noAnswerIsInconclusiveNeverAGuess() {
@@ -174,7 +169,7 @@ class LocalProbesTest {
     @Test fun realUdpStunRoundTripThroughLoopback() = runBlocking {
         LoopbackUdpServer { req, _ -> listOf(stunResponse(req, "177.136.20.10", 40000)) }.use { server ->
             val s = StunTopologyProbe(StunServer("127.0.0.1", server.port), StunServer("127.0.0.1", server.port), 500).probe("192.168.1.50")
-            assertThat(s.natType).isEqualTo(NatType.TYPE_2_MODERATE)
+            assertThat(s.natType).isEqualTo(NatType.INCONCLUSIVE)
         }
     }
     // endregion

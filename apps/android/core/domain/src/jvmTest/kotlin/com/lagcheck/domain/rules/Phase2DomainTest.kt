@@ -66,7 +66,7 @@ class Phase2DomainTest {
 
     @Test fun wanLoadAloneNeverAccusesWifi() {
         val r = WiFiBandEvaluator.evaluate(WiFiLocalTelemetry(loadDeltaP50Ms = 42.0))
-        assertThat(r.diagnostic).isEqualTo(WiFiBandDiagnostic.StableWiFi)
+        assertThat(r.diagnostic).isEqualTo(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.INSUFFICIENT_SAMPLES))
         assertThat(r.confidence).isEqualTo(WiFiBandConfidence.NONE)
     }
 
@@ -127,26 +127,20 @@ class Phase2DomainTest {
         for (ip in listOf("100.63.255.255", "100.128.0.0", "177.136.20.10", "192.168.1.1", "100.64.1")) assertThat(NatTopologyEvaluator.isRfc6598Cgnat(ip)).isFalse()
     }
 
-    @Test fun openWhenLocalEqualsPublic() {
-        val s = NatTopologyEvaluator.evaluate("177.136.20.10", "177.136.20.10", 54321)
-        assertThat(s.natType).isEqualTo(NatType.TYPE_1_OPEN)
-        assertThat(s.hasAnyMultiplayerIssue).isFalse()
-    }
+    @Test fun stunObservationDoesNotInventNatCgnatOrDoubleNatStatus() {
+        val snapshots = listOf(
+            NatTopologyEvaluator.evaluate("177.136.20.10", "177.136.20.10", 54321),
+            NatTopologyEvaluator.evaluate("192.168.1.50", "100.70.15.22", 54321),
+            NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 54321, detectedDoubleHop = true),
+            NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 1, isPortMappingConsistent = false)
+        )
 
-    @Test fun moderateBehindStandardRouter() {
-        val s = NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 54321)
-        assertThat(s.natType).isEqualTo(NatType.TYPE_2_MODERATE)
-        assertThat(s.hasAnyMultiplayerIssue).isFalse()
-    }
-
-    @Test fun strictOnCgnatAndDoubleNatAndInconsistentMapping() {
-        val cg = NatTopologyEvaluator.evaluate("192.168.1.50", "100.70.15.22", 54321)
-        assertThat(cg.natType).isEqualTo(NatType.TYPE_3_STRICT)
-        assertThat(cg.cgnatStatus).isEqualTo(CgnatStatus.DETECTED)
-        val dn = NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 54321, detectedDoubleHop = true)
-        assertThat(dn.natType).isEqualTo(NatType.TYPE_3_STRICT)
-        assertThat(dn.doubleNatStatus).isEqualTo(DoubleNatStatus.SUSPECT_OR_DETECTED)
-        assertThat(NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 1, isPortMappingConsistent = false).natType).isEqualTo(NatType.TYPE_3_STRICT)
+        snapshots.forEach { snapshot ->
+            assertThat(snapshot.natType).isEqualTo(NatType.INCONCLUSIVE)
+            assertThat(snapshot.cgnatStatus).isEqualTo(CgnatStatus.INCONCLUSIVE)
+            assertThat(snapshot.doubleNatStatus).isEqualTo(DoubleNatStatus.INCONCLUSIVE)
+            assertThat(snapshot.hasAnyMultiplayerIssue).isFalse()
+        }
     }
 
     @Test fun inconclusiveWithoutPublicIp() {
@@ -159,7 +153,7 @@ class Phase2DomainTest {
         assertThat(NatTopologyEvaluator.maskIp("177.136.25.100")).isEqualTo("177.136.***.***")
         assertThat(NatTopologyEvaluator.maskIp("lixo")).isEqualTo("***.***.***.***")
         val s = NatTopologyEvaluator.evaluate("192.168.1.50", "177.136.20.10", 54321)
-        assertThat(s.publicIpMasked).isEqualTo("177.136.***.***")
+        assertThat(s.publicIpMasked).isNull()
         assertThat(s.toString()).doesNotContain("177.136.20.10")
         assertThat(s.toString()).doesNotContain("192.168.1.50")
     }
@@ -226,6 +220,40 @@ class Phase2DomainTest {
         assertThat(f.labelKey).isEqualTo("nat.type3.strict.title")
         val dedicated = GameReadinessEvaluator.evaluate(q, null, QualityProfileId.BATTLE_ROYALE_COMPETITIVE, natSnapshot = strict)
         assertThat(dedicated.findings.none { it.kind == NetworkFinding.Kind.NAT_TOPOLOGY }).isTrue()
+    }
+
+    @Test fun inconclusiveNatDoesNotBecomeAHealthyOrRestrictedFinding() {
+        val q = completed(received(30, 25.0))
+        val assessment = GameReadinessEvaluator.evaluate(
+            q,
+            null,
+            QualityProfileId.BATTLE_ROYALE_COMPETITIVE,
+            serverArchitecture = GameServerArchitecture.HYBRID,
+            natSnapshot = NatTopologySnapshot.INCONCLUSIVE
+        )
+
+        assertThat(assessment.findings.none { it.kind == NetworkFinding.Kind.NAT_TOPOLOGY }).isTrue()
+        assertThat(assessment.recommendations.map { it.key }).doesNotContain(RecommendationKey.ENABLE_UPNP)
+    }
+
+    @Test fun inconclusiveNatIsOmittedFromUseCasesInsteadOfMarkedGood() {
+        val cases = UseCaseEvaluator.evaluate(
+            UseCaseEvaluator.Input(
+                p50Milliseconds = 25.0,
+                jitterMilliseconds = 1.0,
+                loadDeltaMilliseconds = null,
+                nat = UseCaseEvaluator.NatMeasurement(NatType.INCONCLUSIVE, UseCaseEvaluator.NatSource.STUN_APP)
+            )
+        )
+
+        assertThat(cases.cases.none { it.id == "nat" }).isTrue()
+    }
+
+    @Test fun wifiWithoutAnyLocalProbesIsInconclusiveRatherThanStable() {
+        val result = WiFiBandEvaluator.evaluate(WiFiLocalTelemetry(isWiFi = true))
+
+        assertThat(result.diagnostic).isEqualTo(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.INSUFFICIENT_SAMPLES))
+        assertThat(result.confidence).isEqualTo(WiFiBandConfidence.NONE)
     }
 
     @Test fun natStrictDoesNotChangeTheVerdict() {

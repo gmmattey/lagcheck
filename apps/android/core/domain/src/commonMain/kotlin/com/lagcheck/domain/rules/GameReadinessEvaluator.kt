@@ -251,7 +251,9 @@ object GameReadinessEvaluator {
             loadImpact != null -> f += ReadinessFinding(Kind.LOAD_DEGRADATION, Sev.POSITIVE, "game_readiness.finding.load_stable")
         }
         // NAT só importa em jogo P2P ou híbrido (Decisão 55); em servidor dedicado o achado não aparece.
-        if ((serverArchitecture == GameServerArchitecture.PEER_TO_PEER || serverArchitecture == GameServerArchitecture.HYBRID) && natSnapshot != null) {
+        if ((serverArchitecture == GameServerArchitecture.PEER_TO_PEER || serverArchitecture == GameServerArchitecture.HYBRID) &&
+            natSnapshot?.natType?.isConclusive == true
+        ) {
             f += ReadinessFinding(
                 Kind.NAT_TOPOLOGY,
                 if (natSnapshot.natType.isMultiplayerRestricted) Sev.NEGATIVE else Sev.POSITIVE,

@@ -68,8 +68,9 @@ final class EngineRealSamplesBridgeTests: XCTestCase {
         XCTAssertEqual(screen.score, engine.score)
     }
 
-    /// Entradas gravadas antes desta versão não têm `samples`: continuam abrindo e sendo avaliadas.
-    func testLegacyHistoryResultWithoutSamplesStillDecodesAndEvaluates() throws {
+    /// Entradas gravadas antes desta versão não têm `samples`: continuam abrindo,
+    /// mas não ganham uma série inventada nem um novo diagnóstico.
+    func testLegacyHistoryResultWithoutSamplesBecomesInconclusive() throws {
         guard case let .completed(quality) = QualityEvaluator.evaluate(samples: received(60, rtt: 30), profile: .battleRoyaleCompetitive) else {
             return XCTFail("Expected a completed Quick Check")
         }
@@ -80,7 +81,7 @@ final class EngineRealSamplesBridgeTests: XCTestCase {
         XCTAssertNil(legacy.samples)
         XCTAssertEqual(legacy.metrics, quality.metrics)
         let verdict = GameReadinessEvaluator.evaluate(qualityResult: legacy, loadImpact: nil, profile: .battleRoyaleCompetitive).verdict
-        XCTAssertEqual(verdict, .ready)
+        XCTAssertEqual(verdict, .inconclusive)
     }
 }
 

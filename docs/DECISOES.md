@@ -150,6 +150,7 @@
 | [145](#decisão-145) | Aba Jogos em 3 colunas, barra de busca unificada com a Home e títulos em caixa alta | **Vigente** | Refina a Decisão 105 e complementa a 144: grade de 3 colunas (`3:4`) em Jogos, busca padronizada (`#15181E`, `12 px`, `minHeight 46`, sem contorno/sombra) em Início/Jogos/Favoritos e títulos de tela sempre em caixa alta | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [146](#decisão-146) | Política de anúncios AdMob por canal de distribuição mobile e diff comercial entre versões | **Vigente** | Google Play `alpha` com anúncios desativados (`ADS_ENABLED=false`), APK direto no GitHub com anúncios ativados (`ADS_ENABLED=true`), iOS com anúncios ativados (`LAGCHECK_ADS_ENABLED=YES`) e notas comerciais entre versões para lojas e GitHub | Luiz / Marcelo / Camillo / Renan |
 | [147](#decisão-147) | Fim definitivo da seleção de plataforma no iOS, ícones de compartilhamento 1:1 e cabeçalhos colapsáveis Apple HIG / Material 3 | **Vigente** | Remove seleção de plataforma no iOS (medição sempre no iPhone, paridade com Decisão 80); alinha ícones vetoriais do `ShareNetworkBar` no iOS ao Android; padroniza exibição, posição e colapso ao rolar dos títulos | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [148](#decisão-148) | Integridade de medições incompletas e comparação de operadoras | **Vigente (em implementação)** | Não apresentar diagnóstico completo sem evidência; preservar o ranking com critérios internos e sem expor contagens ao jogador | Luiz / Marcelo / Camillo / Renan |
 
 
 
@@ -1744,6 +1745,16 @@
      - **iOS (Apple HIG):** cabeçalho fixo acima da rolagem com título grande à esquerda em repouso (`31 pt` Barlow Semi Condensed CAIXA ALTA) que recolhe suavemente ao rolar para uma barra compacta com fundo translúcido escuro e título **centralizado** (`17 pt` CAIXA ALTA), incluindo `DETALHES TÉCNICOS` em `DeepCheckDetailsView`.
      - **Android (Material 3):** cabeçalho fixo acima da rolagem com título grande à esquerda em repouso (`31 sp` Barlow Semi Condensed CAIXA ALTA) que recolhe suavemente ao rolar para uma barra compacta (`56 dp`) com título **alinhado à esquerda** (`20 sp` CAIXA ALTA) e elevação sutil de superfície, unificando `JOGOS`, `HISTÓRICO`, `CONFIGURAÇÕES`, `DETALHES` e `DETALHES TÉCNICOS`.
 - **Critérios de validação e aceite:** testes unitários e build do app no Android e no iOS aprovados; verificação de que `PlayStation` não aparece sem escolha no topo do Resultado iOS nem em `TechnicalDetailsScreen` no Android; conferência visual da barra de ícones sociais no iOS e do efeito de recolhimento de título nas duas plataformas.
+
+#### Decisão 148
+
+- **Data:** 21 de novembro de 2026.
+- **Título:** Integridade de medições incompletas e comparação de operadoras.
+- **Status Atual:** **Vigente (em implementação).** Solicitada por Luiz após auditoria; refina as decisões anteriores onde permitiam conclusões sem evidência suficiente, inclusive a observação de DNS do gateway da Decisão 69.
+- **Decisão:** medições incompletas não devem produzir veredito ou ação que as apresente como um check completo. Leituras efetivamente obtidas podem ser preservadas com seu estado parcial ou inconclusivo. Ausência de amostras não é evidência de estabilidade; agregados antigos não são convertidos em amostras simuladas.
+- **Rede e NAT:** resposta DNS do gateway não comprova o trecho local nem permite atribuir a causa ao roteador. Respostas STUN insuficientes ou obtidas de modo que não isole o mapeamento não comprovam tipo de NAT, CGNAT ou duplo NAT e não justificam recomendar UPnP.
+- **Operadoras no site:** o ranking permanece disponível com critérios internos mais exigentes e comparação entre testes do mesmo jogo e destino, dentro do recorte geográfico. A interface não mostra quantidades de testes, limiares nem explicações técnicas da régua; não afirma que a comparação representa uma verdade geral sobre a operadora.
+- **Validação:** cobrir carga ausente ou insuficiente, dados legados sem amostras, NAT inconclusivo e comparações com dados insuficientes ou contextos distintos. Distinguir testes automatizados e simulador de prova em aparelhos reais antes da distribuição.
 
 ## Como Registrar Novas Decisões
 

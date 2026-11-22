@@ -8,6 +8,8 @@ enum class NatType(val rawValue: String, val titleKey: String, val shortLabel: S
     INCONCLUSIVE("inconclusive", "nat.inconclusive.title", "Inconclusive");
 
     val isMultiplayerRestricted: Boolean get() = this == TYPE_3_STRICT
+    /** Só um resultado observado pode aparecer como diagnóstico favorável ou desfavorável. */
+    val isConclusive: Boolean get() = this != INCONCLUSIVE
 }
 
 enum class CgnatStatus { NOT_DETECTED, DETECTED, INCONCLUSIVE; val isImpacted: Boolean get() = this == DETECTED }

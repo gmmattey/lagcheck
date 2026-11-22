@@ -373,7 +373,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val _localReport = MutableStateFlow<LocalNetworkReport?>(null)
-    /** Leitura local do Cockpit (gateway, NAT, banda, voz). Nulo enquanto mede. */
+    /** Leitura local do Cockpit (resposta DNS do gateway, NAT inconclusivo e banda). Nulo enquanto mede. */
     val localReport: StateFlow<LocalNetworkReport?> = _localReport.asStateFlow()
     private val _localReportLoading = MutableStateFlow(false)
     val localReportLoading: StateFlow<Boolean> = _localReportLoading.asStateFlow()
@@ -456,7 +456,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         wifiRadio = radio?.wifiDetails
     )
 
-    /** Mede gateway e NAT ao abrir o Cockpit (3 amostras no gateway, 2 consultas STUN). */
+    /** Observa a resposta DNS do gateway ao abrir o Cockpit; NAT permanece inconclusivo sem sonda válida. */
     fun refreshLocalReport() {
         localReportJob?.cancel()
         refreshRadioTelemetry()

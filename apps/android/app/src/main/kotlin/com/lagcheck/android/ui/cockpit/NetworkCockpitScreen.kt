@@ -55,8 +55,8 @@ import com.lagcheck.session.LocalNetworkReport
 
 /**
  * Cockpit de Rede ("Dados da Rede do Jogador" — Decisões 56 e 67).
- * Mostra só o que foi medido agora no aparelho: rádio (frequência, RSSI, link), gateway, NAT e voz.
- * Campo sem leitura aparece como "—". O protótipo anterior exibia NAT, CGNAT, UPnP e voz que ninguém tinha medido.
+ * Mostra só o que foi observado agora no aparelho: rádio, resposta DNS do gateway e NAT inconclusivo.
+ * A resposta DNS não é apresentada como prova sobre Wi-Fi, CGNAT, NAT duplo, UPnP ou voz.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

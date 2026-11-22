@@ -43,12 +43,17 @@ final class DeepCheckEvaluatorTests: XCTestCase {
         XCTAssertEqual(c(45.0, 25.0, 6.0, 4), .severe)
     }
 
-    func testFailedLoadKeepsCompletedRestWithoutImpact() throws {
-        let result = try completedDeepCheck(restSamples: received(30, rtt: 30), loadSamples: nil)
+    func testFailedLoadMakesDeepCheckInconclusive() {
+        let evaluation = DeepCheckEvaluator.evaluateBattleRoyaleCompetitive(
+            restSamples: received(30, rtt: 30),
+            loadSamples: nil
+        )
 
-        XCTAssertEqual(result.restResult.finalScore, 100)
-        XCTAssertNil(result.metrics.load)
-        XCTAssertNil(result.metrics.loadImpact)
+        guard case let .inconclusive(reason, diagnostics) = evaluation else {
+            return XCTFail("A Deep Check without load samples must be inconclusive")
+        }
+        XCTAssertEqual(reason, .insufficientUDPResponses)
+        XCTAssertEqual(diagnostics.p50Milliseconds, 30)
     }
 
     func testInsufficientLoadResponsesDoNotExposePartialLoadMetrics() throws {

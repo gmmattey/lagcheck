@@ -38,16 +38,38 @@ public enum QualityEvaluator {
         samples: [ProbeSample],
         profile: QualityProfileID
     ) -> MeasurementEvaluation {
-        let deepEval = DeepCheckEvaluator.evaluate(
-            restSamples: samples,
-            loadSamples: nil,
-            profile: profile
+        // Quick Check mede apenas repouso. Não passa pelo avaliador do Check
+        // Completo, pois nele uma fase de carga ausente é corretamente
+        // inconclusiva e não pode contaminar a jornada rápida.
+        let request = EngineRequestDTO(
+            source: "APP_UDP",
+            profile: LagCheckEngineBridge.toProfileKey(profile),
+            rest: samples.map(LagCheckEngineBridge.toSampleDTO),
+            load: nil,
+            loadTransfer: "NOT_RUN",
+            gateway: nil,
+            wifiBand: nil,
+            nat: nil,
+            serverArchitecture: "DEDICATED_SERVER",
+            gameId: nil,
+            uploadMbps: nil
         )
-        switch deepEval {
-        case .completed(let deepResult):
-            return .completed(deepResult.restResult)
-        case .inconclusive(let reason, let diagnostics):
-            return .inconclusive(reason: reason, diagnostics: diagnostics)
+        let response = LagCheckEngineBridge.evaluate(request: request)
+        let metrics = LagCheckEngineBridge.mapMetrics(response.rest)
+        guard response.verdict != "INCONCLUSIVE" else {
+            return .inconclusive(
+                reason: response.inconclusiveReason == "POOR_SAMPLE_QUALITY" ? .poorSampleQuality : .insufficientUDPResponses,
+                diagnostics: metrics
+            )
         }
+        let score = response.score ?? 0
+        return .completed(QualityResult(
+            metrics: metrics,
+            rawScore: score,
+            finalScore: score,
+            resultClass: LagCheckEngineBridge.toResultClass(score),
+            appliedGuardrails: [],
+            samples: samples
+        ))
     }
 }

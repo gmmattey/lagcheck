@@ -1,11 +1,9 @@
 package com.lagcheck.domain.rules
 
-import com.lagcheck.domain.model.CgnatStatus
-import com.lagcheck.domain.model.DoubleNatStatus
 import com.lagcheck.domain.model.NatTopologySnapshot
-import com.lagcheck.domain.model.NatType
 
 object NatTopologyEvaluator {
+    @Suppress("UNUSED_PARAMETER")
     fun evaluate(
         localIp: String?,
         publicIp: String?,
@@ -13,22 +11,11 @@ object NatTopologyEvaluator {
         isPortMappingConsistent: Boolean = true,
         detectedDoubleHop: Boolean = false
     ): NatTopologySnapshot {
-        if (publicIp.isNullOrEmpty()) return NatTopologySnapshot.INCONCLUSIVE
-        val cgnat = isRfc6598Cgnat(publicIp)
-        val natType = when {
-            localIp != null && localIp == publicIp -> NatType.TYPE_1_OPEN
-            cgnat || !isPortMappingConsistent -> NatType.TYPE_3_STRICT
-            detectedDoubleHop -> NatType.TYPE_3_STRICT
-            else -> NatType.TYPE_2_MODERATE
-        }
-        return NatTopologySnapshot(
-            natType = natType,
-            cgnatStatus = if (cgnat) CgnatStatus.DETECTED else CgnatStatus.NOT_DETECTED,
-            doubleNatStatus = if (detectedDoubleHop) DoubleNatStatus.SUSPECT_OR_DETECTED else DoubleNatStatus.NOT_DETECTED,
-            publicIpMasked = maskIp(publicIp),
-            localIpMasked = localIp?.let(::maskIp),
-            externalPort = externalPort
-        )
+        // Uma ou duas respostas STUN não comprovam tipo de NAT, CGNAT ou NAT duplo:
+        // portas podem mudar porque o transporte abriu sockets diferentes e o IP observado pelo
+        // servidor não prova a topologia antes dele. Sem uma sonda capaz de isolar essas hipóteses,
+        // o contrato preserva a incerteza em vez de declarar "não detectado" ou uma NAT favorável.
+        return NatTopologySnapshot.INCONCLUSIVE
     }
 
     /** 100.64.0.0/10 (RFC 6598): 100.64.0.0 a 100.127.255.255. */

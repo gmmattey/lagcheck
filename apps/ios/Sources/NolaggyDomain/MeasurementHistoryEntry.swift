@@ -98,6 +98,16 @@ public struct MeasurementHistoryEntry: Codable, Equatable, Sendable, Identifiabl
         result: DeepCheckResult,
         completedAt: Date = Date()
     ) -> MeasurementHistoryEntry {
+        guard result.metrics.load != nil,
+              let loadSamples = result.metrics.loadSamples,
+              loadSamples.filter(\.isValidResponse).count >= ProbeAcceptancePolicy.minimumValidResponses else {
+            return completedInconclusive(
+                resolvedContext: resolvedContext,
+                diagnostics: result.restResult.metrics,
+                kind: .deep,
+                completedAt: completedAt
+            )
+        }
         let arch = GameEditorialRegistry.serverArchitecture(for: resolvedContext.context.gameID)
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: result.restResult,

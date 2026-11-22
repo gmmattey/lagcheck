@@ -22,16 +22,26 @@ final class GameReadinessDomainTests: XCTestCase {
         }
 
         let loadImpact: DeepCheckLoadImpact?
+        let deepCheckMetrics: DeepCheckMetrics?
         if let loadDeltaMs, let p50 = qualityResult.metrics.p50Milliseconds {
             loadImpact = DeepCheckLoadImpact(restP50Milliseconds: p50, loadP50Milliseconds: p50 + loadDeltaMs)
+            let loadSamples = self.samples(count: samples.count, rtt: p50 + loadDeltaMs)
+            deepCheckMetrics = DeepCheckMetrics(
+                rest: qualityResult.metrics,
+                load: nil,
+                loadImpact: loadImpact,
+                loadSamples: loadSamples
+            )
         } else {
             loadImpact = nil
+            deepCheckMetrics = nil
         }
 
         return GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: loadImpact,
-            profile: profile
+            profile: profile,
+            deepCheckMetrics: deepCheckMetrics
         )
     }
 
@@ -252,7 +262,13 @@ final class GameReadinessDomainTests: XCTestCase {
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: loadImpact,
-            profile: .battleRoyaleCompetitive
+            profile: .battleRoyaleCompetitive,
+            deepCheckMetrics: DeepCheckMetrics(
+                rest: qualityResult.metrics,
+                load: nil,
+                loadImpact: loadImpact,
+                loadSamples: samples(count: 30, rtt: 80.0)
+            )
         )
         XCTAssertEqual(readiness.verdict, .notReady)
         let loadFinding = readiness.findings.first { $0.kind == .loadDegradation }
@@ -271,7 +287,7 @@ final class GameReadinessDomainTests: XCTestCase {
             publicIPMasked: "192.0.2.1"
         )
 
-        // Jogo P2P: achado de NAT é exibido
+        // A sondagem NAT iOS não prova alcançabilidade; nem jogos P2P recebem achado.
         let p2pEval = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: nil,
@@ -279,7 +295,7 @@ final class GameReadinessDomainTests: XCTestCase {
             serverArchitecture: .peerToPeer,
             natSnapshot: nat
         )
-        XCTAssertTrue(p2pEval.findings.contains(where: { $0.kind == .natTopology }))
+        XCTAssertFalse(p2pEval.findings.contains(where: { $0.kind == .natTopology }))
 
         // Jogo com servidor dedicado: achado de NAT NÃO é exibido
         let dedicatedEval = GameReadinessEvaluator.evaluate(
@@ -380,7 +396,13 @@ final class GameReadinessDomainTests: XCTestCase {
         let readiness = GameReadinessEvaluator.evaluate(
             qualityResult: qualityResult,
             loadImpact: loadImpact,
-            profile: .battleRoyaleCompetitive
+            profile: .battleRoyaleCompetitive,
+            deepCheckMetrics: DeepCheckMetrics(
+                rest: qualityResult.metrics,
+                load: nil,
+                loadImpact: loadImpact,
+                loadSamples: samples(count: 30, rtt: 45.0)
+            )
         )
 
         XCTAssertEqual(readiness.verdict, .caution)

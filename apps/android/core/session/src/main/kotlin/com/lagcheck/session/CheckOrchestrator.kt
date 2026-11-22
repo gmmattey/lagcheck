@@ -8,7 +8,6 @@ import com.lagcheck.domain.model.NatTopologySnapshot
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.model.WiFiBandDiagnosticResult
 import com.lagcheck.domain.model.WiFiLocalTelemetry
-import com.lagcheck.domain.model.GameServerArchitecture
 import com.lagcheck.domain.rules.GameArchitectureRegistry
 import com.lagcheck.domain.rules.WiFiBandEvaluator
 import com.lagcheck.network.local.GatewayProber
@@ -49,17 +48,10 @@ data class CheckEnvironment(
     companion object { val NONE = CheckEnvironment() }
 }
 
-/** Diagnósticos locais (primeiro salto e NAT). Opcionais: sem eles o Check roda só com a medição UDP. */
+/** Diagnósticos locais observáveis. Sem eles o Check roda só com a medição UDP. */
 class LocalDiagnostics(
     private val gateway: GatewayProber = GatewayProber(),
     private val nat: StunTopologyProbe = StunTopologyProbe(),
-    /**
-     * Se o primeiro salto entra no veredito e nas recomendações. **Ligado por decisão do dono do produto (Decisão 69).**
-     * Risco conhecido: o RTT vem de uma consulta DNS ao roteador, que pode encaminhar para fora e inflar o tempo. O iOS
-     * não usa o gateway no veredito, então o mesmo jogador pode ver veredito diferente nas duas plataformas. A falha
-     * de leitura (sem resposta) continua `Unobservable` e nunca acusa o Wi-Fi.
-     */
-    val gatewayInfluencesVerdict: Boolean = true,
     private val gatewaySamples: Int = 5,
     private val gatewayTimeoutMillis: Long = 300
 ) {
@@ -76,7 +68,7 @@ data class CheckResult(
     val context: ResolvedMeasurementContext,
     val assessment: GameReadinessAssessment,
     val restSamples: List<ProbeSample>,
-    /** Nulo quando a carga não pôde ser medida (HTTP indisponível); o repouso continua válido. */
+    /** Nulo quando a carga não pôde ser medida; nesse caso a sessão não é um Check Completo. */
     val loadSamples: List<ProbeSample>?,
     val abortReason: InconclusiveReason?,
     /** Primeiro salto medido (para Cockpit e voz). Nulo se não sondado. */
@@ -140,31 +132,35 @@ class CheckOrchestrator(
         // Conexão que morre sob carga cancela a sessão inteira, como no iOS: nada de "pronto" sobre uma rota que caiu.
         if (loadCollection.aborted) return inconclusive(context, rest.samples, loadCollection.samples, InconclusiveReason.POOR_SAMPLE_QUALITY, gatewayTelemetry, wifiBand)
 
-        if (loadOutcome is LoadOutcome.Completed && loadCollection.samples.count { it.isValidResponse } < ProbeAcceptancePolicy.MINIMUM_VALID_RESPONSES) {
+        // Repouso bom não é um Check Completo. Sem bytes de carga não houve estresse para sustentar
+        // qualquer conclusão de Ranked, mesmo que o contrato legado do motor ainda aceite o repouso.
+        if (loadOutcome !is LoadOutcome.Completed || loadOutcome.bytesTransferred <= 0L) {
+            return incompleteLoad(context, rest.samples, gatewayTelemetry, wifiBand)
+        }
+
+        if (loadCollection.samples.count { it.isValidResponse } < ProbeAcceptancePolicy.MINIMUM_VALID_RESPONSES) {
             return inconclusive(context, rest.samples, loadCollection.samples, InconclusiveReason.POOR_SAMPLE_QUALITY, gatewayTelemetry, wifiBand)
         }
 
-        val usableLoad = if (loadOutcome == LoadOutcome.Unavailable) null else loadCollection.samples
+        val usableLoad = loadCollection.samples
 
-        // NAT só importa em jogo P2P ou híbrido: nos demais não gasta ~4 s da pessoa à toa.
+        // Arquitetura ainda contextualiza o jogo no motor. A coleta STUN disponível não prova topologia:
+        // não a envia ao veredito nem oferece UPnP com base nela.
         val architecture = GameArchitectureRegistry.serverArchitecture(context.context.gameId)
-        val needsNat = architecture != GameServerArchitecture.DEDICATED_SERVER
-        val nat = if (needsNat) local?.probeNat(env) else null
 
-        val gatewayForVerdict = if (local?.gatewayInfluencesVerdict == true) gatewayTelemetry?.gatewayOutcome else null
-
-        // Paridade com o iOS: o veredito usa o padrão (confiança alta). A confiança da rota (média, AWS) só aparece na UI.
+        // Uma resposta DNS do gateway pode ser encaminhada; ela fica na telemetria factual e não atribui causa,
+        // rebaixa o veredito ou recomenda aproximar-se do roteador.
         val assessment = GameReadinessEvaluator.evaluate(
             restSamples = rest.samples,
             loadSamples = usableLoad,
             profile = context.profileId,
             confidence = MeasurementConfidence.HIGH,
-            gatewayOutcome = gatewayForVerdict ?: GatewayProbeOutcome.Unobservable,
+            gatewayOutcome = GatewayProbeOutcome.Unobservable,
             serverArchitecture = architecture,
-            natSnapshot = nat,
+            natSnapshot = null,
             wifiBand = wifiBand
         )
-        return CheckResult(context, assessment, rest.samples, usableLoad, null, gatewayTelemetry, wifiBand, nat)
+        return CheckResult(context, assessment, rest.samples, usableLoad, null, gatewayTelemetry, wifiBand, null)
     }
 
     private fun inconclusive(
@@ -175,6 +171,14 @@ class CheckOrchestrator(
         gateway: WiFiLocalTelemetry?,
         wifiBand: WiFiBandDiagnosticResult?
     ) = CheckResult(context, GameReadinessAssessment.INCONCLUSIVE, rest, load, reason, gateway, wifiBand, null)
+
+    /** A carga não transferiu dados: guarda o repouso como observação, mas não produz Check Completo. */
+    private fun incompleteLoad(
+        context: ResolvedMeasurementContext,
+        rest: List<ProbeSample>,
+        gateway: WiFiLocalTelemetry?,
+        wifiBand: WiFiBandDiagnosticResult?
+    ) = CheckResult(context, GameReadinessAssessment.INCONCLUSIVE, rest, null, null, gateway, wifiBand, null)
 
     private fun progress(phase: CheckPhase, event: ProbeProgress, planned: Int): CheckProgress {
         val base = if (phase == CheckPhase.REST) 0f else 0.5f

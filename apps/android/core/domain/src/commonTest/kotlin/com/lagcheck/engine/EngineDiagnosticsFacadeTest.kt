@@ -2,6 +2,7 @@ package com.lagcheck.engine
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /** Fachada de roteador, causa raiz e bufferbloat: as plataformas chamam o motor e não repetem regra. */
@@ -44,5 +45,22 @@ class EngineDiagnosticsFacadeTest {
         val out = LagCheckEngine.evaluate("""{"source":"APP_UDP","profile":"BATTLE_ROYALE_COMPETITIVE","rest":[$rest],"gatewayOutcome":{"kind":"DEGRADED","rttMs":25.0,"lossPercentage":20.0}}""")
         assertTrue(out.contains("\"verdict\":\"CAUTION\""), out)
         assertTrue(out.contains("APPROACH_ROUTER"), out)
+    }
+
+    @Test fun insufficientTransferIsPreservedWithoutInventingLoadImpact() {
+        val rest = (0 until 60).joinToString(",") { """{"sequence":$it,"outcome":"RECEIVED","rttMs":30.0}""" }
+        val out = LagCheckEngine.evaluate("""{"source":"WEB_HTTPS","profile":"BATTLE_ROYALE_COMPETITIVE","rest":[$rest],"loadTransfer":"INSUFFICIENT_TRANSFER"}""")
+
+        assertTrue(out.contains("\"verdict\":\"READY\""), out)
+        assertTrue(out.contains("\"loadTransfer\":\"INSUFFICIENT_TRANSFER\""), out)
+        assertFalse(out.contains("\"loadImpact\":{\"tier\""), out)
+    }
+
+    @Test fun measuredLoadWithoutProbesIsInconclusiveInsteadOfACompleteRestResult() {
+        val rest = (0 until 60).joinToString(",") { """{"sequence":$it,"outcome":"RECEIVED","rttMs":30.0}""" }
+        val out = LagCheckEngine.evaluate("""{"source":"APP_UDP","profile":"BATTLE_ROYALE_COMPETITIVE","rest":[$rest],"loadTransfer":"MEASURED"}""")
+
+        assertTrue(out.contains("\"verdict\":\"INCONCLUSIVE\""), out)
+        assertTrue(out.contains("\"inconclusiveReason\":\"POOR_SAMPLE_QUALITY\""), out)
     }
 }

@@ -17,7 +17,7 @@ data class VSample(val sequence: Int, val outcome: VOutcome, val rttMs: Double? 
 
 enum class VGateway { STABLE, DEGRADED, UNOBSERVABLE }
 
-enum class VLoadTransfer { MEASURED, FAILED_NO_BYTES, NOT_RUN }
+enum class VLoadTransfer { MEASURED, INSUFFICIENT_TRANSFER, FAILED_NO_BYTES, NOT_RUN }
 
 enum class VVerdict { READY, CAUTION, NOT_READY, INCONCLUSIVE }
 
@@ -31,6 +31,7 @@ data class VExpected(
     val primaryCause: String? = null,
     val spikePattern: String? = null,
     val packetLossPercentage: Double? = null,
+    val loadTransfer: VLoadTransfer? = null,
     val mustNotHaveRecommendations: List<String> = emptyList(),
     val mustHaveRecommendations: List<String> = emptyList(),
     /** Também cobre causas secundárias; necessário para TAIL-01. */
@@ -205,6 +206,13 @@ object NormativeVectors {
             rest = received(60, 30.0),
             loadTransfer = VLoadTransfer.FAILED_NO_BYTES,
             expected = VExpected(VVerdict.READY, score = 100, loadTier = null),
+        ),
+        Vector(
+            id = "LOAD-01",
+            description = "Transferência iniciada, mas insuficiente: vale apenas o repouso e o estado parcial é preservado.",
+            rest = received(60, 30.0),
+            loadTransfer = VLoadTransfer.INSUFFICIENT_TRANSFER,
+            expected = VExpected(VVerdict.READY, score = 100, loadTier = null, loadTransfer = VLoadTransfer.INSUFFICIENT_TRANSFER),
         ),
 
         // Repouso perfeito: score = 100; ΔP50 = 12 ms, abaixo de 15 ms no perfil BR.

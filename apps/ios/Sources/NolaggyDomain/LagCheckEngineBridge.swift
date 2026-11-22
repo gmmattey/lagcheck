@@ -343,113 +343,10 @@ public enum LagCheckEngineBridge {
         _ metrics: QualityMetrics,
         overrideSpikePattern: SpikePattern? = nil
     ) -> [EngineSampleDTO] {
-        var samples: [EngineSampleDTO] = []
-        let valid = max(0, metrics.validResponseCount)
-        let timeouts = max(0, metrics.timeoutCount)
-        let p50 = metrics.p50Milliseconds ?? 30.0
-        let p95 = metrics.p95Milliseconds ?? p50
-        let worst = metrics.worstSpikeMilliseconds ?? max(p95, 200.0)
-        let jitter = metrics.jitterMilliseconds ?? 0.0
-
-        let effectivePattern: SpikePattern = (overrideSpikePattern ?? metrics.spikePattern) ?? .none
-        let severeCount: Int
-        let isRecurring: Bool
-        let totalSpikes: Int
-        switch effectivePattern {
-        case .isolated(let count, let severe):
-            severeCount = severe
-            isRecurring = false
-            totalSpikes = count
-        case .recurring(let count, let severe):
-            severeCount = severe
-            isRecurring = true
-            totalSpikes = count
-        case .none:
-            severeCount = metrics.severeSpikeCount
-            isRecurring = false
-            totalSpikes = metrics.spikeCount
-        }
-
-        var severeIndices = Set<Int>()
-        if severeCount > 0 {
-            if isRecurring {
-                // Picos recorrentes: dentro de janela curta (ex: seq 10, 12, 14, dist <= 4)
-                for i in 0..<min(severeCount, valid) {
-                    severeIndices.insert(10 + i * 2)
-                }
-            } else {
-                // Picos isolados: distantes (ex: seq 5, seq 40, dist >= 5)
-                let positions = [5, 40, 20, 50, 15, 45]
-                for i in 0..<min(severeCount, positions.count) {
-                    severeIndices.insert(positions[i])
-                }
-            }
-        }
-
-        let nonSevereSpikes = max(0, totalSpikes - severeCount)
-        var normalSpikeIndices = Set<Int>()
-        var added = 0
-        var candidateSeq = 1
-        while added < nonSevereSpikes && candidateSeq < valid {
-            if !severeIndices.contains(candidateSeq) {
-                normalSpikeIndices.insert(candidateSeq)
-                added += 1
-            }
-            candidateSeq += 1
-        }
-
-        // Se houver cauda (P95 > P50) e sem spikes suficientes para formar cauda:
-        var tailIndices = Set<Int>()
-        let neededTail = max(4, valid - Int(floor(Double(valid - 1) * 0.95)))
-        if p95 > p50 && (severeIndices.count + normalSpikeIndices.count) < neededTail {
-            let tailCount = neededTail
-            var tAdded = 0
-            for seq in stride(from: valid - 1, through: 0, by: -1) {
-                if tAdded >= tailCount { break }
-                if !severeIndices.contains(seq) && !normalSpikeIndices.contains(seq) {
-                    tailIndices.insert(seq)
-                    tAdded += 1
-                }
-            }
-        }
-
-        // Mapeamento de chegada para out-of-order:
-        var arrivalIndices = [Int](0..<valid)
-        if metrics.outOfOrderCount > 0 {
-            let pairs = min(metrics.outOfOrderCount, valid / 2)
-            for i in 0..<pairs {
-                let idx1 = 2 + i * 4
-                let idx2 = 3 + i * 4
-                if idx2 < valid {
-                    arrivalIndices.swapAt(idx1, idx2)
-                }
-            }
-        }
-
-        for seq in 0..<valid {
-            let rtt: Double
-            if severeIndices.contains(seq) {
-                rtt = max(200.0, worst)
-            } else if normalSpikeIndices.contains(seq) {
-                rtt = max(90.0, p95)
-            } else if tailIndices.contains(seq) {
-                rtt = p95
-            } else if jitter > 0 && severeIndices.isEmpty && normalSpikeIndices.isEmpty {
-                // Alterna em torno de p50 para reproduzir jitter sem alterar P50
-                rtt = (seq % 2 == 0) ? max(1.0, p50 - jitter / 2.0) : (p50 + jitter / 2.0)
-            } else {
-                rtt = p50
-            }
-            let arrival = (metrics.outOfOrderCount > 0) ? arrivalIndices[seq] : seq
-            samples.append(EngineSampleDTO(sequence: seq, outcome: "RECEIVED", rttMs: rtt, arrivalIndex: arrival))
-        }
-
-        let startTimeout = valid
-        for seq in startTimeout..<(startTimeout + timeouts) {
-            samples.append(EngineSampleDTO(sequence: seq, outcome: "TIMEOUT", rttMs: nil, arrivalIndex: seq))
-        }
-
-        return samples
+        _ = (metrics, overrideSpikePattern)
+        // Agregados não preservam a sequência, perdas, picos ou ordenação. Gerar
+        // pacotes artificiais transformava registros legados em novo diagnóstico.
+        return []
     }
 
     /// Classifica o roteador pela regra do motor (≥ 3 respostas em 5, RTT ≤ 15 ms, sem perda, jitter ≤ 10 ms).
@@ -514,44 +411,26 @@ public enum LagCheckEngineBridge {
         loadProbeSamples: [ProbeSample]? = nil
     ) -> EngineRequestDTO {
         // Pacotes reais quando existem: o motor recalcula exatamente o que foi medido.
-        // A série reconstruída a partir das métricas só serve para entradas antigas do histórico.
-        let restSamples = qualityResult.samples.map { $0.map(toSampleDTO) }
-            ?? buildSamplesFromMetrics(qualityResult.metrics, overrideSpikePattern: spikePattern)
+        // Sem série bruta, não reconstruímos uma medição a partir de agregados.
+        let restSamples = qualityResult.samples?.map(toSampleDTO) ?? []
         var loadSamples: [EngineSampleDTO]? = nil
         var loadTransfer = "NOT_RUN"
 
         if loadImpact != nil, let loadProbeSamples, !loadProbeSamples.isEmpty {
             loadTransfer = "MEASURED"
             loadSamples = loadProbeSamples.map(toSampleDTO)
-        } else if let loadImpact {
-            loadTransfer = "MEASURED"
-            let delta = loadImpact.increaseMilliseconds
-            let baseP50 = qualityResult.metrics.p50Milliseconds ?? 30.0
-            let loadP50 = baseP50 + delta
-            var lSamples: [EngineSampleDTO] = []
-            for seq in 0..<qualityResult.metrics.validResponseCount {
-                lSamples.append(EngineSampleDTO(sequence: seq, outcome: "RECEIVED", rttMs: loadP50))
-            }
-            loadSamples = lSamples
+        } else if loadImpact != nil {
+            // O tier agregado não prova a série sob carga; preservamos o dado no
+            // histórico, mas esta reavaliação não afirma impacto de carga.
+            loadTransfer = "NOT_RUN"
         }
 
         // O estado do roteador vai como foi classificado pelo motor a partir da medição real;
         // nada de RTT, jitter ou contagem de respostas inventados.
         let gatewayOutcomeDTO: EngineGatewayOutcomeDTO? = gatewayOutcome == .unobservable ? nil : EngineGatewayOutcomeDTO(gatewayOutcome)
 
-        let natDTO: EngineNatDTO?
-        if let nat = natSnapshot {
-            let typeStr: String
-            switch nat.natType {
-            case .type1Open: typeStr = "TYPE_1_OPEN"
-            case .type2Moderate: typeStr = "TYPE_2_MODERATE"
-            case .type3Strict: typeStr = "TYPE_3_STRICT"
-            case .inconclusive: typeStr = "INCONCLUSIVE"
-            }
-            natDTO = EngineNatDTO(type: typeStr)
-        } else {
-            natDTO = nil
-        }
+        _ = natSnapshot
+        let natDTO: EngineNatDTO? = nil
 
         return EngineRequestDTO(
             source: "APP_UDP",
@@ -595,17 +474,7 @@ public enum LagCheckEngineBridge {
             )
         }
 
-        if (serverArchitecture == .peerToPeer || serverArchitecture == .hybrid), let nat = natSnapshot {
-            if !findings.contains(where: { $0.kind == .natTopology }) {
-                let sev: NetworkFinding.Severity = nat.natType.isMultiplayerRestricted ? .negative : .positive
-                findings.append(NetworkFinding(
-                    kind: .natTopology,
-                    severity: sev,
-                    labelKey: nat.natType.titleKey,
-                    detail: nat.natType.shortLabel
-                ))
-            }
-        }
+        _ = (serverArchitecture, natSnapshot)
 
         let isLoadMaterial = (loadImpact?.tier == .material || loadImpact?.tier == .severe)
         let metricsToUse = deepCheckMetrics ?? DeepCheckMetrics(
@@ -680,13 +549,6 @@ public enum LagCheckEngineBridge {
                 title: "Verifique Interferências Locais",
                 instruction: "Afaste dispositivos sem fio e fontes de interferência eletromagnética do roteador.",
                 evidenceBadge: "Picos Recorrentes"
-            )
-        case "ENABLE_UPNP", "ENABLE_UPNP_OR_PORT_FORWARD":
-            return ActionableRecommendation(
-                priority: 2,
-                title: "Habilite UPnP no Roteador",
-                instruction: "Libere as portas automáticas no roteador para normalizar a conexão em partidas multiplayer.",
-                evidenceBadge: "NAT Restrito"
             )
         case "ROUTE_INSTABILITY", "CONTACT_ISP":
             return ActionableRecommendation(

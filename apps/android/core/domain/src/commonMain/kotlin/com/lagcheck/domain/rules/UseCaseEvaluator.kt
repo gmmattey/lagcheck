@@ -56,7 +56,7 @@ object UseCaseEvaluator {
             useCase("fps", fps), useCase("br", br), useCase("moba", moba), useCase("fighting", fighting),
             useCase("casual", casual), useCase("voice", voice), useCase("streaming", streaming), useCase("cloud", cloud)
         )
-        input.nat?.let { nat ->
+        input.nat?.takeIf { it.type.isConclusive }?.let { nat ->
             val status = if (nat.type == NatType.TYPE_3_STRICT) Status.CAUTION else Status.GOOD
             cases += UseCase("nat", status, "use_case.nat.title", "use_case.nat.${nat.type.rawValue}", nat.source)
         }

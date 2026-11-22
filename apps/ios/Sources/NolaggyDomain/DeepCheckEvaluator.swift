@@ -264,12 +264,14 @@ public enum DeepCheckEvaluator {
         )
 
         guard let loadSamples, !loadSamples.isEmpty else {
-            return .completed(
-                DeepCheckResult(
-                    restResult: restResult,
-                    metrics: DeepCheckMetrics(rest: restMetrics, load: nil, loadImpact: nil)
-                )
-            )
+            // Um Check Completo sem a fase de carga não pode virar um resultado
+            // completo de repouso. O repouso é preservado nos diagnósticos, mas
+            // sem share, PDF, widget ou histórico conclusivo.
+            return .inconclusive(reason: .insufficientUDPResponses, diagnostics: restMetrics)
+        }
+
+        guard loadSamples.filter(\.isValidResponse).count >= ProbeAcceptancePolicy.minimumValidResponses else {
+            return .inconclusive(reason: .poorSampleQuality, diagnostics: restMetrics)
         }
 
         // 2. Avalia fase de carga

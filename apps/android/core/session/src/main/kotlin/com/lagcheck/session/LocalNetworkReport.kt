@@ -1,16 +1,11 @@
 package com.lagcheck.session
 
-import com.lagcheck.domain.model.CgnatStatus
-import com.lagcheck.domain.model.DoubleNatStatus
 import com.lagcheck.domain.model.NatTopologySnapshot
-import com.lagcheck.domain.model.NatType
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
 import com.lagcheck.domain.model.WiFiBandDiagnosticResult
 import com.lagcheck.domain.model.WiFiLocalTelemetry
 import com.lagcheck.domain.presentation.ReadinessLanguage
-import com.lagcheck.domain.presentation.ReadinessPresenter
 import com.lagcheck.domain.presentation.UiStrings
-import com.lagcheck.domain.rules.VoiceChatSuitabilityEvaluator
 import com.lagcheck.domain.rules.WiFiBandEvaluator
 
 /** Leitura local pontual para o Cockpit. Cada campo é medido ou fica nulo. Nada é suposto. */
@@ -18,12 +13,9 @@ data class LocalNetworkReport(
     val telemetry: WiFiLocalTelemetry?,
     val nat: NatTopologySnapshot?,
     val wifiBand: WiFiBandDiagnosticResult?
-) {
-    val voice: VoiceChatSuitabilityEvaluator.Assessment
-        get() = VoiceChatSuitabilityEvaluator.assess(telemetry?.gatewayRttMedianMs)
-}
+)
 
-/** Mede gateway e NAT sob demanda (ao abrir o Cockpit), como o `capture` do iOS. */
+/** Observa a resposta DNS do gateway e mantém NAT inconclusivo até haver uma sonda válida. */
 class LocalNetworkReporter(private val diagnostics: LocalDiagnostics = LocalDiagnostics()) {
     suspend fun capture(env: CheckEnvironment, gatewaySamples: Int = 3): LocalNetworkReport {
         val telemetry = if (env.isWiFi) diagnostics.probeGateway(env, gatewaySamples) else null
@@ -39,8 +31,8 @@ data class CockpitRow(val label: String, val value: String)
 data class CockpitSection(val title: String, val rows: List<CockpitRow>)
 
 /**
- * Monta o Cockpit só com o que foi observado. Campo sem dado vira "—". Nunca há valor padrão "bonito":
- * o protótipo antigo mostrava NAT, CGNAT, UPnP, voz e gateway (`192.168.1.1`) que ninguém tinha medido.
+ * Monta o Cockpit só com o que foi observado. Campo sem dado vira "—". A resposta DNS do gateway
+ * permanece uma observação; não comprova o primeiro salto nem a causa de uma partida ruim.
  */
 object CockpitPresenter {
     private const val DASH = "—"
@@ -77,56 +69,14 @@ object CockpitPresenter {
         }
 
         val nat = report?.nat
-        val natType = when {
-            report == null -> tr("Medindo…")
-            nat == null || nat.natType == NatType.INCONCLUSIVE -> tr("Inconclusivo")
-            else -> ReadinessPresenter.natLabel(nat.natType, lang)
-        }
-        val cgnat = when (nat?.cgnatStatus) {
-            CgnatStatus.DETECTED -> tr("Detectado")
-            CgnatStatus.NOT_DETECTED -> tr("Não detectado")
-            else -> if (report == null) tr("Medindo…") else DASH
-        }
-        val doubleNat = when (nat?.doubleNatStatus) {
-            DoubleNatStatus.SUSPECT_OR_DETECTED -> tr("Suspeito")
-            DoubleNatStatus.NOT_DETECTED -> tr("Não detectado")
-            else -> if (report == null) tr("Medindo…") else DASH
-        }
-
-        val rttInt = localRtt?.let { Math.round(it).toInt() }
-        val isConfirmed5GHz = wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_5_GHZ
-        val isConfirmed24GHz = wifi?.band == RadioTelemetrySnapshot.WifiBand.BAND_2_4_GHZ
-
-        val cg = when {
-            rttInt == null -> tr("Não avaliado")
-            isConfirmed5GHz && rttInt <= 4 -> UiStrings.translateFormat("Favorável · 5 GHz, roteador %d ms", lang, rttInt)
-            isConfirmed24GHz -> tr("Atenção · 2.4 GHz detectado")
-            rttInt > 10 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
-            else -> tr("Não avaliado")
-        }
-
-        val voice = when (val v = report?.voice) {
-            null -> tr("Medindo…")
-            is VoiceChatSuitabilityEvaluator.Assessment.Favorable -> UiStrings.translateFormat("Favorável · roteador %d ms", lang, v.localGatewayRttMs)
-            is VoiceChatSuitabilityEvaluator.Assessment.Attention -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, v.localGatewayRttMs)
-            VoiceChatSuitabilityEvaluator.Assessment.NotAssessed -> tr("Não avaliado")
-        }
-
-        val multi = when {
-            rttInt == null || nat == null -> tr("Não avaliado")
-            nat.natType == NatType.TYPE_3_STRICT -> tr("Atenção · NAT restrito")
-            nat.doubleNatStatus == DoubleNatStatus.SUSPECT_OR_DETECTED -> tr("Atenção · Duplo NAT")
-            rttInt > 15 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
-            nat.natType != NatType.INCONCLUSIVE && nat.doubleNatStatus == DoubleNatStatus.NOT_DETECTED && rttInt <= 5 -> UiStrings.translateFormat("Favorável · NAT ok, roteador %d ms", lang, rttInt)
-            else -> tr("Não avaliado")
-        }
-
-        val stream = when {
-            rttInt == null -> tr("Não avaliado")
-            isConfirmed5GHz && rttInt <= 6 -> UiStrings.translateFormat("Favorável · 5 GHz, roteador %d ms", lang, rttInt)
-            isConfirmed24GHz -> tr("Atenção · 2.4 GHz detectado")
-            rttInt > 15 -> UiStrings.translateFormat("Atenção · roteador %d ms", lang, rttInt)
-            else -> tr("Não avaliado")
+        val natType = if (report == null) tr("Medindo…") else tr("Inconclusivo")
+        val cgnat = if (report == null) tr("Medindo…") else DASH
+        val doubleNat = if (report == null) tr("Medindo…") else DASH
+        val notAssessed = if (report == null) tr("Medindo…") else tr("Não avaliado")
+        val gatewayLabel = when (lang) {
+            ReadinessLanguage.PT_BR -> "Resposta DNS do gateway"
+            ReadinessLanguage.EN -> "Gateway DNS response"
+            ReadinessLanguage.ES -> "Respuesta DNS del gateway"
         }
 
         return listOf(
@@ -140,7 +90,7 @@ object CockpitPresenter {
                     CockpitRow(tr("Velocidade do link"), link),
                     CockpitRow(tr("IP Local"), radio?.localAddress ?: DASH),
                     CockpitRow(tr("Gateway"), radio?.gatewayAddress ?: DASH),
-                    CockpitRow(tr("Latência do roteador"), gatewayRtt)
+                    CockpitRow(gatewayLabel, gatewayRtt)
                 )
             ),
             CockpitSection(
@@ -155,10 +105,10 @@ object CockpitPresenter {
             CockpitSection(
                 tr("CASOS DE USO"),
                 listOf(
-                    CockpitRow(tr("Cloud Gaming"), if (report == null) tr("Medindo…") else cg),
-                    CockpitRow(tr("Voz (Discord)"), voice),
-                    CockpitRow(tr("Multiplayer"), if (report == null) tr("Medindo…") else multi),
-                    CockpitRow(tr("Live Stream"), if (report == null) tr("Medindo…") else stream)
+                    CockpitRow(tr("Cloud Gaming"), notAssessed),
+                    CockpitRow(tr("Voz (Discord)"), notAssessed),
+                    CockpitRow(tr("Multiplayer"), notAssessed),
+                    CockpitRow(tr("Live Stream"), notAssessed)
                 )
             )
         )

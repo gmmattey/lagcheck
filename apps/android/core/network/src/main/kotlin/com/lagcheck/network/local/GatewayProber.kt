@@ -18,11 +18,13 @@ fun interface GatewayExchange {
 }
 
 /**
- * Sonda o primeiro salto (roteador) para separar o enlace local da rota externa (Decisões 50 e 55).
+ * Observa a resposta DNS do endereço configurado como gateway.
  *
  * - O RTT é medido por consulta DNS real (porta 53) com validação do Transaction ID.
  * - Nunca trata "enviado" como RTT. Sem resposta confirmada, não existe amostra.
- * - Roteador que não responde na 53 fica `Unobservable`: nunca vira acusação ao Wi-Fi.
+ * - A resposta pode ser encaminhada pelo gateway; portanto não prova a latência do primeiro salto,
+ *   estabilidade do Wi-Fi ou causa da rota externa.
+ * - Sem resposta confirmada, fica `Unobservable` e nunca vira acusação ao Wi-Fi.
  */
 class GatewayProber(private val exchange: GatewayExchange = UdpDnsGatewayExchange()) {
 

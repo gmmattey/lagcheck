@@ -11,13 +11,10 @@ import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.GatewayProbeOutcome
 import com.lagcheck.domain.model.InconclusiveReason
 import com.lagcheck.domain.model.MeasurementConfidence
-import com.lagcheck.domain.model.NatType
-import com.lagcheck.domain.model.NetworkFinding
 import com.lagcheck.domain.model.ProbeOutcome
 import com.lagcheck.domain.model.ProbeSample
 import com.lagcheck.domain.model.QualityProfileId
 import com.lagcheck.domain.model.RadioTelemetrySnapshot
-import com.lagcheck.domain.model.RecommendationKey
 import com.lagcheck.domain.model.WiFiBandDiagnostic
 import com.lagcheck.network.local.GatewayExchange
 import com.lagcheck.network.local.GatewayProber
@@ -93,59 +90,40 @@ class Phase2OrchestratorTest {
         val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
             .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g", wifiRadio = wifi(2437)))
         assertThat(r.wifiBand!!.diagnostic).isEqualTo(WiFiBandDiagnostic.Confirmed24GHz())
-        assertThat(r.assessment.recommendations.map { it.key }).contains(RecommendationKey.SWITCH_TO_5GHZ)
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY) // banda é fato observado, não condena sozinha
     }
 
-    @Test fun degradedGatewayDemotesTheVerdictByDefault() = runBlocking {
+    @Test fun dnsGatewayResponseDoesNotDemoteTheVerdictOrRecommendRouterChanges() = runBlocking {
         val diag = LocalDiagnostics(gateway(40.0, 45.0, 38.0, 50.0, 42.0), stun())
         val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
             .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
         assertThat(r.localTelemetry!!.gatewayOutcome).isInstanceOf(GatewayProbeOutcome.Degraded::class.java)
-        assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.CAUTION)
-        assertThat(r.assessment.recommendations.map { it.key }).contains(RecommendationKey.APPROACH_ROUTER)
-    }
-
-    @Test fun gatewayCanStillBeKeptOutOfTheVerdictExplicitly() = runBlocking {
-        val diag = LocalDiagnostics(gateway(40.0, 45.0, 38.0, 50.0, 42.0), stun(), gatewayInfluencesVerdict = false)
-        val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
-            .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
-        assertThat(r.localTelemetry!!.gatewayOutcome).isInstanceOf(GatewayProbeOutcome.Degraded::class.java)
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
-        assertThat(r.assessment.findings.none { it.kind == NetworkFinding.Kind.LOCAL_GATEWAY }).isTrue()
-        assertThat(r.assessment.recommendations.map { it.key }).doesNotContain(RecommendationKey.APPROACH_ROUTER)
     }
 
     @Test fun silentGatewayStaysUnobservableAndNeverAccusesTheWifi() = runBlocking {
-        val diag = LocalDiagnostics(gateway(null, null, null, null, null), stun(), gatewayInfluencesVerdict = true)
+        val diag = LocalDiagnostics(gateway(null, null, null, null, null), stun())
         val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
             .run(ctx("fortnite"), CheckEnvironment(isWiFi = true, gatewayAddress = "g"))
         assertThat(r.localTelemetry!!.gatewayOutcome).isEqualTo(GatewayProbeOutcome.Unobservable)
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
-        assertThat(r.assessment.findings.none { it.kind == NetworkFinding.Kind.LOCAL_GATEWAY }).isTrue()
     }
 
-    @Test fun natIsOnlyProbedForP2pOrHybridGames() = runBlocking {
+    @Test fun checkDoesNotClassifyNatOrUseStunForP2pOrHybridGames() = runBlocking {
         val probes = AtomicInteger()
         val diag = LocalDiagnostics(gateway(2.0, 2.0, 2.0, 2.0, 2.0), stun(counter = probes))
         val env = CheckEnvironment(isWiFi = true, gatewayAddress = "g", localIp = "192.168.1.50")
 
-        val dedicated = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag).run(ctx("fortnite"), env)
-        assertThat(dedicated.nat).isNull()
-        assertThat(probes.get()).isEqualTo(0)
-
         val hybrid = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag).run(ctx("roblox"), env)
-        assertThat(hybrid.nat!!.natType).isEqualTo(NatType.TYPE_2_MODERATE)
-        assertThat(probes.get()).isEqualTo(2)
-        assertThat(hybrid.assessment.findings.any { it.kind == NetworkFinding.Kind.NAT_TOPOLOGY }).isTrue()
+        assertThat(hybrid.nat).isNull()
+        assertThat(probes.get()).isEqualTo(0)
     }
 
-    @Test fun strictNatOnAHybridGameRecommendsUpnpWithoutChangingTheVerdict() = runBlocking {
+    @Test fun hybridGameNeverRecommendsUpnpFromTheUnavailableStunProbe() = runBlocking {
         val diag = LocalDiagnostics(gateway(2.0, 2.0, 2.0, 2.0, 2.0), stun(ip = "100.70.1.1"))
         val r = CheckOrchestrator(collector(good(30.0), good(30.0)), load, local = diag)
             .run(ctx("eafc"), CheckEnvironment(isWiFi = true, gatewayAddress = "g", localIp = "192.168.1.50"))
-        assertThat(r.nat!!.natType).isEqualTo(NatType.TYPE_3_STRICT)
-        assertThat(r.assessment.recommendations.map { it.key }).contains(RecommendationKey.ENABLE_UPNP)
+        assertThat(r.nat).isNull()
         assertThat(r.assessment.verdict).isEqualTo(GameReadinessVerdict.READY)
     }
 

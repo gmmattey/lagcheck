@@ -76,18 +76,7 @@ public enum HighImpactOptimizationEvaluator {
             )
         }
 
-        // 4. NAT Restrito / CGNAT
-        if evaluation.findings.contains(where: { $0.kind == .natTopology }) {
-            return HighImpactOptimization(
-                title: "Habilitar UPnP / IP Público",
-                impactBadge: "NAT Restrito",
-                systemImage: "lock.shield",
-                instruction: "Ative UPnP no roteador ou solicite à operadora um IP público dinâmico para matchmaking sem bloqueios.",
-                isCritical: false
-            )
-        }
-
-        // 5. Spikes Recorrentes de Latência
+        // 4. Spikes Recorrentes de Latência
         if evaluation.findings.contains(where: { $0.kind == .latencySpikes }) {
             return HighImpactOptimization(
                 title: "Fechar Aplicações Concorrentes",
@@ -98,7 +87,7 @@ public enum HighImpactOptimizationEvaluator {
             )
         }
 
-        // 6. Conexão Saudável (Ready)
+        // 5. Conexão Saudável (Ready)
         if evaluation.verdict == .ready {
             let desc = isConsoleOrPC
                 ? "Conexão sólida com latência mínima. Usar cabo Ethernet garante estabilidade máxima contra oscilações externas."

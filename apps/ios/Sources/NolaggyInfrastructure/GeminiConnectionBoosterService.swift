@@ -279,16 +279,8 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
         }
 
         let natDiagnosticDesc: String
-        if let nat = req.natTopology {
-            if nat.cgnatStatus.isImpacted {
-                natDiagnosticDesc = "CGNAT detectado (RFC 6598). Provedor não aloca IP público dedicado. Sugira solicitar suporte a IPv6 ou IP público dinâmico para jogos ao provedor."
-            } else if nat.doubleNATStatus.isImpacted {
-                natDiagnosticDesc = "Duplo NAT detectado (dois roteadores encadeados). Sugira fortemente configurar o roteador secundário em modo Ponto de Acesso (Bridge)."
-            } else if nat.natType.isMultiplayerRestricted {
-                natDiagnosticDesc = "NAT Estrito (Tipo 3) detectado. Recomende ativar UPnP no roteador para liberar portas de matchmaking."
-            } else {
-                natDiagnosticDesc = "NAT \(nat.natType.shortLabel) (sem restrições críticas de topologia)."
-            }
+        if req.natTopology != nil {
+            natDiagnosticDesc = "A topologia de NAT não foi confirmada por uma medição de alcançabilidade. Não recomende UPnP, abertura de portas, IP público ou alterações no roteador com base neste dado."
         } else {
             natDiagnosticDesc = "não avaliado"
         }
@@ -427,19 +419,13 @@ public struct GeminiConnectionBoosterService: ConnectionBoosterService {
     }
 
     private func englishNATDescription(_ topology: NATTopologySnapshot?) -> String {
-        guard let topology else { return "not measured" }
-        if topology.cgnatStatus.isImpacted { return "CGNAT detected (RFC 6598). Suggest asking the ISP about IPv6 or a public dynamic IP for gaming." }
-        if topology.doubleNATStatus.isImpacted { return "Double NAT detected (two chained routers). Strongly suggest setting the secondary router to Access Point or Bridge mode." }
-        if topology.natType.isMultiplayerRestricted { return "Strict NAT (Type 3) detected. Recommend enabling UPnP on the router for matchmaking." }
-        return "NAT \(topology.natType.shortLabel), with no critical topology restrictions."
+        guard topology != nil else { return "not measured" }
+        return "NAT topology was not confirmed by a reachability measurement; do not recommend UPnP, port forwarding, a public IP, or router changes from this data."
     }
 
     private func spanishNATDescription(_ topology: NATTopologySnapshot?) -> String {
-        guard let topology else { return "sin medición" }
-        if topology.cgnatStatus.isImpacted { return "Se detectó CGNAT (RFC 6598). Sugiere consultar al proveedor por IPv6 o una IP pública dinámica para jugar." }
-        if topology.doubleNATStatus.isImpacted { return "Se detectó doble NAT (dos routers en cadena). Recomienda configurar el router secundario en modo Punto de Acceso o Bridge." }
-        if topology.natType.isMultiplayerRestricted { return "Se detectó NAT estricta (Tipo 3). Recomienda activar UPnP en el router para el emparejamiento." }
-        return "NAT \(topology.natType.shortLabel), sin restricciones críticas de topología."
+        guard topology != nil else { return "sin medición" }
+        return "La topología NAT no fue confirmada por una medición de accesibilidad; no recomiendes UPnP, apertura de puertos, IP pública ni cambios en el router con estos datos."
     }
     
 }

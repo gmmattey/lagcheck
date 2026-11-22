@@ -95,7 +95,7 @@ final class StunProbeClientTests: XCTestCase {
         )
     }
 
-    func testType1OpenWhenLocalIPMatchesPublicIP() async {
+    func testSTUNResponsesDoNotClassifyNATTopology() async {
         let transport = MockStunUDPTransport()
         transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
         transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "177.136.20.10", responsePort: 54321)
@@ -103,68 +103,13 @@ final class StunProbeClientTests: XCTestCase {
         let client = makeClient(transport: transport, localIP: "177.136.20.10")
         let snapshot = await client.probeTopology()
 
-        XCTAssertEqual(snapshot.natType, .type1Open)
-        XCTAssertEqual(snapshot.cgnatStatus, .notDetected)
-        XCTAssertEqual(snapshot.doubleNATStatus, .notDetected)
+        XCTAssertEqual(snapshot.natType, .inconclusive)
+        XCTAssertEqual(snapshot.cgnatStatus, .inconclusive)
+        XCTAssertEqual(snapshot.doubleNATStatus, .inconclusive)
         XCTAssertFalse(snapshot.hasAnyMultiplayerIssue)
     }
 
-    func testType2ModerateWhenBothProbesAgreeOnDifferentLocalIP() async {
-        let transport = MockStunUDPTransport()
-        transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "177.136.20.10", responsePort: 54321)
-
-        let client = makeClient(transport: transport, localIP: "192.168.1.50")
-        let snapshot = await client.probeTopology()
-
-        XCTAssertEqual(snapshot.natType, .type2Moderate)
-        XCTAssertEqual(snapshot.cgnatStatus, .notDetected)
-        XCTAssertEqual(snapshot.doubleNATStatus, .notDetected)
-        XCTAssertFalse(snapshot.hasAnyMultiplayerIssue)
-    }
-
-    func testType3StrictWhenPublicIPIsCGNAT() async {
-        let transport = MockStunUDPTransport()
-        transport.stub(host: primaryHost, port: primaryPort, ip: "100.70.10.5", responsePort: 54321)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "100.70.10.5", responsePort: 54321)
-
-        let client = makeClient(transport: transport, localIP: "192.168.1.50")
-        let snapshot = await client.probeTopology()
-
-        XCTAssertEqual(snapshot.natType, .type3Strict)
-        XCTAssertEqual(snapshot.cgnatStatus, .detected)
-        XCTAssertTrue(NATTopologyEvaluator.isRFC6598CGNAT(ip: "100.70.10.5"))
-        XCTAssertTrue(snapshot.hasAnyMultiplayerIssue)
-    }
-
-    func testDoubleNATSuspectedWhenServersDisagreeOnPublicIP() async {
-        let transport = MockStunUDPTransport()
-        transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "203.0.113.55", responsePort: 60000)
-
-        let client = makeClient(transport: transport, localIP: "192.168.1.50")
-        let snapshot = await client.probeTopology()
-
-        XCTAssertEqual(snapshot.doubleNATStatus, .suspectOrDetected)
-        XCTAssertEqual(snapshot.natType, .type3Strict)
-        XCTAssertTrue(snapshot.hasAnyMultiplayerIssue)
-    }
-
-    func testInconsistentPortMappingWhenSameIPDifferentExternalPort() async {
-        let transport = MockStunUDPTransport()
-        transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "177.136.20.10", responsePort: 60000)
-
-        let client = makeClient(transport: transport, localIP: "192.168.1.50")
-        let snapshot = await client.probeTopology()
-
-        // Porta externa inconsistente entre sondagens independentes força NAT Estrito,
-        // mesmo sem indício de duplo hop (IP público idêntico nas duas sondagens).
-        XCTAssertEqual(snapshot.natType, .type3Strict)
-        XCTAssertEqual(snapshot.doubleNATStatus, .notDetected)
-    }
-
-    func testDegradesGracefullyWhenOnlySecondaryProbeFails() async {
+    func testSingleOrConflictingSTUNResponsesRemainInconclusive() async {
         let transport = MockStunUDPTransport()
         transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
         transport.fail(host: secondaryServer.host, port: secondaryServer.port)
@@ -172,34 +117,8 @@ final class StunProbeClientTests: XCTestCase {
         let client = makeClient(transport: transport, localIP: "192.168.1.50")
         let snapshot = await client.probeTopology()
 
-        // Sem segunda amostra, não há evidência de inconsistência: usa o caso
-        // conservador (mapeamento consistente, sem duplo hop) em vez de
-        // hardcodar um resultado positivo ou negativo arbitrário.
-        XCTAssertEqual(snapshot.natType, .type2Moderate)
-        XCTAssertEqual(snapshot.doubleNATStatus, .notDetected)
-        XCTAssertNotEqual(snapshot.natType, .inconclusive)
-    }
-
-    func testInconclusiveWhenPrimaryProbeFails() async {
-        let transport = MockStunUDPTransport()
-        transport.fail(host: primaryHost, port: primaryPort)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "177.136.20.10", responsePort: 54321)
-
-        let client = makeClient(transport: transport, localIP: "192.168.1.50")
-        let snapshot = await client.probeTopology()
-
         XCTAssertEqual(snapshot.natType, .inconclusive)
-    }
-
-    func testExplicitLocalIPParameterOverridesResolver() async {
-        let transport = MockStunUDPTransport()
-        transport.stub(host: primaryHost, port: primaryPort, ip: "177.136.20.10", responsePort: 54321)
-        transport.stub(host: secondaryServer.host, port: secondaryServer.port, ip: "177.136.20.10", responsePort: 54321)
-
-        // Resolver mockado devolveria um IP diferente, mas o parâmetro explícito deve prevalecer.
-        let client = makeClient(transport: transport, localIP: "10.0.0.5")
-        let snapshot = await client.probeTopology(localIP: "177.136.20.10")
-
-        XCTAssertEqual(snapshot.natType, .type1Open)
+        XCTAssertEqual(snapshot.cgnatStatus, .inconclusive)
+        XCTAssertEqual(snapshot.doubleNATStatus, .inconclusive)
     }
 }

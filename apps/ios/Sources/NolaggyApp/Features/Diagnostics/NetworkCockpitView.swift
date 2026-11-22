@@ -496,20 +496,9 @@ public struct NetworkCockpitView: View {
                 return .notAssessed
             }
         case .multiplayer:
-            guard let rtt, let topology = telemetry.natTopology else { return .notAssessed }
-            if topology.natType == .type3Strict {
-                return .attention(AppLocalization.string("network_cockpit.use_case.reason.strict_nat"))
-            }
-            if topology.doubleNATStatus == .suspectOrDetected {
-                return .attention(AppLocalization.string("network_cockpit.use_case.reason.double_nat"))
-            }
+            guard let rtt else { return .notAssessed }
             if rtt > 15 {
                 return .attention(AppLocalization.format("network_cockpit.use_case.reason.high_local_rtt", rtt))
-            }
-            if topology.natType != .inconclusive,
-               topology.doubleNATStatus == .notDetected,
-               rtt <= 5 {
-                return .favorable(AppLocalization.format("network_cockpit.use_case.reason.favorable_nat_low_rtt", rtt))
             }
             return .notAssessed
         case .liveStream:
@@ -624,62 +613,42 @@ public struct NetworkCockpitView: View {
         guard let nat = telemetry.natTopology else {
             return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
         }
-        switch nat.natType {
-        case .type1Open: return AppLocalization.string("network_cockpit.nat.type1")
-        case .type2Moderate: return AppLocalization.string("network_cockpit.nat.type2")
-        case .type3Strict: return AppLocalization.string("network_cockpit.nat.type3")
-        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
-        }
+        _ = nat
+        return AppLocalization.string("network_cockpit.nat.inconclusive")
     }
 
     private var natTypeColor: Color {
         guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
-        switch nat.natType {
-        case .type1Open: return NLColor.scoreExcellent
-        case .type2Moderate: return NLColor.scoreUnstable
-        case .type3Strict: return NLColor.coralSolarRed
-        case .inconclusive: return NLColor.textSecondary
-        }
+        _ = nat
+        return NLColor.textSecondary
     }
 
     private var cgnatDisplay: String {
         guard let nat = telemetry.natTopology else {
             return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
         }
-        switch nat.cgnatStatus {
-        case .notDetected: return AppLocalization.string("network_cockpit.cgnat.free")
-        case .detected: return AppLocalization.string("network_cockpit.cgnat.detected")
-        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
-        }
+        _ = nat
+        return AppLocalization.string("network_cockpit.nat.inconclusive")
     }
 
     private var cgnatColor: Color {
         guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
-        switch nat.cgnatStatus {
-        case .notDetected: return NLColor.scoreExcellent
-        case .detected: return NLColor.coralSolarRed
-        case .inconclusive: return NLColor.textSecondary
-        }
+        _ = nat
+        return NLColor.textSecondary
     }
 
     private var doubleNATDisplay: String {
         guard let nat = telemetry.natTopology else {
             return telemetry.isProbing ? AppLocalization.string("network_cockpit.probing_ellipsis") : "—"
         }
-        switch nat.doubleNATStatus {
-        case .notDetected: return AppLocalization.string("network_cockpit.double_nat.not_detected")
-        case .suspectOrDetected: return AppLocalization.string("network_cockpit.double_nat.detected")
-        case .inconclusive: return AppLocalization.string("network_cockpit.nat.inconclusive")
-        }
+        _ = nat
+        return AppLocalization.string("network_cockpit.nat.inconclusive")
     }
 
     private var doubleNATColor: Color {
         guard let nat = telemetry.natTopology else { return NLColor.textSecondary }
-        switch nat.doubleNATStatus {
-        case .notDetected: return NLColor.scoreExcellent
-        case .suspectOrDetected: return NLColor.coralSolarRed
-        case .inconclusive: return NLColor.textSecondary
-        }
+        _ = nat
+        return NLColor.textSecondary
     }
 
     private var publicIPDisplay: String {

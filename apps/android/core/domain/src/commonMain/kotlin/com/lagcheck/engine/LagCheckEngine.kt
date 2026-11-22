@@ -43,7 +43,9 @@ object LagCheckEngine {
         val source = request.source.toDomain()
         val profile = request.profile.toDomain()
         val rest = request.rest.map { it.toDomain() }
-        val load = if (request.loadTransfer == LoadTransfer.MEASURED) request.load?.map { it.toDomain() } else null
+        // Só uma carga declarada como medida pode influenciar o resultado. Se ela não trouxe
+        // probes, a tentativa é inconsistente e não pode virar um resultado completo de repouso.
+        val load = if (request.loadTransfer == LoadTransfer.MEASURED) request.load?.map { it.toDomain() } ?: emptyList() else null
         // Telemetria medida (`gateway`) ou estado já classificado pelo próprio motor (`gatewayOutcome`).
         val gateway = if (source == MeasurementSource.APP_UDP) request.gateway?.toOutcome() ?: request.gatewayOutcome?.toDomain() ?: GatewayProbeOutcome.Unobservable else GatewayProbeOutcome.Unobservable
         val nat = request.nat?.toUseCaseNat()
@@ -55,6 +57,7 @@ object LagCheckEngine {
                 profile = profile,
                 rest = deep.diagnostics.toDto(),
                 load = load?.let { QualityEvaluator.evaluate(it, profile, source).metricsOrNull()?.toDto() },
+                loadTransfer = request.loadTransfer.name,
                 useCases = UseCaseEvaluator.evaluate(UseCaseEvaluator.Input(
                     deep.diagnostics.p50Milliseconds, deep.diagnostics.jitterMilliseconds, null, request.uploadMbps, nat
                 )).toDto()
@@ -82,6 +85,7 @@ object LagCheckEngine {
                     isEstimate = source == MeasurementSource.WEB_HTTPS,
                     rest = result.metrics.rest.toDto(),
                     load = result.metrics.load?.toDto(),
+                    loadTransfer = request.loadTransfer.name,
                     loadImpact = result.metrics.loadImpact?.let {
                         LoadImpactDto(it.tier.name, it.increaseMilliseconds, it.deltaJitterMilliseconds, it.deltaLossPercentage, it.deltaSpikesCount, it.bufferbloatGrade.value)
                     },
@@ -157,6 +161,7 @@ object LagCheckEngine {
         "quality" to QualityEvaluator.ruleVersion(profile),
         "sampleQuality" to SampleQualityEvaluator.RULE_VERSION,
         "loadImpact" to DeepCheckLoadImpactRuleV4.VERSION,
+        "loadTransfer" to LoadTransfer.VERSION,
         "recommendations" to EvidenceRecommendationEngine.VERSION,
         "rootCause" to RootCauseEvaluator.VERSION,
         "spikePattern" to SpikePatternEvaluator.VERSION,
@@ -184,7 +189,13 @@ private data class EngineRequest(
 @Serializable private enum class Source { APP_UDP, WEB_HTTPS; fun toDomain() = MeasurementSource.valueOf(name) }
 @Serializable private enum class Profile { BATTLE_ROYALE_COMPETITIVE, MOBILE_REALTIME, CASUAL_REALTIME; fun toDomain() = QualityProfileId.valueOf(name) }
 @Serializable private enum class Outcome { RECEIVED, TIMEOUT, TRANSPORT_ERROR, INVALID_RESPONSE; fun toDomain() = ProbeOutcome.valueOf(name) }
-@Serializable private enum class LoadTransfer { MEASURED, FAILED_NO_BYTES, NOT_RUN }
+/**
+ * Estado factual da fase de carga. O limiar de bytes que torna a transferência suficiente é
+ * responsabilidade do transporte; o motor apenas preserva a distinção para a apresentação.
+ */
+@Serializable private enum class LoadTransfer { MEASURED, INSUFFICIENT_TRANSFER, FAILED_NO_BYTES, NOT_RUN;
+    companion object { const val VERSION = "load-transfer-v3" }
+}
 @Serializable private enum class ServerArchitecture { DEDICATED_SERVER, PEER_TO_PEER, HYBRID; fun toDomain() = GameServerArchitecture.valueOf(name) }
 @Serializable private enum class NatOrigin { STUN_APP, BROWSER_ESTIMATE }
 
@@ -209,9 +220,22 @@ private fun com.lagcheck.domain.model.MeasurementEvaluation.metricsOrNull() = wh
 @Serializable private data class UseCaseDto(val id: String, val status: String, val titleKey: String, val detailKey: String, val origin: String? = null)
 private fun UseCaseEvaluator.Evaluation.toDto() = UseCasesDto(overallTone.name, overallHeadlineKey, overallSubtitleKey, cases.map { UseCaseDto(it.id, it.status.name, it.titleKey, it.detailKey, it.origin?.name) })
 
-@Serializable private data class EngineResponse(val verdict: String, val headlineKey: String, val subtitleKey: String, val score: Int? = null, val isEstimate: Boolean, val rest: MetricDto, val load: MetricDto? = null, val loadImpact: LoadImpactDto? = null, val spikePattern: String, val primaryCause: String? = null, val secondaryCauses: List<String> = emptyList(), val findings: List<FindingDto> = emptyList(), val recommendations: List<String> = emptyList(), val useCases: UseCasesDto, val inconclusiveReason: String? = null, val ruleVersions: Map<String, String>) {
+@Serializable private data class EngineResponse(val verdict: String, val headlineKey: String, val subtitleKey: String, val score: Int? = null, val isEstimate: Boolean, val rest: MetricDto, val load: MetricDto? = null, val loadTransfer: String, val loadImpact: LoadImpactDto? = null, val spikePattern: String, val primaryCause: String? = null, val secondaryCauses: List<String> = emptyList(), val findings: List<FindingDto> = emptyList(), val recommendations: List<String> = emptyList(), val useCases: UseCasesDto, val inconclusiveReason: String? = null, val ruleVersions: Map<String, String>) {
     companion object {
-        fun inconclusive(reason: String, source: MeasurementSource, profile: QualityProfileId, rest: MetricDto, load: MetricDto?, useCases: UseCasesDto) = EngineResponse("INCONCLUSIVE", "game_readiness.verdict.inconclusive.headline", "game_readiness.verdict.inconclusive.subtitle", null, source == MeasurementSource.WEB_HTTPS, rest, load, null, rest.spikePattern, null, emptyList(), emptyList(), emptyList(), useCases, reason, LagCheckEngine.ruleVersions(profile))
+        fun inconclusive(reason: String, source: MeasurementSource, profile: QualityProfileId, rest: MetricDto, load: MetricDto?, loadTransfer: String, useCases: UseCasesDto) = EngineResponse(
+            verdict = "INCONCLUSIVE",
+            headlineKey = "game_readiness.verdict.inconclusive.headline",
+            subtitleKey = "game_readiness.verdict.inconclusive.subtitle",
+            score = null,
+            isEstimate = source == MeasurementSource.WEB_HTTPS,
+            rest = rest,
+            load = load,
+            loadTransfer = loadTransfer,
+            spikePattern = rest.spikePattern,
+            useCases = useCases,
+            inconclusiveReason = reason,
+            ruleVersions = LagCheckEngine.ruleVersions(profile)
+        )
     }
 }
 @Serializable private data class EnginePolicy(val plannedProbeCount: Int, val sendIntervalMillis: Long, val sendWindowMillis: Long, val timeoutMillis: Long, val closureMillis: Long, val minimumValidResponses: Int, val ruleVersions: Map<String, Map<String, String>>, val lossGuardrailPercentage: Map<String, Double>)

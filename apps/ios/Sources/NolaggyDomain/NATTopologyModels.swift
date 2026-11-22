@@ -92,15 +92,22 @@ public struct NATTopologySnapshot: Codable, Hashable, Sendable {
         doubleNATStatus: .inconclusive
     )
 
+    /// Os estados legados não são evidência suficiente para afetar compatibilidade,
+    /// recomendações ou UPnP. A sondagem iOS fica inconclusiva até haver método
+    /// validado de topologia e alcançabilidade.
     public var hasAnyMultiplayerIssue: Bool {
-        natType.isMultiplayerRestricted || cgnatStatus.isImpacted || doubleNATStatus.isImpacted
+        false
     }
 }
 
 /// Avaliador determinístico da topologia de NAT.
 public enum NATTopologyEvaluator {
 
-    /// Avalia a topologia correlacionando a resposta do STUN com os parâmetros locais.
+    /// Não classifica topologia a partir de respostas STUN isoladas.
+    ///
+    /// O IP e a porta observados por um servidor não demonstram se o cliente está
+    /// aberto, moderado ou restrito, nem descartam CGNAT ou NAT duplo. Mantemos a
+    /// API para leitura de históricos, mas toda nova avaliação é inconclusiva.
     public static func evaluate(
         localIP: String?,
         publicIP: String?,
@@ -108,36 +115,8 @@ public enum NATTopologyEvaluator {
         isPortMappingConsistent: Bool = true,
         detectedDoubleHop: Bool = false
     ) -> NATTopologySnapshot {
-        guard let publicIP = publicIP, !publicIP.isEmpty else {
-            return .inconclusive
-        }
-
-        let isCGNAT = isRFC6598CGNAT(ip: publicIP)
-        let cgnatStatus: CGNATStatus = isCGNAT ? .detected : .notDetected
-
-        let isDoubleNAT = detectedDoubleHop
-        let doubleNATStatus: DoubleNATStatus = isDoubleNAT ? .suspectOrDetected : .notDetected
-
-        let natType: NATType
-        if let local = localIP, local == publicIP {
-            natType = .type1Open
-        } else if isCGNAT || !isPortMappingConsistent {
-            natType = .type3Strict
-        } else if isDoubleNAT {
-            natType = .type3Strict
-        } else {
-            natType = .type2Moderate
-        }
-
-        return NATTopologySnapshot(
-            natType: natType,
-            cgnatStatus: cgnatStatus,
-            doubleNATStatus: doubleNATStatus,
-            publicIPMasked: maskIP(publicIP),
-            localIPMasked: localIP.map(maskIP),
-            externalPort: externalPort,
-            publicIP: publicIP
-        )
+        _ = (localIP, publicIP, externalPort, isPortMappingConsistent, detectedDoubleHop)
+        return .inconclusive
     }
 
     /// Verifica se o endereço IPv4 está dentro do bloco IANA reservado para CGNAT (100.64.0.0/10).

@@ -39,6 +39,10 @@ object WiFiBandEvaluator {
         if (!telemetry.isWiFi) {
             return result(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.NON_WIFI_INTERFACE), WiFiBandConfidence.NONE, telemetry)
         }
+        // Sem probes locais não há base para chamar o enlace de estável.
+        if (telemetry.plannedSampleCount <= 0) {
+            return result(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.INSUFFICIENT_SAMPLES), WiFiBandConfidence.NONE, telemetry)
+        }
         if (telemetry.plannedSampleCount > 0 && telemetry.validSampleCount == 0) {
             return result(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.GATEWAY_UNRESPONSIVE), WiFiBandConfidence.NONE, telemetry)
         }
@@ -60,7 +64,7 @@ object WiFiBandEvaluator {
         }
         if (median != null) return result(WiFiBandDiagnostic.StableWiFi, WiFiBandConfidence.MEDIUM, telemetry)
         // Sem medição local válida: não se afirma nada (Decisões 50 e 55).
-        return result(WiFiBandDiagnostic.StableWiFi, WiFiBandConfidence.NONE, telemetry)
+        return result(WiFiBandDiagnostic.Inconclusive(WiFiBandInconclusiveReason.INSUFFICIENT_SAMPLES), WiFiBandConfidence.NONE, telemetry)
     }
 
     private fun result(d: WiFiBandDiagnostic, c: WiFiBandConfidence, t: WiFiLocalTelemetry): WiFiBandDiagnosticResult = when (d) {

@@ -194,7 +194,10 @@ public enum CheckCompletoResultEvaluator {
         let hasAnyRouteIssue = hasRouteInstability || isLoadMaterial
 
         // Avaliação de NAT
-        let natEvaluated = natSnapshot != nil && natSnapshot?.natType != .inconclusive
+        // A sondagem de topologia iOS está suspensa: snapshots legados não são
+        // prova de alcançabilidade e não podem alterar a compatibilidade.
+        _ = natSnapshot
+        let natEvaluated = false
         let hasNATIssue = natSnapshot?.hasAnyMultiplayerIssue ?? false
 
         // 1. Multiplayer:

@@ -1,6 +1,6 @@
 # Contrato do motor LagCheck (`LagCheckEngine`)
 
-Decisões 134 e 135. Única implementação das regras de score, veredito, causas, recomendações, carga, picos, watchdog e casos de uso, compartilhada por iOS (XCFramework `LagCheckEngine`), Android/desktop/Windows (JVM) e site (pacote JS `lagcheck-engine`).
+Decisões 134 e 135. Única implementação das regras de score, veredito, causas, recomendações, carga, picos, watchdog e casos de uso, compartilhada por iOS (XCFramework `LagCheckEngine`), Android/desktop/Windows (JVM) e site (pacote JS `lagcheck-engine`). O estado da transferência de carga usa `load-transfer-v3`: distingue carga medida, tentativa insuficiente, falha sem bytes e etapa não iniciada.
 
 O transporte (UDP, HTTP de carga, gateway, rádio, upload do site) é nativo de cada plataforma. O motor só recebe amostras e devolve a avaliação.
 
@@ -27,10 +27,10 @@ O transporte (UDP, HTTP de carga, gateway, rádio, upload do site) é nativo de 
 | `profile` | `BATTLE_ROYALE_COMPETITIVE` \| `MOBILE_REALTIME` \| `CASUAL_REALTIME` | Perfil de regra do jogo. |
 | `rest` | lista de amostras | Fase de repouso, uma amostra por probe planejado (`sequence` 0..59). |
 | `load` | lista de amostras, opcional | Fase sob carga. Só é usada com `loadTransfer = MEASURED`. |
-| `loadTransfer` | `MEASURED` \| `FAILED_NO_BYTES` \| `NOT_RUN` | `MEASURED` com menos de 20 respostas válidas na carga → `INCONCLUSIVE` (Decisão 135 item 3). `FAILED_NO_BYTES` → vale o repouso. |
+| `loadTransfer` | `MEASURED` \| `INSUFFICIENT_TRANSFER` \| `FAILED_NO_BYTES` \| `NOT_RUN` | `MEASURED` exige lista de probes e, com menos de 20 respostas válidas, → `INCONCLUSIVE` (Decisão 135 item 3). `INSUFFICIENT_TRANSFER` registra uma tentativa com bytes abaixo do mínimo definido pelo transporte; `FAILED_NO_BYTES` registra falha sem byte; ambos preservam só o repouso e não derivam impacto sob carga. `NOT_RUN` significa que a etapa não foi iniciada. |
 | `gateway` | `{rttMs, jitterMs, validResponses, plannedResponses, isWifi}`, opcional | Telemetria medida. Menos de 3 respostas válidas → não observável. |
 | `gatewayOutcome` | `{kind, rttMs, lossPercentage}`, opcional | Estado já classificado por `gatewayOutcome()`; usado quando `gateway` não vem. O iOS guarda só o estado e manda este campo. |
-| `nat` | `{type, origin: STUN_APP \| BROWSER_ESTIMATE}`, opcional | Só entra nos casos de uso. |
+| `nat` | `{type, origin: STUN_APP \| BROWSER_ESTIMATE}`, opcional | Só entra nos casos de uso quando conclusivo; `INCONCLUSIVE` não vira leitura favorável, achado ou recomendação. |
 | `serverArchitecture` | `DEDICATED_SERVER` \| `PEER_TO_PEER` \| `HYBRID` | Controla a relevância de NAT. |
 | `uploadMbps` | número, opcional | Medido nativamente (hoje só no site). Sem ele, streaming não considera upload. |
 | `gameId`, `wifiBand` | opcionais | Reservados; ainda não influenciam a regra. |
@@ -47,13 +47,14 @@ Amostra: `{"sequence": Int, "outcome": "RECEIVED" | "TIMEOUT" | "TRANSPORT_ERROR
 | `isEstimate` | `true` para `WEB_HTTPS`. |
 | `rest`, `load` | Métricas completas (P50/P95/P99, jitter, perda, spikes, padrão de picos, fora de ordem). |
 | `loadImpact` | `tier` (`NONE`/`LIGHT`/`MATERIAL`/`SEVERE`), deltas e nota de bufferbloat descritiva. |
+| `loadTransfer` | Estado factual da etapa de carga, sempre ecoado para a UI não apresentar uma conclusão sob carga quando ela não existe. |
 | `spikePattern` | `NONE` \| `ISOLATED` \| `RECURRING` (`spike-pattern-v2`). |
 | `primaryCause`, `secondaryCauses` | Causas na ordem de precedência da spec §7.4.1. |
 | `findings` | Achados "O que encontramos" (`kind`, `severity`, `key`, `detail`). |
 | `recommendations` | Chaves `RecommendationKey` (no máximo 3). |
 | `useCases` | Resumo geral e status por caso (`fps`, `br`, `moba`, `fighting`, `casual`, `voice`, `streaming`, `cloud`, `nat`) — `use-cases-v1`, idêntico ao site. |
 | `inconclusiveReason` | `INSUFFICIENT_UDP_RESPONSES` \| `POOR_SAMPLE_QUALITY` quando inconclusivo. |
-| `ruleVersions` | Versão de cada regra usada (gravar no histórico). |
+| `ruleVersions` | Versão de cada regra usada (inclui `loadTransfer: load-transfer-v3`; gravar no histórico). |
 
 ## Exemplo real
 
@@ -147,6 +148,7 @@ Resposta:
     "outOfOrderRatePercentage": 0.0,
     "spikePattern": "NONE"
   },
+  "loadTransfer": "MEASURED",
   "loadImpact": {
     "tier": "MATERIAL",
     "deltaP50Milliseconds": 18.0,
@@ -210,6 +212,7 @@ Resposta:
     "quality": "pilot-2026.11.14.1",
     "sampleQuality": "sample-quality-v2",
     "loadImpact": "deep-load-impact-v4",
+    "loadTransfer": "load-transfer-v3",
     "recommendations": "recommendations-v2",
     "rootCause": "root-cause-v2",
     "spikePattern": "spike-pattern-v2",
@@ -234,6 +237,7 @@ Resposta:
       "quality": "pilot-2026.11.14.1",
       "sampleQuality": "sample-quality-v2",
       "loadImpact": "deep-load-impact-v4",
+      "loadTransfer": "load-transfer-v3",
       "recommendations": "recommendations-v2",
       "rootCause": "root-cause-v2",
       "spikePattern": "spike-pattern-v2",

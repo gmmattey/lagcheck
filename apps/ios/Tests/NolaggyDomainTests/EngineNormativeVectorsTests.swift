@@ -236,27 +236,19 @@ final class EngineNormativeVectorsTests: XCTestCase {
         XCTAssertNil(readiness.score)
     }
 
-    /// V135-10: Falha de carga sem bytes: o resultado do repouso vale sem conclusão sobre carga.
-    /// Esperado: READY, score 100, loadTier: nil.
-    func testVectorV135_10_FailedLoadNoBytesPreservesRest() {
+    /// V135-10: Falha de carga sem bytes não pode parecer Check Completo válido.
+    func testVectorV135_10_FailedLoadNoBytesIsInconclusive() {
         let restSamples = received(60, rtt: 30.0)
         let eval = DeepCheckEvaluator.evaluateBattleRoyaleCompetitive(
             restSamples: restSamples,
             loadSamples: nil
         )
 
-        guard case let .completed(result) = eval else {
-            return XCTFail("V135-10 esperado completed")
+        guard case let .inconclusive(reason, diagnostics) = eval else {
+            return XCTFail("V135-10 esperado inconclusive")
         }
-        XCTAssertEqual(result.restResult.finalScore, 100)
-        XCTAssertNil(result.metrics.loadImpact)
-
-        let readiness = GameReadinessEvaluator.evaluate(
-            deepCheckResult: result,
-            profile: .battleRoyaleCompetitive
-        )
-        XCTAssertEqual(readiness.verdict, .ready)
-        XCTAssertEqual(readiness.score, 100)
+        XCTAssertEqual(reason, .insufficientUDPResponses)
+        XCTAssertEqual(diagnostics.p50Milliseconds, 30)
     }
 
     /// DLI3-01: BR: 28 -> 40 ms, ΔP50 12 ms, impacto leve.

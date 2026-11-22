@@ -35,6 +35,7 @@ class EngineNormativeVectorsTest {
             if (expected.assertNoScore) assertNull(response["score"]?.jsonPrimitive?.contentOrNull, vector.id)
             expected.score?.let { assertEquals(it.toString(), response.string("score"), vector.id) }
             expected.loadTier?.let { assertEquals(it.name, response["loadImpact"]?.jsonObject?.string("tier"), vector.id) }
+            expected.loadTransfer?.let { assertEquals(it.name, response.string("loadTransfer"), vector.id) }
             expected.primaryCause?.let { assertEquals(it, response.string("primaryCause"), vector.id) }
             expected.spikePattern?.let { assertEquals(it, response.string("spikePattern"), vector.id) }
             expected.packetLossPercentage?.let {
