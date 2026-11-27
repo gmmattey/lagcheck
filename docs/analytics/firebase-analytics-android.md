@@ -10,8 +10,11 @@ O Firebase mede o funil agregado do LagCheck Android. Ele não participa do Chec
 | `lagcheck_started` | `game_id`, `game_platform`, `network_type`, `region_id` |
 | `lagcheck_completed` | os quatro acima, `result_class`, `duration_seconds` |
 | `lagcheck_inconclusive` | os quatro acima, `inconclusive_reason` |
-| `lagcheck_cancelled` | os quatro acima, `cancellation_reason` |
+| `lagcheck_cancelled` | os quatro acima, `cancellation_reason`, `cancellation_stage` (`consent`, `preread`, `rest`, `load`, `unknown`) |
 | `result_viewed` | `game_id`, `game_platform`, `result_class` |
+| `details_viewed` | `game_id`, `game_platform`, `result_class` |
+| `recommendations_viewed` | `game_id`, `game_platform`, `recommendation_count` |
+| `result_shared` | `game_id`, `game_platform`, `share_channel` |
 | `retest_started` | `game_id`, `game_platform` |
 
 `first_open`, `session_start` e outros eventos automáticos pertencem ao SDK. O app não os reproduz. O Check só emite `lagcheck_started` quando a medição UDP vai começar e só emite um desfecho: concluído, inconclusivo ou cancelado.
@@ -54,7 +57,7 @@ Não há deep link, parâmetro externo ou login capaz de reativar a coleta. Essa
 
 ## Console, privacidade e distribuição
 
-No GA4, registre `environment` como dimensão de usuário e `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason` e `cancellation_reason` como dimensões personalizadas. Registre `duration_seconds` como métrica. A partir disso, os relatórios do GA4 mostram ativação, repetição e retenção D1/D7/D30 sem dashboard próprio.
+No GA4, registre `environment` como dimensão de usuário e `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason`, `cancellation_reason`, `cancellation_stage` e `share_channel` como dimensões personalizadas. Registre `duration_seconds` e `recommendation_count` como métricas. A partir disso, os relatórios do GA4 mostram ativação, repetição e retenção D1/D7/D30 sem dashboard próprio.
 
 Antes de publicar outro AAB, confira o binário real contra a Segurança de Dados da Play, a política em `~/Projetos/web/landings/sites/lagcheck/` e a declaração do AdMob. Firebase Analytics não habilita personalização de anúncios nesta integração: a coleta de Advertising ID e o sinal padrão de personalização estão desligados. A obrigação de consentimento por região precisa ser revisada com a política publicada e a configuração final do GA4/AdMob; o UMP existente segue sendo o gate dos anúncios, não do Firebase.
 

@@ -53,6 +53,8 @@ class ProbeLedger(
         if (p.sentAt != null && p.result == null) p.result = ProbeSample(sequence, outcome = ProbeOutcome.TRANSPORT_ERROR)
     }
 
+    fun isAllResolved(): Boolean = synchronized(lock) { probes.values.all { it.result != null } }
+
     /** Estado parcial para o watchdog: probes sem resposta e já vencidos viram timeout; os recentes ainda não contam. */
     fun snapshot(nowNanos: Long): List<ProbeSample> = synchronized(lock) {
         probes.keys.sorted().mapNotNull { seq ->

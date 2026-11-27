@@ -288,6 +288,31 @@ struct DeepCheckFeatureView: View {
         )
     }
 
+    private var restBaselineText: String? {
+        let rtts = restSamples.compactMap(\.roundTripMilliseconds)
+        guard rtts.count >= 2 else { return nil }
+        let sorted = rtts.sorted()
+        let mid = sorted.count / 2
+        let p50 = sorted.count % 2 == 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2.0
+        let diffs = zip(rtts, rtts.dropFirst()).map { abs($1 - $0) }
+        let jitter = diffs.isEmpty ? 0.0 : diffs.reduce(0, +) / Double(diffs.count)
+        let format = NSLocalizedString("deep_check.rest_baseline_format", comment: "")
+        let resolvedFormat = format == "deep_check.rest_baseline_format"
+            ? "Repouso observado: %d ms · %d ms jitter"
+            : format
+        return String(format: resolvedFormat, Int(p50.rounded()), Int(jitter.rounded()))
+    }
+
+    private var currentCancellationStage: String {
+        switch presentation {
+        case .cellularConsent: return "consent"
+        case .selectingRegion: return "preread"
+        case .measuring(.rest): return "rest"
+        case .measuring(.load): return "load"
+        default: return "unknown"
+        }
+    }
+
     private var friendlyRegion: String {
         let ident = locale.identifier.lowercased()
         let lang = ident.hasPrefix("pt") ? "pt-BR" : (ident.hasPrefix("es") ? "es" : "en")
@@ -324,6 +349,14 @@ struct DeepCheckFeatureView: View {
                 phaseTitle: phase == .rest ? "deep_check.phase.rest" : "deep_check.phase.load",
                 phaseSubtitle: LocalizedStringKey(gameName)
             )
+
+            if phase == .load, let restBaselineText {
+                Text(restBaselineText)
+                    .font(NLTypography.statusLine)
+                    .foregroundStyle(NLColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("measurement-rest-baseline")
+            }
 
             Spacer()
         }
@@ -381,10 +414,34 @@ struct DeepCheckFeatureView: View {
             regionID: activeContext.regionID,
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
-            showDetails: { showingDetails = true },
+            showDetails: {
+                let evaluation = GameReadinessEvaluator.evaluate(
+                    deepCheckResult: result,
+                    profile: activeContext.profileID
+                )
+                analyticsTracker.track(.detailsViewed(
+                    gameID: activeContext.context.gameID,
+                    platform: Platform.iphone.rawValue
+                ))
+                if !evaluation.findings.isEmpty {
+                    analyticsTracker.track(.recommendationsViewed(
+                        gameID: activeContext.context.gameID,
+                        platform: Platform.iphone.rawValue,
+                        count: evaluation.findings.count
+                    ))
+                }
+                showingDetails = true
+            },
             retry: restart,
             exit: cancelOrDismiss,
-            incomingDuel: incomingDuel
+            incomingDuel: incomingDuel,
+            onShareChannel: { channel in
+                analyticsTracker.track(.resultShared(
+                    gameID: activeContext.context.gameID,
+                    platform: Platform.iphone.rawValue,
+                    channel: channel
+                ))
+            }
         )
         .onAppear {
             let evaluation = GameReadinessEvaluator.evaluate(
@@ -564,7 +621,8 @@ struct DeepCheckFeatureView: View {
                         platform: activeContext.context.platform.rawValue,
                         networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
                         regionID: activeContext.regionID,
-                        reason: "error"
+                        reason: "error",
+                        stage: currentCancellationStage
                     ))
                 }
             }
@@ -795,7 +853,8 @@ struct DeepCheckFeatureView: View {
                         platform: activeContext.context.platform.rawValue,
                         networkType: activeContext.observedPhoneNetwork?.rawValue ?? "unknown",
                         regionID: activeContext.regionID,
-                        reason: "cancelled"
+                        reason: "cancelled",
+                        stage: currentCancellationStage
                     ))
                 }
             }

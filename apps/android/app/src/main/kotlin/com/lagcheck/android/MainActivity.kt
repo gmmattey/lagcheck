@@ -420,6 +420,7 @@ class MainActivity : ComponentActivity() {
                             routeRegionId = screen.routeRegionId,
                             routeMap = viewModel.routeMap,
                             routeRegionName = viewModel::routeRegionName,
+                            restBaseline = screen.restBaseline,
                             showMobileDataConsent = screen.showMobileDataConsent,
                             onCancel = {
                                 viewModel.cancelCheck()
@@ -445,6 +446,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel.retryCheck()
                             },
                             onDetails = {
+                                viewModel.onDetailsViewed(screen.game, screen.evaluation)
                                 viewModel.navigateTo(
                                     Screen.TechnicalDetails(
                                         screen.game,
@@ -465,6 +467,9 @@ class MainActivity : ComponentActivity() {
                                 {
                                     viewModel.navigateTo(Screen.HostDuelVersus(res.first, res.second, screen.game.name))
                                 }
+                            },
+                            onShareChannel = { channel ->
+                                viewModel.onResultShared(screen.game, screen.evaluation.platform, channel)
                             }
                         )
                     }

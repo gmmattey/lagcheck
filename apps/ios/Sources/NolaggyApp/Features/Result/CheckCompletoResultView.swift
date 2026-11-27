@@ -24,6 +24,7 @@ public struct CheckCompletoResultView: View {
     public let showDetails: () -> Void
     public let retry: () -> Void
     public let exit: () -> Void
+    public let onShareChannel: (String) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var resultMap = RouteMapController()
@@ -75,7 +76,8 @@ public struct CheckCompletoResultView: View {
         showDetails: @escaping () -> Void = {},
         retry: @escaping () -> Void,
         exit: @escaping () -> Void = {},
-        incomingDuel: HostDuelPayload? = nil
+        incomingDuel: HostDuelPayload? = nil,
+        onShareChannel: @escaping (String) -> Void = { _ in }
     ) {
         self.result = result
         self.profileID = profileID
@@ -90,6 +92,7 @@ public struct CheckCompletoResultView: View {
         self.retry = retry
         self.exit = exit
         self.incomingDuel = incomingDuel
+        self.onShareChannel = onShareChannel
     }
 
     public var body: some View {
@@ -159,9 +162,12 @@ public struct CheckCompletoResultView: View {
                         sharePreview(evaluation: evaluation)
                             .padding(.top, 20)
                         if let scene = currentShareScene(evaluation: evaluation) {
-                            ShareNetworkBar(scene: scene, linkCardURL: preparedShareCardURL) { items in
-                                activeShareDestination = .link(items: items)
-                            }
+                            ShareNetworkBar(
+                                scene: scene,
+                                linkCardURL: preparedShareCardURL,
+                                onDeliver: { items in activeShareDestination = .link(items: items) },
+                                onShare: onShareChannel
+                            )
                             .frame(maxWidth: 360)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.top, 16)
@@ -310,7 +316,7 @@ public struct CheckCompletoResultView: View {
             // Deixa a manchete do veredito chegar à tela antes de ocupar CPU com o renderer.
             await Task.yield()
             guard !Task.isCancelled else { return }
-            let cardURL = await Task.detached(priority: .utility) {
+            let cardURL = await Task.detached(priority: .userInitiated) {
                 PreparedShareCard.prepare(snapshot: snapshot)
             }.value
             guard !Task.isCancelled else { return }
@@ -602,6 +608,7 @@ public struct CheckCompletoResultView: View {
     }
 
     private func exportResultPDF(evaluation: GameReadinessEvaluation) {
+        onShareChannel("pdf")
         let topOpt = HighImpactOptimizationEvaluator.evaluateSingleTopOptimization(
             targetPlatform: .iphone,
             evaluation: evaluation,
@@ -798,7 +805,9 @@ public struct CheckCompletoResultView: View {
     }
 
     private func measurementIdentity(for result: DeepCheckResult) -> String {
-        let data = (try? JSONEncoder().encode(result)) ?? Data()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = (try? encoder.encode(result)) ?? Data()
         var hash: UInt64 = 1_469_598_103_934_665_603
         for byte in data { hash ^= UInt64(byte); hash &*= 1_099_511_628_211 }
         return String(hash, radix: 16)

@@ -84,6 +84,7 @@ internal object ShareCaption {
 fun ShareNetworkBar(
     scene: ShareMediaScene,
     preparedLinkCard: File?,
+    onShare: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -123,12 +124,14 @@ fun ShareNetworkBar(
 
     fun shareCard(network: SocialNetwork) {
         val card = preparedLinkCard ?: return
+        onShare(network.name.lowercase())
         send(card, "image/jpeg", ShareCaption.card(scene.gameName), network)
     }
 
     fun shareVideo(network: SocialNetwork) {
         val caption = ShareCaption.video(scene.gameName)
         cachedVideo?.takeIf { it.isFile }?.let {
+            onShare(network.name.lowercase())
             copyCaption(caption)
             send(it, "video/mp4", caption, network)
             return
@@ -144,6 +147,7 @@ fun ShareNetworkBar(
                 }
                 cachedVideo = file
                 generating = false
+                onShare(network.name.lowercase())
                 copyCaption(caption)
                 send(file, "video/mp4", caption, network)
             } catch (e: CancellationException) {

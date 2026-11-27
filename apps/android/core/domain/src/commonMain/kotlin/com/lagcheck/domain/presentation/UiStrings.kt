@@ -264,6 +264,8 @@ object UiStrings {
         t("Gráfico de estabilidade: %s", "Stability chart: %s", "Gráfico de estabilidad: %s")
         t("%.0f–%.0f ms", "%.0f–%.0f ms", "%.0f–%.0f ms")
         t("%.0f ms", "%.0f ms", "%.0f ms")
+        t("Adicionar favorito", "Add favorite", "Añadir favorito")
+        t("Repouso observado: %d ms · %d ms jitter", "Observed rest: %d ms · %d ms jitter", "Reposo observado: %d ms · %d ms jitter")
         // endregion
 
         for ((pt, en, es) in SCREEN_STRINGS) t(pt, en, es)

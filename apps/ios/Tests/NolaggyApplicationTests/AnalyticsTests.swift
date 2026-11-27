@@ -27,9 +27,17 @@ final class AnalyticsTests: XCTestCase {
         XCTAssertEqual(AnalyticsEvent.lagcheckStarted(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1").name, "lagcheck_started")
         XCTAssertEqual(AnalyticsEvent.lagcheckCompleted(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1", resultClass: "excellent", durationSeconds: 15.2).name, "lagcheck_completed")
         XCTAssertEqual(AnalyticsEvent.lagcheckInconclusive(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1", reason: "insufficient_samples").name, "lagcheck_inconclusive")
-        XCTAssertEqual(AnalyticsEvent.lagcheckCancelled(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1", reason: "user_cancelled").name, "lagcheck_cancelled")
+        XCTAssertEqual(AnalyticsEvent.lagcheckCancelled(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1", reason: "user_cancelled", stage: "rest").name, "lagcheck_cancelled")
         XCTAssertEqual(AnalyticsEvent.resultViewed(gameID: "fortnite", platform: "iphone", resultClass: "excellent").name, "result_viewed")
         XCTAssertEqual(AnalyticsEvent.retestStarted(gameID: "fortnite", platform: "iphone").name, "retest_started")
+        XCTAssertEqual(AnalyticsEvent.detailsViewed(gameID: "fortnite", platform: "iphone").name, "details_viewed")
+        XCTAssertEqual(AnalyticsEvent.recommendationsViewed(gameID: "fortnite", platform: "iphone", count: 2).name, "recommendations_viewed")
+        XCTAssertEqual(AnalyticsEvent.resultShared(gameID: "fortnite", platform: "iphone", channel: "whatsapp").name, "result_shared")
+
+        let cancelled = AnalyticsEvent.lagcheckCancelled(gameID: "fortnite", platform: "iphone", networkType: "wifi", regionID: "sa-east-1", reason: "user_cancelled", stage: "load")
+        XCTAssertEqual(cancelled.parameters["cancellation_stage"], "load")
+        XCTAssertEqual(AnalyticsEvent.recommendationsViewed(gameID: "fortnite", platform: "iphone", count: 2).parameters["recommendation_count"], "2")
+        XCTAssertEqual(AnalyticsEvent.resultShared(gameID: "fortnite", platform: "iphone", channel: "whatsapp").parameters["share_channel"], "whatsapp")
     }
 
     func testEventParametersContainOnlySafeAndApprovedFields() {

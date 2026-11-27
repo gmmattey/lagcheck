@@ -162,7 +162,8 @@ final class CheckCompletoResultUITests: XCTestCase {
 
         // Card pronto: o toque abre o menu do sistema na hora, sem etapa intermediária.
         let whatsapp = app.buttons["share-network-whatsapp"]
-        XCTAssertTrue(whatsapp.isEnabled)
+        let enabledExpectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: whatsapp)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabledExpectation], timeout: 15), .completed)
         whatsapp.tap()
         XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 5))
         saveScreenshot(named: "check_completo_share_card_menu_pt_br")

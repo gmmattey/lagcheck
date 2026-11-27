@@ -88,6 +88,7 @@ public struct ShareNetworkBar: View {
     public let scene: ShareMediaScene
     public let linkCardURL: URL?
     public let onDeliver: ([Any]) -> Void
+    public let onShare: (String) -> Void
 
     @State private var generating = false
     @State private var progress: Float = 0
@@ -96,10 +97,11 @@ public struct ShareNetworkBar: View {
     @State private var errorMessage: String? = nil
     @State private var copiedNotice = false
 
-    public init(scene: ShareMediaScene, linkCardURL: URL?, onDeliver: @escaping ([Any]) -> Void) {
+    public init(scene: ShareMediaScene, linkCardURL: URL?, onDeliver: @escaping ([Any]) -> Void, onShare: @escaping (String) -> Void = { _ in }) {
         self.scene = scene
         self.linkCardURL = linkCardURL
         self.onDeliver = onDeliver
+        self.onShare = onShare
     }
 
     public var body: some View {
@@ -135,6 +137,7 @@ public struct ShareNetworkBar: View {
     }
 
     private func tap(_ network: ShareSocialNetwork) {
+        onShare(network.rawValue)
         errorMessage = nil
         if network.sendsVideo { shareVideo() } else { shareCard() }
     }

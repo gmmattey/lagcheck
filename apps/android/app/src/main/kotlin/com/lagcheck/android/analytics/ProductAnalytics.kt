@@ -34,9 +34,13 @@ sealed interface ProductAnalyticsEvent {
         val gamePlatform: String,
         val networkType: String,
         val regionId: String,
-        val reason: String
+        val reason: String,
+        val cancellationStage: String = "unknown"
     ) : ProductAnalyticsEvent
     data class ResultViewed(val gameId: String, val gamePlatform: String, val resultClass: String) : ProductAnalyticsEvent
+    data class DetailsViewed(val gameId: String, val gamePlatform: String, val resultClass: String) : ProductAnalyticsEvent
+    data class RecommendationsViewed(val gameId: String, val gamePlatform: String, val recommendationCount: Int) : ProductAnalyticsEvent
+    data class ResultShared(val gameId: String, val gamePlatform: String, val shareChannel: String) : ProductAnalyticsEvent
     data class RetestStarted(val gameId: String, val gamePlatform: String) : ProductAnalyticsEvent
 }
 
@@ -124,12 +128,28 @@ internal fun ProductAnalyticsEvent.toFirebasePayload(): FirebaseAnalyticsPayload
             "inconclusive_reason" to reason
         ))
         is ProductAnalyticsEvent.LagcheckCancelled -> FirebaseAnalyticsPayload("lagcheck_cancelled", context(gameId, gamePlatform, networkType, regionId) + mapOf(
-            "cancellation_reason" to reason
+            "cancellation_reason" to reason,
+            "cancellation_stage" to cancellationStage
         ))
         is ProductAnalyticsEvent.ResultViewed -> FirebaseAnalyticsPayload("result_viewed", mapOf(
             "game_id" to gameId,
             "game_platform" to gamePlatform,
             "result_class" to resultClass
+        ))
+        is ProductAnalyticsEvent.DetailsViewed -> FirebaseAnalyticsPayload("details_viewed", mapOf(
+            "game_id" to gameId,
+            "game_platform" to gamePlatform,
+            "result_class" to resultClass
+        ))
+        is ProductAnalyticsEvent.RecommendationsViewed -> FirebaseAnalyticsPayload("recommendations_viewed", mapOf(
+            "game_id" to gameId,
+            "game_platform" to gamePlatform,
+            "recommendation_count" to recommendationCount.toLong().coerceAtLeast(0)
+        ))
+        is ProductAnalyticsEvent.ResultShared -> FirebaseAnalyticsPayload("result_shared", mapOf(
+            "game_id" to gameId,
+            "game_platform" to gamePlatform,
+            "share_channel" to shareChannel
         ))
         is ProductAnalyticsEvent.RetestStarted -> FirebaseAnalyticsPayload("retest_started", mapOf(
             "game_id" to gameId,

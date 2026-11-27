@@ -185,6 +185,7 @@
 "deep_check.phase.load_message" = "Fase 2 de 2: midiendo mientras la red está en uso";
 "deep_check.phase.rest_progress" = "Fase 1 de 2 · en reposo";
 "deep_check.phase.load_progress" = "Fase 2 de 2 · bajo carga";
+"deep_check.rest_baseline_format" = "Reposo observado: %d ms · %d ms jitter";
 "deep_check.phase.remaining" = "Cerca de %d segundos restantes";
 "deep_check.phase.current_rtt" = "Ping actual";
 "deep_check.measurement.title %@" = "LagCheck · %@";

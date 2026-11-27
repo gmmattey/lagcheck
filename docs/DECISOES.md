@@ -157,6 +157,7 @@
 | [152](#decisão-152) | Missão 04 (Reliability): smoke tests `androidTest`, CI Windows e estratégia de validação em 3 níveis | **Vigente (implementado/testado localmente; CI Windows sem execução remota e homologação física pendente)** | Cria `LagCheckAppSmokeTest` e `VerdictAndHistorySmokeTest` (`6/6` no emulador), `.github/workflows/windows-ci.yml` e níveis 1–3 em `.agents/WORKFLOW.md` | Luiz / Marcelo / Camillo / Renan |
 | [153](#decisão-153) | Missão 05 (Experience): correção da fixture UI iOS, auditoria visual com capturas reais e proposta consolidada de evolução | **Vigente (auditoria e correções de teste concluídas; propostas de produto aguardando aprovação do Luiz)** | Corrige `UITestFixtures.validDeepResult` (`restSamples`/`loadSamples`); diagnostica paridade Home iOS×Android, 64s, catálogo 124 jogos (99,99 KiB), NAT e métricas | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [154](#decisão-154) | Missão 05A (Production Baseline): resolução da divergência de captura iOS e regra permanente de rastreabilidade de binários | **Vigente** | Comprova que `ios_home.png` veio de DerivedData antigo `1.0.3 (9)` (22/10/2026) vs produção `1.2` (19/11/2026); cancela item "Alinhar Home iOS" e exige rastreabilidade em toda captura | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [155](#decisão-155) | Missão 05B (Experience Refinement): compactação de Favoritos vazios no Android, correção de ANR no cold start, baseline progressivo na Fase 2, early-exit na pré-leitura, eventos de funil e correção do share preview iOS | **Vigente (implementado/testado; homologação física pendente)** | Preserva 100% a Home iOS; compacta `SEUS FAVORITOS` vazios no Android; move I/O de catálogo/histórico para `Dispatchers.IO`; exibe baseline de repouso na Fase 2 sem antecipar score; otimiza pré-leitura UDP; adiciona `cancellation_stage`, `details_viewed`, `recommendations_viewed` e `result_shared`; corrige `.task(id:)` do share preview iOS (`4/4` em `CheckCompletoResultUITests`) | Luiz / Marcelo / Priscila / Camillo / Renan |
 
 
 
@@ -1844,6 +1845,22 @@
 - **Reconciliação e regra permanente:**
   - Cancelada a recomendação da Missão 05 de "Alinhar Home iOS ao Android" e o falso alarme da pílula na Dynamic Island do iOS. Preservadas todas as implementações válidas das Missões 01–05.
   - **Regra permanente (`AGENTS.md` e `.agents/WORKFLOW.md`):** toda auditoria visual deve informar versão/build, commit, scheme, dispositivo, configuração e origem do binário, usando `-derivedDataPath` isolado e diferenciando Produção, TestFlight, Desenvolvimento local, Simulador, Fixtures e Protótipos.
+
+#### Decisão 155
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 05B (Experience Refinement): evolução incremental preservando Home iOS e regras KMP.
+- **Status Atual:** **Vigente (implementado e testado localmente; homologação física pendente).**
+- **Frentes envolvidas:** Marcelo (Produto), Priscila (Design), Camillo (Engenharia), Renan (QA).
+- **Decisões e entregas:**
+  1. **Home iOS preservada:** Nenhuma alteração feita em `HomeFeatureView.swift` (já alinhada à produção `1.2`).
+  2. **Android Home & Cold Start (ANR):** Estado vazio de `SEUS FAVORITOS` compactado para linha horizontal de `48.dp` (`Adicionar favorito` em `#15181E`, mantendo `POPULARES` 2×3 acima da dobra, validado em `android_home_after.png`); pílula de status confirmada com `.statusBarsPadding()`. Leitura síncrona de `catalog-base.json` (`MainViewModel`) e `loadHistoryFromDisk()` (`HistoryRepository`) movidas para `Dispatchers.IO`.
+  3. **Diagnóstico Progressivo (Fase 2 · Carga):** `CheckCockpitScreen` (Android) e `DeepCheckFeatureView` (iOS) exibem o baseline observado em repouso (`p50 ms · jitter ms`) durante a fase de carga sem antecipar score, veredito ou causa raiz e sem alterar os 60 probes ou `:core:domain`.
+  4. **Pré-leitura UDP (`RegionalPreReadCollector`):** Adicionado `earlyExitWhenAllResolved = true` em `UdpProbeTransport` apenas para a pré-leitura de 3 probes (encerrando a espera de fechamento assim que todos os probes planejados forem resolvidos, mantendo intacto o Check de 60 probes).
+  5. **NAT e Catálogo:** Confirmado que `SessionCompatibilityStrip` não possui chamadores ativos na tela de resultado iOS e `natEvaluated = false` não exibe indicador de NAT indisponível; catálogo canônico `catalog-v3.json` (124 jogos, 21 regiões, 102.390 bytes < 128 KiB) preservado em iOS/Android e documentado para a Missão 07 no Windows.
+  6. **Firebase Analytics & Docs:** Adicionado `cancellation_stage` (`consent`, `preread`, `rest`, `load`, `unknown`) em `lagcheck_cancelled` e os eventos `details_viewed`, `recommendations_viewed` e `result_shared` em Android e iOS, com testes unitários e atualização de `docs/analytics/firebase-analytics-{android,ios}.md`.
+  7. **Correção do Share UI Test iOS (`CheckCompletoResultUITests.testShareNetworkBarInteractions`):** Identificado que `Task.detached(priority: .utility)` + codificação JSON sem `.sortedKeys` em `CheckCompletoResultView` impediam a conclusão do preview do card; ajustado para `.userInitiated` + `.sortedKeys` e espera explícita de `isEnabled == true` no teste (`4/4` passando em `CheckCompletoResultUITests`).
+- **Critérios de validação e aceite:** `:core:domain:allTests`, `:core:catalog:test`, `:core:network:test`, `:core:session:test`, `:app:testProductionDebugUnitTest`, `:app:assembleProductionDebug`, `:app:connectedProductionDebugAndroidTest` (`8/8`), `NolaggyUnitTests` (`73` testes em `NolaggyInfrastructureTests` e demais suítes sem falhas), `CheckCompletoResultUITests` (`4/4`) e build de `LagCheckClip` aprovados. Homologação em aparelho físico segue como gate obrigatório antes da Missão 06.
 
 ## Como Registrar Novas Decisões
 

@@ -13,6 +13,7 @@ import com.lagcheck.network.codec.PlayFabQosCodec
 import com.lagcheck.network.codec.PlayFabQosPayload
 import com.lagcheck.network.codec.SteamQueryA2sCodec
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -21,6 +22,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -38,7 +40,9 @@ data class ProbePlan(
     val closureMillis: Long = ProbeAcceptancePolicy.CLOSURE_MILLIS,
     val probeTimeoutMillis: Long = ProbeAcceptancePolicy.TIMEOUT_MILLIS,
     /** Aborta cedo conexão claramente morta (sample-quality-v1), sem fazer a pessoa esperar 17 s. */
-    val abortOnPoorQuality: Boolean = true
+    val abortOnPoorQuality: Boolean = true,
+    /** Encerra a espera de fechamento assim que todos os probes planejados forem resolvidos (ex.: pré-leitura). */
+    val earlyExitWhenAllResolved: Boolean = false
 )
 
 sealed class ProbeProgress {
@@ -81,6 +85,7 @@ class UdpProbeTransport(
             }
 
             val steamToken = AtomicLong(NO_TOKEN)
+            val allResolvedSignal = if (plan.earlyExitWhenAllResolved) CompletableDeferred<Unit>() else null
             coroutineScope {
                 val receiver = launch {
                     val buffer = ByteArray(2048)
@@ -100,7 +105,12 @@ class UdpProbeTransport(
                             SteamQueryA2sCodec.decodeChallenge(response)?.let { steamToken.set(it) }
                             continue
                         }
-                        ledger.accept(response, at)?.let { onProgress(ProbeProgress.Received(it)) }
+                        ledger.accept(response, at)?.let {
+                            onProgress(ProbeProgress.Received(it))
+                            if (allResolvedSignal != null && ledger.isAllResolved()) {
+                                allResolvedSignal.complete(Unit)
+                            }
+                        }
                     }
                 }
 
@@ -130,6 +140,9 @@ class UdpProbeTransport(
                         socket.send(DatagramPacket(payload, payload.size))
                     } catch (_: IOException) {
                         ledger.markTransportError(sequence)
+                        if (allResolvedSignal != null && ledger.isAllResolved()) {
+                            allResolvedSignal.complete(Unit)
+                        }
                     }
                     onProgress(ProbeProgress.Sent(sequence, plan.count))
 
@@ -139,7 +152,14 @@ class UdpProbeTransport(
                     }
                 }
 
-                if (abortReason == null) delayUntil(start + plan.closureMillis * 1_000_000L)
+                if (abortReason == null) {
+                    if (allResolvedSignal != null) {
+                        val remainingMillis = ((start + plan.closureMillis * 1_000_000L) - nanoTime()) / 1_000_000L
+                        if (remainingMillis > 0) withTimeoutOrNull(remainingMillis) { allResolvedSignal.await() }
+                    } else {
+                        delayUntil(start + plan.closureMillis * 1_000_000L)
+                    }
+                }
                 receiver.cancel()
                 ProbeCollection(ledger.finish(), abortReason)
             }

@@ -8,12 +8,15 @@ class ProductAnalyticsEventTest {
     fun `maps the canonical events without network identifiers`() {
         val events = listOf(
             ProductAnalyticsEvent.GameSelected("fortnite"),
-            ProductAnalyticsEvent.LagcheckStarted("fortnite", "iphone", "wifi", "sa-east-1"),
-            ProductAnalyticsEvent.LagcheckCompleted("fortnite", "iphone", "wifi", "sa-east-1", "great", 12),
-            ProductAnalyticsEvent.LagcheckInconclusive("fortnite", "iphone", "wifi", "sa-east-1", "insufficient_samples"),
-            ProductAnalyticsEvent.LagcheckCancelled("fortnite", "iphone", "wifi", "sa-east-1", "background"),
-            ProductAnalyticsEvent.ResultViewed("fortnite", "iphone", "ready"),
-            ProductAnalyticsEvent.RetestStarted("fortnite", "iphone")
+            ProductAnalyticsEvent.LagcheckStarted("fortnite", "mobile", "wifi", "sa-east-1"),
+            ProductAnalyticsEvent.LagcheckCompleted("fortnite", "mobile", "wifi", "sa-east-1", "great", 12),
+            ProductAnalyticsEvent.LagcheckInconclusive("fortnite", "mobile", "wifi", "sa-east-1", "insufficient_samples"),
+            ProductAnalyticsEvent.LagcheckCancelled("fortnite", "mobile", "wifi", "sa-east-1", "background", "rest"),
+            ProductAnalyticsEvent.ResultViewed("fortnite", "mobile", "ready"),
+            ProductAnalyticsEvent.DetailsViewed("fortnite", "mobile", "ready"),
+            ProductAnalyticsEvent.RecommendationsViewed("fortnite", "mobile", 2),
+            ProductAnalyticsEvent.ResultShared("fortnite", "mobile", "discord"),
+            ProductAnalyticsEvent.RetestStarted("fortnite", "mobile")
         ).map { it.toFirebasePayload() }
 
         assertThat(events.map { it.name }).containsExactly(
@@ -23,11 +26,17 @@ class ProductAnalyticsEventTest {
             "lagcheck_inconclusive",
             "lagcheck_cancelled",
             "result_viewed",
+            "details_viewed",
+            "recommendations_viewed",
+            "result_shared",
             "retest_started"
         ).inOrder()
         assertThat(events.flatMap { it.parameters.keys })
             .containsNoneOf("ip", "ssid", "bssid", "mac", "server_address", "raw_samples")
         assertThat(events[2].parameters["duration_seconds"]).isEqualTo(12L)
+        assertThat(events[4].parameters["cancellation_stage"]).isEqualTo("rest")
+        assertThat(events[7].parameters["recommendation_count"]).isEqualTo(2L)
+        assertThat(events[8].parameters["share_channel"]).isEqualTo("discord")
     }
 
     @Test

@@ -81,6 +81,11 @@ sealed class Screen {
         val connectionType: String,
         val isConfirming: Boolean = true
     ) : Screen()
+    data class RestBaselineSummary(
+        val p50Ms: Double,
+        val jitterMs: Double
+    )
+
     data class Measurement(
         val game: CatalogGame,
         val platform: String,
@@ -93,7 +98,8 @@ sealed class Screen {
         val cancelReason: CancelReason? = null,
         val destinationName: String = "",
         /** Região medida (id do catálogo); o mapa em si vive em [MainViewModel.routeMap]. */
-        val routeRegionId: String? = null
+        val routeRegionId: String? = null,
+        val restBaseline: RestBaselineSummary? = null
     ) : Screen()
     data class Verdict(
         val game: CatalogGame,
@@ -188,8 +194,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Catálogo embarcado no APK como fallback imediato e sincronizado em segundo plano
     // via https://lagcheck.signallq.com/api/catalog-v3.json com validação de schema e regiões.
-    private val bundledCatalogEnvelope = application.assets.open("catalog-base.json").use { it.readBytes() }
-    private val remoteCatalogSync = com.lagcheck.android.data.RemoteCatalogSyncRepository(application, bundledCatalogEnvelope)
+    private val remoteCatalogSyncDeferred = viewModelScope.async(Dispatchers.IO) {
+        val bundledEnvelope = getApplication<Application>().assets.open("catalog-base.json").use { it.readBytes() }
+        com.lagcheck.android.data.RemoteCatalogSyncRepository(getApplication(), bundledEnvelope)
+    }
     @Volatile
     private var catalog: Deferred<CatalogPayload?> = viewModelScope.async(Dispatchers.IO) { loadCatalog() }
     private val _catalogPayload = MutableStateFlow<CatalogPayload?>(null)
@@ -397,7 +405,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _catalogPayload.value?.regions?.none { it.id == savedRegion } == true) {
                 preferencesRepository.setManualRegionId(null)
             }
-            val synced = remoteCatalogSync.syncIfNeeded()
+            val synced = remoteCatalogSyncDeferred.await().syncIfNeeded()
             if (synced != null && synced.catalogVersion != initial?.catalogVersion) {
                 catalog = kotlinx.coroutines.CompletableDeferred(synced)
                 publishCatalog(synced)
@@ -427,7 +435,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun currentCatalog(): CatalogPayload? = catalog.await()
 
     /** Catálogo local/cache validado, ou nulo se o catálogo embarcado for inválido. Nulo = não mede. */
-    private suspend fun loadCatalog(): CatalogPayload? = remoteCatalogSync.loadLocal()
+    private suspend fun loadCatalog(): CatalogPayload? = remoteCatalogSyncDeferred.await().loadLocal()
 
     fun navigateTo(screen: Screen) {
         reviewPromptJob?.cancel()
@@ -660,14 +668,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // A região escolhida: a câmera do mapa se aproxima dela (a varredura termina aqui, como no site).
             routeMap.selectRegion(selectedContext.regionId)
             val restRtts = mutableListOf<Double>()
+            var cachedRestBaseline: Screen.RestBaselineSummary? = null
+            fun computeRestBaseline(): Screen.RestBaselineSummary? = synchronized(restRtts) {
+                if (restRtts.size < 2) return@synchronized null
+                val sorted = restRtts.sorted()
+                val mid = sorted.size / 2
+                val p50 = if (sorted.size % 2 == 1) sorted[mid] else (sorted[mid - 1] + sorted[mid]) / 2.0
+                val jitter = restRtts.zipWithNext { a, b -> kotlin.math.abs(b - a) }.average()
+                Screen.RestBaselineSummary(p50Ms = p50, jitterMs = jitter)
+            }
             fun measuring(ratio: Float, ping: Double?, rest: Boolean) {
                 // Eventos tardios de um check já cancelado não podem sobrescrever a tela atual.
                 if (job?.isActive == true) {
+                    if (!rest && cachedRestBaseline == null) {
+                        cachedRestBaseline = computeRestBaseline()
+                    }
                     _currentScreen.value = Screen.Measurement(
                         game = targetGame, platform = platform, connectionType = connectionType,
                         progressRatio = ratio.coerceIn(0.04f, 1f), currentPingMs = ping, isPhaseRest = rest,
                         isCancelled = false, showMobileDataConsent = false, destinationName = destinationLabel,
-                        routeRegionId = selectedContext.regionId
+                        routeRegionId = selectedContext.regionId,
+                        restBaseline = if (rest) null else cachedRestBaseline
                     )
                 }
             }
@@ -908,12 +929,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ))
     }
 
-    private fun trackCancellation(reason: String) {
+    private fun currentCancellationStage(): String = when (val s = _currentScreen.value) {
+        is Screen.RegionalSelection -> "preread"
+        is Screen.Measurement -> when {
+            s.showMobileDataConsent -> "consent"
+            s.isPhaseRest -> "rest"
+            else -> "load"
+        }
+        else -> "unknown"
+    }
+
+    private fun trackCancellation(reason: String, stage: String = currentCancellationStage()) {
         val measurement = activeAnalyticsMeasurement ?: return
         activeAnalyticsMeasurement = null
         productAnalytics.track(ProductAnalyticsEvent.LagcheckCancelled(
-            measurement.gameId, measurement.gamePlatform, measurement.networkType, measurement.regionId, reason
+            measurement.gameId, measurement.gamePlatform, measurement.networkType, measurement.regionId, reason, stage
         ))
+    }
+
+    fun onDetailsViewed(game: CatalogGame, evaluation: GameReadinessEvaluation) {
+        val platform = analyticsPlatform(evaluation.platform)
+        productAnalytics.track(
+            ProductAnalyticsEvent.DetailsViewed(game.id, platform, evaluation.verdict.name.lowercase())
+        )
+        if (evaluation.recommendations.isNotEmpty()) {
+            productAnalytics.track(
+                ProductAnalyticsEvent.RecommendationsViewed(game.id, platform, evaluation.recommendations.size)
+            )
+        }
+    }
+
+    fun onResultShared(game: CatalogGame, platform: String, channel: String) {
+        productAnalytics.track(
+            ProductAnalyticsEvent.ResultShared(game.id, analyticsPlatform(platform), channel)
+        )
     }
 
     private fun analyticsNetworkType(radio: RadioTelemetrySnapshot?): String = when (radio?.transportType) {

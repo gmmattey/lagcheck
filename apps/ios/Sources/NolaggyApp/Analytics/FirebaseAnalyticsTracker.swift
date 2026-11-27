@@ -60,10 +60,13 @@ private struct FirebaseAnalyticsPayload {
             name = "lagcheck_inconclusive"
             parameters = Self.contextParameters(gameID: gameID, platform: platform, networkType: networkType, regionID: regionID)
                 .merging(["inconclusive_reason": reason]) { _, new in new }
-        case let .lagcheckCancelled(gameID, platform, networkType, regionID, reason):
+        case let .lagcheckCancelled(gameID, platform, networkType, regionID, reason, stage):
             name = "lagcheck_cancelled"
             parameters = Self.contextParameters(gameID: gameID, platform: platform, networkType: networkType, regionID: regionID)
-                .merging(["cancellation_reason": reason]) { _, new in new }
+                .merging([
+                    "cancellation_reason": reason,
+                    "cancellation_stage": stage
+                ]) { _, new in new }
         case let .resultViewed(gameID, platform, resultClass):
             name = "result_viewed"
             parameters = [
@@ -76,6 +79,26 @@ private struct FirebaseAnalyticsPayload {
             parameters = [
                 "game_id": gameID,
                 "game_platform": platform
+            ]
+        case let .detailsViewed(gameID, platform):
+            name = "details_viewed"
+            parameters = [
+                "game_id": gameID,
+                "game_platform": platform
+            ]
+        case let .recommendationsViewed(gameID, platform, count):
+            name = "recommendations_viewed"
+            parameters = [
+                "game_id": gameID,
+                "game_platform": platform,
+                "recommendation_count": count
+            ]
+        case let .resultShared(gameID, platform, channel):
+            name = "result_shared"
+            parameters = [
+                "game_id": gameID,
+                "game_platform": platform,
+                "share_channel": channel
             ]
         case .appOpen, .platformSelected:
             return nil

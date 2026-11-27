@@ -113,6 +113,7 @@ fun VerdictScreen(
     onSaveGamerNick: (String) -> Unit = {},
     lastDuelResolution: Pair<com.lagcheck.domain.model.HostDuelPayload, com.lagcheck.domain.model.HostDuelPayload>? = null,
     onViewDuelVersus: (() -> Unit)? = null,
+    onShareChannel: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val nativeAd = if (showNativeAd) com.lagcheck.android.ads.rememberNativeAd(com.lagcheck.session.ads.AdPlacement.RESULT) else null
@@ -348,6 +349,7 @@ fun VerdictScreen(
             ShareNetworkBar(
                 scene = shareScene,
                 preparedLinkCard = preparedLinkCard,
+                onShare = onShareChannel,
                 modifier = Modifier.widthIn(max = 360.dp).align(Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(LagCheckSpacing.space6))

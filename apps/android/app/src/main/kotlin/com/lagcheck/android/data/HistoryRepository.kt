@@ -5,9 +5,13 @@ import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.domain.model.GameReadinessEvaluation
 import com.lagcheck.domain.model.GameReadinessVerdict
 import com.lagcheck.domain.model.NetworkFinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -23,8 +27,12 @@ class HistoryRepository(private val context: Context) {
     private val _history = MutableStateFlow<List<CheckHistoryItem>>(emptyList())
     val history: StateFlow<List<CheckHistoryItem>> = _history.asStateFlow()
 
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
-        loadHistoryFromDisk()
+        ioScope.launch {
+            loadHistoryFromDisk()
+        }
     }
 
     private fun loadHistoryFromDisk() {

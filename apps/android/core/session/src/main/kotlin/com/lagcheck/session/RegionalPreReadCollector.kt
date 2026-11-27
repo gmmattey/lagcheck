@@ -32,7 +32,8 @@ class RegionalPreReadCollector(
             intervalMillis = 1000L,
             closureMillis = 4000L,
             probeTimeoutMillis = 2000L,
-            abortOnPoorQuality = false
+            abortOnPoorQuality = false,
+            earlyExitWhenAllResolved = true
         )
         val regionId = candidate.regionId
         val collection = transport.collect(candidate.resolvedContext.destination, plan) { event ->

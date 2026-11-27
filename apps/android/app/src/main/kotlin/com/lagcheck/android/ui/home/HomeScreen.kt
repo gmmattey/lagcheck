@@ -161,21 +161,49 @@ fun HomeScreen(
                         onSeeAll = onOpenGames
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
-                    ) {
-                        gamesList.forEach { game ->
-                            HomeGameCard(
-                                game = game,
-                                onClick = { onStartGameCheck(game) }
+                    if (gamesList.isEmpty()) {
+                        // Estado vazio compacto: libera espaço vertical para a grade 2x3 de Populares acima da dobra.
+                        val emptyShape = RoundedCornerShape(LagCheckRadius.md)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clip(emptyShape)
+                                .background(LagCheckColors.Surface)
+                                .clickable { onOpenGames() }
+                                .padding(horizontal = LagCheckSpacing.space4),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space2)
+                        ) {
+                            Text(
+                                text = "+",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LagCheckColors.AccentPrimaryLight
+                            )
+                            Text(
+                                text = tr("Adicionar favorito"),
+                                style = LagCheckTypography.BodyMedium.copy(fontSize = 14.sp),
+                                color = LagCheckColors.TextSecondary
                             )
                         }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(LagCheckSpacing.space3)
+                        ) {
+                            gamesList.forEach { game ->
+                                HomeGameCard(
+                                    game = game,
+                                    onClick = { onStartGameCheck(game) }
+                                )
+                            }
 
-                        if (gamesList.size < FavoriteGames.MAX) {
-                            AddFavoriteGameCard(onClick = onOpenGames)
+                            if (gamesList.size < FavoriteGames.MAX) {
+                                AddFavoriteGameCard(onClick = onOpenGames)
+                            }
                         }
                     }
                 }

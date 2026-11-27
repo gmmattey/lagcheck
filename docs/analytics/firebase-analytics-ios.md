@@ -10,8 +10,11 @@ O Firebase registra o funil agregado do LagCheck. Ele não participa da mediçã
 | `lagcheck_started` | `game_id`, `game_platform`, `network_type`, `region_id` |
 | `lagcheck_completed` | os quatro acima, `result_class`, `duration_seconds` |
 | `lagcheck_inconclusive` | os quatro acima, `inconclusive_reason` |
-| `lagcheck_cancelled` | os quatro acima, `cancellation_reason` |
+| `lagcheck_cancelled` | os quatro acima, `cancellation_reason`, `cancellation_stage` (`consent`, `preread`, `rest`, `load`, `unknown`) |
 | `result_viewed` | `game_id`, `game_platform`, `result_class` |
+| `details_viewed` | `game_id`, `game_platform` |
+| `recommendations_viewed` | `game_id`, `game_platform`, `recommendation_count` |
+| `result_shared` | `game_id`, `game_platform`, `share_channel` |
 | `retest_started` | `game_id`, `game_platform` |
 
 `first_open`, `session_start` e os demais eventos automáticos são do SDK. O app não duplica esses eventos. Cada sessão de diagnóstico já protege o desfecho com uma trava: concluído, inconclusivo ou cancelado sai uma única vez.
@@ -47,6 +50,6 @@ O Firebase é configurado com coleta inicialmente desligada e recebe a preferên
 
 ## Configuração manual no Firebase e na loja
 
-No Firebase/GA4, registre como dimensões personalizadas os parâmetros `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason` e `cancellation_reason`; registre `duration_seconds` como métrica. Isso permite montar aquisição, ativação, conclusão, desfechos e repetição sem dashboard próprio. D1, D7 e D30 vêm dos relatórios de retenção do GA4 quando houver volume.
+No Firebase/GA4, registre como dimensões personalizadas os parâmetros `game_id`, `game_platform`, `network_type`, `region_id`, `result_class`, `inconclusive_reason`, `cancellation_reason`, `cancellation_stage` e `share_channel`; registre `duration_seconds` e `recommendation_count` como métricas. Isso permite montar aquisição, ativação, conclusão, desfechos e repetição sem dashboard próprio. D1, D7 e D30 vêm dos relatórios de retenção do GA4 quando houver volume.
 
 Antes de enviar um archive, confronte o binário com a App Privacy no App Store Connect e com a política em `~/Projetos/web/landings/sites/lagcheck/`: Firebase Analytics adiciona coleta de dados de uso e identificadores conforme o SDK efetivamente distribuído. Mantenha o campo de rastreamento como não usado se não houver rastreamento entre apps/sites, e não declare ATT por causa do Analytics sozinho. UMP continua sendo o gate de consentimento dos anúncios; esta integração não altera AdMob, UMP ou os seus pedidos de anúncio.

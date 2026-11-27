@@ -43,9 +43,27 @@ class LagCheckAppSmokeTest {
     }
 
     @Test
+    fun homeShowsCompactFavoritesAndPopularesAboveFold() {
+        composeRule.onNodeWithText("Adicionar favorito").assertIsDisplayed()
+        composeRule.onNodeWithText("POPULARES").assertIsDisplayed()
+    }
+
+    @Test
     fun generalCheckFromHomeStartsAndCancelsCleanly() {
         composeRule.onNodeWithText("TESTAR AGORA").assertIsDisplayed().performClick()
         // A tela de medição/pré-leitura possui animação contínua; não usar waitForIdle().
+        composeRule.mainClock.advanceTimeBy(300)
+        composeRule.activityRule.scenario.onActivity { activity ->
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.onNodeWithText("Início").assertIsDisplayed()
+    }
+
+    @Test
+    fun generalCheckFromGamesTabEmptySearchStartsAndCancelsCleanly() {
+        composeRule.onNodeWithText("Jogos").performClick()
+        composeRule.onNode(hasSetTextAction()).performTextInput("zzzzznonexistent")
+        composeRule.onNodeWithText("Fazer Check Geral").assertIsDisplayed().performClick()
         composeRule.mainClock.advanceTimeBy(300)
         composeRule.activityRule.scenario.onActivity { activity ->
             activity.onBackPressedDispatcher.onBackPressed()

@@ -44,8 +44,10 @@ import com.lagcheck.core.designsystem.theme.LagCheckRadius
 import com.lagcheck.core.designsystem.theme.LagCheckSpacing
 import com.lagcheck.domain.model.CatalogGame
 import com.lagcheck.android.ui.CancelReason
+import com.lagcheck.android.ui.Screen
 import com.lagcheck.android.ui.headline
 import com.lagcheck.android.ui.tr
+import com.lagcheck.android.ui.trf
 
 /**
  * 03 · Medição ao Vivo (Trilha Viva de Medição).
@@ -68,6 +70,7 @@ fun CheckCockpitScreen(
     routeRegionId: String? = null,
     routeMap: RouteMapController? = null,
     routeRegionName: (String) -> String = { it },
+    restBaseline: Screen.RestBaselineSummary? = null,
     showMobileDataConsent: Boolean = false,
     onCancel: () -> Unit,
     onRetry: () -> Unit,
@@ -185,6 +188,20 @@ fun CheckCockpitScreen(
                     textNodeServer = tr("Região Gamer"),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (!isPhaseRest && restBaseline != null) {
+                    Spacer(modifier = Modifier.height(LagCheckSpacing.space3))
+                    Text(
+                        text = trf(
+                            "Repouso observado: %d ms · %d ms jitter",
+                            kotlin.math.round(restBaseline.p50Ms).toInt(),
+                            kotlin.math.round(restBaseline.jitterMs).toInt()
+                        ),
+                        style = LagCheckTypography.MonoSmall,
+                        color = LagCheckColors.TextSecondary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
