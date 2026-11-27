@@ -125,7 +125,7 @@ if [[ "$ARTIFACT" == "apk" || "$ARTIFACT" == "both" ]]; then
   if [[ "$ARTIFACT" == "apk" ]]; then
     APK_CLEAN_TASK=("clean")
   fi
-  ./gradlew "${APK_CLEAN_TASK[@]}" ":app:assemble${VARIANT}" \
+  ./gradlew ${APK_CLEAN_TASK[@]+"${APK_CLEAN_TASK[@]}"} ":app:assemble${VARIANT}" \
     -Plagcheck.versionName="$VERSION_NAME" \
     -Plagcheck.versionCode="$VERSION_CODE" \
     -Plagcheck.adsEnabled="$ADS_ENABLED" \
