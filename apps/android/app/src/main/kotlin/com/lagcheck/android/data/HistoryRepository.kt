@@ -24,6 +24,9 @@ import java.io.File
 class HistoryRepository(private val context: Context) {
 
     private val historyFile = File(context.filesDir, "measurement_history.json")
+    private val historyLock = Any()
+    @Volatile
+    private var diskLoaded = false
     private val _history = MutableStateFlow<List<CheckHistoryItem>>(emptyList())
     val history: StateFlow<List<CheckHistoryItem>> = _history.asStateFlow()
 
@@ -36,6 +39,14 @@ class HistoryRepository(private val context: Context) {
     }
 
     private fun loadHistoryFromDisk() {
+        synchronized(historyLock) {
+            loadFromDiskLocked()
+        }
+    }
+
+    private fun loadFromDiskLocked() {
+        if (diskLoaded) return
+        diskLoaded = true
         if (!historyFile.exists()) {
             _history.value = emptyList()
             return
@@ -90,15 +101,21 @@ class HistoryRepository(private val context: Context) {
             loadP99 = evaluation.metrics?.load?.p99Milliseconds,
             loadSpikeCount = evaluation.metrics?.load?.spikeCount
         )
-        val updated = applyRetention(listOf(newItem) + _history.value, now = newItem.timestamp)
-        _history.value = updated
-        saveHistoryToDisk(updated)
+        synchronized(historyLock) {
+            loadFromDiskLocked()
+            val updated = applyRetention(listOf(newItem) + _history.value, now = newItem.timestamp)
+            _history.value = updated
+            saveHistoryToDisk(updated)
+        }
     }
 
     fun clearAll() {
-        _history.value = emptyList()
-        if (historyFile.exists()) {
-            historyFile.delete()
+        synchronized(historyLock) {
+            diskLoaded = true
+            _history.value = emptyList()
+            if (historyFile.exists()) {
+                historyFile.delete()
+            }
         }
     }
 

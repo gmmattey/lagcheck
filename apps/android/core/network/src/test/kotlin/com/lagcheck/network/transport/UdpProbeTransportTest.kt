@@ -170,4 +170,36 @@ class UdpProbeTransportTest {
             assertThat(a.packetLossPercentage).isEqualTo(0.0)
         }
     }
+
+    @Test fun earlyExitWhenAllResolvedFinishesPromptlyAndKeepsDroppedProbesAsTimeout() = runBlocking {
+        LoopbackUdpServer { req, _ -> listOf(req) }.use { server ->
+            val preReadPlan = ProbePlan(
+                count = 3,
+                intervalMillis = 50,
+                closureMillis = 3_000,
+                probeTimeoutMillis = 500,
+                abortOnPoorQuality = false,
+                earlyExitWhenAllResolved = true
+            )
+            val t0 = System.nanoTime()
+            val complete = UdpProbeTransport().collect(dest(server.port, ProbeProtocolKind.GAMELIFT_PING), preReadPlan)
+            val elapsedMs = (System.nanoTime() - t0) / 1_000_000
+            assertThat(complete.samples).hasSize(3)
+            assertThat(complete.samples.all { it.outcome == ProbeOutcome.RECEIVED }).isTrue()
+            assertThat(elapsedMs).isLessThan(1_500)
+        }
+        LoopbackUdpServer { req, i -> if (i == 1) emptyList() else listOf(req) }.use { server ->
+            val preReadPlan = ProbePlan(
+                count = 3,
+                intervalMillis = 50,
+                closureMillis = 900,
+                probeTimeoutMillis = 250,
+                abortOnPoorQuality = false,
+                earlyExitWhenAllResolved = true
+            )
+            val partial = UdpProbeTransport().collect(dest(server.port, ProbeProtocolKind.GAMELIFT_PING), preReadPlan)
+            assertThat(partial.samples.count { it.outcome == ProbeOutcome.RECEIVED }).isEqualTo(2)
+            assertThat(partial.samples.count { it.outcome == ProbeOutcome.TIMEOUT }).isEqualTo(1)
+        }
+    }
 }
