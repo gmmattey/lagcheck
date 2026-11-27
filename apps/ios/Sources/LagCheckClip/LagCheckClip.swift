@@ -49,11 +49,11 @@ struct LagCheckClipView: View {
             NLColor.deep.ignoresSafeArea()
             
             VStack(spacing: NLSpacing.lg) {
-                // Topo da marca
+                // Topo da marca (Lagcheck oficial — Decisão 124)
                 HStack {
-                    Text("lagcheck")
-                        .font(NLTypography.screenTitle)
-                        .foregroundStyle(NLColor.textPrimary)
+                    (Text("Lag").foregroundColor(NLColor.textPrimary) + Text("check").foregroundColor(NLColor.accentPrimary))
+                        .font(NLTypography.wordmark)
+                        .accessibilityLabel("LagCheck")
                     
                     Spacer()
                     

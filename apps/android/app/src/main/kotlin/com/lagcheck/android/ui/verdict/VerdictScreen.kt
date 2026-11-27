@@ -59,7 +59,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import com.lagcheck.android.data.LagCheckDiscordCardExporter
 import com.lagcheck.android.share.ShareMediaScene
 import com.lagcheck.android.share.ShareNetworkBar
 import com.lagcheck.android.share.openCardChooser
@@ -169,69 +168,6 @@ fun VerdictScreen(
         if (it <= 0.05) tr("0% perda") else trf("%.1f%% perda", it)
     } ?: tr("— perda")
     val regionLabel = evaluation.regionLabel
-
-    fun shareToDiscord() {
-        val cardFile = LagCheckDiscordCardExporter.generateDiscordShareCard(
-            context = context,
-            gameName = game.name,
-            regionName = regionLabel,
-            verdict = evaluation.verdict,
-            pingMs = evaluation.pingMs,
-            jitterMs = evaluation.jitterMs,
-            packetLossPercentage = evaluation.packetLossPercentage,
-            isWiFi = evaluation.connectionType.contains("Wi-Fi", ignoreCase = true)
-        )
-        val quote = LagCheckDiscordCardExporter.gamerQuote(evaluation.verdict)
-        val shareText = "🎮 LagCheck · ${game.name}\n$quote\nhttps://lagcheck.signallq.com"
-
-        // Copiar texto para o clipboard para facilidade no Discord
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("LagCheck Discord", shareText))
-        Toast.makeText(context, tr("Texto copiado para colar no Discord!"), Toast.LENGTH_SHORT).show()
-
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = if (cardFile != null) "image/png" else "text/plain"
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            if (cardFile != null) {
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", cardFile)
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-        }
-        context.startActivity(Intent.createChooser(shareIntent, tr("Compartilhar no Discord")))
-    }
-
-    fun shareToWhatsApp() {
-        val cardFile = LagCheckDiscordCardExporter.generateDiscordShareCard(
-            context = context,
-            gameName = game.name,
-            regionName = regionLabel,
-            verdict = evaluation.verdict,
-            pingMs = evaluation.pingMs,
-            jitterMs = evaluation.jitterMs,
-            packetLossPercentage = evaluation.packetLossPercentage,
-            isWiFi = evaluation.connectionType.contains("Wi-Fi", ignoreCase = true)
-        )
-        val quote = LagCheckDiscordCardExporter.gamerQuote(evaluation.verdict)
-        val whatsappText = """
-            🎮 *LagCheck — ${game.name}*
-            *${tr("Veredito")}:* ${evaluation.headline}
-            ⏱ *Ping:* $pingText | *Jitter:* $jitterText | *${tr("Perda")}:* $lossText
-            $quote
-            https://lagcheck.signallq.com
-        """.trimIndent()
-
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = if (cardFile != null) "image/png" else "text/plain"
-            putExtra(Intent.EXTRA_TEXT, whatsappText)
-            if (cardFile != null) {
-                val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", cardFile)
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-        }
-        context.startActivity(Intent.createChooser(shareIntent, tr("Enviar via WhatsApp")))
-    }
 
     fun exportPDF() {
         val stamp = AppLocale.dateTime(evaluation.timestamp)

@@ -13,45 +13,44 @@ Para garantir velocidade e foco no código:
 
 ---
 
-## 2. O Ciclo Ágil de 3 Passos
+## 2. Fluxo Operacional por Missões (9 Etapas + Ciclo da Squad)
+
+Toda evolução do LagCheck segue o **modelo orientado a missões** (adaptado na Missão 01) integrado ao ciclo ágil de 3 passos da squad:
 
 ```text
 [1. Enquadramento] ➔ [2. Construção & Auto-Teste] ➔ [3. Prova de Fogo (QA)] ➔ Entrega
     Marcelo                 Camillo (+ Priscila)                Renan
 ```
 
-### Passo 1 — Enquadramento Direto (Marcelo)
-Ao receber um pedido do Luiz, Marcelo resume em **um parágrafo curto**:
-1. **O que fazer** (objetivo claro e mensurável);
-2. **O que NÃO fazer** (limite de escopo para não inchar o código);
-3. **Critério de sucesso** (o que precisa funcionar na prática).
-
-### Passo 2 — Construção & Auto-Teste (Camillo + Priscila)
-- **Priscila:** Se envolver interface, define ou confirma os tokens de cor, tipografia e layout em conformidade com o Design System.
-- **Camillo:** Implementa a alteração de ponta a ponta (motor, contratos e telas).
-- **A Trava de Autonomia:** Camillo **NUNCA** entrega sem rodar localmente a build e a suíte de testes existente do projeto.
-
-### Passo 3 — Prova de Fogo & Aceite (Renan)
-Renan não preenche formulários burocráticos. Ele atua como caça-bugs:
-1. Executa a suíte de validação automatizada (`test`, `lint`, `build`);
-2. Audita cenários de borda (queda de conexão, timeout, dados incompletos);
-3. Confere fidelidade visual contra o Design System da Priscila;
-4. Emite o veredito objetivo em **uma linha**:
-   - `✓ APROVADO: [Evidência dos testes e comportamento verificado]`
-   - `✗ BLOQUEADO: [Arquivo, linha e cenário exato que quebrou]`
+1. **Definição do objetivo** *(Marcelo)*: 1 parágrafo curto com o que fazer, o que NÃO fazer e critérios de aceite objetivos.
+2. **Reconhecimento do estado existente** *(Camillo)*: ler código, testes e `git status` sem presumir que algo funciona só porque existe código.
+3. **Verificação de componentes reutilizáveis** *(Camillo + Priscila)*: priorizar `:core:domain` (KMP), tokens de `shared/design-system/` e componentes existentes.
+4. **Registro de decisões (se aplicável)** *(Marcelo)*: atualizar `docs/DECISOES.md` antes de codar quando houver regra nova.
+5. **Implementação incremental** *(Camillo)*: mudança cirúrgica com WIP = 1, sem alterar escopo combinado.
+6. **Testes** *(Camillo)*: **NUNCA** entregar sem rodar localmente a build e a suíte unitária/contrato aplicável.
+7. **Validação funcional** *(Renan)*: validar cenários de borda, fidelidade visual e prova em aparelho físico quando tocar rede, rádio, ciclo de vida ou anúncios; emitir veredito em 1 linha (`✓ APROVADO` ou `✗ BLOQUEADO`).
+8. **Atualização do status** *(Marcelo)*: atualizar `docs/ROADMAP.md` e `Obsidian/GMMATTEY/Lagcheck/`.
+9. **Entrega de evidências** *(Marcelo + Renan)*: separar **fatos verificados** (implementado × testado × homologado × publicado), **hipóteses** e **próximos passos**.
 
 ---
 
-## 3. Comandos Canônicos de Validação por Projeto
+## 3. Estratégia de Validação Rápida (3 Níveis) e Comandos Canônicos
 
-Cada projeto possui comandos rápidos que devem ser executados antes de considerar qualquer alteração concluída:
+Para evitar burocracia e saber exatamente o que rodar após cada alteração:
 
-| Projeto | Comandos de Validação |
-| :--- | :--- |
-| **`lagcheck`** | `./gradlew :core:domain:allTests :app:testProductionDebugUnitTest` (em `apps/android/`) · `xcodebuild test -project apps/ios/Nolaggy.xcodeproj -scheme NolaggyUnitTests -destination 'platform=iOS Simulator,...'` (iOS) · `dotnet test apps/windows/LagCheck.WinUI.Tests/LagCheck.WinUI.Tests.csproj` (Windows WinUI 3) · `./gradlew :desktop:compileKotlin :desktop:test` e `:desktop:shots` (legado Compose Desktop, em `apps/android/`) · `npm test` em `apps/worker/` |
-| **`linka`** | `swift test` nos pacotes tocados · `xcodebuild -scheme LinkaApp -destination 'platform=iOS Simulator,name=iPhone 16'` |
-| **`wifi-check`** | `swift test` (suíte WiFiCheckTests) |
-| **`landings`** | `npm run check` (executa testes e builds de todos os sites em 15s) |
+| Nível | Quando usar | Objetivo |
+| :--- | :--- | :--- |
+| **Nível 1 — Desenvolvimento** | Durante edições locais | Feedback rápido de compilação e regras puras (`jvmTest`, `NolaggyUnitTests`, `node --test`, `dotnet test`) |
+| **Nível 2 — Integração** | Antes de fechar a missão | Suítes completas por plataforma, contratos KMP (`allTests`), builds (`assembleProductionDebug`, `Nolaggy` + `LagCheckClip`, `LagCheck.WinUI`) e `androidTest` em emulador |
+| **Nível 3 — Release** | Antes de TestFlight / Play / Produção | Homologação em **aparelho físico** (roteiro da Missão 02: Wi-Fi, 4G/5G, carga, troca de rede, cancelamento, ciclo de vida, AdMob/UMP, telemetria, share), notas comerciais e aprovação explícita do Luiz |
+
+| Plataforma | Nível 1 (Desenvolvimento) | Nível 2 (Integração) |
+| :--- | :--- | :--- |
+| **KMP (`:core:domain`)** | `./gradlew :core:domain:jvmTest` (em `apps/android/`) | `./gradlew :core:domain:allTests` (JVM + iOS Simulator + JS) |
+| **Android (`apps/android/`)** | `./gradlew :app:testProductionDebugUnitTest` | `./gradlew :core:domain:allTests :core:catalog:test :core:network:test :core:session:test :app:testProductionDebugUnitTest :app:assembleProductionDebug :app:connectedProductionDebugAndroidTest` |
+| **iOS (`apps/ios/`)** | `xcodebuild test -project Nolaggy.xcodeproj -scheme NolaggyUnitTests -destination "id=$SIM_ID"` | `xcodebuild test -scheme NolaggyUnitTests` + `xcodebuild build -scheme Nolaggy` (inclui `LagCheckWidget` e `LagCheckClip`) |
+| **Windows (`apps/windows/`)** | `dotnet test apps/windows/LagCheck.WinUI.Tests/LagCheck.WinUI.Tests.csproj` | `.github/workflows/windows-ci.yml`: `LagCheck.WinUI.Tests` + `dotnet build LagCheck.WinUI.csproj -c Release -p:Platform=x64` + `./gradlew :engine-host:test :desktop:test` |
+| **Worker (`apps/worker/`)** | `npm test --prefix apps/worker` | `.github/workflows/analytics-ci.yml` (`npm test --prefix apps/worker` + `python3 -m unittest discover -s shared/scripts/tests -v`) |
 
 ---
 
@@ -60,6 +59,7 @@ Cada projeto possui comandos rápidos que devem ser executados antes de consider
 1. **Compilou não é funcionou:** Código só é entregue após prova de comportamento no cenário feliz e no cenário de erro.
 2. **Honestidade de dados:** Erro, timeout ou falta de dado **NUNCA** viram zero nem sucesso inventado.
 3. **Mudança cirúrgica:** Não toque em arquivos fora do escopo combinado. Menos linhas alteradas = menor chance de quebra.
+4. **Rastreabilidade visual obrigatória:** Antes de capturar telas no simulador/emulador, compile em `-derivedDataPath` isolado (ou valide `Info.plist` + data do binário), desinstale builds antigos e registre plataforma, versão/build, commit, scheme e ausência de fixtures. Nunca use `find DerivedData/... | head -n1`.
 
 ---
 

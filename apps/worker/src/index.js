@@ -354,29 +354,6 @@ export async function incrementStat(env, type) {
   }
 }
 
-export async function handleVisit(request, env = {}) {
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: WAITLIST_CORS_HEADERS
-    });
-  }
-
-  if (request.method !== "POST") {
-    return new Response("Method not allowed", {
-      status: 405,
-      headers: { "Allow": "POST, OPTIONS", "Cache-Control": "no-store" }
-    });
-  }
-
-  // Legado: preserva compatibilidade dos clients antigos sem contar visitas em paralelo.
-  // Pageviews e visitantes passam a ser contabilizados apenas pela Vercel.
-  return Response.json({ status: "ok", deprecated: true }, {
-    status: 200,
-    headers: WAITLIST_CORS_HEADERS
-  });
-}
-
 export async function handleAppStoreClick(request, env = {}) {
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -797,9 +774,6 @@ export async function handleRequest(request, env = {}) {
     if (!env.ASSETS) return new Response("Asset binding unavailable", { status: 503, headers: { "Cache-Control": "no-store" } });
     // A URL pública não expõe o diretório interno nem aceita segmentos livres.
     return env.ASSETS.fetch(new Request(new URL(`/games/${assetMatch[1]}`, url), request));
-  }
-  if (url.pathname === "/v1/visit") {
-    return handleVisit(request, env);
   }
   if (url.pathname === "/v1/click" || url.pathname === "/v1/click/appstore") {
     return handleAppStoreClick(request, env);

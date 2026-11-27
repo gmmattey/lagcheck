@@ -26,16 +26,4 @@ public enum VocabularyGuardrail {
         }
         return sanitized
     }
-    
-    /// Sanitiza uma lista de ações recomendadas
-    public static func sanitize(items: [BoosterActionItem]) -> [BoosterActionItem] {
-        items.map { item in
-            BoosterActionItem(
-                id: item.id,
-                category: item.category,
-                title: sanitize(item.title),
-                detail: sanitize(item.detail)
-            )
-        }
-    }
 }

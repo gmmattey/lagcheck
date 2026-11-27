@@ -63,11 +63,6 @@ class PreferencesRepository(context: Context) {
         prefs.edit().putString("pref_platform", platform).apply()
     }
 
-    fun setSelectedConnectionType(type: String) {
-        _selectedConnectionType.value = type
-        prefs.edit().putString("pref_conn_type", type).apply()
-    }
-
     private val _manualRegionId = MutableStateFlow(
         prefs.getString("pref_manual_region_id", null)
     )

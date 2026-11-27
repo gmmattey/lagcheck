@@ -22,7 +22,6 @@ public struct CheckCompletoResultView: View {
     public let destinationKind: RouteDestinationKind
     public let isWiFi: Bool
     public let showDetails: () -> Void
-    public let showBooster: () -> Void
     public let retry: () -> Void
     public let exit: () -> Void
 
@@ -74,7 +73,6 @@ public struct CheckCompletoResultView: View {
         destinationKind: RouteDestinationKind = .regionalReference,
         isWiFi: Bool = true,
         showDetails: @escaping () -> Void = {},
-        showBooster: @escaping () -> Void = {},
         retry: @escaping () -> Void,
         exit: @escaping () -> Void = {},
         incomingDuel: HostDuelPayload? = nil
@@ -89,7 +87,6 @@ public struct CheckCompletoResultView: View {
         self.destinationKind = destinationKind
         self.isWiFi = isWiFi
         self.showDetails = showDetails
-        self.showBooster = showBooster
         self.retry = retry
         self.exit = exit
         self.incomingDuel = incomingDuel

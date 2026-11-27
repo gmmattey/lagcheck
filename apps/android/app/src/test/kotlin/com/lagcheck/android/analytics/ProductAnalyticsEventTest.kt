@@ -41,4 +41,14 @@ class ProductAnalyticsEventTest {
         assertThat(effectiveAnalyticsCollectionEnabled(buildAllowsCollection = true, ownerExcluded = true)).isFalse()
         assertThat(effectiveAnalyticsCollectionEnabled(buildAllowsCollection = true, ownerExcluded = false)).isTrue()
     }
+
+    @Test
+    fun `maps mobile platform to mobile and never leaks iphone`() {
+        assertThat(analyticsGamePlatform("Mobile")).isEqualTo("mobile")
+        assertThat(analyticsGamePlatform("android")).isEqualTo("mobile")
+        assertThat(analyticsGamePlatform("PlayStation")).isEqualTo("playstation")
+        assertThat(analyticsGamePlatform("Xbox")).isEqualTo("xbox")
+        assertThat(analyticsGamePlatform("PC")).isEqualTo("pc")
+        assertThat(analyticsGamePlatform("Switch")).isEqualTo("nintendo")
+    }
 }

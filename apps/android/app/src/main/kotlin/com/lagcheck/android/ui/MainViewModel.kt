@@ -119,7 +119,6 @@ sealed class Screen {
     ) : Screen()
     data object History : Screen()
     data object Settings : Screen()
-    data object NetworkCockpit : Screen()
 }
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -170,7 +169,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         })
     )
     private val routePreflight = com.lagcheck.network.preflight.SteamA2sRoutePreflight()
-    private val localReporter = LocalNetworkReporter(localDiagnostics)
     private val pathWatcher = NetworkPathWatcher(application)
     private val telemetry = TelemetryReporter(viewModelScope, PrefsInstallationIdStore(application))
     private val analyticsCollectionPreference = AnalyticsCollectionPreference.from(
@@ -372,13 +370,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         startCheck(targetGame = targetGame)
     }
 
-    private val _localReport = MutableStateFlow<LocalNetworkReport?>(null)
-    /** Leitura local do Cockpit (resposta DNS do gateway, NAT inconclusivo e banda). Nulo enquanto mede. */
-    val localReport: StateFlow<LocalNetworkReport?> = _localReport.asStateFlow()
-    private val _localReportLoading = MutableStateFlow(false)
-    val localReportLoading: StateFlow<Boolean> = _localReportLoading.asStateFlow()
-
-    private var localReportJob: Job? = null
     private var measurementJob: Job? = null
     private var hasConsentedMobileData: Boolean = false
     private var nextStartIsRetest: Boolean = false
@@ -445,7 +436,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             screen is Screen.Home || screen is Screen.GameSelection || screen is Screen.History
         )
         _currentScreen.value = screen
-        if (screen is Screen.NetworkCockpit) refreshLocalReport()
     }
 
     /** O que o aparelho sabe do ambiente local agora, vindo só do sistema operacional. */
@@ -455,25 +445,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         localIp = radio?.localAddress,
         wifiRadio = radio?.wifiDetails
     )
-
-    /** Observa a resposta DNS do gateway ao abrir o Cockpit; NAT permanece inconclusivo sem sonda válida. */
-    fun refreshLocalReport() {
-        localReportJob?.cancel()
-        refreshRadioTelemetry()
-        val env = environmentOf(_liveRadioTelemetry.value)
-        _localReport.value = null
-        _localReportLoading.value = true
-        localReportJob = viewModelScope.launch(Dispatchers.IO) {
-            val job = coroutineContext[Job]
-            try {
-                val result = runCatching { localReporter.capture(env) }
-                    .getOrDefault(LocalNetworkReport(null, null, null))
-                if (localReportJob === job) _localReport.value = result
-            } finally {
-                if (localReportJob === job) _localReportLoading.value = false
-            }
-        }
-    }
 
     fun selectGame(game: CatalogGame, platform: String, connectionType: String, declaredExternalLink: com.lagcheck.domain.model.ExternalEquipmentLink? = null) {
         _selectedGame.value = game
@@ -504,7 +475,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (preMatchReminder.enabled) preMatchReminder.gameId?.let { preMatchReminder.schedule(it, preMatchReminder.hour, preMatchReminder.minute) }
     }
 
-    fun reminderEnabled(): Boolean = _reminderEnabled.value
     fun reminderHour(): Int = preMatchReminder.hour
     fun reminderMinute(): Int = preMatchReminder.minute
     fun enableReminder() { preMatchReminder.markPermissionGranted(); preMatchReminder.schedule(_selectedGame.value.id); _reminderEnabled.value = true; _reminderPermissionDenied.value = false }
@@ -953,13 +923,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         else -> "other"
     }
 
-    private fun analyticsPlatform(platform: String): String = when (PlatformLabels.toPlatform(platform)) {
-        com.lagcheck.catalog.Platform.MOBILE -> "iphone"
-        com.lagcheck.catalog.Platform.PLAYSTATION -> "playstation"
-        com.lagcheck.catalog.Platform.XBOX -> "xbox"
-        com.lagcheck.catalog.Platform.PC -> "pc"
-        com.lagcheck.catalog.Platform.NINTENDO -> "nintendo"
-    }
+    private fun analyticsPlatform(platform: String): String =
+        com.lagcheck.android.analytics.analyticsGamePlatform(platform)
 
     private fun com.lagcheck.domain.model.ResultClass.analyticsValue(): String = when (this) {
         com.lagcheck.domain.model.ResultClass.EXCELLENT -> "excellent"

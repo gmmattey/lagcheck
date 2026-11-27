@@ -138,6 +138,18 @@ internal fun ProductAnalyticsEvent.toFirebasePayload(): FirebaseAnalyticsPayload
     }
 }
 
+/**
+ * Mapeia o contexto de plataforma do pedido para o parâmetro `game_platform` do Firebase Analytics Android.
+ * Diferencia plataforma do jogo (`mobile`, `playstation`, `xbox`, `pc`, `nintendo`) do SO do aparelho.
+ */
+internal fun analyticsGamePlatform(platform: String): String = when (com.lagcheck.session.PlatformLabels.toPlatform(platform)) {
+    com.lagcheck.catalog.Platform.MOBILE -> "mobile"
+    com.lagcheck.catalog.Platform.PLAYSTATION -> "playstation"
+    com.lagcheck.catalog.Platform.XBOX -> "xbox"
+    com.lagcheck.catalog.Platform.PC -> "pc"
+    com.lagcheck.catalog.Platform.NINTENDO -> "nintendo"
+}
+
 object FirebaseAnalyticsRuntime {
     fun configure(context: Context, enabled: Boolean, environment: String): FirebaseAnalytics {
         return FirebaseAnalytics.getInstance(context).also {

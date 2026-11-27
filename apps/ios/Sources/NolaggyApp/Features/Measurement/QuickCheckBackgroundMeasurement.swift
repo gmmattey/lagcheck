@@ -19,7 +19,4 @@ extension QuickCheckFeatureView {
         }
         return .inconclusive
     }
-
-    /// Mantido para compatibilidade sem disparar testes em massa automáticos.
-    func startBackgroundQuickCheck() {}
 }

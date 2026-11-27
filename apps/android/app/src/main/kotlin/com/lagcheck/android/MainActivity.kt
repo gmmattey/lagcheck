@@ -65,7 +65,6 @@ import com.lagcheck.android.ui.MainViewModel
 import com.lagcheck.android.ui.Screen
 import com.lagcheck.android.ui.tr
 import com.lagcheck.android.ui.check.CheckCockpitScreen
-import com.lagcheck.android.ui.cockpit.NetworkCockpitScreen
 import com.lagcheck.android.ui.details.TechnicalDetailsScreen
 import com.lagcheck.android.ui.games.GameSelectionScreen
 import com.lagcheck.android.ui.history.HistoryScreen
@@ -136,8 +135,6 @@ class MainActivity : ComponentActivity() {
             val language by viewModel.language.collectAsState()
             SideEffect { AppLocale.language = language.toAppLanguage() }
             val radioSnapshot by viewModel.liveRadioTelemetry.collectAsState()
-            val localReport by viewModel.localReport.collectAsState()
-            val localReportLoading by viewModel.localReportLoading.collectAsState()
             val platformHealth by viewModel.platformHealth.collectAsState()
             val favorites by viewModel.favorites.collectAsState()
             val reminderEnabled by viewModel.reminderEnabledState.collectAsState()
@@ -160,7 +157,7 @@ class MainActivity : ComponentActivity() {
             // Back button handling nativo conforme a tela
             BackHandler(enabled = currentScreen !is Screen.Home) {
                 when (val screen = currentScreen) {
-                    is Screen.GameSelection, is Screen.History, is Screen.Settings, is Screen.NetworkCockpit -> {
+                    is Screen.GameSelection, is Screen.History, is Screen.Settings -> {
                         viewModel.navigateTo(Screen.Home)
                     }
                     is Screen.Measurement, is Screen.RegionalSelection, is Screen.ConnectionRequired -> {
@@ -386,13 +383,8 @@ class MainActivity : ComponentActivity() {
                                 viewModel.startCheck()
                             },
                             onStartGeneralCheck = {
-                                val generalGame = OfficialGameCatalog.findById("fortnite").copy(
-                                    id = "check-geral",
-                                    name = "Check Geral",
-                                    category = "Rota de Referência",
-                                    drawableResName = ""
-                                )
-                                viewModel.startCheck(generalGame, "Mobile", "")
+                                gamesOpenedFromHome = false
+                                viewModel.startGeneralCheck()
                             },
                             showNativeAd = showNativeAd
                         )
@@ -563,18 +555,6 @@ class MainActivity : ComponentActivity() {
                             onOpenPrivacyOptions = { ads.showPrivacyOptions() },
                             onCheckForUpdates = { viewModel.checkForUpdates(manual = true) },
                             onBack = { viewModel.navigateTo(Screen.Home) }
-                        )
-                    }
-                    is Screen.NetworkCockpit -> {
-                        NetworkCockpitScreen(
-                            radioSnapshot = radioSnapshot,
-                            report = localReport,
-                            isProbing = localReportLoading,
-                            language = language.toAppLanguage(),
-                            onClose = {
-                                viewModel.navigateTo(Screen.Home)
-                            },
-                            onRefresh = { viewModel.refreshLocalReport() }
                         )
                     }
                 }
@@ -766,7 +746,7 @@ private const val OneUiFadeMillis = 200
 
 private fun screenDepth(screen: Screen): Int = when (screen) {
     is Screen.Home, is Screen.GameSelection, is Screen.History, is Screen.Settings -> 0
-    is Screen.NetworkCockpit, is Screen.HistoryDetails, is Screen.RegionalSelection, is Screen.ConnectionRequired -> 1
+    is Screen.HistoryDetails, is Screen.RegionalSelection, is Screen.ConnectionRequired -> 1
     is Screen.Measurement -> 2
     is Screen.Verdict, is Screen.HostDuelVersus -> 3
     is Screen.TechnicalDetails -> 4

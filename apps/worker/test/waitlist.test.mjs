@@ -151,27 +151,6 @@ test("POST /v1/waitlist dispatches to env.DISCORD_WEBHOOK_URL when set", async (
   }
 });
 
-test("POST /v1/visit remains compatible without writing redundant visit counts", async () => {
-  const kvMap = new Map();
-  const mockEnv = {
-    WAITLIST_KV: {
-      get: async (key) => kvMap.get(key) || null,
-      put: async (key, val) => kvMap.set(key, val)
-    }
-  };
-
-  const response = await handleRequest(new Request("https://example.workers.dev/v1/visit", {
-    method: "POST"
-  }), mockEnv);
-
-  assert.equal(response.status, 200);
-  const data = await response.json();
-  assert.equal(data.status, "ok");
-
-  assert.equal(data.deprecated, true);
-  assert.equal(kvMap.size, 0);
-});
-
 test("POST /v1/report/test rejects public calls without a dedicated secret", async () => {
   const response = await handleRequest(new Request("https://example.workers.dev/v1/report/test", {
     method: "POST"

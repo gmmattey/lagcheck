@@ -126,10 +126,7 @@ targets:
       - sdk: WidgetKit.framework
     sources:
       - path: Sources/NolaggyApp
-      # Credencial de desenvolvimento local, ignorada pelo Git. O serviço
-      # lê este recurso somente no bundle Debug instalado neste Mac.
-      - path: Secrets/Secrets.plist
-        buildPhase: resources
+      # Secrets.plist não deve ser empacotado no bundle (nem Debug nem Release).
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lagcheck.app

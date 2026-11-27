@@ -151,6 +151,12 @@
 | [146](#decisão-146) | Política de anúncios AdMob por canal de distribuição mobile e diff comercial entre versões | **Vigente** | Google Play `alpha` com anúncios desativados (`ADS_ENABLED=false`), APK direto no GitHub com anúncios ativados (`ADS_ENABLED=true`), iOS com anúncios ativados (`LAGCHECK_ADS_ENABLED=YES`) e notas comerciais entre versões para lojas e GitHub | Luiz / Marcelo / Camillo / Renan |
 | [147](#decisão-147) | Fim definitivo da seleção de plataforma no iOS, ícones de compartilhamento 1:1 e cabeçalhos colapsáveis Apple HIG / Material 3 | **Vigente** | Remove seleção de plataforma no iOS (medição sempre no iPhone, paridade com Decisão 80); alinha ícones vetoriais do `ShareNetworkBar` no iOS ao Android; padroniza exibição, posição e colapso ao rolar dos títulos | Luiz / Marcelo / Priscila / Camillo / Renan |
 | [148](#decisão-148) | Integridade de medições incompletas e comparação de operadoras | **Vigente (em implementação)** | Não apresentar diagnóstico completo sem evidência; preservar o ranking com critérios internos e sem expor contagens ao jogador | Luiz / Marcelo / Camillo / Renan |
+| [149](#decisão-149) | Missão 01 (Foundation): modelo operacional por missões, consolidação documental e roadmap 01–08 | **Vigente** | Formaliza fluxo de 9 etapas por missão, cria `docs/ROADMAP.md`, unifica `AGENTS.md`/`.agents/WORKFLOW.md` e atualiza Obsidian | Luiz / Marcelo / Squad |
+| [150](#decisão-150) | Missão 02 (Integrity): remoção de `Secrets.plist` do bundle iOS, correção de telemetria Android, Check Geral, share e App Clip | **Vigente (implementado/testado; `GEMINI_API_KEY` revogada em 27/11/2026; homologação física pendente)** | Remove `Secrets.plist` do `project.yml`; chave Gemini revogada; `game_platform` Android usa `"mobile"`; Check Geral unificado; remove `LagCheckDiscordCardExporter.kt`; App Clip usa `"Lagcheck"` | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [151](#decisão-151) | Missão 03 (Cleanup): remoção da pilha Gemini Booster, telas mortas iOS/Android e rota `/v1/visit` do Worker | **Vigente (implementado/testado; deploy e homologação física pendentes)** | Remove 9 arquivos mortos iOS, 3 arquivos + 4 drawables Android, deps `ui.tooling` sem uso e `/v1/visit` do Worker; preserva `WAITLIST_KV` e `/v1/click` | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [152](#decisão-152) | Missão 04 (Reliability): smoke tests `androidTest`, CI Windows e estratégia de validação em 3 níveis | **Vigente (implementado/testado localmente; CI Windows sem execução remota e homologação física pendente)** | Cria `LagCheckAppSmokeTest` e `VerdictAndHistorySmokeTest` (`6/6` no emulador), `.github/workflows/windows-ci.yml` e níveis 1–3 em `.agents/WORKFLOW.md` | Luiz / Marcelo / Camillo / Renan |
+| [153](#decisão-153) | Missão 05 (Experience): correção da fixture UI iOS, auditoria visual com capturas reais e proposta consolidada de evolução | **Vigente (auditoria e correções de teste concluídas; propostas de produto aguardando aprovação do Luiz)** | Corrige `UITestFixtures.validDeepResult` (`restSamples`/`loadSamples`); diagnostica paridade Home iOS×Android, 64s, catálogo 124 jogos (99,99 KiB), NAT e métricas | Luiz / Marcelo / Priscila / Camillo / Renan |
+| [154](#decisão-154) | Missão 05A (Production Baseline): resolução da divergência de captura iOS e regra permanente de rastreabilidade de binários | **Vigente** | Comprova que `ios_home.png` veio de DerivedData antigo `1.0.3 (9)` (22/10/2026) vs produção `1.2` (19/11/2026); cancela item "Alinhar Home iOS" e exige rastreabilidade em toda captura | Luiz / Marcelo / Priscila / Camillo / Renan |
 
 
 
@@ -1755,6 +1761,89 @@
 - **Rede e NAT:** resposta DNS do gateway não comprova o trecho local nem permite atribuir a causa ao roteador. Respostas STUN insuficientes ou obtidas de modo que não isole o mapeamento não comprovam tipo de NAT, CGNAT ou duplo NAT e não justificam recomendar UPnP.
 - **Operadoras no site:** o ranking permanece disponível com critérios internos mais exigentes e comparação entre testes do mesmo jogo e destino, dentro do recorte geográfico. A interface não mostra quantidades de testes, limiares nem explicações técnicas da régua; não afirma que a comparação representa uma verdade geral sobre a operadora.
 - **Validação:** cobrir carga ausente ou insuficiente, dados legados sem amostras, NAT inconclusivo e comparações com dados insuficientes ou contextos distintos. Distinguir testes automatizados e simulador de prova em aparelhos reais antes da distribuição.
+
+#### Decisão 149
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 01 (Foundation): modelo operacional por missões, consolidação documental e roadmap 01–08.
+- **Status Atual:** **Vigente.** Executada em Goal Mode após a auditoria da Missão 00.
+- **Frentes envolvidas:** Marcelo (Produto/Orquestração), Priscila (Design), Camillo (Arquitetura), Renan (QA) e Luiz (aprovação das próximas missões).
+- **Contexto e limitação registrada:** O projeto Gamecast não está acessível no ambiente local (`~/Projetos`, `~/Obsidian`, `~/Documents`, `~/Desktop`). A adaptação do modelo operacional utilizou a estrutura de missões definida nas instruções das Missões 00 e 01 combinada ao fluxo ágil já existente no LagCheck (`AGENTS.md` e `.agents/WORKFLOW.md`).
+- **Decisão:**
+  1. Adotar o fluxo operacional por missões em 9 etapas (objetivo → reconhecimento → reuso → implementação incremental → testes → validação funcional → registro de decisões → atualização de status → entrega de evidências) integrado ao ciclo de 3 passos da squad (`Enquadramento → Construção & Auto-Teste → Prova de Fogo`) e WIP = 1.
+  2. Centralizar o estado atual por plataforma (Implementado × Testado × Homologado × Publicado), a estratégia de testes, o roadmap oficial (Missões 01–08) e o backlog priorizado em [`docs/ROADMAP.md`](ROADMAP.md), mantendo [`docs/README.md`](README.md) como índice único.
+  3. Atualizar `Obsidian/GMMATTEY/Lagcheck/` como visão executiva sem duplicar especificações técnicas do repositório.
+  4. Classificar riscos de segurança/privacidade não explorados em runtime como hipóteses no backlog até comprovação.
+- **Critérios de aceite:** Documentação coerente com a Missão 00, instruções centralizadas, Obsidian atualizado, histórico de decisões preservado (08–148 intactas) e zero alteração em código funcional, KMP, Worker ou dependências.
+
+#### Decisão 150
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 02 (Integrity): segurança de `Secrets.plist`, telemetria Android, Check Geral, compartilhamento e App Clip.
+- **Status Atual:** **Vigente (implementado e testado em suítes unitárias/simulador; homologação física pendente).**
+- **Frentes envolvidas:** Marcelo (Produto), Priscila (Design), Camillo (Engenharia), Renan (QA) e Luiz (rotação de chave e autorização de próxima missão).
+- **Evidências e decisões:**
+  1. **Segurança (`Secrets.plist` / Gemini Booster):** Confirmado que `apps/ios/Secrets/Secrets.plist` (ignorado no Git) continha uma chave de API e foi empacotado nos arquivos `.xcarchive` (`1.0.3-10` até `1.2-14`). Removido de `apps/ios/project.yml` e regenerado `Nolaggy.xcodeproj` (validado em build sem `Secrets.plist`). **Atualização (27/11/2026):** `GEMINI_API_KEY` revogada pelo responsável do produto (Luiz), sem geração de nova chave.
+  2. **Privacidade Worker (`WAITLIST_KV`):** Confirmado que `apps/worker/src/index.js` armazena e-mail (`lead:<email>`), plataforma, idioma e UTM em `WAITLIST_KV`, além de `/v1/click` ainda chamado por `web/landings/pages/lagcheck/src/scripts/site.ts`. Nenhum dado ou ambiente de produção foi alterado; saneamento coordenado fica para a Missão 03.
+  3. **Telemetria Android (`game_platform`):** `analyticsGamePlatform` (`ProductAnalytics.kt` / `MainViewModel.kt`) passa a mapear `Platform.MOBILE` para `"mobile"` (em vez de `"iphone"`), diferenciando plataforma do jogo do SO do dispositivo sem alterar o Worker `/v1/telemetry`.
+  4. **Check Geral Android:** `GameSelectionScreen` (`MainActivity.kt`) passa a chamar `viewModel.startGeneralCheck()` (`OfficialGameCatalog.genericGaming`), eliminando a cópia indevida de `"fortnite"`.
+  5. **Compartilhamento Android:** Removidas as funções mortas `shareToDiscord`/`shareToWhatsApp` de `VerdictScreen.kt` e excluído `LagCheckDiscordCardExporter.kt` (zero consumidores ativos; 100% consolidado em `ShareMediaRenderer`).
+  6. **App Clip iOS:** `LagCheckClip.swift` atualizado para a wordmark oficial `"Lagcheck"` (`NLTypography.wordmark`).
+- **Critérios de aceite:** Suítes Android (`:core:domain:jvmTest`, `:core:catalog:test`, `:core:network:test`, `:core:session:test`, `:app:testProductionDebugUnitTest`) e iOS (`NolaggyUnitTests` + build `Nolaggy` com `LagCheckClip`) aprovadas; homologação em aparelho físico registrada como pendente.
+
+#### Decisão 151
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 03 (Cleanup): eliminação de código morto iOS/Android, remoção de `/v1/visit` no Worker e mapeamento do catálogo.
+- **Status Atual:** **Vigente (implementado e testado localmente; deploy Worker e homologação física pendentes).**
+- **Frentes envolvidas:** Marcelo (Produto), Priscila (Design), Camillo (Engenharia), Renan (QA) e Luiz.
+- **Decisões e ações:**
+  1. **iOS:** Removida integralmente a pilha descontinuada do Gemini Booster (`GeminiConnectionBoosterService.swift`, `ConnectionBoosterCoordinator.swift`, `ConnectionBoosterModels.swift`, `ConnectionBoosterSheet.swift`, `BoosterComponents.swift`, `ConnectionBoosterTests.swift`, `showingBooster`/`showBooster` e `VocabularyGuardrail.sanitize(items:)`), além das views mortas `DeepCheckResultView.swift`, `DeepCheckDetailsView.swift`, `LagCheckDiscordCardExporter.swift` e do stub `startBackgroundQuickCheck()`. Preservados `QuickCheckPresentation`, `QuickCheckOrchestration` e `ResultFeatureView` (consumidores ativos).
+  2. **Android:** Removidos o fluxo inalcançável `Screen.NetworkCockpit` (`NetworkCockpitScreen.kt`, `NetworkReportPdfExporter.kt`), composables sem uso (`HomeTopBar`, `SecondaryScreenHeader`, `GameArtworkView`), `setSelectedConnectionType`, `reminderEnabled()`, drawables obsoletos (`hero_top_games.jpg`, `wordmark_primary.png`) e dependências `ui.tooling`/`ui.tooling.preview` sem `@Preview`.
+  3. **Worker:** Removida apenas a rota legada `POST /v1/visit` (`handleVisit`, já no-op sem consumidores). Preservados `/v1/load`, `/v1/telemetry`, `/v1/click` (consumido por `site.ts`), `/artwork/games/*` (consumido por `desktop`/`engine-host`), cron diário/Workers AI, `WAITLIST_KV` (dados históricos preservados) e `/v1/waitlist` (até atualização coordenada de `privacy/index.astro` no site).
+  4. **Catálogo:** Fontes mapeadas sem alteração de regras ou endpoints; consolidação estrutural planejada para a Missão 05.
+- **Critérios de aceite:** Suítes iOS (`NolaggyUnitTests` + build `Nolaggy` com `LagCheckClip`), Android (`:core:*` + `:app:testProductionDebugUnitTest` + `:app:assembleProductionDebug`) e Worker (`58/58` `node --test`) aprovadas sem referências residuais.
+
+#### Decisão 152
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 04 (Reliability): testes instrumentados Android (`androidTest`), CI Windows e estratégia de validação em 3 níveis.
+- **Status Atual:** **Vigente (implementado e validado localmente; CI Windows configurado sem execução remota; homologação física pendente).**
+- **Frentes envolvidas:** Marcelo (Produto), Camillo (Engenharia), Renan (QA) e Luiz.
+- **Decisões e entregas:**
+  1. **Android (`androidTest`):** Adicionados `LagCheckAppSmokeTest.kt` e `VerdictAndHistorySmokeTest.kt` com `ui-test-junit4` / `ui-test-manifest` (`compose-bom`), cobrindo inicialização, 4 abas, busca de jogos, Check Geral + cancelamento, Veredito (`READY` e `INCONCLUSIVE`) e Histórico sem chamadas de rede externa. Validado em `production` e `validation` na compilação e executado com `6/6` passando no emulador `signallq_validacao` (API 36).
+  2. **Windows CI:** Criado `.github/workflows/windows-ci.yml` (`windows-latest`) executando `LagCheck.WinUI.Tests`, build `LagCheck.WinUI` (`Release|x64`) e `./gradlew :engine-host:test :desktop:test`, com filtro de caminhos e sem credenciais de produção ou publicação automática.
+  3. **KMP e iOS:** Validado `:core:domain:allTests` (JVM, iOS Simulator Arm64, JS Browser e JS Node) + `:engine-host:test` + `:desktop:test`; `NolaggyUnitTests` aprovado; `CheckCompletoResultUITests` (pré-existente) falhou no simulador e entra como insumo para a Missão 05.
+  4. **Estratégia de Validação Rápida:** Documentados os 3 níveis (Desenvolvimento, Integração e Release) em `.agents/WORKFLOW.md`.
+- **Critérios de aceite:** `androidTest` `6/6` verde no emulador, `:core:domain:allTests` verde, workflow Windows criado e homologação física preservada como gate pendente.
+
+#### Decisão 153
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 05 (Experience): correção de `UITestFixtures`, auditoria visual iOS/Android e proposta consolidada de evolução.
+- **Status Atual:** **Vigente (correções pontuais de teste aplicadas; propostas de experiência, catálogo e métricas aguardando aprovação do Luiz).**
+- **Frentes envolvidas:** Marcelo (Produto), Priscila (Design), Camillo (Engenharia), Renan (QA) e Luiz.
+- **Achados e entregas:**
+  1. **Correção de testes iOS (`CheckCompletoResultUITests`):** `UITestFixtures.validDeepResult` não fornecia `restSamples` nem `loadSamples` (60 amostras), fazendo o motor avaliar a fixture como `.inconclusive` após a Decisão 148; além disso, `testValidResultScreenInEnglish` esperava `"AVOID RANKED FOR NOW"` em vez da cópia real `"I'D AVOID RANKED NOW"`. Ambos corrigidos: `testValidResultScreenInPortuguese`, `testValidResultScreenInEnglish` e `testInconclusiveResultScreenHasNoScoreAndOnlyRetestAction` passaram; `testShareNetworkBarInteractions` segue falhando na etapa de vídeo no simulador (linha 182).
+  2. **Auditoria visual real (iOS × Android):** Capturas reais no simulador iOS (`ios_home.png`) e emulador Android (`android_home.png`, `android_games.png`) evidenciaram: (a) iOS `HomeFeatureView` rodando a Home antiga (`Trocar jogo` / `Checar agora`) enquanto Android já exibe Hero full-bleed + Busca + Favoritos + Populares 2×3; (b) pílula de status no topo colada na barra de status em ambos; (c) card `+ Adicionar` em Favoritos vazios no Android empurrando a 2ª linha de Populares abaixo da dobra; (d) ANR observado no emulador Android (`signallq_validacao` com `-gpu swiftshader_indirect`) logo após冷start.
+  3. **Duração do Check (~68s total / ~64s Rest+Load):** Sem reduzir os 60 probes ou alterar regras KMP, identificadas oportunidades de percepção de valor: eliminar o sleep incondicional de 2s na pré-leitura regional quando todos respondem, encerrar a drenagem após o probe 59 quando todos os 60 já responderam, paralelizar pré-leitura de gateway/A2S e exibir o baseline de repouso aos ~32s enquanto a carga executa.
+  4. **Catálogo canônico:** `catalog-v3.json` do site (124 jogos, 21 regiões) pesa **102.390 bytes (~99,99 KiB)** — abaixo do teto de 128 KiB — e é compatível com `RemoteCatalogVerifier` de iOS e Android.
+  5. **NAT (`natEvaluated = false`):** Recomendado **ocultar a representação indisponível** na UI de compatibilidade até haver sonda STUN em socket único homologada (Decisão 148).
+  6. **Métricas:** Propostos eventos para abandono por etapa, visualização de detalhes/recomendações, compartilhamento nativo e atribuição site→instalação.
+
+#### Decisão 154
+
+- **Data:** 27 de novembro de 2026.
+- **Título:** Missão 05A (Production Baseline): resolução da divergência de captura iOS e regra permanente de rastreabilidade.
+- **Status Atual:** **Vigente.** Executada após reprovação parcial da auditoria visual da Missão 05.
+- **Frentes envolvidas:** Luiz (validação de produção), Marcelo (Produto), Priscila (Design), Camillo (Engenharia), Renan (QA).
+- **Causa comprovada:**
+  1. A versão publicada na App Store é a **1.2** (`com.lagcheck.app`, lançada em `2026-11-19T17:14:29Z` via `itunes.apple.com/lookup`; archives `1.2 (13)` de `ios-v1.2-b13` = `d59a3600` e `1.2 (14)` de `16/11/2026`). Em `project.yml`, a base permanece `1.1 (12)` porque `shared/scripts/ios-release.sh` injeta `MARKETING_VERSION` e `CURRENT_PROJECT_VERSION` no archive.
+  2. A captura `ios_home.png` da Missão 05 foi gerada selecionando o primeiro diretório alfabético em `DerivedData`: `Nolaggy-adyshbrrzhdfvwdajpktecgzgpar` (**`1.0.3 (9)` de 22/10/2026**), e não o build atual.
+  3. Reconstruído o build atual em `-derivedDataPath /tmp/lagcheck-m05a-dd` (zero fixtures): a Home local (`ios_m05a_home.png`) já exibe `PRONTO PRA RANKED?`, `TESTAR AGORA`, `Buscar jogos`, `SEUS JOGOS` e `MAIS POPULARES`, alinhada à produção `1.2`.
+- **Reconciliação e regra permanente:**
+  - Cancelada a recomendação da Missão 05 de "Alinhar Home iOS ao Android" e o falso alarme da pílula na Dynamic Island do iOS. Preservadas todas as implementações válidas das Missões 01–05.
+  - **Regra permanente (`AGENTS.md` e `.agents/WORKFLOW.md`):** toda auditoria visual deve informar versão/build, commit, scheme, dispositivo, configuração e origem do binário, usando `-derivedDataPath` isolado e diferenciando Produção, TestFlight, Desenvolvimento local, Simulador, Fixtures e Protótipos.
 
 ## Como Registrar Novas Decisões
 

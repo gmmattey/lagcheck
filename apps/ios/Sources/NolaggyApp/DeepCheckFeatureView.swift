@@ -25,8 +25,6 @@ struct DeepCheckFeatureView: View {
     @State private var restSamples: [ProbeSample] = []
     @State private var coordinator: DeepCheckSessionCoordinator
     @State private var showingDetails = false
-    @State private var showingBooster = false
-    @State private var boosterCoordinator: ConnectionBoosterCoordinator
     @State private var hasCellularConsent = false
     @State private var measurementStartTime: Date?
     @State private var hasTrackedTerminalEvent = false
@@ -77,7 +75,6 @@ struct DeepCheckFeatureView: View {
         self.onMeasurementCompleted = onMeasurementCompleted
         usesFixture = UITestFixtures.isEnabled("-ui-fixture-deep-result") || UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive")
         _coordinator = State(initialValue: MeasurementTransportFactory.deepCheckCoordinator(historyRepository: historyRepository))
-        _boosterCoordinator = State(initialValue: ConnectionBoosterCoordinator(service: GeminiConnectionBoosterService()))
         let initialPresentation: Presentation
         if UITestFixtures.isEnabled("-ui-fixture-deep-inconclusive") {
             initialPresentation = .inconclusive
@@ -169,37 +166,6 @@ struct DeepCheckFeatureView: View {
                     regionName: friendlyRegion,
                     onDismiss: { showingDetails = false }
                 )
-            }
-        }
-        .sheet(isPresented: $showingBooster) {
-            if case let .result(result, _) = presentation,
-               let observedPhoneNetwork = activeContext.observedPhoneNetwork {
-                let isWiFi = observedPhoneNetwork == .wifi
-                let telemetry = WiFiLocalTelemetry(
-                    gatewayRTTMedianMs: result.metrics.rest.p50Milliseconds,
-                    gatewayJitterMs: result.metrics.rest.jitterMilliseconds,
-                    tailRatioP95P50: result.metrics.rest.p95ToP50Ratio,
-                    loadDeltaP50Ms: result.metrics.loadImpact?.increaseMilliseconds,
-                    validSampleCount: result.metrics.rest.validResponseCount,
-                    plannedSampleCount: result.metrics.rest.validResponseCount,
-                    isWiFi: isWiFi
-                )
-                let wifiBandEstimate = WiFiBandEvaluator.evaluate(telemetry: telemetry).diagnostic
-
-                let req = ConnectionBoosterRequest(
-                    gameName: gameName,
-                    platform: .iphone,
-                    networkKind: observedPhoneNetwork,
-                    p50Milliseconds: result.metrics.rest.p50Milliseconds ?? 0.0,
-                    jitterMilliseconds: result.metrics.rest.jitterMilliseconds ?? 0.0,
-                    packetLossRate: result.metrics.rest.packetLossPercentage / 100.0,
-                    loadImpactMilliseconds: result.metrics.loadImpact?.increaseMilliseconds,
-                    wifiBandEstimate: wifiBandEstimate,
-                    locale: locale.identifier
-                )
-                ConnectionBoosterSheet(request: req, coordinator: boosterCoordinator)
-            } else {
-                EmptyView()
             }
         }
     }
@@ -416,7 +382,6 @@ struct DeepCheckFeatureView: View {
             destinationKind: destinationKind,
             isWiFi: activeContext.observedPhoneNetwork == .wifi,
             showDetails: { showingDetails = true },
-            showBooster: { showingBooster = true },
             retry: restart,
             exit: cancelOrDismiss,
             incomingDuel: incomingDuel

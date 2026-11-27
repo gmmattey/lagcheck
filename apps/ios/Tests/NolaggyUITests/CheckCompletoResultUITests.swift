@@ -88,6 +88,7 @@ final class CheckCompletoResultUITests: XCTestCase {
         let validEnglishVerdicts = [
             "READY FOR RANKED",
             "UNSTABLE CONDITIONS",
+            "I'D AVOID RANKED NOW",
             "AVOID RANKED FOR NOW",
             "INSUFFICIENT DATA"
         ]

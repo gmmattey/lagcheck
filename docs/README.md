@@ -11,6 +11,7 @@ O app ajuda a decidir se a conexão observada está adequada para jogar agora. M
 | Design system compartilhado | [DESIGN.md](../shared/design-system/DESIGN.md), [Componentes](../shared/design-system/components.md) e [Tokens](../shared/design-system/tokens/) |
 | Adaptação desktop Windows (WinUI 3) | [apps/windows/DESIGN.md](../apps/windows/DESIGN.md) |
 | Escopo, jornada e regras de produto | [Funcional](01-funcional.md) |
+| Roadmap oficial, backlog e estado atual | [Roadmap e Estado Atual](ROADMAP.md) |
 | Módulos e responsabilidades | [Arquitetura](02-arquitetura.md) e [Contrato KMP](../apps/android/core/domain/ENGINE_CONTRACT.md) |
 | Contratos e algoritmos | [Especificação técnica](03-especificacao-tecnica.md) |
 | Design system iOS/Android detalhado | [Design system](04-design-system.md) |

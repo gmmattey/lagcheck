@@ -49,6 +49,7 @@ Leia o documento relevante antes de propor ou implementar mudanças:
 | Marca, tokens, componentes e acessibilidade | `shared/design-system/DESIGN.md`, `docs/04-design-system.md` e `shared/design-system/` |
 | Composição e comportamento de interface da V1 | `shared/design-system/prototypes/ios-reference/README.md` e `shared/design-system/prototypes/ios-reference/source/Nolaggy iOS Prototype.dc.html` |
 | Papéis, decisões, workflow e gates | `docs/05-governanca-e-fluxo-de-trabalho.md` e `.agents/WORKFLOW.md` |
+| Roadmap oficial, backlog e estado atual | `docs/ROADMAP.md` |
 | Canais, versões e publicação | `docs/06-fluxo-de-release.md` |
 | Tom, copy e localização | `docs/07-voz-do-produto.md` |
 | Arquitetura, rádio e expansão Android | `docs/08-arquitetura-android.md` e `apps/android/core/domain/ENGINE_CONTRACT.md` |
@@ -129,14 +130,17 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - **Integridade Diagnóstica:** É terminantemente proibido acusar roteador local ou operadora sem evidência comprovada por probe isolado (Decisão 50).
 - Acessibilidade é requisito: contraste, alvo mínimo de 44 pt, Dynamic Type, VoiceOver e alternativa que não dependa apenas de cor.
 
-## Fluxo de uma alteração
+## Fluxo de uma alteração (Modelo por Missões)
 
-1. Confirme o problema, comportamento esperado, escopo e não-escopo.
-2. Identifique a fonte de verdade e os responsáveis que precisam revisar.
-3. Registre/atualize a decisão no documento correto antes de alterar código, quando a decisão for nova.
-4. Implemente de forma isolada, preservando mudanças existentes de outras pessoas.
-5. Valide proporcionalmente ao risco: testes puros para domínio, contrato para integração, iPhone físico para rede/ciclo de vida/ads/consentimento, e comparação visual/interativa com o protótipo iOS canônico para UI.
-6. Reporte evidência real: documentado, implementado localmente, validado em simulador, validado em iPhone físico, enviado ao TestFlight e publicado são estados distintos.
+1. **Definição do objetivo:** confirme problema, escopo, não-escopo e critérios de aceite objetivos.
+2. **Reconhecimento do estado existente:** verifique código, testes e `git status` antes de propor mudança; não presuma funcionamento sem evidência.
+3. **Verificação de componentes reutilizáveis:** priorize o motor KMP (`apps/android/core/domain`), tokens (`shared/design-system/`) e utilitários existentes antes de criar código novo.
+4. **Registro de decisão (quando aplicável):** registre/atualize a decisão em `docs/DECISOES.md` antes de alterar código quando houver regra nova ou conflito.
+5. **Implementação incremental:** altere de forma isolada, preservando trabalho alheio e respeitando WIP = 1.
+6. **Testes:** execute os testes unitários/contrato da plataforma afetada.
+7. **Validação funcional:** valide em simulador/emulador e, quando envolver rede, ciclo de vida, rádio ou anúncios, em aparelho físico.
+8. **Atualização do status:** atualize `docs/ROADMAP.md` e `Obsidian/GMMATTEY/Lagcheck` ao concluir a missão.
+9. **Entrega de evidências:** separe claramente **fatos verificados** (implementado × testado × homologado × publicado), **hipóteses** e **próximos passos**.
 
 ## Releases e estado externo
 
@@ -152,3 +156,4 @@ Escreva para a pessoa que quer saber se pode jogar agora: direto, calmo e precis
 - Use alterações pequenas e rastreáveis. Não apague, reverta ou sobrescreva trabalho alheio.
 - Não exponha segredos, chaves, tokens, IDs sensíveis ou dados pessoais em código, logs ou documentação.
 - Não afirme que algo foi validado, enviado ou publicado sem evidência do ambiente correto.
+- **Rastreabilidade de capturas e auditorias visuais (Decisão 154):** Toda auditoria visual, validação funcional ou proposta de evolução deve identificar explicitamente versão (`X.Y (build)`), commit, scheme, dispositivo/simulador, configuração e origem do binário. Nenhuma captura pode ser apresentada como representativa de produção sem comprovação de origem; nunca selecione binários com `find DerivedData/... | head -n1` (use `-derivedDataPath` isolado ou compile na hora). Diferencie sempre: **Produção**, **TestFlight**, **Desenvolvimento local**, **Simulador**, **Fixtures de teste** e **Protótipos**.

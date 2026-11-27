@@ -23,9 +23,12 @@ enum UITestFixtures {
             p95ToP50Ratio: 1.71, worstSpikeMilliseconds: 72,
             components: QualityComponents(latency: 100, loss: 100, jitter: 100, tail: 62, spikes: 76, consistency: 80, stability: 76)
         )
+        let restSamples = (0..<60).map { seq in
+            ProbeSample(sequence: seq, roundTripMilliseconds: seq % 10 == 0 ? 41 : 24, outcome: .received)
+        }
         return MeasurementHistoryEntry(
             completedAt: Date(), resolvedContext: context, profileRuleVersion: context.catalogVersion,
-            result: QualityResult(metrics: metrics, rawScore: 92, finalScore: 92, resultClass: .excellent, appliedGuardrails: []),
+            result: QualityResult(metrics: metrics, rawScore: 92, finalScore: 92, resultClass: .excellent, appliedGuardrails: [], samples: restSamples),
             primaryCause: .stableConnection
         )
     }
@@ -57,12 +60,16 @@ enum UITestFixtures {
             p95ToP50Ratio: 1.27, worstSpikeMilliseconds: 132,
             components: QualityComponents(latency: 65, loss: 100, jitter: 44, tail: 50, spikes: 55, consistency: 50, stability: 50)
         )
+        let loadSamples = (0..<60).map { seq in
+            ProbeSample(sequence: seq, roundTripMilliseconds: seq % 12 == 0 ? 116 : 91, outcome: .received)
+        }
         return DeepCheckResult(
             restResult: rest,
             metrics: DeepCheckMetrics(
                 rest: rest.metrics,
                 load: load,
-                loadImpact: DeepCheckLoadImpact(restP50Milliseconds: 24, loadP50Milliseconds: 91)
+                loadImpact: DeepCheckLoadImpact(restP50Milliseconds: 24, loadP50Milliseconds: 91),
+                loadSamples: loadSamples
             )
         )
     }
