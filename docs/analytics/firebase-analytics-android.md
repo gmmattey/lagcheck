@@ -14,7 +14,7 @@ O Firebase mede o funil agregado do LagCheck Android. Ele não participa do Chec
 | `result_viewed` | `game_id`, `game_platform`, `result_class` |
 | `details_viewed` | `game_id`, `game_platform`, `result_class` |
 | `recommendations_viewed` | `game_id`, `game_platform`, `recommendation_count` |
-| `result_shared` | `game_id`, `game_platform`, `share_channel` |
+| `result_shared` | `game_id`, `game_platform`, `share_channel` *(registra tentativa de compartilhamento ao acionar o canal, pois o seletor do Android não garante confirmação de publicação no app terceiro)* |
 | `retest_started` | `game_id`, `game_platform` |
 
 `first_open`, `session_start` e outros eventos automáticos pertencem ao SDK. O app não os reproduz. O Check só emite `lagcheck_started` quando a medição UDP vai começar e só emite um desfecho: concluído, inconclusivo ou cancelado.

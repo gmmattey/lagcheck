@@ -14,7 +14,7 @@ O Firebase registra o funil agregado do LagCheck. Ele não participa da mediçã
 | `result_viewed` | `game_id`, `game_platform`, `result_class` |
 | `details_viewed` | `game_id`, `game_platform` |
 | `recommendations_viewed` | `game_id`, `game_platform`, `recommendation_count` |
-| `result_shared` | `game_id`, `game_platform`, `share_channel` |
+| `result_shared` | `game_id`, `game_platform`, `share_channel` *(registra tentativa de compartilhamento ao acionar o canal ou exportação de PDF, pois `UIActivityViewController` não garante conclusão externa)* |
 | `retest_started` | `game_id`, `game_platform` |
 
 `first_open`, `session_start` e os demais eventos automáticos são do SDK. O app não duplica esses eventos. Cada sessão de diagnóstico já protege o desfecho com uma trava: concluído, inconclusivo ou cancelado sai uma única vez.
